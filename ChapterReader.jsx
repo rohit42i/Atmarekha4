@@ -1,16 +1,34 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { supabase } from './supabase';
 
 export default function ChapterReader({ chapterId, onBack }) {
     const [chapter, setChapter] = useState(null);
+    const [pages, setPages] = useState([]);
     const [loading, setLoading] = useState(true);
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
     useEffect(() => {
-        const fetchChapter = async () => {
+        const fetchChapterData = async () => {
+            if (!chapterId) return;
             try {
-                const res = await axios.get(`${apiBaseUrl}/api/chapters/detail/${chapterId}`);
-                setChapter(res.data);
+                // 1. Fetch chapter details from Supabase
+                const { data: chapterData, error: chapterError } = await supabase
+                    .from('chapters')
+                    .select('*')
+                    .eq('id', chapterId)
+                    .single();
+
+                if (chapterError) throw chapterError;
+                setChapter(chapterData);
+
+                // 2. Fetch pages for this chapter from Supabase
+                const { data: pagesData, error: pagesError } = await supabase
+                    .from('chapter_pages')
+                    .select('*')
+                    .eq('chapter_id', chapterId)
+                    .order('page_number', { ascending: true });
+
+                if (pagesError) throw pagesError;
+                setPages(pagesData ? pagesData.map(p => p.image_url) : []);
             } catch (err) {
                 console.error('Failed to fetch chapter:', err);
             } finally {
@@ -18,7 +36,7 @@ export default function ChapterReader({ chapterId, onBack }) {
             }
         };
 
-        if (chapterId) fetchChapter();
+        fetchChapterData();
     }, [chapterId]);
 
     if (loading) {
@@ -61,7 +79,7 @@ export default function ChapterReader({ chapterId, onBack }) {
                     </button>
                     <div className="flex-1 min-w-0">
                         <h1 className="truncate text-lg font-bold text-zinc-900 dark:text-white">
-                            Chapter {chapter.chapterNumber}
+                            Chapter {chapter.chapter_number}
                         </h1>
                         <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">{chapter.title}</p>
                     </div>
@@ -70,33 +88,16 @@ export default function ChapterReader({ chapterId, onBack }) {
 
             {/* Content */}
             <div className="pt-20 pb-12">
-                {/* PDF Mode */}
-                {chapter.pdfUrl && (
-                    <div className="mx-auto max-w-5xl px-6">
-                        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                            <iframe
-                                src={`${apiBaseUrl}${chapter.pdfUrl}`}
-                                className="h-[85vh] w-full"
-                                title="Chapter PDF"
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* Image Mode (Swipeable) */}
-                {chapter.pages && chapter.pages.length > 0 && (
-                    <SwipeableReader pages={chapter.pages} apiBaseUrl={apiBaseUrl} />
-                )}
-
-                {/* No Content */}
-                {!chapter.pdfUrl && (!chapter.pages || chapter.pages.length === 0) && (
+                {pages && pages.length > 0 ? (
+                    <SwipeableReader pages={pages} />
+                ) : (
                     <div className="mx-auto max-w-3xl px-6">
                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-white py-20 dark:border-zinc-800 dark:bg-zinc-900">
                             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-300 dark:bg-zinc-800 dark:text-zinc-600">
                                 <i className="fa-solid fa-file-circle-xmark text-2xl"></i>
                             </div>
                             <h3 className="font-semibold text-zinc-900 dark:text-white">No content available</h3>
-                            <p className="mt-1 text-zinc-500">This chapter hasn't been uploaded yet.</p>
+                            <p className="mt-1 text-zinc-500">This chapter hasn't had pages uploaded yet.</p>
                         </div>
                     </div>
                 )}
@@ -105,16 +106,15 @@ export default function ChapterReader({ chapterId, onBack }) {
     );
 }
 
-function SwipeableReader({ pages, apiBaseUrl }) {
+function SwipeableReader({ pages }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
-    // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
 
     const onTouchStart = (e) => {
-        setTouchEnd(null); // Reset touch end
+        setTouchEnd(null);
         setTouchStart(e.targetTouches[0].clientX);
     };
 
@@ -149,7 +149,6 @@ function SwipeableReader({ pages, apiBaseUrl }) {
         }
     };
 
-    // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'ArrowRight' || e.key === ' ') {
@@ -170,16 +169,14 @@ function SwipeableReader({ pages, apiBaseUrl }) {
             onTouchEnd={onTouchEnd}
         >
             <div className="relative mb-6">
-                {/* Image Container */}
                 <div className="relative overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">
                     <img
-                        src={`${apiBaseUrl}${pages[currentIndex]}`}
+                        src={pages[currentIndex]}
                         alt={`Page ${currentIndex + 1}`}
                         className="w-full h-auto object-contain max-h-[85vh] mx-auto"
                         loading="eager"
                     />
 
-                    {/* Turn Hints (Desktop Hover) */}
                     <div
                         className="absolute inset-y-0 left-0 w-1/4 cursor-pointer opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-r from-black/10 to-transparent flex items-center justify-start pl-4"
                         onClick={prevPage}
@@ -197,7 +194,6 @@ function SwipeableReader({ pages, apiBaseUrl }) {
                 </div>
             </div>
 
-            {/* Controls */}
             <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-lg z-40">
                 <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
                     <button
@@ -230,7 +226,6 @@ function SwipeableReader({ pages, apiBaseUrl }) {
                 </p>
             </div>
 
-            {/* Bottom spacer for fixed controls */}
             <div className="h-24"></div>
         </div>
     );
