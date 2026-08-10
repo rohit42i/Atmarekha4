@@ -9,9 +9,7 @@ export default function Footer({ isAdmin, onLogout }) {
           <div className="lg:col-span-2">
             <a href="#index" className="flex items-center gap-3">
               <img src={logoImg} alt="Atma Rekha Logo" className="h-12 w-12 object-contain" />
-              <span className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Atma Rekha
-              </span>
+              <span className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Atma Rekha</span>
             </a>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
               Discover the depths of Indian Manga. Dive into stories that resonate with culture, emotion, and creativity.
@@ -23,13 +21,7 @@ export default function Footer({ isAdmin, onLogout }) {
                 { href: 'https://x.com/atmarekha', icon: 'fab fa-x-twitter' },
                 { href: 'mailto:itsamritanshofficial@gmail.com', icon: 'fas fa-envelope' },
               ].map(({ href, icon }) => (
-                <a
-                  key={icon}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xl transition hover:text-zinc-900 dark:hover:text-white"
-                >
+                <a key={icon} href={href} target="_blank" rel="noreferrer" className="text-xl transition hover:text-zinc-900 dark:hover:text-white">
                   <i className={icon}></i>
                 </a>
               ))}
@@ -43,12 +35,10 @@ export default function Footer({ isAdmin, onLogout }) {
               {[
                 { label: 'Home', href: '#index' },
                 { label: 'Start Reading', href: '#reading' },
+                { label: 'Admin Login', href: '#admin' },
               ].map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                  >
+                  <a href={item.href} className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
                     {item.label}
                   </a>
                 </li>
@@ -65,51 +55,24 @@ export default function Footer({ isAdmin, onLogout }) {
                 { label: 'Contact', href: '#contact' },
               ].map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                  >
-                    {item.label}
-                  </a>
+                  <a href={item.href} className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">{item.label}</a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Account / Admin Column */}
+          {/* Account Column */}
           <div>
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Account</h3>
             <ul className="mt-4 space-y-3">
               <li>
-                <a href="#help" className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
-                  Help Center
-                </a>
+                <a href="#help" className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">Help Center</a>
               </li>
-              <li>
-                {isAdmin ? (
-                  <div className="flex flex-col items-start gap-3">
-                    <a
-                      href="#dashboard"
-                      className="text-sm font-medium text-emerald-600 transition hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                    >
-                      Dashboard
-                    </a>
-                    <button
-                      onClick={onLogout}
-                      className="text-sm font-medium text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <a
-                    href="#admin"
-                    className="text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                  >
-                    Admin Login
-                  </a>
-                )}
-              </li>
+              {isAdmin && (
+                <li>
+                  <button onClick={onLogout} className="text-sm font-medium text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300">Logout</button>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -117,12 +80,9 @@ export default function Footer({ isAdmin, onLogout }) {
         <div className="mt-12 border-t border-zinc-100 pt-8 dark:border-zinc-800">
           <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
             &copy; {new Date().getFullYear()} Atma Rekha. All rights reserved. <br className="sm:hidden" />
-            <span className="opacity-70 mx-2 hidden sm:inline">|</span>
-            Designed with passion.
+            <span className="opacity-70 mx-2 hidden sm:inline">|</span> Designed with passion.
             <span className="opacity-70 mx-2">|</span>
-            <a href="https://www.linkedin.com/in/harsh-dubey-498498256/" target="_blank" rel="noreferrer" className="font-semibold transition hover:text-blue-600 dark:hover:text-blue-400">
-              Developer Harsh Dubey
-            </a>
+            <a href="https://www.linkedin.com/in/harsh-dubey-498498256/" target="_blank" rel="noreferrer" className="font-semibold transition hover:text-blue-600 dark:hover:text-blue-400">Developer Harsh Dubey</a>
           </p>
         </div>
       </div>
