@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { gsap } from 'gsap';
+import { supabase } from './supabase';
 
 export default function LatestUpdates() {
     const [announcements, setAnnouncements] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
     useEffect(() => {
         const fetchUpdates = async () => {
             try {
-                const res = await axios.get(`${apiBaseUrl}/api/announcements`);
-                if (res.data.success) {
-                    setAnnouncements(res.data.data);
+                // Fetch announcements directly from your Supabase table
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error fetching announcements:', error);
+                } else {
+                    setAnnouncements(data || []);
                 }
             } catch (err) {
                 console.error('Failed to load updates', err);
@@ -64,8 +70,8 @@ export default function LatestUpdates() {
                     </div>
                 ) : (
                     <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-premium-gold before:to-transparent dark:before:via-zinc-700">
-                        {announcements.map((item, index) => (
-                            <div key={item._id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group update-card">
+                        {announcements.map((item) => (
+                            <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group update-card">
 
                                 {/* Timeline Dot */}
                                 <div className="absolute left-0 md:left-1/2 w-10 h-10 border-4 border-white dark:border-zinc-950 bg-premium-gold dark:bg-zinc-800 rounded-full flex items-center justify-center shadow-lg z-10 transform -translate-x-1/2">
@@ -75,7 +81,7 @@ export default function LatestUpdates() {
                                 {/* Content Card */}
                                 <div className="ml-12 md:ml-0 md:w-[45%] bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-lg border border-premium-gold/20 dark:border-zinc-800 hover:shadow-xl transition duration-300 hover:border-premium-gold/40 dark:hover:border-zinc-700">
                                     <span className="inline-block px-3 py-1 rounded-full bg-premium-cream dark:bg-zinc-800 text-xs font-semibold text-premium-royal dark:text-zinc-300 mb-3 border border-premium-gold/10 dark:border-zinc-700">
-                                        {new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        {new Date(item.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                                     </span>
                                     <h3 className="text-xl font-bold text-premium-royal dark:text-white mb-2 group-hover:text-premium-gold dark:group-hover:text-blue-400 transition">
                                         {item.title}
