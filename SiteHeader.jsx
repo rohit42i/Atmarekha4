@@ -16,8 +16,6 @@ export default function SiteHeader({ onToggleNav }) {
 
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('hashchange', handleHashChange);
-
-    // Initial check
     handleHashChange();
 
     return () => {
@@ -32,6 +30,7 @@ export default function SiteHeader({ onToggleNav }) {
     { href: '#latest', label: 'Latest Updates' },
     { href: '#contact', label: 'Contact' },
     { href: '#help', label: 'Help' },
+    { href: '#admin', label: 'Admin' },
   ];
 
   return (
@@ -43,46 +42,29 @@ export default function SiteHeader({ onToggleNav }) {
     >
       <a href="#index" className="group flex items-center gap-2">
         <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-105 active:scale-95">
-          <img
-            src={logoImg}
-            alt="Atma Rekha Logo"
-            className="h-full w-full object-contain filter drop-shadow-md"
-          />
+          <img src={logoImg} alt="Atma Rekha Logo" className="h-full w-full object-contain filter drop-shadow-md" />
         </div>
-
         <div className="flex flex-col">
-          <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-none">
-            Atma Rekha
-          </span>
-          <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase leading-none mt-1 group-hover:text-zinc-500 transition-colors">
-            Manga Platform
-          </span>
+          <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-none">Atma Rekha</span>
+          <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase leading-none mt-1 group-hover:text-zinc-500 transition-colors">Manga Platform</span>
         </div>
       </a>
 
-      {/* Desktop Navigation */}
       <nav className="hidden md:flex items-center gap-1 rounded-full bg-white/50 dark:bg-zinc-900/50 p-1.5 backdrop-blur-sm border border-white/20 dark:border-zinc-800/50 shadow-sm">
         {navLinks.map((link) => {
           const isActive = activeHash === link.href;
           return (
-            <a
-              key={link.href}
-              href={link.href}
-              className={`relative px-5 py-2 text-sm font-medium transition-all duration-300 rounded-full ${isActive
-                ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-800 shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
-                }`}
-            >
+            <a key={link.href} href={link.href} className={`relative px-5 py-2 text-sm font-medium transition-all duration-300 rounded-full ${isActive
+              ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-800 shadow-sm'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+              }`}>
               {link.label}
             </a>
           );
         })}
       </nav>
 
-      <button
-        onClick={onToggleNav}
-        className="text-2xl text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white md:hidden"
-      >
+      <button onClick={onToggleNav} className="text-2xl text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white md:hidden">
         <i className="fas fa-bars"></i>
       </button>
     </header>
