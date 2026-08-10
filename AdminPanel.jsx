@@ -1,25 +1,397 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 
-const tabs = [['dashboard','Dashboard'],['chapters','Chapters'],['upload','Upload Chapter'],['comments','Comments'],['announcements','Announcements'],['media','Media']];
-const N='Chapter Number', T='Title', D='Description', C='Cover url';
+const CHAPTERS = 'chapters';
+const PAGES = 'chapter_pages';
+const STORAGE = 'chapter-pages';
+const CN = 'Chapter Number';
+const TITLE = 'Title';
+const DESC = 'Description';
+const COVER = 'Cover url';
+const PAGE_CHAPTER = 'Chapter id';
+const PAGE_NUMBER = 'Page number';
+const PAGE_IMAGE = 'Image url';
+
+const tabs = [
+  ['dashboard', 'Dashboard'],
+  ['chapters', 'Chapters'],
+  ['upload', 'Upload Chapter'],
+  ['comments', 'Comments'],
+  ['announcements', 'Announcements'],
+  ['media', 'Media'],
+];
+
+const emptyForm = { number: '', title: '', description: '', cover: '' };
+
+function firstKey(row, candidates) {
+  if (!row) return null;
+  return candidates.find((key) => Object.prototype.hasOwnProperty.call(row, key)) || null;
+}
 
 export default function AdminPanel({ onBack }) {
- const [tab,setTab]=useState('dashboard'),[chapters,setChapters]=useState([]),[comments,setComments]=useState([]),[announcements,setAnnouncements]=useState([]),[media,setMedia]=useState([]),[loading,setLoading]=useState(true),[notice,setNotice]=useState(''),[editing,setEditing]=useState(null),[form,setForm]=useState({number:'',title:'',description:'',cover:''}),[files,setFiles]=useState([]),[uploading,setUploading]=useState(false);
- const load=async()=>{setLoading(true);const [ch,co,an,me]=await Promise.all([supabase.from('chapters').select('*').order(N,{ascending:true}),supabase.from('comments').select('*').order('created_at',{ascending:false}).limit(100),supabase.from('announcements').select('*').limit(100),supabase.from('media').select('*').limit(100)]);if(ch.error)setNotice(`Chapters: ${ch.error.message}`);setChapters(ch.data||[]);setComments(co.data||[]);setAnnouncements(an.data||[]);setMedia(me.data||[]);setLoading(false)};
- useEffect(()=>{load()},[]);
- const saveChapter=async()=>{if(!form.number||!form.title)return setNotice('Chapter number and title are required.');const values={[N]:Number(form.number),[T]:form.title,[D]:form.description,[C]:form.cover||null};const r=editing?await supabase.from('chapters').update(values).eq(N,editing):await supabase.from('chapters').insert([values]);if(r.error)return setNotice(`Error: ${r.error.message}`);setNotice(editing?'Chapter updated.':'Chapter created.');setEditing(null);setForm({number:'',title:'',description:'',cover:''});await load()};
- const deleteChapter=async n=>{if(!confirm(`Delete chapter ${n}? This cannot be undone.`))return;const r=await supabase.from('chapters').delete().eq(N,n);setNotice(r.error?`Error: ${r.error.message}`:'Chapter deleted.');if(!r.error)await load()};
- const uploadChapter=async()=>{if(!form.number||!form.title||!files.length)return setNotice('Number, title and at least one page are required.');setUploading(true);try{const {data:chapter,error}=await supabase.from('chapters').insert([{[N]:Number(form.number),[T]:form.title,[D]:form.description,[C]:form.cover||null}]).select().single();if(error)throw error;for(let i=0;i<files.length;i++){const f=files[i],ext=f.name.split('.').pop()||'jpg',name=`${form.number}/page_${i+1}_${Date.now()}.${ext}`;setNotice(`Uploading page ${i+1} of ${files.length}...`);const u=await supabase.storage.from('chapter-pages').upload(name,f);if(u.error)throw u.error;const {data:url}=supabase.storage.from('chapter-pages').getPublicUrl(name);const p=await supabase.from('chapter_pages').insert([{chapter_id:chapter.id,page_number:i+1,image:url.publicUrl}]);if(p.error)throw p.error}setNotice('Chapter uploaded successfully.');setForm({number:'',title:'',description:'',cover:''});setFiles([]);await load();setTab('chapters')}catch(e){setNotice(`Error: ${e.message}`)}finally{setUploading(false)}};
- const delComment=async id=>{const r=await supabase.from('comments').delete().eq('id',id);setNotice(r.error?`Error: ${r.error.message}`:'Comment deleted.');if(!r.error)await load()};
- const reply=async c=>{const text=prompt('Reply to this comment:');if(!text?.trim())return;const {data}=await supabase.auth.getUser();const r=await supabase.from('comments').insert([{chapter_id:c.chapter_id,user_id:data.user?.id,parent_id:c.id,content:text.trim()}]);setNotice(r.error?`Reply failed: ${r.error.message}`:'Reply posted.');if(!r.error)await load()};
- const Card=({title,value,onClick})=><button onClick={onClick} className="rounded-2xl border border-zinc-200 bg-white p-5 text-left shadow-sm dark:border-zinc-800 dark:bg-zinc-900"><p className="text-sm text-zinc-500">{title}</p><p className="mt-2 text-3xl font-bold">{value}</p></button>;
- return <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white"><header className="sticky top-0 z-20 border-b bg-white/95 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-950/95"><div className="mx-auto flex max-w-7xl items-center justify-between"><div><button onClick={onBack} className="text-sm text-zinc-500">← Back to site</button><h1 className="text-xl font-bold">Atma Rekha Admin</h1></div><button onClick={load} className="rounded-xl border px-4 py-2 text-sm">Refresh</button></div></header><main className="mx-auto max-w-7xl px-4 py-6"><div className="mb-6 flex gap-2 overflow-x-auto">{tabs.map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium ${tab===id?'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900':'border bg-white dark:border-zinc-800 dark:bg-zinc-900'}`}>{label}</button>)}</div>{notice&&<div className="mb-5 rounded-xl border bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900">{notice}</div>}{loading?<div>Loading admin data...</div>:<>
- {tab==='dashboard'&&<div><h2 className="mb-5 text-2xl font-bold">Dashboard</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Card title="Chapters" value={chapters.length} onClick={()=>setTab('chapters')}/><Card title="Comments" value={comments.length} onClick={()=>setTab('comments')}/><Card title="Announcements" value={announcements.length} onClick={()=>setTab('announcements')}/><Card title="Media" value={media.length} onClick={()=>setTab('media')}/></div></div>}
- {tab==='chapters'&&<section><div className="mb-5 flex items-center justify-between"><h2 className="text-2xl font-bold">Manage Chapters</h2><button onClick={()=>{setEditing(null);setForm({number:'',title:'',description:'',cover:''});setTab('upload')}} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900">+ New Chapter</button></div><div className="grid gap-4">{chapters.map(c=><div key={c[N]} className="rounded-2xl border bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"><div className="flex items-center justify-between gap-4"><div><p className="text-xs text-zinc-500">Chapter {c[N]}</p><h3 className="text-lg font-bold">{c[T]}</h3><p className="mt-1 text-sm text-zinc-500">{c[D]||'No description'}</p>{c[C]&&<img src={c[C]} alt="Cover" className="mt-3 h-20 w-14 rounded object-cover"/>}</div><div className="flex gap-2"><button onClick={()=>{setEditing(c[N]);setForm({number:c[N],title:c[T]||'',description:c[D]||'',cover:c[C]||''});setTab('upload')}} className="rounded-lg border px-3 py-2 text-sm">Edit</button><button onClick={()=>deleteChapter(c[N])} className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600">Delete</button></div></div></div>)}</div></section>}
- {tab==='upload'&&<section className="max-w-2xl"><h2 className="mb-5 text-2xl font-bold">{editing?`Edit Chapter ${editing}`:'Upload Chapter'}</h2><div className="space-y-4 rounded-2xl border bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900"><input type="number" value={form.number} onChange={e=>setForm({...form,number:e.target.value})} placeholder="Chapter number" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950" disabled={!!editing}/><input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Chapter title" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950"/><textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Description" rows="4" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950"/><input value={form.cover} onChange={e=>setForm({...form,cover:e.target.value})} placeholder="Cover image URL" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950"/>{!editing&&<input type="file" multiple accept="image/*" onChange={e=>setFiles(Array.from(e.target.files||[]))} className="w-full rounded-xl border p-3 dark:border-zinc-700"/>}<button onClick={editing?saveChapter:uploadChapter} disabled={uploading} className="w-full rounded-xl bg-zinc-900 py-3 font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900">{uploading?'Uploading...':editing?'Save Changes':'Upload Chapter'}</button></div></section>}
- {tab==='comments'&&<section><h2 className="mb-5 text-2xl font-bold">Comments</h2>{comments.length?<div className="space-y-3">{comments.map(c=><div key={c.id} className="rounded-2xl border bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><p className="text-sm">{c.content||c.text||'(empty comment)'}</p><div className="mt-3 flex gap-2"><button onClick={()=>reply(c)} className="rounded-lg border px-3 py-1.5 text-sm">Reply</button><button onClick={()=>delComment(c.id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600">Delete</button></div></div>)}</div>:<div className="rounded-2xl border bg-white p-6 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">No comments available.</div>}</section>}
- {tab==='announcements'&&<section><h2 className="mb-5 text-2xl font-bold">Announcements</h2><div className="space-y-3">{announcements.map(a=><div key={a.id} className="rounded-2xl border bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><h3 className="font-semibold">{a.title||a.Title||'Announcement'}</h3><p className="text-sm text-zinc-500">{a.content||a.Content||''}</p></div>)}</div></section>}
- {tab==='media'&&<section><h2 className="mb-5 text-2xl font-bold">Media</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{media.map(m=><div key={m.id} className="rounded-2xl border bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"><p className="text-sm font-semibold">{m.title||'Untitled'}</p>{m.image_url&&<img src={m.image_url} alt="" className="mt-2 aspect-[3/4] w-full rounded object-cover"/>}</div>)}</div></section>}
- </>}</main></div>;
+  const [tab, setTab] = useState('dashboard');
+  const [chapters, setChapters] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [media, setMedia] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [files, setFiles] = useState([]);
+  const [coverFile, setCoverFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    setNotice('');
+
+    const [chaptersResult, commentsResult, announcementsResult, mediaResult] = await Promise.all([
+      supabase.from(CHAPTERS).select('*'),
+      supabase.from('comments').select('*').limit(100),
+      supabase.from('announcements').select('*').limit(100),
+      supabase.from('media').select('*').limit(100),
+    ]);
+
+    if (chaptersResult.error) {
+      setNotice(`Chapters error: ${chaptersResult.error.message}`);
+    }
+    setChapters((chaptersResult.data || []).sort((a, b) => Number(a[CN] || 0) - Number(b[CN] || 0)));
+    setComments(commentsResult.error ? [] : (commentsResult.data || []));
+    setAnnouncements(announcementsResult.error ? [] : (announcementsResult.data || []));
+    setMedia(mediaResult.error ? [] : (mediaResult.data || []));
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const resetForm = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setFiles([]);
+    setCoverFile(null);
+  };
+
+  const uploadPublicFile = async (file, folder, label) => {
+    if (!file) return null;
+    if (!file.type.startsWith('image/')) throw new Error(`${label} must be an image.`);
+    if (file.size > 20 * 1024 * 1024) throw new Error(`${label} is larger than 20 MB.`);
+
+    const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const safeExtension = extension || 'jpg';
+    const safeName = `${folder}/${crypto.randomUUID()}.${safeExtension}`;
+    const result = await supabase.storage.from(STORAGE).upload(safeName, file, { upsert: false });
+    if (result.error) throw result.error;
+
+    const { data } = supabase.storage.from(STORAGE).getPublicUrl(safeName);
+    return { path: safeName, url: data.publicUrl };
+  };
+
+  const saveChapter = async () => {
+    if (!form.number || !form.title.trim()) {
+      setNotice('Chapter number and title are required.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      let coverUrl = form.cover.trim() || null;
+      if (coverFile) {
+        const uploaded = await uploadPublicFile(coverFile, 'covers', 'Cover');
+        coverUrl = uploaded.url;
+      }
+
+      const values = {
+        [CN]: Number(form.number),
+        [TITLE]: form.title.trim(),
+        [DESC]: form.description.trim() || null,
+        [COVER]: coverUrl,
+      };
+
+      const result = editing
+        ? await supabase.from(CHAPTERS).update(values).eq(CN, editing)
+        : await supabase.from(CHAPTERS).insert([values]);
+
+      if (result.error) throw result.error;
+      setNotice(editing ? 'Chapter updated successfully.' : 'Chapter created successfully.');
+      resetForm();
+      await load();
+      setTab('chapters');
+    } catch (error) {
+      setNotice(`Error: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadChapter = async () => {
+    if (!form.number || !form.title.trim() || files.length === 0) {
+      setNotice('Chapter number, title and at least one page are required.');
+      return;
+    }
+
+    if (new Set(files.map((file) => file.name)).size !== files.length) {
+      setNotice('Please select each page only once.');
+      return;
+    }
+
+    setUploading(true);
+    let chapter = null;
+    const uploadedPaths = [];
+
+    try {
+      let coverUrl = form.cover.trim() || null;
+      if (coverFile) {
+        const uploadedCover = await uploadPublicFile(coverFile, 'covers', 'Cover');
+        coverUrl = uploadedCover.url;
+        uploadedPaths.push(uploadedCover.path);
+      }
+
+      const chapterResult = await supabase
+        .from(CHAPTERS)
+        .insert([{
+          [CN]: Number(form.number),
+          [TITLE]: form.title.trim(),
+          [DESC]: form.description.trim() || null,
+          [COVER]: coverUrl,
+        }])
+        .select('*')
+        .single();
+
+      if (chapterResult.error) throw chapterResult.error;
+      chapter = chapterResult.data;
+
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        setNotice(`Uploading page ${index + 1} of ${files.length}...`);
+        const uploaded = await uploadPublicFile(file, `chapters/${form.number}`, `Page ${index + 1}`);
+        uploadedPaths.push(uploaded.path);
+
+        const pageResult = await supabase.from(PAGES).insert([{
+          [PAGE_CHAPTER]: chapter.id,
+          [PAGE_NUMBER]: index + 1,
+          [PAGE_IMAGE]: uploaded.url,
+        }]);
+
+        if (pageResult.error) throw pageResult.error;
+      }
+
+      setNotice(`Chapter ${form.number} uploaded successfully.`);
+      resetForm();
+      await load();
+      setTab('chapters');
+    } catch (error) {
+      if (chapter?.id) {
+        await supabase.from(PAGES).delete().eq(PAGE_CHAPTER, chapter.id);
+        await supabase.from(CHAPTERS).delete().eq('id', chapter.id);
+      }
+      if (uploadedPaths.length) {
+        await supabase.storage.from(STORAGE).remove(uploadedPaths);
+      }
+      setNotice(`Upload failed: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const deleteChapter = async (chapter) => {
+    const number = chapter[CN];
+    if (!window.confirm(`Delete Chapter ${number} and all its pages? This cannot be undone.`)) return;
+
+    setNotice('Deleting chapter...');
+    try {
+      const pagesResult = await supabase.from(PAGES).select(PAGE_IMAGE).eq(PAGE_CHAPTER, chapter.id);
+      if (pagesResult.error) throw pagesResult.error;
+
+      const paths = [];
+      for (const page of pagesResult.data || []) {
+        const url = page[PAGE_IMAGE];
+        if (!url) continue;
+        const marker = `/storage/v1/object/public/${STORAGE}/`;
+        const index = url.indexOf(marker);
+        if (index !== -1) paths.push(decodeURIComponent(url.slice(index + marker.length)));
+      }
+
+      const pageDelete = await supabase.from(PAGES).delete().eq(PAGE_CHAPTER, chapter.id);
+      if (pageDelete.error) throw pageDelete.error;
+
+      const chapterDelete = await supabase.from(CHAPTERS).delete().eq('id', chapter.id);
+      if (chapterDelete.error) throw chapterDelete.error;
+
+      if (paths.length) await supabase.storage.from(STORAGE).remove(paths);
+      setNotice(`Chapter ${number} deleted.`);
+      await load();
+    } catch (error) {
+      setNotice(`Delete failed: ${error.message}`);
+    }
+  };
+
+  const editChapter = (chapter) => {
+    setEditing(chapter[CN]);
+    setForm({
+      number: chapter[CN] ?? '',
+      title: chapter[TITLE] || '',
+      description: chapter[DESC] || '',
+      cover: chapter[COVER] || '',
+    });
+    setCoverFile(null);
+    setFiles([]);
+    setTab('upload');
+  };
+
+  const deleteComment = async (comment) => {
+    const id = comment.id;
+    if (!id || !window.confirm('Delete this comment?')) return;
+    const result = await supabase.from('comments').delete().eq('id', id);
+    setNotice(result.error ? `Comment delete failed: ${result.error.message}` : 'Comment deleted.');
+    if (!result.error) await load();
+  };
+
+  const replyToComment = async (comment) => {
+    const content = window.prompt('Reply to this comment:')?.trim();
+    if (!content) return;
+
+    const userResult = await supabase.auth.getUser();
+    const userId = userResult.data.user?.id;
+    if (!userId) {
+      setNotice('Your admin session has expired. Please log in again.');
+      return;
+    }
+
+    const chapterKey = firstKey(comment, ['chapter_id', 'Chapter id']);
+    const parentKey = firstKey(comment, ['parent_id', 'Parent id']);
+    const contentKey = firstKey(comment, ['content', 'Content', 'text', 'Text']);
+    const userKey = firstKey(comment, ['user_id', 'User id']);
+
+    if (!chapterKey || !contentKey || !userKey) {
+      setNotice('The comments table uses different column names. I need its schema before replies can be enabled safely.');
+      return;
+    }
+
+    const values = { [chapterKey]: comment[chapterKey], [userKey]: userId, [contentKey]: content };
+    if (parentKey) values[parentKey] = comment.id;
+
+    const result = await supabase.from('comments').insert([values]);
+    setNotice(result.error ? `Reply failed: ${result.error.message}` : 'Reply posted.');
+    if (!result.error) await load();
+  };
+
+  const commentText = (comment) => {
+    const key = firstKey(comment, ['content', 'Content', 'text', 'Text', 'comment', 'Comment']);
+    return key ? comment[key] : '(No comment text found)';
+  };
+
+  const summary = useMemo(() => ({
+    chapters: chapters.length,
+    comments: comments.length,
+    announcements: announcements.length,
+    media: media.length,
+  }), [chapters, comments, announcements, media]);
+
+  const Card = ({ title, value, onClick }) => (
+    <button onClick={onClick} className="rounded-2xl border border-zinc-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+      <p className="text-sm text-zinc-500">{title}</p>
+      <p className="mt-2 text-3xl font-bold">{value}</p>
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white">
+      <header className="sticky top-0 z-20 border-b bg-white/95 px-4 py-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <div>
+            <button onClick={onBack} className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white">← Back to site</button>
+            <h1 className="text-xl font-bold">Atma Rekha Admin</h1>
+          </div>
+          <button onClick={load} disabled={loading} className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50">{loading ? 'Refreshing...' : 'Refresh'}</button>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 py-6">
+        <div className="mb-6 flex gap-2 overflow-x-auto">
+          {tabs.map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium ${tab === id ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'border bg-white dark:border-zinc-800 dark:bg-zinc-900'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {notice && <div className="mb-5 rounded-xl border bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900">{notice}</div>}
+        {loading ? <div className="py-10 text-center text-zinc-500">Loading admin data...</div> : (
+          <>
+            {tab === 'dashboard' && (
+              <section>
+                <h2 className="mb-5 text-2xl font-bold">Dashboard</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <Card title="Chapters" value={summary.chapters} onClick={() => setTab('chapters')} />
+                  <Card title="Comments" value={summary.comments} onClick={() => setTab('comments')} />
+                  <Card title="Announcements" value={summary.announcements} onClick={() => setTab('announcements')} />
+                  <Card title="Media" value={summary.media} onClick={() => setTab('media')} />
+                </div>
+              </section>
+            )}
+
+            {tab === 'chapters' && (
+              <section>
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <h2 className="text-2xl font-bold">Manage Chapters</h2>
+                  <button onClick={() => { resetForm(); setTab('upload'); }} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-zinc-900">+ New Chapter</button>
+                </div>
+                {chapters.length === 0 ? <div className="rounded-2xl border bg-white p-8 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">No chapters in Supabase yet.</div> : <div className="grid gap-4">{chapters.map((chapter) => (
+                  <article key={chapter.id || chapter[CN]} className="rounded-2xl border bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs text-zinc-500">Chapter {chapter[CN]}</p>
+                        <h3 className="text-lg font-bold">{chapter[TITLE]}</h3>
+                        <p className="mt-1 text-sm text-zinc-500">{chapter[DESC] || 'No description'}</p>
+                        {chapter[COVER] && <img src={chapter[COVER]} alt="Chapter cover" className="mt-3 h-24 w-16 rounded object-cover" loading="lazy" />}
+                      </div>
+                      <div className="flex shrink-0 gap-2">
+                        <button onClick={() => editChapter(chapter)} className="rounded-lg border px-3 py-2 text-sm">Edit</button>
+                        <button onClick={() => deleteChapter(chapter)} className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600">Delete</button>
+                      </div>
+                    </div>
+                  </article>
+                ))}</div>}
+              </section>
+            )}
+
+            {tab === 'upload' && (
+              <section className="max-w-2xl">
+                <h2 className="mb-5 text-2xl font-bold">{editing ? `Edit Chapter ${editing}` : 'Upload Chapter'}</h2>
+                <div className="space-y-4 rounded-2xl border bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <input type="number" min="1" value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} placeholder="Chapter number" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950" disabled={!!editing} />
+                  <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950" />
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="4" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950" />
+                  <input value={form.cover} onChange={(e) => setForm({ ...form, cover: e.target.value })} placeholder="Cover image URL (optional)" className="w-full rounded-xl border p-3 dark:border-zinc-700 dark:bg-zinc-950" />
+                  <label className="block rounded-xl border p-3 text-sm dark:border-zinc-700">Cover file (optional)<input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="mt-2 block w-full" /></label>
+                  {!editing && <label className="block rounded-xl border p-3 text-sm dark:border-zinc-700">Chapter pages<input type="file" multiple accept="image/*" onChange={(e) => setFiles(Array.from(e.target.files || []))} className="mt-2 block w-full" /></label>}
+                  {!editing && files.length > 0 && <p className="text-sm text-zinc-500">{files.length} page(s) selected. Maximum 20 MB per image.</p>}
+                  <button onClick={editing ? saveChapter : uploadChapter} disabled={uploading} className="w-full rounded-xl bg-zinc-900 py-3 font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900">{uploading ? 'Working...' : editing ? 'Save Changes' : 'Upload Chapter'}</button>
+                  {editing && <button onClick={resetForm} disabled={uploading} className="w-full rounded-xl border py-3 text-sm">Cancel</button>}
+                </div>
+              </section>
+            )}
+
+            {tab === 'comments' && (
+              <section>
+                <h2 className="mb-5 text-2xl font-bold">Comments</h2>
+                {comments.length === 0 ? <div className="rounded-2xl border bg-white p-8 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">No comments available, or the comments table is not readable by this admin session.</div> : <div className="space-y-3">{comments.map((comment) => (
+                  <article key={comment.id || JSON.stringify(comment)} className="rounded-2xl border bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                    <p className="text-sm">{commentText(comment)}</p>
+                    <div className="mt-3 flex gap-2"><button onClick={() => replyToComment(comment)} className="rounded-lg border px-3 py-1.5 text-sm">Reply</button><button onClick={() => deleteComment(comment)} className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600">Delete</button></div>
+                  </article>
+                ))}</div>}
+              </section>
+            )}
+
+            {tab === 'announcements' && <section><h2 className="mb-5 text-2xl font-bold">Announcements</h2><div className="space-y-3">{announcements.length ? announcements.map((item, index) => <article key={item.id || index} className="rounded-2xl border bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"><pre className="whitespace-pre-wrap break-words text-sm">{JSON.stringify(item, null, 2)}</pre></article>) : <p className="text-zinc-500">No announcements found.</p>}</div></section>}
+            {tab === 'media' && <section><h2 className="mb-5 text-2xl font-bold">Media</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{media.length ? media.map((item, index) => <article key={item.id || index} className="rounded-2xl border bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"><pre className="whitespace-pre-wrap break-words text-xs text-zinc-500">{JSON.stringify(item, null, 2)}</pre></article>) : <p className="text-zinc-500">No media found.</p>}</div></section>}
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
