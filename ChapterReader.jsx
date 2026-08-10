@@ -89,7 +89,7 @@ export default function ChapterReader({ chapterId, onBack }) {
             {/* Content */}
             <div className="pt-20 pb-12">
                 {pages && pages.length > 0 ? (
-                    <SwipeableReader pages={pages} />
+                    <SwipeableReader pages={pages} chapterId={chapterId} />
                 ) : (
                     <div className="mx-auto max-w-3xl px-6">
                         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-white py-20 dark:border-zinc-800 dark:bg-zinc-900">
@@ -106,12 +106,30 @@ export default function ChapterReader({ chapterId, onBack }) {
     );
 }
 
-function SwipeableReader({ pages }) {
+function SwipeableReader({ pages, chapterId }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
     const minSwipeDistance = 50;
+
+    // Save reading history function
+    const saveProgress = async (pageIndex) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return; // Only track for logged-in users
+
+        await supabase
+            .from('reading_history')
+            .upsert(
+                { 
+                    user_id: user.id, 
+                    chapter_id: chapterId, 
+                    page_number: pageIndex + 1, 
+                    updated_at: new Date() 
+                },
+                { onConflict: ['user_id', 'chapter_id'] }
+            );
+    };
 
     const onTouchStart = (e) => {
         setTouchEnd(null);
@@ -137,14 +155,18 @@ function SwipeableReader({ pages }) {
 
     const nextPage = () => {
         if (currentIndex < pages.length - 1) {
-            setCurrentIndex(prev => prev + 1);
+            const newIndex = currentIndex + 1;
+            setCurrentIndex(newIndex);
+            saveProgress(newIndex);
             window.scrollTo(0, 0);
         }
     };
 
     const prevPage = () => {
         if (currentIndex > 0) {
-            setCurrentIndex(prev => prev - 1);
+            const newIndex = currentIndex - 1;
+            setCurrentIndex(newIndex);
+            saveProgress(newIndex);
             window.scrollTo(0, 0);
         }
     };
