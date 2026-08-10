@@ -4,6 +4,7 @@ import { supabase } from './supabase';
 export default function AdminPanel({ onBack }) {
     const [chapterNumber, setChapterNumber] = useState('');
     const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [files, setFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState('');
@@ -21,23 +22,28 @@ export default function AdminPanel({ onBack }) {
         try {
             const { data: chapterData, error: chapterError } = await supabase
                 .from('chapters')
-                .insert([{ chapter_number: parseInt(chapterNumber, 10), title }])
+                .insert([{
+                    'Chapter number': parseInt(chapterNumber, 10),
+                    'Title': title,
+                    'Discription': description
+                }])
                 .select()
                 .single();
 
             if (chapterError) throw chapterError;
             const chapterId = chapterData.id;
+            if (!chapterId) throw new Error('Chapter was created but no chapter ID was returned.');
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                const fileExt = file.name.split('.').pop();
+                const fileExt = file.name.split('.').pop() || 'jpg';
                 const fileName = `${chapterId}_page_${i + 1}_${Date.now()}.${fileExt}`;
 
                 setMessage(`Uploading page ${i + 1} of ${files.length}...`);
 
                 const { error: uploadError } = await supabase.storage
                     .from('chapter-pages')
-                    .upload(fileName, file);
+                    .upload(fileName, file, { upsert: false });
 
                 if (uploadError) throw uploadError;
 
@@ -59,7 +65,9 @@ export default function AdminPanel({ onBack }) {
             setMessage('Chapter uploaded successfully!');
             setChapterNumber('');
             setTitle('');
+            setDescription('');
             setFiles([]);
+            e.target.reset();
         } catch (err) {
             console.error('Upload error:', err);
             setMessage(`Error: ${err.message}`);
@@ -85,11 +93,15 @@ export default function AdminPanel({ onBack }) {
                         <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. The Awakening" className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500" />
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
+                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="3" placeholder="Chapter description (optional)" className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Chapter Pages (Select multiple images)</label>
                         <input type="file" multiple accept="image/*" onChange={(e) => setFiles(Array.from(e.target.files || []))} className="w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-950 dark:file:text-blue-300 hover:file:bg-blue-100" />
                         <p className="text-xs text-zinc-400 mt-1">{files.length} file(s) selected</p>
                     </div>
-                    {message && <p className={`text-sm font-medium ${message.includes('success') ? 'text-green-500' : 'text-blue-500'}`}>{message}</p>}
+                    {message && <p className={`text-sm font-medium ${message.toLowerCase().includes('success') ? 'text-green-500' : message.toLowerCase().includes('error') ? 'text-red-500' : 'text-blue-500'}`}>{message}</p>}
                     <button type="submit" disabled={uploading} className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50">
                         {uploading ? 'Uploading...' : 'Upload Chapter'}
                     </button>
