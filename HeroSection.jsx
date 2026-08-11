@@ -63,7 +63,6 @@ export default function HeroSection({ isDark }) {
           Atma Rekha
         </h1>
         <p className="hero-sub mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-premium-charcoal/80 dark:text-zinc-300 md:text-xl">
-          In an age when divine light has long faded, two destined souls rise against the return of the ancient Asurs.
         </p>
 
         <div className="hero-cta mt-10 flex flex-col items-center justify-center gap-6">
