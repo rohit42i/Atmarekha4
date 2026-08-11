@@ -11,28 +11,42 @@ function SocialIcon({ type }) {
 }
 
 export default function Footer() {
-  return <footer className="site-footer">
-    <div className="site-footer-inner">
-      <div className="footer-brand-block">
-        <a className="footer-brand" href="#home">Atma Rekha</a>
-        <p>An original Indian manga story.</p>
-      </div>
+  return (
+    <footer className="site-footer">
+      <div className="site-footer-inner">
+        <div className="footer-brand-block">
+          <a className="footer-brand" href="#home">Atma Rekha</a>
+          <p>An original Indian manga story.</p>
+        </div>
 
-      <nav className="footer-nav" aria-label="Footer navigation">
-        <a href="#info/about">About</a>
-        <a href="#info/contact">Contact</a>
-        <a href="#info/report">Report</a>
-        <a href="#info/privacy">Privacy</a>
-        <a href="#info/terms">Terms</a>
-      </nav>
+        <nav className="footer-nav" aria-label="Footer navigation">
+          <a href="#info/about">About</a>
+          <a href="#info/contact">Contact</a>
+          <a href="#info/report">Report</a>
+          <a href="#info/privacy">Privacy</a>
+          <a href="#info/terms">Terms</a>
+        </nav>
 
-      <div className="footer-socials" aria-label="Social links">
-        {SOCIAL_LINKS.map(item => <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}><SocialIcon type={item.icon}/></a>)}
-      </div>
+        <div className="footer-socials" aria-label="Social links">
+          {SOCIAL_LINKS.map(item => (
+            <a
+              key={item.label}
+              href={item.href}
+              target={item.href.startsWith('mailto:') ? undefined : '_blank'}
+              rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'}
+              className="footer-social"
+              aria-label={item.label}
+              title={item.label}
+            >
+              <SocialIcon type={item.icon} />
+            </a>
+          ))}
+        </div>
 
-      <div className="footer-bottom">
-        <span>2026 Atma Rekha Made in India 🇮🇳</span>
+        <div className="footer-bottom">
+          <span>2026 Atma Rekha Made in India 🇮🇳</span>
+        </div>
       </div>
-    </div>
-  </footer>;
+    </footer>
+  );
 }
