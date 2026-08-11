@@ -68,7 +68,7 @@ export default function HelpCenter() {
                                 </div>
                                 <div>
                                     <p className="text-xs text-zinc-400 uppercase font-semibold tracking-wider">Call Us</p>
-                                    <a href="tel:+917204137931" className="font-medium hover:text-blue-300 transition">
+                                    <a href="tel:" className="font-medium hover:text-blue-300 transition">
                                         +91 72041 37931
                                     </a>
                                 </div>
