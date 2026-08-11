@@ -13,25 +13,16 @@ function SocialIcon({ type }) {
 export default function Footer() {
   return <footer className="site-footer">
     <div className="site-footer-inner">
-      <div className="footer-brand">
-        <p className="footer-kicker">ATMA REKHA</p>
-        <h2>An original Indian manga.</h2>
-      </div>
-
       <nav className="footer-nav" aria-label="Footer navigation">
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
-        <a href="#report">Report</a>
+        <a href="#info/about">About</a><span aria-hidden="true">|</span>
+        <a href="#info/contact">Contact</a><span aria-hidden="true">|</span>
+        <a href="#info/report">Report</a><span aria-hidden="true">|</span>
+        <a href="#info/privacy">Privacy</a><span aria-hidden="true">|</span>
+        <a href="#info/terms">Terms</a>
       </nav>
 
       <div className="footer-socials" aria-label="Social links">
         {SOCIAL_LINKS.map(item => <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}><SocialIcon type={item.icon}/></a>)}
-      </div>
-
-      <div className="footer-legal">
-        <a href="#privacy">Privacy</a>
-        <span aria-hidden="true">|</span>
-        <a href="#terms">Terms</a>
       </div>
 
       <div className="footer-bottom">
