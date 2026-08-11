@@ -1,0 +1,36 @@
+name: Atma Rekha cleanup
+on:
+  push:
+    branches: [backup-before-app-cleanup-2026-08-11]
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Cleanup safely
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),path=require('path'),crypto=require('crypto'),cp=require('child_process');
+          const root=process.cwd(),app=path.join(root,'App.jsx');
+          if(!fs.existsSync(app))throw new Error('App.jsx not found');
+          function walk(dir){let o=[];for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','dist'].includes(e.name))continue;const p=path.join(dir,e.name);e.isDirectory()?o.push(...walk(p)):o.push(p)}return o}
+          let text=fs.readFileSync(app,'utf8');
+          const phoneRe=/\+?91[\s-]*7204137931|7204137931/g;
+          for(const f of walk(root)){let b;try{b=fs.readFileSync(f)}catch{continue}if(b.includes(0))continue;const s=b.toString('utf8');if(s.includes('7204137931'))fs.writeFileSync(f,s.replace(phoneRe,''))}
+          text=fs.readFileSync(app,'utf8');
+          const m=text.match(/(\bcoverImage\s*:\s*['"])data:image\/[^;]+;base64,([A-Za-z0-9+/=\s]+)(['"])/s);
+          if(m){const bytes=Buffer.from(m[2].replace(/\s/g,''),'base64'),hash=x=>crypto.createHash('sha256').update(x).digest('hex'),target=hash(bytes);let match=null;for(const f of walk(root)){if(!/\.(png|jpe?g|webp|gif|avif)$/i.test(f))continue;try{if(hash(fs.readFileSync(f))===target){match=f;break}}catch{}}if(!match)throw new Error('Base64 coverImage has no identical existing asset; refusing unsafe replacement.');const rel=path.relative(root,match).replace(/\\/g,'/');let replacement;if(rel.startsWith('public/'))replacement='/'+rel.slice(7);else{const name='atmarekhaCoverAsset';if(!new RegExp('\\b'+name+'\\b').test(text))text=`import ${name} from './${rel}';\n`+text;replacement=name}text=text.replace(m[0],m[1]+replacement+m[3]);fs.writeFileSync(app,text);console.log('Replaced base64 image with identical asset:',rel)}
+          else if(/\bcoverImage\s*:\s*['"]data:image\//.test(text))throw new Error('Embedded image found but could not be safely parsed.');
+          for(const f of walk(root)){if(!/\.(jsx?|tsx?|json|html|css)$/i.test(f))continue;const s=fs.readFileSync(f,'utf8');if(/SUPABASE_SERVICE_ROLE_KEY|service_role|PRIVATE_KEY|admin_password/i.test(s))throw new Error('Potential privileged credential reference in '+path.relative(root,f))}
+          for(const f of walk(root)){let b;try{b=fs.readFileSync(f)}catch{continue}if(b.includes(0))continue;if(/7204137931/.test(b.toString('utf8')))throw new Error('Phone number remains in '+path.relative(root,f))}
+          const wf=path.join(root,'.github/workflows/atma-rekha-cleanup.yml');if(fs.existsSync(wf))fs.unlinkSync(wf);
+          cp.execSync('git config user.name "github-actions[bot]"');cp.execSync('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"');cp.execSync('git add -A');
+          try{cp.execSync('git diff --cached --quiet');console.log('No cleanup changes required.');process.exit(0)}catch{}
+          cp.execSync('git commit -m "chore: safely clean Atma Rekha frontend"');cp.execSync('git push origin HEAD:backup-before-app-cleanup-2026-08-11');
+          NODE
+      - name: Build
+        run: npm install && npm run build
