@@ -16,22 +16,15 @@ const tabs = [
   ['dashboard', 'Dashboard'],
   ['chapters', 'Chapters'],
   ['upload', 'Upload Chapter'],
-  ['comments', 'Comments'],
   ['announcements', 'Announcements'],
   ['media', 'Media'],
 ];
 
 const emptyForm = { number: '', title: '', description: '', cover: '' };
 
-function firstKey(row, candidates) {
-  if (!row) return null;
-  return candidates.find((key) => Object.prototype.hasOwnProperty.call(row, key)) || null;
-}
-
 export default function AdminPanel({ onBack }) {
   const [tab, setTab] = useState('dashboard');
   const [chapters, setChapters] = useState([]);
-  const [comments, setComments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +39,8 @@ export default function AdminPanel({ onBack }) {
     setLoading(true);
     setNotice('');
 
-    const [chaptersResult, commentsResult, announcementsResult, mediaResult] = await Promise.all([
+    const [chaptersResult, announcementsResult, mediaResult] = await Promise.all([
       supabase.from(CHAPTERS).select('*'),
-      supabase.from('comments').select('*').limit(100),
       supabase.from('announcements').select('*').limit(100),
       supabase.from('media').select('*').limit(100),
     ]);
@@ -56,8 +48,14 @@ export default function AdminPanel({ onBack }) {
     if (chaptersResult.error) {
       setNotice(`Chapters error: ${chaptersResult.error.message}`);
     }
+    if (announcementsResult.error) {
+      setNotice((current) => current || `Announcements error: ${announcementsResult.error.message}`);
+    }
+    if (mediaResult.error) {
+      setNotice((current) => current || `Media error: ${mediaResult.error.message}`);
+    }
+
     setChapters((chaptersResult.data || []).sort((a, b) => Number(a[CN] || 0) - Number(b[CN] || 0)));
-    setComments(commentsResult.error ? [] : (commentsResult.data || []));
     setAnnouncements(announcementsResult.error ? [] : (announcementsResult.data || []));
     setMedia(mediaResult.error ? [] : (mediaResult.data || []));
     setLoading(false);
@@ -96,11 +94,14 @@ export default function AdminPanel({ onBack }) {
     }
 
     setUploading(true);
+    const uploadedPaths = [];
+
     try {
       let coverUrl = form.cover.trim() || null;
       if (coverFile) {
         const uploaded = await uploadPublicFile(coverFile, 'covers', 'Cover');
         coverUrl = uploaded.url;
+        uploadedPaths.push(uploaded.path);
       }
 
       const values = {
@@ -120,6 +121,9 @@ export default function AdminPanel({ onBack }) {
       await load();
       setTab('chapters');
     } catch (error) {
+      if (uploadedPaths.length) {
+        await supabase.storage.from(STORAGE).remove(uploadedPaths);
+      }
       setNotice(`Error: ${error.message}`);
     } finally {
       setUploading(false);
@@ -163,10 +167,12 @@ export default function AdminPanel({ onBack }) {
       if (chapterResult.error) throw chapterResult.error;
       chapter = chapterResult.data;
 
+      if (!chapter?.id) throw new Error('Chapter was created without a database UUID. Upload cancelled.');
+
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
         setNotice(`Uploading page ${index + 1} of ${files.length}...`);
-        const uploaded = await uploadPublicFile(file, `chapters/${form.number}`, `Page ${index + 1}`);
+        const uploaded = await uploadPublicFile(file, `chapters/${chapter.id}`, `Page ${index + 1}`);
         uploadedPaths.push(uploaded.path);
 
         const pageResult = await supabase.from(PAGES).insert([{
@@ -241,54 +247,11 @@ export default function AdminPanel({ onBack }) {
     setTab('upload');
   };
 
-  const deleteComment = async (comment) => {
-    const id = comment.id;
-    if (!id || !window.confirm('Delete this comment?')) return;
-    const result = await supabase.from('comments').delete().eq('id', id);
-    setNotice(result.error ? `Comment delete failed: ${result.error.message}` : 'Comment deleted.');
-    if (!result.error) await load();
-  };
-
-  const replyToComment = async (comment) => {
-    const content = window.prompt('Reply to this comment:')?.trim();
-    if (!content) return;
-
-    const userResult = await supabase.auth.getUser();
-    const userId = userResult.data.user?.id;
-    if (!userId) {
-      setNotice('Your admin session has expired. Please log in again.');
-      return;
-    }
-
-    const chapterKey = firstKey(comment, ['chapter_id', 'Chapter id']);
-    const parentKey = firstKey(comment, ['parent_id', 'Parent id']);
-    const contentKey = firstKey(comment, ['content', 'Content', 'text', 'Text']);
-    const userKey = firstKey(comment, ['user_id', 'User id']);
-
-    if (!chapterKey || !contentKey || !userKey) {
-      setNotice('The comments table uses different column names. I need its schema before replies can be enabled safely.');
-      return;
-    }
-
-    const values = { [chapterKey]: comment[chapterKey], [userKey]: userId, [contentKey]: content };
-    if (parentKey) values[parentKey] = comment.id;
-
-    const result = await supabase.from('comments').insert([values]);
-    setNotice(result.error ? `Reply failed: ${result.error.message}` : 'Reply posted.');
-    if (!result.error) await load();
-  };
-
-  const commentText = (comment) => {
-    const key = firstKey(comment, ['content', 'Content', 'text', 'Text', 'comment', 'Comment']);
-    return key ? comment[key] : '(No comment text found)';
-  };
-
   const summary = useMemo(() => ({
     chapters: chapters.length,
-    comments: comments.length,
     announcements: announcements.length,
     media: media.length,
-  }), [chapters, comments, announcements, media]);
+  }), [chapters, announcements, media]);
 
   const Card = ({ title, value, onClick }) => (
     <button onClick={onClick} className="rounded-2xl border border-zinc-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
@@ -324,9 +287,8 @@ export default function AdminPanel({ onBack }) {
             {tab === 'dashboard' && (
               <section>
                 <h2 className="mb-5 text-2xl font-bold">Dashboard</h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <Card title="Chapters" value={summary.chapters} onClick={() => setTab('chapters')} />
-                  <Card title="Comments" value={summary.comments} onClick={() => setTab('comments')} />
                   <Card title="Announcements" value={summary.announcements} onClick={() => setTab('announcements')} />
                   <Card title="Media" value={summary.media} onClick={() => setTab('media')} />
                 </div>
@@ -372,18 +334,6 @@ export default function AdminPanel({ onBack }) {
                   <button onClick={editing ? saveChapter : uploadChapter} disabled={uploading} className="w-full rounded-xl bg-zinc-900 py-3 font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900">{uploading ? 'Working...' : editing ? 'Save Changes' : 'Upload Chapter'}</button>
                   {editing && <button onClick={resetForm} disabled={uploading} className="w-full rounded-xl border py-3 text-sm">Cancel</button>}
                 </div>
-              </section>
-            )}
-
-            {tab === 'comments' && (
-              <section>
-                <h2 className="mb-5 text-2xl font-bold">Comments</h2>
-                {comments.length === 0 ? <div className="rounded-2xl border bg-white p-8 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">No comments available, or the comments table is not readable by this admin session.</div> : <div className="space-y-3">{comments.map((comment) => (
-                  <article key={comment.id || JSON.stringify(comment)} className="rounded-2xl border bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                    <p className="text-sm">{commentText(comment)}</p>
-                    <div className="mt-3 flex gap-2"><button onClick={() => replyToComment(comment)} className="rounded-lg border px-3 py-1.5 text-sm">Reply</button><button onClick={() => deleteComment(comment)} className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600">Delete</button></div>
-                  </article>
-                ))}</div>}
               </section>
             )}
 
