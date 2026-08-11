@@ -16,6 +16,25 @@ const PAGE_CHAPTER_ID = 'chapter_id';
 const PAGE_NUMBER = 'page_number';
 const PAGE_IMAGE_URL = 'image_url';
 
+function installChapterCoverStyles(chapters) {
+  if (typeof document === 'undefined') return;
+  const id = 'atma-rekha-chapter-cover-styles';
+  document.getElementById(id)?.remove();
+  const rules = chapters
+    .filter(chapter => chapter.cover)
+    .map(chapter => {
+      const href = `#read-chapter/${encodeURIComponent(chapter.id)}`;
+      const cover = JSON.stringify(String(chapter.cover));
+      return `.chapter-row-main[href="${href}"]::before{background-image:url(${cover});}`;
+    })
+    .join('');
+  if (!rules) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = rules;
+  document.head.appendChild(style);
+}
+
 export async function buildChapters() {
   const { data, error } = await supabase
     .from(CHAPTERS_TABLE)
@@ -27,7 +46,7 @@ export async function buildChapters() {
     throw error;
   }
 
-  return (data || []).map((chapter) => ({
+  const chapters = (data || []).map((chapter) => ({
     id: chapter.id,
     chapterNumber: chapter[CHAPTER_NUMBER],
     title: chapter[TITLE] || '',
@@ -37,6 +56,9 @@ export async function buildChapters() {
     releaseDate: chapter[RELEASE_DATE] || null,
     createdAt: chapter[CREATED_AT] || null,
   }));
+
+  installChapterCoverStyles(chapters);
+  return chapters;
 }
 
 export async function buildChapterPages(chapterId) {
