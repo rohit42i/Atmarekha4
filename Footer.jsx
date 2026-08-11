@@ -44,7 +44,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span>2026 Atma Rekha Made in India 🇮🇳</span>
+          <span>.               2026 Atma Rekha Made in India 🇮🇳</span>
         </div>
       </div>
     </footer>
