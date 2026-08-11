@@ -4,9 +4,23 @@ import { buildChapters } from './chapters';
 
 const CHAPTERS_TABLE = 'chapters';
 const PAGES_TABLE = 'chapter_pages';
+const MAX_PAGE_SIZE = 20 * 1024 * 1024;
+const TABS = ['Overview', 'Chapters', 'Comments', 'Announcements', 'Media'];
 
-function publicStorageUrl(bucket, path) { return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl; }
-function storagePathFromPublicUrl(url, bucket) { const marker = `/storage/v1/object/public/${bucket}/`; const index = url?.indexOf(marker); return index === -1 || index == null ? null : decodeURIComponent(url.slice(index + marker.length)); }
+function publicUrl(bucket, path) {
+  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
+function storagePathFromPublicUrl(url, bucket) {
+  if (!url) return null;
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const index = url.indexOf(marker);
+  return index === -1 ? null : decodeURIComponent(url.slice(index + marker.length));
+}
+
+function naturalSort(a, b) {
+  return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+}
 
 async function requireAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -16,72 +30,327 @@ async function requireAdmin() {
   return user;
 }
 
+async function countRows(table) {
+  const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
+  if (error) throw error;
+  return count || 0;
+}
+
+function Stat({ label, value, accent = 'blue' }) {
+  const styles = {
+    blue: 'border-blue-900/60 bg-blue-950/30 text-blue-300',
+    green: 'border-emerald-900/60 bg-emerald-950/30 text-emerald-300',
+    amber: 'border-amber-900/60 bg-amber-950/30 text-amber-300',
+    purple: 'border-purple-900/60 bg-purple-950/30 text-purple-300',
+  };
+  return <div className={`rounded-2xl border p-5 ${styles[accent]}`}><p className="text-xs font-bold uppercase tracking-wider opacity-80">{label}</p><p className="mt-2 text-3xl font-black text-white">{value}</p></div>;
+}
+
 export default function AdminPanel({ onLogout }) {
-  const [chapters, setChapters] = useState([]), [sessionEmail, setSessionEmail] = useState(''), [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [message, setMessage] = useState({ type: '', text: '' }), [selected, setSelected] = useState(null);
+  const [tab, setTab] = useState('Overview');
+  const [chapters, setChapters] = useState([]);
+  const [pageCounts, setPageCounts] = useState({});
+  const [comments, setComments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [media, setMedia] = useState([]);
+  const [stats, setStats] = useState({ chapters: 0, published: 0, preuploaded: 0, pages: 0, comments: 0, announcements: 0, media: 0, profiles: 0 });
+  const [sessionEmail, setSessionEmail] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '', image_url: '', is_pinned: false });
+  const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
+  const [uploadProgress, setUploadProgress] = useState({ active: false, current: 0, total: 0, label: '' });
+
   const sortedChapters = useMemo(() => [...chapters].sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber)), [chapters]);
+  const published = useMemo(() => sortedChapters.filter(c => String(c.status || '').toLowerCase() === 'published'), [sortedChapters]);
+  const preuploaded = useMemo(() => sortedChapters.filter(c => String(c.status || '').toLowerCase() !== 'published'), [sortedChapters]);
 
   async function refresh() {
     setLoading(true);
-    try { const user = await requireAdmin(); setSessionEmail(user.email || ''); setChapters(await buildChapters()); }
-    catch (error) { setMessage({ type: 'error', text: error.message || 'Unable to load admin data.' }); }
-    finally { setLoading(false); }
+    try {
+      const user = await requireAdmin();
+      setSessionEmail(user.email || '');
+      const [chapterData, pageData, commentData, announcementData, mediaData, profileCount] = await Promise.all([
+        buildChapters(),
+        supabase.from(PAGES_TABLE).select('Chapter id, Page number').order('Page number', { ascending: true }),
+        supabase.from('comments').select('id, user_id, chapter_id, author_name, content, created_at').order('created_at', { ascending: false }),
+        supabase.from('announcements').select('title, content, image_url, is_pinned, published_at, created_at').order('created_at', { ascending: false }),
+        supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }),
+        countRows('profiles'),
+      ]);
+      if (pageData.error) throw pageData.error;
+      if (commentData.error) throw commentData.error;
+      if (announcementData.error) throw announcementData.error;
+      if (mediaData.error) throw mediaData.error;
+      const counts = {};
+      (pageData.data || []).forEach(row => { counts[row['Chapter id']] = (counts[row['Chapter id']] || 0) + 1; });
+      setChapters(chapterData || []);
+      setPageCounts(counts);
+      setComments(commentData.data || []);
+      setAnnouncements(announcementData.data || []);
+      setMedia(mediaData.data || []);
+      const totalPages = (pageData.data || []).length;
+      setStats({ chapters: chapterData.length, published: chapterData.filter(c => String(c.status || '').toLowerCase() === 'published').length, preuploaded: chapterData.filter(c => String(c.status || '').toLowerCase() !== 'published').length, pages: totalPages, comments: commentData.data?.length || 0, announcements: announcementData.data?.length || 0, media: mediaData.data?.length || 0, profiles: profileCount });
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: error.message || 'Unable to load admin data.' });
+    } finally { setLoading(false); }
   }
-  useEffect(() => { refresh(); }, []);
-  function resetForm() { setSelected(null); setForm({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] }); }
-  async function uploadFile(bucket, file, path) { const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true, contentType: file.type || undefined }); if (error) throw error; return publicStorageUrl(bucket, path); }
 
-  async function handleSubmit(event) {
-    event.preventDefault(); setBusy(true); setMessage({ type: '', text: '' });
+  useEffect(() => { refresh(); }, []);
+
+  function resetForm() {
+    setSelected(null);
+    setForm({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
+  }
+
+  function choosePages(event) {
+    const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
+    const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
+    if (tooLarge) {
+      setMessage({ type: 'error', text: `${tooLarge.name} is larger than 20 MB. Please resize it before uploading.` });
+      event.target.value = '';
+      return;
+    }
+    files.sort(naturalSort);
+    setForm(current => ({ ...current, pages: files }));
+  }
+
+  async function uploadFile(bucket, file, path) {
+    const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true, contentType: file.type || undefined, cacheControl: '31536000' });
+    if (error) throw error;
+    return publicUrl(bucket, path);
+  }
+
+  async function removeStoragePaths(bucket, paths) {
+    const clean = paths.filter(Boolean);
+    if (!clean.length) return null;
+    const { error } = await supabase.storage.from(bucket).remove(clean);
+    return error || null;
+  }
+
+  async function saveChapter(event) {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true); setMessage({ type: '', text: '' });
+    let chapterId = selected?.id || null;
+    const newlyUploadedPagePaths = [];
     try {
       await requireAdmin();
-      if (!form.number || !form.title.trim()) throw new Error('Chapter number and title are required.');
-      let chapterId = selected?.id; let coverUrl = selected?.cover || null;
-      if (!selected) {
-        const { data, error } = await supabase.from(CHAPTERS_TABLE).insert({ 'Chapter Number': Number(form.number), Title: form.title.trim(), Description: form.description.trim(), status: form.status, 'Release date': form.releaseDate ? new Date(form.releaseDate).toISOString() : null }).select('id').single();
-        if (error) throw error; chapterId = data.id;
+      const number = Number(form.number);
+      if (!Number.isInteger(number) || number < 1) throw new Error('Enter a valid chapter number.');
+      if (!form.title.trim()) throw new Error('Chapter title is required.');
+      if (form.pages.some(file => file.size > MAX_PAGE_SIZE)) throw new Error('Every manga page must be 20 MB or smaller.');
+
+      const chapterPayload = {
+        'Chapter Number': number,
+        Title: form.title.trim(),
+        Description: form.description.trim(),
+        status: form.status,
+        'Release date': form.releaseDate ? new Date(form.releaseDate).toISOString() : null,
+      };
+
+      if (selected) {
+        const { error } = await supabase.from(CHAPTERS_TABLE).update(chapterPayload).eq('id', selected.id);
+        if (error) throw error;
       } else {
-        const { error } = await supabase.from(CHAPTERS_TABLE).update({ 'Chapter Number': Number(form.number), Title: form.title.trim(), Description: form.description.trim(), status: form.status, 'Release date': form.releaseDate ? new Date(form.releaseDate).toISOString() : null }).eq('id', selected.id); if (error) throw error;
+        const { data, error } = await supabase.from(CHAPTERS_TABLE).insert(chapterPayload).select('id').single();
+        if (error) throw error;
+        chapterId = data.id;
       }
-      if (form.cover) { const ext = form.cover.name.split('.').pop() || 'jpg'; coverUrl = await uploadFile('covers', form.cover, `chapters/${chapterId}/cover.${ext}`); const { error } = await supabase.from(CHAPTERS_TABLE).update({ 'Cover url': coverUrl }).eq('id', chapterId); if (error) throw error; }
+
+      let newCoverUrl = selected?.cover || null;
+      let oldCoverPath = null;
+      if (form.cover) {
+        const ext = form.cover.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const coverPath = `chapters/${chapterId}/cover-${Date.now()}.${ext}`;
+        newCoverUrl = await uploadFile('covers', form.cover, coverPath);
+        oldCoverPath = storagePathFromPublicUrl(selected?.cover, 'covers');
+        const { error } = await supabase.from(CHAPTERS_TABLE).update({ 'Cover url': newCoverUrl }).eq('id', chapterId);
+        if (error) throw error;
+      }
+
       if (form.pages.length) {
+        setUploadProgress({ active: true, current: 0, total: form.pages.length, label: 'Uploading manga pages…' });
+        const oldPageResult = await supabase.from(PAGES_TABLE).select('Image url').eq('Chapter id', chapterId);
+        if (oldPageResult.error) throw oldPageResult.error;
+        const oldPagePaths = (oldPageResult.data || []).map(row => storagePathFromPublicUrl(row['Image url'], 'chapter-pages')).filter(Boolean);
+        const revision = Date.now();
         const rows = [];
-        for (let index = 0; index < form.pages.length; index += 1) { const file = form.pages[index]; const ext = file.name.split('.').pop() || 'jpg'; const path = `${chapterId}/${String(index + 1).padStart(4, '0')}.${ext}`; const url = await uploadFile('chapter-pages', file, path); rows.push({ 'Chapter id': chapterId, 'Page number': index + 1, 'Image url': url }); }
-        const { error } = await supabase.from(PAGES_TABLE).upsert(rows, { onConflict: 'Chapter id,Page number' }); if (error) throw error;
+        for (let index = 0; index < form.pages.length; index += 1) {
+          const file = form.pages[index];
+          const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+          const path = `${chapterId}/${revision}/${String(index + 1).padStart(4, '0')}.${ext}`;
+          newlyUploadedPagePaths.push(path);
+          const url = await uploadFile('chapter-pages', file, path);
+          rows.push({ 'Chapter id': chapterId, 'Page number': index + 1, 'Image url': url });
+          setUploadProgress({ active: true, current: index + 1, total: form.pages.length, label: `Uploaded page ${index + 1} of ${form.pages.length}` });
+        }
+        const { error: deleteOldError } = await supabase.from(PAGES_TABLE).delete().eq('Chapter id', chapterId);
+        if (deleteOldError) throw deleteOldError;
+        const { error: insertPagesError } = await supabase.from(PAGES_TABLE).insert(rows);
+        if (insertPagesError) throw insertPagesError;
+        await removeStoragePaths('chapter-pages', oldPagePaths);
       }
-      await refresh(); resetForm(); setMessage({ type: 'success', text: selected ? 'Chapter updated.' : 'Chapter published successfully.' });
-    } catch (error) { console.error(error); setMessage({ type: 'error', text: error.message || 'Save failed.' }); }
-    finally { setBusy(false); }
+
+      if (oldCoverPath) await removeStoragePaths('covers', [oldCoverPath]);
+      setUploadProgress({ active: false, current: 0, total: 0, label: '' });
+      await refresh();
+      resetForm();
+      setMessage({ type: 'success', text: selected ? `Chapter ${number} updated successfully.` : `Chapter ${number} uploaded successfully.` });
+      setTab('Chapters');
+    } catch (error) {
+      console.error(error);
+      if (newlyUploadedPagePaths.length) await removeStoragePaths('chapter-pages', newlyUploadedPagePaths);
+      if (!selected && chapterId) await supabase.from(CHAPTERS_TABLE).delete().eq('id', chapterId);
+      setUploadProgress({ active: false, current: 0, total: 0, label: '' });
+      setMessage({ type: 'error', text: error.message || 'Chapter upload failed. No partial chapter should remain.' });
+    } finally { setBusy(false); }
   }
 
   async function deleteChapter(chapter) {
-    if (!window.confirm(`Delete Chapter ${chapter.chapterNumber} permanently? This also deletes its manga pages.`)) return;
+    if (!window.confirm(`Delete Chapter ${chapter.chapterNumber} permanently? This removes its manga pages and comments too.`)) return;
     setBusy(true); setMessage({ type: '', text: '' });
     try {
       await requireAdmin();
-      const { data: pages, error: pageError } = await supabase.from(PAGES_TABLE).select('Image url').eq('Chapter id', chapter.id); if (pageError) throw pageError;
-      const pagePaths = (pages || []).map(p => storagePathFromPublicUrl(p['Image url'], 'chapter-pages')).filter(Boolean);
-      if (pagePaths.length) { const { error } = await supabase.storage.from('chapter-pages').remove(pagePaths); if (error) throw error; }
-      const coverPath = storagePathFromPublicUrl(chapter.cover, 'covers'); if (coverPath) { const { error } = await supabase.storage.from('covers').remove([coverPath]); if (error) throw error; }
-      const { error } = await supabase.from(CHAPTERS_TABLE).delete().eq('id', chapter.id); if (error) throw error;
-      await refresh(); if (selected?.id === chapter.id) resetForm(); setMessage({ type: 'success', text: `Chapter ${chapter.chapterNumber} deleted.` });
-    } catch (error) { console.error(error); setMessage({ type: 'error', text: error.message || 'Delete failed.' }); }
+      const { data: pages, error: pageError } = await supabase.from(PAGES_TABLE).select('Image url').eq('Chapter id', chapter.id);
+      if (pageError) throw pageError;
+      const pagePaths = (pages || []).map(row => storagePathFromPublicUrl(row['Image url'], 'chapter-pages')).filter(Boolean);
+      const coverPath = storagePathFromPublicUrl(chapter.cover, 'covers');
+      const { error } = await supabase.from(CHAPTERS_TABLE).delete().eq('id', chapter.id);
+      if (error) throw error;
+      const storageErrors = [];
+      const pageStorageError = await removeStoragePaths('chapter-pages', pagePaths); if (pageStorageError) storageErrors.push(pageStorageError.message);
+      const coverStorageError = await removeStoragePaths('covers', [coverPath]); if (coverStorageError) storageErrors.push(coverStorageError.message);
+      if (selected?.id === chapter.id) resetForm();
+      await refresh();
+      setMessage({ type: storageErrors.length ? 'error' : 'success', text: storageErrors.length ? `Chapter ${chapter.chapterNumber} was deleted from the database, but some storage files could not be removed: ${storageErrors.join(', ')}` : `Chapter ${chapter.chapterNumber} deleted successfully.` });
+    } catch (error) {
+      console.error(error);
+      setMessage({ type: 'error', text: error.message || 'Delete failed.' });
+    } finally { setBusy(false); }
+  }
+
+  function editChapter(chapter) {
+    setSelected(chapter);
+    setForm({ number: chapter.chapterNumber || '', title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] });
+    setTab('Chapters');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function deleteComment(id) {
+    if (!window.confirm('Delete this comment permanently?')) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from('comments').delete().eq('id', id);
+      if (error) throw error;
+      setComments(current => current.filter(comment => comment.id !== id));
+      setStats(current => ({ ...current, comments: Math.max(0, current.comments - 1) }));
+    } catch (error) { setMessage({ type: 'error', text: error.message || 'Comment deletion failed.' }); }
     finally { setBusy(false); }
   }
 
-  function editChapter(chapter) { setSelected(chapter); setForm({ number: chapter.chapterNumber || '', title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  async function logout() { await supabase.auth.signOut(); onLogout?.(); }
-  if (loading) return <div className="min-h-screen grid place-items-center bg-zinc-950 text-white">Loading admin dashboard…</div>;
+  async function saveAnnouncement(event) {
+    event.preventDefault(); setBusy(true); setMessage({ type: '', text: '' });
+    try {
+      if (!announcementForm.title.trim() || !announcementForm.content.trim()) throw new Error('Announcement title and content are required.');
+      const { error } = await supabase.from('announcements').upsert({ title: announcementForm.title.trim(), content: announcementForm.content.trim(), image_url: announcementForm.image_url.trim() || null, is_pinned: announcementForm.is_pinned, published_at: new Date().toISOString() });
+      if (error) throw error;
+      setAnnouncementForm({ title: '', content: '', image_url: '', is_pinned: false });
+      await refresh();
+      setMessage({ type: 'success', text: 'Announcement saved.' });
+    } catch (error) { setMessage({ type: 'error', text: error.message || 'Announcement save failed.' }); }
+    finally { setBusy(false); }
+  }
 
-  return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
-    <header className="mb-8 flex flex-col gap-4 rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-400">Atma Rekha</p><h1 className="mt-1 text-3xl font-black">Publisher Dashboard</h1><p className="mt-1 text-sm text-zinc-400">{sessionEmail}</p></div><button onClick={logout} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold hover:bg-zinc-800">Sign out</button></header>
-    {message.text && <div className={`mb-6 rounded-2xl border p-4 text-sm ${message.type === 'success' ? 'border-emerald-900 bg-emerald-950/50 text-emerald-300' : 'border-rose-900 bg-rose-950/50 text-rose-300'}`}>{message.text}</div>}
-    <section className="grid gap-6 lg:grid-cols-[380px_1fr]">
-      <form onSubmit={handleSubmit} className="h-fit rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"><div className="mb-5 flex items-center justify-between"><h2 className="text-xl font-bold">{selected ? 'Edit chapter' : 'Publish chapter'}</h2>{selected && <button type="button" onClick={resetForm} className="text-xs text-zinc-400 hover:text-white">Cancel</button>}</div><div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3"><label className="text-sm text-zinc-300">Chapter #<input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5" required /></label><label className="text-sm text-zinc-300">Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5"><option>Published</option><option>Draft</option><option>Coming Soon</option></select></label></div>
-        <label className="block text-sm text-zinc-300">Title<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label><label className="block text-sm text-zinc-300">Description<textarea rows="3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" /></label><label className="block text-sm text-zinc-300">Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5" /></label><label className="block text-sm text-zinc-300">Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })} className="mt-2 block w-full text-sm text-zinc-400" /></label><label className="block text-sm text-zinc-300">Manga pages <span className="text-zinc-500">(select all in order)</span><input type="file" accept="image/*" multiple onChange={e => setForm({ ...form, pages: Array.from(e.target.files || []) })} className="mt-2 block w-full text-sm text-zinc-400" /></label>{form.pages.length > 0 && <p className="text-xs text-blue-300">{form.pages.length} page(s) selected</p>}<button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold hover:bg-blue-500 disabled:opacity-50">{busy ? 'Working…' : selected ? 'Save changes' : 'Publish chapter'}</button>
-      </div></form>
-      <section className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-xl font-bold">Published chapters</h2><p className="text-sm text-zinc-500">Live data from Supabase</p></div><button onClick={refresh} disabled={busy} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800">Refresh</button></div>{sortedChapters.length === 0 ? <div className="rounded-2xl border border-dashed border-zinc-700 p-12 text-center text-zinc-500">No chapters in Supabase yet.</div> : <div className="space-y-3">{sortedChapters.map(chapter => <article key={chapter.id} className="flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 sm:flex-row sm:items-center"><div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-zinc-900">{chapter.cover ? <img src={chapter.cover} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-xs text-zinc-600">No cover</div>}</div><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase tracking-wider text-blue-400">Chapter {chapter.chapterNumber}</p><h3 className="truncate font-bold">{chapter.title || 'Untitled'}</h3><p className="text-xs text-zinc-500">{chapter.status || 'Published'}</p></div><div className="flex gap-2"><button onClick={() => editChapter(chapter)} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-800">Edit</button><button onClick={() => deleteChapter(chapter)} disabled={busy} className="rounded-lg bg-rose-600/10 px-3 py-2 text-sm font-semibold text-rose-400 hover:bg-rose-600 hover:text-white disabled:opacity-50">Delete</button></div></article>)}</div>}</section>
-    </section>
-  </div></main>;
+  async function deleteAnnouncement(title) {
+    if (!window.confirm(`Delete announcement “${title}”?`)) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from('announcements').delete().eq('title', title);
+      if (error) throw error;
+      await refresh();
+    } catch (error) { setMessage({ type: 'error', text: error.message || 'Announcement deletion failed.' }); }
+    finally { setBusy(false); }
+  }
+
+  async function saveMedia(event) {
+    event.preventDefault(); setBusy(true); setMessage({ type: '', text: '' });
+    try {
+      if (!mediaForm.title.trim() || !mediaForm.image_url.trim() || !mediaForm.category.trim()) throw new Error('Media title, image URL and category are required.');
+      const { error } = await supabase.from('media').insert({ title: mediaForm.title.trim(), image_url: mediaForm.image_url.trim(), category: mediaForm.category.trim() });
+      if (error) throw error;
+      setMediaForm({ title: '', image_url: '', category: '' });
+      await refresh();
+      setMessage({ type: 'success', text: 'Media item added.' });
+    } catch (error) { setMessage({ type: 'error', text: error.message || 'Media save failed.' }); }
+    finally { setBusy(false); }
+  }
+
+  async function deleteMedia(id) {
+    if (!window.confirm('Delete this media item?')) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from('media').delete().eq('id', id);
+      if (error) throw error;
+      await refresh();
+    } catch (error) { setMessage({ type: 'error', text: error.message || 'Media deletion failed.' }); }
+    finally { setBusy(false); }
+  }
+
+  async function logout() { await supabase.auth.signOut(); onLogout?.(); }
+
+  if (loading) return <div className="min-h-screen grid place-items-center bg-zinc-950 text-white"><div className="text-center"><div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-zinc-700 border-t-blue-500" /><p className="text-zinc-400">Loading publisher dashboard…</p></div></div>;
+
+  return <main className="min-h-screen bg-zinc-950 text-white">
+    <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+      <header className="mb-5 rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-2xl sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div><p className="text-xs font-black uppercase tracking-[0.28em] text-blue-400">Atma Rekha • Publisher</p><h1 className="mt-1 text-3xl font-black sm:text-4xl">Admin Control Center</h1><p className="mt-1 text-sm text-zinc-400">{sessionEmail} · Supabase + Cloudflare only</p></div>
+          <div className="flex gap-2"><button onClick={refresh} disabled={busy} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-semibold hover:bg-zinc-800 disabled:opacity-50">Refresh</button><button onClick={logout} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-semibold hover:bg-zinc-800">Sign out</button></div>
+        </div>
+        <nav className="mt-5 flex gap-2 overflow-x-auto pb-1">{TABS.map(item => <button key={item} onClick={() => setTab(item)} className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold ${tab === item ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}>{item}</button>)}</nav>
+      </header>
+
+      {message.text && <div className={`mb-5 rounded-2xl border p-4 text-sm ${message.type === 'success' ? 'border-emerald-900 bg-emerald-950/40 text-emerald-300' : 'border-rose-900 bg-rose-950/40 text-rose-300'}`}>{message.text}</div>}
+
+      {tab === 'Overview' && <section className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Stat label="Total chapters" value={stats.chapters} /><Stat label="Published" value={stats.published} accent="green" /><Stat label="Pre-uploaded / draft" value={stats.preuploaded} accent="amber" /><Stat label="Manga pages" value={stats.pages} accent="purple" /></div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Stat label="Comments" value={stats.comments} /><Stat label="Announcements" value={stats.announcements} accent="green" /><Stat label="Media" value={stats.media} accent="purple" /><Stat label="Profiles" value={stats.profiles} accent="amber" /></div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6"><div className="flex items-center justify-between"><div><h2 className="text-xl font-black">Published</h2><p className="text-sm text-zinc-500">Visible on the public website</p></div><button onClick={() => setTab('Chapters')} className="text-sm font-bold text-blue-400">Manage →</button></div><div className="mt-5 space-y-3">{published.slice(-5).reverse().map(c => <div key={c.id} className="flex items-center justify-between rounded-2xl bg-zinc-950 p-4"><div><p className="text-xs font-bold text-blue-400">Chapter {c.chapterNumber}</p><p className="font-bold">{c.title}</p></div><span className="text-xs text-zinc-500">{pageCounts[c.id] || 0} pages</span></div>)}{!published.length && <p className="rounded-2xl border border-dashed border-zinc-700 p-8 text-center text-zinc-500">Nothing published yet.</p>}</div></div>
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6"><div className="flex items-center justify-between"><div><h2 className="text-xl font-black">Pre-uploaded</h2><p className="text-sm text-zinc-500">Drafts and scheduled/coming-soon chapters stay hidden publicly</p></div><button onClick={() => { resetForm(); setTab('Chapters'); }} className="text-sm font-bold text-blue-400">Upload →</button></div><div className="mt-5 space-y-3">{preuploaded.slice(-5).reverse().map(c => <div key={c.id} className="flex items-center justify-between rounded-2xl bg-zinc-950 p-4"><div><p className="text-xs font-bold text-amber-400">Chapter {c.chapterNumber} · {c.status || 'Draft'}</p><p className="font-bold">{c.title}</p></div><span className="text-xs text-zinc-500">{pageCounts[c.id] || 0} pages</span></div>)}{!preuploaded.length && <p className="rounded-2xl border border-dashed border-zinc-700 p-8 text-center text-zinc-500">No pre-uploaded chapters.</p>}</div></div>
+        </div>
+      </section>}
+
+      {tab === 'Chapters' && <section className="grid gap-6 lg:grid-cols-[390px_1fr]">
+        <form onSubmit={saveChapter} className="h-fit rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6">
+          <div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-blue-400">Chapter manager</p><h2 className="mt-1 text-xl font-black">{selected ? `Edit Chapter ${selected.chapterNumber}` : 'Upload a chapter'}</h2></div>{selected && <button type="button" onClick={resetForm} className="text-xs font-bold text-zinc-400 hover:text-white">Cancel</button>}</div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3"><label className="text-sm text-zinc-300">Chapter #<input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5" required /></label><label className="text-sm text-zinc-300">Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5"><option>Published</option><option>Draft</option><option>Coming Soon</option></select></label></div>
+            <label className="block text-sm text-zinc-300">Title<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label>
+            <label className="block text-sm text-zinc-300">Description<textarea rows="3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" /></label>
+            <label className="block text-sm text-zinc-300">Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5" /></label>
+            <label className="block text-sm text-zinc-300">Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })} className="mt-2 block w-full text-sm text-zinc-400" /></label>
+            <label className="block text-sm text-zinc-300">Manga pages <span className="text-zinc-500">· select all pages once</span><input type="file" accept="image/*" multiple onChange={choosePages} className="mt-2 block w-full text-sm text-zinc-400" /></label>
+            {form.pages.length > 0 && <div className="rounded-2xl border border-blue-900/60 bg-blue-950/20 p-3"><p className="text-sm font-bold text-blue-300">{form.pages.length} pages ready</p><p className="mt-1 text-xs text-zinc-500">Files are uploaded in natural filename order (1, 2, 3… 10).</p><div className="mt-2 max-h-28 overflow-auto text-xs text-zinc-400">{form.pages.map((file, index) => <div key={`${file.name}-${index}`} className="flex justify-between py-0.5"><span>{index + 1}. {file.name}</span><span>{(file.size / 1024 / 1024).toFixed(1)} MB</span></div>)}</div></div>}
+            {uploadProgress.active && <div className="rounded-2xl border border-zinc-700 bg-zinc-950 p-3"><div className="flex justify-between text-xs font-bold"><span>{uploadProgress.label}</span><span>{uploadProgress.current}/{uploadProgress.total}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-800"><div className="h-full bg-blue-600 transition-all" style={{ width: `${uploadProgress.total ? (uploadProgress.current / uploadProgress.total) * 100 : 0}%` }} /></div></div>}
+            <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-black hover:bg-blue-500 disabled:opacity-50">{busy ? 'Uploading…' : selected ? 'Save chapter changes' : 'Upload chapter'}</button>
+            <p className="text-center text-xs text-zinc-600">Draft / Coming Soon chapters are stored safely in Supabase but hidden from the public site.</p>
+          </div>
+        </form>
+
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-xl font-black">All chapters</h2><p className="text-sm text-zinc-500">{stats.chapters} total · {stats.published} published · {stats.preuploaded} pre-uploaded</p></div><button onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold">+ New</button></div><div className="space-y-3">{sortedChapters.map(chapter => <article key={chapter.id} className="flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 sm:flex-row sm:items-center"><div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-zinc-900">{chapter.cover ? <img src={chapter.cover} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[10px] text-zinc-600">No cover</div>}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-xs font-black uppercase tracking-wider text-blue-400">Chapter {chapter.chapterNumber}</p><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${String(chapter.status || '').toLowerCase() === 'published' ? 'bg-emerald-950 text-emerald-300' : 'bg-amber-950 text-amber-300'}`}>{chapter.status || 'Draft'}</span></div><h3 className="truncate font-bold">{chapter.title || 'Untitled'}</h3><p className="text-xs text-zinc-500">{pageCounts[chapter.id] || 0} manga pages</p></div><div className="flex gap-2"><button onClick={() => editChapter(chapter)} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm font-semibold hover:bg-zinc-800">Edit</button><button onClick={() => deleteChapter(chapter)} disabled={busy} className="rounded-lg bg-rose-600/10 px-3 py-2 text-sm font-semibold text-rose-400 hover:bg-rose-600 hover:text-white disabled:opacity-50">Delete</button></div></article>)}{!sortedChapters.length && <div className="rounded-2xl border border-dashed border-zinc-700 p-12 text-center text-zinc-500">No chapters yet. Upload your first chapter from the form.</div>}</div></div>
+      </section>}
+
+      {tab === 'Comments' && <section className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6"><div className="mb-5"><h2 className="text-xl font-black">Comment moderation</h2><p className="text-sm text-zinc-500">All reader comments in one place. Admins can remove abusive or unwanted comments.</p></div>{comments.length ? <div className="space-y-3">{comments.map(comment => <article key={comment.id} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4"><div className="flex items-start justify-between gap-4"><div><p className="font-bold">{comment.author_name || 'Reader'}</p><p className="text-xs text-zinc-600">{comment.chapter_id ? `Chapter ${chapters.find(c => c.id === comment.chapter_id)?.chapterNumber || 'unknown'}` : 'General'} · {new Date(comment.created_at).toLocaleString()}</p></div><button onClick={() => deleteComment(comment.id)} disabled={busy} className="rounded-lg bg-rose-600/10 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-600 hover:text-white">Delete</button></div><p className="mt-3 whitespace-pre-wrap text-sm text-zinc-300">{comment.content}</p></article>)}</div> : <div className="rounded-2xl border border-dashed border-zinc-700 p-14 text-center"><p className="text-lg font-bold">No comments yet</p><p className="mt-1 text-sm text-zinc-500">The moderation system is ready. Reader comments will appear here once the public comment form is connected.</p></div>}</section>}
+
+      {tab === 'Announcements' && <section className="grid gap-6 lg:grid-cols-[390px_1fr]"><form onSubmit={saveAnnouncement} className="h-fit rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6"><h2 className="text-xl font-black">Announcement manager</h2><div className="mt-5 space-y-4"><label className="block text-sm text-zinc-300">Title<input value={announcementForm.title} onChange={e => setAnnouncementForm({ ...announcementForm, title: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label><label className="block text-sm text-zinc-300">Content<textarea rows="5" value={announcementForm.content} onChange={e => setAnnouncementForm({ ...announcementForm, content: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label><label className="block text-sm text-zinc-300">Image URL<input value={announcementForm.image_url} onChange={e => setAnnouncementForm({ ...announcementForm, image_url: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" /></label><label className="flex items-center gap-3 text-sm text-zinc-300"><input type="checkbox" checked={announcementForm.is_pinned} onChange={e => setAnnouncementForm({ ...announcementForm, is_pinned: e.target.checked })} /> Pin announcement</label><button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold disabled:opacity-50">Save announcement</button></div></form><div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6"><h2 className="text-xl font-black">Announcements</h2><div className="mt-5 space-y-3">{announcements.map(item => <article key={item.title} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4"><div className="flex justify-between gap-4"><div><p className="font-bold">{item.title}</p><p className="mt-1 text-sm text-zinc-400">{item.content}</p></div><button onClick={() => deleteAnnouncement(item.title)} disabled={busy} className="h-fit rounded-lg bg-rose-600/10 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-600 hover:text-white">Delete</button></div></article>)}{!announcements.length && <p className="rounded-2xl border border-dashed border-zinc-700 p-12 text-center text-zinc-500">No announcements yet.</p>}</div></div></section>}
+
+      {tab === 'Media' && <section className="grid gap-6 lg:grid-cols-[390px_1fr]"><form onSubmit={saveMedia} className="h-fit rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6"><h2 className="text-xl font-black">Media manager</h2><p className="mt-1 text-sm text-zinc-500">Manage media records already served by Supabase.</p><div className="mt-5 space-y-4"><label className="block text-sm text-zinc-300">Title<input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label><label className="block text-sm text-zinc-300">Image URL<input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label><label className="block text-sm text-zinc-300">Category<input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3" required /></label><button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold disabled:opacity-50">Add media</button></div></form><div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl sm:p-6"><h2 className="text-xl font-black">Media library</h2><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{media.map(item => <article key={item.id} className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950"><div className="aspect-video bg-zinc-900">{item.image_url && <img src={item.image_url} alt={item.title} className="h-full w-full object-cover" loading="lazy" />}</div><div className="p-4"><p className="font-bold">{item.title}</p><p className="mt-1 text-xs text-zinc-500">{item.category}</p><button onClick={() => deleteMedia(item.id)} disabled={busy} className="mt-3 rounded-lg bg-rose-600/10 px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-600 hover:text-white">Delete</button></div></article>)}{!media.length && <p className="col-span-full rounded-2xl border border-dashed border-zinc-700 p-12 text-center text-zinc-500">No media items yet.</p>}</div></div></section>}
+    </div>
+  </main>;
 }
