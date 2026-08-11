@@ -1,0 +1,28 @@
+/* Atma Rekha public UI polish: intentionally layered over the existing theme. */
+.hero-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:72px;font-weight:900;letter-spacing:-.08em;color:#fff;background:radial-gradient(circle at 50% 35%,#272c42 0%,#202125 48%,#171718 100%)}
+
+.chapter-row-actions{display:flex;align-items:center;gap:8px}
+.engagement-icon{width:54px;min-width:54px;height:48px;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid #303038;border-radius:14px;background:#101011;color:#d7d7dc;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.engagement-icon:hover{transform:translateY(-1px);border-color:#4d69a8;background:#17191f}
+.engagement-icon span{font-size:18px}.engagement-icon small{font-size:11px;color:#8d8d96;font-weight:800}
+
+.reader-engagement{display:flex;align-items:center;gap:6px}.reader-engagement-button{min-height:42px;padding:0 10px;display:inline-flex;align-items:center;gap:5px;border:1px solid #2b2b2d;border-radius:12px;background:#111113;color:#d8d8dc;font-size:12px;font-weight:800;cursor:pointer}.reader-engagement-button:hover{border-color:#4865a7;background:#17191f}.reader-engagement-button span{font-size:16px;color:#ffd43b}.reader-engagement-button:nth-child(2) span{color:inherit}
+.reader-chapter-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.reader-chapter-nav a{min-height:46px;display:flex;align-items:center;padding:0 15px;border:1px solid #202024;border-radius:14px;background:#0d0d0e;color:#bfc0c6;text-decoration:none;font-size:12px;font-weight:750}.reader-chapter-nav a:last-child{justify-content:flex-end}.reader-chapter-nav a:hover{border-color:#3b568d;color:#fff}
+
+.overlay-backdrop{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;padding:16px;background:rgb(0 0 0 / .7);backdrop-filter:blur(8px)}
+.rating-sheet{width:min(520px,100%);padding:22px;border:1px solid #2a2a2d;border-radius:24px;background:#121214;box-shadow:0 25px 80px rgb(0 0 0 / .55)}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.sheet-head h2{margin:4px 0 0;font-size:22px;letter-spacing:-.03em}.rating-big{display:flex;align-items:baseline;gap:8px;margin-top:24px}.rating-big strong{font-size:42px;letter-spacing:-.06em}.rating-big span{color:#707079;font-size:12px}.rating-scale{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:20px}.rating-scale button{min-width:0;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid #2c2c31;border-radius:12px;background:#0d0d0e;color:#5b5b64;cursor:pointer}.rating-scale button:hover:not(:disabled){border-color:#5874b4;background:#17191f;color:#ffd43b}.rating-scale button span{font-size:17px}.rating-scale button small{font-size:10px;color:#777780}.rating-scale button:disabled{opacity:.55;cursor:wait}.sheet-message{margin:14px 0 0;padding:10px 12px;border-radius:10px;background:#18181a;color:#a9a9b1;font-size:12px}
+
+.info-page{min-height:100vh;background:#080808;color:#f7f7f7}.info-page-header{position:sticky;top:0}.info-card{width:min(680px,calc(100% - 32px));margin:38px auto 80px;padding:36px;border:1px solid #292929;border-radius:26px;background:linear-gradient(180deg,#18181a,#141415);box-shadow:0 25px 70px rgb(0 0 0 / .28)}.info-card h2{margin:12px 0 0;font-size:clamp(32px,7vw,50px);letter-spacing:-.055em}.info-card p:last-child{margin:22px 0 0;color:#b4b4bb;font-size:16px;line-height:1.85}
+
+/* Keep the approved compact footer shape. */
+.site-footer{margin-top:38px}.footer-nav{justify-content:center;gap:10px}.footer-nav span{color:#3e3e44}.footer-socials{justify-content:center}.footer-bottom{justify-content:center;flex-wrap:wrap}
+
+/* Remove visual remnants of the old homepage sections if any legacy component is still mounted. */
+.home-page .latest-list,.home-page .latest-item,.home-page .home-anchor-section{display:none!important}
+
+@media (max-width:700px){
+  .hero-fallback{font-size:58px}.hero-art img{object-position:center}.chapter-row-actions{justify-content:flex-start}.engagement-icon{height:44px;min-width:50px}.chapter-row-meta{gap:6px;font-size:12px}.chapter-row-details{margin-top:8px}.reader-engagement{gap:4px}.reader-engagement-button{padding:0 7px;min-height:40px}.reader-page-pill{padding:8px 9px}.reader-content{padding-bottom:72px}.reader-stage{background:#000}.reader-stage img{max-height:none;width:100%;height:auto}.reader-chapter-nav{padding:0 14px}.rating-scale{gap:3px}.rating-scale button{min-height:50px;border-radius:10px}.rating-scale button span{font-size:15px}.rating-sheet{padding:18px;border-radius:20px}.info-card{margin-top:24px;padding:28px 24px;border-radius:22px}.info-card h2{font-size:34px}.footer-nav{gap:7px 9px}.footer-nav a{font-size:12px}.footer-social{width:40px;height:40px}
+}
+
+@media (min-width:701px){.overlay-backdrop{align-items:center}.rating-sheet{margin-bottom:0}}
