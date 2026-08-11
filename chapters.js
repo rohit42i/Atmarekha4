@@ -1,3 +1,4 @@
+import './admin-mobile.css';
 import { supabase } from './supabase';
 
 const CHAPTERS_TABLE = 'chapters';
