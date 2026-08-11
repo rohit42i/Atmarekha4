@@ -14,65 +14,58 @@ export function getViewerKey() {
   return key;
 }
 
-export function formatRating(value) {
-  return Number.isFinite(Number(value)) ? Number(value).toFixed(1) : '0.0';
-}
-
 export function buildRatingSummary(rows = []) {
   const ratings = rows.map(row => Number(row.rating)).filter(Number.isFinite);
-  return {
-    average: ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : 0,
-    count: ratings.length,
-  };
+  return { average: ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : 0, count: ratings.length };
 }
 
 export async function fetchPublicEngagement(chapterIds) {
   const ids = [...new Set((chapterIds || []).filter(Boolean))];
   if (!ids.length) return {};
-
   const [ratings, views, likes, comments] = await Promise.all([
-    supabase.from('chapter_ratings').select('chapter_id, rating, viewer_key').in('chapter_id', ids),
+    supabase.from('chapter_ratings').select('chapter_id, rating').in('chapter_id', ids),
     supabase.from('chapter_views').select('chapter_id').in('chapter_id', ids),
     supabase.from('chapter_likes').select('chapter_id').in('chapter_id', ids),
     supabase.from('comments').select('id, chapter_id').in('chapter_id', ids),
   ]);
-
-  for (const result of [ratings, views, likes, comments]) {
-    if (result.error) throw result.error;
-  }
-
-  const map = Object.fromEntries(ids.map(id => [id, {
+  for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
+  return Object.fromEntries(ids.map(id => [id, {
     rating: buildRatingSummary((ratings.data || []).filter(row => row.chapter_id === id)),
     views: (views.data || []).filter(row => row.chapter_id === id).length,
     likes: (likes.data || []).filter(row => row.chapter_id === id).length,
     comments: (comments.data || []).filter(row => row.chapter_id === id).length,
   }]));
-
-  return map;
 }
 
 export async function fetchChapterEngagement(chapterId) {
   const [ratings, views, likes] = await Promise.all([
-    supabase.from('chapter_ratings').select('id, rating, viewer_key, created_at').eq('chapter_id', chapterId),
+    supabase.from('chapter_ratings').select('id, rating, created_at').eq('chapter_id', chapterId),
     supabase.from('chapter_views').select('id').eq('chapter_id', chapterId),
     supabase.from('chapter_likes').select('id').eq('chapter_id', chapterId),
   ]);
   for (const result of [ratings, views, likes]) if (result.error) throw result.error;
-  return {
-    rating: buildRatingSummary(ratings.data || []),
-    views: (views.data || []).length,
-    likes: (likes.data || []).length,
-  };
+  return { rating: buildRatingSummary(ratings.data || []), views: (views.data || []).length, likes: (likes.data || []).length };
 }
 
 export async function fetchChapterComments(chapterId) {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('id, user_id, chapter_id, author_name, content, created_at, updated_at, parent_comment_id')
-    .eq('chapter_id', chapterId)
-    .order('created_at', { ascending: true });
+  const { data, error } = await supabase.from('comments').select('id, user_id, chapter_id, author_name, content, created_at, updated_at, parent_comment_id').eq('chapter_id', chapterId).order('created_at', { ascending: true });
   if (error) throw error;
   return data || [];
+}
+
+export async function fetchCommentLikes(commentIds) {
+  const ids = [...new Set((commentIds || []).filter(Boolean))];
+  if (!ids.length) return { counts: {}, liked: {} };
+  const viewerKey = getViewerKey();
+  const [all, own] = await Promise.all([
+    supabase.from('comment_likes').select('comment_id').in('comment_id', ids),
+    supabase.from('comment_likes').select('comment_id').in('comment_id', ids).eq('viewer_key', viewerKey),
+  ]);
+  if (all.error) throw all.error;
+  if (own.error) throw own.error;
+  const counts = {};
+  for (const row of all.data || []) counts[row.comment_id] = (counts[row.comment_id] || 0) + 1;
+  return { counts, liked: Object.fromEntries((own.data || []).map(row => [row.comment_id, true])) };
 }
 
 export async function addComment({ chapterId, content, authorName, parentCommentId = null }) {
@@ -80,48 +73,29 @@ export async function addComment({ chapterId, content, authorName, parentComment
   const cleanName = String(authorName || 'Reader').trim().slice(0, 80) || 'Reader';
   if (!cleanContent) throw new Error('Write a comment first.');
   if (cleanContent.length > 2000) throw new Error('Comments are limited to 2000 characters.');
-
   const { data: { user } } = await supabase.auth.getUser();
-  const { data, error } = await supabase.from('comments').insert({
-    user_id: user?.id || null,
-    chapter_id: chapterId,
-    author_name: cleanName,
-    content: cleanContent,
-    parent_comment_id: parentCommentId,
-  }).select('id, user_id, chapter_id, author_name, content, created_at, updated_at, parent_comment_id').single();
+  const { data, error } = await supabase.from('comments').insert({ user_id: user?.id || null, chapter_id: chapterId, author_name: cleanName, content: cleanContent, parent_comment_id: parentCommentId }).select('id, user_id, chapter_id, author_name, content, created_at, updated_at, parent_comment_id').single();
   if (error) throw error;
   return data;
 }
 
 export async function recordChapterView(chapterId) {
-  const { error } = await supabase.from('chapter_views').upsert(
-    { chapter_id: chapterId, viewer_key: getViewerKey() },
-    { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true }
-  );
+  const { error } = await supabase.from('chapter_views').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true });
   if (error) throw error;
 }
 
 export async function likeChapter(chapterId) {
-  const { error } = await supabase.from('chapter_likes').upsert(
-    { chapter_id: chapterId, viewer_key: getViewerKey() },
-    { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true }
-  );
+  const { error } = await supabase.from('chapter_likes').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true });
   if (error) throw error;
 }
 
 export async function likeComment(commentId) {
-  const { error } = await supabase.from('comment_likes').upsert(
-    { comment_id: commentId, viewer_key: getViewerKey() },
-    { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }
-  );
+  const { error } = await supabase.from('comment_likes').upsert({ comment_id: commentId, viewer_key: getViewerKey() }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
   if (error) throw error;
 }
 
 export async function reportComment(commentId, reason = 'Reported by reader') {
-  const { error } = await supabase.from('comment_reports').upsert(
-    { comment_id: commentId, viewer_key: getViewerKey(), reason: String(reason).trim().slice(0, 500) },
-    { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }
-  );
+  const { error } = await supabase.from('comment_reports').upsert({ comment_id: commentId, viewer_key: getViewerKey(), reason: String(reason).trim().slice(0, 500) }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
   if (error) throw error;
 }
 
@@ -132,7 +106,6 @@ export async function submitRating(chapterId, rating) {
   const existing = await supabase.from('chapter_ratings').select('id').eq('chapter_id', chapterId).eq('viewer_key', viewerKey).maybeSingle();
   if (existing.error) throw existing.error;
   if (existing.data) return { alreadyRated: true };
-
   const { error } = await supabase.from('chapter_ratings').insert({ chapter_id: chapterId, rating: value, viewer_key: viewerKey });
   if (error) {
     if (String(error.code) === '23505') return { alreadyRated: true };
