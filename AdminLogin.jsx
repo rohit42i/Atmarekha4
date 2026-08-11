@@ -1,92 +1,42 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
+import { supabase } from './supabase';
 
-export default function AdminLogin({ apiBaseUrl, onLoginSuccess }) {
+export default function AdminLogin({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState({ type: 'idle', message: '' });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (event) => {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setStatus({ type: 'loading', message: 'Signing in...' });
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      setStatus({ type: 'success', message: 'Login successful. Welcome, Admin!' });
-      localStorage.setItem('adminEmail', email); // Store email for password change
-      onLoginSuccess?.(data);
-    } catch (error) {
-      setStatus({ type: 'error', message: error.message || 'Login failed.' });
+    setBusy(true); setError('');
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (authError) {
+      setError(authError.message || 'Login failed.');
+      setBusy(false);
+      return;
     }
-  };
+    const { data: admin, error: adminError } = await supabase.from('admins').select('user_id').eq('user_id', data.user.id).maybeSingle();
+    if (adminError || !admin) {
+      await supabase.auth.signOut();
+      setError('This account is not authorized as an Atma Rekha admin.');
+      setBusy(false);
+      return;
+    }
+    onLoginSuccess?.();
+    setBusy(false);
+  }
 
   return (
-    <main className="min-h-[70vh] px-6 pt-28">
-      <div className="mx-auto max-w-lg rounded-3xl border border-zinc-200 bg-white p-8 shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">Admin Login</h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          Use your admin credentials to access the publishing dashboard.
-        </p>
-
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="admin@example.com"
-              className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 dark:bg-white dark:text-black"
-            disabled={status.type === 'loading'}
-          >
-            {status.type === 'loading' ? 'Signing in…' : 'Login'}
-          </button>
+    <main className="min-h-screen bg-zinc-950 px-5 py-12 text-white">
+      <div className="mx-auto max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-7 shadow-2xl sm:p-9">
+        <div className="mb-8"><p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-400">Atma Rekha</p><h1 className="mt-2 text-3xl font-black">Admin access</h1><p className="mt-2 text-sm text-zinc-400">Sign in with the Supabase admin account.</p></div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <label className="block text-sm font-medium text-zinc-300">Email<input value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="username" required className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-blue-500" /></label>
+          <label className="block text-sm font-medium text-zinc-300">Password<input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-blue-500" /></label>
+          {error && <div className="rounded-xl border border-rose-900 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>}
+          <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold hover:bg-blue-500 disabled:opacity-50">{busy ? 'Signing in…' : 'Sign in'}</button>
         </form>
-
-        {status.message && (
-          <div
-            className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-              status.type === 'success'
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200'
-                : status.type === 'error'
-                  ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200'
-                  : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'
-            }`}
-          >
-            {status.message}
-          </div>
-        )}
-
-        <div className="mt-6 rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-          Update your real credentials inside `backend/.env` using `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
-        </div>
       </div>
     </main>
   );
