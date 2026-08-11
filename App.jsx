@@ -1,115 +1,444 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { buildChapters, buildChapterPages } from './chapters';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
+import Footer from './Footer';
+import { supabase } from './supabase';
+import {
+  addComment,
+  buildRatingSummary,
+  fetchChapterComments,
+  fetchChapterEngagement,
+  fetchPublicEngagement,
+  getViewerKey,
+  likeChapter,
+  likeComment,
+  recordChapterView,
+  reportComment,
+  submitRating,
+} from './engagement';
 
 const SITE_STORY = {
   title: 'Atma Rekha',
-  description: 'In an age when divine light has long faded, two destined souls rise against the return of the ancient Asurs.',
+  eyebrow: 'INDIAN MANGA',
+  description: 'Atma Rekha is a mythical fantasy manga created within Indian culture and history.',
 };
 
-function isPublished(chapter) { return String(chapter?.status || '').trim().toLowerCase() === 'published'; }
+function isPublished(chapter) {
+  return String(chapter?.status || '').trim().toLowerCase() === 'published';
+}
 
 function LoadingState({ label = 'Loading...' }) {
-  return <div className="flex min-h-[40vh] items-center justify-center px-6"><div className="text-center"><div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-blue-600 dark:border-zinc-700 dark:border-t-blue-400" /><p className="text-zinc-500 dark:text-zinc-400">{label}</p></div></div>;
+  return <div className="loading-state"><span className="loading-spinner"/><p>{label}</p></div>;
+}
+
+function formatDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatCount(value) {
+  const number = Number(value) || 0;
+  return new Intl.NumberFormat('en-IN', { notation: number > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(number);
+}
+
+function StarRating({ value = 0, onRate, disabled = false, compact = false }) {
+  const current = Math.round(Number(value) || 0);
+  return <div className={`star-rating ${compact ? 'star-rating-compact' : ''}`} aria-label={onRate ? 'Rate from 1 to 10' : `${value ? Number(value).toFixed(1) : '0.0'} out of 10`}>
+    {Array.from({ length: 10 }, (_, index) => {
+      const rating = index + 1;
+      const active = rating <= current;
+      return <button
+        key={rating}
+        type="button"
+        disabled={disabled || !onRate}
+        onClick={() => onRate?.(rating)}
+        className={`star-button ${active ? 'is-active' : ''}`}
+        aria-label={`Rate ${rating} out of 10`}
+      >★</button>;
+    })}
+  </div>;
+}
+
+function EmptyState({ title, text }) {
+  return <div className="empty-state"><h3>{title}</h3>{text && <p>{text}</p>}</div>;
+}
+
+function CommentsPanel({ chapterId, open, onClose, initialCount = 0 }) {
+  const [comments, setComments] = useState([]);
+  const [likes, setLikes] = useState({});
+  const [reports, setReports] = useState({});
+  const [name, setName] = useState(() => window.localStorage.getItem('atma-rekha-comment-name') || 'Reader');
+  const [content, setContent] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadComments = async () => {
+    setLoading(true); setError('');
+    try {
+      const data = await fetchChapterComments(chapterId);
+      setComments(data);
+      if (data.length) {
+        const result = await supabase.from('comment_likes').select('comment_id, viewer_key').in('comment_id', data.map(item => item.id));
+        if (result.error) throw result.error;
+        const countMap = {};
+        const viewerKey = getViewerKey();
+        const likedMap = {};
+        for (const row of result.data || []) {
+          countMap[row.comment_id] = (countMap[row.comment_id] || 0) + 1;
+          if (row.viewer_key === viewerKey) likedMap[row.comment_id] = true;
+        }
+        setLikes({ ...countMap, ...Object.fromEntries(Object.keys(likedMap).map(id => [`liked:${id}`, true])) });
+      }
+    } catch (err) { setError(err?.message || 'Unable to load comments.'); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { if (open) loadComments(); }, [open, chapterId]);
+
+  const topLevel = useMemo(() => comments.filter(comment => !comment.parent_comment_id), [comments]);
+  const replies = useMemo(() => comments.filter(comment => comment.parent_comment_id), [comments]);
+
+  const submit = async event => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true); setError('');
+    try {
+      const cleanName = name.trim() || 'Reader';
+      window.localStorage.setItem('atma-rekha-comment-name', cleanName);
+      const row = await addComment({ chapterId, content, authorName: cleanName, parentCommentId: replyTo });
+      setComments(prev => [...prev, row]);
+      setContent(''); setReplyTo(null);
+    } catch (err) { setError(err?.message || 'Unable to post comment.'); }
+    finally { setBusy(false); }
+  };
+
+  const doLike = async id => {
+    if (likes[`liked:${id}`]) return;
+    try {
+      await likeComment(id);
+      setLikes(prev => ({ ...prev, [id]: (prev[id] || 0) + 1, [`liked:${id}`]: true }));
+    } catch (err) { setError(err?.message || 'Unable to like comment.'); }
+  };
+
+  const doReport = async id => {
+    if (reports[id]) return;
+    try {
+      await reportComment(id);
+      setReports(prev => ({ ...prev, [id]: true }));
+    } catch (err) { setError(err?.message || 'Unable to report comment.'); }
+  };
+
+  if (!open) return null;
+
+  return <div className="comment-sheet-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="comment-sheet" role="dialog" aria-modal="true" aria-label="Comments">
+      <div className="comment-sheet-head">
+        <div><p className="section-eyebrow">CHAPTER COMMENTS</p><h2>Comments <span>{comments.length || initialCount}</span></h2></div>
+        <button className="icon-button" onClick={onClose} aria-label="Close comments">×</button>
+      </div>
+
+      <div className="comment-list">
+        {loading ? <LoadingState label="Loading comments..."/> : error && !comments.length ? <EmptyState title="Comments unavailable" text={error}/> : !topLevel.length ? <EmptyState title="Be the first to comment" text="Share your thoughts about this chapter."/> : topLevel.map(comment => <CommentItem
+          key={comment.id}
+          comment={comment}
+          replies={replies.filter(reply => reply.parent_comment_id === comment.id)}
+          likeCount={likes[comment.id] || 0}
+          liked={Boolean(likes[`liked:${comment.id}`])}
+          reported={Boolean(reports[comment.id])}
+          onLike={doLike}
+          onReply={setReplyTo}
+          onReport={doReport}
+          likes={likes}
+          reports={reports}
+          onReplyLike={doLike}
+          onReplyReport={doReport}
+        />)}
+      </div>
+
+      {error && <p className="form-error">{error}</p>}
+      <form className="comment-form" onSubmit={submit}>
+        <div className="comment-form-title">{replyTo ? <><span>Replying to a reader</span><button type="button" onClick={() => setReplyTo(null)}>Cancel</button></> : <span>Join the conversation</span>}</div>
+        <div className="comment-form-row"><input value={name} onChange={e => setName(e.target.value.slice(0, 80))} placeholder="Your name" aria-label="Your name"/><span className="comment-count">{content.length}/2000</span></div>
+        <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 2000))} placeholder={replyTo ? 'Write a reply...' : 'What did you think?'} rows="3" required/>
+        <button className="primary-button" disabled={busy}>{busy ? 'Posting…' : replyTo ? 'Post reply' : 'Post comment'}</button>
+      </form>
+    </section>
+  </div>;
+}
+
+function CommentItem({ comment, replies, likeCount, liked, reported, onLike, onReply, onReport, likes, reports, onReplyLike, onReplyReport }) {
+  return <article className="comment-item">
+    <div className="comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div>
+    <div className="comment-body">
+      <div className="comment-meta"><strong>{comment.author_name || 'Reader'}</strong><time>{formatDate(comment.created_at)}</time></div>
+      <p>{comment.content}</p>
+      <div className="comment-actions">
+        <button onClick={() => onLike(comment.id)} className={liked ? 'is-liked' : ''}>♥ {likeCount}</button>
+        <button onClick={() => onReply(comment.id)}>Reply</button>
+        <button onClick={() => onReport(comment.id)} disabled={reported}>{reported ? 'Reported' : 'Report'}</button>
+      </div>
+      {replies.length > 0 && <div className="comment-replies">{replies.map(reply => <div className="comment-reply" key={reply.id}>
+        <div className="comment-avatar small">{(reply.author_name || 'R').slice(0, 1).toUpperCase()}</div>
+        <div className="comment-body"><div className="comment-meta"><strong>{reply.author_name || 'Reader'}</strong><time>{formatDate(reply.created_at)}</time></div><p>{reply.content}</p><div className="comment-actions"><button onClick={() => onReplyLike(reply.id)} className={likes[`liked:${reply.id}`] ? 'is-liked' : ''}>♥ {likes[reply.id] || 0}</button><button onClick={() => onReport(reply.id)} disabled={reports[reply.id]}>{reports[reply.id] ? 'Reported' : 'Report'}</button></div></div>
+      </div>)}</div>}
+    </div>
+  </article>;
+}
+
+function RatingBlock({ chapterId, summary, onChanged }) {
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  const rate = async value => {
+    if (busy) return;
+    setBusy(true); setNotice('');
+    try {
+      const result = await submitRating(chapterId, value);
+      setNotice(result.alreadyRated ? 'You already rated this chapter on this device.' : `Thanks — you rated it ${value}/10.`);
+      if (!result.alreadyRated) onChanged?.();
+    } catch (err) { setNotice(err?.message || 'Unable to save rating.'); }
+    finally { setBusy(false); }
+  };
+
+  return <div className="rating-block">
+    <div className="rating-summary"><div><span className="rating-number">{summary.count ? summary.average.toFixed(1) : '—'}</span><span className="rating-max">/10</span></div><span>{summary.count} {summary.count === 1 ? 'rating' : 'ratings'}</span></div>
+    <div className="rating-label">Rate this chapter</div>
+    <StarRating value={summary.average} onRate={rate} disabled={busy}/>
+    {notice && <p className="rating-notice">{notice}</p>}
+  </div>;
+}
+
+function EngagementStats({ stats }) {
+  return <div className="engagement-stats">
+    <span>★ {stats?.rating?.count ? stats.rating.average.toFixed(1) : '—'}/10</span>
+    <span>💬 {formatCount(stats?.comments)}</span>
+    <span>👁 {formatCount(stats?.views)}</span>
+  </div>;
+}
+
+function ChapterList({ chapters, onBack }) {
+  const [stats, setStats] = useState({});
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicEngagement(chapters.map(chapter => chapter.id)).then(data => { if (!cancelled) setStats(data); }).catch(console.error).finally(() => { if (!cancelled) setLoadingStats(false); });
+    return () => { cancelled = true; };
+  }, [chapters]);
+
+  return <main className="site-shell">
+    <header className="subpage-header">
+      <button className="back-button" onClick={onBack} aria-label="Back to home">←</button>
+      <div><p className="header-kicker">ATMA REKHA</p><h1>Chapter List</h1></div>
+    </header>
+    <section className="chapter-list-section">
+      <div className="chapter-list-heading"><div><p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p></div><span>RATING · DETAILS</span></div>
+      <div className="chapter-list">
+        {chapters.map(chapter => {
+          const item = stats[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
+          const pages = chapter.pageCount || 0;
+          return <article className="chapter-row" key={chapter.id}>
+            <a className="chapter-row-main" href={`#read-chapter/${encodeURIComponent(chapter.id)}`}>
+              <div className="chapter-row-title"><span>Chapter {chapter.chapterNumber}</span><h2>{chapter.title || 'Untitled chapter'}</h2></div>
+              <div className="chapter-row-meta"><span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : 'Not rated'} <b>★</b></span><span>•</span><span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span></div>
+              <div className="chapter-row-details"><span>📄 {pages || '—'} pages</span><span>💬 {formatCount(item.comments)}</span><span>👁 {formatCount(item.views)}</span></div>
+            </a>
+            <div className="chapter-row-rate"><StarRating value={item.rating.average} onRate={async value => {
+              try { const result = await submitRating(chapter.id, value); if (!result.alreadyRated) { const next = await fetchPublicEngagement(chapters.map(item => item.id)); setStats(next); } }
+              catch (err) { console.error(err); }
+            }} disabled={loadingStats} compact/></div>
+          </article>;
+        })}
+      </div>
+    </section>
+    <Footer/>
+  </main>;
 }
 
 function ChapterReader({ chapterId, onBack }) {
   const [chapter, setChapter] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function loadChapter() {
-      setLoading(true); setError(''); setChapter(null); setPages([]); setCurrentIndex(0);
+      setLoading(true); setError(''); setChapter(null); setPages([]);
       try {
         const chapters = await buildChapters();
         const found = chapters.find(item => String(item.id) === String(chapterId));
         if (!found) throw new Error('Chapter not found.');
         if (!isPublished(found)) throw new Error('This chapter is not published yet.');
-        const livePages = await buildChapterPages(found.id);
-        if (!cancelled) { setChapter(found); setPages(livePages); }
-      } catch (err) {
-        console.error('Failed to load chapter:', err);
-        if (!cancelled) setError(err?.message || 'Unable to load this chapter right now.');
-      } finally { if (!cancelled) setLoading(false); }
+        const [livePages, engagement] = await Promise.all([buildChapterPages(found.id), fetchChapterEngagement(found.id)]);
+        if (!cancelled) {
+          setChapter(found); setPages(livePages); setStats(engagement);
+          const saved = Number(window.localStorage.getItem(`atma-reading:${found.id}`));
+          if (Number.isInteger(saved) && saved >= 0 && saved < livePages.length) setCurrentIndex(saved);
+        }
+        try { await recordChapterView(found.id); } catch (viewError) { console.warn('View tracking skipped:', viewError); }
+      } catch (err) { console.error('Failed to load chapter:', err); if (!cancelled) setError(err?.message || 'Unable to load this chapter right now.'); }
+      finally { if (!cancelled) setLoading(false); }
     }
     loadChapter();
     return () => { cancelled = true; };
   }, [chapterId]);
 
   useEffect(() => {
-    const onKey = (event) => {
-      if (event.key === 'ArrowLeft') setCurrentIndex(i => Math.max(0, i - 1));
-      if (event.key === 'ArrowRight') setCurrentIndex(i => Math.min(Math.max(0, pages.length - 1), i + 1));
+    if (!chapter) return;
+    window.localStorage.setItem(`atma-reading:${chapter.id}`, String(currentIndex));
+  }, [chapter, currentIndex]);
+
+  useEffect(() => {
+    const onKey = event => {
+      if (event.key === 'ArrowLeft') setCurrentIndex(index => Math.max(0, index - 1));
+      if (event.key === 'ArrowRight') setCurrentIndex(index => Math.min(Math.max(0, pages.length - 1), index + 1));
       if (event.key === 'Escape') onBack();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [pages.length, onBack]);
 
-  if (loading) return <LoadingState label="Loading chapter..." />;
-  if (!chapter) return <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-6 text-center dark:bg-zinc-950"><div className="mb-4 text-4xl">📖</div><h2 className="text-xl font-bold">{error || 'Chapter not found'}</h2><button onClick={onBack} className="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white">Go Back</button></div>;
+  if (loading) return <LoadingState label="Loading chapter..."/>;
+  if (!chapter) return <main className="reader-page"><div className="reader-error"><div>📖</div><h2>{error || 'Chapter not found'}</h2><button className="primary-button" onClick={onBack}>Back to Chapters</button></div></main>;
 
-  const goPrev = () => setCurrentIndex(i => Math.max(0, i - 1));
-  const goNext = () => setCurrentIndex(i => Math.min(pages.length - 1, i + 1));
+  const goPrev = () => setCurrentIndex(index => Math.max(0, index - 1));
+  const goNext = () => setCurrentIndex(index => Math.min(pages.length - 1, index + 1));
   const progress = pages.length ? ((currentIndex + 1) / pages.length) * 100 : 0;
 
-  return <div className="min-h-screen bg-zinc-100 text-zinc-900 dark:bg-zinc-950 dark:text-white">
-    <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
-        <button onClick={onBack} aria-label="Back to chapters" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl transition hover:bg-zinc-100 dark:hover:bg-zinc-800">←</button>
-        <div className="min-w-0 flex-1"><p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Chapter {chapter.chapterNumber}</p><h1 className="truncate text-base font-bold sm:text-lg">{chapter.title || 'Untitled chapter'}</h1></div>
-        {pages.length > 0 && <div className="hidden text-right sm:block"><p className="text-xs text-zinc-500">Reading progress</p><p className="text-sm font-semibold">{currentIndex + 1} / {pages.length}</p></div>}
+  const handleLike = async () => {
+    if (liked) return;
+    try { await likeChapter(chapter.id); setLiked(true); setStats(prev => ({ ...prev, likes: prev.likes + 1 })); }
+    catch (err) { console.error(err); }
+  };
+
+  return <main className="reader-page">
+    <header className="reader-header">
+      <div className="reader-header-inner">
+        <button className="reader-back" onClick={onBack} aria-label="Back to chapters">←</button>
+        <div className="reader-title"><p>CHAPTER {chapter.chapterNumber}</p><h1>{chapter.title || 'Untitled chapter'}</h1></div>
+        <div className="reader-page-pill">{currentIndex + 1}/{pages.length || 0}</div>
       </div>
-      {pages.length > 0 && <div className="h-1 bg-zinc-200 dark:bg-zinc-800"><div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${progress}%` }} /></div>}
+      <div className="reader-progress"><span style={{ width: `${progress}%` }}/></div>
     </header>
 
-    <main className="mx-auto max-w-6xl px-3 py-5 pb-28 sm:px-6 sm:py-8">
+    <div className="reader-content">
       {pages.length ? <>
-        <div className="relative overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-black/10 sm:rounded-3xl">
-          <div className="flex min-h-[55vh] items-center justify-center bg-zinc-900">
-            <img src={pages[currentIndex]} alt={`Chapter ${chapter.chapterNumber}, page ${currentIndex + 1}`} className="block max-h-[78vh] w-auto max-w-full object-contain select-none" draggable="false" />
-          </div>
-          {currentIndex > 0 && <button onClick={goPrev} aria-label="Previous page" className="absolute left-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-2xl text-white backdrop-blur transition hover:bg-black/80 sm:flex">‹</button>}
-          {currentIndex < pages.length - 1 && <button onClick={goNext} aria-label="Next page" className="absolute right-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-2xl text-white backdrop-blur transition hover:bg-black/80 sm:flex">›</button>}
+        <div className="reader-stage">
+          <img src={pages[currentIndex]} alt={`Chapter ${chapter.chapterNumber}, page ${currentIndex + 1}`} draggable="false"/>
+          {currentIndex > 0 && <button className="reader-side-button left" onClick={goPrev} aria-label="Previous page">‹</button>}
+          {currentIndex < pages.length - 1 && <button className="reader-side-button right" onClick={goNext} aria-label="Next page">›</button>}
         </div>
 
-        <div className="mx-auto mt-5 flex max-w-3xl items-center gap-3">
-          <button onClick={goPrev} disabled={currentIndex === 0} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 font-semibold shadow-sm ring-1 ring-zinc-200 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-35 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:bg-zinc-800">← <span className="hidden sm:inline">Previous</span></button>
-          <div className="min-w-[88px] text-center"><p className="text-sm font-bold">{currentIndex + 1} / {pages.length}</p><p className="text-[11px] text-zinc-500">PAGE</p></div>
-          <button onClick={goNext} disabled={currentIndex === pages.length - 1} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-35"><span className="hidden sm:inline">Next</span> →</button>
+        <div className="reader-info-row">
+          <div><span>👁 {formatCount(stats.views)} views</span><span>♥ {formatCount(stats.likes)} likes</span></div>
+          <button className={`reader-comment-button ${commentsOpen ? 'active' : ''}`} onClick={() => setCommentsOpen(true)}>💬 Comments</button>
         </div>
 
-        <div className="mt-5 overflow-x-auto pb-2 [scrollbar-width:thin]">
-          <div className="mx-auto flex w-max gap-2 px-1">
-            {pages.map((page, index) => <button key={`${page}-${index}`} onClick={() => setCurrentIndex(index)} aria-label={`Go to page ${index + 1}`} className={`relative h-20 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-zinc-900 transition sm:h-24 sm:w-16 ${index === currentIndex ? 'border-blue-600 ring-2 ring-blue-600/20' : 'border-transparent opacity-60 hover:opacity-100'}`}><img src={page} alt="" className="h-full w-full object-contain" loading="lazy" draggable="false" /><span className={`absolute bottom-0 left-0 right-0 bg-black/70 py-0.5 text-[10px] font-bold text-white ${index === currentIndex ? 'bg-blue-600/90' : ''}`}>{index + 1}</span></button>)}
-          </div>
+        <div className="reader-rating-card">
+          <RatingBlock chapterId={chapter.id} summary={stats.rating} onChanged={async () => setStats(await fetchChapterEngagement(chapter.id))}/>
+          <button className={`like-button ${liked ? 'liked' : ''}`} onClick={handleLike}>♥ {liked ? 'Liked' : 'Like'} · {formatCount(stats.likes)}</button>
         </div>
 
-        <p className="mt-3 text-center text-xs text-zinc-400">Use ← → keys on desktop · Swipe/scroll thumbnails on mobile</p>
-      </> : <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-white px-6 text-center dark:border-zinc-800 dark:bg-zinc-900"><div className="mb-4 text-4xl">📄</div><h3 className="font-semibold">Chapter content is not uploaded yet</h3><p className="mt-2 max-w-md text-zinc-500">This published chapter exists in Supabase, but no manga pages are attached to it yet.</p><button onClick={onBack} className="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white">Back to Chapters</button></div>}
-    </main>
-  </div>;
+        <div className="reader-controls">
+          <button className="reader-control secondary" onClick={goPrev} disabled={currentIndex === 0}>← <span>Previous</span></button>
+          <div className="reader-counter"><strong>{currentIndex + 1} / {pages.length}</strong><span>PAGE</span></div>
+          <button className="reader-control primary" onClick={goNext} disabled={currentIndex === pages.length - 1}><span>Next</span> →</button>
+        </div>
+
+        <div className="reader-thumbnails">
+          {pages.map((page, index) => <button key={`${page}-${index}`} className={index === currentIndex ? 'active' : ''} onClick={() => setCurrentIndex(index)} aria-label={`Go to page ${index + 1}`}><img src={page} alt="" loading="lazy"/><span>{index + 1}</span></button>)}
+        </div>
+        <p className="reader-hint">Swipe through the pages on mobile · Use ← → on desktop</p>
+      </> : <EmptyState title="Chapter content is not uploaded yet" text="This chapter exists in Supabase, but no manga pages are attached to it."/>}
+    </div>
+
+    <CommentsPanel chapterId={chapter.id} open={commentsOpen} onClose={() => setCommentsOpen(false)} initialCount={0}/>
+  </main>;
 }
 
-function ChapterCard({ chapter }) {
-  return <a href={`#read-chapter/${encodeURIComponent(chapter.id)}`} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200 transition hover:-translate-y-1 hover:shadow-xl dark:bg-zinc-900 dark:ring-zinc-800"><div className="aspect-[3/4] overflow-hidden bg-zinc-100 dark:bg-zinc-950">{chapter.cover ? <img src={chapter.cover} alt={chapter.title || `Chapter ${chapter.chapterNumber}`} className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.02]" loading="lazy" draggable="false" /> : <div className="flex h-full items-center justify-center text-zinc-400">No cover</div>}</div><div className="p-5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold text-blue-600">Chapter {chapter.chapterNumber}</p><span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">Published</span></div><h3 className="mt-1 text-xl font-bold">{chapter.title || 'Untitled chapter'}</h3>{chapter.description && <p className="mt-2 line-clamp-3 text-sm text-zinc-500">{chapter.description}</p>}{chapter.releaseDate && <p className="mt-3 text-xs text-zinc-400">Release: {new Date(chapter.releaseDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>}</div></a>;
+function AboutSection() {
+  return <section id="about" className="home-section about-section">
+    <p className="section-eyebrow">ABOUT ATMA REKHA</p>
+    <h2>An original Indian manga story</h2>
+    <p>{SITE_STORY.description} The story blends myth, emotion, mystery and an original world while keeping Indian identity at its heart.</p>
+  </section>;
 }
 
-function PublicHome({ chapters, loading, loadError }) {
-  return <main className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white"><header className="border-b border-zinc-200 bg-white px-6 py-5 dark:border-zinc-800 dark:bg-zinc-950"><div className="mx-auto flex max-w-7xl items-center justify-between"><a href="#index" className="text-xl font-bold">Atma Rekha</a><nav className="flex gap-5 text-sm text-zinc-600 dark:text-zinc-300"><a href="#index">Home</a><a href="#reading">Chapters</a><a href="#admin">Admin</a></nav></div></header><section className="mx-auto max-w-7xl px-6 py-16"><h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl">{SITE_STORY.title}</h1><p className="mt-5 max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">{SITE_STORY.description}</p><a href="#reading" className="mt-8 inline-flex rounded-full bg-blue-600 px-7 py-3 font-semibold text-white">Start Reading</a></section><section id="reading" className="mx-auto max-w-7xl scroll-mt-8 px-6 pb-20"><h2 className="text-3xl font-bold">Chapters</h2><p className="mt-2 text-zinc-500 dark:text-zinc-400">Published chapters from Supabase.</p>{loading && <LoadingState label="Loading chapters..." />}{!loading && loadError && <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700"><p className="font-semibold">Could not load chapters</p><p className="mt-1 text-sm">{loadError}</p></div>}{!loading && !loadError && !chapters.length && <div className="mt-8 rounded-2xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700"><h3 className="font-semibold">No chapters published yet</h3><p className="mt-2 text-sm text-zinc-500">Publish a chapter from the admin dashboard.</p></div>}{!loading && !loadError && chapters.length > 0 && <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">{chapters.map(chapter => <ChapterCard key={chapter.id} chapter={chapter} />)}</div>}</section></main>;
+function HomePage({ chapters, loading, loadError }) {
+  const latest = chapters[chapters.length - 1];
+  return <main className="home-page">
+    <header className="home-header"><a href="#index" className="brand-wordmark">Atma Rekha</a><a href="#admin" className="admin-link">Admin</a></header>
+    <section className="hero-card">
+      <div className="hero-art"><img src="/favicon.png" alt="Atma Rekha artwork"/></div>
+      <div className="hero-copy"><p className="hero-eyebrow">{SITE_STORY.eyebrow}</p><h1>{SITE_STORY.title}</h1><p className="hero-description">A new Indian manga experience built around story, culture and mystery.</p><a className="hero-button" href="#reading">View Chapters <span>→</span></a></div>
+    </section>
+
+    <AboutSection/>
+
+    <section className="home-section latest-section" id="reading">
+      <div className="section-heading"><div><p className="section-eyebrow">READ NOW</p><h2>Latest chapters</h2></div><a href="#reading" className="section-link">All chapters →</a></div>
+      {loading ? <LoadingState label="Loading chapters..."/> : loadError ? <div className="inline-error">{loadError}</div> : !chapters.length ? <EmptyState title="No chapters published yet" text="New chapters will appear here when they are published."/> : <div className="latest-list">{chapters.slice(-3).reverse().map(chapter => <a key={chapter.id} href={`#read-chapter/${encodeURIComponent(chapter.id)}`} className="latest-item"><div><span>Chapter {chapter.chapterNumber}</span><h3>{chapter.title || 'Untitled chapter'}</h3></div><b>→</b></a>)}</div>}
+      {latest && <p className="latest-note">Latest release: Chapter {latest.chapterNumber} · {formatDate(latest.releaseDate || latest.createdAt)}</p>}
+    </section>
+
+    <section id="contact" className="home-anchor-section"><span>Contact</span><p>For feedback, collaboration or publishing enquiries, use the Gmail icon in the footer.</p></section>
+    <section id="report" className="home-anchor-section"><span>Report</span><p>Report a chapter or comment from the reader interface.</p></section>
+    <section id="privacy" className="home-anchor-section"><span>Privacy</span><p>Atma Rekha only uses the data required to operate reading, ratings and community features.</p></section>
+    <section id="terms" className="home-anchor-section"><span>Terms</span><p>Use the site respectfully and do not upload or post content you do not have permission to share.</p></section>
+
+    <Footer/>
+  </main>;
 }
 
 export default function App() {
-  const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [loadError, setLoadError] = useState(''); const [route, setRoute] = useState(() => window.location.hash || '#index'); const [adminSession, setAdminSession] = useState(false);
-  useEffect(() => { const onHash = () => setRoute(window.location.hash || '#index'); window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash); }, []);
-  useEffect(() => { let cancelled = false; async function load() { setLoading(true); setLoadError(''); try { const data = await buildChapters(); const publicChapters = (Array.isArray(data) ? data : []).filter(isPublished); if (!cancelled) setChapters(publicChapters); } catch (error) { console.error(error); if (!cancelled) { setChapters([]); setLoadError(error?.message || 'Unable to load chapters from Supabase.'); } } finally { if (!cancelled) setLoading(false); } } if (!route.startsWith('#read-chapter/') && !route.startsWith('#admin')) load(); return () => { cancelled = true; }; }, [route]);
-  useEffect(() => { if (!route.startsWith('#admin')) return; import('./supabase').then(({ supabase }) => supabase.auth.getUser().then(({ data }) => setAdminSession(Boolean(data.user)))); }, [route]);
-  if (route === '#admin') return adminSession ? <AdminPanel onLogout={() => setAdminSession(false)} /> : <AdminLogin onLoginSuccess={() => setAdminSession(true)} />;
-  const readerMatch = route.match(/^#read-chapter\/(.+)$/); if (readerMatch) return <ChapterReader chapterId={decodeURIComponent(readerMatch[1])} onBack={() => { window.location.hash = '#reading'; }} />;
-  return <PublicHome chapters={chapters} loading={loading} loadError={loadError} />;
+  const [chapters, setChapters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [route, setRoute] = useState(() => window.location.hash || '#index');
+  const [adminSession, setAdminSession] = useState(false);
+
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash || '#index');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true); setLoadError('');
+      try {
+        const data = await buildChapters();
+        const publicChapters = (Array.isArray(data) ? data : []).filter(isPublished);
+        const pageResults = await Promise.all(publicChapters.map(chapter => buildChapterPages(chapter.id)));
+        const withCounts = publicChapters.map((chapter, index) => ({ ...chapter, pageCount: pageResults[index]?.length || 0 }));
+        if (!cancelled) setChapters(withCounts);
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) { setChapters([]); setLoadError(error?.message || 'Unable to load chapters from Supabase.'); }
+      } finally { if (!cancelled) setLoading(false); }
+    }
+    if (!route.startsWith('#read-chapter/') && route !== '#admin') load();
+    return () => { cancelled = true; };
+  }, [route]);
+
+  useEffect(() => {
+    if (route !== '#admin') return;
+    supabase.auth.getUser().then(({ data }) => setAdminSession(Boolean(data.user)));
+  }, [route]);
+
+  if (route === '#admin') return adminSession ? <AdminPanel onLogout={() => setAdminSession(false)}/> : <AdminLogin onLoginSuccess={() => setAdminSession(true)}/>;
+  const readerMatch = route.match(/^#read-chapter\/(.+)$/);
+  if (readerMatch) return <ChapterReader chapterId={decodeURIComponent(readerMatch[1])} onBack={() => { window.location.hash = '#reading'; }}/>
+  if (route === '#reading') return <ChapterList chapters={chapters} onBack={() => { window.location.hash = '#index'; }}/>
+  return <HomePage chapters={chapters} loading={loading} loadError={loadError}/>;
 }
