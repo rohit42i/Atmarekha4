@@ -4,6 +4,7 @@ import App from './App.jsx';
 import './index.css';
 import './ui-polish.css';
 import './admin-polish.css';
+import './mihon-reader-polish.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
