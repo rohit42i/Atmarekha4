@@ -13,11 +13,16 @@ function SocialIcon({ type }) {
 export default function Footer() {
   return <footer className="site-footer">
     <div className="site-footer-inner">
+      <div className="footer-brand-block">
+        <a className="footer-brand" href="#home">Atma Rekha</a>
+        <p>An original Indian manga story.</p>
+      </div>
+
       <nav className="footer-nav" aria-label="Footer navigation">
-        <a href="#info/about">About</a><span aria-hidden="true">|</span>
-        <a href="#info/contact">Contact</a><span aria-hidden="true">|</span>
-        <a href="#info/report">Report</a><span aria-hidden="true">|</span>
-        <a href="#info/privacy">Privacy</a><span aria-hidden="true">|</span>
+        <a href="#info/about">About</a>
+        <a href="#info/contact">Contact</a>
+        <a href="#info/report">Report</a>
+        <a href="#info/privacy">Privacy</a>
         <a href="#info/terms">Terms</a>
       </nav>
 
@@ -28,6 +33,7 @@ export default function Footer() {
       <div className="footer-bottom">
         <span>© 2026 Atma Rekha</span>
         <span>Made in India 🇮🇳</span>
+        <span>Built for readers</span>
       </div>
     </div>
   </footer>;
