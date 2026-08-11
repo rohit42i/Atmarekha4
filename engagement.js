@@ -6,9 +6,7 @@ export function getViewerKey() {
   if (typeof window === 'undefined') return 'server-viewer-key';
   let key = window.localStorage.getItem(VIEWER_KEY_STORAGE);
   if (!key) {
-    key = typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    key = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
     window.localStorage.setItem(VIEWER_KEY_STORAGE, key);
   }
   return key;
@@ -38,13 +36,14 @@ export async function fetchPublicEngagement(chapterIds) {
 }
 
 export async function fetchChapterEngagement(chapterId) {
-  const [ratings, views, likes] = await Promise.all([
+  const [ratings, views, likes, comments] = await Promise.all([
     supabase.from('chapter_ratings').select('id, rating, created_at').eq('chapter_id', chapterId),
     supabase.from('chapter_views').select('id').eq('chapter_id', chapterId),
     supabase.from('chapter_likes').select('id').eq('chapter_id', chapterId),
+    supabase.from('comments').select('id').eq('chapter_id', chapterId),
   ]);
-  for (const result of [ratings, views, likes]) if (result.error) throw result.error;
-  return { rating: buildRatingSummary(ratings.data || []), views: (views.data || []).length, likes: (likes.data || []).length };
+  for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
+  return { rating: buildRatingSummary(ratings.data || []), views: (views.data || []).length, likes: (likes.data || []).length, comments: (comments.data || []).length };
 }
 
 export async function fetchChapterComments(chapterId) {
@@ -107,9 +106,6 @@ export async function submitRating(chapterId, rating) {
   if (existing.error) throw existing.error;
   if (existing.data) return { alreadyRated: true };
   const { error } = await supabase.from('chapter_ratings').insert({ chapter_id: chapterId, rating: value, viewer_key: viewerKey });
-  if (error) {
-    if (String(error.code) === '23505') return { alreadyRated: true };
-    throw error;
-  }
+  if (error) { if (String(error.code) === '23505') return { alreadyRated: true }; throw error; }
   return { alreadyRated: false };
 }
