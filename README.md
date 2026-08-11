@@ -6,8 +6,24 @@ Production Vite/React frontend for the Atma Rekha manga site.
 - React 18
 - Vite 6
 - Tailwind CSS
-- Supabase
+- Supabase (database, auth, and public media URLs)
 - Cloudflare Workers Static Assets
+
+## Architecture
+
+```text
+Browser
+  ↓
+Cloudflare Workers Static Assets
+  ↓
+Vite/React app
+  ↓
+Supabase
+  ├─ chapters
+  └─ chapter_pages
+```
+
+The browser does not use a separate Express/Node/MongoDB/Cloudinary backend. Public chapter metadata and manga page URLs come directly from Supabase.
 
 ## Local development
 
@@ -22,30 +38,45 @@ npm run dev
 npm run build
 ```
 
-Cloudflare uses `dist/` as the static asset directory and is configured for SPA fallback in `wrangler.toml`.
+Cloudflare serves the generated `dist/` directory and `wrangler.toml` enables SPA fallback.
 
 ## Supabase environment variables
 
-Set these in the deployment environment (never commit real secrets):
+Set these in the deployment environment. Never commit real credentials:
 
 - `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY` or `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_ANON_KEY` is supported only as a legacy fallback
 
-The frontend reads live chapter metadata from the `chapters` table and chapter page URLs from `chapter_pages`.
+Never put a Supabase service-role or secret key in Vite environment variables.
 
-### Expected chapter columns
+## Supabase chapter schema
 
-- `id`
-- `Chapter Number`
-- `Title`
-- `Description`
-- `Cover url`
-- `created_at` (optional)
+### `chapters`
 
-### Expected chapter page columns
+- `id` — uuid
+- `Chapter Number` — bigint
+- `Title` — text
+- `Description` — text
+- `Cover url` — text
+- `status` — text
+- `Release date` — timestamptz
+- `Created at` — timestamptz
 
-- `Chapter id`
-- `Page number`
-- `Image url`
+### `chapter_pages`
 
-Do not commit `.env.local` or other files containing credentials.
+- `Chapter id` — uuid
+- `Page number` — bigint
+- `Image url` — text
+- `Created at` — timestamptz
+
+The frontend reads these records live through the Supabase Data API. Chapter/page public read access is controlled by Supabase RLS policies.
+
+## Cloudflare
+
+`wrangler.toml` is configured for Cloudflare Workers Static Assets:
+
+- build output: `dist/`
+- SPA fallback: enabled
+
+The GitHub build workflow runs `npm ci` and `npm run build` on pushes and pull requests to `main`.
