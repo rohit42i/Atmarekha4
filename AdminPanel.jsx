@@ -71,7 +71,10 @@ export default function AdminPanel({ onLogout }) {
       setEmail(user.email || '');
       const [chapterResult, pageResult, commentResult, announcementResult, mediaResult] = await Promise.all([
         buildChapters(),
-        supabase.from(PAGES).select('Chapter id'),
+        // The schema contains identifiers with spaces. Do not put those names
+        // in a PostgREST select list: the select parser treats the spaces as
+        // syntax and turns them into names such as Chapterid/Imageurl.
+        supabase.from(PAGES).select('*'),
         supabase.from('comments').select('id, user_id, chapter_id, author_name, content, created_at').order('created_at', { ascending: false }),
         supabase.from('announcements').select('title, content, image_url, is_pinned, published_at, created_at').order('created_at', { ascending: false }),
         supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }),
@@ -110,8 +113,6 @@ export default function AdminPanel({ onLogout }) {
   };
 
   async function upload(bucket, file, path) {
-    // Every path is unique. Do not use upsert: true; Storage upsert can require
-    // SELECT/UPDATE policies and cause the RLS error seen during chapter uploads.
     const { error } = await supabase.storage.from(bucket).upload(path, file, {
       upsert: false,
       contentType: file.type || undefined,
@@ -156,7 +157,7 @@ export default function AdminPanel({ onLogout }) {
         const ext = form.cover.name.split('.').pop()?.toLowerCase() || 'jpg';
         const path = `chapters/${chapterId}/cover-${Date.now()}.${ext}`;
         const url = await upload('covers', form.cover, path);
-        uploadedPaths.push(path);
+        uploadedPaths.push({ bucket: 'covers', path });
         oldCoverPath = pathFromUrl(editing?.cover, 'covers');
         const { error } = await supabase.from(CHAPTERS).update({ 'Cover url': url }).eq('id', chapterId);
         if (error) throw new Error(`Cover save failed: ${error.message}`);
@@ -164,7 +165,7 @@ export default function AdminPanel({ onLogout }) {
 
       if (form.pages.length) {
         setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
-        const old = await supabase.from(PAGES).select('Image url').eq('Chapter id', chapterId);
+        const old = await supabase.from(PAGES).select('*').eq('Chapter id', chapterId);
         if (old.error) throw new Error(`Could not read existing pages: ${old.error.message}`);
         const oldPaths = (old.data || []).map(row => pathFromUrl(row['Image url'], 'chapter-pages')).filter(Boolean);
         const revision = Date.now();
@@ -175,7 +176,7 @@ export default function AdminPanel({ onLogout }) {
           const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
           const path = `${chapterId}/${revision}/${String(i + 1).padStart(4, '0')}.${ext}`;
           const url = await upload('chapter-pages', file, path);
-          uploadedPaths.push(path);
+          uploadedPaths.push({ bucket: 'chapter-pages', path });
           rows.push({ 'Chapter id': chapterId, 'Page number': i + 1, 'Image url': url });
           setProgress({ current: i + 1, total: form.pages.length, text: `Uploaded page ${i + 1} of ${form.pages.length}` });
         }
@@ -193,9 +194,8 @@ export default function AdminPanel({ onLogout }) {
       setNotice({ type: 'success', text: `Chapter ${number} ${editing ? 'updated' : 'uploaded'} successfully.` });
     } catch (error) {
       console.error(error);
-      if (uploadedPaths.length) {
-        try { await removeFiles('chapter-pages', uploadedPaths.filter(p => p && p.split('/').length >= 2)); } catch (_) { /* best-effort cleanup */ }
-        try { await removeFiles('covers', uploadedPaths.filter(p => p.startsWith('chapters/'))); } catch (_) { /* best-effort cleanup */ }
+      for (const item of uploadedPaths) {
+        try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
       }
       if (!editing && chapterId) {
         await supabase.from(CHAPTERS).delete().eq('id', chapterId);
@@ -227,7 +227,7 @@ export default function AdminPanel({ onLogout }) {
     setBusy(true);
     try {
       await requireAdmin();
-      const pages = await supabase.from(PAGES).select('Image url').eq('Chapter id', chapter.id);
+      const pages = await supabase.from(PAGES).select('*').eq('Chapter id', chapter.id);
       if (pages.error) throw pages.error;
       const pagePaths = (pages.data || []).map(row => pathFromUrl(row['Image url'], 'chapter-pages')).filter(Boolean);
       const coverPath = pathFromUrl(chapter.cover, 'covers');
