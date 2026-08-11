@@ -1,0 +1,93 @@
+name: Atma Rekha App cleanup
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore: apply App.jsx cleanup') && !startsWith(github.event.head_commit.message, 'chore: remove App cleanup workflow') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Apply targeted cleanup
+        env:
+          COVER_URL: https://pbukwjokgkqacaphlqzm.supabase.co/storage/v1/object/public/chapter-pages/covers/76122fec-9c6e-4fb5-8aac-b9853203da60.jpg
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import os, re, hashlib, base64
+          root=Path('.')
+          app=root/'App.jsx'
+          s=app.read_text(encoding='utf-8')
+          for p in root.rglob('*'):
+              if not p.is_file() or '.git' in p.parts or 'node_modules' in p.parts or 'dist' in p.parts: continue
+              try: text=p.read_text(encoding='utf-8')
+              except (UnicodeDecodeError,OSError): continue
+              cleaned=re.sub(r'\+?91[\s-]*72041[\s-]*37931|7204137931','',text)
+              if cleaned!=text: p.write_text(cleaned,encoding='utf-8')
+          s=app.read_text(encoding='utf-8')
+          m=re.search(r"(coverImage\s*:\s*['\"])data:image/[^;]+;base64,([A-Za-z0-9+/=\s]+)(['\"])",s,re.S)
+          if not m: raise SystemExit('Embedded coverImage not found.')
+          raw=m.group(2).replace('\n','').replace('\r','').replace(' ','')
+          target=hashlib.sha256(base64.b64decode(raw)).hexdigest()
+          identical=None
+          for p in root.rglob('*'):
+              if not p.is_file() or '.git' in p.parts or 'node_modules' in p.parts or 'dist' in p.parts: continue
+              if p.suffix.lower() not in {'.png','.jpg','.jpeg','.webp','.gif','.avif'}: continue
+              try:
+                  if hashlib.sha256(p.read_bytes()).hexdigest()==target: identical=p; break
+              except OSError: pass
+          replacement=('/'+str(identical).replace('\\','/')[7:]) if identical and str(identical).startswith('public/') else os.environ['COVER_URL']
+          s=s[:m.start()]+m.group(1)+replacement+m.group(3)+s[m.end():]
+          s,n=re.subn(r"\nconst CHAPTERS = \[.*?\n\}\)\);\n","\n",s,count=1,flags=re.S)
+          if n!=1: raise SystemExit('Hardcoded CHAPTERS catalogue not found.')
+          if "from './supabase.js'" not in s: s=s.replace("import { gsap } from 'gsap';","import { gsap } from 'gsap';\nimport { supabase } from './supabase.js';",1)
+          s=s.replace("function ReadingPage({ storyId, onOpenComments, onBack, onSortToggle, isReversed })","function ReadingPage({ storyId, chapters = [], chaptersLoading = false, chaptersError = '', onOpenComments, onBack, onSortToggle, isReversed })",1)
+          s,n=re.subn(r"\n  const chapters = useMemo\(\n    \(\) => \(isReversed \? \[\.\.\.CHAPTERS\]\.reverse\(\) : \[\.\.\.CHAPTERS\]\),\n    \[isReversed\]\n  \);","\n  const orderedChapters = useMemo(() => (isReversed ? [...chapters].reverse() : chapters), [chapters, isReversed]);",s,count=1)
+          if n!=1: raise SystemExit('ReadingPage memo not found.')
+          a=s.index('function ReadingPage('); b=s.index('// --- src/components/sections/ChapterReader.jsx ---',a); rb=s[a:b]
+          rb=rb.replace('chapters[chapters.length - 1]','orderedChapters[orderedChapters.length - 1]').replace('chapters.length','orderedChapters.length').replace('chapters.map(','orderedChapters.map(')
+          rb=re.sub(r'<div className="flex flex-col gap-4">\s*\{orderedChapters\.map\(\(chapter\) => \(.*?\n\s*\)\}\s*</div>', '''{chaptersLoading ? (\n          <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">Loading chapters...</div>\n        ) : chaptersError ? (\n          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">{chaptersError}</div>\n        ) : orderedChapters.length === 0 ? (\n          <div className="rounded-2xl border-2 border-dashed border-zinc-200 bg-white p-8 text-center text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">No published chapters yet.</div>\n        ) : (\n          <div className="flex flex-col gap-4">\n            {orderedChapters.map((chapter) => (''',rb,count=1,flags=re.S)
+          rb=rb.replace('''          ))}\n        </div>''','''            ))}\n          </div>\n        )}''',1)
+          s=s[:a]+rb+s[b:]
+          s=s.replace("function ChapterReader({ chapterId, onBack })","function ChapterReader({ chapterId, chapters = [], onBack })",1)
+          s,n=re.subn(r"const chapter = useMemo\(\(\) => CHAPTERS\.find\(\(item\) => item\.id === chapterId\), \[chapterId\]\);","const chapter = useMemo(() => chapters.find((item) => item.id === chapterId), [chapters, chapterId]);",s,count=1)
+          if n!=1: raise SystemExit('ChapterReader lookup not found.')
+          app_start=s.index('function App()'); anchor="  const [activeChapterId, setActiveChapterId] = useState(null);"; pos=s.index(anchor,app_start)+len(anchor)
+          if 'const [chapters, setChapters]' not in s[app_start:app_start+3500]:
+              code='''\n  const [chapters, setChapters] = useState([]);\n  const [chaptersLoading, setChaptersLoading] = useState(true);\n  const [chaptersError, setChaptersError] = useState('');\n\n  useEffect(() => {\n    let cancelled = false;\n    const loadChapters = async () => {\n      setChaptersLoading(true); setChaptersError('');\n      const [chaptersResult, pagesResult] = await Promise.all([\n        supabase.from('chapters').select('id, "Chapter Number", "Title", "Description", "Cover url", status, "Release date", "Created at"').order('Chapter Number', { ascending: true }),\n        supabase.from('chapter_pages').select('"Chapter id", "Page number", "Image url"').order('Page number', { ascending: true }),\n      ]);\n      if (cancelled) return;\n      if (chaptersResult.error) { setChapters([]); setChaptersError(`Could not load chapters: ${chaptersResult.error.message}`); setChaptersLoading(false); return; }\n      if (pagesResult.error) { setChapters([]); setChaptersError(`Could not load chapter pages: ${pagesResult.error.message}`); setChaptersLoading(false); return; }\n      const pagesByChapter = new Map();\n      for (const page of pagesResult.data || []) { const id=page['Chapter id']; if (!id || !page['Image url']) continue; const list=pagesByChapter.get(id)||[]; list.push(page); pagesByChapter.set(id,list); }\n      const normalized=(chaptersResult.data||[]).filter(ch=>!ch.status||String(ch.status).toLowerCase()==='published').map(ch=>({ id:ch.id, chapterNumber:Number(ch['Chapter Number']), title:ch.Title, description:ch.Description||'', coverImage:ch['Cover url']||'', status:ch.status||'Published', releaseDate:ch['Release date']||ch['Created at']||null, pages:(pagesByChapter.get(ch.id)||[]).sort((x,y)=>Number(x['Page number'])-Number(y['Page number'])).map(page=>page['Image url']), pdfUrl:null }));\n      setChapters(normalized); setChaptersLoading(false);\n    };\n    loadChapters(); return () => { cancelled=true; };\n  }, []);\n'''
+              s=s[:pos]+code+s[pos:]
+          s=re.sub(r"\n  const chapters = useMemo\(\(\) => \(isReversed \? \[\.\.\.CHAPTERS\]\.reverse\(\) : \[\.\.\.CHAPTERS\]\), \[isReversed\]\);",'',s,count=1)
+          s=s.replace('''<ReadingPage\n          storyId={activeStoryId}\n          dummyChapters={chapters}''','''<ReadingPage\n          storyId={activeStoryId}\n          chapters={chapters}\n          chaptersLoading={chaptersLoading}\n          chaptersError={chaptersError}''',1)
+          s=s.replace('<ChapterReader chapterId={activeChapterId} onBack={() => window.history.back()} />','<ChapterReader chapterId={activeChapterId} chapters={chapters} onBack={() => window.history.back()} />',1)
+          s=re.sub(r"\n\s*\{\s*id: 'supabase-ready',.*?\n\s*\},",'',s,count=1,flags=re.S)
+          app.write_text(s,encoding='utf-8')
+          PY
+      - name: Verify cleanup
+        run: |
+          ! grep -nE '7204137931|\+91 72041 37931|data:image/png;base64|const CHAPTERS|CHAPTERS\.find|MongoDB|Express' App.jsx
+      - name: Build
+        run: npm install && npm run build
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.jsx
+          git diff --cached --check
+          git commit -m "chore: apply App.jsx cleanup and Supabase chapter flow"
+          git push
+      - name: Remove workflow
+        run: |
+          git rm .github/workflows/app-cleanup.yml
+          git commit -m "chore: remove App cleanup workflow"
+          git push
