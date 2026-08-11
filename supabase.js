@@ -21,6 +21,13 @@ const client = createClient(
 
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
+async function authHeaders() {
+  const { data, error } = await client.auth.getSession();
+  if (error) throw error;
+  if (!data.session?.access_token) throw new Error('Your Supabase session has expired. Please sign in again.');
+  return { Authorization: `Bearer ${data.session.access_token}` };
+}
+
 const r2Storage = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
@@ -34,6 +41,7 @@ const r2Storage = {
           const response = await fetch(publicPath(path), {
             method: 'PUT',
             headers: {
+              ...(await authHeaders()),
               'Content-Type': options.contentType || file?.type || 'application/octet-stream',
               'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}`,
             },
@@ -58,8 +66,9 @@ const r2Storage = {
       async remove(paths) {
         const clean = (paths || []).filter(Boolean);
         try {
+          const headers = await authHeaders();
           for (const path of clean) {
-            const response = await fetch(publicPath(path), { method: 'DELETE' });
+            const response = await fetch(publicPath(path), { method: 'DELETE', headers });
             if (!response.ok) {
               const text = await response.text();
               return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) };
