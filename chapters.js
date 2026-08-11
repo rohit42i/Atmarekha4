@@ -3,23 +3,14 @@ import { supabase } from './supabase';
 const CHAPTERS_TABLE = 'chapters';
 const PAGES_TABLE = 'chapter_pages';
 
-const CHAPTER_COLUMNS = [
-  'id',
-  'Chapter Number',
-  'Title',
-  'Description',
-  'Cover url',
-  'status',
-  'Release date',
-  'Created at',
-].join(', ');
-
-const PAGE_COLUMNS = ['Chapter id', 'Page number', 'Image url'].join(', ');
+// The database uses legacy column names containing spaces. PostgREST
+// normalizes explicit select lists and turns names such as "Chapter Number"
+// into ChapterNumber, so use * and read the returned object keys directly.
 
 export async function buildChapters() {
   const { data, error } = await supabase
     .from(CHAPTERS_TABLE)
-    .select(CHAPTER_COLUMNS)
+    .select('*')
     .order('Chapter Number', { ascending: true });
 
   if (error) {
@@ -40,13 +31,11 @@ export async function buildChapters() {
 }
 
 export async function buildChapterPages(chapterId) {
-  if (!chapterId) {
-    return [];
-  }
+  if (!chapterId) return [];
 
   const { data, error } = await supabase
     .from(PAGES_TABLE)
-    .select(PAGE_COLUMNS)
+    .select('*')
     .eq('Chapter id', chapterId)
     .order('Page number', { ascending: true });
 
