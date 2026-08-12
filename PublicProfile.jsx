@@ -4,8 +4,9 @@ import './account.css';
 
 const AVATARS = Array.from({ length: 10 }, (_, index) => `/avatars/avatar-${index + 1}.svg`);
 const safeAvatar = value => AVATARS.includes(value) ? value : AVATARS[0];
+const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
 
-export default function PublicProfile({ userId, onBack }) {
+export default function PublicProfile({ userId, username, onBack }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,19 +14,29 @@ export default function PublicProfile({ userId, onBack }) {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      setLoading(true);
-      const { data, error: queryError } = await supabase.from('profiles').select('username, avatar_url, bio').eq('id', userId).maybeSingle();
-      if (!active) return;
-      if (queryError) setError(queryError.message || 'Unable to load this profile.');
-      else setProfile(data);
-      setLoading(false);
+      setLoading(true); setError(''); setProfile(null);
+      try {
+        let query = supabase.from('profiles').select('id, username, avatar_url, bio').limit(1);
+        if (isUuid(userId)) query = query.eq('id', userId);
+        else if (String(username || userId || '').trim()) query = query.ilike('username', String(username || userId).trim());
+        else throw new Error('This reader profile is no longer available.');
+        const { data, error: queryError } = await query.maybeSingle();
+        if (queryError) throw queryError;
+        if (!active) return;
+        if (!data) setError('This reader profile is no longer available.');
+        else setProfile(data);
+      } catch (err) {
+        if (active) setError(err?.message || 'This reader profile is no longer available.');
+      } finally {
+        if (active) setLoading(false);
+      }
     };
-    if (userId) load();
+    load();
     return () => { active = false; };
-  }, [userId]);
+  }, [userId, username]);
 
   if (loading) return <main className="account-page"><div className="account-card"><div className="loading-state"><span className="loading-spinner"/><p>Opening profile…</p></div></div></main>;
-  if (error || !profile) return <main className="account-page"><div className="account-card"><button className="account-back" onClick={onBack}>← Back</button><div className="empty-state"><h3>{error ? 'Profile unavailable' : 'Reader not found'}</h3><p>{error || 'This reader profile is no longer available.'}</p></div></div></main>;
+  if (error || !profile) return <main className="account-page"><div className="account-card"><button className="account-back" onClick={onBack}>← Back</button><div className="empty-state"><h3>Profile unavailable</h3><p>{error || 'This reader profile is no longer available.'}</p></div></div></main>;
 
   return <main className="account-page public-profile-page"><section className="account-card public-profile-card">
     <button className="account-back" onClick={onBack}>← Back</button>
