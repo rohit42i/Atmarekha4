@@ -14,6 +14,7 @@ import './notification-fix.js';
 import './reader-performance.css';
 import './reader-performance.js';
 import './user-auth.css';
+import './user-auth-layout.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
