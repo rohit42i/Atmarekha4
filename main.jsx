@@ -8,6 +8,8 @@ import './admin-polish.css';
 import './mihon-reader-polish.css';
 import './light-mode.css';
 import './admin-link-fix.css';
+import './notification-fix.css';
+import './notification-fix.js';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
