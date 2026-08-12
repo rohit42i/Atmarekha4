@@ -1,11 +1,11 @@
 {
   "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
-  "name": "tiny-pond-c959",
+  "name": "atmarekha4",
   "main": "src/index.js",
   "compatibility_date": "2026-08-12",
   "r2_buckets": [
-    { "binding": "COVERS", "bucket_name": "covers" },
-    { "binding": "CHAPTER_PAGES", "bucket_name": "chapter-pages" }
+    { "binding": "COVERS", "bucket_name": "atma-rekha-manga" },
+    { "binding": "CHAPTER_PAGES", "bucket_name": "atma-rekha-manga" }
   ],
   "observability": { "enabled": true }
 }
