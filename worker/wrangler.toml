@@ -1,1 +1,10 @@
 name = "atmarekha4"
+compatibility_date = "2026-08-12"
+
+[[r2_buckets]]
+binding = "COVERS"
+bucket_name = "atma-rekha-manga"
+
+[[r2_buckets]]
+binding = "CHAPTER_PAGES"
+bucket_name = "atma-rekha-manga"
