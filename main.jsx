@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import UserAuth from './UserAuth.jsx';
+import ReaderBookmark from './ReaderBookmark.jsx';
 import './index.css';
 import './ui-polish.css';
 import './admin-polish.css';
@@ -19,5 +20,6 @@ createRoot(document.getElementById('root')).render(
     <App />
     <ThemeToggle />
     <UserAuth />
+    <ReaderBookmark />
   </React.StrictMode>
 );
