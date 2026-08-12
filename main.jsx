@@ -9,8 +9,6 @@ import './mihon-reader-polish.css';
 import './light-mode.css';
 import './admin-link-fix.css';
 import './notification-fix.js';
-import './reader-image-zoom.css';
-import './reader-image-zoom.js';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
