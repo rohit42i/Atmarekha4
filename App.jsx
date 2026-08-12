@@ -69,8 +69,8 @@ function Reader({ chapterId, onBack, chapters }) {
 }
 
 function Home({ chapters }) {
-  const featured = chapters.find(chapter => chapter.cover) || chapters[chapters.length - 1];
-  return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><a className="admin-link" href="#admin">Admin</a></header><section className="hero-card"><div className="hero-art">{featured?.cover ? <img src={featured.cover} alt="Atma Rekha" loading="eager"/> : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><p className="hero-eyebrow">{STORY.eyebrow}</p><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="#chapters">View Chapters →</a></div></section><Footer/></main>;
+  const featured = [...chapters].reverse().find(chapter => chapter.cover) || chapters[chapters.length - 1];
+  return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><a className="admin-link" href="#admin" aria-label="Admin Panel"><span aria-hidden="true">🔔</span><span>Admin Panel</span></a></header><section className="hero-card"><div className="hero-art">{featured?.cover ? <img src={featured.cover} alt="Atma Rekha" loading="eager"/> : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><p className="hero-eyebrow">{STORY.eyebrow}</p><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="#chapters">View Chapters →</a></div></section><Footer/></main>;
 }
 
 function AdminRoute({ onExit }) {
