@@ -25,6 +25,7 @@ export default function Footer() {
           <a href="#info/report">Report</a>
           <a href="#info/privacy">Privacy</a>
           <a href="#info/terms">Terms</a>
+          <a href="#admin" className="footer-admin-link">Admin Login</a>
         </nav>
 
         <div className="footer-socials" aria-label="Social links">
