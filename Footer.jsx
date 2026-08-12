@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { buildChapters } from './chapters';
+
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx', icon: 'instagram' },
   { label: 'YouTube', href: 'https://youtube.com/@atmarekha?si=ytUOmNPrKFtxJUwn', icon: 'youtube' },
@@ -10,9 +13,57 @@ function SocialIcon({ type }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg>;
 }
 
+function ContinueReading() {
+  const [item, setItem] = useState(null);
+  useEffect(() => {
+    const hash = window.location.hash || '#home';
+    if (hash !== '#home' && hash !== '') return;
+    let cancelled = false;
+    buildChapters().then(chapters => {
+      if (cancelled) return;
+      const published = chapters.filter(ch => String(ch.status || '').toLowerCase() === 'published');
+      const saved = published.map(chapter => ({
+        chapter,
+        page: Number(window.localStorage.getItem(`atma-reading:${chapter.id}`))
+      })).filter(entry => Number.isInteger(entry.page) && entry.page >= 0).sort((a, b) => b.chapter.chapterNumber - a.chapter.chapterNumber)[0];
+      if (saved) setItem(saved);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  if (!item) return null;
+  return <section className="continue-reading-card" aria-label="Continue reading">
+    <div><p>CONTINUE READING</p><h2>Chapter {item.chapter.chapterNumber}</h2><span>{item.chapter.title || 'Untitled chapter'} · Page {item.page + 1}</span></div>
+    <a href={`#read-chapter/${encodeURIComponent(item.chapter.id)}`}>Continue <span aria-hidden="true">→</span></a>
+  </section>;
+}
+
+function NotificationToggle() {
+  const [enabled, setEnabled] = useState(() => window.localStorage.getItem('atma-chapter-notifications') === 'on');
+  const [busy, setBusy] = useState(false);
+  const toggle = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (enabled) {
+        window.localStorage.setItem('atma-chapter-notifications', 'off');
+        setEnabled(false);
+        return;
+      }
+      if (!('Notification' in window)) return;
+      const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+      if (permission === 'granted') {
+        window.localStorage.setItem('atma-chapter-notifications', 'on');
+        setEnabled(true);
+      }
+    } finally { setBusy(false); }
+  };
+  return <button type="button" className={`footer-notification-toggle ${enabled ? 'is-on' : ''}`} onClick={toggle} disabled={busy} aria-pressed={enabled} title="Chapter notifications"><span>🔔</span>{enabled ? 'Notifications on' : 'Notify me about new chapters'}</button>;
+}
+
 export default function Footer() {
   return (
     <footer className="site-footer">
+      <ContinueReading />
       <div className="site-footer-inner">
         <div className="footer-brand-block">
           <a className="footer-brand" href="#home">Atma Rekha</a>
@@ -27,17 +78,11 @@ export default function Footer() {
           <a href="#info/terms">Terms</a>
         </nav>
 
+        <NotificationToggle />
+
         <div className="footer-socials" aria-label="Social links">
           {SOCIAL_LINKS.map(item => (
-            <a
-              key={item.label}
-              href={item.href}
-              target={item.href.startsWith('mailto:') ? undefined : '_blank'}
-              rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'}
-              className="footer-social"
-              aria-label={item.label}
-              title={item.label}
-            >
+            <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}>
               <SocialIcon type={item.icon} />
             </a>
           ))}
