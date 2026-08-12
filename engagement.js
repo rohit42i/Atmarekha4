@@ -27,12 +27,7 @@ export async function fetchPublicEngagement(chapterIds) {
     supabase.from('comments').select('id, chapter_id').in('chapter_id', ids),
   ]);
   for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
-  return Object.fromEntries(ids.map(id => [id, {
-    rating: buildRatingSummary((ratings.data || []).filter(row => row.chapter_id === id)),
-    views: (views.data || []).filter(row => row.chapter_id === id).length,
-    likes: (likes.data || []).filter(row => row.chapter_id === id).length,
-    comments: (comments.data || []).filter(row => row.chapter_id === id).length,
-  }]));
+  return Object.fromEntries(ids.map(id => [id, { rating: buildRatingSummary((ratings.data || []).filter(row => row.chapter_id === id)), views: (views.data || []).filter(row => row.chapter_id === id).length, likes: (likes.data || []).filter(row => row.chapter_id === id).length, comments: (comments.data || []).filter(row => row.chapter_id === id).length }]));
 }
 
 export async function fetchChapterEngagement(chapterId) {
@@ -49,7 +44,13 @@ export async function fetchChapterEngagement(chapterId) {
 export async function fetchChapterComments(chapterId) {
   const { data, error } = await supabase.from('comments').select('id, user_id, chapter_id, author_name, content, created_at, updated_at, parent_comment_id').eq('chapter_id', chapterId).order('created_at', { ascending: true });
   if (error) throw error;
-  return data || [];
+  const rows = data || [];
+  const ids = [...new Set(rows.map(row => row.user_id).filter(Boolean))];
+  if (!ids.length) return rows;
+  const { data: badges, error: badgeError } = await supabase.rpc('get_public_reader_tiers', { reader_ids: ids });
+  if (badgeError) throw badgeError;
+  const badgeByUser = Object.fromEntries((badges || []).map(row => [row.user_id, row.tier]));
+  return rows.map(row => ({ ...row, supporter_tier: row.user_id ? badgeByUser[row.user_id] || null : null }));
 }
 
 export async function fetchCommentLikes(commentIds) {
@@ -106,8 +107,12 @@ export async function submitRating(chapterId, rating) {
   if (!user) throw new Error('Sign in to rate chapters.');
   const existing = await supabase.from('chapter_ratings').select('id').eq('chapter_id', chapterId).eq('user_id', user.id).maybeSingle();
   if (existing.error) throw existing.error;
-  if (existing.data) return { alreadyRated: true };
+  if (existing.data) {
+    const { error: updateError } = await supabase.from('chapter_ratings').update({ rating: value }).eq('id', existing.data.id).eq('user_id', user.id);
+    if (updateError) throw updateError;
+    return { alreadyRated: false, updated: true };
+  }
   const { error } = await supabase.from('chapter_ratings').insert({ chapter_id: chapterId, rating: value, user_id: user.id });
   if (error) { if (String(error.code) === '23505') return { alreadyRated: true }; throw error; }
-  return { alreadyRated: false };
+  return { alreadyRated: false, updated: false };
 }
