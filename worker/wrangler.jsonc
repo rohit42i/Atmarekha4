@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
+  "name": "tiny-pond-c959",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-12",
+  "r2_buckets": [
+    { "binding": "COVERS", "bucket_name": "covers" },
+    { "binding": "CHAPTER_PAGES", "bucket_name": "chapter-pages" }
+  ],
+  "observability": { "enabled": true }
+}
