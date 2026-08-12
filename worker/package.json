@@ -7,6 +7,6 @@
     "dev": "wrangler dev"
   },
   "devDependencies": {
-    "wrangler": "latest"
+    "wrangler": "4.115.0"
   }
 }
