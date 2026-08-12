@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-const R2_WORKER_URL = (import.meta.env.VITE_R2_WORKER_URL || 'https://tiny-pond-c959.rohitbaswaraj.workers.dev').replace(/\/$/, '');
+const R2_WORKER_URL = (import.meta.env.VITE_R2_WORKER_URL || 'https://atmarekha4.rohitbaswaraj.workers.dev').replace(/\/$/, '');
 const R2_BUCKETS = new Set(['chapter-pages', 'covers']);
 
 const client = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder-key', {
