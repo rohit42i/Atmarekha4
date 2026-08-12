@@ -7,6 +7,7 @@ import './ui-polish.css';
 import './admin-polish.css';
 import './mihon-reader-polish.css';
 import './light-mode.css';
+import './performance-polish.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
