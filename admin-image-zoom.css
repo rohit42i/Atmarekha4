@@ -1,0 +1,21 @@
+/* Mobile image viewing: keep the image itself zoomable without changing upload/data behavior. */
+.admin-panel .admin-media-grid img,
+.admin-panel .admin-card img,
+.admin-panel .admin-chapter-list img,
+.admin-panel img.admin-preview-image {
+  touch-action: pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: default;
+  cursor: zoom-in;
+  max-width: 100%;
+  height: auto;
+}
+@media (max-width:700px){
+  .admin-panel .admin-media-grid img,
+  .admin-panel .admin-card img,
+  .admin-panel img.admin-preview-image {
+    max-height: 62vh;
+    object-fit: contain;
+  }
+}
