@@ -101,11 +101,13 @@ export async function reportComment(commentId, reason = 'Reported by reader') {
 export async function submitRating(chapterId, rating) {
   const value = Number(rating);
   if (!Number.isInteger(value) || value < 1 || value > 10) throw new Error('Choose a rating from 1 to 10.');
-  const viewerKey = getViewerKey();
-  const existing = await supabase.from('chapter_ratings').select('id').eq('chapter_id', chapterId).eq('viewer_key', viewerKey).maybeSingle();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user) throw new Error('Sign in to rate chapters.');
+  const existing = await supabase.from('chapter_ratings').select('id').eq('chapter_id', chapterId).eq('user_id', user.id).maybeSingle();
   if (existing.error) throw existing.error;
   if (existing.data) return { alreadyRated: true };
-  const { error } = await supabase.from('chapter_ratings').insert({ chapter_id: chapterId, rating: value, viewer_key: viewerKey });
+  const { error } = await supabase.from('chapter_ratings').insert({ chapter_id: chapterId, rating: value, user_id: user.id });
   if (error) { if (String(error.code) === '23505') return { alreadyRated: true }; throw error; }
   return { alreadyRated: false };
 }
