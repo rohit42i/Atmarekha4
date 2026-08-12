@@ -107,11 +107,16 @@ export default function ChapterReader({ chapterId, onBack }) {
 
 function SwipeableReader({ pages, apiBaseUrl }) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [pageLoading, setPageLoading] = useState(true);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
+
+    useEffect(() => {
+        setPageLoading(true);
+    }, [currentIndex]);
 
     const onTouchStart = (e) => {
         setTouchEnd(null); // Reset touch end
@@ -172,11 +177,30 @@ function SwipeableReader({ pages, apiBaseUrl }) {
             <div className="relative mb-6">
                 {/* Image Container */}
                 <div className="relative overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                    {pageLoading && (
+                        <div className="absolute inset-0 z-10 flex min-h-[240px] flex-col items-center justify-center bg-zinc-100/90 dark:bg-zinc-900/90 backdrop-blur-[2px]">
+                            <div className="relative flex h-16 w-16 items-center justify-center" aria-hidden="true">
+                                <div className="absolute inset-0 rounded-full border-2 border-pink-200 dark:border-pink-950/80"></div>
+                                <div className="absolute inset-0 rounded-full border-2 border-pink-500 border-t-transparent animate-spin"></div>
+                                <svg
+                                    viewBox="0 0 64 64"
+                                    className="h-9 w-9 text-pink-500 animate-[spin_1.8s_linear_infinite]"
+                                    fill="currentColor"
+                                >
+                                    <path d="M32 24c-1.9-8.6-7.1-13-12.4-10.7-4.2 1.8-4.4 7.3-.7 11.1-7.5-3.2-13.6-.7-13.6 4.7 0 4.4 4.7 7.1 10.3 6.9-6.2 5.4-5.6 11.9-1.2 14.2 4 2.1 8.7-.8 10.9-5.7 1.1 8.4 6.1 12.3 10.7 10.1 4.1-2 4.2-7.3.9-11.1 7.3 3.2 13.4.9 13.6-4.2.2-4.5-4.4-7.5-10.2-7.3 6.3-5.4 5.8-11.8 1.5-14.1-4.1-2.2-8.8.7-10.9 5.9ZM32 29.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Z" />
+                                </svg>
+                            </div>
+                            <span className="mt-4 text-sm font-medium tracking-wide text-zinc-700 dark:text-zinc-200">
+                                Loading page {currentIndex + 1} of {pages.length}
+                            </span>
+                        </div>
+                    )}
                     <img
                         src={`${apiBaseUrl}${pages[currentIndex]}`}
                         alt={`Page ${currentIndex + 1}`}
                         className="w-full h-auto object-contain max-h-[85vh] mx-auto"
                         loading="eager"
+                        onLoad={() => setPageLoading(false)}
                     />
 
                     {/* Turn Hints (Desktop Hover) */}
