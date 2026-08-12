@@ -253,6 +253,22 @@
 .muted { color: #5f5f66; font-size: 12px; }
 .center { padding: 28px 0; text-align: center; }
 
+/* UX polish: subtle, fast feedback without changing layout or behavior. */
+button, a { -webkit-user-select: none; user-select: none; }
+button:not(:disabled), a { transition: transform .16s cubic-bezier(.2,.7,.2,1), opacity .16s ease, filter .16s ease, background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease; }
+button:not(:disabled):active { transform: scale(.975); }
+button:disabled { pointer-events: none; }
+button:focus-visible, a:focus-visible { outline: 2px solid #5f8fff; outline-offset: 3px; }
+.loading-state { contain: content; }
+.loading-state p { margin: 0; font-size: 13px; }
+.reader-stage { touch-action: pan-y; overscroll-behavior-x: contain; }
+.reader-page-image { will-change: opacity, transform; animation: reader-page-in .16s ease both; }
+@keyframes reader-page-in { from { opacity: .72; transform: translateX(6px); } to { opacity: 1; transform: translateX(0); } }
+.reader-side-button:hover:not(:disabled) { background: rgb(25 25 25 / .9); border-color: #5a5a5a; }
+.reader-control:hover:not(:disabled) { transform: translateY(-1px); }
+.reader-control:active:not(:disabled) { transform: scale(.985); }
+.network-banner { position: sticky; top: 0; z-index: 60; padding: 7px 12px; background: #17130b; border-bottom: 1px solid #3d321c; color: #d8c58b; text-align: center; font-size: 11px; font-weight: 700; }
+
 @media (max-width: 700px) {
   .home-header { min-height: 68px; padding: 0 20px; }
   .brand-wordmark { font-size: 22px; }
@@ -311,4 +327,8 @@
 @media (min-width: 701px) {
   .comment-sheet-backdrop { align-items: center; padding: 20px; }
   .comment-sheet { border-bottom: 1px solid #2a2a2a; border-radius: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
