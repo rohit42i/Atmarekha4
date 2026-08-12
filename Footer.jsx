@@ -22,10 +22,9 @@ function ContinueReading() {
     buildChapters().then(chapters => {
       if (cancelled) return;
       const published = chapters.filter(ch => String(ch.status || '').toLowerCase() === 'published');
-      const saved = published.map(chapter => ({
-        chapter,
-        page: Number(window.localStorage.getItem(`atma-reading:${chapter.id}`))
-      })).filter(entry => Number.isInteger(entry.page) && entry.page >= 0).sort((a, b) => b.chapter.chapterNumber - a.chapter.chapterNumber)[0];
+      const saved = published.map(chapter => ({ chapter, page: Number(window.localStorage.getItem(`atma-reading:${chapter.id}`)) }))
+        .filter(entry => Number.isInteger(entry.page) && entry.page >= 0)
+        .sort((a, b) => Number(b.chapter.chapterNumber) - Number(a.chapter.chapterNumber))[0];
       if (saved) setItem(saved);
     }).catch(() => {});
     return () => { cancelled = true; };
@@ -40,6 +39,33 @@ function ContinueReading() {
 function NotificationToggle() {
   const [enabled, setEnabled] = useState(() => window.localStorage.getItem('atma-chapter-notifications') === 'on');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || !('Notification' in window) || Notification.permission !== 'granted') return undefined;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const chapters = await buildChapters();
+        const published = chapters.filter(ch => String(ch.status || '').toLowerCase() === 'published').sort((a, b) => Number(b.chapterNumber) - Number(a.chapterNumber));
+        const latest = published[0];
+        if (!latest || cancelled) return;
+        const key = String(latest.id || latest.chapterNumber);
+        const lastSeen = window.localStorage.getItem('atma-last-notified-chapter');
+        if (!lastSeen) {
+          window.localStorage.setItem('atma-last-notified-chapter', key);
+          return;
+        }
+        if (key !== lastSeen) {
+          window.localStorage.setItem('atma-last-notified-chapter', key);
+          new Notification(`Atma Rekha · Chapter ${latest.chapterNumber} is here!`, { body: latest.title || 'A new chapter has been published.', icon: '/favicon.png', tag: 'atma-rekha-new-chapter' });
+        }
+      } catch (_) {}
+    };
+    check();
+    const interval = window.setInterval(check, 5 * 60 * 1000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [enabled]);
+
   const toggle = async () => {
     if (busy) return;
     setBusy(true);
@@ -52,6 +78,11 @@ function NotificationToggle() {
       if (!('Notification' in window)) return;
       const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
       if (permission === 'granted') {
+        try {
+          const chapters = await buildChapters();
+          const published = chapters.filter(ch => String(ch.status || '').toLowerCase() === 'published').sort((a, b) => Number(b.chapterNumber) - Number(a.chapterNumber));
+          if (published[0]) window.localStorage.setItem('atma-last-notified-chapter', String(published[0].id || published[0].chapterNumber));
+        } catch (_) {}
         window.localStorage.setItem('atma-chapter-notifications', 'on');
         setEnabled(true);
       }
@@ -69,28 +100,14 @@ export default function Footer() {
           <a className="footer-brand" href="#home">Atma Rekha</a>
           <p>An original Indian manga story.</p>
         </div>
-
         <nav className="footer-nav" aria-label="Footer navigation">
-          <a href="#info/about">About</a>
-          <a href="#info/contact">Contact</a>
-          <a href="#info/report">Report</a>
-          <a href="#info/privacy">Privacy</a>
-          <a href="#info/terms">Terms</a>
+          <a href="#info/about">About</a><a href="#info/contact">Contact</a><a href="#info/report">Report</a><a href="#info/privacy">Privacy</a><a href="#info/terms">Terms</a>
         </nav>
-
         <NotificationToggle />
-
         <div className="footer-socials" aria-label="Social links">
-          {SOCIAL_LINKS.map(item => (
-            <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}>
-              <SocialIcon type={item.icon} />
-            </a>
-          ))}
+          {SOCIAL_LINKS.map(item => <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}><SocialIcon type={item.icon} /></a>)}
         </div>
-
-        <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', textAlign: 'center' }}>
-          <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span>
-        </div>
+        <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', textAlign: 'center' }}><span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span></div>
       </div>
     </footer>
   );
