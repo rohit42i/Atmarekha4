@@ -8,6 +8,7 @@ import './admin-polish.css';
 import './mihon-reader-polish.css';
 import './light-mode.css';
 import './performance-polish.css';
+import './reader-swipe.js';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
