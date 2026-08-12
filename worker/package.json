@@ -1,0 +1,12 @@
+{
+  "name": "atma-rekha-r2-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "latest"
+  }
+}
