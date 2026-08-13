@@ -19,7 +19,7 @@ export default function ProfileV2() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [tab, setTab] = useState('history');
+  const [tab, setTab] = useState(() => window.localStorage.getItem('atma-profile-tab') || 'history');
   const [history, setHistory] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [ratings, setRatings] = useState([]);
@@ -46,6 +46,9 @@ export default function ProfileV2() {
   useEffect(() => {
     const onHash = () => setRoute(routeNow());
     window.addEventListener('hashchange', onHash);
+    const savedTab = window.localStorage.getItem('atma-profile-tab');
+    if (savedTab === 'history' || savedTab === 'bookmarks' || savedTab === 'ratings') setTab(savedTab);
+    window.localStorage.removeItem('atma-profile-tab');
     supabase.auth.getSession().then(({ data }) => { if (data?.session?.user) load(data.session.user); });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { if (session?.user) load(session.user); else setUser(null); });
     return () => { window.removeEventListener('hashchange', onHash); listener.subscription.unsubscribe(); };
@@ -56,24 +59,13 @@ export default function ProfileV2() {
     if (!user || saving) return;
     setSaving(true); setError(''); setMessage('');
     const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24);
-    const updates = {
-      username: cleanUsername || null,
-      display_name: displayName.trim().slice(0, 60) || 'Reader',
-      bio: bio.trim().slice(0, 240) || null,
-      avatar_url: avatar || AVATARS[0]
-    };
+    const updates = { username: cleanUsername || null, display_name: displayName.trim().slice(0, 60) || 'Reader', bio: bio.trim().slice(0, 240) || null, avatar_url: avatar || AVATARS[0] };
     const { data, error: profileError } = await supabase.from('profiles').update(updates).eq('id', user.id).select().single();
-    if (profileError) {
-      setError(profileError.code === '23505' ? 'That username is already taken.' : profileError.message);
-      setSaving(false); return;
-    }
+    if (profileError) { setError(profileError.code === '23505' ? 'That username is already taken.' : profileError.message); setSaving(false); return; }
     if (email.trim() && email.trim() !== (user.email || '')) {
       const { error: emailError } = await supabase.auth.updateUser({ email: email.trim() });
-      if (emailError) setError(emailError.message);
-      else setMessage('Profile saved. Check your new email to confirm the email change.');
-    } else {
-      setMessage('Profile saved.');
-    }
+      if (emailError) setError(emailError.message); else setMessage('Profile saved. Check your new email to confirm the email change.');
+    } else setMessage('Profile saved.');
     setProfile(data); setEditing(false); setAvatarPicker(false); setSaving(false);
   };
 
@@ -110,9 +102,9 @@ export default function ProfileV2() {
         </form> : <div className="profile-v2-bio">{profile?.bio ? <p>{profile.bio}</p> : <p className="muted">No bio yet.</p>}</div>}
 
         {!editing && <>
-          <div className="profile-v2-stats"><div><strong>{history.length}</strong><span>Chapters read</span></div><div><strong>{bookmarks.length}</strong><span>Bookmarks</span></div><div><strong>{ratings.length}</strong><span>Ratings</span></div></div>
-          <div className="profile-v2-tabs">{[['history','Reading History'],['bookmarks','Bookmarks'],['ratings','My Ratings']].map(([id,label]) => <button type="button" key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>)}</div>
-          <div className="profile-v2-list">{!list.length ? <div className="profile-v2-empty"><h3>{tab === 'history' ? 'No reading history yet' : tab === 'bookmarks' ? 'No bookmarks yet' : 'No ratings yet'}</h3><p>Start reading Atma Rekha and your activity will appear here.</p></div> : list.map(row => { const chapter = row.chapters; if (!chapter) return null; return <button type="button" key={row.id || row.chapter_id} className="profile-v2-list-item" onClick={() => { window.location.hash = `read-chapter/${encodeURIComponent(chapter.id)}`; }}><div>{chapter.cover_url ? <img src={chapter.cover_url} alt="" /> : <span>AR</span>}<div><small>CHAPTER {chapter.chapter_number}</small><strong>{chapter.title}</strong></div></div><b>{tab === 'ratings' ? `${row.rating}/10 ★` : tab === 'history' ? `Page ${row.page_number || 1} →` : 'Read →'}</b></button>; })}</div>
+          <div className="profile-v2-stats"><div><strong>{history.length}</strong><span>Chapters read</span></div><div><strong>{bookmarks.length}</strong><span>Favourites</span></div><div><strong>{ratings.length}</strong><span>Ratings</span></div></div>
+          <div className="profile-v2-tabs">{[['history','Reading History'],['bookmarks','Favourites'],['ratings','My Ratings']].map(([id,label]) => <button type="button" key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{label}</button>)}</div>
+          <div className="profile-v2-list">{!list.length ? <div className="profile-v2-empty"><h3>{tab === 'history' ? 'No reading history yet' : tab === 'bookmarks' ? 'No favourites yet' : 'No ratings yet'}</h3><p>Start reading Atma Rekha and your activity will appear here.</p></div> : list.map(row => { const chapter = row.chapters; if (!chapter) return null; return <button type="button" key={row.id || row.chapter_id} className="profile-v2-list-item" onClick={() => { window.location.hash = `read-chapter/${encodeURIComponent(chapter.id)}`; }}><div>{chapter.cover_url ? <img src={chapter.cover_url} alt="" /> : <span>AR</span>}<div><small>CHAPTER {chapter.chapter_number}</small><strong>{chapter.title}</strong></div></div><b>{tab === 'ratings' ? `${row.rating}/10 ★` : tab === 'history' ? `Page ${row.page_number || 1} →` : 'Read →'}</b></button>; })}</div>
         </>}
       </section>
     </div>
