@@ -5,6 +5,7 @@ import ThemeToggle from './ThemeToggle.jsx';
 import UserAuth from './UserAuth.jsx';
 import ProfileV2 from './ProfileV2.jsx';
 import ReaderBookmark from './ReaderBookmark.jsx';
+import AuthGate from './AuthGate.jsx';
 import './index.css';
 import './ui-polish.css';
 import './admin-polish.css';
@@ -17,6 +18,7 @@ import './reader-performance.js';
 import './user-auth.css';
 import './user-auth-layout.css';
 import './profile-v2.css';
+import './auth-gate.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -25,5 +27,6 @@ createRoot(document.getElementById('root')).render(
     <UserAuth />
     <ProfileV2 />
     <ReaderBookmark />
+    <AuthGate />
   </React.StrictMode>
 );
