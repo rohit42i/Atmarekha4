@@ -27,7 +27,26 @@ export async function fetchChapterEngagement(chapterId) {
 }
 export async function fetchChapterComments(chapterId) { const { data,error } = await supabase.from('comments').select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').eq('chapter_id',chapterId).order('created_at',{ascending:true}); if(error)throw error; return data||[]; }
 export async function fetchCommentLikes(commentIds) { const ids=[...new Set((commentIds||[]).filter(Boolean))]; if(!ids.length)return {counts:{},liked:{}}; const viewerKey=getViewerKey(); const [all,own]=await Promise.all([supabase.from('comment_likes').select('comment_id').in('comment_id',ids),supabase.from('comment_likes').select('comment_id').in('comment_id',ids).eq('viewer_key',viewerKey)]); if(all.error)throw all.error;if(own.error)throw own.error; const counts={};for(const row of all.data||[])counts[row.comment_id]=(counts[row.comment_id]||0)+1;return {counts,liked:Object.fromEntries((own.data||[]).map(row=>[row.comment_id,true]))}; }
-async function requireUser() { const { data, error } = await supabase.auth.getUser(); if(error) throw error; if(!data.user) { const err=new Error('Please sign in to continue.'); err.code='AUTH_REQUIRED'; throw err; } return data.user; }
+
+// Use the persisted Supabase session first. getUser() can briefly report an auth error
+// while the client is restoring the session after a page load/OAuth redirect.
+async function requireUser() {
+  const sessionResult = await supabase.auth.getSession();
+  if (sessionResult.error) throw sessionResult.error;
+  let user = sessionResult.data?.session?.user || null;
+  if (!user) {
+    const userResult = await supabase.auth.getUser();
+    if (userResult.error && userResult.error.name !== 'AuthSessionMissingError') throw userResult.error;
+    user = userResult.data?.user || null;
+  }
+  if (!user) {
+    const err = new Error('Please sign in to continue.');
+    err.code = 'AUTH_REQUIRED';
+    throw err;
+  }
+  return user;
+}
+
 export async function addComment({chapterId,content,authorName,parentCommentId=null}) { const user=await requireUser(); const cleanContent=String(content||'').trim();const cleanName=String(authorName||'Reader').trim().slice(0,80)||'Reader';if(!cleanContent)throw new Error('Write a comment first.');if(cleanContent.length>2000)throw new Error('Comments are limited to 2000 characters.');const {data,error}=await supabase.from('comments').insert({user_id:user.id,chapter_id:chapterId,author_name:cleanName,content:cleanContent,parent_comment_id:parentCommentId}).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();if(error)throw error;return data; }
 export async function recordChapterView(chapterId){const {error}=await supabase.from('chapter_views').upsert({chapter_id:chapterId,viewer_key:getViewerKey()},{onConflict:'chapter_id,viewer_key',ignoreDuplicates:true});if(error)throw error;}
 export async function likeChapter(chapterId){const {error}=await supabase.from('chapter_likes').upsert({chapter_id:chapterId,viewer_key:getViewerKey()},{onConflict:'chapter_id,viewer_key',ignoreDuplicates:true});if(error)throw error;}
