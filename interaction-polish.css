@@ -1,0 +1,9 @@
+/* Stability pass: subtle acknowledgement only; no layout or feature changes. */
+button:not(:disabled),a{transition:transform .18s ease,opacity .18s ease,background-color .18s ease,border-color .18s ease,color .18s ease}
+button:not(:disabled):active{transform:scale(.98)}
+button:disabled{cursor:not-allowed}
+.reader-stage img{transition:opacity .16s ease}
+.reader-stage img:not(.reader-image-loaded){opacity:.96}
+.profile-v2-overlay,.auth-required-backdrop{animation:ar-ui-in .18s ease both}
+@keyframes ar-ui-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){button:not(:disabled),a,.reader-stage img,.profile-v2-overlay,.auth-required-backdrop{transition:none;animation:none}}
