@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from './supabase';
 
 function isHomeRoute() {
   return !window.location.hash || window.location.hash === '#home' || window.location.hash === '#';
@@ -13,6 +14,20 @@ export default function AuthGate() {
   const [route, setRoute] = useState(() => window.location.hash);
 
   useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active) window.__atmaAuthUser = data?.user || null;
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      window.__atmaAuthUser = session?.user || null;
+    });
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     const onHash = () => setRoute(window.location.hash);
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -24,7 +39,7 @@ export default function AuthGate() {
       if (!target) return;
       const label = `${target.getAttribute('aria-label') || ''} ${target.textContent || ''}`.toLowerCase();
       const isRating = label.includes('rate chapter') || label.includes('rate this chapter');
-      const isComment = label.includes('comments for chapter') || label.includes('chapter comments') || label.includes('comment');
+      const isComment = label.includes('comments for chapter') || label.includes('chapter comments');
       if (!isRating && !isComment) return;
       if (getSessionUser()) return;
       event.preventDefault();
@@ -37,7 +52,6 @@ export default function AuthGate() {
   }, []);
 
   useEffect(() => {
-    // Keep the sign-in control on the main page only. The actual auth state remains untouched.
     const update = () => {
       const visible = isHomeRoute();
       document.querySelectorAll('.user-auth-menu').forEach(node => {
@@ -54,7 +68,7 @@ export default function AuthGate() {
     window.location.hash = 'home';
     window.setTimeout(() => {
       const buttons = Array.from(document.querySelectorAll('button'));
-      const login = buttons.find(button => /sign in|login/i.test(button.textContent || ''));
+      const login = buttons.find(button => /sign in/i.test(button.textContent || ''));
       login?.click();
     }, 100);
   };
