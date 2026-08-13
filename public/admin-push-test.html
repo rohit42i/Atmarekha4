@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Atma Rekha — Push Test</title>
+  <style>body{font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#faf7f2;color:#222}button{padding:14px 18px;border:0;border-radius:12px;background:#222;color:#fff;font-size:16px}button:disabled{opacity:.5}pre{white-space:pre-wrap;background:#eee;padding:14px;border-radius:12px;margin-top:18px}</style>
+</head>
+<body>
+  <h1>🔔 Push notification test</h1>
+  <p>This page is restricted to Atma Rekha admins. It sends a real test notification to every registered push subscription.</p>
+  <button id="send" disabled>Checking admin session…</button>
+  <pre id="status">Loading…</pre>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const supabase = createClient('https://pbukwjokgkqacaphlqzm.supabase.co','sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E');
+    const button = document.getElementById('send');
+    const status = document.getElementById('status');
+    const setStatus = value => { status.textContent = typeof value === 'string' ? value : JSON.stringify(value,null,2); };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No Atma Rekha login session. Open the normal admin panel and sign in first.');
+      const { data: admin, error } = await supabase.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();
+      if (error) throw new Error(`Admin check failed: ${error.message}`);
+      if (!admin) throw new Error('Admin access required.');
+      button.disabled = false;
+      button.textContent = 'Send real test notification';
+      setStatus('Admin verified. Ready.');
+      button.onclick = async () => {
+        button.disabled = true;
+        setStatus('Sending…');
+        try {
+          const { data: fresh } = await supabase.auth.getSession();
+          if (!fresh.session) throw new Error('Your session expired.');
+          const response = await fetch('https://pbukwjokgkqacaphlqzm.supabase.co/functions/v1/send-chapter-notification-v2', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':`Bearer ${fresh.session.access_token}`,'apikey':'sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E'},
+            body:JSON.stringify({title:'🔔 Atma Rekha Test',body:'Web push notification is working!',url:'/'})
+          });
+          const result = await response.json();
+          setStatus({httpStatus:response.status,result});
+        } catch(error) { setStatus({error:error.message}); }
+        finally { button.disabled=false; }
+      };
+    } catch(error) { setStatus(error.message); }
+  </script>
+</body>
+</html>
