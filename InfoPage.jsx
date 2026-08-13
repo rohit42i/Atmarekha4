@@ -1,5 +1,5 @@
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
-const CONTACT_EMAIL = 'itsamritanshofficial@gmail.com';
+const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
 const PAGES = {
   about: {
