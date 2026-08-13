@@ -5,9 +5,9 @@ export default function AdminChapters({ apiBaseUrl, storyId, onBack }) {
     const [chapters, setChapters] = useState([]);
     const [title, setTitle] = useState('');
     const [chapterNumber, setChapterNumber] = useState('');
-    const [files, setFiles] = useState(null); // For images
+    const [files, setFiles] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [editingChapter, setEditingChapter] = useState(null); // Track chapter being edited
+    const [editingChapter, setEditingChapter] = useState(null);
 
     useEffect(() => {
         fetchChapters();
@@ -26,7 +26,7 @@ export default function AdminChapters({ apiBaseUrl, storyId, onBack }) {
         setEditingChapter(chapter);
         setTitle(chapter.title);
         setChapterNumber(chapter.chapterNumber);
-        setFiles(null); // Reset files, optional to upload new ones
+        setFiles(null);
         document.getElementById('chapterFiles').value = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -56,8 +56,12 @@ export default function AdminChapters({ apiBaseUrl, storyId, onBack }) {
         formData.append('chapterNumber', chapterNumber);
 
         if (files) {
-            for (let i = 0; i < files.length; i++) {
-                formData.append('pages', files[i]);
+            const orderedFiles = Array.from(files).sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+            );
+
+            for (const file of orderedFiles) {
+                formData.append('pages', file);
             }
         }
 
