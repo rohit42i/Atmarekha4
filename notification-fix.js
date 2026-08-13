@@ -19,7 +19,7 @@ async function saveSubscription(subscription) {
   if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Supabase configuration is missing.');
   const json = subscription.toJSON(); const endpoint = json.endpoint; const p256dh = json.keys?.p256dh; const auth = json.keys?.auth;
   if (!endpoint || !p256dh || !auth) throw new Error('Push subscription keys are missing.');
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?on_conflict=endpoint`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ endpoint, p256dh, auth, user_id: null, updated_at: new Date().toISOString() }) });
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({ endpoint, p256dh, auth, user_id: null }) });
   if (!response.ok) { const text = await response.text(); throw new Error(`Push subscription save failed (${response.status}): ${text}`); }
 }
 async function subscribeToPush() { const registration = await registerServiceWorker(); let subscription = await registration.pushManager.getSubscription(); if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) }); await saveSubscription(subscription); return subscription; }
