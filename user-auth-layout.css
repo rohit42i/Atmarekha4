@@ -1,1 +1,28 @@
 .home-page{display:flex;flex-direction:column;min-height:100vh}.home-header{order:0}.hero-card{order:1}.home-continue-section{order:2}.site-footer{order:3}
+
+/* Home header controls: Notifications → Support → Profile/Login */
+body:has(.home-page) .user-auth-fixed{position:fixed;top:17px;right:18px;z-index:1000;display:flex;align-items:center}
+body:not(:has(.home-page)) .user-auth-fixed{display:none!important}
+body:has(.user-profile-page) .user-auth-fixed{display:none!important}
+
+.email-signin-button,.user-auth-avatar-button{height:40px;min-height:40px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #303033;border-radius:999px;padding:0 12px;background:rgba(18,18,19,.96);color:#f7f7f7;font-size:14px;font-weight:800;box-shadow:0 12px 35px rgba(0,0,0,.25);backdrop-filter:blur(14px);cursor:pointer}
+.email-signin-button:hover,.user-auth-avatar-button:hover{border-color:#4a4a50;background:#202023}
+.user-auth-menu{position:relative}
+.user-auth-avatar-button{padding:4px 11px 4px 5px}
+.user-auth-avatar,.user-auth-avatar-fallback{width:32px;height:32px;border-radius:50%;object-fit:cover;display:block}
+.user-auth-avatar-fallback{display:grid;place-items:center;background:#2f6cf6;color:white;font-weight:900}
+.user-auth-name{display:none}
+.user-auth-chevron{display:none}
+.user-auth-avatar-button::after{content:'Profile';font-size:14px;font-weight:800;color:#f7f7f7}
+.email-signin-button{font-size:0}
+.email-signin-button::after{content:'Login';font-size:14px;font-weight:800;color:#f7f7f7}
+
+/* Keep the home controls visually aligned and reserve space for Profile/Login. */
+.home-header>div:last-child{padding-right:150px}
+.home-continue-section{display:none!important}
+
+@media(max-width:700px){
+  body:has(.home-page) .user-auth-fixed{top:17px;right:10px}
+  .home-header>div:last-child{padding-right:120px}
+  .email-signin-button,.user-auth-avatar-button{height:40px;min-height:40px}
+}
