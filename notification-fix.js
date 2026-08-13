@@ -10,10 +10,7 @@ function urlBase64ToUint8Array(value) {
 }
 
 async function registerServiceWorker() {
-  const registration = await navigator.serviceWorker.register('/sw.js', {
-    scope: '/',
-    updateViaCache: 'none',
-  });
+  const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
   try { await registration.update(); } catch (_) {}
   return navigator.serviceWorker.ready;
 }
@@ -23,18 +20,14 @@ async function saveSubscription(subscription) {
   const endpoint = json.endpoint;
   const p256dh = json.keys?.p256dh;
   const auth = json.keys?.auth;
-
   if (!endpoint || !p256dh || !auth) throw new Error('Push subscription keys are missing.');
-
   const { data, error } = await supabase.rpc('register_push_subscription', {
     p_endpoint: endpoint,
     p_p256dh: p256dh,
     p_auth: auth,
   });
-
   if (error) throw new Error(`Supabase push registration failed: ${error.message}`);
   if (!data) throw new Error('Supabase push registration returned no data.');
-
   localStorage.setItem(SUBSCRIPTION_KEY, '1');
   return data;
 }
@@ -42,19 +35,11 @@ async function saveSubscription(subscription) {
 export async function enableAtmaRekhaNotifications() {
   if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) throw new Error('This browser does not support Web Push.');
   if (Notification.permission === 'denied') throw new Error('Notifications are blocked in this browser.');
-
   const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
   if (permission !== 'granted') return null;
-
   const registration = await registerServiceWorker();
   let subscription = await registration.pushManager.getSubscription();
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
-  }
-
+  if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
   const saved = await saveSubscription(subscription);
   console.log('[Atma Rekha Push] registered:', saved);
   return saved;
@@ -74,9 +59,7 @@ function syncBell() {
         await enableAtmaRekhaNotifications();
         button.setAttribute('aria-label', 'Chapter notifications enabled');
         button.title = 'Chapter notifications enabled';
-      } catch (error) {
-        console.error('[Atma Rekha Push]', error);
-      }
+      } catch (error) { console.error('[Atma Rekha Push]', error); }
     });
   }
 }
@@ -96,16 +79,13 @@ async function verifyAdmin() {
 }
 
 function addAdminNotificationTool() {
-  if (document.getElementById('atma-admin-notifications')) return;
   const nav = document.querySelector('.admin-tabs');
-  if (!nav) return;
-
+  if (!nav || nav.querySelector('[data-atma-admin-notification-tab="1"]')) return;
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = 'Notifications';
   button.dataset.atmaAdminNotificationTab = '1';
   nav.appendChild(button);
-
   button.addEventListener('click', event => {
     event.preventDefault();
     event.stopPropagation();
@@ -119,22 +99,14 @@ function openAdminNotificationPanel() {
     existing.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
-
   const host = document.querySelector('.admin-tabs')?.parentElement;
   if (!host) return;
-
   const panel = document.createElement('section');
   panel.id = 'atma-admin-notifications';
   panel.className = 'admin-card';
   panel.style.marginTop = '20px';
   panel.innerHTML = `
-    <div class="admin-card-title">
-      <div>
-        <span>WEB PUSH</span>
-        <h2>Send notification</h2>
-        <p>Send a custom notification to every active push subscriber. Recipients do not need an account or membership.</p>
-      </div>
-    </div>
+    <div class="admin-card-title"><div><span>WEB PUSH</span><h2>Send notification</h2><p>Send a custom notification to every active push subscriber. Recipients do not need an account or membership.</p></div></div>
     <form id="atma-admin-notification-form" class="admin-form">
       <input id="atma-notification-title" maxlength="100" placeholder="Notification title" required />
       <textarea id="atma-notification-message" maxlength="500" rows="5" placeholder="Notification message" required></textarea>
@@ -143,10 +115,8 @@ function openAdminNotificationPanel() {
       <button id="atma-send-notification" class="admin-submit" type="submit">🔔 Send notification to all</button>
       <div id="atma-notification-result" style="display:none"></div>
     </form>`;
-
   host.appendChild(panel);
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
   panel.querySelector('#atma-admin-notification-form').addEventListener('submit', async event => {
     event.preventDefault();
     const sendButton = panel.querySelector('#atma-send-notification');
@@ -154,26 +124,16 @@ function openAdminNotificationPanel() {
     const title = panel.querySelector('#atma-notification-title').value.trim();
     const message = panel.querySelector('#atma-notification-message').value.trim();
     const url = panel.querySelector('#atma-notification-url').value.trim() || '/';
-
     if (!title || !message) return;
-    if (!url.startsWith('/')) {
-      result.style.display = 'block';
-      result.textContent = 'Open URL must begin with /. Example: /chapter/4';
-      return;
-    }
-
+    if (!url.startsWith('/')) { result.style.display = 'block'; result.textContent = 'Open URL must begin with /. Example: /chapter/4'; return; }
     sendButton.disabled = true;
     sendButton.textContent = 'Sending…';
     result.style.display = 'none';
-
     try {
       await verifyAdmin();
-      const { data, error } = await supabase.functions.invoke('send-chapter-notification-v2', {
-        body: { title, body: message, url, tag: `custom-${Date.now()}`, renotify: true },
-      });
+      const { data, error } = await supabase.functions.invoke('send-chapter-notification-v2', { body: { title, body: message, url, tag: `custom-${Date.now()}`, renotify: true } });
       if (error) throw new Error(error.message || 'Notification request failed.');
       if (data?.error) throw new Error(data.error);
-
       result.style.display = 'block';
       result.style.border = '1px solid rgba(16,185,129,.35)';
       result.style.borderRadius = '16px';
@@ -199,10 +159,7 @@ function start() {
   syncBell();
   repairExistingPermission();
   addAdminNotificationTool();
-  const observer = new MutationObserver(() => {
-    syncBell();
-    addAdminNotificationTool();
-  });
+  const observer = new MutationObserver(syncBell);
   observer.observe(document.documentElement, { childList: true, subtree: true });
 }
 
