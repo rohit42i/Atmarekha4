@@ -1,10 +1,8 @@
 import { buildChapters } from './chapters';
+import { supabase } from './supabase';
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL || window.location.origin;
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const VAPID_PUBLIC_KEY =
   'BF-_uIUlnpfpyFOaGb-k9rs8kmgKTJ8GwMj2_tdzwZnld0sBnbfCJ6haKsDCc9JBDSmOcv7jIUc5e4nOXueK9Fs';
@@ -32,12 +30,10 @@ function syncBellVisibility() {
     'Notification' in window &&
     Notification.permission === 'denied';
 
-  button.style.display =
-    supported && !denied ? '' : 'none';
+  button.style.display = supported && !denied ? '' : 'none';
 
   if (supported && !denied) {
-    const enabled =
-      Notification.permission === 'granted';
+    const enabled = Notification.permission === 'granted';
 
     button.setAttribute(
       'aria-label',
@@ -50,19 +46,16 @@ function syncBellVisibility() {
       ? 'Chapter notifications enabled'
       : 'Get notified about new chapters';
 
-    button.dataset.notificationsEnabled =
-      enabled ? 'true' : 'false';
+    button.dataset.notificationsEnabled = enabled ? 'true' : 'false';
   }
 }
 
 function urlBase64ToUint8Array(base64String) {
-  const padding =
-    '='.repeat((4 - (base64String.length % 4)) % 4);
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
 
-  const base64 =
-    (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
 
   const rawData = window.atob(base64);
 
@@ -78,55 +71,43 @@ async function registerServiceWorker() {
 }
 
 async function saveSubscription(subscription) {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error(
-      'Supabase environment variables are missing.'
-    );
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.getSession();
+
+  if (sessionError) throw sessionError;
+
+  const user = sessionData?.session?.user;
+
+  if (!user?.id) {
+    throw new Error('Please sign in before enabling notifications.');
   }
 
   const json = subscription.toJSON();
 
-  if (
-    !json.endpoint ||
-    !json.keys?.p256dh ||
-    !json.keys?.auth
-  ) {
-    throw new Error(
-      'Invalid PushSubscription.'
-    );
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+    throw new Error('Invalid PushSubscription.');
   }
 
-  const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/push_subscriptions`,
-    {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization:
-          `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert(
+      {
+        user_id: user.id,
         endpoint: json.endpoint,
         p256dh: json.keys.p256dh,
-        auth: json.keys.auth
-      })
-    }
-  );
-
-  if (!response.ok) {
-    const text = await response.text();
-
-    throw new Error(
-      `Failed to save push subscription: ${response.status} ${text}`
+        auth: json.keys.auth,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'endpoint',
+      }
     );
-  }
+
+  if (error) throw error;
 }
 
 async function subscribeToPush() {
-  const registration =
-    await registerServiceWorker();
+  const registration = await registerServiceWorker();
 
   let subscription =
     await registration.pushManager.getSubscription();
@@ -136,9 +117,7 @@ async function subscribeToPush() {
       await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey:
-          urlBase64ToUint8Array(
-            VAPID_PUBLIC_KEY
-          )
+          urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
   }
 
@@ -157,10 +136,7 @@ async function requestChapterNotifications() {
     !('serviceWorker' in navigator) ||
     !('PushManager' in window)
   ) {
-    console.warn(
-      'Web Push is not supported by this browser.'
-    );
-
+    console.warn('Web Push is not supported by this browser.');
     syncBellVisibility();
     return;
   }
@@ -171,6 +147,13 @@ async function requestChapterNotifications() {
   }
 
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+
+    if (!sessionData?.session?.user) {
+      console.warn('Notifications require a signed-in user.');
+      return;
+    }
+
     const permission =
       Notification.permission === 'granted'
         ? 'granted'
@@ -189,12 +172,9 @@ async function requestChapterNotifications() {
     );
 
     syncBellVisibility();
-
     await establishBaselines();
 
-    console.log(
-      'Atma Rekha Web Push subscription active.'
-    );
+    console.log('Atma Rekha Web Push subscription active.');
   } catch (error) {
     console.error(
       'Failed to enable Atma Rekha notifications:',
@@ -209,19 +189,14 @@ async function establishBaselines() {
   try {
     const response = await fetch(
       `${API_BASE}/api/announcements`,
-      {
-        cache: 'no-store'
-      }
+      { cache: 'no-store' }
     );
 
     if (response.ok) {
-      const payload =
-        await response.json();
-
-      const items =
-        Array.isArray(payload?.data)
-          ? payload.data
-          : [];
+      const payload = await response.json();
+      const items = Array.isArray(payload?.data)
+        ? payload.data
+        : [];
 
       if (items[0]) {
         localStorage.setItem(
@@ -237,26 +212,20 @@ async function establishBaselines() {
       }
     }
   } catch (error) {
-    console.warn(
-      'Announcement baseline skipped:',
-      error
-    );
+    console.warn('Announcement baseline skipped:', error);
   }
 
   try {
-    const chapters =
-      (await buildChapters())
-        .filter(
-          chapter =>
-            String(
-              chapter?.status || ''
-            ).toLowerCase() === 'published'
-        )
-        .sort(
-          (a, b) =>
-            Number(b.chapterNumber) -
-            Number(a.chapterNumber)
-        );
+    const chapters = (await buildChapters())
+      .filter(
+        chapter =>
+          String(chapter?.status || '').toLowerCase() ===
+          'published'
+      )
+      .sort(
+        (a, b) =>
+          Number(b.chapterNumber) - Number(a.chapterNumber)
+      );
 
     if (chapters[0]) {
       localStorage.setItem(
@@ -271,10 +240,7 @@ async function establishBaselines() {
       );
     }
   } catch (error) {
-    console.warn(
-      'Chapter notification baseline skipped:',
-      error
-    );
+    console.warn('Chapter notification baseline skipped:', error);
   }
 }
 
@@ -282,14 +248,13 @@ function installNotificationFix() {
   document.addEventListener(
     'click',
     event => {
-      const button =
-        event.target.closest?.(
-          '[aria-label="Notifications"],' +
-          '[aria-label="Chapter notifications enabled"],' +
-          '[aria-label="Get chapter notifications"],' +
-          'button[title*="notification" i],' +
-          'button[title*="chapter" i]'
-        );
+      const button = event.target.closest?.(
+        '[aria-label="Notifications"],' +
+        '[aria-label="Chapter notifications enabled"],' +
+        '[aria-label="Get chapter notifications"],' +
+        'button[title*="notification" i],' +
+        'button[title*="chapter" i]'
+      );
 
       if (!button) return;
 
@@ -303,18 +268,12 @@ function installNotificationFix() {
 
   syncBellVisibility();
 
-  const observer =
-    new MutationObserver(
-      syncBellVisibility
-    );
+  const observer = new MutationObserver(syncBellVisibility);
 
-  observer.observe(
-    document.body,
-    {
-      childList: true,
-      subtree: true
-    }
-  );
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 }
 
 if (document.readyState === 'loading') {
