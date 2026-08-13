@@ -1,7 +1,7 @@
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx', icon: 'instagram' },
   { label: 'YouTube', href: 'https://youtube.com/@atmarekha?si=ytUOmNPrKFtxJUwn', icon: 'youtube' },
-  { label: 'Gmail', href: 'mailto:itsamritanshofficial@gmail.com', icon: 'mail' },
+  { label: 'Gmail', href: 'mailto:atmarekhasupport@gmail.com', icon: 'mail' },
 ];
 
 function SocialIcon({ type }) {
