@@ -4,21 +4,21 @@ import { supabase } from './supabase';
 const PLANS = [
   {
     id: 'supporter',
-    icon: '🌸',
-    name: 'Supporter',
-    price: '₹50',
-    cadence: 'one-time',
-    description: 'Help support the creation of Atma Rekha.',
-    action: 'Support with ₹50',
+    icon: '🥇',
+    name: 'Gold',
+    price: '₹49',
+    cadence: 'per month',
+    description: 'Support me and the creation of Atma Rekha every month.',
+    action: 'Support with ₹49/month',
   },
   {
     id: 'premium',
-    icon: '🦚',
-    name: 'Patron',
+    icon: '💎',
+    name: 'Diamond',
     price: '₹99',
     cadence: 'per month',
-    description: 'Support Atma Rekha every month and help keep the project going.',
-    action: 'Start monthly support',
+    description: 'Support me and Atma Rekha every month.',
+    action: 'Support with ₹99/month',
   },
 ];
 
@@ -40,12 +40,12 @@ export default function Support({ onBack }) {
         <button type="button" onClick={onBack} className="text-sm text-zinc-400 transition hover:text-white">
           ← Back to Atma Rekha
         </button>
-        <span className="text-xs font-medium tracking-[0.25em] text-zinc-500">SUPPORT</span>
+        <span className="text-xs font-medium tracking-[0.25em] text-zinc-500">SUPPORT ME</span>
       </header>
 
       <section className="mx-auto max-w-4xl px-5 pb-20 pt-10 text-center sm:px-8 sm:pt-16">
         <p className="mb-4 text-xs font-semibold tracking-[0.3em] text-amber-400">ATMA REKHA</p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">Help me keep creating.</h1>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">Support me. Help me keep creating.</h1>
         <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
           Atma Rekha is still just getting started. If you enjoy the manga and want to support me,
           you can do so here. There is absolutely no pressure.
@@ -55,9 +55,8 @@ export default function Support({ onBack }) {
           <p className="text-sm font-semibold text-amber-300">📖 Atma Rekha is free to read</p>
           <p className="mt-3 text-sm leading-6 text-zinc-300">
             All released chapters are free for members and non-members alike, at least for now.
-            Supporting Atma Rekha is completely optional. If you choose to become a Supporter or Patron,
-            you are simply helping me continue creating the manga. There are currently no extra reading
-            benefits or exclusive content attached to membership.
+            Membership is simply a way to support me and the creation of Atma Rekha. It does not unlock
+            chapters, exclusive reading access, or any extra reading benefits.
           </p>
           <p className="mt-4 text-sm text-zinc-400">Thank you for supporting my work. ❤️</p>
         </div>
@@ -79,19 +78,19 @@ export default function Support({ onBack }) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <span className="text-3xl" aria-hidden="true">{plan.icon}</span>
-                  <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">{plan.cadence}</span>
+                  <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">Monthly support</span>
                 </div>
                 <h2 className="mt-6 text-2xl font-semibold">{plan.name}</h2>
                 <div className="mt-2 flex items-baseline gap-2">
                   <strong className="text-3xl">{plan.price}</strong>
-                  <span className="text-sm text-zinc-500">{plan.cadence}</span>
+                  <span className="text-sm text-zinc-500">/ month</span>
                 </div>
                 <p className="mt-4 text-sm leading-6 text-zinc-400">{plan.description}</p>
 
                 {active && (
                   <div className="mt-6 border-t border-white/10 pt-5">
                     <p className="mb-3 text-xs text-zinc-500">
-                      {user ? 'You are signed in. Payment confirmation will be handled securely on the server.' : 'Please sign in before continuing with support.'}
+                      {user ? 'You are signed in. Payment will be handled securely on the server.' : 'Please sign in before continuing with support.'}
                     </p>
                     <span className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-zinc-950">
                       {user ? plan.action : 'Login to continue'}
@@ -104,7 +103,7 @@ export default function Support({ onBack }) {
         </div>
 
         <p className="mx-auto mt-10 max-w-xl text-xs leading-5 text-zinc-600">
-          Your support does not change your access to Atma Rekha. Every released chapter remains free to read.
+          Your membership does not change your access to Atma Rekha. Every released chapter remains free to read.
         </p>
       </section>
     </main>
