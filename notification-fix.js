@@ -75,9 +75,19 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function registerServiceWorker() {
-  return navigator.serviceWorker.register('/sw.js', {
-    scope: '/'
-  });
+  const registration =
+    await navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+      updateViaCache: 'none'
+    });
+
+  try {
+    await registration.update();
+  } catch (error) {
+    console.warn('Service worker update check failed:', error);
+  }
+
+  return registration;
 }
 
 async function saveSubscription(subscription) {
@@ -103,20 +113,19 @@ async function saveSubscription(subscription) {
     `${SUPABASE_URL}/rest/v1/push_subscriptions`,
     {
       method: 'POST',
-
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization:
           `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates'
+        Prefer: 'resolution=merge-duplicates,return=minimal'
       },
-
       body: JSON.stringify({
         user_id: null,
         endpoint: json.endpoint,
         p256dh: json.keys.p256dh,
-        auth: json.keys.auth
+        auth: json.keys.auth,
+        updated_at: new Date().toISOString()
       })
     }
   );
@@ -134,12 +143,15 @@ async function subscribeToPush() {
   const registration =
     await registerServiceWorker();
 
+  const readyRegistration =
+    await navigator.serviceWorker.ready;
+
   let subscription =
-    await registration.pushManager.getSubscription();
+    await readyRegistration.pushManager.getSubscription();
 
   if (!subscription) {
     subscription =
-      await registration.pushManager.subscribe({
+      await readyRegistration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey:
           urlBase64ToUint8Array(
