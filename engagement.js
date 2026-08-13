@@ -1,55 +1,16 @@
 import { supabase } from './supabase';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
-
-export function getViewerKey() {
-  if (typeof window === 'undefined') return 'server-viewer-key';
-  let key = window.localStorage.getItem(VIEWER_KEY_STORAGE);
-  if (!key) {
-    key = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    window.localStorage.setItem(VIEWER_KEY_STORAGE, key);
-  }
-  return key;
-}
-export function buildRatingSummary(rows = []) { const ratings = rows.map(row => Number(row.rating)).filter(Number.isFinite); return { average: ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : 0, count: ratings.length }; }
-export async function fetchPublicEngagement(chapterIds) {
-  const ids = [...new Set((chapterIds || []).filter(Boolean))]; if (!ids.length) return {};
-  const [ratings, views, likes, comments] = await Promise.all([
-    supabase.from('chapter_ratings').select('chapter_id,rating').in('chapter_id', ids), supabase.from('chapter_views').select('chapter_id').in('chapter_id', ids), supabase.from('chapter_likes').select('chapter_id').in('chapter_id', ids), supabase.from('comments').select('id,chapter_id').in('chapter_id', ids)
-  ]);
-  for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
-  return Object.fromEntries(ids.map(id => [id, { rating: buildRatingSummary((ratings.data || []).filter(row => row.chapter_id === id)), views: (views.data || []).filter(row => row.chapter_id === id).length, likes: (likes.data || []).filter(row => row.chapter_id === id).length, comments: (comments.data || []).filter(row => row.chapter_id === id).length }]));
-}
-export async function fetchChapterEngagement(chapterId) {
-  const [ratings, views, likes, comments] = await Promise.all([supabase.from('chapter_ratings').select('id,rating,created_at').eq('chapter_id', chapterId),supabase.from('chapter_views').select('id').eq('chapter_id', chapterId),supabase.from('chapter_likes').select('id').eq('chapter_id', chapterId),supabase.from('comments').select('id').eq('chapter_id', chapterId)]);
-  for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
-  return { rating: buildRatingSummary(ratings.data || []), views: (views.data || []).length, likes: (likes.data || []).length, comments: (comments.data || []).length };
-}
-export async function fetchChapterComments(chapterId) { const { data,error } = await supabase.from('comments').select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').eq('chapter_id',chapterId).order('created_at',{ascending:true}); if(error)throw error; return data||[]; }
-export async function fetchCommentLikes(commentIds) { const ids=[...new Set((commentIds||[]).filter(Boolean))]; if(!ids.length)return {counts:{},liked:{}}; const viewerKey=getViewerKey(); const [all,own]=await Promise.all([supabase.from('comment_likes').select('comment_id').in('comment_id',ids),supabase.from('comment_likes').select('comment_id').in('comment_id',ids).eq('viewer_key',viewerKey)]); if(all.error)throw all.error;if(own.error)throw own.error; const counts={};for(const row of all.data||[])counts[row.comment_id]=(counts[row.comment_id]||0)+1;return {counts,liked:Object.fromEntries((own.data||[]).map(row=>[row.comment_id,true]))}; }
-
-// Use the persisted Supabase session first. getUser() can briefly report an auth error
-// while the client is restoring the session after a page load/OAuth redirect.
-async function requireUser() {
-  const sessionResult = await supabase.auth.getSession();
-  if (sessionResult.error) throw sessionResult.error;
-  let user = sessionResult.data?.session?.user || null;
-  if (!user) {
-    const userResult = await supabase.auth.getUser();
-    if (userResult.error && userResult.error.name !== 'AuthSessionMissingError') throw userResult.error;
-    user = userResult.data?.user || null;
-  }
-  if (!user) {
-    const err = new Error('Please sign in to continue.');
-    err.code = 'AUTH_REQUIRED';
-    throw err;
-  }
-  return user;
-}
-
-export async function addComment({chapterId,content,authorName,parentCommentId=null}) { const user=await requireUser(); const cleanContent=String(content||'').trim();const cleanName=String(authorName||'Reader').trim().slice(0,80)||'Reader';if(!cleanContent)throw new Error('Write a comment first.');if(cleanContent.length>2000)throw new Error('Comments are limited to 2000 characters.');const {data,error}=await supabase.from('comments').insert({user_id:user.id,chapter_id:chapterId,author_name:cleanName,content:cleanContent,parent_comment_id:parentCommentId}).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();if(error)throw error;return data; }
+export function getViewerKey() { if (typeof window === 'undefined') return 'server-viewer-key'; let key=window.localStorage.getItem(VIEWER_KEY_STORAGE); if(!key){key=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;window.localStorage.setItem(VIEWER_KEY_STORAGE,key);} return key; }
+export function buildRatingSummary(rows=[]){const ratings=rows.map(row=>Number(row.rating)).filter(Number.isFinite);return {average:ratings.length?ratings.reduce((sum,value)=>sum+value,0)/ratings.length:0,count:ratings.length};}
+export async function fetchPublicEngagement(chapterIds){const ids=[...new Set((chapterIds||[]).filter(Boolean))];if(!ids.length)return{};const [ratings,views,likes,comments]=await Promise.all([supabase.from('chapter_ratings').select('chapter_id,rating').in('chapter_id',ids),supabase.from('chapter_views').select('chapter_id').in('chapter_id',ids),supabase.from('chapter_likes').select('chapter_id').in('chapter_id',ids),supabase.from('comments').select('id,chapter_id').in('chapter_id',ids)]);for(const result of [ratings,views,likes,comments])if(result.error)throw result.error;return Object.fromEntries(ids.map(id=>[id,{rating:buildRatingSummary((ratings.data||[]).filter(row=>row.chapter_id===id)),views:(views.data||[]).filter(row=>row.chapter_id===id).length,likes:(likes.data||[]).filter(row=>row.chapter_id===id).length,comments:(comments.data||[]).filter(row=>row.chapter_id===id).length}]));}
+export async function fetchChapterEngagement(chapterId){const [ratings,views,likes,comments]=await Promise.all([supabase.from('chapter_ratings').select('id,rating,created_at').eq('chapter_id',chapterId),supabase.from('chapter_views').select('id').eq('chapter_id',chapterId),supabase.from('chapter_likes').select('id').eq('chapter_id',chapterId),supabase.from('comments').select('id').eq('chapter_id',chapterId)]);for(const result of [ratings,views,likes,comments])if(result.error)throw result.error;return{rating:buildRatingSummary(ratings.data||[]),views:(views.data||[]).length,likes:(likes.data||[]).length,comments:(comments.data||[]).length};}
+export async function fetchChapterComments(chapterId){const {data,error}=await supabase.from('comments').select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').eq('chapter_id',chapterId).order('created_at',{ascending:true});if(error)throw error;const rows=data||[];const userIds=[...new Set(rows.map(row=>row.user_id).filter(Boolean))];if(!userIds.length)return rows.map(row=>({...row,profile:null}));const {data:profiles,error:profileError}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,created_at').in('id',userIds);if(profileError)throw profileError;const byId=Object.fromEntries((profiles||[]).map(profile=>[profile.id,profile]));return rows.map(row=>({...row,profile:row.user_id?byId[row.user_id]||null:null}));}
+export async function fetchCommentLikes(commentIds){const ids=[...new Set((commentIds||[]).filter(Boolean))];if(!ids.length)return{counts:{},liked:{}};const viewerKey=getViewerKey();const [all,own]=await Promise.all([supabase.from('comment_likes').select('comment_id').in('comment_id',ids),supabase.from('comment_likes').select('comment_id').in('comment_id',ids).eq('viewer_key',viewerKey)]);if(all.error)throw all.error;if(own.error)throw own.error;const counts={};for(const row of all.data||[])counts[row.comment_id]=(counts[row.comment_id]||0)+1;return{counts,liked:Object.fromEntries((own.data||[]).map(row=>[row.comment_id,true]))};}
+async function requireUser(){const sessionResult=await supabase.auth.getSession();if(sessionResult.error)throw sessionResult.error;let user=sessionResult.data?.session?.user||null;if(!user){const userResult=await supabase.auth.getUser();if(userResult.error&&userResult.error.name!=='AuthSessionMissingError')throw userResult.error;user=userResult.data?.user||null;}if(!user){const err=new Error('Please sign in to continue.');err.code='AUTH_REQUIRED';throw err;}return user;}
+export async function addComment({chapterId,content,parentCommentId=null}){const user=await requireUser();const cleanContent=String(content||'').trim();if(!cleanContent)throw new Error('Write a comment first.');if(cleanContent.length>2000)throw new Error('Comments are limited to 2000 characters.');const {data,error}=await supabase.from('comments').insert({user_id:user.id,chapter_id:chapterId,author_name:user.user_metadata?.full_name||user.email?.split('@')[0]||'Reader',content:cleanContent,parent_comment_id:parentCommentId}).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();if(error)throw error;const {data:profile}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,created_at').eq('id',user.id).maybeSingle();return{...data,profile:profile||null};}
 export async function recordChapterView(chapterId){const {error}=await supabase.from('chapter_views').upsert({chapter_id:chapterId,viewer_key:getViewerKey()},{onConflict:'chapter_id,viewer_key',ignoreDuplicates:true});if(error)throw error;}
 export async function likeChapter(chapterId){const {error}=await supabase.from('chapter_likes').upsert({chapter_id:chapterId,viewer_key:getViewerKey()},{onConflict:'chapter_id,viewer_key',ignoreDuplicates:true});if(error)throw error;}
 export async function likeComment(commentId){const {error}=await supabase.from('comment_likes').upsert({comment_id:commentId,viewer_key:getViewerKey()},{onConflict:'comment_id,viewer_key',ignoreDuplicates:true});if(error)throw error;}
 export async function reportComment(commentId,reason='Reported by reader'){const {error}=await supabase.from('comment_reports').upsert({comment_id:commentId,viewer_key:getViewerKey(),reason:String(reason).trim().slice(0,500)},{onConflict:'comment_id,viewer_key',ignoreDuplicates:true});if(error)throw error;}
-export async function submitRating(chapterId,rating){const user=await requireUser();const value=Number(rating);if(!Number.isInteger(value)||value<1||value>10)throw new Error('Choose a rating from 1 to 10.');const existing=await supabase.from('chapter_ratings').select('id').eq('chapter_id',chapterId).eq('user_id',user.id).maybeSingle();if(existing.error)throw existing.error;if(existing.data)return {alreadyRated:true};const {error}=await supabase.from('chapter_ratings').insert({chapter_id:chapterId,rating:value,user_id:user.id});if(error){if(String(error.code)==='23505')return {alreadyRated:true};throw error;}return {alreadyRated:false};}
+export async function submitRating(chapterId,rating){const user=await requireUser();const value=Number(rating);if(!Number.isInteger(value)||value<1||value>10)throw new Error('Choose a rating from 1 to 10.');const existing=await supabase.from('chapter_ratings').select('id').eq('chapter_id',chapterId).eq('user_id',user.id).maybeSingle();if(existing.error)throw existing.error;if(existing.data)return{alreadyRated:true};const {error}=await supabase.from('chapter_ratings').insert({chapter_id:chapterId,rating:value,user_id:user.id});if(error){if(String(error.code)==='23505')return{alreadyRated:true};throw error;}return{alreadyRated:false};}
