@@ -9,6 +9,7 @@ import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 import './index.css';
 import './ui-polish.css';
+import './interaction-polish.css';
 import './admin-polish.css';
 import './mihon-reader-polish.css';
 import './light-mode.css';
