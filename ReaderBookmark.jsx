@@ -49,5 +49,5 @@ export default function ReaderBookmark() {
 
   const target = document.querySelector('.reader-header-inner');
   if (!user || !chapterId || !target) return null;
-  return createPortal(<button type="button" className={`reader-bookmark-button${saved ? ' is-saved' : ''}`} onClick={toggle} disabled={busy} aria-label={saved ? 'Remove chapter bookmark' : 'Bookmark chapter'} title={saved ? 'Remove bookmark' : 'Bookmark chapter'}><span>{saved ? '♥' : '♡'}</span><small>{saved ? 'Saved' : 'Save'}</small></button>, target);
+  return createPortal(<button type="button" className={`reader-bookmark-button${saved ? ' is-saved' : ''}`} onClick={toggle} disabled={busy} aria-label={saved ? 'Remove from favourites' : 'Add to favourites'} title={saved ? 'Remove from favourites' : 'Add to favourites'}><span>{saved ? '♥' : '♡'}</span><small>{saved ? 'Favourite' : 'Favourite'}</small></button>, target);
 }
