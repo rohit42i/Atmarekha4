@@ -32,13 +32,18 @@ const r2Storage = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
 
+    // Supabase-compatible public URL is for reads only. Upload/delete must use
+    // the object endpoint without /public; using /public for PUT was causing
+    // the browser's generic "Failed to fetch" error with the R2 Worker.
+    const objectPath = path =>
+      `${R2_WORKER_URL}/storage/v1/object/${bucket}/${encodePath(path)}`;
     const publicPath = path =>
       `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
 
     return {
       async upload(path, file, options = {}) {
         try {
-          const response = await fetch(publicPath(path), {
+          const response = await fetch(objectPath(path), {
             method: 'PUT',
             headers: {
               ...(await authHeaders()),
@@ -55,7 +60,7 @@ const r2Storage = {
 
           return { data: { path }, error: null };
         } catch (error) {
-          return { data: null, error };
+          return { data: null, error: new Error(error?.message || 'Unable to connect to image storage.') };
         }
       },
 
@@ -68,7 +73,7 @@ const r2Storage = {
         try {
           const headers = await authHeaders();
           for (const path of clean) {
-            const response = await fetch(publicPath(path), { method: 'DELETE', headers });
+            const response = await fetch(objectPath(path), { method: 'DELETE', headers });
             if (!response.ok) {
               const text = await response.text();
               return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) };
@@ -76,7 +81,7 @@ const r2Storage = {
           }
           return { data: clean.map(path => ({ name: path })), error: null };
         } catch (error) {
-          return { data: null, error };
+          return { data: null, error: new Error(error?.message || 'Unable to connect to image storage.') };
         }
       },
     };
