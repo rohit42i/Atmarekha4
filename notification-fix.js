@@ -85,6 +85,7 @@ function addAdminNotificationTool() {
   button.type = 'button';
   button.textContent = 'Notifications';
   button.dataset.atmaAdminNotificationTab = '1';
+  button.className = 'admin-tab';
   nav.appendChild(button);
   button.addEventListener('click', event => {
     event.preventDefault();
@@ -159,7 +160,10 @@ function start() {
   syncBell();
   repairExistingPermission();
   addAdminNotificationTool();
-  const observer = new MutationObserver(syncBell);
+  const observer = new MutationObserver(() => {
+    syncBell();
+    addAdminNotificationTool();
+  });
   observer.observe(document.documentElement, { childList: true, subtree: true });
 }
 
