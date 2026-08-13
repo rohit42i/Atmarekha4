@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import UserAuth from './UserAuth.jsx';
+import ProfileV2 from './ProfileV2.jsx';
 import ReaderBookmark from './ReaderBookmark.jsx';
 import './index.css';
 import './ui-polish.css';
@@ -15,12 +16,14 @@ import './reader-performance.css';
 import './reader-performance.js';
 import './user-auth.css';
 import './user-auth-layout.css';
+import './profile-v2.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
     <ThemeToggle />
     <UserAuth />
+    <ProfileV2 />
     <ReaderBookmark />
   </React.StrictMode>
 );
