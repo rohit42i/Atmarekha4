@@ -6,6 +6,7 @@ import UserAuth from './UserAuth.jsx';
 import ProfileV2 from './ProfileV2.jsx';
 import ReaderBookmark from './ReaderBookmark.jsx';
 import AuthGate from './AuthGate.jsx';
+import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 import './index.css';
 import './ui-polish.css';
 import './admin-polish.css';
@@ -19,6 +20,7 @@ import './user-auth.css';
 import './user-auth-layout.css';
 import './profile-v2.css';
 import './auth-gate.css';
+import './chapter-completion.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -28,5 +30,6 @@ createRoot(document.getElementById('root')).render(
     <ProfileV2 />
     <ReaderBookmark />
     <AuthGate />
+    <ChapterCompletionPrompt />
   </React.StrictMode>
 );
