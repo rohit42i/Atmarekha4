@@ -40,15 +40,15 @@ async function saveSubscription(subscription) {
   const auth = json.keys?.auth;
   if (!endpoint || !p256dh || !auth) throw new Error('Push subscription keys are missing.');
 
-  const { data: { user } = { user: null } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
-  const { error } = await supabase
-    .from('push_subscriptions')
-    .upsert(
-      { endpoint, p256dh, auth, user_id: user?.id ?? null, updated_at: new Date().toISOString() },
-      { onConflict: 'endpoint', ignoreDuplicates: false }
-    );
+  const { data, error } = await supabase.rpc('register_push_subscription', {
+    p_endpoint: endpoint,
+    p_p256dh: p256dh,
+    p_auth: auth,
+  });
 
   if (error) throw new Error(`Push subscription save failed: ${error.message}`);
+  if (!data) throw new Error('Push subscription registration returned no data.');
+  return data;
 }
 
 async function subscribeToPush() {
