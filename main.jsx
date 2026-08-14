@@ -25,6 +25,7 @@ import './user-auth.css';
 import './user-auth-layout.css';
 import './profile-v2.css';
 import './auth-gate.css';
+import './auth-gate-pro.css';
 import './chapter-completion.css';
 import './engagement-fixes.css';
 import './rating-modal.css';
@@ -32,22 +33,4 @@ import './community.css';
 import './enhanced-comments.css';
 import './public-profile.css';
 
-createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-    <CommunityButton />
-    <UserAuth />
-    <ProfileV2 />
-    <ReaderBookmark />
-    <ChapterFavorites />
-    <ReadingHistoryTracker />
-    <AuthGate />
-    <ChapterCompletionPrompt />
-    <CommunityMembership />
-    <CommunityProfileLink />
-    <CommunityPage />
-    <CommunityAdmin />
-    <EnhancedComments />
-    <PublicProfile />
-  </React.StrictMode>
-);
+createRoot(document.getElementById('root')).render(<React.StrictMode><App/><CommunityButton/><UserAuth/><ProfileV2/><ReaderBookmark/><ChapterFavorites/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityMembership/><CommunityProfileLink/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/></React.StrictMode>);
