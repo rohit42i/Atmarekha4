@@ -35,6 +35,7 @@ import './public-profile.css';
 import './premium-typography.css';
 import './final-polish.css';
 import './appearance-polish.css';
+import './chapter-original-layout.css';
 import './rating-upgrade.js';
 
 createRoot(document.getElementById('root')).render(
