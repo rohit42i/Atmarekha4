@@ -1,3 +1,4 @@
+import './chapter-list-7c-restore.css';
 import { supabase } from './supabase';
 import { getMyRating, submitRating, buildRatingSummary } from './engagement';
 
