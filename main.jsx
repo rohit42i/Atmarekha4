@@ -33,6 +33,7 @@ import './enhanced-comments.css';
 import './public-profile.css';
 import './premium-typography.css';
 import './final-polish.css';
+import './rating-upgrade.js';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
