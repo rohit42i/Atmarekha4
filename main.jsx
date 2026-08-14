@@ -9,7 +9,7 @@ import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 import CommunityPage from './CommunityPage.jsx';
-import CommunityAdmin, { CommunityButton, CommunityMembership } from './CommunityAdmin.jsx';
+import CommunityAdmin, { CommunityButton, CommunityMembership, CommunityProfileLink } from './CommunityAdmin.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -40,6 +40,7 @@ createRoot(document.getElementById('root')).render(
     <AuthGate />
     <ChapterCompletionPrompt />
     <CommunityMembership />
+    <CommunityProfileLink />
     <CommunityPage />
     <CommunityAdmin />
   </React.StrictMode>
