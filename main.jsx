@@ -8,8 +8,8 @@ import ChapterFavorites from './ChapterFavorites.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
-import CommunityPage, { CommunityButton } from './CommunityPage.jsx';
-import CommunityAdmin from './CommunityAdmin.jsx';
+import CommunityPage from './CommunityPage.jsx';
+import CommunityAdmin, { CommunityButton, CommunityMembership } from './CommunityAdmin.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -39,6 +39,7 @@ createRoot(document.getElementById('root')).render(
     <ReadingHistoryTracker />
     <AuthGate />
     <ChapterCompletionPrompt />
+    <CommunityMembership />
     <CommunityPage />
     <CommunityAdmin />
   </React.StrictMode>
