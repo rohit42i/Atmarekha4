@@ -30,9 +30,12 @@
 /*.avif
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-# HTML must remain easy to revalidate after deployments.
+# Keep browser HTML validation behavior unchanged, while allowing the CDN edge
+# to serve the static shell briefly without going back to the origin.
 /
   Cache-Control: public, max-age=0, must-revalidate
+  CDN-Cache-Control: public, max-age=300, stale-while-revalidate=60
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
+  CDN-Cache-Control: public, max-age=300, stale-while-revalidate=60
