@@ -9,6 +9,8 @@ import ChapterFavorites from './ChapterFavorites.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
+import CommunityPage from './CommunityPage.jsx';
+import CommunityAdmin from './CommunityAdmin.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -26,6 +28,7 @@ import './auth-gate.css';
 import './chapter-completion.css';
 import './engagement-fixes.css';
 import './rating-modal.css';
+import './community.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -38,5 +41,7 @@ createRoot(document.getElementById('root')).render(
     <ReadingHistoryTracker />
     <AuthGate />
     <ChapterCompletionPrompt />
+    <CommunityPage />
+    <CommunityAdmin />
   </React.StrictMode>
 );
