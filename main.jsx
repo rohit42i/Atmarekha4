@@ -10,6 +10,8 @@ import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 import CommunityPage from './CommunityPage.jsx';
 import CommunityAdmin, { CommunityButton, CommunityMembership, CommunityProfileLink } from './CommunityAdmin.jsx';
+import EnhancedComments from './EnhancedComments.jsx';
+import PublicProfile from './PublicProfile.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -27,6 +29,8 @@ import './chapter-completion.css';
 import './engagement-fixes.css';
 import './rating-modal.css';
 import './community.css';
+import './enhanced-comments.css';
+import './public-profile.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -43,5 +47,7 @@ createRoot(document.getElementById('root')).render(
     <CommunityProfileLink />
     <CommunityPage />
     <CommunityAdmin />
+    <EnhancedComments />
+    <PublicProfile />
   </React.StrictMode>
 );
