@@ -39,11 +39,11 @@ self.addEventListener('push', event => {
 
         icon:
           data.icon ||
-          '/favicon.png',
+          '/ishani.png',
 
         badge:
           data.badge ||
-          '/favicon.png',
+          '/ishani.png',
 
         tag:
           data.tag ||
