@@ -1,37 +1,51 @@
-/* ATMA REKHA — device-native appearance + mobile UI polish. No theme is forced. */
-:root{color-scheme:light dark;}
-html,body{min-height:100%;}
-@media (prefers-color-scheme:light){
- html,body,#root{background:#f7f7f8!important;color:#18181b!important} body{color-scheme:light}
- .site-shell,.chapter-list-page,.reader-page,.profile-v2-overlay,.community-page,.info-page,.auth-page,.admin-page{background:#f7f7f8!important;color:#18181b!important}
- .subpage-header,.reader-header,.profile-v2-shell,.community-header,.ec-header,.comment-sheet-head{background:rgba(255,255,255,.96)!important;color:#18181b!important;border-color:#dedee3!important}
- .subpage-header h1,.reader-title h1,.profile-v2-heading h1,.community-header h1,.ec-header h2,.comment-sheet-head h2{color:#18181b!important}
- .subpage-header p,.reader-title p,.profile-v2-heading p,.profile-v2-heading small,.community-header p,.ec-header p,.comment-sheet-head p{color:#696970!important}
- .chapter-row,.profile-v2-card,.community-post,.ec-sheet,.comment-sheet,.rating-sheet,.info-card,.auth-card,.admin-card{background:#fff!important;color:#202024!important;border-color:#dedee3!important;box-shadow:0 6px 24px rgba(0,0,0,.055)}
- .chapter-row-title h2,.chapter-row-title span,.chapter-row-meta,.chapter-row-details,.profile-v2-list-item strong,.profile-v2-list-item small,.profile-v2-stats span,.community-post h2,.community-post>p,.ec-content,.comment-body>p{color:#252529!important}
- .chapter-row-meta,.chapter-row-details,.profile-v2-stats span,.community-post-head span,.community-attachment small,.comment-meta time,.ec-meta time{color:#73737b!important}
- .chapter-row-actions button,.reader-engagement-button,.comment-actions button,.ec-actions button{background:#f1f1f4!important;color:#36363c!important;border-color:#dedee3!important}
- .chapter-favorite-action{background:#fff!important;color:#45454d!important;border:1px solid #d9d9df!important}
- .chapter-favorite-action.is-saved{background:#fff0f4!important;color:#c33b64!important;border-color:#f0bdcd!important}
- .profile-v2-tabs{background:#ececef!important;border-color:#dedee3!important}.profile-v2-tabs button{color:#66666e!important}.profile-v2-tabs button.active{background:#fff!important;color:#18181b!important}
- .profile-community-card{background:#fff!important;color:#202024!important;border-color:#dedee3!important}.profile-community-card small{color:#707078!important}
- .community-post-actions{border-top-color:#e5e5e9!important}.community-post-actions button{background:transparent!important;color:#606069!important;border:0!important}.community-post-actions button.reacted{background:#fff0f4!important;color:#c33b64!important}
- .community-pinned{background:#fff8d9!important;color:#735f17!important;border-color:#eadb91!important}.community-attachment{background:#f3f3f5!important;color:#222228!important;border-color:#dcdce2!important}
- .community-empty{color:#66666f!important;border-color:#d7d7dd!important}.community-empty h3{color:#202024!important}.community-notice{background:#edf3ff!important;color:#34599d!important}.community-error,.form-error{background:#fff0f0!important;color:#a52e2e!important}
- textarea,input,select{background:#fff!important;color:#18181b!important;border-color:#d5d5db!important} textarea::placeholder,input::placeholder{color:#92929a!important}
- .comment-item,.comment-reply{border-color:#e5e5e9!important}.comment-avatar,.creator-avatar,.ec-avatar-fallback{background:#ececf2!important;color:#42424b!important}
- .empty-state,.loading-state,.reader-error{color:#64646d!important}.empty-state h3,.reader-error h2{color:#202024!important}
- [style*="background:#111"],[style*="background: #111"],[style*="background:#101010"],[style*="background: #101010"],[style*="background:#0b0b0b"],[style*="background: #0b0b0b"]{background:#fff!important}
- [style*="color:#fff"],[style*="color: #fff"],[style*="color:white"],[style*="color: white"]{color:#18181b!important}
+/* Respect the user's device/browser appearance. Never force a theme. */
+:root { color-scheme: light dark; }
+
+@media (prefers-color-scheme: dark) {
+  body { background:#080808; color:#f5f5f7; }
+  .community-page { background:#080808; color:#f7f7f7; }
 }
-@media (prefers-color-scheme:dark){html,body,#root{background:#080808;color:#f5f5f7}body{color-scheme:dark}}
 
-/* Chapter List favourite: appended beside rating/comment controls and always visible. */
-.chapter-row-actions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important}.chapter-row-actions .engagement-icon,.chapter-row-actions .chapter-favorite-action{width:auto!important;min-width:52px;min-height:44px;display:inline-flex!important;align-items:center;justify-content:center;gap:5px;padding:8px 10px!important;border-radius:12px!important}.chapter-favorite-action span{font-size:20px;line-height:1}.chapter-favorite-action small{font-size:11px;font-weight:700;line-height:1}.chapter-favorite-action.is-saved span{font-size:19px}
+@media (prefers-color-scheme: light) {
+  body { background:#fff; color:#17171a; }
+  .community-page { background:#f7f7f8; color:#17171a; }
+  .community-header { background:rgb(247 247 248 / .94); border-bottom-color:#dedee3; }
+  .community-header h1 { color:#17171a; }
+  .community-header p { color:#686873; }
+  .community-back { background:#e9e9ed; color:#17171a; }
+  .community-post { background:#fff; border-color:#dedee3; box-shadow:0 5px 18px rgb(0 0 0 / .05); }
+  .community-post-head strong { color:#17171a; }
+  .community-post-head span { color:#74747d; }
+  .community-post > p { color:#29292e; }
+  .community-post-actions { border-top-color:#e5e5e9; }
+  .community-post-actions button { color:#5f6069; }
+  .community-post-actions button:hover,.community-post-actions button.reacted { background:#fff0f4; color:#c03c63; }
+  .community-pinned { color:#75651e; }
+  .community-attachment { background:#f4f4f6; border-color:#dcdce2; color:#202025; }
+  .community-attachment small { color:#707079; }
+  .community-empty { border-color:#d5d5db; color:#666670; }
+  .community-empty h3,.community-empty strong { color:#202025; }
+  .community-empty p,.community-empty span { color:#666670; }
+  .community-notice { background:#eef3ff; color:#355aa5; }
+  .community-error { background:#fff0f0; color:#a63232; }
+  .creator-avatar { background:#eceef5; color:#39435d; }
+  .community-post-head b { color:#5d6c9c; }
+  .community-post-image { border-color:#dedee3; }
+  .ec-sheet { background:#fff; color:#17171a; border-color:#dedee3; }
+  .ec-header { background:rgb(255 255 255 / .94); border-bottom-color:#e1e1e5; }
+  .ec-header h2,.ec-meta strong,.ec-empty strong,.ec-state strong { color:#17171a; }
+  .ec-header p:last-child,.ec-meta time,.ec-empty,.ec-state { color:#666670; }
+  .ec-content { color:#29292e; }
+  .ec-comment { border-bottom-color:#e5e5e9; }
+  .ec-actions button { color:#65656e; }
+  .ec-close,.ec-preview-close { background:#ededf0; color:#17171a; }
+  .ec-compose-row textarea { background:#f7f7f8; border-color:#d8d8de; color:#17171a; }
+  .ec-composer { background:#fff; border-top-color:#e1e1e5; }
+  .auth-panel,.rating-sheet,.comment-sheet { color:#17171a; }
+}
 
-/* Clean, restrained mobile-first Community UI. */
-.community-page{min-height:100dvh}.community-shell{width:min(720px,100%);margin:0 auto;padding:0 14px 40px}.community-header{position:sticky;top:0;z-index:5;padding:16px 4px 18px;display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid rgba(127,127,127,.18);backdrop-filter:blur(16px)}.community-header>div{min-width:0}.community-header h1{margin:2px 0 5px;font-size:clamp(22px,6vw,30px);line-height:1.15;letter-spacing:-.02em}.community-header p{margin:0;font-size:14px;line-height:1.5}.community-back{width:42px;height:42px;flex:0 0 42px;border:0;border-radius:12px;font-size:22px;cursor:pointer}.community-feed{display:flex;flex-direction:column;gap:12px;padding-top:14px}.community-post{padding:16px;border-radius:18px;border:1px solid rgba(127,127,127,.18)}.community-post-head{display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:13px}.community-post-head>div:nth-child(2){min-width:0;flex:1;display:flex;flex-direction:column}.community-post-head strong{font-size:14px;line-height:1.2}.community-post-head span{font-size:11px;margin-top:3px}.community-post-head>b{font-size:9px;letter-spacing:.08em;padding:5px 7px;border-radius:7px;background:rgba(127,127,127,.1)}.creator-avatar{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:12px;font-weight:800;flex:0 0 38px}.community-post h2{font-size:18px;line-height:1.3;margin:0 0 8px}.community-post>p{font-size:15px;line-height:1.65;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.community-post-image{width:100%;display:block;border-radius:14px;margin-top:13px;max-height:520px;object-fit:cover}.community-attachment{display:flex;align-items:center;gap:10px;margin-top:13px;padding:11px 12px;border-radius:12px;border:1px solid rgba(127,127,127,.18);text-decoration:none}.community-attachment span{min-width:0;flex:1;display:flex;flex-direction:column}.community-attachment strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.community-attachment small{margin-top:3px}.community-post-actions{display:flex;gap:6px;margin-top:14px;padding-top:10px;border-top:1px solid rgba(127,127,127,.14)}.community-post-actions button{min-height:38px;padding:7px 11px;border-radius:10px;border:0;background:transparent;cursor:pointer;font-size:13px;font-weight:650}.community-post-actions button:disabled{opacity:.55;cursor:wait}.community-empty{padding:45px 20px;text-align:center;border:1px dashed rgba(127,127,127,.3);border-radius:18px}.community-empty>div{font-size:28px;margin-bottom:10px}.community-empty h3{margin:0 0 5px;font-size:18px}.community-empty p{margin:0;font-size:13px;line-height:1.5}.community-notice,.community-error{margin-top:12px;padding:10px 12px;border-radius:11px;font-size:13px;line-height:1.4}.community-pinned{display:inline-flex;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-bottom:10px}.community-join,.community-membership,.ec-join{display:none!important}
-@media(max-width:520px){.community-shell{padding-left:10px;padding-right:10px}.community-header{padding-left:2px;padding-right:2px}.community-post{padding:14px;border-radius:16px}.community-post-actions button{padding-inline:9px}.chapter-row-actions{gap:5px!important}.chapter-row-actions .engagement-icon,.chapter-row-actions .chapter-favorite-action{min-width:46px;min-height:42px;padding:7px 8px!important}}
-
-/* Remove obsolete branding labels, keep actual page titles. */
-.profile-v2-top>span,.chapter-list-page .header-kicker{display:none!important}
+/* Prevent legacy dark-only inline/component surfaces from becoming unreadable in light mode. */
+@media (prefers-color-scheme: light) {
+  [style*="color: white"],[style*="color:#fff"],[style*="color: #fff"] { color:#17171a !important; }
+  [style*="background:#111"],[style*="background: #111"],[style*="background:#101"] { background:#fff !important; }
+}
