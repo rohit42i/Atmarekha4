@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import './home-announcement.css';
+import './admin-announcement.css';
 
 export default function HomeAnnouncement() {
   const [announcement, setAnnouncement] = useState(null);
