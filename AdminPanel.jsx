@@ -57,7 +57,7 @@ export default function AdminPanel({ onLogout }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
-  const [announcement, setAnnouncement] = useState({ title: '', content: '', image_url: '', is_pinned: false });
+  const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false });
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber)), [chapters]);
@@ -81,7 +81,7 @@ export default function AdminPanel({ onLogout }) {
         supabase.from('chapter_ratings').select('id, chapter_id, rating, created_at').order('created_at', { ascending: false }),
         supabase.from('chapter_views').select('id, chapter_id, created_at'),
         supabase.from('chapter_likes').select('id, chapter_id, created_at'),
-        supabase.from('announcements').select('title, content, image_url, is_pinned, published_at, created_at').order('created_at', { ascending: false }),
+        supabase.from('announcements').select('id, title, content, image_url, is_pinned, published_at, created_at').order('created_at', { ascending: false }),
         supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }),
       ]);
       for (const result of [pageResult, commentResult, reportResult, ratingResult, viewResult, likeResult, announcementResult, mediaResult]) if (result.error) throw result.error;
@@ -213,14 +213,56 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function saveAnnouncement(event) {
-    event.preventDefault(); setBusy(true);
-    try { await requireAdmin(); if (!announcement.title.trim() || !announcement.content.trim()) throw new Error('Title and content are required.'); const { error } = await supabase.from('announcements').insert({ title: announcement.title.trim(), content: announcement.content.trim(), image_url: announcement.image_url.trim() || null, is_pinned: announcement.is_pinned, published_at: new Date().toISOString() }); if (error) throw error; setAnnouncement({ title: '', content: '', image_url: '', is_pinned: false }); await load(); setNotice({ type: 'success', text: 'Announcement published.' }); }
-    catch (error) { setNotice({ type: 'error', text: error.message }); } finally { setBusy(false); }
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true); setNotice({ type: '', text: '' });
+    const uploadedPaths = [];
+    try {
+      await requireAdmin();
+      const title = announcement.title.trim();
+      const content = announcement.content.trim();
+      if (!title && !content && !announcement.thumbnail) throw new Error('Add a title, text, or thumbnail before publishing.');
+
+      let imageUrl = null;
+      if (announcement.thumbnail) {
+        const ext = announcement.thumbnail.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const safeName = announcement.thumbnail.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80);
+        const path = `announcements/${Date.now()}-${safeName || `thumbnail.${ext}`}`;
+        imageUrl = await upload(COVER_BUCKET, announcement.thumbnail, path);
+        uploadedPaths.push({ bucket: COVER_BUCKET, path });
+      }
+
+      const { error } = await supabase.from('announcements').insert({
+        title: title || null,
+        content: content || null,
+        image_url: imageUrl,
+        is_pinned: announcement.is_pinned,
+        published_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+
+      setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false });
+      await load();
+      setNotice({ type: 'success', text: 'Announcement published.' });
+    } catch (error) {
+      for (const item of uploadedPaths) { try { await removeFiles(item.bucket, [item.path]); } catch (_) {} }
+      setNotice({ type: 'error', text: error.message || 'Announcement publishing failed.' });
+    } finally { setBusy(false); }
   }
 
-  async function deleteAnnouncement(title) {
-    if (!window.confirm(`Delete announcement “${title}”?`)) return;
-    setBusy(true); try { await requireAdmin(); const { error } = await supabase.from('announcements').delete().eq('title', title); if (error) throw error; await load(); } catch (error) { setNotice({ type: 'error', text: error.message }); } finally { setBusy(false); }
+  async function deleteAnnouncement(item) {
+    if (!window.confirm(`Delete announcement “${item.title || 'Image announcement'}”?`)) return;
+    setBusy(true);
+    try {
+      await requireAdmin();
+      const deleted = await supabase.from('announcements').delete().eq('id', item.id);
+      if (deleted.error) throw deleted.error;
+      const imagePath = pathFromUrl(item.image_url, COVER_BUCKET);
+      if (imagePath) await removeFiles(COVER_BUCKET, [imagePath]);
+      await load();
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Announcement deletion failed.' });
+    } finally { setBusy(false); }
   }
 
   async function saveMedia(event) {
@@ -258,6 +300,6 @@ export default function AdminPanel({ onLogout }) {
         <button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
       </form></section>
       <section className="admin-card"><div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button onClick={resetForm}>+ New chapter</button></div><div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>Chapter {chapter.chapterNumber}</strong><span>{chapter.status || 'Pre-uploaded'}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate ? new Date(chapter.releaseDate).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button onClick={() => editChapter(chapter)}>Edit</button><button className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div></section>
-    </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>Review reports and remove anything that violates your community rules.</p></div></div><div className="admin-report-list">{reports.map(report => { const comment = commentById(report.comment_id); return <article key={report.id}><div><span className="report-label">REPORT</span><strong>{comment?.author_name || 'Reader'}</strong><p>{comment?.content || 'Comment unavailable'}</p><small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}</small></div><div className="admin-row-actions"><button className="danger" onClick={() => comment && deleteComment(comment.id)} disabled={busy}>Delete comment</button><button onClick={() => clearReport(report.id)} disabled={busy}>Clear</button></div></article>; })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div></section> : tab === 'Announcements' ? <section className="admin-stack"><form onSubmit={saveAnnouncement} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Announcements</h2></div></div><input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title" required/><textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Announcement" rows="5" required/><input value={announcement.image_url} onChange={e => setAnnouncement({ ...announcement, image_url: e.target.value })} placeholder="Image URL (optional)"/><label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked })}/> Pin announcement</label><button className="admin-submit" disabled={busy}>Publish announcement</button></form><div className="admin-card"><div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements</h2></div></div><div className="admin-mini-list">{announcements.map(item => <div key={`${item.title}-${item.created_at}`}><strong>{item.title}</strong><p>{item.content}</p><button className="danger-text" onClick={() => deleteAnnouncement(item.title)}>Delete</button></div>)}</div></div></section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
+    </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>Review reports and remove anything that violates your community rules.</p></div></div><div className="admin-report-list">{reports.map(report => { const comment = commentById(report.comment_id); return <article key={report.id}><div><span className="report-label">REPORT</span><strong>{comment?.author_name || 'Reader'}</strong><p>{comment?.content || 'Comment unavailable'}</p><small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}</small></div><div className="admin-row-actions"><button className="danger" onClick={() => comment && deleteComment(comment.id)} disabled={busy}>Delete comment</button><button onClick={() => clearReport(report.id)} disabled={busy}>Clear</button></div></article>; })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div></section> : tab === 'Announcements' ? <section className="admin-stack"><form onSubmit={saveAnnouncement} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Announcements</h2><p>Publish the latest update shown on the home page.</p></div></div><input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)"/><textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="5"/><label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept="image/*" onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label><label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked })}/> Pin announcement</label><p className="admin-form-hint">No thumbnail → title/text card. Thumbnail + text → image with title/text. Thumbnail only → image-only card.</p><button className="admin-submit" disabled={busy}>{busy ? 'Publishing…' : 'Publish announcement'}</button></form><div className="admin-card"><div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements</h2></div></div><div className="admin-mini-list">{announcements.map(item => <div key={item.id}><div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title || 'Image announcement'}</strong><p>{item.content || 'Image-only announcement'}</p><small>{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div><button className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>)}</div>{!announcements.length && <p className="muted center">No announcements yet.</p>}</div></section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
   </div></main>;
 }
