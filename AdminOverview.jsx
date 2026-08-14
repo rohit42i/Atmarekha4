@@ -1,12 +1,7 @@
 import { useMemo, useState } from 'react';
+import './admin-overview.css';
 
 const WINDOWS = { '7': 7, '30': 30, '90': 90, all: null };
-
-function since(days, offset = 0) {
-  if (days == null) return null;
-  const end = Date.now() - offset * days * 86400000;
-  return end - days * 86400000;
-}
 
 function inWindow(value, days, offset = 0) {
   if (days == null) return true;
@@ -22,10 +17,10 @@ function pct(current, previous) {
   return ((current - previous) / previous) * 100;
 }
 
-function Delta({ value, suffix = '' }) {
+function Delta({ value }) {
   if (!Number.isFinite(value)) return null;
   const positive = value >= 0;
-  return <span className={`admin-overview-delta ${positive ? 'positive' : 'negative'}`}>{positive ? '↑' : '↓'} {Math.abs(value).toFixed(1)}%{suffix}</span>;
+  return <span className={`admin-overview-delta ${positive ? 'positive' : 'negative'}`}>{positive ? '↑' : '↓'} {Math.abs(value).toFixed(1)}%</span>;
 }
 
 function StatCard({ label, value, delta, note, accent }) {
@@ -65,7 +60,7 @@ export default function AdminOverview({ chapters, comments, reports, ratings, vi
     return {
       views: curViews.length, viewsDelta: pct(curViews.length, prevViews.length),
       likes: curLikes.length, likesDelta: pct(curLikes.length, prevLikes.length),
-      ratings: curRatings.length, ratingDelta: pct(curRatings.length, prevRatings.length),
+      ratings: curRatings.length,
       comments: curComments.length, commentsDelta: pct(curComments.length, prevComments.length),
       average: currentAvg, averageDelta: currentAvg && previousAvg ? currentAvg - previousAvg : null,
       released, ratingCounts, chapterStats,
