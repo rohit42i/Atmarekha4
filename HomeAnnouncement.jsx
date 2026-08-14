@@ -13,7 +13,7 @@ export default function HomeAnnouncement() {
       try {
         const { data, error } = await supabase
           .from('announcements')
-          .select('id, title, content, image_url, published_at, created_at')
+          .select('title, content, image_url, published_at, created_at')
           .order('published_at', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .limit(1)
@@ -31,7 +31,8 @@ export default function HomeAnnouncement() {
 
   if (!announcement) return null;
 
-  const title = String(announcement.title || '').trim();
+  const storedTitle = String(announcement.title || '').trim();
+  const title = storedTitle.startsWith('__image_only_') ? '' : storedTitle;
   const content = String(announcement.content || '').trim();
   const image = String(announcement.image_url || '').trim();
   const hasText = Boolean(title || content);
