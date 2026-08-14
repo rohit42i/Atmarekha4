@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import axios from 'axios';
+import HomeAnnouncement from './HomeAnnouncement';
 
 const DEFAULT_HERO_IMAGES = []; // No defaults as per user request
 
@@ -23,11 +24,12 @@ export default function HeroSection({ isDark }) {
   }, []);
 
   useEffect(() => {
+    if (!heroImages.length) return undefined;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [heroImages]); // Re-run effect when images change
+  }, [heroImages]);
 
   return (
     <section
@@ -40,8 +42,7 @@ export default function HeroSection({ isDark }) {
           heroImages.map((img, index) => (
             <div
               key={index}
-              className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-                }`}
+              className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
               style={{ backgroundImage: `url(${img})` }}
             />
           ))
@@ -84,6 +85,10 @@ export default function HeroSection({ isDark }) {
         </div>
       </div>
 
+      {/* Announcement is intentionally inside the hero flow, immediately below the main card. */}
+      <div className="relative z-20 w-full">
+        <HomeAnnouncement />
+      </div>
     </section>
   );
 }
