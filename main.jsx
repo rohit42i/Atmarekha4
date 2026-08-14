@@ -2,14 +2,13 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import UserAuth from './UserAuth.jsx';
-import ProfileV2 from './ProfileV2.jsx';
 import ReaderBookmark from './ReaderBookmark.jsx';
 import ChapterFavorites from './ChapterFavorites.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 import CommunityPage from './CommunityPage.jsx';
-import CommunityAdmin, { CommunityMembership, CommunityProfileLink } from './CommunityAdmin.jsx';
+import CommunityAdmin from './CommunityAdmin.jsx';
 import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import './index.css';
@@ -33,19 +32,17 @@ import './community.css';
 import './enhanced-comments.css';
 import './public-profile.css';
 import './premium-typography.css';
+import './final-polish.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
     <UserAuth />
-    <ProfileV2 />
     <ReaderBookmark />
     <ChapterFavorites />
     <ReadingHistoryTracker />
     <AuthGate />
     <ChapterCompletionPrompt />
-    <CommunityMembership />
-    <CommunityProfileLink />
     <CommunityPage />
     <CommunityAdmin />
     <EnhancedComments />
