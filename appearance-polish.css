@@ -1,0 +1,51 @@
+/* Respect the user's device/browser appearance. Never force a theme. */
+:root { color-scheme: light dark; }
+
+@media (prefers-color-scheme: dark) {
+  body { background:#080808; color:#f5f5f7; }
+  .community-page { background:#080808; color:#f7f7f7; }
+}
+
+@media (prefers-color-scheme: light) {
+  body { background:#fff; color:#17171a; }
+  .community-page { background:#f7f7f8; color:#17171a; }
+  .community-header { background:rgb(247 247 248 / .94); border-bottom-color:#dedee3; }
+  .community-header h1 { color:#17171a; }
+  .community-header p { color:#686873; }
+  .community-back { background:#e9e9ed; color:#17171a; }
+  .community-post { background:#fff; border-color:#dedee3; box-shadow:0 5px 18px rgb(0 0 0 / .05); }
+  .community-post-head strong { color:#17171a; }
+  .community-post-head span { color:#74747d; }
+  .community-post > p { color:#29292e; }
+  .community-post-actions { border-top-color:#e5e5e9; }
+  .community-post-actions button { color:#5f6069; }
+  .community-post-actions button:hover,.community-post-actions button.reacted { background:#fff0f4; color:#c03c63; }
+  .community-pinned { color:#75651e; }
+  .community-attachment { background:#f4f4f6; border-color:#dcdce2; color:#202025; }
+  .community-attachment small { color:#707079; }
+  .community-empty { border-color:#d5d5db; color:#666670; }
+  .community-empty h3,.community-empty strong { color:#202025; }
+  .community-empty p,.community-empty span { color:#666670; }
+  .community-notice { background:#eef3ff; color:#355aa5; }
+  .community-error { background:#fff0f0; color:#a63232; }
+  .creator-avatar { background:#eceef5; color:#39435d; }
+  .community-post-head b { color:#5d6c9c; }
+  .community-post-image { border-color:#dedee3; }
+  .ec-sheet { background:#fff; color:#17171a; border-color:#dedee3; }
+  .ec-header { background:rgb(255 255 255 / .94); border-bottom-color:#e1e1e5; }
+  .ec-header h2,.ec-meta strong,.ec-empty strong,.ec-state strong { color:#17171a; }
+  .ec-header p:last-child,.ec-meta time,.ec-empty,.ec-state { color:#666670; }
+  .ec-content { color:#29292e; }
+  .ec-comment { border-bottom-color:#e5e5e9; }
+  .ec-actions button { color:#65656e; }
+  .ec-close,.ec-preview-close { background:#ededf0; color:#17171a; }
+  .ec-compose-row textarea { background:#f7f7f8; border-color:#d8d8de; color:#17171a; }
+  .ec-composer { background:#fff; border-top-color:#e1e1e5; }
+  .auth-panel,.rating-sheet,.comment-sheet { color:#17171a; }
+}
+
+/* Prevent legacy dark-only inline/component surfaces from becoming unreadable in light mode. */
+@media (prefers-color-scheme: light) {
+  [style*="color: white"],[style*="color:#fff"],[style*="color: #fff"] { color:#17171a !important; }
+  [style*="background:#111"],[style*="background: #111"],[style*="background:#101"] { background:#fff !important; }
+}
