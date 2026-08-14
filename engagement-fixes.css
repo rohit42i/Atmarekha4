@@ -13,15 +13,18 @@
 .auth-required-modal > p:not(.section-eyebrow) { margin: 10px auto 0; max-width: 330px; color: #a1a1aa; font-size: 14px; line-height: 1.65; }
 .auth-required-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; }
 .auth-required-actions .primary-button { width: 100%; }
-.auth-required-cancel { min-height: 48px; border: 1px solid #303038; border-radius: 14px; background: #18181b; color: #ddd; font-weight: 800; cursor: pointer; }
+.auth-required-actions .primary-button { font-size: 0; }
+.auth-required-actions .primary-button::after { content: 'Sign in'; font-size: 14px; }
+.auth-required-cancel { min-height: 48px; border: 1px solid #303038; border-radius: 14px; background: #18181b; color: #ddd; font-weight: 800; cursor: pointer; font-size: 0; }
+.auth-required-cancel::after { content: 'Maybe later'; font-size: 14px; }
 .auth-required-cancel:hover { background: #222226; }
+.auth-required-modal h2 { font-size: 0; }
+.auth-required-modal h2::after { content: 'Sign in to continue'; font-size: 28px; }
+.auth-required-modal > p:not(.section-eyebrow) { font-size: 0; }
+.auth-required-modal > p:not(.section-eyebrow)::after { content: 'Create a free reader account to rate chapters, save favourites, and join the conversation.'; font-size: 14px; }
 
-.auth-confirmation-backdrop { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 18px; border-radius: inherit; background: rgb(8 8 10 / .84); backdrop-filter: blur(9px); }
-.auth-confirmation-card { width: min(360px, 100%); padding: 26px 22px; border: 1px solid #303038; border-radius: 20px; background: #171719; box-shadow: 0 25px 70px rgb(0 0 0 / .45); text-align: center; }
-.auth-confirmation-icon { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 15px; border-radius: 16px; background: #14233e; border: 1px solid #29477a; font-size: 24px; }
-.auth-confirmation-card h3 { margin: 0; font-size: 23px; letter-spacing: -.035em; }
-.auth-confirmation-card p { margin: 9px 0 0; color: #a1a1aa; font-size: 13px; line-height: 1.6; }
-.auth-confirmation-card button { width: 100%; margin-top: 19px; }
+.auth-panel-message { position: fixed !important; z-index: 1100; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(390px, calc(100vw - 36px)); margin: 0 !important; padding: 28px 24px 22px !important; border: 1px solid #303038 !important; border-radius: 22px !important; background: linear-gradient(180deg, #1b1b1f, #111113) !important; color: #aeb0ba !important; box-shadow: 0 30px 100px rgb(0 0 0 / .58); text-align: center; font-size: 14px !important; line-height: 1.65 !important; }
+.auth-panel-message::before { content: '✉️'; display: grid; place-items: center; width: 54px; height: 54px; margin: 0 auto 15px; border-radius: 16px; background: #14233e; border: 1px solid #29477a; font-size: 23px; }
 
 @keyframes auth-required-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes auth-required-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -32,4 +35,5 @@
   .chapter-favorite-action span { font-size: 20px; }
   .chapter-favorite-action small { font-size: 8px; }
   .auth-required-modal { padding: 26px 20px; border-radius: 22px; }
+  .auth-required-modal h2::after { font-size: 25px; }
 }
