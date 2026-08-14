@@ -1,5 +1,3 @@
-import HomeAnnouncement from './HomeAnnouncement';
-
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx', icon: 'instagram' },
   { label: 'YouTube', href: 'https://youtube.com/@atmarekha?si=ytUOmNPrKFtxJUwn', icon: 'youtube' },
@@ -13,48 +11,43 @@ function SocialIcon({ type }) {
 }
 
 export default function Footer() {
-  const isHome = window.location.hash === '' || window.location.hash === '#home';
-
   return (
-    <>
-      {isHome && <HomeAnnouncement />}
-      <footer className="site-footer">
-        <div className="site-footer-inner">
-          <div className="footer-brand-block">
-            <a className="footer-brand" href="#home">Atma Rekha</a>
-            <p>An original Indian manga story.</p>
-          </div>
-
-          <nav className="footer-nav" aria-label="Footer navigation">
-            <a href="#info/about">About</a>
-            <a href="#info/contact">Contact</a>
-            <a href="#info/report">Report</a>
-            <a href="#info/privacy">Privacy</a>
-            <a href="#info/terms">Terms</a>
-            <a href="#admin" className="footer-admin-link">Admin Login</a>
-          </nav>
-
-          <div className="footer-socials" aria-label="Social links">
-            {SOCIAL_LINKS.map(item => (
-              <a
-                key={item.label}
-                href={item.href}
-                target={item.href.startsWith('mailto:') ? undefined : '_blank'}
-                rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'}
-                className="footer-social"
-                aria-label={item.label}
-                title={item.label}
-              >
-                <SocialIcon type={item.icon} />
-              </a>
-            ))}
-          </div>
-
-          <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', textAlign: 'center' }}>
-            <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span>
-          </div>
+    <footer className="site-footer">
+      <div className="site-footer-inner">
+        <div className="footer-brand-block">
+          <a className="footer-brand" href="#home">Atma Rekha</a>
+          <p>An original Indian manga story.</p>
         </div>
-      </footer>
-    </>
+
+        <nav className="footer-nav" aria-label="Footer navigation">
+          <a href="#info/about">About</a>
+          <a href="#info/contact">Contact</a>
+          <a href="#info/report">Report</a>
+          <a href="#info/privacy">Privacy</a>
+          <a href="#info/terms">Terms</a>
+          <a href="#admin" className="footer-admin-link">Admin Login</a>
+        </nav>
+
+        <div className="footer-socials" aria-label="Social links">
+          {SOCIAL_LINKS.map(item => (
+            <a
+              key={item.label}
+              href={item.href}
+              target={item.href.startsWith('mailto:') ? undefined : '_blank'}
+              rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'}
+              className="footer-social"
+              aria-label={item.label}
+              title={item.label}
+            >
+              <SocialIcon type={item.icon} />
+            </a>
+          ))}
+        </div>
+
+        <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', textAlign: 'center' }}>
+          <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span>
+        </div>
+      </div>
+    </footer>
   );
 }
