@@ -1,0 +1,68 @@
+.admin-file-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #292929;
+  border-radius: 16px;
+  background: #111112;
+  color: #a1a1aa;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-file-field input {
+  width: 100%;
+}
+
+.admin-file-field em {
+  color: #5f8fff;
+  font-style: normal;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-form-hint {
+  margin: -2px 0 0;
+  color: #71717a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-announcement-admin-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-announcement-admin-row img {
+  width: 82px;
+  height: 58px;
+  flex: 0 0 82px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #292929;
+  background: #111112;
+}
+
+.admin-announcement-admin-row > div {
+  min-width: 0;
+}
+
+.admin-announcement-admin-row small {
+  display: block;
+  margin-top: 5px;
+  color: #5f5f67;
+  font-size: 11px;
+}
+
+@media (max-width: 560px) {
+  .admin-announcement-admin-row img {
+    width: 68px;
+    height: 52px;
+    flex-basis: 68px;
+  }
+}
