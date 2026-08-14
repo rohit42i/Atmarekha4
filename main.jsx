@@ -25,6 +25,7 @@ import './profile-v2.css';
 import './auth-gate.css';
 import './chapter-completion.css';
 import './engagement-fixes.css';
+import './rating-modal.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
