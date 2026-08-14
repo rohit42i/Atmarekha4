@@ -1,3 +1,29 @@
+.home-page {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.home-page > .home-header {
+  order: 0 !important;
+}
+
+.home-page > .hero-card {
+  order: 1 !important;
+}
+
+.home-page > .home-announcement {
+  order: 2 !important;
+  position: relative !important;
+  inset: auto !important;
+  float: none !important;
+}
+
+.home-page > footer,
+.home-page > .site-footer,
+.home-page > [class*="footer"] {
+  order: 3 !important;
+}
+
 .home-announcement {
   width: min(520px, calc(100% - 48px));
   min-height: 0;
