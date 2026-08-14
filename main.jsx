@@ -34,7 +34,6 @@ import './enhanced-comments.css';
 import './public-profile.css';
 import './premium-typography.css';
 import './final-polish.css';
-import './chapter-ui-final.css';
 import './appearance-polish.css';
 import './rating-upgrade.js';
 
