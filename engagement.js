@@ -93,14 +93,21 @@ async function requireUser() {
 
 export { requireUser };
 
-export async function addComment({ chapterId, content, authorName, parentCommentId = null }) {
+async function getAccountUsername(user) {
+  const { data, error } = await supabase.from('profiles').select('username').eq('id', user.id).maybeSingle();
+  if (error) throw error;
+  const username = String(data?.username || '').trim().replace(/^@+/, '').slice(0, 24);
+  return username || 'reader';
+}
+
+export async function addComment({ chapterId, content, parentCommentId = null }) {
   const user = await requireUser();
   const cleanContent = String(content || '').trim();
-  const cleanName = String(authorName || 'Reader').trim().slice(0, 80) || 'Reader';
   if (!cleanContent) throw new Error('Write a comment first.');
   if (cleanContent.length > 2000) throw new Error('Comments are limited to 2000 characters.');
+  const username = await getAccountUsername(user);
   const { data, error } = await supabase.from('comments').insert({
-    user_id: user.id, chapter_id: chapterId, author_name: cleanName, content: cleanContent, parent_comment_id: parentCommentId,
+    user_id: user.id, chapter_id: chapterId, author_name: username, content: cleanContent, parent_comment_id: parentCommentId,
   }).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
   return data;
