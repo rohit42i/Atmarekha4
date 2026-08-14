@@ -1,7 +1,0 @@
-/* Atma Rekha — preserve the original chapter-list presentation. Only remove the old branding kicker. */
-.subpage-header .header-kicker{display:none!important}
-
-/* Do not override the original chapter card typography/layout here. */
-@media(prefers-color-scheme:light){
-  .chapter-row{color:inherit}
-}
