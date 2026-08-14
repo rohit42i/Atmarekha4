@@ -1,29 +1,17 @@
-/* Final chapter-list / reader UI refinements */
-.subpage-header .header-kicker { display:none !important; }
-.chapter-row-title span { font-size:clamp(13px,1.7vw,15px) !important; letter-spacing:.07em; }
-.chapter-row-title h2 { font-size:clamp(24px,3vw,32px) !important; line-height:1.16; font-weight:850; letter-spacing:-.04em; }
-.chapter-row-meta,.chapter-row-details { font-size:14px !important; line-height:1.5; }
-.chapter-row-actions { display:flex; align-items:center; gap:8px; }
-.chapter-row-actions .chapter-favorite-action { order:0; }
-.chapter-row-actions .engagement-icon { order:1; }
-.chapter-favorite-action { min-width:76px; min-height:52px; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border:1px solid #292929; border-radius:14px; background:#111112; color:#aaaab2; cursor:pointer; transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease; }
-.chapter-favorite-action span { font-size:21px; line-height:1; }
-.chapter-favorite-action small { font-size:10px; font-weight:800; }
-.chapter-favorite-action.is-saved { border-color:#49303a; background:#201519; color:#ff9eb9; }
-.chapter-favorite-action:hover:not(:disabled) { transform:translateY(-1px); background:#19191b; }
-.chapter-favorite-action:disabled { opacity:.55; cursor:wait; }
-.reader-title h1 { font-size:clamp(24px,3vw,34px) !important; line-height:1.15; font-weight:850; letter-spacing:-.04em; }
-@media (max-width:640px) {
-  .subpage-header { min-height:70px; padding:0 14px; gap:10px; }
-  .subpage-header h1 { font-size:24px; }
-  .chapter-list-section { width:calc(100% - 24px); padding:24px 0 55px; }
-  .chapter-row { grid-template-columns:minmax(0,1fr) auto; gap:10px; padding:17px 15px; border-radius:18px; }
-  .chapter-row-title span { font-size:12px !important; }
-  .chapter-row-title h2 { font-size:clamp(21px,6vw,27px) !important; line-height:1.18; }
-  .chapter-row-meta,.chapter-row-details { font-size:12px !important; }
-  .chapter-row-actions { flex-direction:column; gap:6px; }
-  .chapter-row-actions .engagement-icon,.chapter-favorite-action { width:58px; min-width:58px; min-height:48px; border-radius:13px; }
-  .chapter-favorite-action span { font-size:19px; }
-  .chapter-favorite-action small { font-size:9px; }
-  .reader-title h1 { font-size:clamp(21px,6vw,28px) !important; line-height:1.16; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-}
+/* Atma Rekha — clean chapter list + reader typography */
+.subpage-header .header-kicker{display:none!important}
+.chapter-list-page .subpage-header h1{font-size:clamp(22px,4vw,30px)!important;line-height:1.2!important;font-weight:750!important;letter-spacing:-.025em!important}
+.chapter-list-heading{margin-bottom:14px!important}.chapter-list-heading p{font-size:13px!important;line-height:1.4!important}.chapter-list-heading span{font-size:10px!important;letter-spacing:.08em!important}
+.chapter-row{min-height:132px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:14px!important;padding:16px!important;border-radius:18px!important}
+.chapter-row-title span{font-size:12px!important;line-height:1.25!important;letter-spacing:.055em!important;font-weight:700!important}
+.chapter-row-title h2{font-size:clamp(18px,2.4vw,24px)!important;line-height:1.25!important;font-weight:750!important;letter-spacing:-.02em!important;margin:4px 0 7px!important;overflow-wrap:anywhere!important}
+.chapter-row-meta,.chapter-row-details{font-size:12px!important;line-height:1.45!important}.chapter-row-details{margin-top:5px!important}
+.chapter-row-actions{display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;flex-shrink:0!important;min-width:max-content!important}
+.chapter-row-actions .engagement-icon,.chapter-row-actions .chapter-favorite-action{width:56px!important;min-width:56px!important;height:48px!important;min-height:48px!important;display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;padding:5px!important;border-radius:12px!important;box-sizing:border-box!important}
+.chapter-row-actions .engagement-icon{order:1!important}.chapter-row-actions .chapter-favorite-action{order:0!important;visibility:visible!important;opacity:1!important}
+.chapter-favorite-action{border:1px solid #3a3a3f!important;background:#151517!important;color:#d1d1d6!important;cursor:pointer!important;transition:transform .15s ease,background .15s ease,border-color .15s ease,color .15s ease!important}
+.chapter-favorite-action span{font-size:19px!important;line-height:1!important}.chapter-favorite-action small{font-size:9px!important;font-weight:750!important;line-height:1!important}.chapter-favorite-action.is-saved{background:#25171d!important;border-color:#704054!important;color:#ff9dbb!important}.chapter-favorite-action:disabled{opacity:.55!important;cursor:wait!important}.chapter-favorite-action:hover:not(:disabled){transform:translateY(-1px)!important}
+.reader-title h1{font-size:clamp(22px,3vw,30px)!important;line-height:1.2!important;font-weight:750!important;letter-spacing:-.025em!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.reader-title p{font-size:11px!important;letter-spacing:.08em!important;font-weight:700!important}
+@media(prefers-color-scheme:light){.chapter-row{background:#fff!important;color:#202024!important;border-color:#dedee3!important}.chapter-row-title span{color:#55555e!important}.chapter-row-title h2{color:#202024!important}.chapter-row-meta,.chapter-row-details{color:#707079!important}.chapter-list-heading p{color:#606069!important}.chapter-list-heading span{color:#777780!important}.chapter-favorite-action{background:#fff!important;color:#4c4c55!important;border-color:#d5d5dc!important}.chapter-favorite-action.is-saved{background:#fff0f4!important;color:#c33b64!important;border-color:#efbdce!important}}
+@media(max-width:640px){.subpage-header{min-height:64px!important;padding:0 12px!important}.chapter-list-section{width:calc(100% - 20px)!important;padding:18px 0 48px!important}.chapter-row{min-height:118px!important;grid-template-columns:minmax(0,1fr) auto!important;gap:9px!important;padding:14px!important;border-radius:16px!important}.chapter-row-title span{font-size:11px!important}.chapter-row-title h2{font-size:clamp(17px,5vw,21px)!important;line-height:1.25!important;margin-top:3px!important}.chapter-row-meta,.chapter-row-details{font-size:11px!important}.chapter-row-actions{flex-direction:column!important;gap:5px!important}.chapter-row-actions .engagement-icon,.chapter-row-actions .chapter-favorite-action{width:50px!important;min-width:50px!important;height:44px!important;min-height:44px!important;border-radius:11px!important}.chapter-favorite-action span{font-size:18px!important}.chapter-favorite-action small{font-size:8px!important}.reader-title h1{font-size:clamp(20px,5.5vw,27px)!important;line-height:1.2!important}}
