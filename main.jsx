@@ -32,6 +32,7 @@ import './rating-modal.css';
 import './community.css';
 import './enhanced-comments.css';
 import './public-profile.css';
+import './premium-typography.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
