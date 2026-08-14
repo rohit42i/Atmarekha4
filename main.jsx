@@ -28,6 +28,7 @@ import './auth-gate-pro.css';
 import './chapter-completion.css';
 import './engagement-fixes.css';
 import './rating-modal.css';
+import './rating-upgrade.css';
 import './community.css';
 import './enhanced-comments.css';
 import './public-profile.css';
