@@ -10,6 +10,7 @@ import CommunityPage from './CommunityPage.jsx';
 import CommunityAdmin from './CommunityAdmin.jsx';
 import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
+import Membership from './Membership.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -36,6 +37,7 @@ import './final-polish.css';
 import './chapter-ui-final.css';
 import './appearance-polish.css';
 import './rating-upgrade.js';
+import './membership.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -49,5 +51,6 @@ createRoot(document.getElementById('root')).render(
     <CommunityAdmin />
     <EnhancedComments />
     <PublicProfile />
+    <Membership />
   </React.StrictMode>
 );
