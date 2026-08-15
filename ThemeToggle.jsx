@@ -16,22 +16,10 @@ export default function ThemeToggle() {
     return () => media.removeEventListener?.('change', update);
   }, []);
 
-  useEffect(() => {
-    // Do not impose a custom palette or persist a site-specific theme.
-    // The device/browser preference remains the single source of truth.
-    document.documentElement.style.colorScheme = 'light dark';
-  }, []);
-
   const light = theme === 'light';
   return (
-    <button
-      type="button"
-      className="theme-toggle"
-      onClick={() => window.matchMedia?.('(prefers-color-scheme: dark)').matches}
-      aria-label={`Device theme: ${theme}`}
-      title={`Device theme: ${theme}`}
-    >
+    <span className="theme-toggle" aria-label={`Device theme: ${theme}`} title={`Device theme: ${theme}`}>
       <span aria-hidden="true">{light ? '☀' : '☾'}</span>
-    </button>
+    </span>
   );
 }
