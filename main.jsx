@@ -38,6 +38,7 @@ import './chapter-ui-final.css';
 import './rating-upgrade.js';
 import './membership.css';
 import './visual-polish.css';
+import './ui-refinement.css';
 
 // System theme only: detect the device preference and keep all legacy styles
 // under one semantic theme contract.
