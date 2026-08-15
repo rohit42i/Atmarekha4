@@ -85,7 +85,10 @@ export default function RazorpayCheckout({
           escape: true,
           backdropclose: false,
           animation: true,
-          ondismiss: () => onDismiss?.(),
+          ondismiss: () => {
+            setLoading(false);
+            onDismiss?.();
+          },
         },
         handler: async response => {
           try {
