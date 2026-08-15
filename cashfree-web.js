@@ -16,8 +16,12 @@ function loadSdk() {
   return sdkPromise;
 }
 
-export async function openCashfreeSubscription({ subscriptionId, subscriptionSessionId, production = false }) {
-  if (!subscriptionId || !subscriptionSessionId) throw new Error('Invalid Cashfree subscription session.');
+export async function openCashfreeSubscription({ subscriptionId, subscriptionSessionId, authorizationLink, production = false }) {
+  if (!subscriptionId) throw new Error('Invalid Cashfree subscription.');
+  if (!subscriptionSessionId) {
+    if (authorizationLink) { window.location.assign(authorizationLink); return { redirected: true }; }
+    throw new Error('Cashfree did not return a subscription session.');
+  }
   const factory = await loadSdk();
   const cashfree = factory({ mode: production ? 'production' : 'sandbox' });
   const result = await cashfree.subscriptionsCheckout({ subsSessionId: subscriptionSessionId, redirectTarget: '_self' });
