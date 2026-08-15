@@ -38,11 +38,11 @@ import './chapter-ui-final.css';
 import './rating-upgrade.js';
 import './membership.css';
 
-// Load the theme bridge and final theme layer last so every page/component
-// uses the same system preference regardless of which legacy stylesheet
-// declared a hardcoded light/dark color earlier in the cascade.
+// System theme only: detect the device preference and keep all legacy styles
+// under one semantic theme contract.
 import './theme-system.js';
 import './theme-system.css';
+import './theme-final-hardening.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
