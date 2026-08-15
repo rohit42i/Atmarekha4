@@ -14,6 +14,21 @@ function isFreePeriod() { return Date.now() < freePeriodEnds().getTime(); }
 function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
 function formatDate(value) { return value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
 
+async function getFunctionError(error, fallback) {
+  if (!error) return fallback;
+  try {
+    const response = error.context;
+    if (response && typeof response.json === 'function') {
+      const body = await response.clone().json();
+      if (body?.error) {
+        const detail = [body.error, body.reason].filter(Boolean).join(' · ');
+        return detail || fallback;
+      }
+    }
+  } catch {}
+  return error.message || fallback;
+}
+
 export default function Membership() {
   const [route, setRoute] = useState(routeNow()); const [user, setUser] = useState(null); const [subscription, setSubscription] = useState(null); const [loading, setLoading] = useState(false); const [cancelling, setCancelling] = useState(false); const [selected, setSelected] = useState(null); const [flowOpen, setFlowOpen] = useState(false); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const freePeriod = isFreePeriod(); const graceEnd = useMemo(() => freePeriodEnds(), []);
   const loadSubscription = async currentUser => { if (!currentUser) { setSubscription(null); return; } const { data } = await supabase.from('user_subscriptions').select('plan_id,status,current_period_start,current_period_end,cancel_at_period_end,provider_subscription_id').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1).maybeSingle(); setSubscription(data || null); };
@@ -24,7 +39,7 @@ export default function Membership() {
     setError(''); setMessage(''); setLoading(true); setFlowOpen(false);
     try {
       const { data, error: invokeError } = await supabase.functions.invoke('create-razorpay-subscription', { body: { plan_id: plan.id } });
-      if (invokeError) throw invokeError;
+      if (invokeError) throw new Error(await getFunctionError(invokeError, 'Unable to create the Razorpay subscription.'));
       if (!data?.subscription_id || !data?.key_id) throw new Error(data?.error || 'Unable to start membership checkout.');
       if (!window.Razorpay) throw new Error('Razorpay Checkout could not be loaded. Please refresh and try again.');
       const checkout = new window.Razorpay({
@@ -40,7 +55,7 @@ export default function Membership() {
         handler: async response => {
           try {
             const { data: verification, error: verificationError } = await supabase.functions.invoke('verify-razorpay-subscription', { body: { razorpay_payment_id: response.razorpay_payment_id, razorpay_subscription_id: response.razorpay_subscription_id, razorpay_signature: response.razorpay_signature } });
-            if (verificationError) throw verificationError;
+            if (verificationError) throw new Error(await getFunctionError(verificationError, 'Unable to verify the Razorpay subscription.'));
             if (!verification?.success) throw new Error(verification?.error || 'Subscription verification failed.');
             setMessage('Membership activated successfully.'); await loadSubscription(user);
           } catch (err) { setError(err?.message || 'Unable to verify membership.'); }
@@ -57,7 +72,7 @@ export default function Membership() {
     if (!subscription?.provider_subscription_id) { setError('Your subscription reference is unavailable. Please contact Atma Rekha support.'); return; }
     if (!window.confirm('Cancel future renewals? Your current membership remains active until the current period ends.')) return;
     setCancelling(true); setError(''); setMessage('');
-    try { const { data, error: invokeError } = await supabase.functions.invoke('cancel-razorpay-subscription', { body: { subscription_id: subscription.provider_subscription_id } }); if (invokeError) throw invokeError; if (!data?.ok) throw new Error(data?.error || 'Unable to cancel the subscription.'); setMessage('Cancellation scheduled. No further renewal will be taken.'); await loadSubscription(user); }
+    try { const { data, error: invokeError } = await supabase.functions.invoke('cancel-razorpay-subscription', { body: { subscription_id: subscription.provider_subscription_id } }); if (invokeError) throw new Error(await getFunctionError(invokeError, 'Unable to cancel the Razorpay subscription.')); if (!data?.ok) throw new Error(data?.error || 'Unable to cancel the subscription.'); setMessage('Cancellation scheduled. No further renewal will be taken.'); await loadSubscription(user); }
     catch (err) { setError(err?.message || 'Unable to cancel membership.'); } finally { setCancelling(false); }
   };
   if (!route.startsWith('membership')) return <MembershipLauncher user={user} />;
