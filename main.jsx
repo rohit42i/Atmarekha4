@@ -11,7 +11,6 @@ import CommunityAdmin from './CommunityAdmin.jsx';
 import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import Membership from './Membership.jsx';
-import MembershipNotice from './MembershipNotice.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -53,6 +52,5 @@ createRoot(document.getElementById('root')).render(
     <EnhancedComments />
     <PublicProfile />
     <Membership />
-    <MembershipNotice />
   </React.StrictMode>
 );
