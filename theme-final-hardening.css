@@ -1,114 +1,26 @@
-/* Final system-theme hardening layer.
-   Neutralizes legacy light/dark literals without changing brand/accent colors.
-   Theme is always controlled by the user's OS preference. */
-:root {
-  --bg-color: #ffffff;
-  --surface-color: #ffffff;
-  --card-bg: #fafafa;
-  --surface-2: #f4f4f5;
-  --input-bg: #ffffff;
-  --text-color: #18181b;
-  --text-secondary: #3f3f46;
-  --muted-color: #62626b;
-  --border-color: #d4d4d8;
-  --border-soft: #e4e4e7;
-  --overlay-color: rgb(0 0 0 / .56);
-}
+/* Final hardening: theme-system.css owns the palette. */
+html,body,#root{background:var(--bg-color)!important;color:var(--text-color)!important;color-scheme:light dark}
+body :where(.home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.info-page,.chapter-list-page,.admin-page,.admin-panel,.admin-overview,.home-section,.chapter-list-section,.hero-card,.chapter-row,.latest-item,.community-post,.reader-rating-card,.profile-v2-card,.info-card,.auth-panel,.ec-sheet,.comment-sheet,.rating-sheet,.membership-sheet,.membership-plan,.membership-phone-modal){background:var(--card-bg)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
+body :where(.home-header,.subpage-header,.reader-header,.community-header,header,nav,footer){background:color-mix(in srgb,var(--bg-color) 94%,transparent)!important;color:var(--text-color)!important;border-color:var(--border-soft-color)!important}
+body :where(.latest-item,.chapter-row):hover{background:var(--surface-2-color)!important}
+body :where(input,textarea,select){background:var(--input-bg)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
+body :where(input,textarea,select)::placeholder{color:var(--faint-color)!important}
+body :where(.brand-wordmark,.subpage-header h1,.chapter-row-main,.chapter-row-title h2,.latest-item h3,.reader-title h1,.rating-number,.empty-state h3,.community-empty h3){color:var(--text-color)!important}
+body :where(.hero-description,.chapter-row-meta,.chapter-row-details,.reader-info-row,.rating-summary,.rating-label,.rating-notice,.loading-state,.empty-state,.community-empty){color:var(--muted-color)!important}
+body :where(.reader-stage){background:var(--surface-color)!important;border-color:var(--border-color)!important}
+body :where(.reader-progress,.reader-page-pill,.reader-control.secondary,.back-button:hover,.reader-back:hover,.icon-button:hover){background:var(--surface-2-color)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #050505;
-    --surface-color: #0b0b0b;
-    --card-bg: #121212;
-    --surface-2: #181818;
-    --input-bg: #0d0d0d;
-    --text-color: #f7f7f7;
-    --text-secondary: #d4d4d8;
-    --muted-color: #a1a1aa;
-    --border-color: #303030;
-    --border-soft: #222222;
-    --overlay-color: rgb(0 0 0 / .78);
-  }
-}
+/* Existing Tailwind neutral utilities are mapped to the semantic theme so no legacy utility can create a second palette. */
+body :where(.bg-white,.bg-white\/20,.bg-white\/30,.bg-white\/50,.bg-white\/80){background-color:var(--card-bg)!important}
+body :where(.bg-black,.bg-black\/50){background-color:var(--bg-color)!important}
+body :where(.text-white,.text-black){color:var(--text-color)!important}
+body :where(.bg-zinc-50,.bg-zinc-100,.bg-zinc-200,.bg-zinc-300,.bg-zinc-400,.bg-zinc-500,.bg-zinc-600,.bg-zinc-700,.bg-zinc-800,.bg-zinc-900,.bg-zinc-950){background-color:var(--surface-color)!important}
+body :where(.text-zinc-50,.text-zinc-100,.text-zinc-200,.text-zinc-300,.text-zinc-400,.text-zinc-500,.text-zinc-600,.text-zinc-700,.text-zinc-800,.text-zinc-900){color:var(--text-color)!important}
+body :where(.border-zinc-100,.border-zinc-200,.border-zinc-300,.border-zinc-400,.border-zinc-500,.border-zinc-600,.border-zinc-700,.border-zinc-800,.border-zinc-900){border-color:var(--border-color)!important}
+@media (prefers-color-scheme:dark){body :where(.dark\:bg-zinc-950,.dark\:bg-zinc-900,.dark\:bg-zinc-800,.dark\:bg-zinc-700){background-color:var(--surface-color)!important}body :where(.dark\:bg-black,.dark\:bg-black\/50){background-color:var(--bg-color)!important}body :where(.dark\:text-white,.dark\:text-zinc-100,.dark\:text-zinc-200,.dark\:text-zinc-300,.dark\:text-zinc-400){color:var(--text-color)!important}body :where(.dark\:border-zinc-700,.dark\:border-zinc-800){border-color:var(--border-color)!important}}
 
-html, body, #root {
-  background: var(--bg-color) !important;
-  color: var(--text-color) !important;
-}
-
-html { color-scheme: light; }
-@media (prefers-color-scheme: dark) { html { color-scheme: dark; } }
-
-/* Neutral application surfaces. Brand/accent buttons and artwork are intentionally excluded. */
-.home-page, .site-shell, .reader-page, .community-page, .profile-page,
-.profile-v2-page, .info-page, .chapter-list-page,
-.admin-page, .admin-panel, .admin-overview,
-.home-section, .chapter-list-section,
-.hero-card, .chapter-row, .latest-item, .community-post,
-.reader-rating-card, .profile-v2-card, .info-card,
-.auth-panel, .ec-sheet, .comment-sheet, .rating-sheet,
-.membership-sheet, .membership-plan, .membership-phone-modal {
-  background: var(--surface-color) !important;
-  color: var(--text-color) !important;
-  border-color: var(--border-color) !important;
-}
-
-.home-header, .subpage-header, .reader-header, .community-header {
-  background: color-mix(in srgb, var(--surface-color) 94%, transparent) !important;
-  color: var(--text-color) !important;
-  border-color: var(--border-soft) !important;
-}
-
-.latest-item, .chapter-row { background: var(--card-bg) !important; }
-.latest-item:hover, .chapter-row:hover { background: var(--surface-2) !important; }
-
-input, textarea, select {
-  background: var(--input-bg) !important;
-  color: var(--text-color) !important;
-  border-color: var(--border-color) !important;
-}
-input::placeholder, textarea::placeholder { color: var(--muted-color) !important; }
-
-.brand-wordmark, .subpage-header h1, .chapter-row-main,
-.chapter-row-title h2, .latest-item h3, .reader-title h1,
-.rating-number, .empty-state h3, .community-empty h3 {
-  color: var(--text-color) !important;
-}
-
-.hero-description, .home-section > p:not(.section-eyebrow),
-.home-anchor-section p, .chapter-list-heading,
-.chapter-row-meta, .chapter-row-details, .reader-info-row,
-.rating-summary, .rating-label, .rating-notice,
-.loading-state, .empty-state, .community-empty {
-  color: var(--muted-color) !important;
-}
-
-.reader-stage { background: var(--surface-color) !important; border-color: var(--border-soft) !important; }
-.reader-progress { background: var(--surface-2) !important; }
-.reader-page-pill, .reader-control.secondary { background: var(--surface-2) !important; color: var(--text-secondary) !important; border-color: var(--border-color) !important; }
-.back-button:hover, .reader-back:hover, .icon-button:hover { background: var(--surface-2) !important; }
-
-/* Neutral inline styles cannot force a theme mismatch. */
-[style*="color: white"], [style*="color:white"],
-[style*="color: #fff"], [style*="color:#fff"],
-[style*="color: #ffffff"], [style*="color:#ffffff"] { color: var(--text-color) !important; }
-
-[style*="background: white"], [style*="background:white"],
-[style*="background: #fff"], [style*="background:#fff"],
-[style*="background: #ffffff"], [style*="background:#ffffff"] { background: var(--surface-color) !important; }
-
-[style*="color: black"], [style*="color:black"],
-[style*="color: #000"], [style*="color:#000"],
-[style*="color: #000000"], [style*="color:#000000"] { color: var(--text-color) !important; }
-
-[style*="background: black"], [style*="background:black"],
-[style*="background: #000"], [style*="background:#000"],
-[style*="background: #000000"], [style*="background:#000000"] { background: var(--surface-color) !important; }
-
-/* Explicitly prevent old forced root colors from winning the cascade. */
-@media (prefers-color-scheme: light) {
-  :root { color-scheme: light !important; }
-}
-@media (prefers-color-scheme: dark) {
-  :root { color-scheme: dark !important; }
-}
+/* Inline neutral literals cannot force a different theme. */
+body [style*="color: white"],body [style*="color:white"],body [style*="color: #fff"],body [style*="color:#fff"],body [style*="color: #ffffff"],body [style*="color:#ffffff"]{color:var(--text-color)!important}
+body [style*="color: black"],body [style*="color:black"],body [style*="color: #000"],body [style*="color:#000"],body [style*="color: #000000"],body [style*="color:#000000"]{color:var(--text-color)!important}
+body [style*="background: white"],body [style*="background:white"],body [style*="background: #fff"],body [style*="background:#fff"],body [style*="background: #ffffff"],body [style*="background:#ffffff"]{background:var(--card-bg)!important}
+body [style*="background: black"],body [style*="background:black"],body [style*="background: #000"],body [style*="background:#000"],body [style*="background: #000000"],body [style*="background:#000000"]{background:var(--bg-color)!important}
