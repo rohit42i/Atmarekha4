@@ -6,7 +6,7 @@
 (function initSystemTheme() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-  const media = window.matchMedia?.('(prefers-color-scheme: dark)');
+  const media = window.matchMedia?.('(prefers-color-scheme: light dark)');
   if (!media) return;
 
   const apply = () => {

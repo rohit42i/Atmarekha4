@@ -281,7 +281,7 @@
     border: 1px solid var(--legacy-26272b-c6fe6012);
     border-radius: 22px;
     background: linear-gradient(180deg, var(--legacy-17181b-f6bf5b84) 0%, var(--legacy-101114-6da573b3) 100%);
-    box-shadow: 0 14px 35px rgb(0 0 0 / .22);
+    box-shadow: 0 14px 35px var(--legacy-rgb-0-0-0-22-daefa538);
   }
 
   .admin-header-card::after {
@@ -340,7 +340,7 @@
     border-color: var(--legacy-2f6cf6-e75dfb6a);
     background: var(--legacy-2f6cf6-e75dfb6a);
     color: var(--legacy-fff-d14f9016);
-    box-shadow: 0 9px 24px rgb(47 108 246 / .2);
+    box-shadow: 0 9px 24px var(--legacy-rgb-47-108-246-2-f820d500);
   }
 
   .admin-tabs {
@@ -359,7 +359,7 @@
     border-radius: 15px;
     background: var(--legacy-rgb-14-15-18-92-1d682d38);
     backdrop-filter: blur(18px);
-    box-shadow: 0 10px 25px rgb(0 0 0 / .2);
+    box-shadow: 0 10px 25px var(--legacy-rgb-0-0-0-2-ea108aa7);
   }
 
   .admin-tabs::-webkit-scrollbar { display: none; }
@@ -381,7 +381,7 @@
   .admin-tabs button[aria-selected='true'] {
     background: var(--legacy-24262c-886081cb);
     color: var(--legacy-f3f4f6-000d003e);
-    box-shadow: inset 0 0 0 1px #30333a;
+    box-shadow: inset 0 0 0 1px var(--legacy-30333a-396e84b7);
   }
 
   .admin-grid.four {
@@ -399,7 +399,7 @@
     border: 1px solid var(--legacy-25262a-75a2a54c);
     border-radius: 17px;
     background: linear-gradient(180deg, var(--legacy-151619-54785ffa) 0%, var(--legacy-101114-6da573b3) 100%);
-    box-shadow: 0 9px 22px rgb(0 0 0 / .16);
+    box-shadow: 0 9px 22px var(--legacy-rgb-0-0-0-16-ab2a96f8);
   }
 
   .admin-stat::after {
@@ -446,7 +446,7 @@
     border: 1px solid var(--legacy-25262a-75a2a54c);
     border-radius: 19px;
     background: linear-gradient(180deg, var(--legacy-151619-54785ffa) 0%, var(--legacy-101114-6da573b3) 100%);
-    box-shadow: 0 12px 28px rgb(0 0 0 / .17);
+    box-shadow: 0 12px 28px var(--legacy-rgb-0-0-0-17-35c1653e);
   }
 
   .admin-card-title {
@@ -554,7 +554,7 @@
     width: 100%;
     border-radius: 13px;
     background: var(--legacy-2f6cf6-e75dfb6a);
-    box-shadow: 0 10px 25px rgb(47 108 246 / .18);
+    box-shadow: 0 10px 25px var(--legacy-rgb-47-108-246-18-eb7dcc98);
   }
 
   .admin-chapter-list {

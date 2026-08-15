@@ -10,8 +10,8 @@
   :root { color-scheme: light; }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root { color-scheme: dark; }
+@media (prefers-color-scheme: light dark) {
+  :root { color-scheme: light dark; }
 }
 
 /* Legacy Atma Rekha surface aliases now resolve to the central theme contract. */

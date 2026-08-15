@@ -1,5 +1,5 @@
 .auth-required-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--legacy-rgba-0-0-0-58-b1660816);backdrop-filter:blur(5px)}
-.auth-required-modal{width:min(420px,100%);padding:30px 26px;border:1px solid var(--legacy-rgba-127-127-127-22-fea2f4bd);border-radius:20px;background:var(--background,var(--legacy-fff-d14f9016));color:var(--foreground,var(--legacy-111-cdddffcd));box-shadow:0 24px 80px rgba(0,0,0,.28);text-align:center}
+.auth-required-modal{width:min(420px,100%);padding:30px 26px;border:1px solid var(--legacy-rgba-127-127-127-22-fea2f4bd);border-radius:20px;background:var(--background,var(--legacy-fff-d14f9016));color:var(--foreground,var(--legacy-111-cdddffcd));box-shadow:0 24px 80px var(--legacy-rgba-0-0-0-28-ca0b96d4);text-align:center}
 .auth-required-icon{font-size:28px;margin-bottom:8px}
 .auth-required-modal h2{margin:6px 0 8px;font-size:24px}
 .auth-required-modal>p:not(.section-eyebrow){margin:0 auto;color:inherit;opacity:.72;line-height:1.55;max-width:330px}

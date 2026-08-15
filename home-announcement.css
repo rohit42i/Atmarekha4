@@ -20,7 +20,7 @@
   border: 1px solid var(--legacy-292929-ce596263);
   border-radius: 18px;
   background: var(--legacy-171719-b0b48859);
-  box-shadow: 0 12px 30px rgb(0 0 0 / .20);
+  box-shadow: 0 12px 30px var(--legacy-rgb-0-0-0-20-d78a33c1);
 }
 
 .home-announcement-image { width: 100%; height: 155px; overflow: hidden; background: var(--legacy-101011-a397958f); flex: 0 0 auto; }

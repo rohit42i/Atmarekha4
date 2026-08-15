@@ -112,7 +112,7 @@ function openAdminNotificationPanel() {
       <input id="atma-notification-title" maxlength="100" placeholder="Notification title" required />
       <textarea id="atma-notification-message" maxlength="500" rows="5" placeholder="Notification message" required></textarea>
       <input id="atma-notification-url" value="/" placeholder="Open URL, e.g. /chapter/4" required />
-      <div style="border:1px solid var(--legacy-rgba-255-255-255-1-6e5bc0e0);border-radius:16px;padding:14px;color:var(--legacy-a1a1aa-0030ed12);font-size:14px"><strong style="color:var(--legacy-var(--legacy-white-528cef87)-528cef87)">Recipients:</strong> all active push subscribers</div>
+      <div style="border:1px solid var(--legacy-rgba-255-255-255-1-6e5bc0e0);border-radius:16px;padding:14px;color:var(--legacy-a1a1aa-0030ed12);font-size:14px"><strong style="color:var(--legacy-var(--legacy-var(--legacy-white-528cef87)-528cef87)-528cef87)">Recipients:</strong> all active push subscribers</div>
       <button id="atma-send-notification" class="admin-submit" type="submit">🔔 Send notification to all</button>
       <div id="atma-notification-result" style="display:none"></div>
     </form>`;
