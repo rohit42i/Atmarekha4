@@ -3,10 +3,10 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px;
-  border: 1px solid #292929;
+  border: 1px solid var(--legacy-292929-ce596263);
   border-radius: 16px;
-  background: #111112;
-  color: #a1a1aa;
+  background: var(--legacy-111112-c769f022);
+  color: var(--legacy-a1a1aa-0030ed12);
   font-size: 13px;
   font-weight: 700;
 }
@@ -16,7 +16,7 @@
 }
 
 .admin-file-field em {
-  color: #5f8fff;
+  color: var(--legacy-5f8fff-fec60ba0);
   font-style: normal;
   font-size: 12px;
   overflow: hidden;
@@ -26,7 +26,7 @@
 
 .admin-form-hint {
   margin: -2px 0 0;
-  color: #71717a;
+  color: var(--legacy-71717a-00844670);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -44,8 +44,8 @@
   flex: 0 0 82px;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid #292929;
-  background: #111112;
+  border: 1px solid var(--legacy-292929-ce596263);
+  background: var(--legacy-111112-c769f022);
 }
 
 .admin-announcement-admin-row > div {
@@ -55,7 +55,7 @@
 .admin-announcement-admin-row small {
   display: block;
   margin-top: 5px;
-  color: #5f5f67;
+  color: var(--legacy-5f5f67-1e21f603);
   font-size: 11px;
 }
 

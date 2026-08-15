@@ -286,7 +286,7 @@ export default function AdminPanel({ onLogout }) {
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
 
-  return <main className="min-h-screen bg-zinc-950 text-white"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
+  return <main className="min-h-screen bg-zinc-950 text-[var(--text-color)]"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
     <header className="admin-header-card">
       <div><p className="text-xs font-black tracking-[0.25em] text-blue-400">REKHA · PUBLISHER</p><h1 className="mt-1 text-3xl font-black tracking-tight">Admin Dashboard</h1><p className="mt-1 text-sm text-zinc-500">{email || 'Admin'} · Supabase protected</p></div>
       <div className="flex flex-wrap gap-2"><button onClick={() => { setTab('Chapters'); resetForm(); }} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black shadow-lg shadow-blue-900/20">+ Upload chapter</button><button onClick={load} disabled={busy} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">Refresh</button><button onClick={logout} className="rounded-xl bg-zinc-800 px-4 py-2.5 text-sm font-bold">Sign out</button></div>

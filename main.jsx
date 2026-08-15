@@ -40,9 +40,9 @@ import './membership.css';
 
 // System theme only: detect the device preference and keep all legacy styles
 // under one semantic theme contract.
+import './theme-legacy-vars.css';
 import './theme-system.js';
 import './theme-system.css';
-import './theme-final-hardening.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -92,7 +92,7 @@
     min-height: 36px;
     padding: 0 9px;
     border-radius: 9px;
-    background: #19191b;
+    background: var(--legacy-19191b-3e7d3aa8);
   }
 
   .admin-performance > div {
@@ -184,9 +184,9 @@
     justify-self: start;
     min-height: 34px;
     padding: 0 10px;
-    border: 1px solid #572727;
+    border: 1px solid var(--legacy-572727-06fcc698);
     border-radius: 9px;
-    background: #250f0f;
+    background: var(--legacy-250f0f-e32743c2);
   }
 
   .admin-comment-meta {
@@ -278,9 +278,9 @@
     overflow: hidden;
     margin: 0 0 12px;
     padding: 18px;
-    border: 1px solid #26272b;
+    border: 1px solid var(--legacy-26272b-c6fe6012);
     border-radius: 22px;
-    background: linear-gradient(180deg, #17181b 0%, #101114 100%);
+    background: linear-gradient(180deg, var(--legacy-17181b-f6bf5b84) 0%, var(--legacy-101114-6da573b3) 100%);
     box-shadow: 0 14px 35px rgb(0 0 0 / .22);
   }
 
@@ -292,7 +292,7 @@
     right: -55px;
     top: -60px;
     border-radius: 50%;
-    background: rgb(47 108 246 / .12);
+    background: var(--legacy-rgb-47-108-246-12-b4e2a303);
     pointer-events: none;
   }
 
@@ -300,7 +300,7 @@
     position: relative;
     z-index: 1;
     margin: 0;
-    color: #f7f7f8;
+    color: var(--legacy-f7f7f8-ba901ab4);
     font-size: 25px !important;
     font-weight: 850;
     letter-spacing: -.045em;
@@ -310,7 +310,7 @@
     position: relative;
     z-index: 1;
     margin: 6px 0 0;
-    color: #8e9098;
+    color: var(--legacy-8e9098-4acd54df);
     font-size: 12px;
     line-height: 1.45;
   }
@@ -328,18 +328,18 @@
   .admin-header-card > div:last-child button {
     min-height: 43px;
     border-radius: 12px;
-    border: 1px solid #2b2d33;
-    background: #191a1e;
-    color: #d8d9de;
+    border: 1px solid var(--legacy-2b2d33-38ad4e00);
+    background: var(--legacy-191a1e-dd0cf97a);
+    color: var(--legacy-d8d9de-8693a1d3);
     font-size: 12px;
     font-weight: 750;
   }
 
   .admin-header-card > div:last-child button:first-child {
     grid-column: 1 / -1;
-    border-color: #2f6cf6;
-    background: #2f6cf6;
-    color: #fff;
+    border-color: var(--legacy-2f6cf6-e75dfb6a);
+    background: var(--legacy-2f6cf6-e75dfb6a);
+    color: var(--legacy-fff-d14f9016);
     box-shadow: 0 9px 24px rgb(47 108 246 / .2);
   }
 
@@ -355,9 +355,9 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
-    border: 1px solid #26272b;
+    border: 1px solid var(--legacy-26272b-c6fe6012);
     border-radius: 15px;
-    background: rgb(14 15 18 / .92);
+    background: var(--legacy-rgb-14-15-18-92-1d682d38);
     backdrop-filter: blur(18px);
     box-shadow: 0 10px 25px rgb(0 0 0 / .2);
   }
@@ -371,7 +371,7 @@
     border: 0;
     border-radius: 10px;
     background: transparent;
-    color: #777a83;
+    color: var(--legacy-777a83-4372e083);
     font-size: 11px;
     font-weight: 750;
     white-space: nowrap;
@@ -379,8 +379,8 @@
 
   .admin-tabs button.active,
   .admin-tabs button[aria-selected='true'] {
-    background: #24262c;
-    color: #f3f4f6;
+    background: var(--legacy-24262c-886081cb);
+    color: var(--legacy-f3f4f6-000d003e);
     box-shadow: inset 0 0 0 1px #30333a;
   }
 
@@ -396,9 +396,9 @@
     min-height: 92px;
     padding: 14px;
     overflow: hidden;
-    border: 1px solid #25262a;
+    border: 1px solid var(--legacy-25262a-75a2a54c);
     border-radius: 17px;
-    background: linear-gradient(180deg, #151619 0%, #101114 100%);
+    background: linear-gradient(180deg, var(--legacy-151619-54785ffa) 0%, var(--legacy-101114-6da573b3) 100%);
     box-shadow: 0 9px 22px rgb(0 0 0 / .16);
   }
 
@@ -410,12 +410,12 @@
     right: -26px;
     bottom: -26px;
     border-radius: 50%;
-    background: rgb(47 108 246 / .08);
+    background: var(--legacy-rgb-47-108-246-08-3b963ccf);
   }
 
   .admin-stat span {
     display: block;
-    color: #777a83;
+    color: var(--legacy-777a83-4372e083);
     font-size: 8px;
     font-weight: 800;
     letter-spacing: .1em;
@@ -425,14 +425,14 @@
   .admin-stat strong {
     display: block;
     margin-top: 8px;
-    color: #f3f4f6;
+    color: var(--legacy-f3f4f6-000d003e);
     font-size: 23px;
     line-height: 1;
     letter-spacing: -.045em;
   }
 
   .admin-stat.accent strong {
-    color: #4e83ff;
+    color: var(--legacy-4e83ff-8e25dde0);
   }
 
   .admin-grid.two {
@@ -443,9 +443,9 @@
   .admin-card {
     min-width: 0;
     padding: 16px;
-    border: 1px solid #25262a;
+    border: 1px solid var(--legacy-25262a-75a2a54c);
     border-radius: 19px;
-    background: linear-gradient(180deg, #151619 0%, #101114 100%);
+    background: linear-gradient(180deg, var(--legacy-151619-54785ffa) 0%, var(--legacy-101114-6da573b3) 100%);
     box-shadow: 0 12px 28px rgb(0 0 0 / .17);
   }
 
@@ -462,7 +462,7 @@
 
   .admin-card-title h2 {
     margin: 0;
-    color: #f1f2f4;
+    color: var(--legacy-f1f2f4-2a2c26c8);
     font-size: 17px;
     font-weight: 800;
     letter-spacing: -.025em;
@@ -470,7 +470,7 @@
 
   .admin-card-title p {
     margin: 4px 0 0;
-    color: #777a83;
+    color: var(--legacy-777a83-4372e083);
     font-size: 11px;
     line-height: 1.4;
   }
@@ -479,10 +479,10 @@
     flex: 0 0 auto;
     min-height: 34px;
     padding: 0 9px;
-    border: 1px solid #2b2d33;
+    border: 1px solid var(--legacy-2b2d33-38ad4e00);
     border-radius: 9px;
-    background: #191a1e;
-    color: #5f8fff;
+    background: var(--legacy-191a1e-dd0cf97a);
+    color: var(--legacy-5f8fff-fec60ba0);
     font-size: 10px;
     font-weight: 800;
   }
@@ -499,15 +499,15 @@
     gap: 8px;
     align-items: center;
     padding: 11px;
-    border: 1px solid #222328;
+    border: 1px solid var(--legacy-222328-39967db5);
     border-radius: 12px;
-    background: #0d0e10;
+    background: var(--legacy-0d0e10-ab3fa15e);
   }
 
   .admin-performance p {
     min-width: 0;
     margin: 0;
-    color: #c9cad0;
+    color: var(--legacy-c9cad0-7a48d458);
     font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -515,7 +515,7 @@
   }
 
   .admin-performance strong {
-    color: #4e83ff;
+    color: var(--legacy-4e83ff-8e25dde0);
     font-size: 12px;
   }
 
@@ -535,9 +535,9 @@
     width: 100%;
     min-height: 48px;
     border-radius: 12px;
-    border-color: #2a2c31;
-    background: #0d0e10;
-    color: #ededf0;
+    border-color: var(--legacy-2a2c31-6bb1da46);
+    background: var(--legacy-0d0e10-ab3fa15e);
+    color: var(--legacy-ededf0-08f7182f);
     font-size: 14px;
   }
 
@@ -545,15 +545,15 @@
     min-height: 118px;
     padding: 14px;
     border-radius: 14px;
-    border-color: #2a2c31;
-    background: #0d0e10;
+    border-color: var(--legacy-2a2c31-6bb1da46);
+    background: var(--legacy-0d0e10-ab3fa15e);
   }
 
   .admin-submit {
     min-height: 50px;
     width: 100%;
     border-radius: 13px;
-    background: #2f6cf6;
+    background: var(--legacy-2f6cf6-e75dfb6a);
     box-shadow: 0 10px 25px rgb(47 108 246 / .18);
   }
 
@@ -569,16 +569,16 @@
     align-items: stretch;
     gap: 11px;
     padding: 13px;
-    border: 1px solid #25262a;
+    border: 1px solid var(--legacy-25262a-75a2a54c);
     border-radius: 14px;
-    background: #0d0e10;
+    background: var(--legacy-0d0e10-ab3fa15e);
   }
 
   .admin-chapter-list article > div:first-child { min-width: 0; }
 
   .admin-chapter-list h3 {
     margin: 0;
-    color: #ededf0;
+    color: var(--legacy-ededf0-08f7182f);
     font-size: 14px;
     line-height: 1.35;
     overflow-wrap: anywhere;
@@ -600,7 +600,7 @@
   .admin-report-list article {
     min-width: 0;
     padding: 12px 0;
-    border-bottom-color: #222328;
+    border-bottom-color: var(--legacy-222328-39967db5);
   }
 
   .admin-comment-list p,
@@ -617,15 +617,15 @@
     min-width: 0;
     overflow: hidden;
     border-radius: 13px;
-    border-color: #25262a;
-    background: #0d0e10;
+    border-color: var(--legacy-25262a-75a2a54c);
+    background: var(--legacy-0d0e10-ab3fa15e);
   }
 
   .admin-media-grid article > div { padding: 9px; }
 
   .admin-media-grid strong {
     display: block;
-    color: #e8e9ec;
+    color: var(--legacy-e8e9ec-1dca5c29);
     font-size: 11px;
     line-height: 1.35;
     overflow-wrap: anywhere;

@@ -60,7 +60,7 @@ export default function HeroSection({ isDark }) {
       />
 
       <div className="relative z-20 max-w-4xl">
-        <h1 className="hero-title text-5xl font-extrabold tracking-tight text-premium-royal drop-shadow-sm dark:text-white md:text-8xl mb-6">
+        <h1 className="hero-title text-5xl font-extrabold tracking-tight text-premium-royal drop-shadow-sm dark:text-[var(--text-color)] md:text-8xl mb-6">
           Atma Rekha
         </h1>
         <p className="hero-sub mx-auto mt-4 max-w-2xl text-lg font-medium leading-relaxed text-premium-charcoal/80 dark:text-zinc-300 md:text-xl">
@@ -69,13 +69,13 @@ export default function HeroSection({ isDark }) {
         <div className="hero-cta mt-10 flex flex-col items-center justify-center gap-6">
           <button
             onClick={() => window.location.hash = '#reading'}
-            className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-premium-royal px-8 py-3 text-white transition-all duration-300 hover:bg-premium-royal/90 hover:scale-105 active:scale-95 shadow-lg shadow-premium-royal/30"
+            className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-premium-royal px-8 py-3 text-[var(--text-color)] transition-all duration-300 hover:bg-premium-royal/90 hover:scale-105 active:scale-95 shadow-lg shadow-premium-royal/30"
           >
             <span className="font-semibold text-lg">Start Reading</span>
             <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
           </button>
 
-          <div className="flex items-center gap-2 rounded-full bg-white/80 backdrop-blur px-4 py-1.5 text-xs font-semibold text-premium-royal ring-1 ring-premium-gold/30 dark:bg-zinc-900/50 dark:text-zinc-300 dark:ring-zinc-700">
+          <div className="flex items-center gap-2 rounded-full bg-[var(--card-bg)]/80 backdrop-blur px-4 py-1.5 text-xs font-semibold text-premium-royal ring-1 ring-premium-gold/30 dark:bg-zinc-900/50 dark:text-zinc-300 dark:ring-zinc-700">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-premium-gold opacity-75"></span>
               <span className="relative inline-flex h-2 w-2 rounded-full bg-premium-gold"></span>

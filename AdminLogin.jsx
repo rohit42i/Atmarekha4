@@ -28,7 +28,7 @@ export default function AdminLogin({ onLoginSuccess }) {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 px-5 py-12 text-white">
+    <main className="min-h-screen bg-zinc-950 px-5 py-12 text-[var(--text-color)]">
       <div className="mx-auto max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-7 shadow-2xl sm:p-9">
         <div className="mb-8"><p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-400">Atma Rekha</p><h1 className="mt-2 text-3xl font-black">Admin access</h1><p className="mt-2 text-sm text-zinc-400">Sign in with the Supabase admin account.</p></div>
         <form onSubmit={handleSubmit} className="space-y-5">
