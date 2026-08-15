@@ -1,9 +1,9 @@
 /* Atma Rekha — system theme foundation
  * Single source of truth for site-wide light/dark presentation.
- * Theme is selected from the user's OS/browser preference via prefers-color-scheme.
+ * Theme follows the user's OS/browser preference via prefers-color-scheme.
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg-color: #ffffff;
   --surface-color: #f7f7f8;
   --surface-2-color: #eeeeef;
@@ -26,6 +26,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
     --bg-color: #0b0b0c;
     --surface-color: #111112;
     --surface-2-color: #171719;
@@ -66,233 +67,189 @@ select {
   color: var(--text-color);
 }
 
-/* Site shells and page-level surfaces. */
-.home-page,
-.site-shell,
-.reader-page,
-.community-page,
-.profile-page,
-.profile-v2,
-.info-page,
-.chapter-list-page,
-.admin-page,
-.auth-page,
-.settings-page,
-.home-section,
-.info-card,
-.profile-v2-card,
-.community-post,
-.chapter-row,
-.latest-item,
-.hero-card,
-.membership-plan,
-.reader-rating-card,
-.comment-sheet,
-.rating-sheet,
-.auth-panel,
-.ec-sheet,
-.membership-sheet,
-.membership-active,
-.membership-phone,
-.membership-free-note {
+/* Page shells */
+.home-page, .site-shell, .reader-page, .community-page,
+.profile-page, .profile-v2, .info-page, .chapter-list-page,
+.admin-page, .auth-page, .settings-page {
+  background: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Semantic surfaces */
+.home-section, .info-card, .profile-v2-card, .community-post,
+.chapter-row, .latest-item, .hero-card, .membership-plan,
+.reader-rating-card, .comment-sheet, .rating-sheet, .auth-panel,
+.ec-sheet, .ec-preview, .community-admin-modal, .community-hero,
+.community-attachment, .ec-join, .ec-compose-row textarea,
+.membership-sheet, .membership-active, .membership-phone,
+.membership-free-note, .card, .modal, .sheet {
   background: var(--card-color) !important;
   color: var(--text-color) !important;
   border-color: var(--border-color) !important;
 }
 
-/* Headers / navigation / footer. */
-.home-header,
-.subpage-header,
-.reader-header,
-.community-header,
-.profile-header,
-.admin-header,
-header,
-nav,
-footer {
+/* Headers / navigation / footer */
+.home-header, .subpage-header, .reader-header, .community-header,
+.profile-header, .admin-header, header, nav, footer,
+.ec-header, .ec-composer {
   background: color-mix(in srgb, var(--bg-color) 94%, transparent) !important;
   color: var(--text-color) !important;
   border-color: var(--border-soft-color) !important;
 }
 
-.brand-wordmark,
-.subpage-header h1,
-.reader-title h1,
-.chapter-row-main,
-.chapter-row-title h2,
-.latest-item,
-.latest-item h3,
-h1, h2, h3, h4, h5, h6,
-strong, b, label {
+/* Typography: remove theme-dependent literal black/white text leaks. */
+.home-page h1, .home-page h2, .home-page h3, .home-page h4,
+.site-shell h1, .site-shell h2, .site-shell h3, .site-shell h4,
+.reader-page h1, .reader-page h2, .community-page h1, .community-page h2,
+.profile-page h1, .profile-page h2, .profile-v2 h1, .profile-v2 h2,
+.auth-page h1, .auth-page h2, .admin-page h1, .admin-page h2,
+strong, b, label, .brand-wordmark, .subpage-header h1,
+.reader-title h1, .chapter-row-title h2, .latest-item h3,
+.community-post h2, .community-admin-head h2, .ec-header h2,
+.ec-meta strong, .ec-empty strong, .ec-state strong {
   color: var(--text-color) !important;
 }
 
-p,
-small,
-.muted,
-.secondary-text,
-.hero-description,
-.home-section > p:not(.section-eyebrow),
-.home-anchor-section p,
-.chapter-row-meta,
-.chapter-row-details,
-.reader-info-row,
-.rating-summary,
-.rating-label,
-.rating-notice,
-.loading-state,
-.empty-state,
-.chapter-list-heading {
+p, li, small, .hero-description, .home-section > p:not(.section-eyebrow),
+.home-anchor-section p, .chapter-row-meta, .chapter-row-details,
+.reader-info-row, .rating-summary, .rating-label, .rating-notice,
+.loading-state, .empty-state, .chapter-list-heading,
+.community-header p, .community-hero p, .community-meta,
+.community-post-head span, .community-post > p, .ec-header p:last-child,
+.ec-meta time, .ec-content, .ec-empty, .ec-state, .ec-join p,
+.ec-preview p, .ec-preview span, .ec-preview small, .community-admin-sub {
   color: var(--muted-color) !important;
 }
 
-.admin-link,
-.section-link,
-a {
-  color: var(--accent-color);
+.admin-link, .section-link, a, .hero-eyebrow, .section-eyebrow,
+.header-kicker, .community-live, .ec-eyebrow, .ec-username,
+.ec-replying, .chapter-row-meta b {
+  color: var(--accent-color) !important;
 }
 
-.admin-link:hover,
-.section-link:hover,
-a:hover {
-  color: var(--accent-hover-color);
-}
+.admin-link:hover, .section-link:hover, a:hover { color: var(--accent-hover-color) !important; }
 
-button,
-.hero-button,
-.primary-button,
-.reader-comment-button,
-.like-button,
-.reader-control.primary {
-  background-color: var(--accent-color);
+/* Controls */
+.hero-button, .primary-button, .reader-comment-button, .like-button,
+.reader-control.primary, .community-join, .ec-join button,
+.ec-preview-open, .community-admin-modal button.primary,
+button.btn-primary, .btn-primary {
+  background: var(--accent-color) !important;
   color: var(--accent-contrast-color) !important;
 }
 
-button:hover,
-.hero-button:hover,
-.primary-button:hover,
-.reader-comment-button:hover,
-.like-button:hover,
-.reader-control.primary:hover {
-  background-color: var(--accent-hover-color);
+.hero-button:hover, .primary-button:hover, .reader-comment-button:hover,
+.like-button:hover, .reader-control.primary:hover, .community-join:hover,
+.ec-join button:hover, .ec-preview-open:hover, .btn-primary:hover {
+  background: var(--accent-hover-color) !important;
 }
 
-.back-button,
-.reader-back,
-.icon-button,
-.star-button,
-.reader-control.secondary {
+.back-button, .reader-back, .icon-button, .community-back,
+.ec-close, .ec-preview-close, .community-admin-head > button,
+.ec-actions button, .community-post-actions button {
+  background: transparent !important;
+  color: var(--text-color) !important;
+}
+
+.back-button:hover, .reader-back:hover, .icon-button:hover,
+.community-back:hover, .ec-close:hover, .ec-preview-close:hover,
+.ec-actions button:hover, .community-post-actions button:hover {
+  background: var(--surface-2-color) !important;
+}
+
+.reader-control.secondary, .reader-page-pill {
   background: var(--surface-2-color) !important;
   color: var(--text-color) !important;
   border-color: var(--border-color) !important;
 }
 
-.back-button:hover,
-.reader-back:hover,
-.icon-button:hover,
-.star-button:hover:not(:disabled),
-.reader-control.secondary:hover {
-  background: var(--surface-color) !important;
-}
-
-input,
-textarea,
-select,
-.membership-phone-input,
-.membership-phone-field {
+input, textarea, select, .membership-phone-input, .membership-phone-field {
   background: var(--input-color) !important;
   color: var(--text-color) !important;
   border-color: var(--border-color) !important;
 }
 
-input::placeholder,
-textarea::placeholder {
+input::placeholder, textarea::placeholder {
   color: var(--faint-color) !important;
   opacity: 1;
 }
 
-.empty-state,
-.community-empty {
-  background: var(--surface-color) !important;
-  border-color: var(--border-color) !important;
-  color: var(--muted-color) !important;
-}
-
-.inline-error,
-.form-error {
-  background: var(--danger-surface-color) !important;
-  color: var(--danger-color) !important;
-  border-color: color-mix(in srgb, var(--danger-color) 45%, var(--border-color)) !important;
-}
-
-.reader-page,
-.reader-content {
-  background: var(--bg-color) !important;
-}
-
-.reader-stage {
-  background: var(--surface-color) !important;
-  border-color: var(--border-soft-color) !important;
-}
-
-.reader-page-pill,
-.reader-progress,
-.reader-rating-card,
-.reader-control.secondary {
-  background-color: var(--surface-2-color) !important;
-  color: var(--text-color) !important;
-  border-color: var(--border-color) !important;
-}
-
+/* Reader */
+.reader-content { background: var(--bg-color) !important; }
+.reader-stage { background: var(--surface-color) !important; border-color: var(--border-soft-color) !important; }
+.reader-progress { background: var(--surface-2-color) !important; }
 .reader-side-button {
   background: color-mix(in srgb, var(--bg-color) 88%, transparent) !important;
   color: var(--text-color) !important;
   border-color: var(--border-color) !important;
 }
+.loading-spinner { border-color: var(--border-color) !important; border-top-color: var(--accent-color) !important; }
 
-.loading-spinner {
+/* Community / comments / admin */
+.community-hero { background: var(--card-color) !important; }
+.community-hero-icon, .creator-avatar, .ec-join-icon, .ec-avatar {
+  background: var(--surface-2-color) !important;
+  color: var(--text-color) !important;
+}
+.community-attachment { color: var(--text-color) !important; }
+.community-post-image { border-color: var(--border-color) !important; }
+.ec-actions button.liked, .community-post-actions button.reacted {
+  background: var(--surface-2-color) !important;
+  color: var(--accent-color) !important;
+}
+.ec-empty, .ec-state, .community-empty, .empty-state {
+  background: var(--surface-color) !important;
   border-color: var(--border-color) !important;
-  border-top-color: var(--accent-color) !important;
+  color: var(--muted-color) !important;
+}
+.community-notice, .ec-notice {
+  background: var(--surface-2-color) !important;
+  color: var(--text-2-color) !important;
 }
 
-/* Neutralise only literal white/black inline theme leaks from older components. */
-html[data-ar-theme] [style*="background: white"],
-html[data-ar-theme] [style*="background:white"],
-html[data-ar-theme] [style*="background: #fff"],
-html[data-ar-theme] [style*="background:#fff"],
-html[data-ar-theme] [style*="background-color: white"],
-html[data-ar-theme] [style*="background-color:white"],
-html[data-ar-theme] [style*="background-color: #fff"],
-html[data-ar-theme] [style*="background-color:#fff"] {
-  background: var(--card-color) !important;
+.inline-error, .form-error, .community-error {
+  background: var(--danger-surface-color) !important;
+  color: var(--danger-color) !important;
+  border-color: color-mix(in srgb, var(--danger-color) 45%, var(--border-color)) !important;
 }
 
-html[data-ar-theme] [style*="background: black"],
-html[data-ar-theme] [style*="background:black"],
-html[data-ar-theme] [style*="background: #000"],
-html[data-ar-theme] [style*="background:#000"],
-html[data-ar-theme] [style*="background-color: black"],
-html[data-ar-theme] [style*="background-color:black"],
-html[data-ar-theme] [style*="background-color: #000"],
-html[data-ar-theme] [style*="background-color:#000"] {
-  background: var(--bg-color) !important;
+/* Inline-style fallback for legacy React components. */
+html[data-ar-theme="light"] [style*="background: black"],
+html[data-ar-theme="light"] [style*="background:black"],
+html[data-ar-theme="light"] [style*="background: #000"],
+html[data-ar-theme="light"] [style*="background:#000"],
+html[data-ar-theme="light"] [style*="background-color: black"],
+html[data-ar-theme="light"] [style*="background-color:black"],
+html[data-ar-theme="light"] [style*="background-color: #000"],
+html[data-ar-theme="light"] [style*="background-color:#000"] { background: var(--bg-color) !important; }
+
+html[data-ar-theme="dark"] [style*="background: white"],
+html[data-ar-theme="dark"] [style*="background:white"],
+html[data-ar-theme="dark"] [style*="background: #fff"],
+html[data-ar-theme="dark"] [style*="background:#fff"],
+html[data-ar-theme="dark"] [style*="background-color: white"],
+html[data-ar-theme="dark"] [style*="background-color:white"],
+html[data-ar-theme="dark"] [style*="background-color: #fff"],
+html[data-ar-theme="dark"] [style*="background-color:#fff"] { background: var(--card-color) !important; }
+
+html[data-ar-theme="light"] [style*="color: white"],
+html[data-ar-theme="light"] [style*="color:white"],
+html[data-ar-theme="light"] [style*="color: #fff"],
+html[data-ar-theme="light"] [style*="color:#fff"],
+html[data-ar-theme="dark"] [style*="color: black"],
+html[data-ar-theme="dark"] [style*="color:black"],
+html[data-ar-theme="dark"] [style*="color: #000"],
+html[data-ar-theme="dark"] [style*="color:#000"] { color: var(--text-color) !important; }
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid var(--accent-color) !important;
+  outline-offset: 2px;
 }
 
-html[data-ar-theme] [style*="color: black"],
-html[data-ar-theme] [style*="color:black"],
-html[data-ar-theme] [style*="color: #000"],
-html[data-ar-theme] [style*="color:#000"] {
-  color: var(--text-color) !important;
-}
-
-html[data-ar-theme] [style*="color: white"],
-html[data-ar-theme] [style*="color:white"],
-html[data-ar-theme] [style*="color: #fff"],
-html[data-ar-theme] [style*="color:#fff"] {
-  color: var(--text-color) !important;
-}
-
-/* Respect reduced-motion users while keeping the theme system accessible. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
 }
