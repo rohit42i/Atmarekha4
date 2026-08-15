@@ -6,6 +6,7 @@
   --border-color:#d6d9de; --border-soft-color:#e5e7eb; --accent-color:#1d4ed8; --accent-hover:#1e40af;
   --accent-contrast:#fff; --on-dark-surface:#fff; --success-color:#166534; --danger-color:#b42318; --danger-bg:#fff1f0;
   --warning-color:#7a4b00; --warning-bg:#fff8e6; --overlay-color:rgb(0 0 0/.58); --shadow-color:rgb(0 0 0/.12);
+  --icon-color:var(--text-color); --arrow-color:var(--text-color); --control-border-color:var(--border-color);
 }
 @media (prefers-color-scheme: dark){:root{
   color-scheme:dark; --bg-color:#0b0b0c; --surface-color:#111112; --surface-2-color:#18181b; --card-bg:#151516; --input-bg:#101011;
@@ -13,6 +14,7 @@
   --border-color:#35363b; --border-soft-color:#28292e; --accent-color:#60a5fa; --accent-hover:#93c5fd; --accent-contrast:#07111f; --on-dark-surface:#fff;
   --success-color:#86efac; --danger-color:#fca5a5; --danger-bg:#2a1111; --warning-color:#fde68a; --warning-bg:#2a2110;
   --overlay-color:rgb(0 0 0/.68); --shadow-color:rgb(0 0 0/.45);
+  --icon-color:var(--text-color); --arrow-color:var(--text-color); --control-border-color:var(--border-color);
 }}
 @media (prefers-color-scheme: light){:root{color-scheme:light}}
 
@@ -67,6 +69,12 @@ body :where(.inline-error,.form-error,.community-error,.error-message){backgroun
 body :where(.success,.success-message){color:var(--success-color)!important}
 body :where(.warning,.warning-message,.ec-notice,.community-notice){background:var(--warning-bg)!important;color:var(--warning-color)!important}
 body :where(.empty-state,.community-empty,.loading-state,.admin-loading,.ec-empty,.ec-state){background:var(--surface-color)!important;color:var(--muted-color)!important;border-color:var(--border-color)!important}
+
+/* Borders, separators, chevrons and arrows are foreground UI too: they must follow the active theme. */
+body :where(hr,fieldset){border-color:var(--border-color)!important}
+body :where([class*="border"],[class*="separator"],[class*="divider"]){border-color:var(--control-border-color)}
+body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg){color:var(--arrow-color);stroke:currentColor}
+body :where(button,a,[role="button"]) svg[stroke="currentColor"],body :where(button,a,[role="button"]) svg.arrow,body :where(button,a,[role="button"]) svg.chevron{color:inherit;stroke:currentColor}
 
 /* Inline legacy React style values cannot create a second black/white theme. */
 body [style*="background: white"],body [style*="background:white"],body [style*="background: #fff"],body [style*="background:#fff"],body [style*="background-color: white"],body [style*="background-color:white"],body [style*="background-color: #fff"],body [style*="background-color:#fff"]{background:var(--card-bg)!important}
