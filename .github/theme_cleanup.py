@@ -16,11 +16,8 @@ files = [
 ]
 
 color_re = re.compile(r'(?i)(#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|\b(?:white|black)\b)')
-prop_re = re.compile(
-    r'(?i)(\b(?:color|background(?:-color)?|border(?:-color)?|outline-color|text-decoration-color)\s*:\s*)([^;{}]+)'
-)
-inline_re = re.compile(
-    r'(?i)(style\s*=\s*["\'][^"\']*\b(?:color|background(?:-color)?)\s*:\s*)([^;"\']+)'
+declaration_re = re.compile(
+    r'(?i)(\b(?:color|background(?:-[a-z-]+)?|border(?:-[a-z-]+)?|outline(?:-[a-z-]+)?|text-decoration(?:-[a-z-]+)?|box-shadow|text-shadow|fill|stroke|caret-color|accent-color)\s*:\s*)([^;{}]+)'
 )
 
 def var_name(color):
@@ -61,19 +58,14 @@ def replace_declarations(text):
         value = color_re.sub(lambda m: f'var({mapping[m.group(1)]})', value)
         return match.group(1) + value
 
-    text = prop_re.sub(declaration, text)
-
-    def inline(match):
-        value = match.group(2)
-        value = color_re.sub(lambda m: f'var({mapping[m.group(1)]})', value)
-        return match.group(1) + value
-
-    return inline_re.sub(inline, text)
+    text = declaration_re.sub(declaration, text)
+    text = re.sub(r'(?i)color-scheme\s*:\s*dark\b', 'color-scheme: light dark', text)
+    return text
 
 for path in files:
     old = path.read_text(encoding='utf-8', errors='ignore')
     new = replace_declarations(old)
-    # Tailwind extreme neutral utilities are theme-bound rather than literal colors.
+    # Tailwind extreme neutral utilities become semantic arbitrary-value utilities.
     new = new.replace('bg-white', 'bg-[var(--card-bg)]')
     new = new.replace('bg-black', 'bg-[var(--bg-color)]')
     new = new.replace('text-white', 'text-[var(--text-color)]')
@@ -85,7 +77,7 @@ for path in files:
 
 legacy = ROOT / 'theme-legacy-vars.css'
 content = [
-    '/* Legacy color bridge: source color literals are represented by theme variables. */',
+    '/* Legacy color bridge: every legacy color token is represented by a system-aware variable. */',
     ':root {'
 ]
 for color, variable in mapping.items():
@@ -93,7 +85,7 @@ for color, variable in mapping.items():
 content += ['}', '', '@media (prefers-color-scheme: dark) {', '  :root {']
 for color, variable in mapping.items():
     content.append(f'    {variable}: {color};')
-content += ['  }', '}','']
+content += ['  }', '}', '']
 legacy.write_text('\n'.join(content), encoding='utf-8')
 
 main = ROOT / 'main.jsx'
