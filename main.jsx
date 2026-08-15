@@ -11,6 +11,7 @@ import CommunityAdmin from './CommunityAdmin.jsx';
 import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import Membership from './Membership.jsx';
+import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -37,10 +38,8 @@ import './final-polish.css';
 import './chapter-ui-final.css';
 import './rating-upgrade.js';
 import './membership.css';
+import './chapter-access.css';
 import './visual-polish.css';
-
-// System theme only: detect the device preference and keep all legacy styles
-// under one semantic theme contract.
 import './theme-legacy-vars.css';
 import './theme-system.js';
 import './theme-system.css';
@@ -58,5 +57,6 @@ createRoot(document.getElementById('root')).render(
     <EnhancedComments />
     <PublicProfile />
     <Membership />
+    <ChapterAccessGuard />
   </React.StrictMode>
 );
