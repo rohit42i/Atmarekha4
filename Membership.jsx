@@ -1,0 +1,119 @@
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { supabase } from './supabase';
+
+const LAUNCH_DATE = new Date('2026-09-14T00:00:00+05:30');
+const FREE_CHAPTERS = 7;
+const PLANS = [
+  { id: 'free', icon: '🆓', name: 'Free Member', amount: 0, label: 'Always free', description: 'Start the story with no payment required.', features: ['Chapters 1–7 forever free', 'Bookmarks & reading history', 'Ratings, comments & notifications'] },
+  { id: 'mini_member', icon: '🧸', name: 'Mini Member', amount: 29, label: '₹29 / month', description: 'A simple way to join the Atma Rekha journey.', features: ['All chapters', '🧸 Mini Member badge', 'Support future chapters'] },
+  { id: 'supporter', icon: '🌸', name: 'Member', amount: 49, label: '₹49 / month', description: 'For readers who want to be a little closer to the journey.', popular: true, features: ['All chapters', '🌸 Member badge', 'Member recognition', 'Support future chapters'] },
+  { id: 'premium', icon: '🦚', name: 'Premium Member', amount: 99, label: '₹99 / month', description: 'Our highest membership tier for Atma Rekha.', features: ['All chapters', '🦚 Premium Member badge', 'Priority comment placement', 'Premium recognition'] },
+];
+
+function isFreePeriod() {
+  const end = new Date(LAUNCH_DATE);
+  end.setMonth(end.getMonth() + 3);
+  return Date.now() < end.getTime();
+}
+
+function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
+
+export default function Membership() {
+  const [route, setRoute] = useState(routeNow());
+  const [plans, setPlans] = useState(PLANS.filter(p => p.id !== 'free'));
+  const [user, setUser] = useState(null);
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [error, setError] = useState('');
+
+  const freePeriod = isFreePeriod();
+  const endDate = useMemo(() => { const d = new Date(LAUNCH_DATE); d.setMonth(d.getMonth() + 3); return d; }, []);
+
+  useEffect(() => {
+    const onHash = () => setRoute(routeNow());
+    window.addEventListener('hashchange', onHash);
+    const load = async () => {
+      const [{ data: sessionData }, { data: planData }] = await Promise.all([
+        supabase.auth.getSession(),
+        supabase.from('subscription_plans').select('id,name,description,amount_inr,interval,sort_order').eq('active', true).order('sort_order')
+      ]);
+      const current = sessionData?.session?.user || null;
+      setUser(current);
+      if (planData?.length) setPlans(planData.map(p => ({ ...p, icon: p.id === 'mini_member' ? '🧸' : p.id === 'supporter' ? '🌸' : '🦚', label: `₹${p.amount_inr} / month`, popular: p.id === 'supporter', features: p.id === 'mini_member' ? ['All chapters', '🧸 Mini Member badge', 'Support future chapters'] : p.id === 'supporter' ? ['All chapters', '🌸 Member badge', 'Member recognition', 'Support future chapters'] : ['All chapters', '🦚 Premium Member badge', 'Priority comment placement', 'Premium recognition'] }))); 
+      if (current) {
+        const { data } = await supabase.from('user_subscriptions').select('plan_id,status,current_period_start,current_period_end,cancel_at_period_end,provider_subscription_id').eq('user_id', current.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+        setSubscription(data || null);
+      }
+    };
+    load();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
+    return () => { window.removeEventListener('hashchange', onHash); listener.subscription.unsubscribe(); };
+  }, []);
+
+  const beginCheckout = async plan => {
+    if (!user) { window.location.hash = 'login'; return; }
+    setError('');
+    if (!phone.trim() && !user.phone) { setSelected(plan); return; }
+    setSelected(plan); setLoading(true);
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke('create-cashfree-subscription', { body: { plan_id: plan.id, phone: phone.trim() || user.phone } });
+      if (invokeError) throw invokeError;
+      if (!data?.subscription_session_id) throw new Error(data?.error || 'Unable to start secure checkout.');
+      if (data.checkout_url) window.location.href = data.checkout_url;
+      else if (data.authorization_link) window.location.href = data.authorization_link;
+      else throw new Error('Cashfree did not return a checkout link.');
+    } catch (err) {
+      setError(err?.message || 'Unable to start membership checkout.');
+    } finally { setLoading(false); }
+  };
+
+  const launchLabel = freePeriod ? `Membership is optional until ${endDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.` : `Chapters 1–${FREE_CHAPTERS} remain free forever.`;
+  if (!route.startsWith('membership')) return <MembershipLauncher user={user} />;
+
+  return createPortal(<div className="membership-overlay" role="dialog" aria-modal="true" aria-label="Atma Rekha membership">
+    <div className="membership-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) window.location.hash = 'profile'; }} />
+    <section className="membership-sheet">
+      <header className="membership-head"><button type="button" onClick={() => window.location.hash = 'profile'} aria-label="Close membership">×</button><div><p className="membership-kicker">ATMA REKHA · MEMBERSHIP</p><h1>Choose your place in the journey.</h1><p>{launchLabel}</p></div></header>
+      <div className="membership-trust"><span>🔒 Secure Cashfree checkout</span><span>↻ UPI AutoPay</span><span>✦ Cancel anytime</span></div>
+      {subscription?.status === 'active' && <div className="membership-active"><span>✓</span><div><strong>You’re already a member.</strong><small>{PLANS.find(p => p.id === subscription.plan_id)?.name || 'Active membership'} · {subscription.current_period_end ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Active'}</small></div></div>}
+      <div className="membership-grid">
+        <PlanCard plan={PLANS[0]} current={!subscription || subscription.status !== 'active'} onChoose={() => window.location.hash = 'home'} />
+        {plans.map(plan => <PlanCard key={plan.id} plan={{ ...plan, icon: plan.icon || (plan.id === 'mini_member' ? '🧸' : plan.id === 'supporter' ? '🌸' : '🦚') }} current={subscription?.status === 'active' && subscription.plan_id === plan.id} busy={loading && selected?.id === plan.id} onChoose={() => beginCheckout(plan)} />)}
+      </div>
+      <div className="membership-free-note"><strong>🌸 Seven chapters. Completely free.</strong><span>Read Chapters 1–7 without paying. Membership simply keeps Atma Rekha going.</span></div>
+      {!freePeriod && <div className="membership-lock-note">After the launch grace period, Chapters 1–7 stay free and membership unlocks Chapter 8 onward.</div>}
+      {selected && !phone.trim() && !user?.phone && <div className="membership-phone"><div><strong>One small step before UPI AutoPay</strong><span>Cashfree needs a phone number for the subscription mandate.</span></div><input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} inputMode="numeric" placeholder="10-digit mobile number" aria-label="Mobile number"/><button type="button" disabled={phone.length !== 10} onClick={() => beginCheckout(selected)}>Continue securely</button></div>}
+      {error && <p className="membership-error">{error}</p>}
+      <p className="membership-legal">Payments are processed by Cashfree. Your UPI mandate is created only after you approve it in your UPI app.</p>
+    </section>
+  </div>, document.body);
+}
+
+function PlanCard({ plan, current, busy, onChoose }) {
+  return <article className={`membership-plan ${plan.popular ? 'is-popular' : ''} ${current ? 'is-current' : ''}`}>
+    {plan.popular && <span className="membership-popular">MOST POPULAR</span>}
+    <div className="membership-plan-icon">{plan.icon}</div><h2>{plan.name}</h2><p className="membership-price">{plan.amount === 0 ? '₹0' : `₹${plan.amount}`}<small>{plan.amount ? ' / month' : ''}</small></p><p className="membership-description">{plan.description}</p><ul>{plan.features.map(feature => <li key={feature}>✓ {feature}</li>)}</ul><button type="button" className={current ? 'membership-button current' : 'membership-button'} disabled={current || busy} onClick={onChoose}>{current ? 'Current plan' : busy ? 'Opening checkout…' : plan.amount ? `Become a ${plan.name}` : 'Start reading'}</button>
+  </article>;
+}
+
+function MembershipLauncher({ user }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!user) return undefined;
+    const mount = () => {
+      const card = document.querySelector('.profile-v2-card');
+      if (!card) return false;
+      let slot = card.querySelector('.profile-membership-slot');
+      if (!slot) { slot = document.createElement('div'); slot.className = 'profile-membership-slot'; const stats = card.querySelector('.profile-v2-stats'); card.insertBefore(slot, stats || null); }
+      setReady(true); return true;
+    };
+    mount(); const observer = new MutationObserver(mount); observer.observe(document.body, { childList: true, subtree: true }); return () => observer.disconnect();
+  }, [user]);
+  if (!ready) return null;
+  const slot = document.querySelector('.profile-membership-slot');
+  if (!slot) return null;
+  return createPortal(<button type="button" className="profile-membership-launcher" onClick={() => window.location.hash = 'membership'}><span className="profile-membership-launcher-icon">✦</span><span><strong>Membership</strong><small>Choose your Atma Rekha membership</small></span><b>→</b></button>, slot);
+}
