@@ -1,51 +1,44 @@
-/* Respect the user's device/browser appearance. Never force a theme. */
+/* Global Atma Rekha appearance system: every surface follows the device theme. */
 :root { color-scheme: light dark; }
 
 @media (prefers-color-scheme: dark) {
-  body { background:#080808; color:#f5f5f7; }
-  .community-page { background:#080808; color:#f7f7f7; }
+  html, body { background:#050505 !important; color:#f5f5f5 !important; }
+  body { --ar-bg:#050505; --ar-surface:#0b0b0b; --ar-card:#121212; --ar-card-soft:#181818; --ar-border:#292929; --ar-text:#f7f7f7; --ar-muted:#a1a1aa; }
+  .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2,.info-page,.chapter-list-page { background:var(--ar-bg) !important; color:var(--ar-text) !important; }
+  .home-header,.subpage-header,.reader-header,.community-header { background:rgb(5 5 5 / .94) !important; color:var(--ar-text) !important; border-color:var(--ar-border) !important; }
+  .hero-card,.home-section,.chapter-row,.latest-item,.reader-rating-card,.community-post,.profile-v2-card,.info-card { background:linear-gradient(180deg,var(--ar-card-soft),var(--ar-card)) !important; color:var(--ar-text) !important; border-color:var(--ar-border) !important; }
+  input,textarea,select { background:#0b0b0b !important; color:#fff !important; border-color:#333 !important; }
+  button { color:inherit; }
+  .membership-sheet,.membership-plan,.membership-phone-modal { background:#0b0b0b !important; color:#f7f7f7 !important; border-color:#292929 !important; }
 }
 
 @media (prefers-color-scheme: light) {
-  body { background:#fff; color:#17171a; }
-  .community-page { background:#f7f7f8; color:#17171a; }
-  .community-header { background:rgb(247 247 248 / .94); border-bottom-color:#dedee3; }
-  .community-header h1 { color:#17171a; }
-  .community-header p { color:#686873; }
-  .community-back { background:#e9e9ed; color:#17171a; }
-  .community-post { background:#fff; border-color:#dedee3; box-shadow:0 5px 18px rgb(0 0 0 / .05); }
-  .community-post-head strong { color:#17171a; }
-  .community-post-head span { color:#74747d; }
-  .community-post > p { color:#29292e; }
-  .community-post-actions { border-top-color:#e5e5e9; }
-  .community-post-actions button { color:#5f6069; }
-  .community-post-actions button:hover,.community-post-actions button.reacted { background:#fff0f4; color:#c03c63; }
-  .community-pinned { color:#75651e; }
-  .community-attachment { background:#f4f4f6; border-color:#dcdce2; color:#202025; }
-  .community-attachment small { color:#707079; }
-  .community-empty { border-color:#d5d5db; color:#666670; }
-  .community-empty h3,.community-empty strong { color:#202025; }
-  .community-empty p,.community-empty span { color:#666670; }
-  .community-notice { background:#eef3ff; color:#355aa5; }
-  .community-error { background:#fff0f0; color:#a63232; }
-  .creator-avatar { background:#eceef5; color:#39435d; }
-  .community-post-head b { color:#5d6c9c; }
-  .community-post-image { border-color:#dedee3; }
-  .ec-sheet { background:#fff; color:#17171a; border-color:#dedee3; }
-  .ec-header { background:rgb(255 255 255 / .94); border-bottom-color:#e1e1e5; }
-  .ec-header h2,.ec-meta strong,.ec-empty strong,.ec-state strong { color:#17171a; }
-  .ec-header p:last-child,.ec-meta time,.ec-empty,.ec-state { color:#666670; }
-  .ec-content { color:#29292e; }
-  .ec-comment { border-bottom-color:#e5e5e9; }
-  .ec-actions button { color:#65656e; }
-  .ec-close,.ec-preview-close { background:#ededf0; color:#17171a; }
-  .ec-compose-row textarea { background:#f7f7f8; border-color:#d8d8de; color:#17171a; }
-  .ec-composer { background:#fff; border-top-color:#e1e1e5; }
-  .auth-panel,.rating-sheet,.comment-sheet { color:#17171a; }
-}
-
-/* Prevent legacy dark-only inline/component surfaces from becoming unreadable in light mode. */
-@media (prefers-color-scheme: light) {
+  html, body { background:#fff !important; color:#17171a !important; }
+  body { --ar-bg:#fff; --ar-surface:#fff; --ar-card:#fff; --ar-card-soft:#fafafa; --ar-border:#e4e4e7; --ar-text:#17171a; --ar-muted:#686873; }
+  .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2,.info-page,.chapter-list-page { background:#fff !important; color:#17171a !important; }
+  .home-header,.subpage-header,.reader-header,.community-header { background:rgb(255 255 255 / .94) !important; color:#17171a !important; border-color:#e4e4e7 !important; }
+  .hero-card,.home-section,.chapter-row,.latest-item,.reader-rating-card,.community-post,.profile-v2-card,.info-card { background:#fff !important; color:#17171a !important; border-color:#e4e4e7 !important; box-shadow:0 8px 28px rgb(0 0 0 / .045); }
+  .hero-description,.home-section > p:not(.section-eyebrow),.home-anchor-section p,.chapter-list-heading,.chapter-row-meta,.chapter-row-details,.reader-info-row { color:#686873 !important; }
+  .brand-wordmark,.subpage-header h1,.chapter-row-main,.chapter-row-title h2,.latest-item,.latest-item h3,.reader-title h1 { color:#17171a !important; }
+  .latest-item { background:#fafafa !important; }
+  input,textarea,select { background:#fff !important; color:#17171a !important; border-color:#d4d4d8 !important; }
+  .reader-page { background:#f7f7f8 !important; }
+  .reader-stage { background:#fff !important; border-color:#e4e4e7 !important; }
+  .reader-progress { background:#e4e4e7 !important; }
+  .reader-page-pill,.reader-control.secondary { background:#f1f1f3 !important; color:#242428 !important; border-color:#dedee3 !important; }
+  .membership-sheet,.membership-plan,.membership-phone-modal { background:#fff !important; color:#17171a !important; border-color:#dedee3 !important; }
+  .membership-plan { box-shadow:0 14px 38px rgb(0 0 0 / .07) !important; }
+  .membership-plan.is-popular { border-color:#171717 !important; }
+  .membership-trust span,.membership-free-note,.membership-phone,.membership-active { background:#f6f6f7 !important; color:#242428 !important; border-color:#e2e2e5 !important; }
+  .membership-button,.membership-phone-continue { background:#111 !important; color:#fff !important; }
+  .membership-button.current,.membership-button:disabled { background:#e8e8ea !important; color:#77777f !important; }
+  .profile-membership-launcher { background:#fff !important; color:#17171a !important; border-color:#dedee3 !important; box-shadow:0 10px 28px rgb(0 0 0 / .06) !important; }
+  .profile-membership-launcher-icon { background:#111 !important; color:#fff !important; }
+  .membership-phone-input,.membership-phone-field { background:#fff !important; color:#17171a !important; }
+  .comment-sheet,.rating-sheet,.auth-panel,.ec-sheet { background:#fff !important; color:#17171a !important; border-color:#dedee3 !important; }
+  .community-post > p,.ec-content { color:#29292e !important; }
+  .community-empty,.empty-state { color:#686873 !important; border-color:#d5d5db !important; }
+  .empty-state h3,.community-empty h3 { color:#202025 !important; }
   [style*="color: white"],[style*="color:#fff"],[style*="color: #fff"] { color:#17171a !important; }
   [style*="background:#111"],[style*="background: #111"],[style*="background:#101"] { background:#fff !important; }
 }
