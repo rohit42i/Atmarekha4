@@ -3,6 +3,8 @@
 .chapter-row-title span { font-size:clamp(13px,1.7vw,15px) !important; letter-spacing:.07em; }
 .chapter-row-title h2 { font-size:clamp(24px,3vw,32px) !important; line-height:1.16; font-weight:850; letter-spacing:-.04em; }
 .chapter-row-meta,.chapter-row-details { font-size:14px !important; line-height:1.5; }
+.chapter-row { border:1px solid rgba(255,255,255,.82) !important; box-shadow:0 10px 30px rgba(0,0,0,.08); transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease; }
+.chapter-row:hover { border-color:#fff !important; transform:translateY(-1px); box-shadow:0 14px 36px rgba(0,0,0,.12); }
 .chapter-row-actions { display:flex; align-items:center; gap:8px; }
 .chapter-row-actions .chapter-favorite-action { order:0; }
 .chapter-row-actions .engagement-icon { order:1; }
