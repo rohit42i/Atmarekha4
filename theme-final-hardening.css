@@ -1,0 +1,114 @@
+/* Final system-theme hardening layer.
+   Neutralizes legacy light/dark literals without changing brand/accent colors.
+   Theme is always controlled by the user's OS preference. */
+:root {
+  --bg-color: #ffffff;
+  --surface-color: #ffffff;
+  --card-bg: #fafafa;
+  --surface-2: #f4f4f5;
+  --input-bg: #ffffff;
+  --text-color: #18181b;
+  --text-secondary: #3f3f46;
+  --muted-color: #62626b;
+  --border-color: #d4d4d8;
+  --border-soft: #e4e4e7;
+  --overlay-color: rgb(0 0 0 / .56);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #050505;
+    --surface-color: #0b0b0b;
+    --card-bg: #121212;
+    --surface-2: #181818;
+    --input-bg: #0d0d0d;
+    --text-color: #f7f7f7;
+    --text-secondary: #d4d4d8;
+    --muted-color: #a1a1aa;
+    --border-color: #303030;
+    --border-soft: #222222;
+    --overlay-color: rgb(0 0 0 / .78);
+  }
+}
+
+html, body, #root {
+  background: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+html { color-scheme: light; }
+@media (prefers-color-scheme: dark) { html { color-scheme: dark; } }
+
+/* Neutral application surfaces. Brand/accent buttons and artwork are intentionally excluded. */
+.home-page, .site-shell, .reader-page, .community-page, .profile-page,
+.profile-v2-page, .info-page, .chapter-list-page,
+.admin-page, .admin-panel, .admin-overview,
+.home-section, .chapter-list-section,
+.hero-card, .chapter-row, .latest-item, .community-post,
+.reader-rating-card, .profile-v2-card, .info-card,
+.auth-panel, .ec-sheet, .comment-sheet, .rating-sheet,
+.membership-sheet, .membership-plan, .membership-phone-modal {
+  background: var(--surface-color) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+.home-header, .subpage-header, .reader-header, .community-header {
+  background: color-mix(in srgb, var(--surface-color) 94%, transparent) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-soft) !important;
+}
+
+.latest-item, .chapter-row { background: var(--card-bg) !important; }
+.latest-item:hover, .chapter-row:hover { background: var(--surface-2) !important; }
+
+input, textarea, select {
+  background: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--muted-color) !important; }
+
+.brand-wordmark, .subpage-header h1, .chapter-row-main,
+.chapter-row-title h2, .latest-item h3, .reader-title h1,
+.rating-number, .empty-state h3, .community-empty h3 {
+  color: var(--text-color) !important;
+}
+
+.hero-description, .home-section > p:not(.section-eyebrow),
+.home-anchor-section p, .chapter-list-heading,
+.chapter-row-meta, .chapter-row-details, .reader-info-row,
+.rating-summary, .rating-label, .rating-notice,
+.loading-state, .empty-state, .community-empty {
+  color: var(--muted-color) !important;
+}
+
+.reader-stage { background: var(--surface-color) !important; border-color: var(--border-soft) !important; }
+.reader-progress { background: var(--surface-2) !important; }
+.reader-page-pill, .reader-control.secondary { background: var(--surface-2) !important; color: var(--text-secondary) !important; border-color: var(--border-color) !important; }
+.back-button:hover, .reader-back:hover, .icon-button:hover { background: var(--surface-2) !important; }
+
+/* Neutral inline styles cannot force a theme mismatch. */
+[style*="color: white"], [style*="color:white"],
+[style*="color: #fff"], [style*="color:#fff"],
+[style*="color: #ffffff"], [style*="color:#ffffff"] { color: var(--text-color) !important; }
+
+[style*="background: white"], [style*="background:white"],
+[style*="background: #fff"], [style*="background:#fff"],
+[style*="background: #ffffff"], [style*="background:#ffffff"] { background: var(--surface-color) !important; }
+
+[style*="color: black"], [style*="color:black"],
+[style*="color: #000"], [style*="color:#000"],
+[style*="color: #000000"], [style*="color:#000000"] { color: var(--text-color) !important; }
+
+[style*="background: black"], [style*="background:black"],
+[style*="background: #000"], [style*="background:#000"],
+[style*="background: #000000"], [style*="background:#000000"] { background: var(--surface-color) !important; }
+
+/* Explicitly prevent old forced root colors from winning the cascade. */
+@media (prefers-color-scheme: light) {
+  :root { color-scheme: light !important; }
+}
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark !important; }
+}
