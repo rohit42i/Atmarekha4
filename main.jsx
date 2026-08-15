@@ -35,10 +35,8 @@ import './public-profile.css';
 import './premium-typography.css';
 import './final-polish.css';
 import './chapter-ui-final.css';
-import './appearance-polish.css';
 import './rating-upgrade.js';
 import './membership.css';
-import './global-theme.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
