@@ -1,6 +1,7 @@
-﻿export default {
+export default {
   content: ["./index.html", "./*.{js,jsx,ts,tsx}"],
-  darkMode: 'class',
+  // System preference is the source of truth; no manual dark-mode class is required.
+  darkMode: 'media',
   theme: {
     extend: {
       colors: {
