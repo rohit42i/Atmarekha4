@@ -13,21 +13,8 @@ function freePeriodEnds() { const d = new Date(LAUNCH_DATE); d.setMonth(d.getMon
 function isFreePeriod() { return Date.now() < freePeriodEnds().getTime(); }
 function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
 function formatDate(value) { return value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
-
-async function getFunctionError(error, fallback) {
-  if (!error) return fallback;
-  try {
-    const response = error.context;
-    if (response && typeof response.json === 'function') {
-      const body = await response.clone().json();
-      if (body?.error) {
-        const detail = [body.error, body.reason].filter(Boolean).join(' · ');
-        return detail || fallback;
-      }
-    }
-  } catch {}
-  return error.message || fallback;
-}
+async function getFunctionError(error, fallback) { if (!error) return fallback; try { const response = error.context; if (response && typeof response.json === 'function') { const body = await response.clone().json(); if (body?.error) return [body.error, body.reason].filter(Boolean).join(' · ') || fallback; } } catch {} return error.message || fallback; }
+async function authHeaders() { const { data, error } = await supabase.auth.getSession(); if (error || !data?.session?.access_token) throw new Error('Your session has expired. Please sign in again.'); return { Authorization: `Bearer ${data.session.access_token}` }; }
 
 export default function Membership() {
   const [route, setRoute] = useState(routeNow()); const [user, setUser] = useState(null); const [subscription, setSubscription] = useState(null); const [loading, setLoading] = useState(false); const [cancelling, setCancelling] = useState(false); const [selected, setSelected] = useState(null); const [flowOpen, setFlowOpen] = useState(false); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const freePeriod = isFreePeriod(); const graceEnd = useMemo(() => freePeriodEnds(), []);
@@ -38,30 +25,15 @@ export default function Membership() {
     if (!user) { window.location.hash = 'login'; return; }
     setError(''); setMessage(''); setLoading(true); setFlowOpen(false);
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke('create-razorpay-subscription', { body: { plan_id: plan.id } });
+      const headers = await authHeaders();
+      const { data, error: invokeError } = await supabase.functions.invoke('create-razorpay-subscription', { body: { plan_id: plan.id }, headers });
       if (invokeError) throw new Error(await getFunctionError(invokeError, 'Unable to create the Razorpay subscription.'));
       if (!data?.subscription_id || !data?.key_id) throw new Error(data?.error || 'Unable to start membership checkout.');
       if (!window.Razorpay) throw new Error('Razorpay Checkout could not be loaded. Please refresh and try again.');
-      const checkout = new window.Razorpay({
-        key: data.key_id,
-        subscription_id: data.subscription_id,
-        name: 'Atma Rekha',
-        description: `${plan.name} · ₹${plan.amount}/month`,
-        image: `${window.location.origin}/ishani.png`,
-        prefill: { email: user.email || '' },
-        notes: { plan_id: plan.id },
-        theme: { color: '#d946ef' },
-        modal: { confirm_close: true, escape: true, backdropclose: false, ondismiss: () => setLoading(false) },
-        handler: async response => {
-          try {
-            const { data: verification, error: verificationError } = await supabase.functions.invoke('verify-razorpay-subscription', { body: { razorpay_payment_id: response.razorpay_payment_id, razorpay_subscription_id: response.razorpay_subscription_id, razorpay_signature: response.razorpay_signature } });
-            if (verificationError) throw new Error(await getFunctionError(verificationError, 'Unable to verify the Razorpay subscription.'));
-            if (!verification?.success) throw new Error(verification?.error || 'Subscription verification failed.');
-            setMessage('Membership activated successfully.'); await loadSubscription(user);
-          } catch (err) { setError(err?.message || 'Unable to verify membership.'); }
-          finally { setLoading(false); }
-        },
-      });
+      const checkout = new window.Razorpay({ key: data.key_id, subscription_id: data.subscription_id, name: 'Atma Rekha', description: `${plan.name} · ₹${plan.amount}/month`, image: `${window.location.origin}/ishani.png`, prefill: { email: user.email || '' }, notes: { plan_id: plan.id }, theme: { color: '#d946ef' }, modal: { confirm_close: true, escape: true, backdropclose: false, ondismiss: () => setLoading(false) }, handler: async response => {
+        try { const verifyHeaders = await authHeaders(); const { data: verification, error: verificationError } = await supabase.functions.invoke('verify-razorpay-subscription', { body: { razorpay_payment_id: response.razorpay_payment_id, razorpay_subscription_id: response.razorpay_subscription_id, razorpay_signature: response.razorpay_signature }, headers: verifyHeaders }); if (verificationError) throw new Error(await getFunctionError(verificationError, 'Unable to verify the Razorpay subscription.')); if (!verification?.success) throw new Error(verification?.error || 'Subscription verification failed.'); setMessage('Membership activated successfully.'); await loadSubscription(user); }
+        catch (err) { setError(err?.message || 'Unable to verify membership.'); } finally { setLoading(false); }
+      } });
       checkout.on('payment.failed', response => { setError(response?.error?.description || 'Membership authorization failed.'); setLoading(false); });
       checkout.open();
     } catch (err) { setError(err?.message || 'Unable to start membership checkout.'); setLoading(false); }
@@ -72,14 +44,13 @@ export default function Membership() {
     if (!subscription?.provider_subscription_id) { setError('Your subscription reference is unavailable. Please contact Atma Rekha support.'); return; }
     if (!window.confirm('Cancel future renewals? Your current membership remains active until the current period ends.')) return;
     setCancelling(true); setError(''); setMessage('');
-    try { const { data, error: invokeError } = await supabase.functions.invoke('cancel-razorpay-subscription', { body: { subscription_id: subscription.provider_subscription_id } }); if (invokeError) throw new Error(await getFunctionError(invokeError, 'Unable to cancel the Razorpay subscription.')); if (!data?.ok) throw new Error(data?.error || 'Unable to cancel the subscription.'); setMessage('Cancellation scheduled. No further renewal will be taken.'); await loadSubscription(user); }
+    try { const headers = await authHeaders(); const { data, error: invokeError } = await supabase.functions.invoke('cancel-razorpay-subscription', { body: { subscription_id: subscription.provider_subscription_id }, headers }); if (invokeError) throw new Error(await getFunctionError(invokeError, 'Unable to cancel the Razorpay subscription.')); if (!data?.ok) throw new Error(data?.error || 'Unable to cancel the subscription.'); setMessage('Cancellation scheduled. No further renewal will be taken.'); await loadSubscription(user); }
     catch (err) { setError(err?.message || 'Unable to cancel membership.'); } finally { setCancelling(false); }
   };
   if (!route.startsWith('membership')) return <MembershipLauncher user={user} />;
   const active = subscription?.status === 'active'; const currentPlan = PLANS.find(plan => plan.id === subscription?.plan_id);
   return createPortal(<><div className="membership-overlay" role="dialog" aria-modal="true" aria-label="Atma Rekha membership"><div className="membership-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) window.location.hash = 'profile'; }} /><section className="membership-sheet"><header className="membership-head"><button type="button" className="membership-close" onClick={() => window.location.hash = 'profile'} aria-label="Close membership">×</button><div><p className="membership-kicker">ATMA REKHA</p><h1>Find your way into the story.</h1><p>{freePeriod ? `The first 7 chapters are yours. Membership is optional until ${formatDate(graceEnd)}.` : 'Chapters 1–7 remain free forever. Membership opens Chapter 8 onward.'}</p></div></header>{active && <div className="membership-active"><span className="membership-active-icon">✓</span><div><strong>{currentPlan?.icon} {currentPlan?.name || 'Member'}</strong><small>Active · Next renewal {formatDate(subscription.current_period_end)}</small></div>{!subscription.cancel_at_period_end && <button type="button" onClick={cancelMembership} disabled={cancelling}>{cancelling ? 'Cancelling…' : 'Cancel renewal'}</button>}{subscription.cancel_at_period_end && <em>Cancellation scheduled</em>}</div>}<div className="membership-banners" aria-label="Membership plans">{PLANS.map(plan => <PlanCard key={plan.id} plan={plan} current={plan.id === 'free' ? !active : active && subscription.plan_id === plan.id} busy={loading && selected?.id === plan.id} onChoose={() => plan.id === 'free' ? (window.location.hash = 'home') : choosePaidPlan(plan)} />)}</div><div className="membership-banner-hint"><span>Swipe</span><span>01 / 04</span></div><div className="membership-free-note"><strong>Seven chapters. Always free.</strong><span>Chapters 1–7 never require a paid membership.</span></div>{message && <p className="membership-success">✓ {message}</p>}{error && <p className="membership-error">{error}</p>}<p className="membership-legal">Choose a membership and approve the UPI AutoPay mandate in Razorpay. Future monthly renewals are handled automatically.</p></section></div>{flowOpen && selected && <UpiFlowModal plan={selected} loading={loading} onClose={() => setFlowOpen(false)} onChoose={() => beginCheckout(selected)} />}</>, document.body);
 }
-
 function PlanCard({ plan, current, busy, onChoose }) { return <article className={`membership-plan ${plan.popular ? 'is-popular' : ''} ${current ? 'is-current' : ''}`}><div className="membership-plan-top"><div className="membership-plan-icon">{plan.icon}</div><p>{plan.eyebrow}</p></div>{plan.popular && <span className="membership-popular">POPULAR</span>}<h2>{plan.name}</h2><p className="membership-price">₹{plan.amount}<small>{plan.amount ? ' / month' : ''}</small></p><p className="membership-description">{plan.description}</p><ul>{plan.features.map(feature => <li key={feature}>✓ {feature}</li>)}</ul><button type="button" className={`membership-button ${current ? 'current' : ''}`} disabled={current || busy} onClick={onChoose}>{current ? 'Current plan' : busy ? 'Opening…' : plan.amount ? `Subscribe · ₹${plan.amount}/month` : 'Read Chapters 1–7'}</button></article>; }
 function MembershipLauncher({ user }) { const [ready, setReady] = useState(false); useEffect(() => { if (!user) return undefined; const mount = () => { const card = document.querySelector('.profile-v2-card'); const community = card?.querySelector('.profile-community-card'); if (!card || !community) return false; let slot = card.querySelector('.profile-membership-slot'); if (!slot) { slot = document.createElement('div'); slot.className = 'profile-membership-slot'; community.insertAdjacentElement('afterend', slot); } setReady(true); return true; }; mount(); const observer = new MutationObserver(mount); observer.observe(document.body, { childList: true, subtree: true }); return () => observer.disconnect(); }, [user]); if (!ready) return null; const slot = document.querySelector('.profile-membership-slot'); if (!slot) return null; return createPortal(<button type="button" className="profile-membership-launcher" onClick={() => window.location.hash = 'membership'}><span className="profile-membership-launcher-icon">✦</span><span><strong>Membership</strong><small>Choose your Atma Rekha membership</small></span><b>→</b></button>, slot); }
 function UpiFlowModal({ plan, loading, onClose, onChoose }) { return createPortal(<div className="membership-phone-overlay" role="dialog" aria-modal="true" aria-label="Razorpay UPI AutoPay"><div className="membership-phone-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }} /><section className="membership-phone-modal membership-upi-modal"><button className="membership-phone-close" type="button" onClick={onClose} aria-label="Close">×</button><div className="membership-phone-mark">{plan.icon}</div><p className="membership-phone-kicker">{plan.name.toUpperCase()} · ₹{plan.amount}/MONTH</p><h2>Continue with UPI AutoPay.</h2><p>Razorpay will show the UPI options supported by your device and account.</p><button type="button" className="membership-button" disabled={loading} onClick={onChoose}>{loading ? 'Opening Razorpay…' : 'Continue to Razorpay'}</button><small className="membership-upi-note">You will approve the recurring monthly mandate securely in Razorpay.</small></section></div>, document.body); }
