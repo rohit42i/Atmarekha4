@@ -25,6 +25,21 @@ async function findOrCreatePlan(plan: { amount: number; name: string }, keyId: s
   if (!created?.id) throw new Error('Razorpay did not return a plan ID.');
   return created.id;
 }
+
+async function getAuthenticatedUser(supabaseUrl: string, serverKey: string, token: string) {
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      apikey: serverKey,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok || !data?.id) {
+    throw new Error(`Authentication failed: ${data?.msg || data?.message || data?.error_description || `Supabase Auth returned ${response.status}.`}`);
+  }
+  return data;
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
@@ -33,15 +48,13 @@ Deno.serve(async req => {
     const keyId = Deno.env.get('RAZORPAY_KEY_ID')?.trim() || '';
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')?.trim() || '';
     const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim() || '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() || '';
+    const serverKey = (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_PUBLISHABLE_KEY'))?.trim() || '';
     if (!keyId || !keySecret) return json({ error: 'Razorpay server keys are missing.' }, 500, origin);
-    if (!supabaseUrl || !serviceRoleKey) return json({ error: 'Supabase server configuration is missing.' }, 500, origin);
+    if (!supabaseUrl || !serverKey) return json({ error: 'Supabase server configuration is missing.' }, 500, origin);
     const authHeader = req.headers.get('Authorization');
     const token = authHeader?.replace(/^Bearer\s+/i, '').trim();
     if (!token) return json({ error: 'Authentication required.' }, 401, origin);
-    const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: { user }, error: authError } = await admin.auth.getUser(token);
-    if (authError || !user) return json({ error: `Authentication failed: ${authError?.message || 'No user found.'}` }, 401, origin);
+    const user = await getAuthenticatedUser(supabaseUrl, serverKey, token);
     const body = await req.json();
     const planId = String(body?.plan_id || '');
     const plan = PLANS[planId as PlanId];
@@ -58,6 +71,6 @@ Deno.serve(async req => {
     }
     const message = error instanceof Error ? error.message : 'Unable to start membership checkout.';
     console.error('Razorpay subscription creation failed:', message);
-    return json({ error: message }, 500, origin);
+    return json({ error: message }, message.startsWith('Authentication failed') ? 401 : 500, origin);
   }
 });
