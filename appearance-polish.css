@@ -1,0 +1,82 @@
+/* Atma Rekha appearance bridge.
+ * System preference is the only theme source. Keep this file semantic so
+ * legacy imports cannot re-introduce a site-specific light/dark switch.
+ */
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root { color-scheme: light; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; }
+}
+
+/* Legacy Atma Rekha surface aliases now resolve to the central theme contract. */
+:root {
+  --ar-bg: var(--bg-color);
+  --ar-page: var(--bg-color);
+  --ar-surface: var(--surface-color);
+  --ar-surface-1: var(--surface-color);
+  --ar-surface-2: var(--surface-2-color);
+  --ar-surface-3: var(--card-bg);
+  --ar-surface-4: var(--surface-2-color);
+  --ar-card: var(--card-bg);
+  --ar-card-soft: var(--surface-color);
+  --ar-card-2: var(--card-bg);
+  --ar-input: var(--input-bg);
+  --ar-text: var(--text-color);
+  --ar-text-2: var(--text-secondary);
+  --ar-muted: var(--muted-color);
+  --ar-faint: var(--faint-color);
+  --ar-border: var(--border-color);
+  --ar-border-soft: var(--border-soft-color);
+  --ar-overlay: var(--overlay-color);
+  --ar-shadow-color: var(--shadow-color);
+}
+
+/* Do not let stale data-theme attributes create a third theme state. */
+html[data-theme="light"],
+html[data-theme="dark"] {
+  color-scheme: light dark;
+}
+
+/* Common legacy surfaces use the same variables as the current theme system. */
+body :where(.home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2,.info-page,.chapter-list-page,.admin-page,.auth-page,.settings-page) {
+  background: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+body :where(.home-header,.subpage-header,.reader-header,.community-header,.profile-header,.admin-header) {
+  background: color-mix(in srgb, var(--bg-color) 94%, transparent) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-soft-color) !important;
+}
+
+body :where(.hero-card,.home-section,.chapter-row,.latest-item,.reader-rating-card,.community-post,.profile-v2-card,.info-card,.comment-sheet,.rating-sheet,.auth-panel,.ec-sheet,.membership-sheet,.membership-plan,.membership-phone-modal) {
+  background: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+body :where(input,textarea,select,.membership-phone-input,.membership-phone-field) {
+  background: var(--input-bg) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+body :where(.brand-wordmark,.subpage-header h1,.chapter-row-main,.chapter-row-title h2,.latest-item,.latest-item h3,.reader-title h1) {
+  color: var(--text-color) !important;
+}
+
+body :where(.hero-description,.home-section > p:not(.section-eyebrow),.home-anchor-section p,.chapter-list-heading,.chapter-row-meta,.chapter-row-details,.reader-info-row) {
+  color: var(--muted-color) !important;
+}
+
+body :where(.back-button,.reader-back,.icon-button) {
+  color: var(--text-color) !important;
+  background: var(--surface-2-color) !important;
+  border-color: var(--border-color) !important;
+}
