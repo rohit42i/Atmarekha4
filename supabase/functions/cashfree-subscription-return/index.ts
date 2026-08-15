@@ -1,0 +1,4 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+const SITE="https://www.atmarekha.in";
+function redirect(id=""){const p=new URLSearchParams({cashfree:"1"});if(id)p.set("subscription_id",id);return Response.redirect(`${SITE}/#membership?${p.toString()}`,303);}
+Deno.serve(async req=>{if(!["POST","GET"].includes(req.method))return new Response("Method not allowed",{status:405});try{let id="";if(req.method==="GET"){const u=new URL(req.url);id=u.searchParams.get("subscription_id")||u.searchParams.get("subscriptionId")||"";}else{const type=req.headers.get("content-type")||"";if(type.includes("application/json")){const b=await req.json().catch(()=>({}));id=String(b?.subscription_id||b?.subscriptionId||"");}else{const f=await req.formData().catch(()=>new FormData());id=String(f.get("subscription_id")||f.get("subscriptionId")||"");}}return redirect(id);}catch{return redirect();}});
