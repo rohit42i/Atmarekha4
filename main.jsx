@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import UserAuth from './UserAuth.jsx';
@@ -6,11 +6,6 @@ import ReaderBookmark from './ReaderBookmark.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
-import CommunityPage from './CommunityPage.jsx';
-import CommunityAdmin from './CommunityAdmin.jsx';
-import EnhancedComments from './EnhancedComments.jsx';
-import PublicProfile from './PublicProfile.jsx';
-import Membership from './Membership.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import './index.css';
 import './accessibility-performance.css';
@@ -48,6 +43,22 @@ import './theme-system.js';
 import './theme-system.css';
 import './final-experience.css';
 
+const CommunityPage = lazy(() => import('./CommunityPage.jsx'));
+const CommunityAdmin = lazy(() => import('./CommunityAdmin.jsx'));
+const EnhancedComments = lazy(() => import('./EnhancedComments.jsx'));
+const PublicProfile = lazy(() => import('./PublicProfile.jsx'));
+const Membership = lazy(() => import('./Membership.jsx'));
+
+const DeferredFeatures = () => (
+  <Suspense fallback={null}>
+    <CommunityPage />
+    <CommunityAdmin />
+    <EnhancedComments />
+    <PublicProfile />
+    <Membership />
+  </Suspense>
+);
+
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
@@ -56,11 +67,7 @@ createRoot(document.getElementById('root')).render(
     <ReadingHistoryTracker />
     <AuthGate />
     <ChapterCompletionPrompt />
-    <CommunityPage />
-    <CommunityAdmin />
-    <EnhancedComments />
-    <PublicProfile />
-    <Membership />
     <ChapterAccessGuard />
+    <DeferredFeatures />
   </React.StrictMode>
 );
