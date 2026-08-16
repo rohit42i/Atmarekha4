@@ -42,7 +42,7 @@
   else if (typeof media?.addListener === 'function') media.addListener(onSystemChange);
 
   const mountThemeToggle = () => {
-    const header = document.querySelector('.home-header');
+    const header = document.querySelector('.home-header, .subpage-header, .reader-header-inner, .admin-header');
     if (!header || header.querySelector('[data-theme-toggle]')) return;
     const actions = header.querySelector('.home-header-actions') || header.lastElementChild;
     if (!actions) return;
@@ -61,7 +61,8 @@
     };
     document.addEventListener('atma-rekha-theme-change', update);
     update();
-    actions.insertBefore(button, actions.firstChild);
+    if (header.classList.contains('home-header')) actions.insertBefore(button, actions.firstChild);
+    else { button.classList.add('theme-toggle-standalone'); header.appendChild(button); }
   };
 
   const mountMobileNav = () => {
