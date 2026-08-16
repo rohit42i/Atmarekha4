@@ -51,18 +51,23 @@ const PublicProfile = lazy(() => import('./PublicProfile.jsx'));
 const Membership = lazy(() => import('./Membership.jsx'));
 
 function DeferredFeatures() {
-  const [ready, setReady] = useState(false);
+  const [hash, setHash] = useState(() => window.location.hash || '#home');
   useEffect(() => {
-    const start = () => setReady(true);
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(start, { timeout: 1500 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = window.setTimeout(start, 900);
-    return () => window.clearTimeout(id);
+    const update = () => setHash(window.location.hash || '#home');
+    window.addEventListener('hashchange', update, { passive: true });
+    return () => window.removeEventListener('hashchange', update);
   }, []);
-  if (!ready) return null;
-  return <Suspense fallback={null}><CommunityPage /><CommunityAdmin /><EnhancedComments /><PublicProfile /><Membership /></Suspense>;
+
+  const route = hash.toLowerCase();
+  let Feature = null;
+  if (route === '#community' || route.startsWith('#community/')) Feature = CommunityPage;
+  else if (route === '#community-admin' || route === '#admin-community') Feature = CommunityAdmin;
+  else if (route === '#profile' || route.startsWith('#profile/')) Feature = PublicProfile;
+  else if (route === '#membership' || route.startsWith('#membership/')) Feature = Membership;
+  else if (route === '#comments' || route.startsWith('#comments/')) Feature = EnhancedComments;
+
+  if (!Feature) return null;
+  return <Suspense fallback={null}><Feature /></Suspense>;
 }
 
 installAnalytics();
