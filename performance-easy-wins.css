@@ -1,0 +1,4 @@
+/* Atma Rekha — low-risk performance improvements only. */
+img[loading="lazy"]{content-visibility:auto;}
+img[loading="lazy"]{decoding:async;}
+img,video{max-width:100%;}
