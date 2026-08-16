@@ -485,17 +485,3 @@ window.addEventListener('load', () => {
 
 </body>
 </html>
-      clearTimeout(timerRef.current);
-      if (window.AtmaLoader?.showLoader === showLoader) delete window.AtmaLoader;
-    };
-  }, []);
-
-  return (
-    <>
-      <style>{LOADER_CSS}</style>
-      <div ref={viewportRef} className="atma-main-loader" data-atma-main-loader role="status" aria-label="Loading Atma Rekha">
-        <LoaderArtwork />
-      </div>
-    </>
-  );
-}
