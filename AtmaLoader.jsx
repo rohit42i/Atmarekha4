@@ -25,7 +25,6 @@ const LOADER_CSS = `
 .atma-main-loader .mark.two{stroke-dasharray:45 220;animation-delay:-1.7s}.atma-main-loader .mark.three{stroke-dasharray:25 260;animation-delay:-2.6s}
 .atma-main-loader .thread{position:absolute;left:50%;top:50%;width:2px;height:36%;transform-origin:50% 100%;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,.45),transparent);z-index:6}
 .atma-main-loader .thread.one{animation:atma-seekerOne 4.2s ease-in-out infinite}.atma-main-loader .thread.two{animation:atma-seekerTwo 5s ease-in-out infinite}
-.atma-main-loader .thread:after{content:"";position:absolute;left:50%;top:0;width:8px;height:100%;transform:translateX(-50%);background:inherit;opacity:.13;filter:blur(5px)}
 .atma-main-loader .fragments{position:absolute;inset:0;pointer-events:none;z-index:8}
 .atma-main-loader .fragment{position:absolute;left:50%;top:50%;width:1px;height:6px;border-radius:100%;background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.45);opacity:0;--angle:0deg;--radius:29%;--drift:0deg;--delay:0s;--duration:4s;animation:atma-fragmentOrbit var(--duration) ease-in-out infinite;animation-delay:var(--delay)}
 .atma-main-loader .burst{position:absolute;left:50%;top:50%;width:4.5%;height:4.5%;transform:translate(-50%,-50%);border-radius:50%;z-index:15;pointer-events:none;animation:atma-burstPulse 5.8s ease-out infinite}
