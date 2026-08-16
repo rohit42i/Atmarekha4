@@ -28,53 +28,20 @@ const LOADER_CSS = `
 @keyframes nodeTwo{0%{transform:translate(-50%,-50%) rotate(50deg) translateY(50px);opacity:.2}45%{transform:translate(-50%,-50%) rotate(210deg) translateY(80px);opacity:1}80%{transform:translate(-50%,-50%) rotate(345deg) translateY(45px);opacity:.25}100%{opacity:.2}}
 @keyframes centerPulse{0%,100%{transform:translate(-50%,-50%) scale(.6);opacity:.45}50%{transform:translate(-50%,-50%) scale(1.4);opacity:1}}@keyframes aura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}
 @keyframes ringMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes ringPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes ringLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media (max-width:600px){.atma-loader-viewport.main-mode .atma-loader{--atma-loader-scale:.72}}
 @media (prefers-reduced-motion:reduce){.atma-loader,.atma-loader *{animation-duration:.01ms!important;animation-iteration-count:1!important}.atma-loader-viewport.is-hidden{transition:none}}
 `;
 
 export default function AtmaLoader(){
   const viewportRef=useRef(null), loaderRef=useRef(null), timerRef=useRef(null), overflowRef=useRef('');
-
   useEffect(()=>{
-    const viewport=viewportRef.current, loader=loaderRef.current;
-    if(!viewport||!loader)return;
+    const viewport=viewportRef.current, loader=loaderRef.current;if(!viewport||!loader)return;
     overflowRef.current=document.body.style.overflow;
-
-    const setScale=()=>{
-      if(viewport.classList.contains('refresh-mode')) return loader.style.setProperty('--atma-loader-scale','.56');
-      const available=Math.min(window.innerWidth,window.innerHeight)-32;
-      loader.style.setProperty('--atma-loader-scale',String(Math.min(1,Math.max(.5,available/220))));
-    };
-    const show=(mode='main')=>{
-      clearTimeout(timerRef.current);
-      viewport.hidden=false;
-      viewport.classList.remove('is-hidden','main-mode','refresh-mode');
-      viewport.classList.add(mode==='refresh'?'refresh-mode':'main-mode');
-      viewport.setAttribute('aria-hidden','false');
-      setScale();
-      document.body.style.overflow=mode==='main'?'hidden':overflowRef.current;
-    };
-    const hide=()=>{
-      viewport.classList.add('is-hidden');
-      viewport.setAttribute('aria-hidden','true');
-      clearTimeout(timerRef.current);
-      timerRef.current=setTimeout(()=>{viewport.hidden=true;document.body.style.overflow=overflowRef.current;},450);
-    };
-    const onResize=()=>setScale();
-    const onLoad=()=>hide();
-
-    window.AtmaLoader={show,hide};
-    window.addEventListener('resize',onResize,{passive:true});
-    show('main');
-    if(document.readyState==='complete')setTimeout(hide,0);else window.addEventListener('load',onLoad,{once:true});
-
-    return()=>{window.removeEventListener('load',onLoad);window.removeEventListener('resize',onResize);clearTimeout(timerRef.current);if(window.AtmaLoader?.show===show)delete window.AtmaLoader;document.body.style.overflow=overflowRef.current;};
+    const setScale=()=>{if(viewport.classList.contains('refresh-mode'))return loader.style.setProperty('--atma-loader-scale','.56');const available=Math.min(window.innerWidth,window.innerHeight)-32;loader.style.setProperty('--atma-loader-scale',String(Math.min(.82,Math.max(.55,available/220))))};
+    const show=(mode='main')=>{clearTimeout(timerRef.current);viewport.hidden=false;viewport.classList.remove('is-hidden','main-mode','refresh-mode');viewport.classList.add(mode==='refresh'?'refresh-mode':'main-mode');viewport.setAttribute('aria-hidden','false');setScale();document.body.style.overflow=mode==='main'?'hidden':overflowRef.current};
+    const hide=()=>{viewport.classList.add('is-hidden');viewport.setAttribute('aria-hidden','true');clearTimeout(timerRef.current);timerRef.current=setTimeout(()=>{viewport.hidden=true;document.body.style.overflow=overflowRef.current},450)};
+    const onResize=()=>setScale();const onLoad=()=>hide();window.AtmaLoader={show,hide};window.addEventListener('resize',onResize,{passive:true});show('main');if(document.readyState==='complete')setTimeout(hide,0);else window.addEventListener('load',onLoad,{once:true});
+    return()=>{window.removeEventListener('load',onLoad);window.removeEventListener('resize',onResize);clearTimeout(timerRef.current);if(window.AtmaLoader?.show===show)delete window.AtmaLoader;document.body.style.overflow=overflowRef.current};
   },[]);
-
-  return <><style>{LOADER_CSS}</style><div ref={viewportRef} className="atma-loader-viewport main-mode" data-atma-loader role="status" aria-label="Loading">
-    <div className="atma-loader-stage"><div ref={loaderRef} className="atma-loader">
-      <div className="aura"/><div className="outer-ring"/><div className="symbol"><svg viewBox="0 0 220 220"><path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155"/><path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155"/><path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180"/></svg></div>
-      <div className="fragments">{PARTICLES.map(([angle,radius,drift,delay,duration],i)=><div className="fragment" key={i} style={{'--angle':`${angle}deg`,'--radius':`${radius}px`,'--drift':`${drift}deg`,'--delay':delay,'--duration':duration}}/>)}</div>
-      <div className="burst">{Array.from({length:12},(_,i)=><span key={i} style={{'--r':`${i*30}deg`}}/>)}</div><div className="thread one"/><div className="thread two"/><div className="node one"/><div className="node two"/><div className="center"/>
-    </div></div>
-  </div></>;
+  return <><style>{LOADER_CSS}</style><div ref={viewportRef} className="atma-loader-viewport main-mode" data-atma-loader role="status" aria-label="Loading"><div className="atma-loader-stage"><div ref={loaderRef} className="atma-loader"><div className="aura"/><div className="outer-ring"/><div className="symbol"><svg viewBox="0 0 220 220"><path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155"/><path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155"/><path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180"/></svg></div><div className="fragments">{PARTICLES.map(([angle,radius,drift,delay,duration],i)=><div className="fragment" key={i} style={{'--angle':`${angle}deg`,'--radius':`${radius}px`,'--drift':`${drift}deg`,'--delay':delay,'--duration':duration}}/>)}</div><div className="burst">{Array.from({length:12},(_,i)=><span key={i} style={{'--r':`${i*30}deg`}}/>)}</div><div className="thread one"/><div className="thread two"/><div className="node one"/><div className="node two"/><div className="center"/></div></div></div></>;
 }
