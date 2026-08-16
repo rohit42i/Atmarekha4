@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import UserAuth from './UserAuth.jsx';
@@ -50,15 +50,20 @@ const EnhancedComments = lazy(() => import('./EnhancedComments.jsx'));
 const PublicProfile = lazy(() => import('./PublicProfile.jsx'));
 const Membership = lazy(() => import('./Membership.jsx'));
 
-const DeferredFeatures = () => (
-  <Suspense fallback={null}>
-    <CommunityPage />
-    <CommunityAdmin />
-    <EnhancedComments />
-    <PublicProfile />
-    <Membership />
-  </Suspense>
-);
+function DeferredFeatures() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const start = () => setReady(true);
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(start, { timeout: 1500 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(start, 900);
+    return () => window.clearTimeout(id);
+  }, []);
+  if (!ready) return null;
+  return <Suspense fallback={null}><CommunityPage /><CommunityAdmin /><EnhancedComments /><PublicProfile /><Membership /></Suspense>;
+}
 
 installAnalytics();
 
