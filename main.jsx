@@ -44,6 +44,7 @@ import './theme-legacy-vars.css';
 import './theme-system.js';
 import './theme-system.css';
 import './final-experience.css';
+import './responsive-desktop.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
