@@ -19,14 +19,26 @@
   <meta name="twitter:description" content="An original Indian manga and mythical fantasy story inspired by Indian culture, mythology, traditions, spirituality, and original storytelling." />
   <meta name="twitter:image" content="https://www.atmarekha.in/ishani.png" />
   <link rel="canonical" href="https://www.atmarekha.in/" />
-  <title>Atma Rekha — Original Indian Manga & Mythical Fantasy</title>
+  <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin />
+  <link rel="dns-prefetch" href="//checkout.razorpay.com" />
   <link rel="icon" href="/ishani.png" type="image/png" />
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <title>Atma Rekha — Original Indian Manga & Mythical Fantasy</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Atma Rekha",
+    "url": "https://www.atmarekha.in/",
+    "description": "An original Indian manga and mythical fantasy story inspired by Indian culture, traditions, spirituality and original storytelling."
+  }
+  </script>
   <style>
     .chapter-list-page .subpage-header .header-kicker { display: none !important; }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#root">Skip to content</a>
   <div id="root"></div>
   <script type="module" src="/main.jsx"></script>
 </body>
