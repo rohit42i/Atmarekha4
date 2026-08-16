@@ -1,67 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
-const ReaderLoader = ({ page }) => (
-    <div className="ar-loader" aria-label={`Loading page ${page}`}>
-        <div className="ar-aura" />
-        <div className="ar-ring" />
-        <div className="ar-symbol">
-            <svg viewBox="0 0 220 220" aria-hidden="true">
-                <path className="ar-mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155" />
-                <path className="ar-mark ar-two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155" />
-                <path className="ar-mark ar-three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180" />
-            </svg>
-        </div>
-        <div className="ar-fragments">
-            {Array.from({ length: 24 }, (_, i) => <i key={i} className={`ar-fragment ar-f${i + 1}`} />)}
-        </div>
-        <div className="ar-thread ar-thread-one" />
-        <div className="ar-thread ar-thread-two" />
-        <div className="ar-burst">
-            {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--r': `${i * 30}deg` }} />)}
-        </div>
-        <div className="ar-node ar-node-one" />
-        <div className="ar-node ar-node-two" />
-        <div className="ar-center" />
-        <span className="ar-loading-text">Preparing page {page}</span>
-        <style>{`
-            .ar-loader{position:absolute;inset:0;min-height:240px;display:grid;place-items:center;background:rgba(250,250,250,.92);overflow:hidden;z-index:10;color:#18181b}
-            .dark .ar-loader{background:rgba(9,9,11,.94);color:#fff}
-            .ar-loader>*{position:absolute}
-            .ar-aura{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.045),transparent 65%);animation:arAura 4s ease-in-out infinite}
-            .dark .ar-aura{background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%)}
-            .ar-ring{width:174px;height:174px;border:1px solid currentColor;border-radius:50%;opacity:.16;animation:arRingMove 8s linear infinite,arRingPulse 4s ease-in-out infinite}
-            .ar-ring:after{content:"";position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,currentColor 325deg,rgba(128,128,128,.12) 340deg,transparent 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));animation:arLight 5s linear infinite}
-            .ar-symbol{inset:20px;animation:arSymbol 12s ease-in-out infinite}
-            .ar-symbol svg{width:100%;height:100%;overflow:visible}
-            .ar-mark{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80 180;animation:arFlow 3.2s linear infinite,arMarkPulse 4s ease-in-out infinite}
-            .ar-two{stroke-dasharray:45 220;animation-delay:-1.7s}.ar-three{stroke-dasharray:25 260;animation-delay:-2.6s}
-            .ar-thread{left:50%;top:50%;width:2px;height:80px;transform-origin:50% 100%;border-radius:100%;background:linear-gradient(to top,currentColor,rgba(128,128,128,.45),transparent);z-index:6}
-            .ar-thread:after{content:"";position:absolute;left:50%;top:0;width:8px;height:100%;transform:translateX(-50%);background:inherit;opacity:.13;filter:blur(5px)}
-            .ar-thread-one{animation:arSeekOne 4.2s ease-in-out infinite}.ar-thread-two{animation:arSeekTwo 5s ease-in-out infinite}
-            .ar-fragments{inset:0;pointer-events:none;z-index:8}
-            .ar-fragment{position:absolute;left:50%;top:50%;width:1px;height:5px;border-radius:100%;background:currentColor;box-shadow:0 0 4px currentColor;opacity:0;--angle:0deg;--radius:65px;--drift:0deg;--delay:0s;--duration:4s;animation:arFragment var(--duration) ease-in-out infinite;animation-delay:var(--delay)}
-            ${Array.from({length:24},(_,i)=>`.ar-f${i+1}{--angle:${[5,20,35,51,68,84,101,119,137,154,171,188,205,222,239,256,273,289,305,321,337,350,145,275][i]}deg;--radius:${[63,76,69,82,61,74,67,84,64,76,70,81,62,73,86,68,79,65,83,71,88,66,88,91][i]}px;--drift:${[38,-42,52,-30,44,-52,35,-48,50,-36,42,-55,47,-40,32,-46,54,-35,48,-58,36,-44,62,-51][i]}deg;--delay:${[-1.2,-.4,-2.8,-1.7,-3.1,-.8,-2.1,-3.6,-1.4,-2.6,-.6,-3.4,-1.9,-2.9,-4.1,-4.7,-1.1,-3.8,-2.3,-.9,-3.2,-1.6,-4.4,-5][i]}s;--duration:${[4.6,5.2,4.1,5.8,4.8,5.2,4.4,5.7,4.3,5.1,4.7,5.6,4.5,5.3,6,5.9,5,4.6,5.5,4.9,6,4.2,5.8,6.2][i]}s}` ).join('')}
-            .ar-burst{left:50%;top:50%;width:10px;height:10px;border-radius:50%;z-index:15;animation:arBurst 5.8s ease-out infinite}.ar-burst i{position:absolute;left:50%;top:50%;width:1px;height:7px;border-radius:100%;background:linear-gradient(to top,currentColor,transparent);transform-origin:50% 0;opacity:0;animation:arSpark 5.8s ease-out infinite}
-            .ar-node{left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;z-index:20}.ar-node-one{animation:arNodeOne 4.2s ease-in-out infinite}.ar-node-two{animation:arNodeTwo 5s ease-in-out infinite}
-            .ar-center{left:50%;top:50%;width:5px;height:5px;transform:translate(-50%,-50%);border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor;z-index:25;animation:arCenter 2.5s ease-in-out infinite}
-            .ar-loading-text{left:50%;top:calc(50% + 105px);transform:translateX(-50%);font:500 11px/1.2 system-ui,sans-serif;letter-spacing:.08em;white-space:nowrap;opacity:.5}
-            @keyframes arFragment{0%{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius) - 18px)) scale(.15);opacity:0}15%{opacity:.12}32%{opacity:.85}50%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift))) translateY(var(--radius)) scale(1);opacity:.7}68%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 18deg)) translateY(calc(var(--radius) + 9px)) scale(.65);opacity:.3}82%{opacity:.06}100%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 35deg)) translateY(calc(var(--radius) + 18px)) scale(.05);opacity:0}}
-            @keyframes arSpark{0%,45%{transform:rotate(var(--r)) translateY(3px) scaleY(.2);opacity:0}50%{opacity:1}62%{transform:rotate(var(--r)) translateY(32px) scaleY(1);opacity:.75}72%{transform:rotate(var(--r)) translateY(45px) scaleY(.35);opacity:0}100%{opacity:0}}
-            @keyframes arBurst{0%,42%{transform:translate(-50%,-50%) scale(.15);opacity:0}50%{transform:translate(-50%,-50%) scale(.8);opacity:1}60%{transform:translate(-50%,-50%) scale(1.15);opacity:.7}70%,100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
-            @keyframes arSymbol{0%{transform:rotate(-12deg) scale(.92)}50%{transform:rotate(12deg) scale(1.04)}100%{transform:rotate(-12deg) scale(.92)}}
-            @keyframes arFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-260}}@keyframes arMarkPulse{0%,100%{opacity:.12}40%{opacity:.7}60%{opacity:.35}}
-            @keyframes arSeekOne{0%{transform:translate(-50%,-100%) rotate(-140deg) scaleY(.55);opacity:.25}20%{transform:translate(-50%,-100%) rotate(-65deg) scaleY(1);opacity:1}40%{transform:translate(-50%,-100%) rotate(15deg) scaleY(.75);opacity:.8}55%{transform:translate(-50%,-100%) rotate(70deg) scaleY(1.15);opacity:1}75%{transform:translate(-50%,-100%) rotate(150deg) scaleY(.6);opacity:.35}100%{transform:translate(-50%,-100%) rotate(220deg) scaleY(.55);opacity:.25}}
-            @keyframes arSeekTwo{0%{transform:translate(-50%,-100%) rotate(50deg) scaleY(.6);opacity:.25}25%{transform:translate(-50%,-100%) rotate(130deg) scaleY(1.1);opacity:.9}45%{transform:translate(-50%,-100%) rotate(210deg) scaleY(.7);opacity:1}65%{transform:translate(-50%,-100%) rotate(285deg) scaleY(1.15);opacity:.8}80%{transform:translate(-50%,-100%) rotate(345deg) scaleY(.5);opacity:.3}100%{transform:translate(-50%,-100%) rotate(410deg) scaleY(.6);opacity:.25}}
-            @keyframes arNodeOne{0%{transform:translate(-50%,-50%) rotate(-140deg) translateY(42px);opacity:.2}40%{transform:translate(-50%,-50%) rotate(15deg) translateY(78px);opacity:1}75%{transform:translate(-50%,-50%) rotate(150deg) translateY(52px);opacity:.3}100%{opacity:.2}}
-            @keyframes arNodeTwo{0%{transform:translate(-50%,-50%) rotate(50deg) translateY(50px);opacity:.2}45%{transform:translate(-50%,-50%) rotate(210deg) translateY(80px);opacity:1}80%{transform:translate(-50%,-50%) rotate(345deg) translateY(45px);opacity:.25}100%{opacity:.2}}
-            @keyframes arCenter{0%,100%{transform:translate(-50%,-50%) scale(.6);opacity:.45}50%{transform:translate(-50%,-50%) scale(1.4);opacity:1}}
-            @keyframes arAura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}
-            @keyframes arRingMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes arRingPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes arLight{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-            @media(prefers-reduced-motion:reduce){.ar-loader *,.ar-loader *:before,.ar-loader *:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
-        `}</style>
-    </div>
-);
+const ReaderLoader = ({ page }) => <div className="ar-loader" aria-label={`Loading page ${page}`}><div className="ar-aura" /><div className="ar-ring" /><div className="ar-symbol"><svg viewBox="0 0 220 220" aria-hidden="true"><path className="ar-mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155" /><path className="ar-mark ar-two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155" /><path className="ar-mark ar-three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180" /></svg></div><div className="ar-fragments">{Array.from({ length: 24 }, (_, i) => <i key={i} className={`ar-fragment ar-f${i + 1}`} />)}</div><div className="ar-thread ar-thread-one" /><div className="ar-thread ar-thread-two" /><div className="ar-burst">{Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--r': `${i * 30}deg` }} />)}</div><div className="ar-node ar-node-one" /><div className="ar-node ar-node-two" /><div className="ar-center" /><span className="ar-loading-text">Preparing page {page}</span><style>{`.ar-loader{position:absolute;inset:0;min-height:240px;display:grid;place-items:center;background:rgba(250,250,250,.92);overflow:hidden;z-index:10;color:#18181b}.dark .ar-loader{background:rgba(9,9,11,.94);color:#fff}.ar-loader>*{position:absolute}.ar-aura{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.045),transparent 65%);animation:arAura 4s ease-in-out infinite}.dark .ar-aura{background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%)}.ar-ring{width:174px;height:174px;border:1px solid currentColor;border-radius:50%;opacity:.16;animation:arRingMove 8s linear infinite,arRingPulse 4s ease-in-out infinite}.ar-symbol{inset:20px;animation:arSymbol 12s ease-in-out infinite}.ar-symbol svg{width:100%;height:100%;overflow:visible}.ar-mark{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80 180;animation:arFlow 3.2s linear infinite,arMarkPulse 4s ease-in-out infinite}.ar-two{stroke-dasharray:45 220;animation-delay:-1.7s}.ar-three{stroke-dasharray:25 260;animation-delay:-2.6s}@keyframes arSymbol{0%{transform:rotate(-12deg) scale(.92)}50%{transform:rotate(12deg) scale(1.04)}100%{transform:rotate(-12deg) scale(.92)}}@keyframes arFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-260}}@keyframes arMarkPulse{0%,100%{opacity:.12}40%{opacity:.7}60%{opacity:.35}}@keyframes arAura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}@keyframes arRingMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes arRingPulse{0%,100%{opacity:.25}50%{opacity:.55}}`}</style></div>;
 
 export default function ChapterReader({ chapterId, onBack }) {
     const [chapter, setChapter] = useState(null);
@@ -79,8 +19,9 @@ function SwipeableReader({ pages, apiBaseUrl }) {
     const minSwipeDistance=50;
     const pageUrl=useCallback(i=>`${apiBaseUrl}${pages[i]}`,[apiBaseUrl,pages]);
     const preloadPage=useCallback((i,priority=false)=>{if(i<0||i>=pages.length||preloaded.current.has(i)||loading.current.has(i))return;loading.current.add(i);const img=new Image();img.decoding='async';img.loading=priority?'eager':'lazy';img.fetchPriority=priority?'high':'low';img.onload=async()=>{try{if(img.decode)await img.decode()}catch(_){}preloaded.current.set(i,img);loading.current.delete(i);setLoadedPages(prev=>{const next=new Set(prev);next.add(i);return next})};img.onerror=()=>loading.current.delete(i);img.src=pageUrl(i)},[pageUrl,pages.length]);
-    const warmWindow=useCallback(i=>[i-1,i,i+1,i+2].forEach((target,offset)=>preloadPage(target,offset===1)),[preloadPage]);
+    const warmWindow=useCallback(i=>[i-1,i,i+1].forEach((target,offset)=>preloadPage(target,offset===1)),[preloadPage]);
     useEffect(()=>{setPageLoading(!loadedPages.has(currentIndex));warmWindow(currentIndex)},[currentIndex,warmWindow,loadedPages]);
+    useEffect(()=>{const keep=new Set([currentIndex-1,currentIndex,currentIndex+1,currentIndex+2]);for(const [key,img] of preloaded.current){if(!keep.has(key)){img.src='';preloaded.current.delete(key)}}},[currentIndex]);
     const nextPage=useCallback(()=>{if(currentIndex<pages.length-1){const next=currentIndex+1;preloadPage(next,true);warmWindow(next);setCurrentIndex(next);window.scrollTo({top:0,behavior:'instant'})}},[currentIndex,pages.length,preloadPage,warmWindow]);
     const prevPage=useCallback(()=>{if(currentIndex>0){const prev=currentIndex-1;preloadPage(prev,true);warmWindow(prev);setCurrentIndex(prev);window.scrollTo({top:0,behavior:'instant'})}},[currentIndex,preloadPage,warmWindow]);
     useEffect(()=>{const h=e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextPage()}else if(e.key==='ArrowLeft'){e.preventDefault();prevPage()}};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h)},[nextPage,prevPage]);
