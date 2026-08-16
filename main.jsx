@@ -21,6 +21,8 @@ import './admin-link-fix.css';
 import './notification-fix.js';
 import './reader-performance.css';
 import './reader-performance.js';
+import './asset-performance.js';
+import './seo-runtime.js';
 import './user-auth.css';
 import './user-auth-layout.css';
 import './profile-v2.css';
