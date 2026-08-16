@@ -13,6 +13,7 @@ import PublicProfile from './PublicProfile.jsx';
 import Membership from './Membership.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import './index.css';
+import './accessibility-performance.css';
 import './ui-polish.css';
 import './interaction-polish.css';
 import './admin-polish.css';
