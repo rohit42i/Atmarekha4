@@ -1,197 +1,90 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
+const ReaderLoader = ({ page }) => (
+    <div className="ar-loader" aria-label={`Loading page ${page}`}>
+        <div className="ar-aura" />
+        <div className="ar-ring" />
+        <div className="ar-symbol">
+            <svg viewBox="0 0 220 220" aria-hidden="true">
+                <path className="ar-mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155" />
+                <path className="ar-mark ar-two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155" />
+                <path className="ar-mark ar-three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180" />
+            </svg>
+        </div>
+        <div className="ar-fragments">
+            {Array.from({ length: 24 }, (_, i) => <i key={i} className={`ar-fragment ar-f${i + 1}`} />)}
+        </div>
+        <div className="ar-thread ar-thread-one" />
+        <div className="ar-thread ar-thread-two" />
+        <div className="ar-burst">
+            {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--r': `${i * 30}deg` }} />)}
+        </div>
+        <div className="ar-node ar-node-one" />
+        <div className="ar-node ar-node-two" />
+        <div className="ar-center" />
+        <span className="ar-loading-text">Preparing page {page}</span>
+        <style>{`
+            .ar-loader{position:absolute;inset:0;min-height:240px;display:grid;place-items:center;background:rgba(250,250,250,.92);overflow:hidden;z-index:10;color:#18181b}
+            .dark .ar-loader{background:rgba(9,9,11,.94);color:#fff}
+            .ar-loader>*{position:absolute}
+            .ar-aura{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.045),transparent 65%);animation:arAura 4s ease-in-out infinite}
+            .dark .ar-aura{background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%)}
+            .ar-ring{width:174px;height:174px;border:1px solid currentColor;border-radius:50%;opacity:.16;animation:arRingMove 8s linear infinite,arRingPulse 4s ease-in-out infinite}
+            .ar-ring:after{content:"";position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,currentColor 325deg,rgba(128,128,128,.12) 340deg,transparent 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));animation:arLight 5s linear infinite}
+            .ar-symbol{inset:20px;animation:arSymbol 12s ease-in-out infinite}
+            .ar-symbol svg{width:100%;height:100%;overflow:visible}
+            .ar-mark{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80 180;animation:arFlow 3.2s linear infinite,arMarkPulse 4s ease-in-out infinite}
+            .ar-two{stroke-dasharray:45 220;animation-delay:-1.7s}.ar-three{stroke-dasharray:25 260;animation-delay:-2.6s}
+            .ar-thread{left:50%;top:50%;width:2px;height:80px;transform-origin:50% 100%;border-radius:100%;background:linear-gradient(to top,currentColor,rgba(128,128,128,.45),transparent);z-index:6}
+            .ar-thread:after{content:"";position:absolute;left:50%;top:0;width:8px;height:100%;transform:translateX(-50%);background:inherit;opacity:.13;filter:blur(5px)}
+            .ar-thread-one{animation:arSeekOne 4.2s ease-in-out infinite}.ar-thread-two{animation:arSeekTwo 5s ease-in-out infinite}
+            .ar-fragments{inset:0;pointer-events:none;z-index:8}
+            .ar-fragment{position:absolute;left:50%;top:50%;width:1px;height:5px;border-radius:100%;background:currentColor;box-shadow:0 0 4px currentColor;opacity:0;--angle:0deg;--radius:65px;--drift:0deg;--delay:0s;--duration:4s;animation:arFragment var(--duration) ease-in-out infinite;animation-delay:var(--delay)}
+            ${Array.from({length:24},(_,i)=>`.ar-f${i+1}{--angle:${[5,20,35,51,68,84,101,119,137,154,171,188,205,222,239,256,273,289,305,321,337,350,145,275][i]}deg;--radius:${[63,76,69,82,61,74,67,84,64,76,70,81,62,73,86,68,79,65,83,71,88,66,88,91][i]}px;--drift:${[38,-42,52,-30,44,-52,35,-48,50,-36,42,-55,47,-40,32,-46,54,-35,48,-58,36,-44,62,-51][i]}deg;--delay:${[-1.2,-.4,-2.8,-1.7,-3.1,-.8,-2.1,-3.6,-1.4,-2.6,-.6,-3.4,-1.9,-2.9,-4.1,-4.7,-1.1,-3.8,-2.3,-.9,-3.2,-1.6,-4.4,-5][i]}s;--duration:${[4.6,5.2,4.1,5.8,4.8,5.2,4.4,5.7,4.3,5.1,4.7,5.6,4.5,5.3,6,5.9,5,4.6,5.5,4.9,6,4.2,5.8,6.2][i]}s}` ).join('')}
+            .ar-burst{left:50%;top:50%;width:10px;height:10px;border-radius:50%;z-index:15;animation:arBurst 5.8s ease-out infinite}.ar-burst i{position:absolute;left:50%;top:50%;width:1px;height:7px;border-radius:100%;background:linear-gradient(to top,currentColor,transparent);transform-origin:50% 0;opacity:0;animation:arSpark 5.8s ease-out infinite}
+            .ar-node{left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;z-index:20}.ar-node-one{animation:arNodeOne 4.2s ease-in-out infinite}.ar-node-two{animation:arNodeTwo 5s ease-in-out infinite}
+            .ar-center{left:50%;top:50%;width:5px;height:5px;transform:translate(-50%,-50%);border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor;z-index:25;animation:arCenter 2.5s ease-in-out infinite}
+            .ar-loading-text{left:50%;top:calc(50% + 105px);transform:translateX(-50%);font:500 11px/1.2 system-ui,sans-serif;letter-spacing:.08em;white-space:nowrap;opacity:.5}
+            @keyframes arFragment{0%{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius) - 18px)) scale(.15);opacity:0}15%{opacity:.12}32%{opacity:.85}50%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift))) translateY(var(--radius)) scale(1);opacity:.7}68%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 18deg)) translateY(calc(var(--radius) + 9px)) scale(.65);opacity:.3}82%{opacity:.06}100%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 35deg)) translateY(calc(var(--radius) + 18px)) scale(.05);opacity:0}}
+            @keyframes arSpark{0%,45%{transform:rotate(var(--r)) translateY(3px) scaleY(.2);opacity:0}50%{opacity:1}62%{transform:rotate(var(--r)) translateY(32px) scaleY(1);opacity:.75}72%{transform:rotate(var(--r)) translateY(45px) scaleY(.35);opacity:0}100%{opacity:0}}
+            @keyframes arBurst{0%,42%{transform:translate(-50%,-50%) scale(.15);opacity:0}50%{transform:translate(-50%,-50%) scale(.8);opacity:1}60%{transform:translate(-50%,-50%) scale(1.15);opacity:.7}70%,100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
+            @keyframes arSymbol{0%{transform:rotate(-12deg) scale(.92)}50%{transform:rotate(12deg) scale(1.04)}100%{transform:rotate(-12deg) scale(.92)}}
+            @keyframes arFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-260}}@keyframes arMarkPulse{0%,100%{opacity:.12}40%{opacity:.7}60%{opacity:.35}}
+            @keyframes arSeekOne{0%{transform:translate(-50%,-100%) rotate(-140deg) scaleY(.55);opacity:.25}20%{transform:translate(-50%,-100%) rotate(-65deg) scaleY(1);opacity:1}40%{transform:translate(-50%,-100%) rotate(15deg) scaleY(.75);opacity:.8}55%{transform:translate(-50%,-100%) rotate(70deg) scaleY(1.15);opacity:1}75%{transform:translate(-50%,-100%) rotate(150deg) scaleY(.6);opacity:.35}100%{transform:translate(-50%,-100%) rotate(220deg) scaleY(.55);opacity:.25}}
+            @keyframes arSeekTwo{0%{transform:translate(-50%,-100%) rotate(50deg) scaleY(.6);opacity:.25}25%{transform:translate(-50%,-100%) rotate(130deg) scaleY(1.1);opacity:.9}45%{transform:translate(-50%,-100%) rotate(210deg) scaleY(.7);opacity:1}65%{transform:translate(-50%,-100%) rotate(285deg) scaleY(1.15);opacity:.8}80%{transform:translate(-50%,-100%) rotate(345deg) scaleY(.5);opacity:.3}100%{transform:translate(-50%,-100%) rotate(410deg) scaleY(.6);opacity:.25}}
+            @keyframes arNodeOne{0%{transform:translate(-50%,-50%) rotate(-140deg) translateY(42px);opacity:.2}40%{transform:translate(-50%,-50%) rotate(15deg) translateY(78px);opacity:1}75%{transform:translate(-50%,-50%) rotate(150deg) translateY(52px);opacity:.3}100%{opacity:.2}}
+            @keyframes arNodeTwo{0%{transform:translate(-50%,-50%) rotate(50deg) translateY(50px);opacity:.2}45%{transform:translate(-50%,-50%) rotate(210deg) translateY(80px);opacity:1}80%{transform:translate(-50%,-50%) rotate(345deg) translateY(45px);opacity:.25}100%{opacity:.2}}
+            @keyframes arCenter{0%,100%{transform:translate(-50%,-50%) scale(.6);opacity:.45}50%{transform:translate(-50%,-50%) scale(1.4);opacity:1}}
+            @keyframes arAura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}
+            @keyframes arRingMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes arRingPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes arLight{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+            @media(prefers-reduced-motion:reduce){.ar-loader *,.ar-loader *:before,.ar-loader *:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+        `}</style>
+    </div>
+);
+
 export default function ChapterReader({ chapterId, onBack }) {
     const [chapter, setChapter] = useState(null);
     const [loading, setLoading] = useState(true);
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-
-    useEffect(() => {
-        let cancelled = false;
-        const fetchChapter = async () => {
-            try {
-                const res = await axios.get(`${apiBaseUrl}/api/chapters/detail/${chapterId}`);
-                if (!cancelled) setChapter(res.data);
-            } catch (err) {
-                console.error('Failed to fetch chapter:', err);
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        };
-        if (chapterId) fetchChapter();
-        return () => { cancelled = true; };
-    }, [chapterId, apiBaseUrl]);
-
-    if (loading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-                <div className="relative h-10 w-10 animate-spin rounded-full border-2 border-zinc-300 border-t-pink-500 dark:border-zinc-800 dark:border-t-pink-500" />
-            </div>
-        );
-    }
-
-    if (!chapter) {
-        return (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-600"><i className="fa-solid fa-book-open text-2xl" /></div>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-[var(--text-color)]">Chapter not found</h2>
-                <p className="mt-2 text-zinc-500">This chapter may have been removed or doesn't exist.</p>
-                <button onClick={onBack} className="mt-6 rounded-lg bg-blue-600 px-6 py-2 font-semibold text-[var(--text-color)] transition hover:bg-blue-700">Go Back</button>
-            </div>
-        );
-    }
-
-    return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-            <div className="fixed top-0 z-50 w-full border-b border-zinc-200 bg-[var(--card-bg)]/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95">
-                <div className="mx-auto flex max-w-5xl items-center gap-4 px-6 py-4">
-                    <button onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-[var(--text-color)]" title="Go back"><i className="fa-solid fa-arrow-left" /></button>
-                    <div className="flex-1 min-w-0">
-                        <h1 className="truncate text-lg font-bold text-zinc-900 dark:text-[var(--text-color)]">Chapter {chapter.chapterNumber}</h1>
-                        <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">{chapter.title}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="pt-20 pb-12">
-                {chapter.pdfUrl && (
-                    <div className="mx-auto max-w-5xl px-6"><div className="overflow-hidden rounded-2xl border border-zinc-200 bg-[var(--card-bg)] shadow-sm dark:border-zinc-800 dark:bg-zinc-900"><iframe src={`${apiBaseUrl}${chapter.pdfUrl}`} className="h-[85vh] w-full" title="Chapter PDF" /></div></div>
-                )}
-                {chapter.pages && chapter.pages.length > 0 && <SwipeableReader pages={chapter.pages} apiBaseUrl={apiBaseUrl} />}
-                {!chapter.pdfUrl && (!chapter.pages || chapter.pages.length === 0) && (
-                    <div className="mx-auto max-w-3xl px-6"><div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-[var(--card-bg)] py-20 dark:border-zinc-800 dark:bg-zinc-900"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-300 dark:bg-zinc-800 dark:text-zinc-600"><i className="fa-solid fa-file-circle-xmark text-2xl" /></div><h3 className="font-semibold text-zinc-900 dark:text-[var(--text-color)]">No content available</h3><p className="mt-1 text-zinc-500">This chapter hasn't been uploaded yet.</p></div></div>
-                )}
-            </div>
-        </div>
-    );
+    useEffect(() => { let cancelled=false; const fetchChapter=async()=>{try{const res=await axios.get(`${apiBaseUrl}/api/chapters/detail/${chapterId}`);if(!cancelled)setChapter(res.data)}catch(err){console.error('Failed to fetch chapter:',err)}finally{if(!cancelled)setLoading(false)}};if(chapterId)fetchChapter();return()=>{cancelled=true}},[chapterId,apiBaseUrl]);
+    if(loading)return <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950"><div className="relative h-10 w-10 animate-spin rounded-full border-2 border-zinc-300 border-t-pink-500 dark:border-zinc-800 dark:border-t-pink-500"/></div>;
+    if(!chapter)return <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-600"><i className="fa-solid fa-book-open text-2xl"/></div><h2 className="text-xl font-bold text-zinc-900 dark:text-[var(--text-color)]">Chapter not found</h2><p className="mt-2 text-zinc-500">This chapter may have been removed or doesn't exist.</p><button onClick={onBack} className="mt-6 rounded-lg bg-blue-600 px-6 py-2 font-semibold text-[var(--text-color)] transition hover:bg-blue-700">Go Back</button></div>;
+    return <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950"><div className="fixed top-0 z-50 w-full border-b border-zinc-200 bg-[var(--card-bg)]/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95"><div className="mx-auto flex max-w-5xl items-center gap-4 px-6 py-4"><button onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-[var(--text-color)]" title="Go back"><i className="fa-solid fa-arrow-left"/></button><div className="flex-1 min-w-0"><h1 className="truncate text-lg font-bold text-zinc-900 dark:text-[var(--text-color)]">Chapter {chapter.chapterNumber}</h1><p className="truncate text-sm text-zinc-500 dark:text-zinc-400">{chapter.title}</p></div></div></div><div className="pt-20 pb-12">{chapter.pdfUrl&&<div className="mx-auto max-w-5xl px-6"><div className="overflow-hidden rounded-2xl border border-zinc-200 bg-[var(--card-bg)] shadow-sm dark:border-zinc-800 dark:bg-zinc-900"><iframe src={`${apiBaseUrl}${chapter.pdfUrl}`} className="h-[85vh] w-full" title="Chapter PDF"/></div></div>}{chapter.pages&&chapter.pages.length>0&&<SwipeableReader pages={chapter.pages} apiBaseUrl={apiBaseUrl}/>} {!chapter.pdfUrl&&(!chapter.pages||chapter.pages.length===0)&&<div className="mx-auto max-w-3xl px-6"><div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-[var(--card-bg)] py-20 dark:border-zinc-800 dark:bg-zinc-900"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-300 dark:bg-zinc-800 dark:text-zinc-600"><i className="fa-solid fa-file-circle-xmark text-2xl"/></div><h3 className="font-semibold text-zinc-900 dark:text-[var(--text-color)]">No content available</h3><p className="mt-1 text-zinc-500">This chapter hasn't been uploaded yet.</p></div></div>}</div></div>;
 }
 
 function SwipeableReader({ pages, apiBaseUrl }) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [loadedPages, setLoadedPages] = useState(() => new Set());
-    const [pageLoading, setPageLoading] = useState(true);
-    const [touchStart, setTouchStart] = useState(null);
-    const [touchEnd, setTouchEnd] = useState(null);
-    const preloaded = useRef(new Map());
-    const loading = useRef(new Set());
-    const minSwipeDistance = 50;
-
-    const pageUrl = useCallback((index) => `${apiBaseUrl}${pages[index]}`, [apiBaseUrl, pages]);
-
-    // Decode an image before marking it ready. This makes the visible transition much smoother.
-    const preloadPage = useCallback((index, priority = false) => {
-        if (index < 0 || index >= pages.length || preloaded.current.has(index) || loading.current.has(index)) return;
-        loading.current.add(index);
-        const img = new Image();
-        img.decoding = 'async';
-        img.loading = priority ? 'eager' : 'lazy';
-        img.fetchPriority = priority ? 'high' : 'low';
-        const url = pageUrl(index);
-        img.onload = async () => {
-            try { if (img.decode) await img.decode(); } catch (_) { /* already loaded */ }
-            preloaded.current.set(index, img);
-            loading.current.delete(index);
-            setLoadedPages(prev => {
-                const next = new Set(prev);
-                next.add(index);
-                return next;
-            });
-        };
-        img.onerror = () => loading.current.delete(index);
-        img.src = url;
-    }, [pageUrl, pages.length]);
-
-    // Keep a small rolling window: previous page + current page + next 2 pages.
-    // On the first page this intentionally downloads 3 images at once.
-    const warmWindow = useCallback((index) => {
-        const targets = [index - 1, index, index + 1, index + 2];
-        targets.forEach((target, offset) => preloadPage(target, offset === 1));
-    }, [preloadPage]);
-
-    useEffect(() => {
-        setPageLoading(!loadedPages.has(currentIndex));
-        warmWindow(currentIndex);
-    }, [currentIndex, warmWindow, loadedPages]);
-
-    const nextPage = useCallback(() => {
-        if (currentIndex < pages.length - 1) {
-            const next = currentIndex + 1;
-            preloadPage(next, true);
-            warmWindow(next);
-            setCurrentIndex(next);
-            window.scrollTo({ top: 0, behavior: 'instant' });
-        }
-    }, [currentIndex, pages.length, preloadPage, warmWindow]);
-
-    const prevPage = useCallback(() => {
-        if (currentIndex > 0) {
-            const prev = currentIndex - 1;
-            preloadPage(prev, true);
-            warmWindow(prev);
-            setCurrentIndex(prev);
-            window.scrollTo({ top: 0, behavior: 'instant' });
-        }
-    }, [currentIndex, preloadPage, warmWindow]);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextPage(); }
-            else if (e.key === 'ArrowLeft') { e.preventDefault(); prevPage(); }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [nextPage, prevPage]);
-
-    const onTouchStart = (e) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); };
-    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-    const onTouchEnd = () => {
-        if (touchStart == null || touchEnd == null) return;
-        const distance = touchStart - touchEnd;
-        if (distance > minSwipeDistance) nextPage();
-        else if (distance < -minSwipeDistance) prevPage();
-    };
-
-    const currentImage = preloaded.current.get(currentIndex);
-
-    return (
-        <div className="mx-auto max-w-3xl px-4 min-h-[80vh] flex flex-col justify-center select-none" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-            <div className="relative mb-6">
-                <div className="relative min-h-[240px] overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">
-                    {pageLoading && (
-                        <div className="absolute inset-0 z-10 flex min-h-[240px] flex-col items-center justify-center bg-zinc-100/90 dark:bg-zinc-900/90 backdrop-blur-[2px]">
-                            <div className="relative flex h-14 w-14 items-center justify-center" aria-hidden="true">
-                                <div className="absolute inset-0 rounded-full border border-pink-200 dark:border-pink-950/80" />
-                                <div className="absolute inset-0 rounded-full border-2 border-pink-500 border-t-transparent animate-spin" />
-                                <svg viewBox="0 0 64 64" className="h-8 w-8 text-pink-500 animate-[spin_1.8s_linear_infinite]" fill="currentColor"><path d="M32 24c-1.9-8.6-7.1-13-12.4-10.7-4.2 1.8-4.4 7.3-.7 11.1-7.5-3.2-13.6-.7-13.6 4.7 0 4.4 4.7 7.1 10.3 6.9-6.2 5.4-5.6 11.9-1.2 14.2 4 2.1 8.7-.8 10.9-5.7 1.1 8.4 6.1 12.3 10.7 10.1 4.1-2 4.2-7.3.9-11.1 7.3 3.2 13.4.9 13.6-4.2.2-4.5-4.4-7.5-10.2-7.3 6.3-5.4 5.8-11.8 1.5-14.1-4.1-2.2-8.8.7-10.9 5.9ZM32 29.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6Z" /></svg>
-                            </div>
-                            <span className="mt-4 text-sm font-medium tracking-wide text-zinc-700 dark:text-zinc-200">Preparing page {currentIndex + 1}</span>
-                        </div>
-                    )}
-
-                    {currentImage ? (
-                        <img key={currentIndex} src={currentImage.src} alt={`Page ${currentIndex + 1}`} className="block w-full h-auto object-contain max-h-[85vh] mx-auto" decoding="async" draggable="false" onLoad={() => setPageLoading(false)} />
-                    ) : (
-                        <img key={currentIndex} src={pageUrl(currentIndex)} alt={`Page ${currentIndex + 1}`} className="block w-full h-auto object-contain max-h-[85vh] mx-auto" fetchPriority="high" decoding="async" onLoad={() => { preloadPage(currentIndex, true); setPageLoading(false); }} />
-                    )}
-
-                    <div className="absolute inset-y-0 left-0 w-1/4 cursor-pointer opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-r from-black/10 to-transparent flex items-center justify-start pl-4" onClick={prevPage} title="Previous Page">
-                        {currentIndex > 0 && <i className="fas fa-chevron-left text-3xl text-[var(--text-color)]/70 drop-shadow-md" />}
-                    </div>
-                    <div className="absolute inset-y-0 right-0 w-1/4 cursor-pointer opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-l from-black/10 to-transparent flex items-center justify-end pr-4" onClick={nextPage} title="Next Page">
-                        {currentIndex < pages.length - 1 && <i className="fas fa-chevron-right text-3xl text-[var(--text-color)]/70 drop-shadow-md" />}
-                    </div>
-                </div>
-            </div>
-
-            <div className="fixed bottom-0 left-0 right-0 bg-[var(--card-bg)] dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-lg z-40">
-                <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-                    <button onClick={prevPage} disabled={currentIndex === 0} className="flex-1 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-[var(--text-color)] font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95"><i className="fas fa-arrow-left mr-2" /> Prev</button>
-                    <div className="text-center px-4"><span className="block text-sm font-bold text-zinc-900 dark:text-[var(--text-color)]">Page {currentIndex + 1}</span><span className="text-xs text-zinc-500">of {pages.length}</span></div>
-                    <button onClick={nextPage} disabled={currentIndex === pages.length - 1} className="flex-1 py-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-[var(--text-color)] dark:text-[var(--text-color)] font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800 dark:hover:bg-zinc-200 transition active:scale-95">Next <i className="fas fa-arrow-right ml-2" /></button>
-                </div>
-                <p className="text-center text-[10px] text-zinc-400 mt-2">Tip: Swipe left/right or use arrow keys</p>
-            </div>
-            <div className="h-24" />
-        </div>
-    );
+    const [currentIndex,setCurrentIndex]=useState(0),[loadedPages,setLoadedPages]=useState(()=>new Set()),[pageLoading,setPageLoading]=useState(true),[touchStart,setTouchStart]=useState(null),[touchEnd,setTouchEnd]=useState(null);
+    const preloaded=useRef(new Map()),loading=useRef(new Set());
+    const minSwipeDistance=50;
+    const pageUrl=useCallback(i=>`${apiBaseUrl}${pages[i]}`,[apiBaseUrl,pages]);
+    const preloadPage=useCallback((i,priority=false)=>{if(i<0||i>=pages.length||preloaded.current.has(i)||loading.current.has(i))return;loading.current.add(i);const img=new Image();img.decoding='async';img.loading=priority?'eager':'lazy';img.fetchPriority=priority?'high':'low';img.onload=async()=>{try{if(img.decode)await img.decode()}catch(_){}preloaded.current.set(i,img);loading.current.delete(i);setLoadedPages(prev=>{const next=new Set(prev);next.add(i);return next})};img.onerror=()=>loading.current.delete(i);img.src=pageUrl(i)},[pageUrl,pages.length]);
+    const warmWindow=useCallback(i=>[i-1,i,i+1,i+2].forEach((target,offset)=>preloadPage(target,offset===1)),[preloadPage]);
+    useEffect(()=>{setPageLoading(!loadedPages.has(currentIndex));warmWindow(currentIndex)},[currentIndex,warmWindow,loadedPages]);
+    const nextPage=useCallback(()=>{if(currentIndex<pages.length-1){const next=currentIndex+1;preloadPage(next,true);warmWindow(next);setCurrentIndex(next);window.scrollTo({top:0,behavior:'instant'})}},[currentIndex,pages.length,preloadPage,warmWindow]);
+    const prevPage=useCallback(()=>{if(currentIndex>0){const prev=currentIndex-1;preloadPage(prev,true);warmWindow(prev);setCurrentIndex(prev);window.scrollTo({top:0,behavior:'instant'})}},[currentIndex,preloadPage,warmWindow]);
+    useEffect(()=>{const h=e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextPage()}else if(e.key==='ArrowLeft'){e.preventDefault();prevPage()}};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h)},[nextPage,prevPage]);
+    const onTouchStart=e=>{setTouchEnd(null);setTouchStart(e.targetTouches[0].clientX)},onTouchMove=e=>setTouchEnd(e.targetTouches[0].clientX),onTouchEnd=()=>{if(touchStart==null||touchEnd==null)return;const d=touchStart-touchEnd;if(d>minSwipeDistance)nextPage();else if(d<-minSwipeDistance)prevPage()};
+    const currentImage=preloaded.current.get(currentIndex);
+    return <div className="mx-auto max-w-3xl px-4 min-h-[80vh] flex flex-col justify-center select-none" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}><div className="relative mb-6"><div className="relative min-h-[240px] overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-800">{pageLoading&&<ReaderLoader page={currentIndex+1}/>} {currentImage?<img key={currentIndex} src={currentImage.src} alt={`Page ${currentIndex+1}`} className="block w-full h-auto object-contain max-h-[85vh] mx-auto" decoding="async" draggable="false" onLoad={()=>setPageLoading(false)}/>:<img key={currentIndex} src={pageUrl(currentIndex)} alt={`Page ${currentIndex+1}`} className="block w-full h-auto object-contain max-h-[85vh] mx-auto" fetchPriority="high" decoding="async" onLoad={()=>{preloadPage(currentIndex,true);setPageLoading(false)}}/>}<div className="absolute inset-y-0 left-0 w-1/4 cursor-pointer opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-r from-black/10 to-transparent flex items-center justify-start pl-4" onClick={prevPage} title="Previous Page">{currentIndex>0&&<i className="fas fa-chevron-left text-3xl text-[var(--text-color)]/70 drop-shadow-md"/>}</div><div className="absolute inset-y-0 right-0 w-1/4 cursor-pointer opacity-0 hover:opacity-100 transition-opacity bg-gradient-to-l from-black/10 to-transparent flex items-center justify-end pr-4" onClick={nextPage} title="Next Page">{currentIndex<pages.length-1&&<i className="fas fa-chevron-right text-3xl text-[var(--text-color)]/70 drop-shadow-md"/>}</div></div></div><div className="fixed bottom-0 left-0 right-0 bg-[var(--card-bg)] dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-lg z-40"><div className="max-w-3xl mx-auto flex items-center justify-between gap-4"><button onClick={prevPage} disabled={currentIndex===0} className="flex-1 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-[var(--text-color)] font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-200 dark:hover:bg-zinc-700 transition active:scale-95"><i className="fas fa-arrow-left mr-2"/> Prev</button><div className="text-center px-4"><span className="block text-sm font-bold text-zinc-900 dark:text-[var(--text-color)]">Page {currentIndex+1}</span><span className="text-xs text-zinc-500">of {pages.length}</span></div><button onClick={nextPage} disabled={currentIndex===pages.length-1} className="flex-1 py-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-[var(--text-color)] dark:text-[var(--text-color)] font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800 dark:hover:bg-zinc-200 transition active:scale-95">Next <i className="fas fa-arrow-right ml-2"/></button></div><p className="text-center text-[10px] text-zinc-400 mt-2">Tip: Swipe left/right or use arrow keys</p></div><div className="h-24"/></div>;
 }
