@@ -12,6 +12,7 @@ import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import Membership from './Membership.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
+import AtmaLoader from './AtmaLoader.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -48,6 +49,7 @@ import './responsive-desktop.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <AtmaLoader />
     <App />
     <UserAuth />
     <ReaderBookmark />
