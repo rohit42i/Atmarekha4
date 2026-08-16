@@ -47,6 +47,7 @@ button, a { touch-action: manipulation; }
 .mobile-nav-toggle:active { transform: scale(.97); }
 .theme-toggle span:first-child { font-size: 17px; line-height: 1; }
 .theme-toggle-label { white-space: nowrap; }
+.theme-toggle-standalone { margin-left: auto; flex: 0 0 auto; }
 .mobile-nav-toggle { display: inline-flex; flex-direction: column; gap: 4px; padding: 0; width: 44px; }
 .mobile-nav-toggle span { width: 17px; height: 2px; border-radius: 99px; background: currentColor; transition: transform .18s ease, opacity .18s ease; }
 .nav-open .mobile-nav-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
