@@ -10,20 +10,13 @@ const R2_BUCKETS = new Set(['chapter-pages', 'covers']);
 
 const IMAGE_MIN_SIZE = 500 * 1024;
 const IMAGE_MAX_SIZE = 1024 * 1024;
-const IMAGE_TARGET_SIZE = 768 * 1024;
 const IMAGE_MAX_EDGE = 2400;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.warn(
-    'Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.'
-  );
+  console.warn('Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.');
 }
 
-const client = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder-key'
-);
-
+const client = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder-key');
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
 async function authHeaders() {
@@ -34,10 +27,7 @@ async function authHeaders() {
 }
 
 const blobFromCanvas = (canvas, type, quality) => new Promise((resolve, reject) => {
-  canvas.toBlob(blob => {
-    if (blob) resolve(blob);
-    else reject(new Error('The browser could not encode this image.'));
-  }, type, quality);
+  canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')), type, quality);
 });
 
 async function decodeImage(file) {
@@ -53,6 +43,12 @@ async function decodeImage(file) {
   });
 }
 
+async function supportsWebP() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 1;
+  return new Promise(resolve => canvas.toBlob(blob => resolve(Boolean(blob)), 'image/webp', 0.9));
+}
+
 async function compressImage(file) {
   if (!(file instanceof File) || !file.type.startsWith('image/')) return file;
 
@@ -61,87 +57,70 @@ async function compressImage(file) {
   const sourceHeight = image.height;
   const longestEdge = Math.max(sourceWidth, sourceHeight);
 
-  // Small, reasonably-sized images stay completely untouched.
+  // Truly small images remain byte-for-byte untouched.
   if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) {
     image.close?.();
     return file;
   }
 
-  const canUseWebP = await new Promise(resolve => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1; canvas.height = 1;
-    canvas.toBlob(blob => resolve(Boolean(blob)), 'image/webp', 0.95);
-  });
-  const outputType = canUseWebP ? 'image/webp' : 'image/jpeg';
-
+  const outputType = await supportsWebP() ? 'image/webp' : 'image/jpeg';
   let scale = Math.min(1, IMAGE_MAX_EDGE / longestEdge);
 
   try {
-    // If the first pass is still too large, progressively reduce dimensions.
-    for (let dimensionPass = 0; dimensionPass < 6; dimensionPass += 1) {
+    for (let dimensionPass = 0; dimensionPass < 7; dimensionPass += 1) {
       const width = Math.max(1, Math.round(sourceWidth * scale));
       const height = Math.max(1, Math.round(sourceHeight * scale));
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
-      const context = canvas.getContext('2d', { alpha: true });
+      const context = canvas.getContext('2d', { alpha: outputType === 'image/webp' });
       if (!context) throw new Error('Canvas encoding is unavailable in this browser.');
       context.imageSmoothingEnabled = true;
       context.imageSmoothingQuality = 'high';
       context.drawImage(image, 0, 0, width, height);
 
-      // Find the highest quality that remains at or below 1 MB.
+      // Find the highest quality that fits under 1 MB. This prioritizes quality.
       let low = 0.45;
-      let high = 0.96;
+      let high = 0.98;
       let best = null;
-      let bestDistance = Infinity;
-
-      for (let i = 0; i < 8; i += 1) {
+      for (let i = 0; i < 10; i += 1) {
         const quality = (low + high) / 2;
         const blob = await blobFromCanvas(canvas, outputType, quality);
         if (blob.size <= IMAGE_MAX_SIZE) {
-          const distance = Math.abs(blob.size - IMAGE_TARGET_SIZE);
-          if (distance < bestDistance) {
-            best = blob;
-            bestDistance = distance;
-          }
+          best = blob;
           low = quality;
         } else {
           high = quality;
         }
       }
 
-      // Also test the top quality explicitly; this prevents unnecessary quality loss.
-      const highest = await blobFromCanvas(canvas, outputType, 0.96);
-      if (highest.size <= IMAGE_MAX_SIZE && (!best || highest.size > best.size)) best = highest;
+      // If the highest tested quality fits, always prefer it over a smaller result.
+      const highest = await blobFromCanvas(canvas, outputType, 0.98);
+      if (highest.size <= IMAGE_MAX_SIZE) best = highest;
 
-      if (best && best.size <= IMAGE_MAX_SIZE) {
-        // If compression naturally lands below 500 KB, keep the best-quality result
-        // rather than artificially inflating the file with padding.
-        const result = new File([best], file.name, {
+      if (best) {
+        // Never inflate an image merely to reach 500 KB.
+        return new File([best], file.name.replace(/\.(png|jpe?g|gif|bmp|avif)$/i, '.webp'), {
           type: outputType,
           lastModified: file.lastModified,
         });
-        image.close?.();
-        return result;
       }
 
-      // Quality alone was not enough. Reduce the long edge and try again.
-      scale *= 0.88;
+      // Quality alone could not get below 1 MB; reduce dimensions and retry.
+      scale *= 0.86;
     }
   } finally {
     image.close?.();
   }
 
-  throw new Error(`${file.name} could not be compressed below 1 MB without excessive quality loss. Try a smaller source image.`);
+  throw new Error(`${file.name} could not be compressed below 1 MB while preserving acceptable quality.`);
 }
 
 const r2Storage = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
 
-    const publicPath = path =>
-      `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
+    const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
 
     return {
       async upload(path, file, options = {}) {
@@ -156,22 +135,16 @@ const r2Storage = {
             },
             body: processedFile,
           });
-
           if (!response.ok) {
             const text = await response.text();
             return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) };
           }
-
           return { data: { path }, error: null };
         } catch (error) {
           return { data: null, error };
         }
       },
-
-      getPublicUrl(path) {
-        return { data: { publicUrl: publicPath(path) } };
-      },
-
+      getPublicUrl(path) { return { data: { publicUrl: publicPath(path) } }; },
       async remove(paths) {
         const clean = (paths || []).filter(Boolean);
         try {
@@ -184,9 +157,7 @@ const r2Storage = {
             }
           }
           return { data: clean.map(path => ({ name: path })), error: null };
-        } catch (error) {
-          return { data: null, error };
-        }
+        } catch (error) { return { data: null, error }; }
       },
     };
   },
