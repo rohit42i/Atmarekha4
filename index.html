@@ -7,7 +7,7 @@
   <meta name="application-name" content="Atma Rekha" />
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#080808" media="(prefers-color-scheme: dark)" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Atma Rekha" />
   <meta property="og:title" content="Atma Rekha — Original Indian Manga & Mythical Fantasy" />
@@ -19,12 +19,24 @@
   <meta name="twitter:description" content="An original Indian manga and mythical fantasy story inspired by Indian culture, mythology, traditions, spirituality, and original storytelling." />
   <meta name="twitter:image" content="https://www.atmarekha.in/ishani.png" />
   <link rel="canonical" href="https://www.atmarekha.in/" />
-  <title>Atma Rekha — Original Indian Manga & Mythical Fantasy</title>
   <link rel="icon" href="/ishani.png" type="image/png" />
+  <link rel="stylesheet" href="/responsive-theme.css" />
+  <script>
+    (() => {
+      const key = 'atma-rekha-theme';
+      const stored = (() => { try { return localStorage.getItem(key); } catch { return null; } })();
+      const theme = stored === 'light' || stored === 'dark'
+        ? stored
+        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.arTheme = theme;
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
     .chapter-list-page .subpage-header .header-kicker { display: none !important; }
   </style>
+  <title>Atma Rekha — Original Indian Manga & Mythical Fantasy</title>
 </head>
 <body>
   <div id="root"></div>
