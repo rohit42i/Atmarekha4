@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 
 const PARTICLES = [
-  [5, 63, 38, '-1.2s', '4.6s'], [20, 76, -42, '-.4s', '5.2s'], [35, 69, 52, '-2.8s', '4.1s'],
-  [51, 82, -30, '-1.7s', '5.8s'], [68, 61, 44, '-3.1s', '4.8s'], [84, 74, -52, '-.8s', '5.2s'],
-  [101, 67, 35, '-2.1s', '4.4s'], [119, 84, -48, '-3.6s', '5.7s'], [137, 64, 50, '-1.4s', '4.3s'],
-  [154, 76, -36, '-2.6s', '5.1s'], [171, 70, 42, '-.6s', '4.7s'], [188, 81, -55, '-3.4s', '5.6s'],
-  [205, 62, 47, '-1.9s', '4.5s'], [222, 73, -40, '-2.9s', '5.3s'], [239, 86, 32, '-4.1s', '6s'],
-  [256, 68, -46, '-4.7s', '5.9s'], [273, 79, 54, '-1.1s', '5s'], [289, 65, -35, '-3.8s', '4.6s'],
-  [305, 83, 48, '-2.3s', '5.5s'], [321, 71, -58, '-.9s', '4.9s'], [337, 88, 36, '-3.2s', '6s'],
-  [350, 66, -44, '-1.6s', '4.2s'], [145, 88, 62, '-4.4s', '5.8s'], [275, 91, -51, '-5s', '6.2s']
+  [5, 61.6, 38, '-1.2s', '4.6s'], [20, 74.8, -42, '-.4s', '5.2s'], [35, 68.2, 52, '-2.8s', '4.1s'],
+  [51, 81.4, -30, '-1.7s', '5.8s'], [68, 61.6, 44, '-3.1s', '4.8s'], [84, 74.8, -52, '-.8s', '5.2s'],
+  [101, 66, 35, '-2.1s', '4.4s'], [119, 83.6, -48, '-3.6s', '5.7s'], [137, 63.8, 50, '-1.4s', '4.3s'],
+  [154, 74.8, -36, '-2.6s', '5.1s'], [171, 70.4, 42, '-.6s', '4.7s'], [188, 81.4, -55, '-3.4s', '5.6s'],
+  [205, 61.6, 47, '-1.9s', '4.5s'], [222, 72.6, -40, '-2.9s', '5.3s'], [239, 85.8, 32, '-4.1s', '6s'],
+  [256, 68.2, -46, '-4.7s', '5.9s'], [273, 79.2, 54, '-1.1s', '5s'], [289, 63.8, -35, '-3.8s', '4.6s'],
+  [305, 83.6, 48, '-2.3s', '5.5s'], [321, 70.4, -58, '-.9s', '4.9s'], [337, 88, 36, '-3.2s', '6s'],
+  [350, 66, -44, '-1.6s', '4.2s'], [145, 88, 62, '-4.4s', '5.8s'], [275, 90.2, -51, '-5s', '6.2s']
 ];
 
 const LOADER_CSS = `
@@ -18,28 +18,34 @@ const LOADER_CSS = `
 .atma-loader-stage{width:220px;height:220px;display:grid;place-items:center;flex:none}
 .atma-loader{position:relative;width:220px;height:220px;transform-origin:center;transform:scale(var(--atma-loader-scale,1))}
 .atma-loader-viewport.refresh-mode .atma-loader{--atma-loader-scale:.54545}
-.atma-loader .aura{position:absolute;inset:45px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%);animation:atma-aura 4s ease-in-out infinite}
-.atma-loader .outer-ring{position:absolute;left:50%;top:50%;width:174px;height:174px;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.025);opacity:.45;z-index:2;animation:atma-ringMove 8s linear infinite,atma-ringPulse 4s ease-in-out infinite}
+.atma-loader .aura{position:absolute;inset:44px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%);animation:atma-aura 4s ease-in-out infinite}
+.atma-loader .outer-ring{position:absolute;left:50%;top:50%;width:173.8px;height:173.8px;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.025);opacity:.45;z-index:2;animation:atma-ringMove 8s linear infinite,atma-ringPulse 4s ease-in-out infinite}
 .atma-loader .outer-ring:after{content:"";position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(255,255,255,.4) 325deg,rgba(255,255,255,.08) 340deg,transparent 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));animation:atma-ringLight 5s linear infinite}
-.atma-loader .symbol{position:absolute;inset:20px;animation:atma-symbolRotate 12s ease-in-out infinite;z-index:4}
+.atma-loader .symbol{position:absolute;inset:19.8px;animation:atma-symbolRotate 12s ease-in-out infinite;z-index:4}
 .atma-loader svg{width:100%;height:100%;overflow:visible}
 .atma-loader .mark{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80 180;animation:atma-markFlow 3.2s linear infinite,atma-markPulse 4s ease-in-out infinite}
 .atma-loader .mark.two{stroke-dasharray:45 220;animation-delay:-1.7s}
 .atma-loader .mark.three{stroke-dasharray:25 260;animation-delay:-2.6s}
+.atma-loader .thread{position:absolute;left:50%;top:50%;width:2px;height:79.2px;transform-origin:50% 100%;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,.45),transparent);z-index:6}
+.atma-loader .thread.one{animation:atma-seekerOne 4.2s ease-in-out infinite}
+.atma-loader .thread.two{animation:atma-seekerTwo 5s ease-in-out infinite}
+.atma-loader .thread:after{content:"";position:absolute;left:50%;top:0;width:8px;height:100%;transform:translateX(-50%);background:inherit;opacity:.13;filter:blur(5px)}
 .atma-loader .fragments{position:absolute;inset:0;pointer-events:none;z-index:8}
 .atma-loader .fragment{position:absolute;left:50%;top:50%;width:1px;height:6px;border-radius:100%;background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.45);opacity:0;animation:atma-fragmentOrbit var(--duration) ease-in-out infinite;animation-delay:var(--delay)}
-.atma-loader .burst{position:absolute;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;z-index:15;pointer-events:none;animation:atma-burstPulse 5.8s ease-out infinite}
+.atma-loader .burst{position:absolute;left:50%;top:50%;width:9.9px;height:9.9px;transform:translate(-50%,-50%);border-radius:50%;z-index:15;pointer-events:none;animation:atma-burstPulse 5.8s ease-out infinite}
 .atma-loader .burst span{position:absolute;left:50%;top:50%;width:1px;height:7px;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),transparent);transform-origin:50% 0;opacity:0;animation:atma-sparkBurst 5.8s ease-out infinite}
-.atma-loader .node{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:white;box-shadow:0 0 10px rgba(255,255,255,.7);z-index:20}
+.atma-loader .node{position:absolute;left:50%;top:50%;width:5.06px;height:5.06px;border-radius:50%;background:white;box-shadow:0 0 10px rgba(255,255,255,.7);z-index:20}
 .atma-loader .node.one{animation:atma-nodeOne 4.2s ease-in-out infinite}
 .atma-loader .node.two{animation:atma-nodeTwo 5s ease-in-out infinite}
-.atma-loader .center{position:absolute;left:50%;top:50%;width:5px;height:5px;transform:translate(-50%,-50%);border-radius:50%;background:white;box-shadow:0 0 12px rgba(255,255,255,.8);z-index:25;animation:atma-centerPulse 2.5s ease-in-out infinite}
-@keyframes atma-fragmentOrbit{0%{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius) - 18px)) scale(.15);opacity:0}15%{opacity:.12}32%{opacity:.85}50%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift))) translateY(var(--radius)) scale(1);opacity:.7}68%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 18deg)) translateY(calc(var(--radius) + 9px)) scale(.65);opacity:.3}82%{opacity:.06}100%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 35deg)) translateY(calc(var(--radius) + 18px)) scale(.05);opacity:0}}
+.atma-loader .center{position:absolute;left:50%;top:50%;width:5.06px;height:5.06px;transform:translate(-50%,-50%);border-radius:50%;background:white;box-shadow:0 0 12px rgba(255,255,255,.8);z-index:25;animation:atma-centerPulse 2.5s ease-in-out infinite}
+@keyframes atma-fragmentOrbit{0%{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius) - 17.6px)) scale(.15);opacity:0}15%{opacity:.12}32%{opacity:.85}50%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift))) translateY(var(--radius)) scale(1);opacity:.7}68%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 18deg)) translateY(calc(var(--radius) + 8.8px)) scale(.65);opacity:.3}82%{opacity:.06}100%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 35deg)) translateY(calc(var(--radius) + 17.6px)) scale(.05);opacity:0}}
 @keyframes atma-sparkBurst{0%,45%{transform:rotate(var(--r)) translateY(3px) scaleY(.2);opacity:0}50%{opacity:1}62%{transform:rotate(var(--r)) translateY(32px) scaleY(1);opacity:.75}72%{transform:rotate(var(--r)) translateY(45px) scaleY(.35);opacity:0}100%{opacity:0}}
 @keyframes atma-burstPulse{0%,42%{transform:translate(-50%,-50%) scale(.15);opacity:0}50%{transform:translate(-50%,-50%) scale(.8);opacity:1}60%{transform:translate(-50%,-50%) scale(1.15);opacity:.7}70%,100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
 @keyframes atma-symbolRotate{0%{transform:rotate(-12deg) scale(.92)}50%{transform:rotate(12deg) scale(1.04)}100%{transform:rotate(-12deg) scale(.92)}}
 @keyframes atma-markFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-260}}
 @keyframes atma-markPulse{0%,100%{opacity:.12}40%{opacity:.7}60%{opacity:.35}}
+@keyframes atma-seekerOne{0%{transform:translate(-50%,-100%) rotate(-140deg) scaleY(.55);opacity:.25}20%{transform:translate(-50%,-100%) rotate(-65deg) scaleY(1);opacity:1}40%{transform:translate(-50%,-100%) rotate(15deg) scaleY(.75);opacity:.8}55%{transform:translate(-50%,-100%) rotate(70deg) scaleY(1.15);opacity:1}75%{transform:translate(-50%,-100%) rotate(150deg) scaleY(.6);opacity:.35}100%{transform:translate(-50%,-100%) rotate(220deg) scaleY(.55);opacity:.25}}
+@keyframes atma-seekerTwo{0%{transform:translate(-50%,-100%) rotate(50deg) scaleY(.6);opacity:.25}25%{transform:translate(-50%,-100%) rotate(130deg) scaleY(1.1);opacity:.9}45%{transform:translate(-50%,-100%) rotate(210deg) scaleY(.7);opacity:1}65%{transform:translate(-50%,-100%) rotate(285deg) scaleY(1.15);opacity:.8}80%{transform:translate(-50%,-100%) rotate(345deg) scaleY(.5);opacity:.3}100%{transform:translate(-50%,-100%) rotate(410deg) scaleY(.6);opacity:.25}}
 @keyframes atma-nodeOne{0%{transform:translate(-50%,-50%) rotate(-140deg) translateY(42px);opacity:.2}40%{transform:translate(-50%,-50%) rotate(15deg) translateY(78px);opacity:1}75%{transform:translate(-50%,-50%) rotate(150deg) translateY(52px);opacity:.3}100%{opacity:.2}}
 @keyframes atma-nodeTwo{0%{transform:translate(-50%,-50%) rotate(50deg) translateY(50px);opacity:.2}45%{transform:translate(-50%,-50%) rotate(210deg) translateY(80px);opacity:1}80%{transform:translate(-50%,-50%) rotate(345deg) translateY(45px);opacity:.25}100%{opacity:.2}}
 @keyframes atma-centerPulse{0%,100%{transform:translate(-50%,-50%) scale(.6);opacity:.45}50%{transform:translate(-50%,-50%) scale(1.4);opacity:1}}
@@ -47,9 +53,40 @@ const LOADER_CSS = `
 @keyframes atma-ringMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}
 @keyframes atma-ringPulse{0%,100%{opacity:.25}50%{opacity:.55}}
 @keyframes atma-ringLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@media(max-width:360px){.atma-loader-stage{width:170px;height:170px}.atma-loader{width:170px;height:170px}.atma-loader-viewport.refresh-mode .atma-loader{--atma-loader-scale:.5588}}
+@media(max-width:360px){.atma-loader-stage{width:170px;height:170px}.atma-loader{width:220px;height:220px}.atma-loader-viewport.main-mode .atma-loader{--atma-loader-scale:.7727}.atma-loader-viewport.refresh-mode .atma-loader{--atma-loader-scale:.54545}}
 @media(prefers-reduced-motion:reduce){.atma-loader,.atma-loader *{animation-duration:.01ms!important;animation-iteration-count:1!important}.atma-loader-viewport.is-hidden{transition:none}}
 `;
+
+function LoaderArtwork() {
+  return (
+    <div className="atma-loader-stage">
+      <div className="atma-loader">
+        <div className="aura" />
+        <div className="outer-ring" />
+        <div className="symbol">
+          <svg viewBox="0 0 220 220" aria-hidden="true">
+            <path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155" />
+            <path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155" />
+            <path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180" />
+          </svg>
+        </div>
+        <div className="fragments">
+          {PARTICLES.map(([angle, radius, drift, delay, duration], i) => (
+            <div className="fragment" key={i} style={{ '--angle': `${angle}deg`, '--radius': `${radius}px`, '--drift': `${drift}deg`, '--delay': delay, '--duration': duration }} />
+          ))}
+        </div>
+        <div className="burst">
+          {Array.from({ length: 12 }, (_, i) => <span key={i} style={{ '--r': `${i * 30}deg` }} />)}
+        </div>
+        <div className="thread one" />
+        <div className="thread two" />
+        <div className="node one" />
+        <div className="node two" />
+        <div className="center" />
+      </div>
+    </div>
+  );
+}
 
 export default function AtmaLoader() {
   const viewportRef = useRef(null);
@@ -92,14 +129,12 @@ export default function AtmaLoader() {
     };
 
     window.AtmaLoader = { show, hide };
-
     const onResize = () => setMainScale();
-    const onLoad = () => hide();
+    const onLoad = () => setTimeout(hide, 400);
 
     window.addEventListener('resize', onResize, { passive: true });
     show('main');
-
-    if (document.readyState === 'complete') setTimeout(hide, 0);
+    if (document.readyState === 'complete') onLoad();
     else window.addEventListener('load', onLoad, { once: true });
 
     return () => {
@@ -114,55 +149,8 @@ export default function AtmaLoader() {
   return (
     <>
       <style>{LOADER_CSS}</style>
-      <div
-        ref={viewportRef}
-        className="atma-loader-viewport main-mode"
-        data-atma-loader
-        role="status"
-        aria-label="Loading Atma Rekha"
-      >
-        <div className="atma-loader-stage">
-          <div ref={loaderRef} className="atma-loader">
-            <div className="aura" />
-            <div className="outer-ring" />
-
-            <div className="symbol">
-              <svg viewBox="0 0 220 220" aria-hidden="true">
-                <path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155" />
-                <path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155" />
-                <path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180" />
-              </svg>
-            </div>
-
-            <div className="fragments">
-              {PARTICLES.map(([angle, radius, drift, delay, duration], i) => (
-                <div
-                  className="fragment"
-                  key={i}
-                  style={{
-                    '--angle': `${angle}deg`,
-                    '--radius': `${radius}px`,
-                    '--drift': `${drift}deg`,
-                    '--delay': delay,
-                    '--duration': duration
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="burst">
-              {Array.from({ length: 12 }, (_, i) => (
-                <span key={i} style={{ '--r': `${i * 30}deg` }} />
-              ))}
-            </div>
-
-            {/* The two old seeking threads are intentionally omitted.
-                They were the source of the unwanted growing white center strips. */}
-            <div className="node one" />
-            <div className="node two" />
-            <div className="center" />
-          </div>
-        </div>
+      <div ref={viewportRef} className="atma-loader-viewport main-mode" data-atma-loader role="status" aria-label="Loading Atma Rekha">
+        <div ref={loaderRef}><LoaderArtwork /></div>
       </div>
     </>
   );
