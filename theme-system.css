@@ -1,25 +1,31 @@
-/* Atma Rekha — simple system theme: light = white, dark = black. */
+/* Atma Rekha — theme foundation. Existing dark values are preserved. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg-color:#fff; --surface-color:#fff; --surface-2-color:#f5f5f5; --card-bg:#fff; --input-bg:#fff;
   --text-color:#111; --text-secondary:#2b2b2b; --muted-color:#555; --faint-color:#666;
   --border-color:#d9d9d9; --border-soft-color:#e8e8e8; --accent-color:#1d4ed8; --accent-hover:#1e40af;
   --accent-contrast:#fff; --on-dark-surface:#fff; --success-color:#166534; --danger-color:#b42318; --danger-bg:#fff1f0;
   --warning-color:#7a4b00; --warning-bg:#fff8e6; --overlay-color:rgb(0 0 0/.58); --shadow-color:rgb(0 0 0/.12);
   --icon-color:var(--text-color); --arrow-color:var(--text-color); --control-border-color:var(--border-color);
+  --bg-primary:var(--bg-color); --bg-surface:var(--surface-color); --bg-secondary:var(--surface-2-color);
+  --text-primary:var(--text-color); --text-secondary-color:var(--text-secondary); --text-muted:var(--muted-color);
+  --border-primary:var(--border-color); --border-secondary:var(--border-soft-color); --shadow-color-soft:var(--shadow-color);
 }
-@media (prefers-color-scheme: dark){:root{
-  color-scheme:dark;
+
+html[data-ar-theme="dark"] {
+  color-scheme: dark;
   --bg-color:#000; --surface-color:#000; --surface-2-color:#111; --card-bg:#000; --input-bg:#000;
   --text-color:#fff; --text-secondary:#eee; --muted-color:#ccc; --faint-color:#aaa;
   --border-color:#333; --border-soft-color:#222; --accent-color:#72a8ff; --accent-hover:#9cc4ff; --accent-contrast:#000; --on-dark-surface:#fff;
   --success-color:#86efac; --danger-color:#fca5a5; --danger-bg:#260b0b; --warning-color:#fde68a; --warning-bg:#211900;
   --overlay-color:rgb(0 0 0/.72); --shadow-color:rgb(0 0 0/.55);
-  --icon-color:var(--text-color); --arrow-color:var(--text-color); --control-border-color:var(--border-color);
-}}
-@media (prefers-color-scheme: light){:root{color-scheme:light}}
+}
+
+html:not([data-ar-theme]) { color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { html:not([data-ar-theme]) { --bg-color:#000; --surface-color:#000; --surface-2-color:#111; --card-bg:#000; --input-bg:#000; --text-color:#fff; --text-secondary:#eee; --muted-color:#ccc; --faint-color:#aaa; --border-color:#333; --border-soft-color:#222; --accent-color:#72a8ff; --accent-hover:#9cc4ff; --accent-contrast:#000; --on-dark-surface:#fff; --success-color:#86efac; --danger-color:#fca5a5; --danger-bg:#260b0b; --warning-color:#fde68a; --warning-bg:#211900; --overlay-color:rgb(0 0 0/.72); --shadow-color:rgb(0 0 0/.55); } }
+
 html,body,#root{min-height:100%;background:var(--bg-color)!important;color:var(--text-color)!important}
-html{color-scheme:light dark!important} body{background:var(--bg-color)!important;color:var(--text-color)!important}
+body{background:var(--bg-color)!important;color:var(--text-color)!important}
 body :where(h1,h2,h3,h4,h5,h6,strong,b,em,blockquote,dt,dd,legend,caption,summary){color:var(--text-color)}
 body :where(p,li,label,small,time,figcaption,.muted,.secondary-text,.faint,.hint,.description,.subtitle){color:var(--muted-color)}
 body :where(a){color:var(--accent-color)} body :where(a:hover,a:focus-visible){color:var(--accent-hover)}
@@ -49,4 +55,5 @@ body :where(hr,fieldset){border-color:var(--border-color)!important} body :where
 body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg){color:var(--arrow-color);stroke:currentColor}
 body :where(button,a,[role="button"]) svg[stroke="currentColor"],body :where(button,a,[role="button"]) svg.arrow,body :where(button,a,[role="button"]) svg.chevron{color:inherit;stroke:currentColor}
 body :where(button,a,input,textarea,select):focus-visible{outline:3px solid var(--accent-color);outline-offset:2px}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
