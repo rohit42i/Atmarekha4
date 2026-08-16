@@ -7,6 +7,7 @@ import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
+import { installAnalytics } from './analytics.js';
 import './index.css';
 import './accessibility-performance.css';
 import './ui-polish.css';
@@ -58,6 +59,8 @@ const DeferredFeatures = () => (
     <Membership />
   </Suspense>
 );
+
+installAnalytics();
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
