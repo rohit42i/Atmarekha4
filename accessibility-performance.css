@@ -1,0 +1,12 @@
+/* Accessibility + interaction performance baseline. */
+html:focus-within { scroll-behavior: smooth; }
+:focus-visible { outline: 3px solid var(--legacy-5f8fff-fec60ba0, #5f8fff); outline-offset: 3px; }
+button, a, input, textarea, select { touch-action: manipulation; }
+button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+img { max-width: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 640px) {
+  button, a[role="button"] { min-height: 44px; }
+}
