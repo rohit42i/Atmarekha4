@@ -1,37 +1,29 @@
 import React, { useEffect, useRef } from 'react';
 
 const PARTICLES = [
-  [5, 28, 38, '-1.2s', '4.6s'], [20, 34, -42, '-.4s', '5.2s'], [35, 31, 52, '-2.8s', '4.1s'],
-  [51, 37, -30, '-1.7s', '5.8s'], [68, 28, 44, '-3.1s', '4.8s'], [84, 34, -52, '-.8s', '5.2s'],
-  [101, 30, 35, '-2.1s', '4.4s'], [119, 38, -48, '-3.6s', '5.7s'], [137, 29, 50, '-1.4s', '4.3s'],
-  [154, 34, -36, '-2.6s', '5.1s'], [171, 32, 42, '-.6s', '4.7s'], [188, 37, -55, '-3.4s', '5.6s'],
-  [205, 28, 47, '-1.9s', '4.5s'], [222, 33, -40, '-2.9s', '5.3s'], [239, 39, 32, '-4.1s', '6s'],
-  [256, 31, -46, '-4.7s', '5.9s'], [273, 36, 54, '-1.1s', '5s'], [289, 29, -35, '-3.8s', '4.6s'],
-  [305, 38, 48, '-2.3s', '5.5s'], [321, 32, -58, '-.9s', '4.9s'], [337, 40, 36, '-3.2s', '6s'],
-  [350, 30, -44, '-1.6s', '4.2s'], [145, 40, 62, '-4.4s', '5.8s'], [275, 41, -51, '-5s', '6.2s']
+  [5,28,38,'-1.2s','4.6s'],[20,34,-42,'-.4s','5.2s'],[35,31,52,'-2.8s','4.1s'],[51,37,-30,'-1.7s','5.8s'],
+  [68,28,44,'-3.1s','4.8s'],[84,34,-52,'-.8s','5.2s'],[101,30,35,'-2.1s','4.4s'],[119,38,-48,'-3.6s','5.7s'],
+  [137,29,50,'-1.4s','4.3s'],[154,34,-36,'-2.6s','5.1s'],[171,32,42,'-.6s','4.7s'],[188,37,-55,'-3.4s','5.6s'],
+  [205,28,47,'-1.9s','4.5s'],[222,33,-40,'-2.9s','5.3s'],[239,39,32,'-4.1s','6s'],[256,31,-46,'-4.7s','5.9s'],
+  [273,36,54,'-1.1s','5s'],[289,29,-35,'-3.8s','4.6s'],[305,38,48,'-2.3s','5.5s'],[321,32,-58,'-.9s','4.9s'],
+  [337,40,36,'-3.2s','6s'],[350,30,-44,'-1.6s','4.2s'],[145,40,62,'-4.4s','5.8s'],[275,41,-51,'-5s','6.2s']
 ];
 
-const LOADER_CSS = `
-*{box-sizing:border-box}
-.atma-main-loader{position:fixed;inset:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#07070a;overflow:hidden;z-index:2147483647;opacity:1;visibility:visible;pointer-events:auto;transition:opacity .5s ease,visibility 0s linear 0s}
-.atma-main-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .5s ease,visibility 0s linear .5s}
-.atma-main-loader .loader{position:relative;width:220px;height:220px;flex:none}
-.atma-main-loader .aura{position:absolute;inset:20%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%);animation:atma-aura 4s ease-in-out infinite}
-.atma-main-loader .outer-ring{position:absolute;left:50%;top:50%;width:79%;height:79%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.025);opacity:.45;z-index:2;animation:atma-ringMove 8s linear infinite,atma-ringPulse 4s ease-in-out infinite}
-.atma-main-loader .outer-ring:after{content:"";position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(255,255,255,.4) 325deg,rgba(255,255,255,.08) 340deg,transparent 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));animation:atma-ringLight 5s linear infinite}
-.atma-main-loader .symbol{position:absolute;inset:9%;animation:atma-symbolRotate 12s ease-in-out infinite;z-index:4}
-.atma-main-loader svg{width:100%;height:100%;overflow:visible}
-.atma-main-loader .mark{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80 180;animation:atma-markFlow 3.2s linear infinite,atma-markPulse 4s ease-in-out infinite}
-.atma-main-loader .mark.two{stroke-dasharray:45 220;animation-delay:-1.7s}.atma-main-loader .mark.three{stroke-dasharray:25 260;animation-delay:-2.6s}
-.atma-main-loader .thread{position:absolute;left:50%;top:50%;width:2px;height:36%;transform-origin:50% 100%;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,.45),transparent);z-index:6}
-.atma-main-loader .thread.one{animation:atma-seekerOne 4.2s ease-in-out infinite}.atma-main-loader .thread.two{animation:atma-seekerTwo 5s ease-in-out infinite}
-.atma-main-loader .thread:after{content:"";position:absolute;left:50%;top:0;width:8px;height:100%;transform:translateX(-50%);background:inherit;opacity:.13;filter:blur(5px)}
-.atma-main-loader .fragments{position:absolute;inset:0;pointer-events:none;z-index:8}
-.atma-main-loader .fragment{position:absolute;left:50%;top:50%;width:1px;height:6px;border-radius:100%;background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.45);opacity:0;--angle:0deg;--radius:29%;--drift:0deg;--delay:0s;--duration:4s;animation:atma-fragmentOrbit var(--duration) ease-in-out infinite;animation-delay:var(--delay)}
-.atma-main-loader .burst{position:absolute;left:50%;top:50%;width:4.5%;height:4.5%;transform:translate(-50%,-50%);border-radius:50%;z-index:15;pointer-events:none;animation:atma-burstPulse 5.8s ease-out infinite}
-.atma-main-loader .burst span{position:absolute;left:50%;top:50%;width:1px;height:7px;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),transparent);transform-origin:50% 0;opacity:0;animation:atma-sparkBurst 5.8s ease-out infinite}
-.atma-main-loader .node{position:absolute;left:50%;top:50%;width:2.3%;height:2.3%;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7);z-index:20}.atma-main-loader .node.one{animation:atma-nodeOne 4.2s ease-in-out infinite}.atma-main-loader .node.two{animation:atma-nodeTwo 5s ease-in-out infinite}
-.atma-main-loader .center{position:absolute;left:50%;top:50%;width:2.3%;height:2.3%;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.8);z-index:25;animation:atma-centerPulse 2.5s ease-in-out infinite}
+const CSS = `
+.atma-loader-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07070a;z-index:2147483647;opacity:1;visibility:visible;pointer-events:auto;overflow:hidden;transition:opacity .5s ease,visibility 0s linear 0s}
+.atma-loader-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .5s ease,visibility 0s linear .5s}
+.atma-loader-overlay[data-variant="refresh"]{background:transparent;align-items:flex-start;padding-top:32vh;z-index:2147483646}
+.atma-loader{position:relative;width:220px;height:220px;flex:none}
+.atma-loader-overlay[data-variant="refresh"] .atma-loader{width:120px;height:120px}
+.atma-loader .aura{position:absolute;inset:20%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%);animation:atma-aura 4s ease-in-out infinite}
+.atma-loader .outer-ring{position:absolute;left:50%;top:50%;width:79%;height:79%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.025);opacity:.45;z-index:2;animation:atma-ringMove 8s linear infinite,atma-ringPulse 4s ease-in-out infinite}
+.atma-loader .outer-ring:after{content:"";position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(255,255,255,.4) 325deg,rgba(255,255,255,.08) 340deg,transparent 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));animation:atma-ringLight 5s linear infinite}
+.atma-loader .symbol{position:absolute;inset:9%;animation:atma-symbolRotate 12s ease-in-out infinite;z-index:4}.atma-loader svg{width:100%;height:100%;overflow:visible}
+.atma-loader .mark{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80 180;animation:atma-markFlow 3.2s linear infinite,atma-markPulse 4s ease-in-out infinite}.atma-loader .mark.two{stroke-dasharray:45 220;animation-delay:-1.7s}.atma-loader .mark.three{stroke-dasharray:25 260;animation-delay:-2.6s}
+.atma-loader .thread{position:absolute;left:50%;top:50%;width:2px;height:36%;transform-origin:50% 100%;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,.45),transparent);z-index:6}.atma-loader .thread.one{animation:atma-seekerOne 4.2s ease-in-out infinite}.atma-loader .thread.two{animation:atma-seekerTwo 5s ease-in-out infinite}.atma-loader .thread:after{content:"";position:absolute;left:50%;top:0;width:8px;height:100%;transform:translateX(-50%);background:inherit;opacity:.13;filter:blur(5px)}
+.atma-loader .fragments{position:absolute;inset:0;pointer-events:none;z-index:8}.atma-loader .fragment{position:absolute;left:50%;top:50%;width:1px;height:6px;border-radius:100%;background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.45);opacity:0;animation:atma-fragmentOrbit var(--duration) ease-in-out infinite;animation-delay:var(--delay)}
+.atma-loader .burst{position:absolute;left:50%;top:50%;width:4.5%;height:4.5%;transform:translate(-50%,-50%);border-radius:50%;z-index:15;pointer-events:none;animation:atma-burstPulse 5.8s ease-out infinite}.atma-loader .burst span{position:absolute;left:50%;top:50%;width:1px;height:7px;border-radius:100%;background:linear-gradient(to top,rgba(255,255,255,.95),transparent);transform-origin:50% 0;opacity:0;animation:atma-sparkBurst 5.8s ease-out infinite}
+.atma-loader .node{position:absolute;left:50%;top:50%;width:2.3%;height:2.3%;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7);z-index:20}.atma-loader .node.one{animation:atma-nodeOne 4.2s ease-in-out infinite}.atma-loader .node.two{animation:atma-nodeTwo 5s ease-in-out infinite}.atma-loader .center{position:absolute;left:50%;top:50%;width:2.3%;height:2.3%;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.8);z-index:25;animation:atma-centerPulse 2.5s ease-in-out infinite}
 @keyframes atma-fragmentOrbit{0%{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(calc(var(--radius) - 8%)) scale(.15);opacity:0}15%{opacity:.12}32%{opacity:.85}50%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift))) translateY(var(--radius)) scale(1);opacity:.7}68%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 18deg)) translateY(calc(var(--radius) + 4%)) scale(.65);opacity:.3}82%{opacity:.06}100%{transform:translate(-50%,-50%) rotate(calc(var(--angle) + var(--drift) + 35deg)) translateY(calc(var(--radius) + 8%)) scale(.05);opacity:0}}
 @keyframes atma-sparkBurst{0%,45%{transform:rotate(var(--r)) translateY(3px) scaleY(.2);opacity:0}50%{opacity:1}62%{transform:rotate(var(--r)) translateY(32px) scaleY(1);opacity:.75}72%{transform:rotate(var(--r)) translateY(45px) scaleY(.35);opacity:0}100%{opacity:0}}
 @keyframes atma-burstPulse{0%,42%{transform:translate(-50%,-50%) scale(.15);opacity:0}50%{transform:translate(-50%,-50%) scale(.8);opacity:1}60%{transform:translate(-50%,-50%) scale(1.15);opacity:.7}70%,100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
@@ -42,87 +34,39 @@ const LOADER_CSS = `
 @keyframes atma-nodeOne{0%{transform:translate(-50%,-50%) rotate(-140deg) translateY(42px);opacity:.2}40%{transform:translate(-50%,-50%) rotate(15deg) translateY(78px);opacity:1}75%{transform:translate(-50%,-50%) rotate(150deg) translateY(52px);opacity:.3}100%{opacity:.2}}
 @keyframes atma-nodeTwo{0%{transform:translate(-50%,-50%) rotate(50deg) translateY(50px);opacity:.2}45%{transform:translate(-50%,-50%) rotate(210deg) translateY(80px);opacity:1}80%{transform:translate(-50%,-50%) rotate(345deg) translateY(45px);opacity:.25}100%{opacity:.2}}
 @keyframes atma-centerPulse{0%,100%{transform:translate(-50%,-50%) scale(.6);opacity:.45}50%{transform:translate(-50%,-50%) scale(1.4);opacity:1}}
-@keyframes atma-aura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}
-@keyframes atma-ringMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes atma-ringPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes atma-ringLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@media(max-width:360px){.atma-main-loader .loader{width:170px;height:170px}}
-@media(prefers-reduced-motion:reduce){.atma-main-loader *,.atma-main-loader *:before,.atma-main-loader *:after{animation-duration:.01ms!important;animation-iteration-count:1!important}.atma-main-loader.is-hidden{transition:none}}
+@keyframes atma-aura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}@keyframes atma-ringMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes atma-ringPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes atma-ringLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:360px){.atma-loader-overlay[data-variant="main"] .atma-loader{width:170px;height:170px}.atma-loader-overlay[data-variant="refresh"] .atma-loader{width:95px;height:95px}}@media(prefers-reduced-motion:reduce){.atma-loader *,.atma-loader *:before,.atma-loader *:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
 `;
 
-function LoaderArtwork() {
-  return (
-    <div className="loader" aria-hidden="true">
-      <div className="aura" />
-      <div className="outer-ring" />
-      <div className="symbol">
-        <svg viewBox="0 0 220 220">
-          <path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155" />
-          <path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155" />
-          <path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180" />
-        </svg>
-      </div>
-      <div className="fragments">
-        {PARTICLES.map(([angle, radius, drift, delay, duration], i) => (
-          <div key={i} className="fragment" style={{ '--angle': `${angle}deg`, '--radius': `${radius}%`, '--drift': `${drift}deg`, '--delay': delay, '--duration': duration }} />
-        ))}
-      </div>
-      <div className="burst">
-        {Array.from({ length: 12 }, (_, i) => <span key={i} style={{ '--r': `${i * 30}deg` }} />)}
-      </div>
-      <div className="thread one" />
-      <div className="thread two" />
-      <div className="node one" />
-      <div className="node two" />
-      <div className="center" />
-    </div>
-  );
+function Artwork(){
+  return <div className="atma-loader" aria-hidden="true">
+    <div className="aura"/><div className="outer-ring"/>
+    <div className="symbol"><svg viewBox="0 0 220 220">
+      <path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155"/>
+      <path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155"/>
+      <path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180"/>
+    </svg></div>
+    <div className="fragments">{PARTICLES.map(([angle,radius,drift,delay,duration],i)=><div key={i} className="fragment" style={{'--angle':`${angle}deg`,'--radius':`${radius}%`,'--drift':`${drift}deg`,'--delay':delay,'--duration':duration}}/>)}</div>
+    <div className="burst">{Array.from({length:12},(_,i)=><span key={i} style={{'--r':`${i*30}deg`}}/>)}</div>
+    <div className="thread one"/><div className="thread two"/><div className="node one"/><div className="node two"/><div className="center"/>
+  </div>;
 }
 
-export default function AtmaLoader() {
-  const viewportRef = useRef(null);
-  const timerRef = useRef(null);
-  const hiddenRef = useRef(false);
-
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return undefined;
-
-    const hideLoader = () => {
-      if (hiddenRef.current) return;
-      hiddenRef.current = true;
-      viewport.classList.add('is-hidden');
-      clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        viewport.hidden = true;
-      }, 500);
-    };
-
-    const showLoader = () => {
-      hiddenRef.current = false;
-      clearTimeout(timerRef.current);
-      viewport.hidden = false;
-      viewport.classList.remove('is-hidden');
-    };
-
-    window.AtmaLoader = { showLoader, hideLoader };
-    showLoader();
-
-    const onLoad = () => setTimeout(hideLoader, 400);
-    if (document.readyState === 'complete') onLoad();
-    else window.addEventListener('load', onLoad, { once: true });
-
-    return () => {
-      window.removeEventListener('load', onLoad);
-      clearTimeout(timerRef.current);
-      if (window.AtmaLoader?.showLoader === showLoader) delete window.AtmaLoader;
-    };
-  }, []);
-
-  return (
-    <>
-      <style>{LOADER_CSS}</style>
-      <div ref={viewportRef} className="atma-main-loader" data-atma-main-loader role="status" aria-label="Loading Atma Rekha">
-        <LoaderArtwork />
-      </div>
-    </>
-  );
+export default function AtmaLoader(){
+  const mainRef=useRef(null); const refreshRef=useRef(null); const timers=useRef({main:null,refresh:null});
+  useEffect(()=>{
+    const hide=(variant)=>{const el=variant==='refresh'?refreshRef.current:mainRef.current;if(!el)return;el.classList.add('hidden');clearTimeout(timers.current[variant]);timers.current[variant]=setTimeout(()=>{el.hidden=true},500)};
+    const show=(variant='main')=>{const el=variant==='refresh'?refreshRef.current:mainRef.current;if(!el)return;clearTimeout(timers.current[variant]);el.hidden=false;requestAnimationFrame(()=>el.classList.remove('hidden'))};
+    const hideMain=()=>setTimeout(()=>hide('main'),400);
+    window.AtmaLoader={show,hide,showMain:()=>show('main'),hideMain:()=>hide('main'),showRefresh:()=>show('refresh'),hideRefresh:()=>hide('refresh')};
+    const nav=performance.getEntriesByType?.('navigation')?.[0];
+    const isReload=nav?.type==='reload';
+    if(isReload){mainRef.current.hidden=true;mainRef.current.classList.add('hidden');show('refresh');window.addEventListener('load',()=>hide('refresh'),{once:true})}
+    else{refreshRef.current.hidden=true;refreshRef.current.classList.add('hidden');show('main');if(document.readyState==='complete')hideMain();else window.addEventListener('load',hideMain,{once:true})}
+    return()=>{window.removeEventListener('load',hideMain);clearTimeout(timers.current.main);clearTimeout(timers.current.refresh);};
+  },[]);
+  return <><style>{CSS}</style>
+    <div ref={mainRef} className="atma-loader-overlay" data-variant="main" role="status" aria-label="Loading Atma Rekha"><Artwork/></div>
+    <div ref={refreshRef} className="atma-loader-overlay hidden" data-variant="refresh" role="status" aria-label="Refreshing Atma Rekha"><Artwork/></div>
+  </>;
 }
