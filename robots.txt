@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin-community
+
+Sitemap: https://www.atmarekha.in/sitemap.xml
