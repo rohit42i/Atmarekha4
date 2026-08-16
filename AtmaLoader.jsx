@@ -1,19 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const PARTICLES = [
-  [5,63,38,'-1.2s','4.6s'],[20,76,-42,'-.4s','5.2s'],[35,69,52,'-2.8s','4.1s'],[51,82,-30,'-1.7s','5.8s'],
-  [68,61,44,'-3.1s','4.8s'],[84,74,-52,'-.8s','5.2s'],[101,67,35,'-2.1s','4.4s'],[119,84,-48,'-3.6s','5.7s'],
-  [137,64,50,'-1.4s','4.3s'],[154,76,-36,'-2.6s','5.1s'],[171,70,42,'-.6s','4.7s'],[188,81,-55,'-3.4s','5.6s'],
-  [205,62,47,'-1.9s','4.5s'],[222,73,-40,'-2.9s','5.3s'],[239,86,32,'-4.1s','6s'],[256,68,-46,'-4.7s','5.9s'],
-  [273,79,54,'-1.1s','5s'],[289,65,-35,'-3.8s','4.6s'],[305,83,48,'-2.3s','5.5s'],[321,71,-58,'-.9s','4.9s'],
-  [337,88,36,'-3.2s','6s'],[350,66,-44,'-1.6s','4.2s'],[145,88,62,'-4.4s','5.8s'],[275,91,-51,'-5s','6.2s']
-];
+const PARTICLES = [[5,63,38,'-1.2s','4.6s'],[20,76,-42,'-.4s','5.2s'],[35,69,52,'-2.8s','4.1s'],[51,82,-30,'-1.7s','5.8s'],[68,61,44,'-3.1s','4.8s'],[84,74,-52,'-.8s','5.2s'],[101,67,35,'-2.1s','4.4s'],[119,84,-48,'-3.6s','5.7s'],[137,64,50,'-1.4s','4.3s'],[154,76,-36,'-2.6s','5.1s'],[171,70,42,'-.6s','4.7s'],[188,81,-55,'-3.4s','5.6s'],[205,62,47,'-1.9s','4.5s'],[222,73,-40,'-2.9s','5.3s'],[239,86,32,'-4.1s','6s'],[256,68,-46,'-4.7s','5.9s'],[273,79,54,'-1.1s','5s'],[289,65,-35,'-3.8s','4.6s'],[305,83,48,'-2.3s','5.5s'],[321,71,-58,'-.9s','4.9s'],[337,88,36,'-3.2s','6s'],[350,66,-44,'-1.6s','4.2s'],[145,88,62,'-4.4s','5.8s'],[275,91,-51,'-5s','6.2s']];
 
 const LOADER_CSS = `
 .atma-loader-viewport{position:fixed;inset:0;width:100vw;height:100dvh;min-height:100svh;display:grid;place-items:center;background:#07070a;overflow:hidden;z-index:2147483647;pointer-events:auto;isolation:isolate;opacity:1;visibility:visible;transition:opacity .45s ease,visibility 0s linear 0s}
 .atma-loader-viewport.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease,visibility 0s linear .45s}
-.atma-loader-stage{width:min(220px,calc(100vw - 32px),calc(100dvh - 32px));aspect-ratio:1;display:grid;place-items:center}
-.atma-loader{position:relative;width:220px;height:220px;transform-origin:center;transform:scale(min(1,calc(min(100vw - 32px,100dvh - 32px)/220px)))}
+.atma-loader-viewport.refresh-mode{background:transparent;pointer-events:none;transform:translateY(-9vh)}
+.atma-loader-stage{width:220px;height:220px;display:grid;place-items:center;flex:none}
+.atma-loader{position:relative;width:220px;height:220px;transform-origin:center;transform:scale(var(--atma-loader-scale,1))}
+.atma-loader-viewport.refresh-mode .atma-loader{--atma-loader-scale:.56}
 .atma-loader .aura{position:absolute;inset:45px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%);animation:aura 4s ease-in-out infinite}
 .atma-loader .outer-ring{position:absolute;left:50%;top:50%;width:174px;height:174px;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.13);border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.025);opacity:.45;z-index:2;animation:ringMove 8s linear infinite,ringPulse 4s ease-in-out infinite}
 .atma-loader .outer-ring:after{content:"";position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(255,255,255,.4) 325deg,rgba(255,255,255,.08) 340deg,transparent 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));mask:radial-gradient(farthest-side,transparent calc(100% - 1px),#000 calc(100% - .5px));animation:ringLight 5s linear infinite}
@@ -37,23 +32,49 @@ const LOADER_CSS = `
 `;
 
 export default function AtmaLoader(){
+  const viewportRef=useRef(null), loaderRef=useRef(null), timerRef=useRef(null), overflowRef=useRef('');
+
   useEffect(()=>{
-    const previousOverflow=document.body.style.overflow;
-    document.body.style.overflow='hidden';
-    let hidden=false;
-    const hide=()=>{if(hidden)return;hidden=true;document.dispatchEvent(new CustomEvent('atma-loader-hide'))};
-    window.AtmaLoader={hide};
-    if(document.readyState==='complete')hide();else window.addEventListener('load',hide,{once:true});
-    return()=>{window.removeEventListener('load',hide);if(window.AtmaLoader?.hide===hide)delete window.AtmaLoader;document.body.style.overflow=previousOverflow};
+    const viewport=viewportRef.current, loader=loaderRef.current;
+    if(!viewport||!loader)return;
+    overflowRef.current=document.body.style.overflow;
+
+    const setScale=()=>{
+      if(viewport.classList.contains('refresh-mode')) return loader.style.setProperty('--atma-loader-scale','.56');
+      const available=Math.min(window.innerWidth,window.innerHeight)-32;
+      loader.style.setProperty('--atma-loader-scale',String(Math.min(1,Math.max(.5,available/220))));
+    };
+    const show=(mode='main')=>{
+      clearTimeout(timerRef.current);
+      viewport.hidden=false;
+      viewport.classList.remove('is-hidden','main-mode','refresh-mode');
+      viewport.classList.add(mode==='refresh'?'refresh-mode':'main-mode');
+      viewport.setAttribute('aria-hidden','false');
+      setScale();
+      document.body.style.overflow=mode==='main'?'hidden':overflowRef.current;
+    };
+    const hide=()=>{
+      viewport.classList.add('is-hidden');
+      viewport.setAttribute('aria-hidden','true');
+      clearTimeout(timerRef.current);
+      timerRef.current=setTimeout(()=>{viewport.hidden=true;document.body.style.overflow=overflowRef.current;},450);
+    };
+    const onResize=()=>setScale();
+    const onLoad=()=>hide();
+
+    window.AtmaLoader={show,hide};
+    window.addEventListener('resize',onResize,{passive:true});
+    show('main');
+    if(document.readyState==='complete')setTimeout(hide,0);else window.addEventListener('load',onLoad,{once:true});
+
+    return()=>{window.removeEventListener('load',onLoad);window.removeEventListener('resize',onResize);clearTimeout(timerRef.current);if(window.AtmaLoader?.show===show)delete window.AtmaLoader;document.body.style.overflow=overflowRef.current;};
   },[]);
-  useEffect(()=>{
-    const viewport=document.querySelector('[data-atma-loader]');if(!viewport)return;
-    const onHide=()=>{viewport.classList.add('is-hidden');window.setTimeout(()=>{viewport.setAttribute('hidden','');document.body.style.overflow=''},450)};
-    document.addEventListener('atma-loader-hide',onHide);return()=>document.removeEventListener('atma-loader-hide',onHide);
-  },[]);
-  return <><style>{LOADER_CSS}</style><div className="atma-loader-viewport" data-atma-loader role="status" aria-label="Loading"><div className="atma-loader-stage"><div className="atma-loader">
-    <div className="aura"/><div className="outer-ring"/><div className="symbol"><svg viewBox="0 0 220 220"><path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155"/><path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155"/><path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180"/></svg></div>
-    <div className="fragments">{PARTICLES.map(([angle,radius,drift,delay,duration],i)=><div className="fragment" key={i} style={{'--angle':`${angle}deg`,'--radius':`${radius}px`,'--drift':`${drift}deg`,'--delay':delay,'--duration':duration}}/>)}</div>
-    <div className="burst">{Array.from({length:12},(_,i)=><span key={i} style={{'--r':`${i*30}deg`}}/>)}</div><div className="thread one"/><div className="thread two"/><div className="node one"/><div className="node two"/><div className="center"/>
-  </div></div></div></>;
+
+  return <><style>{LOADER_CSS}</style><div ref={viewportRef} className="atma-loader-viewport main-mode" data-atma-loader role="status" aria-label="Loading">
+    <div className="atma-loader-stage"><div ref={loaderRef} className="atma-loader">
+      <div className="aura"/><div className="outer-ring"/><div className="symbol"><svg viewBox="0 0 220 220"><path className="mark" d="M110 38 C155 60 170 90 145 110 C120 130 75 120 70 155"/><path className="mark two" d="M65 75 C95 45 135 55 150 85 C165 115 140 145 105 155"/><path className="mark three" d="M110 40 C90 75 95 100 110 110 C125 120 130 145 110 180"/></svg></div>
+      <div className="fragments">{PARTICLES.map(([angle,radius,drift,delay,duration],i)=><div className="fragment" key={i} style={{'--angle':`${angle}deg`,'--radius':`${radius}px`,'--drift':`${drift}deg`,'--delay':delay,'--duration':duration}}/>)}</div>
+      <div className="burst">{Array.from({length:12},(_,i)=><span key={i} style={{'--r':`${i*30}deg`}}/>)}</div><div className="thread one"/><div className="thread two"/><div className="node one"/><div className="node two"/><div className="center"/>
+    </div></div>
+  </div></>;
 }
