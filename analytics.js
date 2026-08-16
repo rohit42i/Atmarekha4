@@ -20,7 +20,7 @@ function sanitize(value) {
 }
 
 export function track(event, properties = {}) {
-  if (!event) return;
+  if (!event || typeof window === 'undefined') return;
   const payload = {
     event,
     properties: Object.fromEntries(Object.entries(properties).map(([key, value]) => [key, sanitize(value)]).filter(([, value]) => value !== undefined)),
@@ -28,12 +28,9 @@ export function track(event, properties = {}) {
     session_id: getSessionId(),
     timestamp: new Date().toISOString(),
   };
-
   window.dispatchEvent(new CustomEvent('atma:analytics', { detail: payload }));
-
   if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
   if (typeof window.gtag === 'function') window.gtag('event', event, payload.properties);
-
   try {
     const existing = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
     existing.push(payload);
@@ -41,8 +38,33 @@ export function track(event, properties = {}) {
   } catch {}
 }
 
-export function trackPageView() {
-  track('page_view', { page: window.location.hash || '#home' });
+export function trackPageView() { track('page_view', { page: window.location.hash || '#home' }); }
+
+function observeWebVitals() {
+  if (typeof PerformanceObserver === 'undefined') return;
+  const report = (metric, value) => track('web_vital', { metric, value: Math.round(value * 100) / 100 });
+  try {
+    let lcp = 0;
+    const lcpObserver = new PerformanceObserver(list => {
+      const entries = list.getEntries();
+      const last = entries[entries.length - 1];
+      if (last) lcp = last.startTime;
+    });
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+    const clsObserver = new PerformanceObserver(list => {
+      let cls = 0;
+      for (const entry of list.getEntries()) if (!entry.hadRecentInput) cls += entry.value;
+      if (cls) report('CLS', cls);
+    });
+    clsObserver.observe({ type: 'layout-shift', buffered: true });
+    const inpObserver = new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) if (entry.interactionId) report('INP', entry.duration);
+    });
+    inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 });
+    const sendLcp = () => { if (lcp) report('LCP', lcp); };
+    if (document.visibilityState === 'hidden') sendLcp();
+    else document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') sendLcp(); }, { once: true });
+  } catch {}
 }
 
 export function installAnalytics() {
@@ -54,10 +76,9 @@ export function installAnalytics() {
     trackPageView();
   };
   send();
+  observeWebVitals();
   window.addEventListener('hashchange', send, { passive: true });
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') send();
-  }, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') send(); }, { passive: true });
   return () => window.removeEventListener('hashchange', send);
 }
 
