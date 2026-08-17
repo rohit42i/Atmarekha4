@@ -1,30 +1,23 @@
-export default function SubscriberBadge({ show }) {
-  if (!show) return null;
+const BATCHES = {
+  mini_member: { emoji: '🧸', label: 'Teddy Member' },
+  supporter: { emoji: '🌸', label: 'Flower Member' },
+  premium: { emoji: '🦚', label: 'Peacock Member' },
+};
+
+export default function SubscriberBadge({ planId, show, size = 'inline' }) {
+  const batch = BATCHES[planId];
+  if (!batch || show === false) return null;
 
   return (
     <span
-      className="subscriber-badge"
-      aria-label="Active subscriber"
-      title="Active subscriber"
+      className={`subscriber-badge subscriber-badge--${size}`}
+      aria-label={`Active ${batch.label}`}
+      title={`Active ${batch.label}`}
       role="img"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 16,
-        height: 16,
-        marginLeft: 5,
-        borderRadius: '50%',
-        background: 'var(--accent-color)',
-        color: 'var(--accent-contrast)',
-        verticalAlign: 'middle',
-        lineHeight: 1,
-        fontSize: 10,
-        fontWeight: 900,
-        flex: '0 0 auto',
-      }}
     >
-      ✓
+      {batch.emoji}
     </span>
   );
 }
+
+export { BATCHES };
