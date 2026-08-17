@@ -17,10 +17,10 @@
 }}
 :root[data-theme="light"] {
   color-scheme:light;
-  --bg-color:#fff; --surface-color:#fff; --surface-2-color:#f5f5f5; --card-bg:#fff; --input-bg:#fff;
-  --text-color:#000; --text-secondary:#000; --muted-color:#000; --faint-color:#222; --border-color:#ddd; --border-soft-color:#eee;
-  --accent-color:#000; --accent-hover:#222; --accent-contrast:#fff; --on-dark-surface:#fff; --success-color:#000; --danger-color:#000; --danger-bg:#f3f3f3;
-  --warning-color:#000; --warning-bg:#f3f3f3; --overlay-color:rgb(0 0 0/.45); --shadow-color:rgb(0 0 0/.12);
+  --bg-color:#fff; --surface-color:#fafafa; --surface-2-color:#f5f5f5; --card-bg:#fff; --input-bg:#fff;
+  --text-color:#000; --text-secondary:#1a1a1a; --muted-color:#333; --faint-color:#444; --border-color:#ddd; --border-soft-color:#e8e8e8;
+  --accent-color:#2f6cf6; --accent-hover:#2459d6; --accent-contrast:#fff; --on-dark-surface:#000; --success-color:#146c2e; --danger-color:#b42318; --danger-bg:#fff4f2;
+  --warning-color:#8a5a00; --warning-bg:#fff8e6; --overlay-color:rgb(0 0 0/.45); --shadow-color:rgb(0 0 0/.12);
   --icon-color:#000; --arrow-color:#000; --control-border-color:#ddd;
 }
 :root[data-theme="dark"] {
@@ -43,7 +43,7 @@ body :where(input,textarea,select){background:var(--input-bg)!important;color:va
 body :where(input,textarea,select)::placeholder{color:var(--faint-color)!important;opacity:1}
 body :where(button,[role="button"]){background:var(--card-bg)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
 body :where(button:hover,[role="button"]:hover){background:var(--surface-2-color)!important;color:var(--text-color)!important}
-body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join){background:var(--accent-color)!important;color:var(--accent-contrast)!important;border-color:var(--border-color)!important}
+body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join){background:var(--accent-color)!important;color:var(--accent-contrast)!important;border-color:var(--accent-color)!important}
 body :where(.bg-white,.bg-white\/50,.bg-white\/80,.bg-white\/20,.bg-white\/30){background-color:var(--card-bg)!important}
 body :where(.bg-black,.bg-black\/50){background-color:var(--bg-color)!important}
 body :where(.text-black,.text-white,.text-zinc-900,.text-zinc-800,.text-zinc-700,.text-zinc-600,.text-zinc-500,.text-zinc-400,.text-zinc-300,.text-zinc-200,.text-zinc-100,.text-zinc-50){color:var(--text-color)!important}
@@ -53,6 +53,19 @@ body :where([class*="border"],[class*="separator"],[class*="divider"],hr,fieldse
 body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg){color:var(--arrow-color);stroke:currentColor}
 body :where(button,a,[role="button"]) svg{color:currentColor;stroke:currentColor}
 body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
+:root[data-theme="light"] body :where(*):not(img):not(video) {
+  color:var(--text-color)!important;
+  border-color:var(--control-border-color)!important;
+  background-color:var(--card-bg)!important;
+  background-image:none!important;
+}
+:root[data-theme="light"] body :where(html,body,#root,.home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,.info-page,.chapter-list-page,.admin-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell) { background-color:var(--bg-color)!important; }
+:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select) { background-color:var(--card-bg)!important; color:var(--text-color)!important; border:1px solid var(--control-border-color)!important; }
+:root[data-theme="light"] body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join) { background-color:var(--accent-color)!important; color:var(--accent-contrast)!important; border-color:var(--accent-color)!important; }
+:root[data-theme="light"] body :where(a) { color:var(--text-color)!important; }
+:root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]) { color:var(--danger-color)!important; background-color:var(--danger-bg)!important; }
+:root[data-theme="light"] body :where(.success,[data-status="success"]) { color:var(--success-color)!important; }
+:root[data-theme="light"] body :where(.warning,[data-status="warning"]) { color:var(--warning-color)!important; background-color:var(--warning-bg)!important; }
 .theme-toggle{position:fixed;right:18px;bottom:18px;z-index:9999;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border-color);border-radius:999px;background:var(--card-bg);color:var(--text-color);box-shadow:0 8px 24px var(--shadow-color);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease}
 .theme-toggle:hover{transform:translateY(-1px)} .theme-toggle:active{transform:translateY(0)} .theme-toggle svg{width:20px;height:20px;display:block} .theme-toggle:focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
 @media (max-width:640px){.theme-toggle{right:14px;bottom:14px;width:42px;height:42px}}
