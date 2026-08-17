@@ -1,1 +1,7 @@
 .reader-page .reader-performance-image{opacity:.72;transition:opacity .16s ease,transform .18s ease}.reader-page .reader-performance-image.reader-image-loaded{opacity:1}.reader-page .reader-performance-image{content-visibility:auto}
+
+/* Smooth touch reader: only the actively dragged page gets compositor promotion. */
+.reader-swipe-stage{touch-action:pan-y;overscroll-behavior-x:contain}
+.reader-swipe-stage .reader-swipe-image{transform:translate3d(0,0,0);backface-visibility:hidden}
+.reader-swipe-stage .reader-swipe-image.reader-swipe-dragging{will-change:transform;transition:none!important}
+.reader-swipe-stage .reader-swipe-image.reader-swipe-settling{will-change:transform;transition:transform 240ms cubic-bezier(.22,1,.36,1)!important}
