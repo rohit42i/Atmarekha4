@@ -1,0 +1,417 @@
+/* Atma Rekha admin dashboard — visual reference pass only.
+   No data, interaction, upload, moderation, or navigation logic is changed. */
+
+/* Shell */
+main:has(.admin-header-card) {
+  background: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  min-height: 100vh;
+}
+
+main:has(.admin-header-card) > .mx-auto {
+  max-width: none !important;
+  width: 100%;
+  min-height: 100vh;
+  padding: 18px 24px 28px 306px !important;
+  box-sizing: border-box;
+}
+
+/* Left publisher rail */
+.admin-header-card {
+  position: fixed !important;
+  z-index: 40;
+  inset: 12px auto 12px 12px;
+  width: 268px;
+  max-width: 268px;
+  min-height: calc(100vh - 24px);
+  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 28px 18px !important;
+  border: 1px solid var(--border-color, rgba(255,255,255,.08));
+  border-radius: 22px;
+  background: var(--card-bg, #111) !important;
+  box-shadow: var(--shadow-color, 0 20px 55px rgba(0,0,0,.25));
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.admin-header-card > div:first-child {
+  padding: 4px 10px 24px;
+  border-bottom: 1px solid var(--border-soft-color, rgba(255,255,255,.07));
+}
+
+.admin-header-card > div:first-child p:first-child {
+  color: var(--accent-color, #3b82f6) !important;
+  font-size: 11px !important;
+  letter-spacing: .18em !important;
+}
+
+.admin-header-card h1 {
+  font-size: 24px !important;
+  line-height: 1.15;
+}
+
+.admin-header-card > div:first-child p:last-child {
+  color: var(--text-secondary, #888) !important;
+}
+
+.admin-header-card > div:last-child {
+  margin-top: 20px;
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px !important;
+}
+
+.admin-header-card > div:last-child button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 44px;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.admin-header-card > div:last-child button:first-child {
+  background: var(--accent-color, #2563eb) !important;
+  color: var(--accent-contrast, #fff) !important;
+  font-weight: 800;
+}
+
+.admin-header-card > div:last-child button:nth-child(2),
+.admin-header-card > div:last-child button:nth-child(3) {
+  background: var(--surface-color, #181818) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color, rgba(255,255,255,.1)) !important;
+}
+
+/* Turn the existing tab bar into the sidebar navigation without changing its React logic. */
+.admin-tabs {
+  position: fixed !important;
+  z-index: 41;
+  left: 30px;
+  top: 222px;
+  width: 232px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding: 8px 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.admin-tabs button {
+  width: 100%;
+  min-height: 43px;
+  padding: 0 14px !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  text-align: left;
+  color: var(--text-secondary, #aaa) !important;
+  background: transparent !important;
+  font-weight: 700;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.admin-tabs button:hover {
+  background: var(--surface-color, #181818) !important;
+  color: var(--text-color) !important;
+  transform: translateX(2px);
+}
+
+.admin-tabs button.active {
+  background: color-mix(in srgb, var(--accent-color, #2563eb) 13%, var(--surface-color, #181818)) !important;
+  border-color: color-mix(in srgb, var(--accent-color, #2563eb) 18%, transparent) !important;
+  color: var(--accent-color, #60a5fa) !important;
+  box-shadow: inset 3px 0 0 var(--accent-color, #3b82f6);
+}
+
+.admin-tabs button b {
+  float: right;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--accent-color, #2563eb);
+  color: var(--accent-contrast, #fff);
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Hide the top-level alert from disrupting the dashboard frame; retain it as a compact inline notice. */
+main:has(.admin-header-card) > .mx-auto > .mb-5 {
+  margin: 0 0 16px 0 !important;
+  border-radius: 12px !important;
+}
+
+/* Overview frame */
+.admin-overview {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.admin-overview-toolbar {
+  min-height: 88px;
+  padding: 4px 2px 20px !important;
+  border-bottom: 1px solid var(--border-soft-color, rgba(255,255,255,.07));
+  margin-bottom: 18px !important;
+}
+
+.admin-overview-kicker {
+  color: var(--accent-color, #3b82f6) !important;
+  letter-spacing: .14em !important;
+  font-size: 10px !important;
+}
+
+.admin-overview-toolbar h2 {
+  font-size: clamp(28px, 3vw, 38px) !important;
+  letter-spacing: -.035em;
+  margin-top: 4px !important;
+}
+
+.admin-overview-toolbar p {
+  color: var(--text-secondary, #888) !important;
+  font-size: 14px !important;
+}
+
+.admin-period-control {
+  min-width: 190px;
+}
+
+.admin-period-control span {
+  color: var(--muted-color, #777) !important;
+  font-size: 9px !important;
+  letter-spacing: .13em !important;
+}
+
+.admin-period-control select {
+  min-height: 42px;
+  border: 1px solid var(--border-color, rgba(255,255,255,.1)) !important;
+  border-radius: 12px !important;
+  background: var(--surface-color, #181818) !important;
+  color: var(--text-color) !important;
+  padding: 0 13px !important;
+  font-weight: 700;
+}
+
+/* KPI row */
+.admin-overview-stats {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.admin-overview-stat {
+  min-height: 126px;
+  box-sizing: border-box;
+  padding: 20px 18px !important;
+  border: 1px solid var(--border-soft-color, rgba(255,255,255,.07)) !important;
+  border-radius: 16px !important;
+  background: var(--card-bg, #111) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.12);
+}
+
+.admin-overview-stat:hover {
+  border-color: var(--border-color, rgba(255,255,255,.14)) !important;
+  transform: translateY(-1px);
+}
+
+.admin-overview-stat-label {
+  color: var(--text-secondary, #999) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.admin-overview-stat strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(25px, 2.3vw, 34px) !important;
+  letter-spacing: -.04em;
+}
+
+.admin-overview-delta.positive { color: #4ade80 !important; }
+.admin-overview-delta.negative { color: #fb7185 !important; }
+
+.admin-overview-period-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  min-height: 42px;
+  padding: 0 4px !important;
+  color: var(--muted-color, #777) !important;
+  font-size: 12px !important;
+}
+
+.admin-overview-period-summary span:not(:first-child) {
+  padding-left: 14px;
+  border-left: 1px solid var(--border-soft-color, rgba(255,255,255,.08));
+}
+
+/* Three primary dashboard cards, matching the reference composition. */
+.admin-overview-grid {
+  display: grid !important;
+  grid-template-columns: 1.18fr 1fr .95fr;
+  gap: 12px !important;
+  align-items: stretch;
+  margin-top: 8px !important;
+}
+
+.admin-overview-card {
+  min-width: 0;
+  border: 1px solid var(--border-soft-color, rgba(255,255,255,.07)) !important;
+  border-radius: 16px !important;
+  background: var(--card-bg, #111) !important;
+  overflow: hidden;
+  box-shadow: 0 14px 34px rgba(0,0,0,.11);
+}
+
+.admin-overview-card-head {
+  padding: 18px 18px 12px !important;
+  border-bottom: 1px solid var(--border-soft-color, rgba(255,255,255,.06));
+}
+
+.admin-overview-card-head h3 {
+  margin-top: 4px !important;
+  font-size: 16px !important;
+  letter-spacing: -.01em;
+}
+
+.admin-overview-card-head span:first-child,
+.admin-overview-card-head > div > span {
+  color: var(--muted-color, #777) !important;
+  font-size: 9px !important;
+  letter-spacing: .13em !important;
+}
+
+.admin-overview-card-head button {
+  color: var(--accent-color, #60a5fa) !important;
+  font-size: 12px !important;
+  font-weight: 800;
+}
+
+.admin-overview-comments {
+  padding: 3px 18px 8px !important;
+}
+
+.admin-overview-comments article {
+  padding: 14px 0 !important;
+  border-bottom: 1px solid var(--border-soft-color, rgba(255,255,255,.06));
+}
+
+.admin-overview-comments article:last-child { border-bottom: 0; }
+
+.admin-overview-avatar {
+  width: 34px !important;
+  height: 34px !important;
+  flex: 0 0 34px;
+  border: 1px solid var(--border-color, rgba(255,255,255,.1));
+}
+
+.admin-overview-comment-top strong { font-size: 13px !important; }
+.admin-overview-comment-top time { color: var(--muted-color, #777) !important; font-size: 10px !important; }
+.admin-overview-comments article p { color: var(--text-secondary, #aaa) !important; font-size: 12px !important; }
+.admin-overview-comments article small { color: var(--muted-color, #777) !important; }
+.admin-comment-open { color: var(--accent-color, #60a5fa) !important; }
+
+/* Rating */
+.rating-card { padding-bottom: 14px; }
+.admin-overview-stars {
+  padding: 14px 18px 8px !important;
+  color: #f5c542;
+  letter-spacing: .14em;
+  font-size: 16px;
+}
+.admin-overview-stars span { color: var(--muted-color, #777) !important; letter-spacing: 0; font-size: 10px; }
+.admin-rating-bars { padding: 4px 18px 10px !important; }
+.admin-rating-bars > div { min-height: 27px; gap: 8px !important; }
+.admin-rating-bars i { height: 7px !important; border-radius: 99px !important; background: var(--surface-2-color, #1b1b1b) !important; overflow: hidden; }
+.admin-rating-bars i span { background: var(--accent-color, #3b82f6) !important; border-radius: inherit; }
+.admin-rating-bars b, .admin-rating-bars small { font-size: 10px !important; }
+
+/* Top chapters */
+.admin-top-chapters { padding: 2px 10px 8px !important; }
+.admin-top-chapters button {
+  min-height: 66px;
+  padding: 10px 8px !important;
+  border-radius: 10px !important;
+}
+.admin-top-chapters button:hover { background: var(--surface-color, #181818) !important; }
+.admin-top-chapters button > b { color: var(--muted-color, #777) !important; }
+.admin-top-chapters button strong { font-size: 12px !important; }
+.admin-top-chapters button span { color: var(--muted-color, #777) !important; font-size: 10px !important; }
+.admin-top-chapters button i { color: var(--accent-color, #60a5fa) !important; }
+
+/* Performance */
+.performance-card { margin-top: 12px !important; }
+.admin-performance-mobile { padding: 6px 12px 12px !important; }
+.admin-performance-mobile button {
+  border-bottom: 1px solid var(--border-soft-color, rgba(255,255,255,.06)) !important;
+  padding: 13px 8px !important;
+}
+.admin-performance-mobile button:hover { background: var(--surface-color, #181818) !important; }
+.admin-performance-mobile strong { font-size: 13px !important; }
+.admin-performance-mobile span, .admin-performance-mobile small { color: var(--muted-color, #777) !important; }
+
+/* Non-overview tabs inherit the same frame. */
+.admin-stack, .admin-card, .admin-media-grid { max-width: 1240px; }
+.admin-card {
+  border-radius: 16px !important;
+  border-color: var(--border-soft-color, rgba(255,255,255,.07)) !important;
+  background: var(--card-bg, #111) !important;
+}
+.admin-card-title { padding: 20px 22px !important; }
+.admin-card-title h2 { font-size: 20px !important; letter-spacing: -.02em; }
+.admin-card-title p { color: var(--muted-color, #777) !important; }
+
+/* Mobile: turn the rail into a compact top navigation. */
+@media (max-width: 900px) {
+  main:has(.admin-header-card) > .mx-auto {
+    padding: 12px 14px 24px !important;
+  }
+  .admin-header-card {
+    position: relative !important;
+    inset: auto;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin-bottom: 12px !important;
+    padding: 16px !important;
+    border-radius: 18px;
+  }
+  .admin-header-card > div:first-child { padding: 0 2px 14px; }
+  .admin-header-card h1 { font-size: 22px !important; }
+  .admin-header-card > div:last-child { margin-top: 12px; flex-direction: row; }
+  .admin-header-card > div:last-child button { flex: 1; min-width: 0; justify-content: center; }
+  .admin-tabs {
+    position: sticky !important;
+    left: auto;
+    top: 0;
+    width: 100%;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding: 4px 0 10px !important;
+    margin-bottom: 6px !important;
+    z-index: 30;
+    background: var(--bg-color, #000) !important;
+  }
+  .admin-tabs button { width: auto; min-width: max-content; padding: 0 14px !important; }
+  .admin-tabs button.active { box-shadow: inset 0 -3px 0 var(--accent-color, #3b82f6); }
+  .admin-overview-toolbar { gap: 14px; }
+  .admin-overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-overview-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .admin-overview-stats { grid-template-columns: 1fr; }
+  .admin-overview-stat { min-height: 104px; }
+  .admin-header-card > div:last-child { flex-wrap: wrap; }
+  .admin-header-card > div:last-child button:first-child { flex-basis: 100%; }
+  .admin-overview-period-summary span:not(:first-child) { border-left: 0; padding-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-tabs button, .admin-overview-stat { transition: none !important; }
+}
