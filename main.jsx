@@ -13,6 +13,7 @@ import PublicProfile from './PublicProfile.jsx';
 import Membership from './Membership.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -62,5 +63,6 @@ createRoot(document.getElementById('root')).render(
     <PublicProfile />
     <Membership />
     <ChapterAccessGuard />
+    <ThemeToggle />
   </React.StrictMode>
 );
