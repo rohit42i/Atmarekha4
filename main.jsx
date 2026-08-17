@@ -19,6 +19,7 @@ import './ui-polish.css';
 import './interaction-polish.css';
 import './admin-polish.css';
 import './admin-upgrade.css';
+import './admin-overview-upgrade.css';
 import './mihon-reader-polish.css';
 import './admin-link-fix.css';
 import './notification-fix.js';
