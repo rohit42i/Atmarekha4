@@ -51,106 +51,53 @@ async function supportsWebP() {
 
 async function compressImage(file) {
   if (!(file instanceof File) || !file.type.startsWith('image/')) return file;
-
   const image = await decodeImage(file);
   const sourceWidth = image.width;
   const sourceHeight = image.height;
   const longestEdge = Math.max(sourceWidth, sourceHeight);
-
-  if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) {
-    image.close?.();
-    return file;
-  }
-
+  if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) { image.close?.(); return file; }
   const outputType = await supportsWebP() ? 'image/webp' : 'image/jpeg';
   let scale = Math.min(1, IMAGE_MAX_EDGE / longestEdge);
-
   try {
     for (let dimensionPass = 0; dimensionPass < 7; dimensionPass += 1) {
       const width = Math.max(1, Math.round(sourceWidth * scale));
       const height = Math.max(1, Math.round(sourceHeight * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
+      const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
       const context = canvas.getContext('2d', { alpha: outputType === 'image/webp' });
       if (!context) throw new Error('Canvas encoding is unavailable in this browser.');
-      context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = 'high';
-      context.drawImage(image, 0, 0, width, height);
-
-      let low = 0.45;
-      let high = 0.98;
-      let best = null;
+      context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high'; context.drawImage(image, 0, 0, width, height);
+      let low = 0.45; let high = 0.98; let best = null;
       for (let i = 0; i < 10; i += 1) {
-        const quality = (low + high) / 2;
-        const blob = await blobFromCanvas(canvas, outputType, quality);
-        if (blob.size <= IMAGE_MAX_SIZE) {
-          best = blob;
-          low = quality;
-        } else {
-          high = quality;
-        }
+        const quality = (low + high) / 2; const blob = await blobFromCanvas(canvas, outputType, quality);
+        if (blob.size <= IMAGE_MAX_SIZE) { best = blob; low = quality; } else high = quality;
       }
-
-      const highest = await blobFromCanvas(canvas, outputType, 0.98);
-      if (highest.size <= IMAGE_MAX_SIZE) best = highest;
-
-      if (best) {
-        return new File([best], file.name.replace(/\.(png|jpe?g|gif|bmp|avif)$/i, '.webp'), {
-          type: outputType,
-          lastModified: file.lastModified,
-        });
-      }
-
+      const highest = await blobFromCanvas(canvas, outputType, 0.98); if (highest.size <= IMAGE_MAX_SIZE) best = highest;
+      if (best) return new File([best], file.name.replace(/\.(png|jpe?g|gif|bmp|avif)$/i, '.webp'), { type: outputType, lastModified: file.lastModified });
       scale *= 0.86;
     }
-  } finally {
-    image.close?.();
-  }
-
+  } finally { image.close?.(); }
   throw new Error(`${file.name} could not be compressed below 1 MB while preserving acceptable quality.`);
 }
 
 const r2Storage = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
-
     const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
-
     return {
       async upload(path, file, options = {}) {
         try {
           const processedFile = await compressImage(file);
-          const response = await fetch(publicPath(path), {
-            method: 'PUT',
-            headers: {
-              ...(await authHeaders()),
-              'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream',
-              'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}`,
-            },
-            body: processedFile,
-          });
-          if (!response.ok) {
-            const text = await response.text();
-            return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) };
-          }
+          const response = await fetch(publicPath(path), { method: 'PUT', headers: { ...(await authHeaders()), 'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream', 'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}` }, body: processedFile });
+          if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) }; }
           return { data: { path }, error: null };
-        } catch (error) {
-          return { data: null, error };
-        }
+        } catch (error) { return { data: null, error }; }
       },
       getPublicUrl(path) { return { data: { publicUrl: publicPath(path) } }; },
       async remove(paths) {
         const clean = (paths || []).filter(Boolean);
         try {
           const headers = await authHeaders();
-          for (const path of clean) {
-            const response = await fetch(publicPath(path), { method: 'DELETE', headers });
-            if (!response.ok) {
-              const text = await response.text();
-              return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) };
-            }
-          }
+          for (const path of clean) { const response = await fetch(publicPath(path), { method: 'DELETE', headers }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) }; } }
           return { data: clean.map(path => ({ name: path })), error: null };
         } catch (error) { return { data: null, error }; }
       },
@@ -159,22 +106,32 @@ const r2Storage = {
 };
 
 /**
- * Single source of truth for the public subscriber badge.
- * The database RPC applies exactly:
+ * Single source of truth for membership badges.
+ * The database applies exactly:
  * status = 'active' AND (current_period_end IS NULL OR current_period_end > now()).
+ * Plan mapping: mini_member = 🧸, supporter = 🌸, premium = 🦚.
  */
-export async function getCurrentlySubscribedUserIds(userIds = []) {
+export async function getCurrentMemberships(userIds = []) {
   const ids = [...new Set((userIds || []).filter(Boolean))];
-  if (!ids.length) return new Set();
-  const { data, error } = await client.rpc('get_currently_subscribed_user_ids', { target_user_ids: ids });
+  if (!ids.length) return new Map();
+  const { data, error } = await client.rpc('get_current_memberships', { target_user_ids: ids });
   if (error) throw error;
-  return new Set((data || []).map(row => row.user_id).filter(Boolean));
+  return new Map((data || []).filter(row => row?.user_id && row?.plan_id).map(row => [row.user_id, row.plan_id]));
+}
+
+export async function getCurrentMembership(userId) {
+  if (!userId) return null;
+  const memberships = await getCurrentMemberships([userId]);
+  return memberships.get(userId) || null;
+}
+
+// Kept for existing callers; it now uses the same live membership source.
+export async function getCurrentlySubscribedUserIds(userIds = []) {
+  return new Set((await getCurrentMemberships(userIds)).keys());
 }
 
 export async function isCurrentlySubscribed(userId) {
-  if (!userId) return false;
-  const ids = await getCurrentlySubscribedUserIds([userId]);
-  return ids.has(userId);
+  return Boolean(await getCurrentMembership(userId));
 }
 
 export const supabase = new Proxy(client, {
