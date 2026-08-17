@@ -4,16 +4,27 @@ const BATCHES = {
   premium: { emoji: '🦚', label: 'Peacock Member' },
 };
 
-export default function SubscriberBadge({ planId, show, size = 'inline' }) {
+export default function SubscriberBadge({ planId, show = true, size = 'inline' }) {
   const batch = BATCHES[planId];
   if (!batch || show === false) return null;
 
+  const scale = size === 'compact' ? 0.82 : size === 'large' ? 1.08 : 0.92;
   return (
     <span
       className={`subscriber-badge subscriber-badge--${size}`}
       aria-label={`Active ${batch.label}`}
       title={`Active ${batch.label}`}
       role="img"
+      style={{
+        display: 'inline-block',
+        marginLeft: '0.3em',
+        fontSize: `calc(1em * ${scale})`,
+        lineHeight: 1,
+        width: '1em',
+        height: '1em',
+        verticalAlign: '-0.08em',
+        flex: '0 0 auto',
+      }}
     >
       {batch.emoji}
     </span>
