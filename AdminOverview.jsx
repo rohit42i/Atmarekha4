@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getCurrentlySubscribedUserIds } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
 
 const WINDOWS = { '7': 7, '30': 30, '90': 90, all: null };
@@ -16,9 +17,11 @@ const compactNumber = value => { const n = Number(value || 0); if (n >= 1000000)
 function Delta({ value }) { if (!Number.isFinite(value)) return null; const positive = value >= 0; return <span className={`admin-overview-delta ${positive ? 'positive' : 'negative'}`}>{positive ? '↑' : '↓'} {Math.abs(value).toFixed(1)}%</span>; }
 function StatCard({ label, value, delta, note, accent }) { return <article className={`admin-overview-stat ${accent ? 'accent' : ''}`}><span className="admin-overview-stat-label">{label}</span><strong>{value}</strong>{delta != null ? <Delta value={delta}/> : <small>{note || 'All time'}</small>}</article>; }
 
-export default function AdminOverview({ chapters, comments, ratings, views, likes, pageCounts, onTab, chapterName, subscribedUserIds = new Set() }) {
+export default function AdminOverview({ chapters, comments, ratings, views, likes, pageCounts, onTab, chapterName }) {
   const [windowKey, setWindowKey] = useState('30');
+  const [subscribedUserIds, setSubscribedUserIds] = useState(new Set());
   const days = WINDOWS[windowKey];
+  useEffect(() => { let active = true; const ids = [...new Set((comments || []).map(comment => comment.user_id).filter(Boolean))]; if (!ids.length) { setSubscribedUserIds(new Set()); return () => { active = false; }; } getCurrentlySubscribedUserIds(ids).then(idsSet => { if (active) setSubscribedUserIds(idsSet); }).catch(error => { console.warn('Admin subscriber status lookup failed:', error); if (active) setSubscribedUserIds(new Set()); }); return () => { active = false; }; }, [comments]);
   const metrics = useMemo(() => {
     const current = rows => rows.filter(row => inWindow(row.created_at, days));
     const previous = rows => rows.filter(row => inWindow(row.created_at, days, 1));
