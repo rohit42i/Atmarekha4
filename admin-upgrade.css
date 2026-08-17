@@ -1,0 +1,43 @@
+/* Restored additive admin-dashboard polish from the last admin backup. */
+.min-h-screen.bg-zinc-950{background:var(--bg-color)!important}
+.admin-header-card{
+  position:sticky!important;top:10px;z-index:40;isolation:isolate;
+  padding:clamp(18px,3vw,28px)!important;margin-bottom:14px;
+}
+.admin-header-card>div:first-child,.admin-header-card>div:last-child{position:relative;z-index:1}
+.admin-header-card button{min-height:42px;border:1px solid var(--border-color)!important;background:var(--card-bg)!important;color:var(--text-color)!important;box-shadow:0 8px 22px var(--shadow-color)!important}
+.admin-header-card button:first-child{background:var(--surface-2-color)!important;border-color:var(--accent-color)!important}
+.admin-header-card button:hover{border-color:var(--accent-color)!important;box-shadow:0 10px 28px var(--shadow-color)!important}
+.admin-tabs{top:82px!important;margin-bottom:22px!important}
+.admin-tabs button{min-height:40px}
+.admin-tabs button.active:after{content:"";position:absolute;left:18%;right:18%;bottom:2px;height:2px;border-radius:999px;background:var(--accent-color);opacity:.9}
+.admin-loading{min-height:280px!important;display:grid!important;place-items:center!important;position:relative;overflow:hidden;border:1px solid var(--border-color)!important;border-radius:20px!important;background:var(--card-bg)!important;color:transparent!important}
+.admin-loading:before{content:"";width:min(420px,72%);height:92px;border-radius:16px;background:linear-gradient(90deg,var(--surface-color) 25%,var(--surface-2-color) 50%,var(--surface-color) 75%);background-size:200% 100%;animation:admin-skeleton 1.35s ease-in-out infinite;box-shadow:0 72px 0 -18px var(--surface-color),0 144px 0 -30px var(--surface-color)}
+@keyframes admin-skeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.admin-card,.admin-overview-card,.admin-stat{transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.admin-card:hover,.admin-overview-card:hover{border-color:color-mix(in srgb,var(--border-color) 70%,var(--accent-color))!important;box-shadow:0 18px 46px var(--shadow-color)!important}
+.admin-stat:hover{transform:translateY(-2px);box-shadow:0 14px 34px var(--shadow-color)!important}
+.admin-form input,.admin-form textarea,.admin-form select{transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.admin-dropzone{transition:border-color .2s ease,background .2s ease,transform .2s ease}
+.admin-dropzone:focus-within{border-color:var(--accent-color)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-color) 14%,transparent)}
+.admin-submit{min-height:46px!important;border:1px solid var(--accent-color)!important;border-radius:13px!important;background:var(--accent-color)!important;color:var(--accent-contrast)!important;font-weight:900!important;box-shadow:0 10px 26px var(--shadow-color)!important;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease!important}
+.admin-submit:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.04);box-shadow:0 14px 30px var(--shadow-color)!important}
+.admin-submit:disabled{opacity:.55;cursor:not-allowed}
+.admin-row-actions button,.danger-text{transition:transform .16s ease,border-color .16s ease,background .16s ease,color .16s ease!important}
+.admin-row-actions button:hover:not(:disabled),.danger-text:hover:not(:disabled){transform:translateY(-1px)}
+.admin-comment-list article,.admin-report-list article,.admin-chapter-list article,.admin-mini-list>div,.admin-media-grid article{transition:border-color .18s ease,background .18s ease,transform .18s ease,box-shadow .18s ease}
+.admin-comment-list article:hover,.admin-report-list article:hover,.admin-chapter-list article:hover,.admin-mini-list>div:hover,.admin-media-grid article:hover{transform:translateY(-1px);box-shadow:0 10px 26px var(--shadow-color)!important}
+.admin-media-grid article{overflow:hidden;border:1px solid var(--border-color)!important;border-radius:16px!important;background:var(--card-bg)!important}
+.admin-media-grid article img{aspect-ratio:16/10;object-fit:cover;transition:transform .35s ease}
+.admin-media-grid article:hover img{transform:scale(1.025)}
+.admin-overview-period-summary{scroll-behavior:smooth}
+.admin-overview-card-head button:focus-visible,.admin-tabs button:focus-visible,.admin-header-card button:focus-visible,.admin-row-actions button:focus-visible,.danger-text:focus-visible{outline:2px solid var(--accent-color)!important;outline-offset:2px}
+@media(max-width:700px){
+  .admin-header-card{position:sticky!important;top:6px;padding:16px!important}
+  .admin-tabs{top:72px!important;margin-inline:-1px!important}
+  .admin-header-card>div:last-child{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .admin-header-card>div:last-child button:first-child{grid-column:1/-1}
+  .admin-header-card button{width:100%;justify-content:center}
+}
+@media(max-width:420px){.admin-header-card{border-radius:18px!important}.admin-tabs{top:66px!important}.admin-header-card h1{font-size:28px!important}}
+@media(prefers-reduced-motion:reduce){.admin-card,.admin-overview-card,.admin-stat,.admin-media-grid article,.admin-media-grid article img,.admin-submit,.admin-loading:before{animation:none!important;transition:none!important}}
