@@ -57,7 +57,6 @@ async function compressImage(file) {
   const sourceHeight = image.height;
   const longestEdge = Math.max(sourceWidth, sourceHeight);
 
-  // Truly small images remain byte-for-byte untouched.
   if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) {
     image.close?.();
     return file;
@@ -79,7 +78,6 @@ async function compressImage(file) {
       context.imageSmoothingQuality = 'high';
       context.drawImage(image, 0, 0, width, height);
 
-      // Find the highest quality that fits under 1 MB. This prioritizes quality.
       let low = 0.45;
       let high = 0.98;
       let best = null;
@@ -94,19 +92,16 @@ async function compressImage(file) {
         }
       }
 
-      // If the highest tested quality fits, always prefer it over a smaller result.
       const highest = await blobFromCanvas(canvas, outputType, 0.98);
       if (highest.size <= IMAGE_MAX_SIZE) best = highest;
 
       if (best) {
-        // Never inflate an image merely to reach 500 KB.
         return new File([best], file.name.replace(/\.(png|jpe?g|gif|bmp|avif)$/i, '.webp'), {
           type: outputType,
           lastModified: file.lastModified,
         });
       }
 
-      // Quality alone could not get below 1 MB; reduce dimensions and retry.
       scale *= 0.86;
     }
   } finally {
@@ -162,6 +157,25 @@ const r2Storage = {
     };
   },
 };
+
+/**
+ * Single source of truth for the public subscriber badge.
+ * The database RPC applies exactly:
+ * status = 'active' AND (current_period_end IS NULL OR current_period_end > now()).
+ */
+export async function getCurrentlySubscribedUserIds(userIds = []) {
+  const ids = [...new Set((userIds || []).filter(Boolean))];
+  if (!ids.length) return new Set();
+  const { data, error } = await client.rpc('get_currently_subscribed_user_ids', { target_user_ids: ids });
+  if (error) throw error;
+  return new Set((data || []).map(row => row.user_id).filter(Boolean));
+}
+
+export async function isCurrentlySubscribed(userId) {
+  if (!userId) return false;
+  const ids = await getCurrentlySubscribedUserIds([userId]);
+  return ids.has(userId);
+}
 
 export const supabase = new Proxy(client, {
   get(target, property, receiver) {
