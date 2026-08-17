@@ -1,0 +1,22 @@
+name: Light Theme Audit
+on:
+  push:
+    branches: [tmp-light-theme-audit]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Search hardcoded colors outside dark-only blocks
+        shell: bash
+        run: |
+          set +e
+          echo '=== CSS/JSX hardcoded-color candidates ==='
+          grep -RInE '#[0-9A-Fa-f]{3,8}|rgba?\\(|bg-(black|gray-[89]|zinc-[89]|slate-[89]|neutral-[89])|text-(white|gray-[89]|zinc-[89]|slate-[89]|neutral-[89])|style=\\{\\{[^}]*background[^}]*#' . --include='*.css' --include='*.jsx' --exclude-dir=node_modules --exclude-dir=.git
+          echo '=== BUTTON RULES ==='
+          grep -RInE '(^|[,{[:space:]])(button|\\.btn|\\.primary-button|\\.icon-button|\\[role="button"\\])|button[[:space:]:{]' . --include='*.css' --exclude-dir=node_modules --exclude-dir=.git
+          echo '=== THEME LIGHT BLOCKS ==='
+          grep -RInE 'data-theme="light"|data-theme=\\x27light\\x27|prefers-color-scheme:[[:space:]]*dark' theme-system.css theme-legacy-vars.css
+          exit 0
