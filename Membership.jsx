@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from './supabase';
 
 const LAUNCH_DATE = new Date('2026-09-14T00:00:00+05:30');
+const SUBSCRIPTIONS_HIDDEN_UNTIL = new Date('2026-10-18T00:00:00+05:30');
 const PLANS = [
   { id: 'free', icon: '🆓', name: 'Free Member', amount: 0, eyebrow: 'DISCOVER', description: 'Begin the story with nothing between you and Atma Rekha.', features: ['Chapters 1–7 forever free', 'Bookmarks & reading history', 'Ratings, comments & notifications'] },
   { id: 'mini_member', icon: '🧸', name: 'Mini Member', amount: 29, eyebrow: 'A LITTLE MORE', description: 'Keep the journey going and become part of Atma Rekha.', features: ['All chapters', '🧸 Mini Member badge', 'Support future chapters'] },
@@ -17,6 +18,7 @@ async function getFunctionError(error, fallback) { if (!error) return fallback; 
 async function authHeaders() { const { data, error } = await supabase.auth.getSession(); if (error || !data?.session?.access_token) throw new Error('Your session has expired. Please sign in again.'); return { Authorization: `Bearer ${data.session.access_token}` }; }
 
 export default function Membership() {
+  if (Date.now() < SUBSCRIPTIONS_HIDDEN_UNTIL.getTime()) return null;
   const [route, setRoute] = useState(routeNow()); const [user, setUser] = useState(null); const [subscription, setSubscription] = useState(null); const [loading, setLoading] = useState(false); const [cancelling, setCancelling] = useState(false); const [selected, setSelected] = useState(null); const [flowOpen, setFlowOpen] = useState(false); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const freePeriod = isFreePeriod(); const graceEnd = useMemo(() => freePeriodEnds(), []);
   const loadSubscription = async currentUser => { if (!currentUser) { setSubscription(null); return; } const { data } = await supabase.from('user_subscriptions').select('plan_id,status,current_period_start,current_period_end,cancel_at_period_end,provider_subscription_id').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1).maybeSingle(); setSubscription(data || null); };
   useEffect(() => { const onHash = () => setRoute(routeNow()); window.addEventListener('hashchange', onHash); const load = async () => { const { data } = await supabase.auth.getSession(); const current = data?.session?.user || null; setUser(current); await loadSubscription(current); }; load(); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { const current = session?.user || null; setUser(current); loadSubscription(current); }); return () => { window.removeEventListener('hashchange', onHash); listener.subscription.unsubscribe(); }; }, []);
