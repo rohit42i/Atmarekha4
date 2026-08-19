@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import UserAuth from './UserAuth.jsx';
@@ -15,6 +15,7 @@ import GroupChat, { GroupChatLauncher } from './GroupChat.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
+import { supabase } from './supabase';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -54,6 +55,22 @@ import './theme-system.css';
 import './final-experience.css';
 import './responsive-desktop.css';
 
+function GroupChatGate(){
+  const [unlocked,setUnlocked]=useState(false);
+  useEffect(()=>{
+    let active=true;
+    const check=async()=>{
+      const {count,error}=await supabase.from('profiles').select('id',{count:'exact',head:true});
+      if(active && !error) setUnlocked((count||0)>=500);
+    };
+    check();
+    const timer=setInterval(check,300000);
+    return()=>{active=false;clearInterval(timer)};
+  },[]);
+  if(!unlocked) return null;
+  return <><GroupChatLauncher user={true}/><GroupChat/></>;
+}
+
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AtmaLoader />
@@ -68,8 +85,7 @@ createRoot(document.getElementById('root')).render(
     <EnhancedComments />
     <PublicProfile />
     <Membership />
-    <GroupChatLauncher user={true} />
-    <GroupChat />
+    <GroupChatGate />
     <ChapterAccessGuard />
     <ThemeToggle />
   </React.StrictMode>
