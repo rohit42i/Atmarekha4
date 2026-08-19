@@ -12,6 +12,11 @@ const PAGES = {
       ['plot', 'Random imagination'], ['Chapter Updates', 'Remaking few pages'],
       ['Support', 'Read & Share'], ['Contact', 'At Bottom'], ['Team', 'Solo Creator'],
     ],
+    story: [
+      'Atma Rekha is an Indian dark-fantasy manga that blends Indian culture, spiritual concepts, mysterious powers, and intense battles. Follow Arnav and his companions as they uncover the hidden reality of their world, powerful beings, and secrets tied to the human soul.',
+      'Written in Roman Hindi, the manga is made to feel natural and easy to read for Indian audiences. It builds its own world, characters, lore, and mysteries while drawing inspiration from Indian ideas and traditions. AI has been used in a few parts of the process, such as backgrounds and references, while the story and core creative work remain original.',
+      'Atma Rekha began with random dreams and imagination, slowly growing into an independent story built from scratch.',
+    ],
   },
   contact: {
     eyebrow: 'GET IN TOUCH', title: 'Contact',
@@ -59,7 +64,6 @@ const PAGES = {
 
 function Section({ heading, body, links = [] }) {
   return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label} ↗</a>)}</div>}</article>;
-}
 
 export default function InfoPage({ type, onBack }) {
   const page = PAGES[type] || PAGES.about;
@@ -71,7 +75,12 @@ export default function InfoPage({ type, onBack }) {
     </header>
     <section className={`info-card ${isAbout ? 'about-card' : 'legal-card'}`}>
       <p className="section-eyebrow">ATMA REKHA</p><h2>{page.title}</h2>
-      {isAbout ? <div className="about-details" aria-label="Atma Rekha details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div> : <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>}
+      {isAbout ? <>
+        <div className="about-details" aria-label="Atma Rekha details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
+        <div className="about-story" aria-label="About the story">
+          {page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+        </div>
+      </> : <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>}
     </section>
   </main>;
 }
