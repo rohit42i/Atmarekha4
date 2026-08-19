@@ -55,6 +55,7 @@ import './theme-system.js';
 import './theme-system.css';
 import './final-experience.css';
 import './responsive-desktop.css';
+import './InfoPage.css';
 
 function GroupChatGate(){
   const [unlocked,setUnlocked]=useState(false);
