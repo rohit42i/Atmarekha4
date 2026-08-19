@@ -68,7 +68,7 @@ createRoot(document.getElementById('root')).render(
     <EnhancedComments />
     <PublicProfile />
     <Membership />
-    <GroupChatLauncher />
+    <GroupChatLauncher user={true} />
     <GroupChat />
     <ChapterAccessGuard />
     <ThemeToggle />
