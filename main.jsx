@@ -27,6 +27,7 @@ import './admin-dashboard-pro.css';
 import './mihon-reader-polish.css';
 import './admin-link-fix.css';
 import './notification-fix.js';
+import './notification-prompt.js';
 import './reader-performance.css';
 import './reader-performance.js';
 import './user-auth.css';
