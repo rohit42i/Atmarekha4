@@ -64,6 +64,7 @@ const PAGES = {
 
 function Section({ heading, body, links = [] }) {
   return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label} ↗</a>)}</div>}</article>;
+}
 
 export default function InfoPage({ type, onBack }) {
   const page = PAGES[type] || PAGES.about;
