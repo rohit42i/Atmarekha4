@@ -11,6 +11,7 @@ import CommunityAdmin from './CommunityAdmin.jsx';
 import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import Membership from './Membership.jsx';
+import GroupChat, { GroupChatLauncher } from './GroupChat.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -37,6 +38,7 @@ import './engagement-fixes.css';
 import './rating-modal.css';
 import './rating-upgrade.css';
 import './community.css';
+import './group-chat.css';
 import './enhanced-comments.css';
 import './public-profile.css';
 import './premium-typography.css';
@@ -66,6 +68,8 @@ createRoot(document.getElementById('root')).render(
     <EnhancedComments />
     <PublicProfile />
     <Membership />
+    <GroupChatLauncher />
+    <GroupChat />
     <ChapterAccessGuard />
     <ThemeToggle />
   </React.StrictMode>
