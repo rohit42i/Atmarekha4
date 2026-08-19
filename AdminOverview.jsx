@@ -14,6 +14,7 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
   const [windowKey, setWindowKey] = useState('30');
   const [membershipPlans, setMembershipPlans] = useState(new Map());
   const [userStats, setUserStats] = useState({ logged_in_users: 0, notification_users: 0 });
+  const [audienceStats, setAudienceStats] = useState({ active_readers: 0, returning_readers: 0, bookmarks: 0 });
   const days = WINDOWS[windowKey];
 
   useEffect(() => {
@@ -30,6 +31,36 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       if (error) throw error;
       if (active && data) setUserStats({ logged_in_users: Number(data.logged_in_users || 0), notification_users: Number(data.notification_users || 0) });
     }).catch(error => console.warn('Admin user stats lookup failed:', error));
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      supabase.from('bookmarks').select('id', { count: 'exact', head: true }),
+      supabase.from('chapter_views').select('viewer_key,created_at'),
+    ]).then(([bookmarkResult, viewResult]) => {
+      if (bookmarkResult.error) throw bookmarkResult.error;
+      if (viewResult.error) throw viewResult.error;
+      const rows = viewResult.data || [];
+      const cutoff = Date.now() - 30 * 86400000;
+      const activeKeys = new Set();
+      const daysByViewer = new Map();
+      for (const row of rows) {
+        const key = row.viewer_key;
+        if (!key) continue;
+        const time = new Date(row.created_at || 0).getTime();
+        if (Number.isFinite(time) && time >= cutoff) activeKeys.add(key);
+        if (Number.isFinite(time)) {
+          const day = new Date(time).toISOString().slice(0, 10);
+          if (!daysByViewer.has(key)) daysByViewer.set(key, new Set());
+          daysByViewer.get(key).add(day);
+        }
+      }
+      let returning = 0;
+      for (const dates of daysByViewer.values()) if (dates.size >= 2) returning += 1;
+      if (active) setAudienceStats({ active_readers: activeKeys.size, returning_readers: returning, bookmarks: Number(bookmarkResult.count || 0) });
+    }).catch(error => console.warn('Admin audience stats lookup failed:', error));
     return () => { active = false; };
   }, []);
 
@@ -61,6 +92,9 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       <StatCard label="Total Comments" value={compactNumber(metrics.totalComments)} delta={metrics.commentsDelta} />
       <StatCard label="Logged-in Users" value={compactNumber(userStats.logged_in_users)} note="Registered accounts" />
       <StatCard label="Notifications On" value={compactNumber(userStats.notification_users)} note="Unique push subscribers" />
+      <StatCard label="Active Readers" value={compactNumber(audienceStats.active_readers)} note="Unique readers · last 30 days" />
+      <StatCard label="Returning Readers" value={compactNumber(audienceStats.returning_readers)} note="Readers seen on 2+ days" />
+      <StatCard label="Bookmarks" value={compactNumber(audienceStats.bookmarks)} note="Saved chapter bookmarks" />
     </div>
     <div className="admin-overview-period-summary"><span><b>{periodLabel}</b> activity</span><span>👁 {formatNumber(metrics.currentViews)} views</span><span>♥ {formatNumber(metrics.currentLikes)} likes</span><span>★ {formatNumber(metrics.totalRatings)} ratings</span><span>💬 {formatNumber(metrics.totalComments)} comments</span></div>
     <div className="admin-overview-grid">
