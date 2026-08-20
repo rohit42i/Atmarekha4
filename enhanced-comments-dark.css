@@ -1,0 +1,172 @@
+/* Atma Rekha — Enhanced Comments dark-mode refinement. Scoped to comments only. */
+:root[data-theme="dark"] .ec-sheet,
+:root[data-theme="dark"] .ec-preview,
+@media (prefers-color-scheme: dark) {
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ec-sheet,
+  :root[data-theme="dark"] .ec-sheet {
+    background: #101114;
+    color: #f4f4f5;
+    border-color: #2a2d35;
+    box-shadow: 0 -28px 90px rgba(0,0,0,.58);
+  }
+
+  :root:not([data-theme="light"]) .ec-header,
+  :root[data-theme="dark"] .ec-header {
+    background: rgba(16,17,20,.94);
+    border-bottom-color: #292c34;
+  }
+
+  :root:not([data-theme="light"]) .ec-header p:last-child,
+  :root[data-theme="dark"] .ec-header p:last-child {
+    color: #a3a7b2;
+  }
+
+  :root:not([data-theme="light"]) .ec-close,
+  :root[data-theme="dark"] .ec-close {
+    background: #1b1e24;
+    color: #f4f4f5;
+    border: 1px solid #30343d;
+  }
+
+  :root:not([data-theme="light"]) .ec-join,
+  :root[data-theme="dark"] .ec-join {
+    background: #17191e;
+    border-color: #2b2f38;
+  }
+
+  :root:not([data-theme="light"]) .ec-join-icon,
+  :root[data-theme="dark"] .ec-join-icon {
+    background: #20232b;
+  }
+
+  :root:not([data-theme="light"]) .ec-join p,
+  :root[data-theme="dark"] .ec-join p {
+    color: #a0a5b0;
+  }
+
+  :root:not([data-theme="light"]) .ec-comment,
+  :root[data-theme="dark"] .ec-comment {
+    border-bottom: 1px solid #24272e;
+  }
+
+  :root:not([data-theme="light"]) .ec-avatar,
+  :root[data-theme="dark"] .ec-avatar {
+    background: #24272e;
+  }
+
+  :root:not([data-theme="light"]) .ec-avatar-fallback,
+  :root[data-theme="dark"] .ec-avatar-fallback {
+    color: #d5d8df;
+  }
+
+  :root:not([data-theme="light"]) .ec-username,
+  :root[data-theme="dark"] .ec-username {
+    color: #a8bbff;
+  }
+
+  :root:not([data-theme="light"]) .ec-meta time,
+  :root[data-theme="dark"] .ec-meta time {
+    color: #858a96;
+  }
+
+  :root:not([data-theme="light"]) .ec-content,
+  :root[data-theme="dark"] .ec-content {
+    color: #e2e4e9;
+  }
+
+  :root:not([data-theme="light"]) .ec-actions button,
+  :root[data-theme="dark"] .ec-actions button {
+    color: #9a9faa;
+  }
+
+  :root:not([data-theme="light"]) .ec-actions button:hover,
+  :root:not([data-theme="light"]) .ec-actions button.liked,
+  :root[data-theme="dark"] .ec-actions button:hover,
+  :root[data-theme="dark"] .ec-actions button.liked {
+    background: #1c2028;
+    color: #b5c6ff;
+  }
+
+  :root:not([data-theme="light"]) .ec-replies,
+  :root[data-theme="dark"] .ec-replies {
+    border-left-color: #30343d;
+  }
+
+  :root:not([data-theme="light"]) .ec-empty,
+  :root:not([data-theme="light"]) .ec-state,
+  :root[data-theme="dark"] .ec-empty,
+  :root[data-theme="dark"] .ec-state {
+    color: #9297a3;
+    border-color: #30343d;
+  }
+
+  :root:not([data-theme="light"]) .ec-empty strong,
+  :root:not([data-theme="light"]) .ec-state strong,
+  :root[data-theme="dark"] .ec-empty strong,
+  :root[data-theme="dark"] .ec-state strong {
+    color: #f0f1f3;
+  }
+
+  :root:not([data-theme="light"]) .ec-composer,
+  :root[data-theme="dark"] .ec-composer {
+    background: #101114;
+    border-top-color: #292c34;
+  }
+
+  :root:not([data-theme="light"]) .ec-compose-row textarea,
+  :root[data-theme="dark"] .ec-compose-row textarea {
+    background: #191b20;
+    color: #f4f4f5;
+    border-color: #343842;
+  }
+
+  :root:not([data-theme="light"]) .ec-compose-row textarea::placeholder,
+  :root[data-theme="dark"] .ec-compose-row textarea::placeholder {
+    color: #777d89;
+  }
+
+  :root:not([data-theme="light"]) .ec-compose-row textarea:focus,
+  :root[data-theme="dark"] .ec-compose-row textarea:focus {
+    border-color: #657fd6;
+    box-shadow: 0 0 0 3px rgba(101,127,214,.16);
+  }
+
+  :root:not([data-theme="light"]) .ec-replying,
+  :root[data-theme="dark"] .ec-replying {
+    color: #9298a5;
+  }
+
+  :root:not([data-theme="light"]) .ec-replying button,
+  :root[data-theme="dark"] .ec-replying button {
+    color: #a8bbff;
+  }
+
+  :root:not([data-theme="light"]) .ec-preview-backdrop,
+  :root[data-theme="dark"] .ec-preview-backdrop {
+    background: rgba(0,0,0,.62);
+  }
+
+  :root:not([data-theme="light"]) .ec-preview,
+  :root[data-theme="dark"] .ec-preview {
+    background: #15171c;
+    color: #f4f4f5;
+    border-color: #30343d;
+    box-shadow: 0 28px 90px rgba(0,0,0,.58);
+  }
+
+  :root:not([data-theme="light"]) .ec-preview > span,
+  :root:not([data-theme="light"]) .ec-preview p,
+  :root[data-theme="dark"] .ec-preview > span,
+  :root[data-theme="dark"] .ec-preview p {
+    color: #9da2ad;
+  }
+
+  :root:not([data-theme="light"]) .ec-preview-close,
+  :root[data-theme="dark"] .ec-preview-close {
+    background: #22252c;
+    color: #e7e9ed;
+  }
+}
