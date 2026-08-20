@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, getCurrentMemberships } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { fetchChapterComments, fetchCommentLikes, getViewerKey, likeComment, unlikeComment, reportComment, addComment } from './engagement';
+import './enhanced-comments-dark.css';
 
 const ago = value => { const d = Math.max(0, Date.now() - new Date(value).getTime()); const m = Math.floor(d / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m`; const h = Math.floor(m / 60); if (h < 24) return `${h}h`; const days = Math.floor(h / 24); if (days < 30) return `${days}d`; if (days < 365) return `${Math.floor(days / 30)}mo`; return `${Math.floor(days / 365)}y`; };
 const profileLabel = p => p?.username || 'reader';
