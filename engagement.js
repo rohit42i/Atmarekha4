@@ -84,7 +84,7 @@ async function requireUser() {
     user = userResult.data?.user || null;
   }
   if (!user) {
-    const err = new Error('Please sign in to continue.');
+    const err = new Error('Sign in to rate this chapter.');
     err.code = 'AUTH_REQUIRED';
     throw err;
   }
