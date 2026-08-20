@@ -124,7 +124,11 @@ export async function recordChapterView(chapterId) { const { error } = await sup
 export async function likeChapter(chapterId) { const { error } = await supabase.from('chapter_likes').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
 export async function likeComment(commentId) { const { error } = await supabase.from('comment_likes').upsert({ comment_id: commentId, viewer_key: getViewerKey() }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
 export async function unlikeComment(commentId) { const { error } = await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('viewer_key', getViewerKey()); if (error) throw error; }
-export async function reportComment(commentId, reason = 'Reported by reader') { const { error } = await supabase.from('comment_reports').upsert({ comment_id: commentId, viewer_key: getViewerKey(), reason: String(reason).trim().slice(0, 500) }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
+export async function reportComment(commentId, reason = 'Reported by reader') {
+  const viewerKey = getViewerKey();
+  const { error } = await supabase.from('comment_reports').insert({ comment_id: commentId, viewer_key: viewerKey, reason: String(reason).trim().slice(0, 500) });
+  if (error && error.code !== '23505') throw error;
+}
 
 export async function getMyRating(chapterId) {
   const user = await requireUser();
