@@ -43,18 +43,11 @@ export async function fetchChapterEngagement(chapterId) {
     supabase.from('comments').select('id').eq('chapter_id', chapterId),
   ]);
   for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
-  return {
-    rating: buildRatingSummary(ratings.data || []),
-    views: (views.data || []).length,
-    likes: (likes.data || []).length,
-    comments: (comments.data || []).length,
-  };
+  return { rating: buildRatingSummary(ratings.data || []), views: (views.data || []).length, likes: (likes.data || []).length, comments: (comments.data || []).length };
 }
 
 export async function fetchChapterComments(chapterId) {
-  const { data, error } = await supabase.from('comments')
-    .select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id')
-    .eq('chapter_id', chapterId).order('created_at', { ascending: true });
+  const { data, error } = await supabase.from('comments').select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').eq('chapter_id', chapterId).order('created_at', { ascending: true });
   if (error) throw error;
   return data || [];
 }
@@ -74,7 +67,7 @@ export async function fetchCommentLikes(commentIds) {
   return { counts, liked: Object.fromEntries((own.data || []).map(row => [row.comment_id, true])) };
 }
 
-async function requireUser() {
+async function requireUser(message = 'Please sign in to continue.') {
   const sessionResult = await supabase.auth.getSession();
   if (sessionResult.error) throw sessionResult.error;
   let user = sessionResult.data?.session?.user || null;
@@ -84,7 +77,7 @@ async function requireUser() {
     user = userResult.data?.user || null;
   }
   if (!user) {
-    const err = new Error('Sign in to rate this chapter.');
+    const err = new Error(message);
     err.code = 'AUTH_REQUIRED';
     throw err;
   }
@@ -106,9 +99,7 @@ export async function addComment({ chapterId, content, parentCommentId = null })
   if (!cleanContent) throw new Error('Write a comment first.');
   if (cleanContent.length > 2000) throw new Error('Comments are limited to 2000 characters.');
   const username = await getAccountUsername(user);
-  const { data, error } = await supabase.from('comments').insert({
-    user_id: user.id, chapter_id: chapterId, author_name: username, content: cleanContent, parent_comment_id: parentCommentId,
-  }).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
+  const { data, error } = await supabase.from('comments').insert({ user_id: user.id, chapter_id: chapterId, author_name: username, content: cleanContent, parent_comment_id: parentCommentId }).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
   return data;
 }
@@ -118,9 +109,7 @@ export async function updateComment(commentId, content) {
   const clean = String(content || '').trim();
   if (!clean) throw new Error('Write a comment first.');
   if (clean.length > 2000) throw new Error('Comments are limited to 2000 characters.');
-  const { data, error } = await supabase.from('comments').update({ content: clean, updated_at: new Date().toISOString() })
-    .eq('id', commentId).eq('user_id', user.id)
-    .select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
+  const { data, error } = await supabase.from('comments').update({ content: clean, updated_at: new Date().toISOString() }).eq('id', commentId).eq('user_id', user.id).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
   return data;
 }
@@ -131,30 +120,11 @@ export async function deleteComment(commentId) {
   if (error) throw error;
 }
 
-export async function recordChapterView(chapterId) {
-  const { error } = await supabase.from('chapter_views').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true });
-  if (error) throw error;
-}
-
-export async function likeChapter(chapterId) {
-  const { error } = await supabase.from('chapter_likes').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true });
-  if (error) throw error;
-}
-
-export async function likeComment(commentId) {
-  const { error } = await supabase.from('comment_likes').upsert({ comment_id: commentId, viewer_key: getViewerKey() }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
-  if (error) throw error;
-}
-
-export async function unlikeComment(commentId) {
-  const { error } = await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('viewer_key', getViewerKey());
-  if (error) throw error;
-}
-
-export async function reportComment(commentId, reason = 'Reported by reader') {
-  const { error } = await supabase.from('comment_reports').upsert({ comment_id: commentId, viewer_key: getViewerKey(), reason: String(reason).trim().slice(0, 500) }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
-  if (error) throw error;
-}
+export async function recordChapterView(chapterId) { const { error } = await supabase.from('chapter_views').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
+export async function likeChapter(chapterId) { const { error } = await supabase.from('chapter_likes').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
+export async function likeComment(commentId) { const { error } = await supabase.from('comment_likes').upsert({ comment_id: commentId, viewer_key: getViewerKey() }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
+export async function unlikeComment(commentId) { const { error } = await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('viewer_key', getViewerKey()); if (error) throw error; }
+export async function reportComment(commentId, reason = 'Reported by reader') { const { error } = await supabase.from('comment_reports').upsert({ comment_id: commentId, viewer_key: getViewerKey(), reason: String(reason).trim().slice(0, 500) }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }); if (error) throw error; }
 
 export async function getMyRating(chapterId) {
   const user = await requireUser();
@@ -164,13 +134,10 @@ export async function getMyRating(chapterId) {
 }
 
 export async function submitRating(chapterId, rating) {
-  const user = await requireUser();
+  const user = await requireUser('Sign in to rate this chapter.');
   const value = Number(rating);
   if (!Number.isInteger(value) || value < 1 || value > 10) throw new Error('Choose a rating from 1 to 10.');
-  const { data, error } = await supabase.from('chapter_ratings').upsert(
-    { chapter_id: chapterId, rating: value, user_id: user.id },
-    { onConflict: 'user_id,chapter_id' }
-  ).select('id,rating,created_at').single();
+  const { data, error } = await supabase.from('chapter_ratings').upsert({ chapter_id: chapterId, rating: value, user_id: user.id }, { onConflict: 'user_id,chapter_id' }).select('id,rating,created_at').single();
   if (error) throw error;
   return data;
 }
