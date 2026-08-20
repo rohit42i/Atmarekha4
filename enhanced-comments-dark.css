@@ -1,6 +1,8 @@
 /* Atma Rekha — Enhanced Comments dark-mode refinement. Scoped to comments only. */
 
 @media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ec-backdrop,
+  :root[data-theme="dark"] .ec-backdrop { background:#000; }
   :root:not([data-theme="light"]) .ec-sheet,
   :root[data-theme="dark"] .ec-sheet {
     background:#101114;color:#f4f4f5;border-color:#2a2d35;box-shadow:0 -28px 90px rgba(0,0,0,.58);
