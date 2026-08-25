@@ -1,6 +1,6 @@
-/* Atma Rekha — small global UX polish. No feature or layout changes. */
-:root{--ar-ui-radius:14px;--ar-ui-ease:cubic-bezier(.22,1,.36,1)}
-html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+/* Atma Rekha — restrained motion polish. Visual/interaction only. */
+:root{--ar-ui-radius:14px;--ar-ui-ease:cubic-bezier(.22,1,.36,1);--ar-ui-spring:cubic-bezier(.2,.85,.25,1)}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
 body{overflow-x:hidden}
 button,a,[role="button"],input,textarea,select{transition:transform .18s var(--ar-ui-ease),background-color .18s var(--ar-ui-ease),border-color .18s var(--ar-ui-ease),box-shadow .18s var(--ar-ui-ease),color .18s var(--ar-ui-ease),opacity .18s var(--ar-ui-ease)}
 button:not(:disabled):hover,[role="button"]:not([aria-disabled="true"]):hover{transform:translateY(-1px)}
@@ -9,5 +9,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 input,textarea,select{border-radius:12px}
 body :where(.hero-card,.home-section,.chapter-row,.latest-item,.community-post,.profile-v2-card,.membership-plan,.info-card,.about-card,.auth-panel){border-radius:var(--ar-ui-radius);box-shadow:0 8px 28px var(--shadow-color,rgba(0,0,0,.12))}
 body :where(.home-header,.subpage-header,.reader-header,.community-header,.profile-header){backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+@keyframes ar-fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+main>*,.info-page>*,.community-page>*,.profile-page>*{animation:ar-fade-up .34s var(--ar-ui-ease) both}
+@media (hover:none) and (pointer:coarse){.chapter-list,.latest-list,.community-list,.membership-plans,.footer-socials{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.chapter-row,.latest-item,.community-post,.membership-plan{scroll-snap-align:start}a:active,[role="button"]:active{transform:scale(.985)}}
 @media(max-width:640px){body :where(.hero-card,.home-section,.chapter-row,.latest-item,.community-post,.profile-v2-card,.membership-plan,.info-card,.about-card,.auth-panel){box-shadow:0 5px 18px var(--shadow-color,rgba(0,0,0,.1))}}
-@media(prefers-reduced-motion:reduce){button,a,[role="button"],input,textarea,select{transition:none!important}.home-header,.subpage-header,.reader-header,.community-header,.profile-header{backdrop-filter:none;-webkit-backdrop-filter:none}button:not(:disabled):hover,[role="button"]:not([aria-disabled="true"]):hover{transform:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}button,a,[role="button"],input,textarea,select{transition:none!important}.home-header,.subpage-header,.reader-header,.community-header,.profile-header{backdrop-filter:none;-webkit-backdrop-filter:none}main>*,.info-page>*,.community-page>*,.profile-page>*{animation:none!important}button:not(:disabled):hover,[role="button"]:not([aria-disabled="true"]):hover{transform:none}}
