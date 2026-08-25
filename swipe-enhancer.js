@@ -6,15 +6,23 @@
 
   const stageFor = target => target?.closest?.('.reader-swipe-stage');
 
+  const setVisualState = (stage, progress, direction) => {
+    const p = clamp(progress, 0, 1);
+    stage.style.setProperty('--swipe-p', p.toFixed(4));
+    stage.style.setProperty('--swipe-dir', String(direction));
+    stage.style.setProperty('--swipe-angle', direction < 0 ? '90deg' : '-90deg');
+    stage.style.setProperty('--swipe-rotate', `${(direction * p * 3.2).toFixed(3)}deg`);
+    stage.style.setProperty('--swipe-scale', (1 - p * 0.018).toFixed(4));
+    stage.style.setProperty('--swipe-overlay', (p * 0.9).toFixed(3));
+    stage.style.setProperty('--swipe-edge', (p * 0.72).toFixed(3));
+  };
+
   const paint = () => {
     raf = 0;
     if (!gesture?.stage) return;
     const width = gesture.stage.clientWidth || window.innerWidth || 1;
-    const progress = clamp(Math.abs(gesture.x - gesture.startX) / width, 0, 1);
-    const direction = gesture.x < gesture.startX ? -1 : 1;
-    gesture.stage.style.setProperty('--swipe-p', progress.toFixed(4));
-    gesture.stage.style.setProperty('--swipe-dir', String(direction));
-    gesture.stage.style.setProperty('--swipe-angle', direction < 0 ? '90deg' : '-90deg');
+    const dx = gesture.x - gesture.startX;
+    setVisualState(gesture.stage, Math.abs(dx) / width, dx < 0 ? -1 : 1);
   };
 
   const schedulePaint = () => {
@@ -27,6 +35,10 @@
     stage.style.setProperty('--swipe-p', '0');
     stage.style.setProperty('--swipe-dir', '0');
     stage.style.setProperty('--swipe-angle', '90deg');
+    stage.style.setProperty('--swipe-rotate', '0deg');
+    stage.style.setProperty('--swipe-scale', '1');
+    stage.style.setProperty('--swipe-overlay', '0');
+    stage.style.setProperty('--swipe-edge', '0');
   };
 
   const finish = (cancelled = false) => {
@@ -42,15 +54,18 @@
     if (!stage) return;
 
     if (!cancelled && progress > 0.08) {
+      const direction = dx < 0 ? -1 : 1;
       stage.classList.remove('reader-swipe-enhanced-active');
       stage.classList.add('reader-swipe-enhanced-settling');
-      stage.style.setProperty('--swipe-p', '1');
-      stage.style.setProperty('--swipe-dir', dx < 0 ? '-1' : '1');
-      stage.style.setProperty('--swipe-angle', dx < 0 ? '90deg' : '-90deg');
+      setVisualState(stage, 1, direction);
       resetTimer = window.setTimeout(() => reset(stage), 280);
     } else {
       stage.classList.remove('reader-swipe-enhanced-active');
       stage.classList.add('reader-swipe-enhanced-cancel');
+      stage.style.setProperty('--swipe-rotate', '0deg');
+      stage.style.setProperty('--swipe-scale', '1');
+      stage.style.setProperty('--swipe-overlay', '0');
+      stage.style.setProperty('--swipe-edge', '0');
       resetTimer = window.setTimeout(() => reset(stage), 220);
     }
   };
@@ -64,7 +79,7 @@
     gesture = { stage, startX: x, x };
     stage.classList.add('reader-swipe-enhanced-active');
     stage.classList.remove('reader-swipe-enhanced-settling', 'reader-swipe-enhanced-cancel');
-    stage.style.setProperty('--swipe-p', '0');
+    setVisualState(stage, 0, 0);
   }, { passive: true, capture: true });
 
   document.addEventListener('touchmove', event => {
