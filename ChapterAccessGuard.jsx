@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { supabase } from './supabase';
+import { supabase, getCurrentMembership } from './supabase';
 
 const FREE_CHAPTER_LIMIT = 5;
 
-function isMember(subscription) {
-  return subscription?.status === 'active' && Boolean(subscription?.plan_id) && subscription.plan_id !== 'free';
+function isMember(planId) {
+  return Boolean(planId) && planId !== 'free';
 }
 
 export default function ChapterAccessGuard() {
@@ -23,14 +23,12 @@ export default function ChapterAccessGuard() {
         if (!cancelled) setMember(false);
         return;
       }
-      const { data } = await supabase
-        .from('user_subscriptions')
-        .select('plan_id,status,cancel_at_period_end,current_period_end')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!cancelled) setMember(isMember(data));
+      try {
+        const planId = await getCurrentMembership(user.id);
+        if (!cancelled) setMember(isMember(planId));
+      } catch (_) {
+        if (!cancelled) setMember(false);
+      }
     };
 
     const init = async () => {
@@ -41,7 +39,7 @@ export default function ChapterAccessGuard() {
       if (cancelled) return;
       setChapters(chapterRows || []);
       await loadAccess(sessionData?.session?.user || null);
-      setReady(true);
+      if (!cancelled) setReady(true);
     };
 
     init();
@@ -99,8 +97,7 @@ export default function ChapterAccessGuard() {
         const numberText = row.querySelector('.chapter-row-title span')?.textContent || '';
         const match = numberText.match(/(\d+)/);
         const number = match ? Number(match[1]) : 0;
-        const anchor = row.querySelector('.chapter-row-main');
-        if (!anchor || number <= FREE_CHAPTER_LIMIT) return;
+        if (number <= FREE_CHAPTER_LIMIT) return;
         row.classList.add('chapter-row-locked');
         if (!row.querySelector('.chapter-lock-badge')) {
           const badge = document.createElement('span');
