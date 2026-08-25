@@ -56,6 +56,7 @@ import './theme-system.css';
 import './final-experience.css';
 import './responsive-desktop.css';
 import './InfoPage.css';
+import './micro-polish.css';
 
 function GroupChatLauncherGate(){
   const [user,setUser]=useState(null);
