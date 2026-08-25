@@ -1,0 +1,13 @@
+/* Atma Rekha — small global UX polish. No feature or layout changes. */
+:root{--ar-ui-radius:14px;--ar-ui-ease:cubic-bezier(.22,1,.36,1)}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{overflow-x:hidden}
+button,a,[role="button"],input,textarea,select{transition:transform .18s var(--ar-ui-ease),background-color .18s var(--ar-ui-ease),border-color .18s var(--ar-ui-ease),box-shadow .18s var(--ar-ui-ease),color .18s var(--ar-ui-ease),opacity .18s var(--ar-ui-ease)}
+button:not(:disabled):hover,[role="button"]:not([aria-disabled="true"]):hover{transform:translateY(-1px)}
+button:not(:disabled):active,[role="button"]:active{transform:translateY(0) scale(.985)}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent-color,var(--text-color));outline-offset:3px}
+input,textarea,select{border-radius:12px}
+body :where(.hero-card,.home-section,.chapter-row,.latest-item,.community-post,.profile-v2-card,.membership-plan,.info-card,.about-card,.auth-panel){border-radius:var(--ar-ui-radius);box-shadow:0 8px 28px var(--shadow-color,rgba(0,0,0,.12))}
+body :where(.home-header,.subpage-header,.reader-header,.community-header,.profile-header){backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+@media(max-width:640px){body :where(.hero-card,.home-section,.chapter-row,.latest-item,.community-post,.profile-v2-card,.membership-plan,.info-card,.about-card,.auth-panel){box-shadow:0 5px 18px var(--shadow-color,rgba(0,0,0,.1))}}
+@media(prefers-reduced-motion:reduce){button,a,[role="button"],input,textarea,select{transition:none!important}.home-header,.subpage-header,.reader-header,.community-header,.profile-header{backdrop-filter:none;-webkit-backdrop-filter:none}button:not(:disabled):hover,[role="button"]:not([aria-disabled="true"]):hover{transform:none}}
