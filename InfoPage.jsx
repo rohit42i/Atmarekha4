@@ -8,7 +8,7 @@ const PAGES = {
     details: [
       ['Name', 'Atma Rekha'], ['Author', 'Arkesh'], ['Language', 'Roman Hindi'],
       ['Release Date', '14 September 2026'], ['Read Where', 'Website & Print (Working)'],
-      ['Free or Paid', 'Free Online (Ch. 1–8)'], ['Age Rating', '16+'], ['Idea', 'dream'],
+      ['Free or Paid', 'Free Online (Ch. 1–5)'], ['Age Rating', '16+'], ['Idea', 'dream'],
       ['plot', 'Random imagination'], ['Chapter Updates', 'Remaking few pages'],
       ['Support', 'Read & Share'], ['Contact', 'At Bottom'], ['Team', 'Solo Creator'],
     ],
