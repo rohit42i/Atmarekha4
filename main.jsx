@@ -66,6 +66,7 @@ import './ui-refinement.css';
 import './final-touch.css';
 import './content-moderation.js';
 import './admin-final-system.css';
+import './membership-fullscreen-fix.css';
 
 function GroupChatLauncherGate(){
   const [user,setUser]=useState(null);
