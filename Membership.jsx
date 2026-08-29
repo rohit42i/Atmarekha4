@@ -9,7 +9,7 @@ const PLANS = [
   { id: 'supporter', icon: '🌸', name: 'Member', amount: 49, eyebrow: 'MOST CHOSEN', popular: true, description: 'The balanced way to experience and help grow the world of Atma Rekha.', features: ['All chapters', '🌸 Member badge', 'Member recognition', 'Support future chapters'] },
   { id: 'premium', icon: '🦚', name: 'Premium Member', amount: 99, eyebrow: 'PREMIUM', description: 'For readers who want to stand closest to the journey.', features: ['All chapters', '🦚 Premium Member badge', 'Priority comment placement', 'Premium recognition'] },
 ];
-function freePeriodEnds() { const d = new Date(LAUNCH_DATE); d.setMonth(d.getMonth() + 3); return d; }
+function freePeriodEnds() { const d = new Date(LAUNCH_DATE); d.setMonth(d.getMonth() + 2); return d; }
 function isFreePeriod() { return Date.now() < freePeriodEnds().getTime(); }
 function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
 function formatDate(value) { return value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
