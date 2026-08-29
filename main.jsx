@@ -42,6 +42,7 @@ import './rating-modal.css';
 import './rating-upgrade.css';
 import './community.css';
 import './group-chat.css';
+import './group-chat-feed-fix.css';
 import './enhanced-comments.css';
 import './public-profile.css';
 import './premium-typography.css';
