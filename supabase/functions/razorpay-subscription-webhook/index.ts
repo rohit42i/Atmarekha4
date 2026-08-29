@@ -17,12 +17,16 @@ Deno.serve(async req => {
     const admin = createClient(supabaseUrl, service); const { data: existing } = await admin.from('payment_events').select('id').eq('provider', 'razorpay').eq('event_id', eventId).maybeSingle(); if (existing) return new Response('ok', { status: 200 });
     const entity = event?.payload?.subscription?.entity; const subscriptionId = entity?.id ? String(entity.id) : '';
     const mappedStatus: Record<string, string> = { 'subscription.authenticated': 'active', 'subscription.activated': 'active', 'subscription.charged': 'active', 'subscription.updated': String(entity?.status || 'active'), 'subscription.pending': 'pending', 'subscription.completed': 'expired', 'subscription.halted': 'failed', 'subscription.paused': 'paused', 'subscription.resumed': 'active', 'subscription.cancelled': 'cancelled' };
-    const incomingStatus = mappedStatus[eventName];
+    let incomingStatus = mappedStatus[eventName];
+    if (eventName === 'subscription.updated') {
+      const remoteStatus = String(entity?.status || '').toLowerCase();
+      incomingStatus = remoteStatus === 'cancelled' ? 'cancelled' : remoteStatus || 'active';
+    }
     if (subscriptionId && incomingStatus) {
       const { data: record } = await admin.from('user_subscriptions').select('id,current_period_end,status').eq('provider', 'razorpay').eq('provider_subscription_id', subscriptionId).maybeSingle();
       if (record) {
         const incomingEnd = iso(entity.current_end); const endMs = incomingEnd ? new Date(incomingEnd).getTime() : (record.current_period_end ? new Date(record.current_period_end).getTime() : 0); const periodStillActive = !endMs || endMs > Date.now();
-        // Razorpay's cancellation event can mean "cancel at cycle end". Never revoke access early.
+        // Cancellation must never revoke access before the paid period ends.
         const status = incomingStatus === 'cancelled' && periodStillActive ? 'active' : incomingStatus;
         const cancelAtPeriodEnd = incomingStatus === 'cancelled' || Number(entity.remaining_count) === 0 || entity.status === 'cancelled';
         const { error: updateError } = await admin.from('user_subscriptions').update({ status, provider: 'razorpay', current_period_start: iso(entity.current_start), current_period_end: incomingEnd || record.current_period_end, cancel_at_period_end: cancelAtPeriodEnd, updated_at: new Date().toISOString() }).eq('id', record.id);
