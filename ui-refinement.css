@@ -13,3 +13,40 @@ hr{border:0;border-top:1px solid rgba(255,255,255,.08)}
 ::selection{background:rgba(255,255,255,.16)}
 @media(max-width:700px){.card,.panel,.modal,.dialog,.dropdown,.menu,.popover{box-shadow:0 10px 28px rgba(0,0,0,.14)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Final UI pass: hierarchy, surfaces, compact microcopy, touch targets and safe overlays. */
+:root{--ar-surface-1:rgba(255,255,255,.035);--ar-surface-2:rgba(255,255,255,.055);--ar-border:rgba(255,255,255,.10);--ar-border-strong:rgba(255,255,255,.16);--ar-muted:rgba(255,255,255,.58)}
+body{min-height:100dvh}
+button,a,input,textarea,select{-webkit-tap-highlight-color:transparent}
+button,a{touch-action:manipulation}
+button:disabled{cursor:not-allowed}
+/* Keep generic overlays readable without changing their positioning model. */
+.overlay-backdrop,.comment-sheet-backdrop{background:rgba(0,0,0,.66)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.rating-sheet,.comment-sheet,.modal,.dialog,.popover{border:1px solid var(--ar-border)!important;box-shadow:0 24px 80px rgba(0,0,0,.38)!important}
+.rating-sheet h2,.comment-sheet h2,.modal h2,.dialog h2{letter-spacing:-.025em}
+.section-eyebrow,.header-kicker{font-size:9px!important;letter-spacing:.16em!important;line-height:1.3}
+/* Small utility copy should support the interface, not compete with it. */
+.chapter-list-heading span,.chapter-row-details,.group-chat-header p,.group-chat-status,.group-read{letter-spacing:.08em}
+.chapter-row-meta{line-height:1.35}
+/* Consistent surface treatment for common content cards. */
+.hero-card,.home-section,.chapter-row,.info-card,.legal-card,.about-card,.comment-item,.comment-reply{border-color:var(--ar-border)!important}
+.chapter-row,.info-card,.legal-card,.about-card{box-shadow:0 10px 32px rgba(0,0,0,.14)}
+.chapter-row:hover{border-color:var(--ar-border-strong)!important;box-shadow:0 14px 38px rgba(0,0,0,.20)}
+/* Loading states: quiet, centered and stable so content does not jump. */
+.loading-state{min-height:180px!important;padding:32px 20px;box-sizing:border-box}
+.loading-state p{max-width:28ch;text-align:center}
+/* Prevent fixed composers/sheets from covering the final interactive content. */
+.group-chat-feed{padding-bottom:max(118px,calc(108px + env(safe-area-inset-bottom)))!important;scroll-padding-bottom:max(118px,calc(108px + env(safe-area-inset-bottom)))!important}
+.group-composer{padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+.comment-list{scroll-padding-bottom:24px}
+/* Inputs feel like deliberate controls rather than browser defaults. */
+input,textarea,select{border-radius:12px}
+input::placeholder,textarea::placeholder{opacity:.55}
+/* Touch targets: preserve compact visuals while keeping controls usable. */
+@media(max-width:700px){
+  .icon-button,.back-button,.reader-back,.group-chat-header>button{min-width:40px;min-height:40px}
+  .chapter-row-actions button{min-width:40px;min-height:40px}
+  .comment-actions button{min-height:34px;padding:7px 9px}
+  .loading-state{min-height:160px!important}
+}
+@media(prefers-reduced-motion:reduce){.overlay-backdrop,.comment-sheet-backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}}
