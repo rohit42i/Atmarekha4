@@ -1,0 +1,268 @@
+/* Atma Rekha Admin — final system layer
+   Layout/visual refinement only. Existing data and actions remain intact. */
+
+main:has(.admin-header-card){
+  background:#fff!important;
+  color:#111!important;
+  min-height:100vh!important;
+}
+
+main:has(.admin-header-card)>.mx-auto{
+  width:100%!important;
+  max-width:none!important;
+  min-height:100vh!important;
+  box-sizing:border-box!important;
+  padding:24px 32px 48px 304px!important;
+}
+
+/* Sidebar */
+.admin-header-card{
+  position:fixed!important;
+  z-index:50!important;
+  inset:16px auto 16px 16px!important;
+  width:264px!important;
+  max-width:264px!important;
+  min-height:calc(100vh - 32px)!important;
+  margin:0!important;
+  padding:22px 16px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  border:1px solid #e4e4e4!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  color:#111!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.07)!important;
+}
+
+.admin-header-card:before,.admin-header-card:after{display:none!important}
+.admin-header-card>div:first-child{
+  padding:4px 8px 18px!important;
+  border-bottom:1px solid #e8e8e8!important;
+}
+.admin-header-card>div:first-child p:first-child{
+  color:#111!important;
+  font-size:10px!important;
+  letter-spacing:.16em!important;
+  font-weight:900!important;
+}
+.admin-header-card h1{
+  color:#111!important;
+  font-size:22px!important;
+  line-height:1.15!important;
+  letter-spacing:-.045em!important;
+}
+.admin-header-card>div:first-child p:last-child{
+  color:#777!important;
+  font-size:10px!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.admin-header-card>div:last-child{
+  margin-top:auto!important;
+  padding-top:16px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+}
+.admin-header-card>div:last-child button{
+  width:100%!important;
+  min-height:40px!important;
+  justify-content:flex-start!important;
+  border-radius:10px!important;
+  box-shadow:none!important;
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #e2e2e2!important;
+}
+.admin-header-card>div:last-child button:first-child{
+  background:#111!important;
+  color:#fff!important;
+  border-color:#111!important;
+}
+
+/* Existing tab container becomes the real sidebar navigation. */
+.admin-tabs{
+  position:fixed!important;
+  z-index:51!important;
+  left:32px!important;
+  top:154px!important;
+  width:232px!important;
+  max-height:calc(100vh - 350px)!important;
+  margin:0!important;
+  padding:8px 0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+.admin-tabs::-webkit-scrollbar{width:4px}
+.admin-tabs::-webkit-scrollbar-thumb{background:#ddd;border-radius:99px}
+.admin-tabs button{
+  width:100%!important;
+  min-height:42px!important;
+  flex:0 0 auto!important;
+  box-sizing:border-box!important;
+  padding:0 13px!important;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:#777!important;
+  text-align:left!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  box-shadow:none!important;
+}
+.admin-tabs button:hover{
+  transform:none!important;
+  background:#f5f5f5!important;
+  color:#111!important;
+}
+.admin-tabs button.active{
+  background:#111!important;
+  color:#fff!important;
+  border-color:#111!important;
+  box-shadow:none!important;
+}
+.admin-tabs button.active:after{display:none!important}
+.admin-tabs button b{background:#fff!important;color:#111!important;border:1px solid #ddd!important}
+
+/* Main content frame */
+main:has(.admin-header-card)>.mx-auto>header.admin-header-card~*{position:relative}
+main:has(.admin-header-card)>.mx-auto>.mb-5{
+  max-width:1240px!important;
+  margin:0 auto 16px!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  border:1px solid #d7d7d7!important;
+  color:#b00000!important;
+  box-shadow:none!important;
+}
+
+.admin-header-card~.admin-tabs~.admin-loading,
+.admin-header-card~.admin-tabs~.admin-overview,
+.admin-header-card~.admin-tabs~.admin-stack,
+.admin-header-card~.admin-tabs~.admin-card,
+.admin-header-card~.admin-tabs~section{
+  max-width:1240px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+
+/* Monochrome surfaces — remove decorative colour fields. */
+.admin-card,.admin-overview-card,.admin-overview-stat,.performance-card{
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #e2e2e2!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.045)!important;
+}
+.admin-card-title{border-bottom-color:#e8e8e8!important}
+.admin-card-title span,.admin-overview-kicker,.admin-overview-card-head span:first-child{color:#777!important}
+.admin-card-title h2,.admin-overview-card-head h3{color:#111!important}
+.admin-card-title p,.admin-overview-toolbar p,.admin-overview-comments article p{color:#666!important}
+
+.admin-overview-stat:before,.admin-overview-stat:after{display:none!important}
+.admin-overview-stat strong{color:#111!important}
+.admin-overview-stat-label{color:#777!important}
+.admin-overview-delta.positive,.admin-overview-delta.negative{color:#111!important}
+.admin-rating-bars i{background:#eee!important}
+.admin-rating-bars i span{background:#111!important}
+.admin-overview-stars{color:#111!important}
+.admin-top-chapters button:hover,.admin-performance-mobile button:hover{background:#f7f7f7!important}
+
+.admin-page input,.admin-page textarea,.admin-page select,
+.admin-panel input,.admin-panel textarea,.admin-panel select,
+.admin-dashboard input,.admin-dashboard textarea,.admin-dashboard select{
+  background:#fff!important;
+  color:#111!important;
+  border-color:#d9d9d9!important;
+  box-shadow:none!important;
+}
+.admin-page input:focus,.admin-page textarea:focus,.admin-page select:focus,
+.admin-panel input:focus,.admin-panel textarea:focus,.admin-panel select:focus,
+.admin-dashboard input:focus,.admin-dashboard textarea:focus,.admin-dashboard select:focus{
+  border-color:#111!important;
+  box-shadow:0 0 0 2px rgba(0,0,0,.08)!important;
+}
+
+.admin-submit,.admin-page .primary-button,.admin-panel .primary-button,.admin-dashboard .primary-button{
+  background:#111!important;
+  color:#fff!important;
+  border-color:#111!important;
+}
+.admin-row-actions button,.admin-card-title button,.admin-header-card button{box-shadow:none!important}
+.admin-row-actions .danger,.danger,.danger-text{color:#b00000!important}
+
+.admin-chapter-list article,.admin-mini-list>div,.admin-performance>div,
+.admin-dropzone,.admin-progress,.admin-comment-list article,.admin-report-list article{
+  background:#fff!important;
+  border-color:#e5e5e5!important;
+  color:#111!important;
+}
+.admin-chapter-list article:hover,.admin-mini-list>div:hover,.admin-dropzone:hover{background:#fafafa!important}
+
+.admin-page table,.admin-panel table,.admin-dashboard table{background:#fff!important;border-color:#e2e2e2!important}
+.admin-page th,.admin-panel th,.admin-dashboard th{background:#f7f7f7!important;color:#666!important}
+.admin-page td,.admin-page th,.admin-panel td,.admin-panel th,.admin-dashboard td,.admin-dashboard th{border-bottom-color:#e8e8e8!important}
+
+.admin-loading{min-height:220px;display:grid;place-items:center;color:#666!important}
+.admin-empty,.muted,.center{color:#777!important}
+
+/* Error states stay clearly red; success stays neutral. */
+.notice,.admin-notice,.admin-error,[role="alert"]{border-radius:10px!important}
+.admin-error,.notice.error{color:#b00000!important;border-color:#e2b0b0!important;background:#fff!important}
+
+/* Mobile: sidebar becomes a compact header + horizontal nav. */
+@media(max-width:900px){
+  main:has(.admin-header-card)>.mx-auto{padding:12px 14px 32px!important}
+  .admin-header-card{
+    position:relative!important;
+    inset:auto!important;
+    width:100%!important;
+    max-width:none!important;
+    min-height:0!important;
+    margin:0 0 10px!important;
+    padding:15px!important;
+    border-radius:15px!important;
+  }
+  .admin-header-card>div:first-child{padding:0 2px 12px!important}
+  .admin-header-card h1{font-size:21px!important}
+  .admin-header-card>div:last-child{margin-top:12px!important;padding-top:0!important;display:flex!important;flex-direction:row!important}
+  .admin-header-card>div:last-child button{flex:1!important;justify-content:center!important}
+  .admin-tabs{
+    position:sticky!important;
+    left:auto!important;
+    top:6px!important;
+    width:100%!important;
+    max-height:none!important;
+    height:auto!important;
+    padding:5px!important;
+    margin:0 0 14px!important;
+    flex-direction:row!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border:1px solid #e4e4e4!important;
+    border-radius:12px!important;
+    background:#fff!important;
+    z-index:40!important;
+  }
+  .admin-tabs button{width:auto!important;min-width:max-content!important;padding:0 12px!important}
+  .admin-header-card~.admin-tabs~*{max-width:none!important}
+}
+
+@media(max-width:520px){
+  main:has(.admin-header-card)>.mx-auto{padding-inline:10px!important}
+  .admin-header-card>div:last-child{flex-wrap:wrap!important}
+  .admin-header-card>div:last-child button:first-child{flex-basis:100%!important}
+  .admin-card{border-radius:13px!important}
+}
+
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
