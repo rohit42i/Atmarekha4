@@ -1,4 +1,4 @@
-/* Membership full-viewport layout override. Loaded after all membership/theme styles. */
+/* Membership + locked-chapter overlays: true full-viewport layout override. Loaded last. */
 html, body, #root {
   width: 100%;
   min-width: 100%;
@@ -7,32 +7,43 @@ html, body, #root {
   padding: 0;
 }
 
-.membership-overlay {
+.membership-overlay,
+.membership-phone-overlay,
+.chapter-access-overlay {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
+  max-width: none !important;
   height: 100vh !important;
   height: 100dvh !important;
   min-height: 100vh !important;
   min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.membership-overlay {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+.membership-overlay > .membership-backdrop,
+.membership-backdrop,
+.membership-phone-overlay .membership-phone-backdrop,
+.chapter-access-overlay > .chapter-access-backdrop,
+.chapter-access-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
-  display: flex !important;
-  align-items: stretch !important;
-  justify-content: stretch !important;
-  overflow: hidden !important;
-}
-
-.membership-overlay > .membership-backdrop,
-.membership-backdrop {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
 }
 
 .membership-overlay .membership-sheet {
@@ -54,12 +65,7 @@ html, body, #root {
 
 .membership-overlay .membership-content,
 .membership-overlay .membership-container,
-.membership-overlay .membership-inner {
-  width: 100% !important;
-  max-width: none !important;
-  box-sizing: border-box !important;
-}
-
+.membership-overlay .membership-inner,
 .membership-overlay .membership-head,
 .membership-overlay .membership-banners {
   width: 100% !important;
@@ -67,27 +73,31 @@ html, body, #root {
   box-sizing: border-box !important;
 }
 
-.membership-phone-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  height: 100dvh !important;
-  max-width: none !important;
-  max-height: none !important;
-  margin: 0 !important;
+.chapter-access-overlay {
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+.chapter-access-overlay .chapter-access-modal {
+  position: relative !important;
+  z-index: 1 !important;
   box-sizing: border-box !important;
 }
 
-.membership-phone-overlay .membership-phone-backdrop {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+.membership-phone-overlay {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.membership-phone-overlay .membership-phone-modal {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 @media (max-width: 700px) {
   .membership-overlay .membership-sheet {
-    padding-bottom: env(safe-area-inset-bottom) !important;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
   }
 }
