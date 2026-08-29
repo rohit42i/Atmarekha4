@@ -3,6 +3,7 @@
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const STORAGE_KEY = 'ar-theme';
+  const DEFAULT_THEME = 'light';
   const media = typeof window.matchMedia === 'function'
     ? window.matchMedia('(prefers-color-scheme: dark)')
     : null;
@@ -31,7 +32,8 @@
 
   const getSystemTheme = () => (media?.matches ? 'dark' : 'light');
 
-  const get = () => readSavedTheme() || getSystemTheme();
+  // Light is the website default. The device's dark-mode preference no longer overrides it.
+  const get = () => readSavedTheme() || DEFAULT_THEME;
 
   const dispatchChange = (theme) => {
     window.dispatchEvent(new CustomEvent('ar-theme-change', {
@@ -41,14 +43,9 @@
 
   const apply = (notify = false) => {
     const savedTheme = readSavedTheme();
-    const effectiveTheme = savedTheme || getSystemTheme();
+    const effectiveTheme = savedTheme || DEFAULT_THEME;
 
-    if (savedTheme) {
-      root.setAttribute('data-theme', savedTheme);
-    } else {
-      root.removeAttribute('data-theme');
-    }
-
+    root.setAttribute('data-theme', effectiveTheme);
     root.style.colorScheme = effectiveTheme;
 
     if (notify) dispatchChange(effectiveTheme);
@@ -57,7 +54,7 @@
 
   const set = (theme) => {
     if (theme !== 'light' && theme !== 'dark' && theme !== 'system') return get();
-    saveTheme(theme);
+    saveTheme(theme === 'system' ? DEFAULT_THEME : theme);
     return apply(true);
   };
 
@@ -66,16 +63,4 @@
   window.ArTheme = Object.freeze({ get, set, toggle });
 
   apply(false);
-
-  const handleSystemChange = () => {
-    if (!readSavedTheme()) apply(true);
-  };
-
-  if (media) {
-    if (typeof media.addEventListener === 'function') {
-      media.addEventListener('change', handleSystemChange);
-    } else if (typeof media.addListener === 'function') {
-      media.addListener(handleSystemChange);
-    }
-  }
 })();
