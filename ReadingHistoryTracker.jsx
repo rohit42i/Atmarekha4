@@ -26,18 +26,19 @@ export default function ReadingHistoryTracker() {
       if (key === lastSavedRef.current) return;
       lastSavedRef.current = key;
 
+      // Reading history is intentionally limited to one row per user:
+      // the chapter they most recently read.
       const { data: existing, error: findError } = await supabase
         .from('reading_history')
         .select('id')
         .eq('user_id', user.id)
-        .eq('chapter_id', chapterId)
         .maybeSingle();
       if (findError) { console.warn('Reading history lookup failed:', findError); return; }
 
       if (existing?.id) {
         const { error } = await supabase
           .from('reading_history')
-          .update({ page_number: pageNumber, updated_at: new Date().toISOString() })
+          .update({ chapter_id: chapterId, page_number: pageNumber, updated_at: new Date().toISOString() })
           .eq('id', existing.id);
         if (error) { console.warn('Reading history update failed:', error); return; }
       } else {
@@ -46,14 +47,6 @@ export default function ReadingHistoryTracker() {
           .insert({ user_id: user.id, chapter_id: chapterId, page_number: pageNumber });
         if (error) { console.warn('Reading history insert failed:', error); return; }
       }
-
-      // Keep only the user's latest/last-read chapter in reading history.
-      const { error: cleanupError } = await supabase
-        .from('reading_history')
-        .delete()
-        .eq('user_id', user.id)
-        .neq('chapter_id', chapterId);
-      if (cleanupError) console.warn('Reading history cleanup failed:', cleanupError);
     };
     const schedule = () => { window.clearTimeout(timerRef.current); timerRef.current = window.setTimeout(save, 250); };
     const onHash = () => { lastSavedRef.current = ''; schedule(); };
