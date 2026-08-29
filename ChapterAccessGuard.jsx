@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom';
 import { supabase, getCurrentMembership } from './supabase';
 
 const FREE_CHAPTER_LIMIT = 5;
+const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 
 function isMember(planId) {
-  return Boolean(planId) && planId !== 'free';
+  return MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase());
 }
 
 export default function ChapterAccessGuard() {
