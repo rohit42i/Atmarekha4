@@ -123,7 +123,7 @@ export default function ChapterAccessGuard() {
         <div className="chapter-access-icon" aria-hidden="true">🦚</div>
         <p className="chapter-access-eyebrow">ATMA REKHA · MEMBERS ONLY</p>
         <h2>Chapter {lockedChapter.chapter_number} is waiting for you.</h2>
-        <p className="chapter-access-copy">Chapters 1–5 are free forever. From Chapter 6 onward, membership keeps the story going and supports the next chapters.</p>
+        <p className="chapter-access-copy">Chapters 1–5 are free forever. From Chapter 6 onward, membership is required to continue reading.</p>
         <div className="chapter-access-perks">
           <span>✦ Full Chapter 6+ access</span>
           <span>✦ UPI AutoPay membership</span>
