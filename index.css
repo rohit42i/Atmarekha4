@@ -167,7 +167,7 @@
 .footer-social svg { width: 19px; height: 19px; }
 .footer-legal { margin-top: 16px; gap: 9px; }
 .footer-legal span { color: var(--legacy-424248-ff61befa); }
-.footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; color: var(--legacy-55555d-0e92e80f); font-size: 11px; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; color: var(--legacy-55555d-eacb3f0d); font-size: 11px; }
 
 /* Admin dashboard */
 .admin-header-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 18px; padding: 22px; border: 1px solid var(--legacy-29292d-3be7ac97); border-radius: 24px; background: linear-gradient(135deg, var(--legacy-171719-b0b48859), var(--legacy-101011-a397958f)); box-shadow: 0 18px 55px var(--legacy-rgb-0-0-0-28-01e3a322); }
@@ -312,3 +312,12 @@
   .comment-sheet-backdrop { align-items: center; padding: 20px; }
   .comment-sheet { border-bottom: 1px solid var(--legacy-2a2a2a-627840e2); border-radius: 24px; }
 }
+
+/* Membership viewport: layout-only fix, preserving all membership logic and controls. */
+.membership-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;margin:0!important;padding:0!important;display:block!important;overflow:hidden!important;z-index:2147483000!important}
+.membership-backdrop{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important}
+.membership-sheet{position:relative!important;z-index:1!important;width:100%!important;max-width:none!important;height:100%!important;min-height:100%!important;max-height:none!important;margin:0!important;border-radius:0!important;box-sizing:border-box!important;overflow-x:hidden!important;overflow-y:auto!important}
+.membership-head,.membership-banners{width:100%!important;max-width:none!important;box-sizing:border-box!important}
+.membership-phone-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;z-index:2147483001!important}
+.membership-phone-backdrop{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+@media(max-width:700px){.membership-sheet{padding-bottom:max(24px,env(safe-area-inset-bottom))!important}.membership-head{padding-top:max(20px,env(safe-area-inset-top))!important}}
