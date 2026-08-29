@@ -1,0 +1,143 @@
+/* Atma Rekha — final UI touch layer.
+   Visual/accessibility/performance-safe only. No application logic is changed. */
+
+:root {
+  --ar-black: #000;
+  --ar-white: #fff;
+  --ar-ink: #111;
+  --ar-muted: #6b6b6b;
+  --ar-line: rgba(0,0,0,.12);
+}
+
+html { scroll-behavior: smooth; }
+body { min-width: 320px; overflow-x: hidden; }
+button, input, select, textarea { font: inherit; }
+button, a, select, input, textarea { -webkit-tap-highlight-color: transparent; }
+button:disabled { cursor: not-allowed; }
+img { max-width: 100%; }
+
+/* Keep surfaces strictly monochrome. */
+.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100,
+.bg-purple-50, .bg-purple-100, .bg-pink-50, .bg-pink-100,
+.bg-green-50, .bg-green-100, .bg-yellow-50, .bg-yellow-100,
+.bg-red-50, .bg-red-100 { background-color: var(--ar-white) !important; }
+
+.dark .bg-blue-50, .dark .bg-blue-100, .dark .bg-indigo-50, .dark .bg-indigo-100,
+.dark .bg-purple-50, .dark .bg-purple-100, .dark .bg-pink-50, .dark .bg-pink-100,
+.dark .bg-green-50, .dark .bg-green-100, .dark .bg-yellow-50, .dark .bg-yellow-100,
+.dark .bg-red-50, .dark .bg-red-100 { background-color: var(--ar-black) !important; }
+
+/* Global rhythm and safer focus treatment. */
+:focus-visible {
+  outline: 2px solid currentColor !important;
+  outline-offset: 3px;
+}
+
+/* Forms: consistent sizing, readable labels, no accidental overflow. */
+input, select, textarea { max-width: 100%; box-sizing: border-box; }
+input::placeholder, textarea::placeholder { opacity: .58; }
+
+/* Cards: remove visual noise while retaining hierarchy. */
+[class*="rounded"].border,
+[class*="card"].border,
+.admin-card,
+.admin-overview-card {
+  box-shadow: 0 10px 30px rgba(0,0,0,.07);
+}
+
+.dark [class*="rounded"].border,
+.dark [class*="card"].border,
+.dark .admin-card,
+.dark .admin-overview-card {
+  box-shadow: 0 14px 34px rgba(0,0,0,.32);
+}
+
+/* Admin: compact, consistent controls and less empty chrome. */
+main:has(.admin-header-card) button {
+  min-height: 40px;
+  transition: transform .16s ease, opacity .16s ease, background-color .16s ease, border-color .16s ease;
+}
+main:has(.admin-header-card) button:not(:disabled):hover { transform: translateY(-1px); }
+main:has(.admin-header-card) .admin-card,
+main:has(.admin-header-card) .admin-overview-card,
+main:has(.admin-header-card) .admin-overview-stat {
+  border-color: var(--border-soft-color, rgba(0,0,0,.12)) !important;
+}
+
+/* Admin forms and tables stay usable at narrow widths. */
+main:has(.admin-header-card) table { width: 100%; border-collapse: separate; border-spacing: 0; }
+main:has(.admin-header-card) th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+main:has(.admin-header-card) td, main:has(.admin-header-card) th { vertical-align: middle; }
+main:has(.admin-header-card) .overflow-x-auto { -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+
+/* Error/important validation text remains unmistakable. */
+.error, .text-red-500, .text-red-600, .text-red-700,
+[role="alert"], [aria-invalid="true"] + *,
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] {
+  --tw-text-opacity: 1;
+}
+
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] {
+  border-color: #dc2626 !important;
+}
+
+/* Reader navigation: make previous/next feel like real page controls. */
+.chapter-navigation,
+.reader-navigation,
+.chapter-nav,
+.reading-navigation {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.chapter-navigation > a,
+.chapter-navigation > button,
+.reader-navigation > a,
+.reader-navigation > button,
+.chapter-nav > a,
+.chapter-nav > button,
+.reading-navigation > a,
+.reading-navigation > button {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+/* Loading states should not cause layout jumps. */
+[aria-busy="true"] { cursor: progress; }
+.skeleton, .loading-skeleton { animation: ar-pulse 1.4s ease-in-out infinite; }
+@keyframes ar-pulse { 50% { opacity: .52; } }
+
+/* Dialogs/popups: consistent stacking, spacing and mobile fit. */
+[role="dialog"] { max-width: min(92vw, 720px); max-height: 90vh; overflow: auto; overscroll-behavior: contain; }
+
+/* Community/chat: keep composer and feed inside the viewport. */
+textarea { resize: vertical; }
+
+@media (max-width: 900px) {
+  body { font-size: 15px; }
+  main:has(.admin-header-card) > .mx-auto { padding-left: 12px !important; padding-right: 12px !important; }
+  main:has(.admin-header-card) .admin-overview-stats { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  main:has(.admin-header-card) .admin-overview-grid { grid-template-columns: 1fr !important; }
+  .chapter-navigation, .reader-navigation, .chapter-nav, .reading-navigation { width: 100%; }
+  .chapter-navigation > *, .reader-navigation > *, .chapter-nav > *, .reading-navigation > * { flex: 1 1 0; min-width: 0; }
+}
+
+@media (max-width: 520px) {
+  main:has(.admin-header-card) .admin-overview-stats { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  main:has(.admin-header-card) .admin-overview-stat { min-height: 104px; padding: 14px !important; }
+  main:has(.admin-header-card) .admin-card-title { padding: 16px !important; }
+  .chapter-navigation > *, .reader-navigation > *, .chapter-nav > *, .reading-navigation > * { min-height: 46px; padding-inline: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
