@@ -62,6 +62,7 @@ import './responsive-desktop.css';
 import './InfoPage.css';
 import './micro-polish.css';
 import './ui-refinement.css';
+import './final-touch.css';
 import './content-moderation.js';
 
 function GroupChatLauncherGate(){
