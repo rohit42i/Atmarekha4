@@ -14,6 +14,7 @@ import Membership from './Membership.jsx';
 import GroupChat, { GroupChatLauncher } from './GroupChat.jsx';
 import AdminGroupChatTools from './AdminGroupChatTools.jsx';
 import AdminModerationTools from './AdminModerationTools.jsx';
+import AdminManagementTools from './AdminManagementTools.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -72,4 +73,4 @@ function GroupChatLauncherGate(){
   return <GroupChatLauncher user={user}/>;
 }
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminGroupChatTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
