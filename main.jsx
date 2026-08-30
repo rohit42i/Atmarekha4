@@ -70,6 +70,7 @@ import './admin-final-system.css';
 import './admin-dark-upgrade.css';
 import './admin-studio-tokens.css';
 import './admin-ultimate-ui.css';
+import './admin-productivity.js';
 import './membership-fullscreen-fix.css';
 
 function GroupChatLauncherGate(){
