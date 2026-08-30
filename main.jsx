@@ -16,6 +16,7 @@ import AdminGroupChatTools from './AdminGroupChatTools.jsx';
 import AdminModerationTools from './AdminModerationTools.jsx';
 import AdminManagementTools from './AdminManagementTools.jsx';
 import AdminCommandCenter from './AdminCommandCenter.jsx';
+import AdminMobileTools from './admin-mobile-tools.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -70,7 +71,7 @@ import './admin-final-system.css';
 import './admin-dark-upgrade.css';
 import './admin-studio-tokens.css';
 import './admin-ultimate-ui.css';
-import './admin-productivity.js';
+import './admin-mobile-enhancement.css';
 import './membership-fullscreen-fix.css';
 
 function GroupChatLauncherGate(){
@@ -79,4 +80,4 @@ function GroupChatLauncherGate(){
   return <GroupChatLauncher user={user}/>;
 }
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminCommandCenter/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminCommandCenter/><AdminMobileTools/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
