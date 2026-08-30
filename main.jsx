@@ -68,6 +68,7 @@ import './final-touch.css';
 import './content-moderation.js';
 import './admin-final-system.css';
 import './admin-dark-upgrade.css';
+import './admin-studio-tokens.css';
 import './membership-fullscreen-fix.css';
 
 function GroupChatLauncherGate(){
