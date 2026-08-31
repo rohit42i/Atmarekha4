@@ -1,66 +1,63 @@
-/* Membership + locked-chapter overlays: true full-viewport layout override. Loaded last. */
-html, body, #root {
-  width: 100%;
-  min-width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-}
+/* Atma Rekha membership / locked-chapter modal — popup over the existing page. */
 
+/* Never turn the membership UI into a new full-screen page. */
 .membership-overlay,
 .membership-phone-overlay,
 .chapter-access-overlay {
   position: fixed !important;
   inset: 0 !important;
+  z-index: 9999 !important;
   width: 100vw !important;
-  max-width: none !important;
   height: 100vh !important;
   height: 100dvh !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 16px !important;
   box-sizing: border-box !important;
-  overflow: hidden !important;
-}
-
-.membership-overlay {
   display: flex !important;
-  align-items: stretch !important;
-  justify-content: stretch !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
 }
 
-.membership-overlay > .membership-backdrop,
+/* Full-screen layer behind the card. The old page remains visible underneath. */
 .membership-backdrop,
-.membership-phone-overlay .membership-phone-backdrop,
-.chapter-access-overlay > .chapter-access-backdrop,
+.membership-phone-backdrop,
 .chapter-access-backdrop {
   position: absolute !important;
   inset: 0 !important;
+  z-index: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  box-sizing: border-box !important;
+  border: 0 !important;
+  background: rgba(0, 0, 0, 0.58) !important;
+  backdrop-filter: blur(12px) saturate(0.85) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(0.85) !important;
+  cursor: default !important;
 }
 
+/* Membership itself is a centered card, not a page. */
 .membership-overlay .membership-sheet {
   position: relative !important;
   z-index: 1 !important;
-  flex: 1 1 auto !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  max-height: none !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
+  flex: 0 1 auto !important;
+  width: min(1040px, calc(100vw - 32px)) !important;
+  max-width: 1040px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: auto !important;
+  padding: 28px !important;
   box-sizing: border-box !important;
+  border-radius: 28px !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55) !important;
 }
 
 .membership-overlay .membership-content,
@@ -73,31 +70,59 @@ html, body, #root {
   box-sizing: border-box !important;
 }
 
-.chapter-access-overlay {
-  display: flex !important;
-  align-items: stretch !important;
-  justify-content: stretch !important;
-}
-
-.chapter-access-overlay .chapter-access-modal {
-  position: relative !important;
-  z-index: 1 !important;
-  box-sizing: border-box !important;
-}
-
-.membership-phone-overlay {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
+/* Keep the secondary UPI dialog a centered card too. */
 .membership-phone-overlay .membership-phone-modal {
   position: relative !important;
   z-index: 1 !important;
+  width: min(440px, calc(100vw - 32px)) !important;
+  max-width: 440px !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: auto !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  border-radius: 26px !important;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* Locked chapter popup: same centered-card behaviour. */
+.chapter-access-overlay .chapter-access-modal {
+  position: relative !important;
+  z-index: 1 !important;
+  width: min(520px, calc(100vw - 32px)) !important;
+  max-width: 520px !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: auto !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  border-radius: 28px !important;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* Prevent the document behind a modal from becoming the scrolling surface. */
+body:has(.membership-overlay),
+body:has(.membership-phone-overlay),
+body:has(.chapter-access-overlay) {
+  overflow: hidden !important;
 }
 
 @media (max-width: 700px) {
+  .membership-overlay,
+  .membership-phone-overlay,
+  .chapter-access-overlay {
+    padding: 10px !important;
+  }
+
   .membership-overlay .membership-sheet {
-    padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+    padding: 20px !important;
+    border-radius: 22px !important;
+  }
+
+  .membership-phone-overlay .membership-phone-modal,
+  .chapter-access-overlay .chapter-access-modal {
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+    border-radius: 22px !important;
   }
 }
