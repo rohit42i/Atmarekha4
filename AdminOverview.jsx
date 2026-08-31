@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getCurrentMemberships, supabase } from './supabase';
+import { getPublicReaderTiers, supabase } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
 
 const WINDOWS = { '7': 7, '30': 30, '90': 90, all: null };
@@ -21,13 +21,13 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
     let active = true;
     const ids = [...new Set((comments || []).map(comment => comment.user_id).filter(Boolean))];
     if (!ids.length) { setMembershipPlans(new Map()); return () => { active = false; }; }
-    getCurrentMemberships(ids).then(map => { if (active) setMembershipPlans(map); }).catch(error => { console.warn('Admin membership lookup failed:', error); if (active) setMembershipPlans(new Map()); });
+    getPublicReaderTiers(ids).then(map => { if (active) setMembershipPlans(map); }).catch(error => { console.warn('Admin membership badge lookup failed:', error); if (active) setMembershipPlans(new Map()); });
     return () => { active = false; };
   }, [comments]);
 
   useEffect(() => {
     let active = true;
-    supabase.rpc('get_admin_user_stats').then(({ data, error }) => {
+    supabase.functions.invoke('get-admin-user-stats').then(({ data, error }) => {
       if (error) throw error;
       if (active && data) setUserStats({ logged_in_users: Number(data.logged_in_users || 0), notification_users: Number(data.notification_users || 0) });
     }).catch(error => console.warn('Admin user stats lookup failed:', error));
