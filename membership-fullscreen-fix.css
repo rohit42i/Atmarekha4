@@ -22,44 +22,42 @@ html, body, #root {
   box-sizing: border-box !important;
   overflow: hidden !important;
   z-index: 9999 !important;
-}
-
-/* The dimmed/blurred area always covers the entire viewport. */
-.membership-overlay,
-.membership-phone-overlay,
-.chapter-access-overlay {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
+/* Full-viewport dimmed/blurred background. */
 .membership-overlay > .membership-backdrop,
 .membership-backdrop,
 .membership-phone-overlay .membership-phone-backdrop,
 .chapter-access-overlay > .chapter-access-backdrop,
 .chapter-access-backdrop {
-  position: absolute !important;
+  position: fixed !important;
   inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
+  z-index: 0 !important;
 }
 
-/* Proper popup card — never stretches into a full page. */
+/* Popup card stays centered above the full-screen backdrop. */
 .membership-overlay .membership-sheet {
   position: relative !important;
-  z-index: 1 !important;
-  flex: 0 1 auto !important;
+  z-index: 2 !important;
+  flex: 0 0 auto !important;
   width: min(1120px, calc(100vw - 32px)) !important;
   max-width: 1120px !important;
   height: min(820px, calc(100dvh - 48px)) !important;
   min-height: 0 !important;
   max-height: calc(100dvh - 48px) !important;
-  margin: 24px auto !important;
+  margin: 0 !important;
   padding: 0 !important;
   border-radius: 28px !important;
   box-sizing: border-box !important;
@@ -86,27 +84,15 @@ html, body, #root {
   z-index: 5 !important;
 }
 
-/* Keep the inner plan row usable without making the outer overlay a page. */
 .membership-overlay .membership-banners {
   max-width: 100% !important;
   overflow-x: auto !important;
 }
 
-/* Secondary checkout dialog remains a compact centered modal. */
-.membership-phone-overlay .membership-phone-modal {
-  position: relative !important;
-  z-index: 1 !important;
-  width: min(460px, calc(100vw - 32px)) !important;
-  max-width: 460px !important;
-  max-height: calc(100dvh - 48px) !important;
-  box-sizing: border-box !important;
-  overflow-y: auto !important;
-  border-radius: 24px !important;
-}
-
+.membership-phone-overlay .membership-phone-modal,
 .chapter-access-overlay .chapter-access-modal {
   position: relative !important;
-  z-index: 1 !important;
+  z-index: 2 !important;
   width: min(560px, calc(100vw - 32px)) !important;
   max-width: 560px !important;
   max-height: calc(100dvh - 48px) !important;
@@ -116,20 +102,7 @@ html, body, #root {
 }
 
 @media (max-width: 700px) {
-  .membership-overlay {
-    align-items: center !important;
-    padding: 16px !important;
-  }
-
-  .membership-overlay .membership-sheet {
-    width: calc(100vw - 24px) !important;
-    max-width: calc(100vw - 24px) !important;
-    height: min(760px, calc(100dvh - 32px)) !important;
-    max-height: calc(100dvh - 32px) !important;
-    margin: 16px auto !important;
-    border-radius: 22px !important;
-  }
-
+  .membership-overlay .membership-sheet,
   .membership-phone-overlay .membership-phone-modal,
   .chapter-access-overlay .chapter-access-modal {
     width: calc(100vw - 24px) !important;
@@ -140,16 +113,12 @@ html, body, #root {
 }
 
 @media (max-width: 420px) {
-  .membership-overlay {
-    padding: 8px !important;
-  }
-
-  .membership-overlay .membership-sheet {
+  .membership-overlay .membership-sheet,
+  .membership-phone-overlay .membership-phone-modal,
+  .chapter-access-overlay .chapter-access-modal {
     width: calc(100vw - 16px) !important;
     max-width: calc(100vw - 16px) !important;
-    height: calc(100dvh - 16px) !important;
     max-height: calc(100dvh - 16px) !important;
-    margin: 8px auto !important;
     border-radius: 18px !important;
   }
 }
