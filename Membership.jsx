@@ -19,7 +19,7 @@ export default function Membership() {
   useEffect(() => { const onHash = () => setRoute(routeNow()); window.addEventListener('hashchange', onHash); const load = async () => { const { data } = await supabase.auth.getSession(); const current = data?.session?.user || null; setUser(current); await loadSubscription(current); }; load(); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { const current = session?.user || null; setUser(current); loadSubscription(current); }); return () => { window.removeEventListener('hashchange', onHash); listener.subscription.unsubscribe(); }; }, []);
 
   const beginCheckout = async plan => {
-    if (!user) { window.location.hash = 'login'; return; }
+    if (!user) { window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login', returnTo: 'membership' } })); return; }
     setError(''); setMessage(''); setLoading(true); setFlowOpen(false);
     try {
       const headers = await authHeaders();
@@ -36,7 +36,7 @@ export default function Membership() {
     } catch (err) { setError(err?.message || 'Unable to start membership checkout.'); setLoading(false); }
   };
 
-  const choosePaidPlan = plan => { setError(''); setMessage(''); setSelected(plan); if (!user) { window.location.hash = 'login'; return; } setFlowOpen(true); };
+  const choosePaidPlan = plan => { setError(''); setMessage(''); setSelected(plan); if (!user) { window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login', returnTo: 'membership' } })); return; } setFlowOpen(true); };
   const cancelMembership = async () => {
     if (!subscription?.provider_subscription_id) { setError('Your subscription reference is unavailable. Please contact Atma Rekha support.'); return; }
     if (!window.confirm('Cancel future renewals? Your current membership remains active until the current period ends.')) return;
