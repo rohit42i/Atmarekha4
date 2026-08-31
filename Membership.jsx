@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from './supabase';
+import './Membership.css';
 
 const PLANS = [
   { id: 'free', icon: '🆓', name: 'Free Member', amount: 0, eyebrow: 'FREE', description: 'Start reading Atma Rekha.', features: ['Chapters 1–5 forever free', 'Bookmarks & reading history', 'Ratings, comments & notifications'] },
