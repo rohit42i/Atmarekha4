@@ -30,3 +30,4 @@ jobs:
           git add package-lock.json
           git commit -m 'Refresh npm lockfile for security updates'
           git push
+# One-time lockfile refresh trigger.
