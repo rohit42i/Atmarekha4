@@ -1,4 +1,4 @@
-/* Membership + locked-chapter overlays: true full-viewport layout override. Loaded last. */
+/* Atma Rekha membership: full-screen backdrop + centered popup card. */
 html, body, #root {
   width: 100%;
   min-width: 100%;
@@ -13,7 +13,6 @@ html, body, #root {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
-  max-width: none !important;
   height: 100vh !important;
   height: 100dvh !important;
   min-height: 100vh !important;
@@ -22,12 +21,16 @@ html, body, #root {
   padding: 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
+  z-index: 9999 !important;
 }
 
-.membership-overlay {
+/* The dimmed/blurred area always covers the entire viewport. */
+.membership-overlay,
+.membership-phone-overlay,
+.chapter-access-overlay {
   display: flex !important;
-  align-items: stretch !important;
-  justify-content: stretch !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .membership-overlay > .membership-backdrop,
@@ -46,58 +49,107 @@ html, body, #root {
   box-sizing: border-box !important;
 }
 
+/* Proper popup card — never stretches into a full page. */
 .membership-overlay .membership-sheet {
   position: relative !important;
   z-index: 1 !important;
-  flex: 1 1 auto !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  max-height: none !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
+  flex: 0 1 auto !important;
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: 1120px !important;
+  height: min(820px, calc(100dvh - 48px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 48px) !important;
+  margin: 24px auto !important;
+  padding: 0 !important;
+  border-radius: 28px !important;
   box-sizing: border-box !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
+  isolation: isolate !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .48), 0 8px 30px rgba(0, 0, 0, .25) !important;
+  border: 1px solid rgba(255, 255, 255, .12) !important;
 }
 
+.membership-overlay .membership-head,
+.membership-overlay .membership-banners,
 .membership-overlay .membership-content,
 .membership-overlay .membership-container,
-.membership-overlay .membership-inner,
-.membership-overlay .membership-head,
-.membership-overlay .membership-banners {
-  width: 100% !important;
+.membership-overlay .membership-inner {
+  width: auto !important;
   max-width: none !important;
   box-sizing: border-box !important;
 }
 
-.chapter-access-overlay {
-  display: flex !important;
-  align-items: stretch !important;
-  justify-content: stretch !important;
+.membership-overlay .membership-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
+}
+
+/* Keep the inner plan row usable without making the outer overlay a page. */
+.membership-overlay .membership-banners {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+/* Secondary checkout dialog remains a compact centered modal. */
+.membership-phone-overlay .membership-phone-modal {
+  position: relative !important;
+  z-index: 1 !important;
+  width: min(460px, calc(100vw - 32px)) !important;
+  max-width: 460px !important;
+  max-height: calc(100dvh - 48px) !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  border-radius: 24px !important;
 }
 
 .chapter-access-overlay .chapter-access-modal {
   position: relative !important;
   z-index: 1 !important;
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-width: 560px !important;
+  max-height: calc(100dvh - 48px) !important;
   box-sizing: border-box !important;
-}
-
-.membership-phone-overlay {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.membership-phone-overlay .membership-phone-modal {
-  position: relative !important;
-  z-index: 1 !important;
+  overflow-y: auto !important;
+  border-radius: 24px !important;
 }
 
 @media (max-width: 700px) {
+  .membership-overlay {
+    align-items: center !important;
+    padding: 16px !important;
+  }
+
   .membership-overlay .membership-sheet {
-    padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    height: min(760px, calc(100dvh - 32px)) !important;
+    max-height: calc(100dvh - 32px) !important;
+    margin: 16px auto !important;
+    border-radius: 22px !important;
+  }
+
+  .membership-phone-overlay .membership-phone-modal,
+  .chapter-access-overlay .chapter-access-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    border-radius: 22px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .membership-overlay {
+    padding: 8px !important;
+  }
+
+  .membership-overlay .membership-sheet {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    margin: 8px auto !important;
+    border-radius: 18px !important;
   }
 }
