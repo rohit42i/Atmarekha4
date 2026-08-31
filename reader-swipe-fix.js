@@ -35,9 +35,9 @@
     raf=requestAnimationFrame(()=>{
       raf=0;if(!g)return;
       const{r,i,sx,x}=g,w=Math.max(r?.clientWidth||innerWidth,1),d=x-sx,q=Math.min(Math.abs(d)/w,1);
-      i.style.setProperty('--ar-x',d*.28+'px');
-      i.style.setProperty('--ar-r',(d<0?-1:1)*q*1.4+'deg');
-      i.style.setProperty('--ar-s',String(1-q*.008));
+      i.style.setProperty('--ar-x',d*.45+'px');
+      i.style.setProperty('--ar-r',(d<0?-1:1)*q*1.8+'deg');
+      i.style.setProperty('--ar-s',String(1-q*.01));
     });
   };
   const end=()=>{
@@ -46,11 +46,11 @@
     g=null;
     const active=fullscreen?'ar-fullscreen-swipe-active':'ar-swipe-active',settle=fullscreen?'ar-fullscreen-swipe-settle':'ar-swipe-settle',ret=fullscreen?'ar-fullscreen-swipe-return':'ar-swipe-return';
     i.classList.remove(active);
-    const commit=q>.08;
+    const commit=q>.045;
     i.classList.add(commit?settle:ret);
-    i.style.setProperty('--ar-x',commit?n*w*.035+'px':'0px');
-    i.style.setProperty('--ar-r',commit?n*1.3+'deg':'0deg');
-    i.style.setProperty('--ar-s',commit?'.992':'1');
+    i.style.setProperty('--ar-x',commit?n*w*.05+'px':'0px');
+    i.style.setProperty('--ar-r',commit?n*1.5+'deg':'0deg');
+    i.style.setProperty('--ar-s',commit?'.99':'1');
     clearTimeout(timer);
     timer=setTimeout(()=>{i.classList.remove(settle,ret);['--ar-x','--ar-r','--ar-s'].forEach(k=>i.style.removeProperty(k))},220);
   };
