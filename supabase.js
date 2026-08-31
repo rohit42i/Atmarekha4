@@ -106,10 +106,20 @@ const r2Storage = {
 };
 
 /**
- * Single source of truth for membership badges.
- * The database applies exactly:
- * status = 'active' AND (current_period_end IS NULL OR current_period_end > now()).
- * Plan mapping: mini_member = 🧸, supporter = 🌸, premium = 🦚.
+ * Public-safe membership badges. This intentionally returns only a display tier,
+ * never subscription IDs, dates, provider references, or other billing data.
+ */
+export async function getPublicReaderTiers(userIds = []) {
+  const ids = [...new Set((userIds || []).filter(Boolean))];
+  if (!ids.length) return new Map();
+  const { data, error } = await client.rpc('get_public_reader_tiers', { reader_ids: ids });
+  if (error) throw error;
+  const planMap = { premium: 'premium', supporter: 'supporter' };
+  return new Map((data || []).filter(row => row?.user_id && row?.tier).map(row => [row.user_id, planMap[row.tier] || null]).filter(([, plan]) => plan));
+}
+
+/**
+ * Private membership source used for the current user's access checks and admin workflows.
  */
 export async function getCurrentMemberships(userIds = []) {
   const ids = [...new Set((userIds || []).filter(Boolean))];
@@ -125,7 +135,6 @@ export async function getCurrentMembership(userId) {
   return memberships.get(userId) || null;
 }
 
-// Kept for existing callers; it now uses the same live membership source.
 export async function getCurrentlySubscribedUserIds(userIds = []) {
   return new Set((await getCurrentMemberships(userIds)).keys());
 }
