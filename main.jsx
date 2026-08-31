@@ -72,6 +72,7 @@ import './admin-studio-tokens.css';
 import './admin-ultimate-ui.css';
 import './admin-productivity.js';
 import './membership-fullscreen-fix.css';
+import './font-polish.css';
 
 function GroupChatLauncherGate(){
   const [user,setUser]=useState(null);
