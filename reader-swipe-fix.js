@@ -35,7 +35,7 @@
     raf=requestAnimationFrame(()=>{
       raf=0;if(!g)return;
       const{r,i,sx,x}=g,w=Math.max(r?.clientWidth||innerWidth,1),d=x-sx,q=Math.min(Math.abs(d)/w,1);
-      i.style.setProperty('--ar-x',d*.45+'px');
+      i.style.setProperty('--ar-x',d*.8+'px');
       i.style.setProperty('--ar-r',(d<0?-1:1)*q*1.8+'deg');
       i.style.setProperty('--ar-s',String(1-q*.01));
     });
