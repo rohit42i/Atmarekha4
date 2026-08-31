@@ -16,7 +16,18 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.');
 }
 
-const client = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder-key');
+const client = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseKey || 'placeholder-key',
+  {
+    auth: {
+      flowType: 'pkce',
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  },
+);
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
 async function authHeaders() {
@@ -106,16 +117,20 @@ const r2Storage = {
 };
 
 /**
- * Public-safe membership badges. This intentionally returns only a display tier,
- * never subscription IDs, dates, provider references, or other billing data.
+ * Public-safe membership badges. Badge state is intentionally stored as a
+ * public profile attribute, so no billing table is exposed through an RPC.
  */
 export async function getPublicReaderTiers(userIds = []) {
-  const ids = [...new Set((userIds || []).filter(Boolean))];
+  const ids = [...new Set((userIds || []).filter(Boolean))].slice(0, 50);
   if (!ids.length) return new Map();
-  const { data, error } = await client.rpc('get_public_reader_tiers', { reader_ids: ids });
+  const { data, error } = await client
+    .from('profiles')
+    .select('id,public_badge')
+    .in('id', ids);
   if (error) throw error;
-  const planMap = { premium: 'premium', supporter: 'supporter' };
-  return new Map((data || []).filter(row => row?.user_id && row?.tier).map(row => [row.user_id, planMap[row.tier] || null]).filter(([, plan]) => plan));
+  return new Map((data || [])
+    .filter(row => row?.id && (row.public_badge === 'premium' || row.public_badge === 'supporter'))
+    .map(row => [row.id, row.public_badge]));
 }
 
 /**
