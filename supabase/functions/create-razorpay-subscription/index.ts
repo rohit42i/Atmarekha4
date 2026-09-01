@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = new Set(['https://www.atmarekha.in', 'https://atmarekha.in', 'http://localhost:5173']);
+// Must match Membership.jsx and subscription_plans table
 const PLANS = {
   mini_member: { amount: 2900, name: 'Atma Rekha Mini Member' },
   supporter: { amount: 4900, name: 'Atma Rekha Member' },
@@ -77,8 +78,6 @@ Deno.serve(async req => {
     const plan = PLANS[planId];
     if (!plan) return json({ error: 'Invalid membership plan.' }, 400, origin);
 
-    // Serialize checkout creation per user. This closes the race where two
-    // simultaneous requests both pass the existing-subscription lookup.
     const lock = await admin.rpc('lock_user_subscription_creation', { p_user_id: user.id });
     if (lock.error) throw new Error(`Subscription lock failed: ${lock.error.message}`);
 
@@ -112,14 +111,22 @@ Deno.serve(async req => {
     });
     if (!subscription?.id) throw new Error('Razorpay created a subscription without returning an ID.');
 
+    const periodStart = subscription.current_start ? new Date(subscription.current_start * 1000).toISOString() : null;
+    let periodEnd = subscription.current_end ? new Date(subscription.current_end * 1000).toISOString() : null;
+    // Razorpay often omits current_end until first charge; default to +30 days for monthly access.
+    if (!periodEnd) {
+      const base = periodStart ? new Date(periodStart).getTime() : Date.now();
+      periodEnd = new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString();
+    }
+
     const row = {
       user_id: user.id,
       plan_id: planId,
       provider: 'razorpay',
       provider_subscription_id: subscription.id,
       status: 'pending',
-      current_period_start: subscription.current_start ? new Date(subscription.current_start * 1000).toISOString() : null,
-      current_period_end: subscription.current_end ? new Date(subscription.current_end * 1000).toISOString() : null,
+      current_period_start: periodStart,
+      current_period_end: periodEnd,
       cancel_at_period_end: false,
       updated_at: new Date().toISOString(),
     };
