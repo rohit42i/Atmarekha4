@@ -1,0 +1,45 @@
+/* Atma Rekha — enhanced comments mobile header visibility fix */
+@media (max-width: 600px) {
+  .ec-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .ec-sheet {
+    width: 100%;
+    max-width: 100%;
+    height: min(92dvh, 760px);
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ec-header {
+    position: relative;
+    flex: 0 0 auto;
+    min-height: 68px;
+    padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+  }
+
+  .ec-header h2 {
+    font-size: 23px;
+    line-height: 1.15;
+  }
+
+  .ec-list,
+  .ec-state,
+  .ec-empty {
+    overflow-y: auto;
+  }
+
+  .ec-list {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .ec-composer {
+    flex: 0 0 auto;
+  }
+}
