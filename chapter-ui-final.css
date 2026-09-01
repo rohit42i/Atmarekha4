@@ -29,3 +29,6 @@
   .chapter-favorite-action small { font-size:9px; }
   .reader-title h1 { font-size:clamp(21px,6vw,28px) !important; line-height:1.16; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 }
+
+/* Comments: keep the send button on the left without changing the composer layout. */
+.ec-compose-row > button { order:-1; }
