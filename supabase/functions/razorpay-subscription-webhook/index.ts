@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 function hexBytes(hex: string) { if (!/^[0-9a-f]+$/i.test(hex) || hex.length % 2) return null; const bytes = new Uint8Array(hex.length / 2); for (let i = 0; i < bytes.length; i += 1) bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16); return bytes; }
 function safeEqual(a: Uint8Array, b: Uint8Array) { if (a.length !== b.length) return false; let diff = 0; for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i]; return diff === 0; }
 async function hmac(body: string, secret: string) { const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body)); return new Uint8Array(signature); }
+async function sha256Hex(body: string) { const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)); return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join(''); }
 function iso(unix: unknown) { const value = Number(unix); return Number.isFinite(value) && value > 0 ? new Date(value * 1000).toISOString() : null; }
 
 Deno.serve(async req => {
@@ -13,7 +14,11 @@ Deno.serve(async req => {
     if (!secret || !supabaseUrl || !service) return new Response('Webhook configuration missing', { status: 500 });
     const raw = await req.text(); const received = req.headers.get('x-razorpay-signature') || ''; const expected = await hmac(raw, secret); const receivedBytes = hexBytes(received);
     if (!receivedBytes || !safeEqual(expected, receivedBytes)) return new Response('Invalid signature', { status: 400 });
-    const event = JSON.parse(raw); const eventName = String(event?.event || ''); const eventId = req.headers.get('x-razorpay-event-id') || `${String(event?.account_id || '')}:${String(event?.created_at || '')}:${eventName}:${String(event?.payload?.subscription?.entity?.id || '')}`;
+    let event: any;
+    try { event = JSON.parse(raw); } catch { return new Response('Invalid JSON', { status: 400 }); }
+    const eventName = String(event?.event || '');
+    const headerEventId = req.headers.get('x-razorpay-event-id')?.trim() || '';
+    const eventId = headerEventId || `body:${await sha256Hex(raw)}`;
     const admin = createClient(supabaseUrl, service); const { data: existing } = await admin.from('payment_events').select('id').eq('provider', 'razorpay').eq('event_id', eventId).maybeSingle(); if (existing) return new Response('ok', { status: 200 });
     const entity = event?.payload?.subscription?.entity; const subscriptionId = entity?.id ? String(entity.id) : '';
     const mappedStatus: Record<string, string> = { 'subscription.authenticated': 'active', 'subscription.activated': 'active', 'subscription.charged': 'active', 'subscription.updated': String(entity?.status || 'active'), 'subscription.pending': 'pending', 'subscription.completed': 'expired', 'subscription.halted': 'failed', 'subscription.paused': 'paused', 'subscription.resumed': 'active', 'subscription.cancelled': 'cancelled' };
