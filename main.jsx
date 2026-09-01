@@ -73,11 +73,9 @@ import './admin-ultimate-ui.css';
 import './admin-productivity.js';
 import './membership-fullscreen-fix.css';
 import './font-polish.css';
+import './comments-mobile-header-fix.css';
 
 function GroupChatLauncherGate(){
   const [user,setUser]=useState(null);
   useEffect(()=>{let active=true;const load=async()=>{const {data}=await supabase.auth.getSession();if(active)setUser(data?.session?.user||null)};load();const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{if(active)setUser(session?.user||null)});return()=>{active=false;listener.subscription.unsubscribe()}},[]);
   return <GroupChatLauncher user={user}/>;
-}
-
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminCommandCenter/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
