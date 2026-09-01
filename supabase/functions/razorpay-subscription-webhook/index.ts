@@ -6,6 +6,7 @@ function safeEqual(a: Uint8Array, b: Uint8Array) { if (a.length !== b.length) re
 async function hmac(body: string, secret: string) { const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body)); return new Uint8Array(signature); }
 async function sha256Hex(body: string) { const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)); return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join(''); }
 function iso(unix: unknown) { const value = Number(unix); return Number.isFinite(value) && value > 0 ? new Date(value * 1000).toISOString() : null; }
+function fallbackPeriodEnd(startIso: string | null) { const base = startIso ? new Date(startIso).getTime() : Date.now(); return new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString(); }
 
 Deno.serve(async req => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
@@ -28,13 +29,17 @@ Deno.serve(async req => {
       incomingStatus = remoteStatus === 'cancelled' ? 'cancelled' : remoteStatus || 'active';
     }
     if (subscriptionId && incomingStatus) {
-      const { data: record } = await admin.from('user_subscriptions').select('id,current_period_end,status').eq('provider', 'razorpay').eq('provider_subscription_id', subscriptionId).maybeSingle();
+      const { data: record } = await admin.from('user_subscriptions').select('id,current_period_start,current_period_end,status').eq('provider', 'razorpay').eq('provider_subscription_id', subscriptionId).maybeSingle();
       if (record) {
-        const incomingEnd = iso(entity.current_end); const endMs = incomingEnd ? new Date(incomingEnd).getTime() : (record.current_period_end ? new Date(record.current_period_end).getTime() : 0); const periodStillActive = !endMs || endMs > Date.now();
+        const incomingStart = iso(entity.current_start) || record.current_period_start || null;
+        const incomingEnd = iso(entity.current_end);
+        const periodEnd = incomingEnd || record.current_period_end || fallbackPeriodEnd(incomingStart);
+        const endMs = new Date(periodEnd).getTime();
+        const periodStillActive = Number.isFinite(endMs) && endMs > Date.now();
         // Cancellation must never revoke access before the paid period ends.
         const status = incomingStatus === 'cancelled' && periodStillActive ? 'active' : incomingStatus;
         const cancelAtPeriodEnd = incomingStatus === 'cancelled' || Number(entity.remaining_count) === 0 || entity.status === 'cancelled';
-        const { error: updateError } = await admin.from('user_subscriptions').update({ status, provider: 'razorpay', current_period_start: iso(entity.current_start), current_period_end: incomingEnd || record.current_period_end, cancel_at_period_end: cancelAtPeriodEnd, updated_at: new Date().toISOString() }).eq('id', record.id);
+        const { error: updateError } = await admin.from('user_subscriptions').update({ status, provider: 'razorpay', current_period_start: incomingStart, current_period_end: periodEnd, cancel_at_period_end: cancelAtPeriodEnd, updated_at: new Date().toISOString() }).eq('id', record.id);
         if (updateError) throw new Error(`Subscription update failed: ${updateError.message}`);
       }
     }
