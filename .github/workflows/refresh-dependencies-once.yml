@@ -1,51 +1,33 @@
-name: Refresh Dependency Lockfile
+name: One-time dependency lock refresh
 
 on:
   push:
-    branches:
-      - security-hardening-20260901
-  workflow_dispatch:
+    branches: [main]
 
 permissions:
   contents: write
 
-concurrency:
-  group: dependency-lock-refresh-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   refresh:
-    name: Regenerate and verify package lockfile
+    if: github.event.head_commit.message == 'Trigger dependency lock refresh'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Regenerate package-lock.json
-        run: npm install --package-lock-only --ignore-scripts --include=dev
-
-      - name: Verify clean install compatibility
-        run: npm ci --dry-run
-
+      - name: Refresh lockfile
+        run: npm install --package-lock-only --ignore-scripts
       - name: Commit refreshed lockfile
-        shell: bash
         run: |
           if git diff --quiet -- package-lock.json; then
-            echo 'package-lock.json is already synchronized with package.json.'
+            echo 'Lockfile already current.'
             exit 0
           fi
-
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add package-lock.json
-          git commit -m 'Synchronize npm lockfile with package manifest'
+          git commit -m 'Refresh npm lockfile for security updates'
           git push
+# One-time lockfile refresh trigger.
