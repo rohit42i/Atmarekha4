@@ -50,6 +50,11 @@ function iso(unix: unknown) {
   return Number.isFinite(value) && value > 0 ? new Date(value * 1000).toISOString() : null;
 }
 
+function fallbackPeriodEnd(startIso: string | null) {
+  const base = startIso ? new Date(startIso).getTime() : Date.now();
+  return new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
@@ -98,17 +103,21 @@ Deno.serve(async req => {
     const activeStatuses = new Set(['authenticated', 'active']);
     if (!activeStatuses.has(remoteStatus)) return json({ error: `Razorpay subscription is not active yet (status: ${remoteStatus || 'unknown'}).` }, 400, origin);
 
+    const periodStart = iso(remote.current_start);
+    let periodEnd = iso(remote.current_end);
+    if (!periodEnd) periodEnd = fallbackPeriodEnd(periodStart);
+
     const { error: updateError } = await admin.from('user_subscriptions').update({
       status: 'active',
       provider: 'razorpay',
-      current_period_start: iso(remote.current_start),
-      current_period_end: iso(remote.current_end),
+      current_period_start: periodStart,
+      current_period_end: periodEnd,
       cancel_at_period_end: false,
       updated_at: new Date().toISOString(),
     }).eq('id', record.id);
     if (updateError) throw new Error(`Subscription activation failed: ${updateError.message}`);
 
-    return json({ success: true, subscription_id: subscriptionId, plan_id: record.plan_id, current_period_end: iso(remote.current_end) }, 200, origin);
+    return json({ success: true, subscription_id: subscriptionId, plan_id: record.plan_id, current_period_end: periodEnd }, 200, origin);
   } catch (error) {
     console.error('Razorpay subscription verification failed:', error instanceof Error ? error.message : 'unknown error');
     return json({ error: error instanceof Error ? error.message : 'Unable to verify subscription.' }, 500, origin);
