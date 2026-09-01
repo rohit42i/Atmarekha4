@@ -96,10 +96,11 @@ export default function AdminPanel({ onLogout }) {
   useEffect(() => { load(); }, []);
 
   const choosePages = event => {
+    // Preserve the exact FileList order supplied by the picker. Do not sort by filename:
+    // filename sorting changes the author's selected page order and can publish pages incorrectly.
     const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: `${tooLarge.name} is larger than 20 MB.` }); return; }
-    files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
     setForm(value => ({ ...value, pages: files }));
   };
 
@@ -117,17 +118,23 @@ export default function AdminPanel({ onLogout }) {
     const uploadedPaths = [];
     try {
       await requireAdmin();
-      const number = Number(form.number);
-      if (!Number.isInteger(number) || number < 1) throw new Error('Enter a valid chapter number.');
+      const rawNumber = String(form.number ?? '').trim();
+      const number = rawNumber === '' ? null : Number(rawNumber);
+      if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number or leave it blank.');
       if (!form.title.trim()) throw new Error('Chapter title is required.');
       if (!editing && !form.pages.length) throw new Error('Select at least one manga page.');
 
-      const payload = { chapter_number: number, title: form.title.trim(), description: form.description.trim(), status: form.status, release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null };
+      // chapter_number is an identity column in Supabase. When left blank, omit it
+      // so Postgres generates the next chapter number automatically.
+      const payload = { title: form.title.trim(), description: form.description.trim(), status: form.status, release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null };
+      if (number !== null) payload.chapter_number = number;
+      if (editing && number === null) delete payload.chapter_number;
+
       if (editing) {
         const { error } = await supabase.from(CHAPTERS).update(payload).eq('id', editing.id);
         if (error) throw new Error(`Chapter update failed: ${error.message}`);
       } else {
-        const { data, error } = await supabase.from(CHAPTERS).insert(payload).select('id').single();
+        const { data, error } = await supabase.from(CHAPTERS).insert(payload).select('id, chapter_number').single();
         if (error) throw new Error(`Chapter creation failed: ${error.message}`);
         chapterId = data.id;
       }
@@ -166,7 +173,8 @@ export default function AdminPanel({ onLogout }) {
         await removeFiles(PAGE_BUCKET, oldPaths);
       }
       if (oldCoverPath) await removeFiles(COVER_BUCKET, [oldCoverPath]);
-      resetForm(); await load(); setNotice({ type: 'success', text: `Chapter ${number} ${editing ? 'updated' : 'uploaded'} successfully.` });
+      const savedChapterNumber = number ?? (await supabase.from(CHAPTERS).select('chapter_number').eq('id', chapterId).single()).data?.chapter_number;
+      resetForm(); await load(); setNotice({ type: 'success', text: `Chapter ${savedChapterNumber ?? ''} ${editing ? 'updated' : 'uploaded'} successfully.`.replace('Chapter  updated', 'Chapter uploaded').replace('Chapter  uploaded', 'Chapter uploaded') });
     } catch (error) {
       console.error(error);
       for (const item of uploadedPaths) { try { await removeFiles(item.bucket, [item.path]); } catch (_) {} }
@@ -297,9 +305,9 @@ export default function AdminPanel({ onLogout }) {
     <nav className="admin-tabs">{tabs.map(item => <button key={item} onClick={() => setTab(item)} className={tab === item ? 'active' : ''}>{item}{item === 'Reports' && reports.length > 0 ? <b>{reports.length}</b> : null}</button>)}</nav>
 
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={setTab} chapterName={chapterName}/> : tab === 'Chapters' ? <section className="admin-stack">
-      <section className="admin-card upload-card"><div className="admin-card-title"><div><span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span><h2>{editing ? `Edit Chapter ${editing.chapterNumber}` : 'Upload a chapter'}</h2><p>Select all manga pages at once. Uploads go directly to Supabase Storage.</p></div>{editing && <button onClick={resetForm}>Cancel</button>}</div><form onSubmit={saveChapter} className="admin-form">
-        <div className="admin-form-grid"><input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number" required/><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/><label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label><label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label></div>
-        <label className="admin-dropzone"><strong>Manga pages</strong><span>Select every page in order. Files are sorted numerically.</span><input type="file" multiple accept="image/*" onChange={choosePages}/>{form.pages.length > 0 && <em>{form.pages.length} pages ready</em>}</label>
+      <section className="admin-card upload-card"><div className="admin-card-title"><div><span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span><h2>{editing ? `Edit Chapter ${editing.chapterNumber}` : 'Upload a chapter'}</h2><p>Select all manga pages at once. Their selected order will be preserved exactly during upload.</p></div>{editing && <button onClick={resetForm}>Cancel</button>}</div><form onSubmit={saveChapter} className="admin-form">
+        <div className="admin-form-grid"><input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional — leave blank for auto number)"/><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/><label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label><label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label></div>
+        <label className="admin-dropzone"><strong>Manga pages</strong><span>Select pages in the exact order you want them published. Filename sorting is disabled.</span><input type="file" multiple accept="image/*" onChange={choosePages}/>{form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}</label>
         {progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}
         <button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
       </form></section>
