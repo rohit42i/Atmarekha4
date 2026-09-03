@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react';
+import { supabase } from './supabase';
+import { getAdminRole } from './adminAuth';
+
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx', icon: 'instagram' },
   { label: 'YouTube', href: 'https://youtube.com/@atmarekha?si=ytUOmNPrKFtxJUwn', icon: 'youtube' },
@@ -11,6 +15,22 @@ function SocialIcon({ type }) {
 }
 
 export default function Footer() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const check = async session => {
+      try {
+        const current = session || (await supabase.auth.getSession()).data.session;
+        const role = await getAdminRole(current?.user?.id);
+        if (active) setIsAdmin(role === 'owner' || role === 'admin');
+      } catch { if (active) setIsAdmin(false); }
+    };
+    check();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => check(session));
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, []);
+
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
@@ -25,20 +45,12 @@ export default function Footer() {
           <a href="#info/report">Report</a>
           <a href="#info/privacy">Privacy</a>
           <a href="#info/terms">Terms</a>
-          <a href="#admin" className="footer-admin-link">Admin Login</a>
+          {isAdmin && <a href="#admin" className="footer-admin-link">Admin Login</a>}
         </nav>
 
         <div className="footer-socials" aria-label="Social links">
           {SOCIAL_LINKS.map(item => (
-            <a
-              key={item.label}
-              href={item.href}
-              target={item.href.startsWith('mailto:') ? undefined : '_blank'}
-              rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'}
-              className="footer-social"
-              aria-label={item.label}
-              title={item.label}
-            >
+            <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}>
               <SocialIcon type={item.icon} />
             </a>
           ))}
