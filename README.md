@@ -80,3 +80,4 @@ The frontend reads these records live through the Supabase Data API. Chapter/pag
 - SPA fallback: enabled
 
 The GitHub build workflow runs `npm ci` and `npm run build` on pushes and pull requests to `main`.
+
