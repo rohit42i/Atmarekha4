@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.head_commit.message == 'fix: null chapter labels, reader error states, reading history events, access guard'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,15 +67,9 @@ jobs:
               raise SystemExit('Expected reader localStorage effect was not found; refusing to modify App.jsx')
           s = s.replace(marker, progress, 1)
 
-          # Replace common reader/nav page labels without touching routing or handlers.
           s = re.sub(r'>(?:Chapter) \$\{([^}]*chapterNumber)\}<', r'>{formatChapterLabel(\1, { title: chapter.title })}<', s)
           s = re.sub(r'`Chapter \$\{chapter\.chapterNumber\}`', r'formatChapterLabel(chapter.chapterNumber, { title: chapter.title })', s)
-
-          # Image alt text: preserve any page suffix while replacing the unsafe chapter label.
-          s = s.replace(
-              'Chapter ${chapter.chapterNumber}',
-              '${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}'
-          )
+          s = s.replace('Chapter ${chapter.chapterNumber}', '${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}')
 
           if s == original:
               raise SystemExit('No App.jsx changes were produced; refusing to commit')
