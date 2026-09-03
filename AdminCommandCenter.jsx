@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
+import { getAdminRole } from './adminAuth';
 
 const since = days => new Date(Date.now() - days * 86400000).toISOString();
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -8,9 +9,8 @@ const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-d
 async function verifyAdmin(){
   const { data:{ user } } = await supabase.auth.getUser();
   if(!user) throw new Error('Admin session required.');
-  const { data,error } = await supabase.from('admins').select('user_id').eq('user_id',user.id).maybeSingle();
-  if(error) throw error;
-  if(!data) throw new Error('Admin access required.');
+  const role = await getAdminRole(user.id);
+  if(role !== 'owner' && role !== 'admin') throw new Error('Admin access required.');
   return user;
 }
 async function count(table, filter){
