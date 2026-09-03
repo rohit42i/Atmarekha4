@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from './supabase';
+import { getAdminRole } from './adminAuth';
 
 export default function AdminLogin({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -16,8 +17,8 @@ export default function AdminLogin({ onLoginSuccess }) {
       setBusy(false);
       return;
     }
-    const { data: admin, error: adminError } = await supabase.from('admins').select('user_id').eq('user_id', data.user.id).maybeSingle();
-    if (adminError || !admin) {
+    const role = await getAdminRole(data.user?.id);
+    if (!role) {
       await supabase.auth.signOut();
       setError('This account is not authorized as an Atma Rekha admin.');
       setBusy(false);
