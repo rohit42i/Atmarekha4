@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
+import { getAdminRole } from './adminAuth';
 
 const LIMIT = 250;
 const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_chat_reads'];
@@ -8,9 +9,8 @@ const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_ch
 async function verifyAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Admin session required.');
-  const { data, error } = await supabase.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
-  if (error) throw new Error(`Admin verification failed: ${error.message}`);
-  if (!data) throw new Error('Admin access required.');
+  const role = await getAdminRole(user.id);
+  if (role !== 'owner' && role !== 'admin') throw new Error('Admin access required.');
   return user;
 }
 
