@@ -4,9 +4,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const ALLOWED_ORIGINS = new Set(['https://www.atmarekha.in', 'https://atmarekha.in', 'http://localhost:5173']);
 // Must match Membership.jsx and subscription_plans table
 const PLANS = {
-  mini_member: { amount: 2900, name: 'Atma Rekha Mini Member' },
-  supporter: { amount: 4900, name: 'Atma Rekha Member' },
-  premium: { amount: 9900, name: 'Atma Rekha Premium Member' },
+  mini_member: { amount: 1900, name: 'Atma Rekha Supporter' },
+  supporter: { amount: 2900, name: 'Atma Rekha Premium Supporter' },
+  premium: { amount: 4900, name: 'Atma Rekha Super Supporter' },
 } as const;
 type PlanId = keyof typeof PLANS;
 
@@ -113,7 +113,6 @@ Deno.serve(async req => {
 
     const periodStart = subscription.current_start ? new Date(subscription.current_start * 1000).toISOString() : null;
     let periodEnd = subscription.current_end ? new Date(subscription.current_end * 1000).toISOString() : null;
-    // Razorpay often omits current_end until first charge; default to +30 days for monthly access.
     if (!periodEnd) {
       const base = periodStart ? new Date(periodStart).getTime() : Date.now();
       periodEnd = new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString();
