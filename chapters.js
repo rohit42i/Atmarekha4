@@ -3,16 +3,6 @@ import { supabase } from './supabase';
 
 const CHAPTERS_TABLE = 'chapters';
 const PAGES_TABLE = 'chapter_pages';
-const CHAPTER_NUMBER = 'chapter_number';
-const TITLE = 'title';
-const DESCRIPTION = 'description';
-const COVER_URL = 'cover_url';
-const STATUS = 'status';
-const RELEASE_DATE = 'release_date';
-const CREATED_AT = 'created_at';
-const PAGE_CHAPTER_ID = 'chapter_id';
-const PAGE_NUMBER = 'page_number';
-const PAGE_IMAGE_URL = 'image_url';
 const PAGE_FETCH_ATTEMPTS = 4;
 const PAGE_FETCH_DELAY_MS = 300;
 
@@ -38,53 +28,42 @@ export async function buildChapters() {
   const { data, error } = await supabase
     .from(CHAPTERS_TABLE)
     .select('*')
-    .order(CHAPTER_NUMBER, { ascending: true, nullsFirst: false });
-
+    .order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {
     console.error('Supabase chapters error:', error);
     throw error;
   }
-
   const chapters = (data || []).map((chapter) => ({
     id: chapter.id,
-    chapterNumber: chapter[CHAPTER_NUMBER],
-    title: chapter[TITLE] || '',
-    description: chapter[DESCRIPTION] || '',
-    cover: chapter[COVER_URL] || null,
-    status: chapter[STATUS] || '',
-    releaseDate: chapter[RELEASE_DATE] || null,
-    createdAt: chapter[CREATED_AT] || null,
+    chapterNumber: chapter.chapter_number,
+    title: chapter.title || '',
+    description: chapter.description || '',
+    cover: chapter.cover_url || null,
+    status: chapter.status || '',
+    releaseDate: chapter.release_date || null,
+    createdAt: chapter.created_at || null,
   }));
-
   installChapterCoverStyles(chapters);
   return chapters;
 }
 
 export async function buildChapterPages(chapterId) {
   if (!chapterId) return [];
-  let lastError = null;
-
   for (let attempt = 1; attempt <= PAGE_FETCH_ATTEMPTS; attempt += 1) {
     const { data, error } = await supabase
       .from(PAGES_TABLE)
       .select('*')
-      .eq(PAGE_CHAPTER_ID, chapterId)
-      .order(PAGE_NUMBER, { ascending: true });
-
+      .eq('chapter_id', chapterId)
+      .order('page_number', { ascending: true });
     if (!error) {
       const pages = (data || [])
-        .map((page) => page[PAGE_IMAGE_URL])
+        .map((page) => page.image_url)
         .filter((url) => typeof url === 'string' && url.trim().length > 0);
-      if (pages.length > 0 || attempt === PAGE_FETCH_ATTEMPTS) return pages;
-    } else {
-      lastError = error;
-      console.warn(`Supabase chapter pages attempt ${attempt}/${PAGE_FETCH_ATTEMPTS} failed:`, error);
-      if (attempt === PAGE_FETCH_ATTEMPTS) throw error;
+      if (pages.length || attempt === PAGE_FETCH_ATTEMPTS) return pages;
+    } else if (attempt === PAGE_FETCH_ATTEMPTS) {
+      throw error;
     }
-
     await sleep(PAGE_FETCH_DELAY_MS * attempt);
   }
-
-  if (lastError) throw lastError;
   return [];
 }
