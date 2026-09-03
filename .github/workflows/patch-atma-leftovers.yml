@@ -31,23 +31,10 @@ jobs:
               "import { buildChapters, buildChapterPages } from './chapters';",
               "import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyebrow } from './chapters';"
           )
-
-          s = s.replace(
-              'CHAPTER {chapter.chapterNumber}',
-              '{formatChapterEyebrow(chapter.chapterNumber, chapter.title)}'
-          )
-          s = s.replace(
-              '<span>Chapter {chapter.chapterNumber}</span>',
-              '<span>{formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}</span>'
-          )
-          s = s.replace(
-              'label={`Rate Chapter ${chapter.chapterNumber}`}',
-              'label={`Rate ${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}`}'
-          )
-          s = s.replace(
-              'label={`Comments for Chapter ${chapter.chapterNumber}`}',
-              'label={`Comments for ${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}`}'
-          )
+          s = s.replace('CHAPTER {chapter.chapterNumber}', '{formatChapterEyebrow(chapter.chapterNumber, chapter.title)}')
+          s = s.replace('<span>Chapter {chapter.chapterNumber}</span>', '<span>{formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}</span>')
+          s = s.replace('label={`Rate Chapter ${chapter.chapterNumber}`}', 'label={`Rate ${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}`}')
+          s = s.replace('label={`Comments for Chapter ${chapter.chapterNumber}`}', 'label={`Comments for ${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}`}')
 
           old_nav = "const previousChapter = chapters.filter(published).filter(item => Number(item.chapterNumber) < Number(chapter.chapterNumber)).at(-1); const nextChapter = chapters.filter(published).find(item => Number(item.chapterNumber) > Number(chapter.chapterNumber));"
           new_nav = "const finite = (n) => { if (n === null || n === undefined || n === '') return null; const v = Number(n); return Number.isFinite(v) ? v : null; }; const currentNum = finite(chapter.chapterNumber); const publishedList = chapters.filter(published); let previousChapter = null; let nextChapter = null; if (currentNum !== null) { previousChapter = [...publishedList].reverse().find((item) => { const n = finite(item.chapterNumber); return n !== null && n < currentNum; }); nextChapter = publishedList.find((item) => { const n = finite(item.chapterNumber); return n !== null && n > currentNum; }); }"
@@ -75,7 +62,6 @@ jobs:
               raise SystemExit('No App.jsx changes were produced; refusing to commit')
           p.write_text(s)
           PY
-
           grep -q "formatChapterLabel, formatChapterEyebrow" App.jsx
           grep -q "atma-reading-progress" App.jsx
           grep -q "const finite =" App.jsx
