@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { buildChapters } from './chapters';
 import AdminOverview from './AdminOverview';
+import { getAdminRole } from './adminAuth';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -20,9 +21,8 @@ const pathFromUrl = (url, bucket) => {
 async function requireAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Your Supabase session has expired. Please sign in again.');
-  const { data, error } = await supabase.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
-  if (error) throw new Error(`Admin verification failed: ${error.message}`);
-  if (!data) throw new Error('Admin access required.');
+  const role = await getAdminRole(user.id);
+  if (!role) throw new Error('Admin access required.');
   return user;
 }
 
