@@ -95,12 +95,7 @@ Deno.serve(async req => {
     const activeExisting = rows.find(row => row.status === 'active' || (row.status === 'cancelled' && row.current_period_end && new Date(row.current_period_end).getTime() > now));
     if (activeExisting) return json({ error: 'You already have an active membership.', subscription_id: activeExisting.provider_subscription_id || null, plan_id: activeExisting.plan_id }, 409, origin);
 
-    const reusable = rows.find(row => (row.status === 'pending' || row.status === 'paused') && row.provider === 'razorpay');
-    if (reusable?.provider_subscription_id) {
-      if (reusable.plan_id !== planId) return json({ error: 'You already have a membership checkout in progress. Complete or cancel it before choosing another plan.' }, 409, origin);
-      return json({ subscription_id: reusable.provider_subscription_id, plan_id: reusable.plan_id, key_id: keyId }, 200, origin);
-    }
-
+    // Never reuse an old Razorpay subscription. Always create a fresh subscription for the selected plan.
     const razorpayPlanId = await findOrCreatePlan(plan, keyId, keySecret);
     const subscription = await razorpay('/subscriptions', 'POST', keyId, keySecret, {
       plan_id: razorpayPlanId,
@@ -129,13 +124,16 @@ Deno.serve(async req => {
       cancel_at_period_end: false,
       updated_at: new Date().toISOString(),
     };
-    const reusableRow = rows.find(row => (row.status === 'pending' || row.status === 'paused') && !row.provider_subscription_id);
-    const save = reusableRow?.id
-      ? await admin.from('user_subscriptions').update(row).eq('id', reusableRow.id)
+
+    // user_subscriptions has one row per user. Update the existing row when present;
+    // only insert when the user has no subscription row yet.
+    const existingRow = rows[0];
+    const save = existingRow?.id
+      ? await admin.from('user_subscriptions').update(row).eq('id', existingRow.id).eq('user_id', user.id)
       : await admin.from('user_subscriptions').insert(row);
     if (save.error) throw new Error(`Subscription record creation failed: ${save.error.message}`);
 
-    return json({ subscription_id: subscription.id, plan_id: planId, key_id: keyId }, 200, origin);
+    return json({ subscription_id: subscription.id, plan_id: planId, key_id: keyId, amount: plan.amount, name: plan.name }, 200, origin);
   } catch (error) {
     if (error instanceof RazorpayApiError) {
       console.error('Razorpay API failure:', JSON.stringify({ status: error.status, code: error.code, reason: error.reason, description: error.message }));
