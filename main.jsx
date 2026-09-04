@@ -78,8 +78,33 @@ import './admin-studio-pro-v2.css';
 
 function GroupChatLauncherGate(){
   const [user,setUser]=useState(null);
-  useEffect(()=>{let active=true;const load=async()=>{const {data}=await supabase.auth.getSession();if(active)setUser(data?.session?.user||null)};load();const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{if(active)setUser(session?.user||null)});return()=>{active=false;listener.subscription.unsubscribe()}},[]);
-  return <GroupChatLauncher user={user}/>;
+  const [enabled,setEnabled]=useState(false);
+  useEffect(()=>{
+    let active=true;
+    const load=async()=>{
+      const [{data:sessionData},{count,error}]=await Promise.all([
+        supabase.auth.getSession(),
+        supabase.from('profiles').select('id',{count:'exact',head:true})
+      ]);
+      if(!active)return;
+      setUser(sessionData?.session?.user||null);
+      setEnabled(!error&&Number(count||0)>=500);
+    };
+    load();
+    const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{
+      if(active)setUser(session?.session?.user||session?.user||null);
+    });
+    const channel=supabase.channel('group-chat-user-threshold')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'profiles'},()=>{load()})
+      .subscribe();
+    return()=>{
+      active=false;
+      listener.subscription.unsubscribe();
+      supabase.removeChannel(channel);
+    };
+  },[]);
+  if(!enabled)return null;
+  return <><GroupChatLauncher user={user}/><GroupChat/></>;
 }
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminCommandCenter/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><AdminCommandCenter/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
