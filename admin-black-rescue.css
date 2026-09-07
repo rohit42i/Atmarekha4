@@ -1,0 +1,192 @@
+/* Atma Rekha — admin runtime rescue. Loaded after every other stylesheet. */
+
+html:has(main.admin-dashboard-shell),
+html:has(main.admin-dashboard-shell) body,
+html:has(main.admin-dashboard-shell) #root,
+html:has(main.admin-auth-checking),
+html:has(main.admin-auth-checking) body,
+html:has(main.admin-auth-checking) #root {
+  background: #111827 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+}
+
+html:has(main.admin-dashboard-shell) body,
+html:has(main.admin-auth-checking) body {
+  min-height: 100vh !important;
+}
+
+main.admin-auth-checking,
+main.admin-auth-checking.site-shell {
+  min-height: 100vh !important;
+  width: 100% !important;
+  background: #111827 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+main.admin-dashboard-shell,
+main:has(.admin-header-card) {
+  position: relative !important;
+  z-index: 1 !important;
+  display: block !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  background: #111827 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  --bg-color: #111827 !important;
+  --surface-color: #1f2937 !important;
+  --surface-2-color: #374151 !important;
+  --card-bg: #1f2937 !important;
+  --text-color: #f9fafb !important;
+  --text-secondary: #d1d5db !important;
+  --muted-color: #9ca3af !important;
+  --border-color: #4b5563 !important;
+  --admin-bg: #111827 !important;
+  --admin-surface: #1f2937 !important;
+  --admin-text: #f9fafb !important;
+  --admin-v2-bg: #111827 !important;
+  --admin-v2-surface: #1f2937 !important;
+  --admin-v2-text: #f9fafb !important;
+  --admin-v2-muted: #9ca3af !important;
+  --ar-admin-bg: #111827 !important;
+  --ar-admin-surface: #1f2937 !important;
+  --ar-admin-text: #f9fafb !important;
+}
+
+main.admin-dashboard-shell .admin-header-card,
+main:has(.admin-header-card) .admin-header-card,
+main.admin-dashboard-shell .admin-tabs,
+main:has(.admin-header-card) .admin-tabs {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  z-index: 2 !important;
+  transform: none !important;
+}
+
+main.admin-dashboard-shell > .mx-auto,
+main:has(.admin-header-card) > .mx-auto,
+main:has(.admin-header-card) > div:first-child {
+  position: relative !important;
+  z-index: 2 !important;
+  padding: 16px !important;
+  max-width: 1100px !important;
+  margin: 0 auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: transparent !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+}
+
+main.admin-dashboard-shell .admin-header-card,
+main.admin-dashboard-shell .admin-card,
+main.admin-dashboard-shell .admin-overview-card,
+main.admin-dashboard-shell .admin-stat,
+main.admin-dashboard-shell .admin-overview-stat,
+main.admin-dashboard-shell .admin-tabs,
+main:has(.admin-header-card) .admin-header-card,
+main:has(.admin-header-card) .admin-card,
+main:has(.admin-header-card) .admin-overview-card,
+main:has(.admin-header-card) .admin-stat,
+main:has(.admin-header-card) .admin-overview-stat,
+main:has(.admin-header-card) .admin-tabs {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  box-shadow: none !important;
+}
+
+main.admin-dashboard-shell h1,
+main.admin-dashboard-shell h2,
+main.admin-dashboard-shell h3,
+main.admin-dashboard-shell h4,
+main.admin-dashboard-shell strong {
+  color: #f9fafb !important;
+}
+
+main.admin-dashboard-shell p,
+main.admin-dashboard-shell span,
+main.admin-dashboard-shell label,
+main.admin-dashboard-shell small,
+main.admin-dashboard-shell li {
+  color: #d1d5db !important;
+}
+
+main.admin-dashboard-shell [class*="text-zinc-"] {
+  color: #d1d5db !important;
+}
+
+main.admin-dashboard-shell button,
+main.admin-dashboard-shell a,
+main.admin-dashboard-shell [role="button"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+main.admin-dashboard-shell input,
+main.admin-dashboard-shell textarea,
+main.admin-dashboard-shell select {
+  background: #374151 !important;
+  background-color: #374151 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+main.admin-dashboard-shell input::placeholder,
+main.admin-dashboard-shell textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+html:has(main.min-h-screen form) main.min-h-screen {
+  background: #111827 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+}
+
+html:has(main.min-h-screen form) main.min-h-screen > div {
+  background: #1f2937 !important;
+  background-image: none !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+html:has(main.min-h-screen form) main.min-h-screen [class*="text-zinc-"] {
+  color: #d1d5db !important;
+}
+
+html:has(main.min-h-screen form) main.min-h-screen input {
+  background: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+html:has(main.admin-dashboard-shell) .atma-loader-overlay,
+html:has(main.admin-auth-checking) .atma-loader-overlay,
+html:has(main.min-h-screen form) .atma-loader-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
