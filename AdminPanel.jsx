@@ -102,7 +102,6 @@ export default function AdminPanel({ onLogout }) {
   useEffect(() => { load(); }, []);
 
   const choosePages = event => {
-    // Preserve the exact FileList order supplied by the picker. Do not sort by filename.
     const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: `${tooLarge.name} is larger than 20 MB.` }); return; }
@@ -128,10 +127,7 @@ export default function AdminPanel({ onLogout }) {
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number or leave it blank.');
       if (!form.title.trim()) throw new Error('Chapter title is required.');
       if (!editing && !form.pages.length) throw new Error('Select at least one manga page.');
-
-      // Blank chapter numbers are intentionally stored as NULL. They are not auto-numbered.
       const payload = { chapter_number: number, title: form.title.trim(), description: form.description.trim(), status: form.status, release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null };
-
       if (editing) {
         const { error } = await supabase.from(CHAPTERS).update(payload).eq('id', editing.id);
         if (error) throw new Error(`Chapter update failed: ${error.message}`);
@@ -140,7 +136,6 @@ export default function AdminPanel({ onLogout }) {
         if (error) throw new Error(`Chapter creation failed: ${error.message}`);
         chapterId = data.id;
       }
-
       let oldCoverPath = null;
       if (form.cover) {
         const ext = form.cover.name.split('.').pop()?.toLowerCase() || 'jpg';
@@ -151,7 +146,6 @@ export default function AdminPanel({ onLogout }) {
         const { error } = await supabase.from(CHAPTERS).update({ cover_url: url }).eq('id', chapterId);
         if (error) throw new Error(`Cover save failed: ${error.message}`);
       }
-
       if (form.pages.length) {
         setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
         const old = await supabase.from(PAGES).select('id, image_url').eq('chapter_id', chapterId);
@@ -245,8 +239,22 @@ export default function AdminPanel({ onLogout }) {
 
   async function saveMedia(event) {
     event.preventDefault(); setBusy(true);
-    try { await requireAdmin(); if (!mediaForm.title.trim() || !mediaForm.image_url.trim() || !mediaForm.category.trim()) throw new Error('Title, image URL and category are required.'); const { error } = await supabase.from('media').insert({ title: mediaForm.title.trim(), image_url: mediaForm.image_url.trim(), category: mediaForm.category.trim() }); if (error) throw error; setMediaForm({ title: '', image_url: '', category: '' }); await load(); setNotice({ type: 'success', text: 'Media added.' }); }
-    catch (error) { setNotice({ type: 'error', text: error.message }); } finally { setBusy(false); }
+    try { await requireAdmin(); if (!mediaForm.title.trim() || !mediaForm.image_url.trim() || !mediaForm.category.trim()) throw new Error('Title, image URL, and category are required.'); const { error } = await supabase.from('media').insert({ title: mediaForm.title.trim(), image_url: mediaForm.image_url.trim(), category: mediaForm.category.trim() }); if (error) throw error; setMediaForm({ title: '', image_url: '', category: '' }); await load(); setNotice({ type: 'success', text: 'Media added.' }); }
+    catch (error) { setNotice({ type: 'error', text: error.message || 'Media save failed.' }); } finally { setBusy(false); }
+  }
+
+  async function deleteAnnouncement(item) {
+    if (!window.confirm('Delete this announcement permanently?')) return;
+    setBusy(true);
+    try { await requireAdmin(); const { error } = await supabase.from('announcements').delete().eq('title', item.title).eq('created_at', item.created_at); if (error) throw error; await load(); setNotice({ type: 'success', text: 'Announcement deleted.' }); }
+    catch (error) { setNotice({ type: 'error', text: error.message || 'Announcement delete failed.' }); } finally { setBusy(false); }
+  }
+
+  async function deleteMedia(id) {
+    if (!window.confirm('Delete this media item permanently?')) return;
+    setBusy(true);
+    try { await requireAdmin(); const { error } = await supabase.from('media').delete().eq('id', id); if (error) throw error; await load(); setNotice({ type: 'success', text: 'Media deleted.' }); }
+    catch (error) { setNotice({ type: 'error', text: error.message || 'Media delete failed.' }); } finally { setBusy(false); }
   }
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
@@ -255,7 +263,7 @@ export default function AdminPanel({ onLogout }) {
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
 
-  return <main className="min-h-screen bg-zinc-950 text-[var(--text-color)]"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
+  return <main className="admin-page min-h-screen bg-zinc-950 text-[var(--text-color)]" data-admin-root="true"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
     <header className="admin-header-card"><div><p className="text-xs font-black tracking-[0.25em] text-blue-400">REKHA · PUBLISHER</p><h1 className="mt-1 text-3xl font-black tracking-tight">Admin Dashboard</h1><p className="mt-1 text-sm text-zinc-500">{email || 'Admin'} · Supabase protected</p></div><div className="flex flex-wrap gap-2"><button onClick={() => { setTab('Chapters'); resetForm(); }} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black shadow-lg shadow-blue-900/20">+ Upload chapter</button><button onClick={load} disabled={busy} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">Refresh</button><button onClick={logout} className="rounded-xl bg-zinc-800 px-4 py-2.5 text-sm font-bold">Sign out</button></div></header>
     {notice.text && <div className={`mb-5 rounded-2xl border p-4 text-sm ${notice.type === 'error' ? 'border-rose-900 bg-rose-950/40 text-rose-300' : 'border-emerald-900 bg-emerald-950/40 text-emerald-300'}`}>{notice.text}</div>}
     <nav className="admin-tabs">{tabs.map(item => <button key={item} onClick={() => setTab(item)} className={tab === item ? 'active' : ''}>{item}{item === 'Reports' && reports.length > 0 ? <b>{reports.length}</b> : null}</button>)}</nav>
