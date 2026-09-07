@@ -7,6 +7,7 @@ const supabaseKey =
 
 const R2_WORKER_URL = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
 const R2_BUCKETS = new Set(['chapter-pages', 'covers']);
+const CHAPTER_PAGES_TABLE = 'chapter_pages';
 
 const IMAGE_MIN_SIZE = 500 * 1024;
 const IMAGE_MAX_SIZE = 1024 * 1024;
@@ -85,6 +86,45 @@ const r2Storage = {
   },
 };
 
+/**
+ * The admin UI historically performs chapter-page replacement as two calls:
+ * DELETE old rows, then INSERT new rows. Intercept those two operations and
+ * route the actual replacement through the database transaction function.
+ * This prevents a failed insert from ever leaving a published chapter empty.
+ */
+function chapterPagesTable() {
+  const table = client.from(CHAPTER_PAGES_TABLE);
+  return new Proxy(table, {
+    get(target, property, receiver) {
+      if (property === 'delete') {
+        return () => ({
+          eq: async (column, value) => {
+            if (column === 'chapter_id') return { data: null, error: null };
+            return target.delete().eq(column, value);
+          },
+        });
+      }
+      if (property === 'insert') {
+        return rows => {
+          const list = Array.isArray(rows) ? rows : [];
+          if (list.length && list.every(row => row?.chapter_id && row?.page_number != null && typeof row?.image_url === 'string')) {
+            const chapterId = list[0].chapter_id;
+            if (!list.every(row => row.chapter_id === chapterId)) {
+              return Promise.resolve({ data: null, error: new Error('All chapter pages must belong to the same chapter.') });
+            }
+            return client.rpc('replace_chapter_pages', {
+              p_chapter_id: chapterId,
+              p_pages: list.map(row => ({ page_number: row.page_number, image_url: row.image_url })),
+            });
+          }
+          return target.insert(rows);
+        };
+      }
+      return Reflect.get(target, property, receiver);
+    },
+  });
+}
+
 export async function getPublicReaderTiers(userIds = []) {
   const ids = [...new Set((userIds || []).filter(Boolean))].slice(0, 50); if (!ids.length) return new Map();
   const { data, error } = await client.from('profiles').select('id,public_badge').in('id', ids); if (error) throw error;
@@ -105,4 +145,10 @@ export async function getCurrentMembership(userId) { if (!userId) return null; r
 export async function getCurrentlySubscribedUserIds(userIds = []) { return new Set((await getCurrentMemberships(userIds)).keys()); }
 export async function isCurrentlySubscribed(userId) { return Boolean(await getCurrentMembership(userId)); }
 
-export const supabase = new Proxy(client, { get(target, property, receiver) { if (property === 'storage') return r2Storage; return Reflect.get(target, property, receiver); } });
+export const supabase = new Proxy(client, {
+  get(target, property, receiver) {
+    if (property === 'storage') return r2Storage;
+    if (property === 'from') return table => table === CHAPTER_PAGES_TABLE ? chapterPagesTable() : client.from(table);
+    return Reflect.get(target, property, receiver);
+  },
+});
