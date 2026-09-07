@@ -1,0 +1,62 @@
+/* Admin black-screen guard: visual-only, scoped to the admin dashboard.
+   Keeps all data, auth, navigation, uploads, moderation and Supabase logic unchanged. */
+
+main:has(.admin-header-card) {
+  background: var(--ar-admin-bg, var(--admin-bg, var(--bg-color, #f5f6f8))) !important;
+  color: var(--ar-admin-text, var(--admin-text, var(--text-color, #111722))) !important;
+}
+
+main:has(.admin-header-card) > .mx-auto {
+  background: transparent !important;
+}
+
+/* Prevent the admin surface from inheriting the site's pure-black dark token. */
+html[data-theme="dark"] main:has(.admin-header-card),
+html[data-theme="dark"] main:has(.admin-header-card) > .mx-auto {
+  --ar-admin-bg: #0b0e14;
+  --ar-admin-surface: #141824;
+  --ar-admin-surface-2: #1c2234;
+  --ar-admin-border: #2a324b;
+  --ar-admin-text: #f1f5f9;
+  --ar-admin-muted: #94a3b8;
+  --ar-admin-faint: #64748b;
+}
+
+html[data-theme="dark"] main:has(.admin-header-card) .admin-header-card,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-card,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-overview-card,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-overview-stat,
+html[data-theme="dark"] main:has(.admin-header-card) .performance-card,
+html[data-theme="dark"] main:has(.admin-header-card) .ar-command-panel,
+html[data-theme="dark"] main:has(.admin-header-card) .ar-mgmt-panel,
+html[data-theme="dark"] main:has(.admin-header-card) .ar-mod-modal {
+  background: var(--ar-admin-surface) !important;
+  color: var(--ar-admin-text) !important;
+  border-color: var(--ar-admin-border) !important;
+}
+
+html[data-theme="dark"] main:has(.admin-header-card) .admin-chapter-list article,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-mini-list > div,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-performance > div,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-dropzone,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-progress,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-comment-list article,
+html[data-theme="dark"] main:has(.admin-header-card) .admin-report-list article,
+html[data-theme="dark"] main:has(.admin-header-card) input,
+html[data-theme="dark"] main:has(.admin-header-card) textarea,
+html[data-theme="dark"] main:has(.admin-header-card) select {
+  background: var(--ar-admin-surface-2) !important;
+  color: var(--ar-admin-text) !important;
+  border-color: var(--ar-admin-border) !important;
+}
+
+html[data-theme="light"] main:has(.admin-header-card),
+html[data-theme="light"] main:has(.admin-header-card) > .mx-auto {
+  --ar-admin-bg: #f5f6f8;
+  --ar-admin-surface: #ffffff;
+  --ar-admin-surface-2: #f0f2f5;
+  --ar-admin-border: #dfe3e8;
+  --ar-admin-text: #111722;
+  --ar-admin-muted: #657083;
+  --ar-admin-faint: #8a94a5;
+}
