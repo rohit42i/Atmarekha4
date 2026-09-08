@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import UserAuth from './UserAuth.jsx';
@@ -10,8 +10,7 @@ import CommunityPage from './CommunityPage.jsx';
 import CommunityAdmin from './CommunityAdmin.jsx';
 import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
-import Membership from './Membership.jsx';
-import GroupChat, { GroupChatLauncher } from './GroupChat.jsx';
+import FeatureUnlocks from './FeatureUnlocks.jsx';
 import AdminGroupChatTools from './AdminGroupChatTools.jsx';
 import AdminModerationTools from './AdminModerationTools.jsx';
 import AdminManagementTools from './AdminManagementTools.jsx';
@@ -19,7 +18,6 @@ import AdminCommandCenter from './AdminCommandCenter.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
-import { supabase } from './supabase';
 import './index.css';
 import './ui-polish.css';
 import './interaction-polish.css';
@@ -76,10 +74,4 @@ import './font-polish.css';
 import './comments-mobile-header-fix.css';
 import './admin-studio-pro-v2.css';
 
-function GroupChatLauncherGate(){
-  const [user,setUser]=useState(null);
-  useEffect(()=>{let active=true;const load=async()=>{const {data}=await supabase.auth.getSession();if(active)setUser(data?.session?.user||null)};load();const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{if(active)setUser(session?.user||null)});return()=>{active=false;listener.subscription.unsubscribe()}},[]);
-  return <GroupChatLauncher user={user}/>;
-}
-
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><Membership/><GroupChatLauncherGate/><GroupChat/><AdminCommandCenter/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
