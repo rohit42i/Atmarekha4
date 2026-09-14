@@ -3,37 +3,28 @@ import { supabase } from './supabase';
 
 const CHAPTERS_TABLE = 'chapters';
 const PAGES_TABLE = 'chapter_pages';
-const PAGE_FETCH_ATTEMPTS = 4;
-const PAGE_FETCH_DELAY_MS = 300;
+const PAGE_FETCH_ATTEMPTS = 2;
+const PAGE_FETCH_DELAY_MS = 150;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Canonical display label for a chapter number. Never returns "null"/"undefined"/"NaN". */
 export function formatChapterLabel(chapterNumber, options = {}) {
   const { short = false, title = '' } = options;
-  const n = chapterNumber === null || chapterNumber === undefined || chapterNumber === ''
-    ? null
-    : Number(chapterNumber);
-  if (n !== null && Number.isFinite(n) && !Number.isNaN(n)) {
-    return `Chapter ${n}`;
-  }
+  const n = chapterNumber === null || chapterNumber === undefined || chapterNumber === '' ? null : Number(chapterNumber);
+  if (n !== null && Number.isFinite(n) && !Number.isNaN(n)) return `Chapter ${n}`;
   const cleanTitle = String(title || '').trim();
   if (short && cleanTitle) return cleanTitle;
   return 'Special';
 }
 
-/** Eyebrow-style label used in reader/headers. */
 export function formatChapterEyebrow(chapterNumber, title = '') {
-  const n = chapterNumber === null || chapterNumber === undefined || chapterNumber === ''
-    ? null
-    : Number(chapterNumber);
+  const n = chapterNumber === null || chapterNumber === undefined || chapterNumber === '' ? null : Number(chapterNumber);
   if (n !== null && Number.isFinite(n) && !Number.isNaN(n)) return `CHAPTER ${n}`;
   const cleanTitle = String(title || '').trim();
   if (cleanTitle) return cleanTitle.toUpperCase().slice(0, 40);
   return 'SPECIAL';
 }
 
-/** Deterministic sort: numeric ascending, then NULL/special by createdAt then id. */
 export function sortChapters(chapters) {
   return [...(chapters || [])].sort((a, b) => {
     const an = a?.chapterNumber;
@@ -69,10 +60,7 @@ function installChapterCoverStyles(chapters) {
 }
 
 export async function buildChapters() {
-  const { data, error } = await supabase
-    .from(CHAPTERS_TABLE)
-    .select('*')
-    .order('chapter_number', { ascending: true, nullsFirst: false });
+  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('*').order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {
     console.error('Supabase chapters error:', error);
     throw error;
@@ -91,24 +79,13 @@ export async function buildChapters() {
   return sortChapters(chapters);
 }
 
-/**
- * Load pages ordered by page_number ASC.
- * Empty array = no valid URLs after retries.
- * Throws on persistent Supabase errors.
- */
 export async function buildChapterPages(chapterId) {
   if (!chapterId) return [];
   let lastError = null;
   for (let attempt = 1; attempt <= PAGE_FETCH_ATTEMPTS; attempt += 1) {
-    const { data, error } = await supabase
-      .from(PAGES_TABLE)
-      .select('page_number,image_url')
-      .eq('chapter_id', chapterId)
-      .order('page_number', { ascending: true });
+    const { data, error } = await supabase.from(PAGES_TABLE).select('page_number,image_url').eq('chapter_id', chapterId).order('page_number', { ascending: true });
     if (!error) {
-      const pages = (data || [])
-        .map((page) => page.image_url)
-        .filter((url) => typeof url === 'string' && url.trim().length > 0);
+      const pages = (data || []).map((page) => page.image_url).filter((url) => typeof url === 'string' && url.trim().length > 0);
       if (pages.length || attempt === PAGE_FETCH_ATTEMPTS) return pages;
     } else {
       lastError = error;
