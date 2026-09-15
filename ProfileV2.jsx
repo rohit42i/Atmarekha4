@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, getCurrentMembership } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
 
-const AVATARS = Array.from({ length: 10 }, (_, i) => `/avatars/avatar-${String(i + 1).padStart(2, '0')}.svg`);
+const AVATARS = Array.from({ length: 10 }, (_, i) => `/avatars/avatar-${String(i + 1).padStart(2, '0')}.jpg`);
 function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
 const relativeTime = value => { const d=Math.max(0,Date.now()-new Date(value).getTime()); const m=Math.floor(d/60000); if(m<1)return 'just now'; if(m<60)return `${m}m`; const h=Math.floor(m/60); if(h<24)return `${h}h`; const days=Math.floor(h/24); if(days<30)return `${days}d`; return new Date(value).toLocaleDateString('en-IN',{day:'numeric',month:'short'}); };
 
