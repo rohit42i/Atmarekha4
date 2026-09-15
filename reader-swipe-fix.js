@@ -7,8 +7,8 @@
     @media(prefers-reduced-motion:reduce){.reader-page img.ar-swipe-active,.reader-page img.ar-swipe-settle,.reader-page img.ar-swipe-return,.ar-fullscreen-swipe-active,.ar-fullscreen-swipe-settle,.ar-fullscreen-swipe-return{transition:none!important}}
   `;
   const s=document.createElement('style');s.textContent=css;document.head.appendChild(s);
-  let g=null,raf=0,timer=0,blocked=false;
-  const EDGE=60;
+  let g=null,raf=0,timer=0;
+  const EDGE_PX=80;
   const point=e=>e.touches?.[0]||e;
   const resolve=e=>{
     const target=e?.target,fs=document.fullscreenElement;
@@ -23,17 +23,14 @@
     if(e.pointerType==='mouse'&&e.buttons!==1)return;
     if(e.touches&&e.touches.length!==1)return;
     const v=resolve(e);if(!v)return;
-    const stage=e.target?.closest?.('.reader-stage');
-    const x=point(e).clientX;
-    blocked=!!stage&&(x>EDGE&&x<innerWidth-EDGE);
-    if(blocked){g=null;e.stopPropagation();return;}
+    const p=point(e),x=p.clientX;
+    if(x>EDGE_PX&&x<innerWidth-EDGE_PX)return;
     g={...v,sx:x,x};
     v.i.classList.remove('ar-swipe-return','ar-swipe-settle');
     v.i.classList.add(v.fullscreen?'ar-fullscreen-swipe-active':'ar-swipe-active');
     try{e.currentTarget?.setPointerCapture?.(e.pointerId)}catch{}
   };
   const move=e=>{
-    if(blocked){e.stopPropagation();return;}
     if(!g|| (e.touches&&e.touches.length!==1))return;
     g.x=point(e).clientX;
     if(raf)return;
@@ -45,8 +42,7 @@
       i.style.setProperty('--ar-s',String(1-q*.01));
     });
   };
-  const end=e=>{
-    if(blocked){blocked=false;e.stopPropagation();return;}
+  const end=()=>{
     if(!g)return;
     const{r,i,sx,x,fullscreen}=g,w=Math.max(r?.clientWidth||innerWidth,1),d=x-sx,q=Math.min(Math.abs(d)/w,1),n=d<0?-1:1;
     g=null;
