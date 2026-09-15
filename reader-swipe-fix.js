@@ -1,6 +1,8 @@
 (()=>{
   const css=`
-    .reader-page{touch-action:pan-y;overscroll-behavior-x:contain}
+    .reader-page{touch-action:pan-y pinch-zoom;overscroll-behavior-x:contain}
+    .reader-stage{overflow:auto!important}
+    .reader-stage img{max-width:none!important;max-height:none!important}
     .reader-page img.ar-swipe-active,.ar-fullscreen-swipe-active{will-change:transform;transition:none!important;transform:translate3d(var(--ar-x),0,0) rotate(var(--ar-r)) scale(var(--ar-s))!important}
     .reader-page img.ar-swipe-settle,.ar-fullscreen-swipe-settle{transition:transform 180ms cubic-bezier(.22,.8,.2,1)!important}
     .reader-page img.ar-swipe-return,.ar-fullscreen-swipe-return{transition:transform 160ms cubic-bezier(.2,.9,.25,1)!important;transform:translate3d(0,0,0) rotate(0) scale(1)!important}
@@ -24,14 +26,15 @@
     if(e.touches&&e.touches.length!==1)return;
     const v=resolve(e);if(!v)return;
     const p=point(e),x=p.clientX;
-    if(x>EDGE_PX&&x<innerWidth-EDGE_PX)return;
+    if(x>EDGE_PX&&x<innerWidth-EDGE_PX){e.stopPropagation();return;}
     g={...v,sx:x,x};
     v.i.classList.remove('ar-swipe-return','ar-swipe-settle');
     v.i.classList.add(v.fullscreen?'ar-fullscreen-swipe-active':'ar-swipe-active');
     try{e.currentTarget?.setPointerCapture?.(e.pointerId)}catch{}
   };
   const move=e=>{
-    if(!g|| (e.touches&&e.touches.length!==1))return;
+    if(e.touches&&e.touches.length!==1){e.stopPropagation();return;}
+    if(!g)return;
     g.x=point(e).clientX;
     if(raf)return;
     raf=requestAnimationFrame(()=>{
