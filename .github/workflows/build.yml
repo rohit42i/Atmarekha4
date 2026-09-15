@@ -38,6 +38,10 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://pbukwjokgkqacaphlqzm.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Deploy to Cloudflare
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
