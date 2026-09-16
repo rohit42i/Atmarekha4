@@ -21,8 +21,18 @@ async function saveSubscription(subscription) {
   const p256dh = json.keys?.p256dh;
   const auth = json.keys?.auth;
   if (!endpoint || !p256dh || !auth) throw new Error('Push subscription keys are missing.');
+
+  // Always attach the current Supabase session when one exists. This links an
+  // existing browser subscription to the signed-in account instead of leaving
+  // it anonymous, which is required for selected-user notifications.
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers = session?.access_token
+    ? { Authorization: `Bearer ${session.access_token}` }
+    : undefined;
+
   const { data, error } = await supabase.functions.invoke('register-push-subscription', {
     body: { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth },
+    ...(headers ? { headers } : {}),
   });
   if (error) throw new Error(`Supabase push registration failed: ${error.message}`);
   if (!data?.data) throw new Error('Supabase push registration returned no data.');
@@ -47,6 +57,21 @@ export async function enableAtmaRekhaNotifications() {
   }
   return saveSubscription(subscription);
 }
+
+// Re-link an already granted browser subscription whenever the auth state
+// changes, so signing in after enabling notifications also fixes ownership.
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+    queueMicrotask(async () => {
+      try {
+        if (Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) await saveSubscription(subscription);
+      } catch (_) {}
+    });
+  }
+});
 
 // The notification prompt is the only user-facing opt-in entry point.
 // Do not attach push registration to unrelated navigation or chapter buttons.
