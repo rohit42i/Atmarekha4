@@ -27,11 +27,20 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
 
   useEffect(() => {
     let active = true;
-    supabase.functions.invoke('get-admin-user-stats').then(({ data, error }) => {
-      if (error) throw error;
-      if (active && data) setUserStats({ logged_in_users: Number(data.logged_in_users || 0), notification_users: Number(data.notification_users || 0) });
-    }).catch(error => console.warn('Admin user stats lookup failed:', error));
-    return () => { active = false; };
+    const loadUserStats = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-admin-user-stats');
+        if (error) throw error;
+        if (active && data) setUserStats({ logged_in_users: Number(data.logged_in_users || 0), notification_users: Number(data.notification_users || 0) });
+      } catch (error) {
+        console.warn('Admin user stats lookup failed:', error);
+      }
+    };
+    loadUserStats();
+    const interval = setInterval(loadUserStats, 30000);
+    const onVisibilityChange = () => { if (document.visibilityState === 'visible') loadUserStats(); };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => { active = false; clearInterval(interval); document.removeEventListener('visibilitychange', onVisibilityChange); };
   }, []);
 
   useEffect(() => {
