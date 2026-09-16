@@ -16,6 +16,7 @@ import AdminModerationTools from './AdminModerationTools.jsx';
 import AdminManagementTools from './AdminManagementTools.jsx';
 import AdminCommandCenter from './AdminCommandCenter.jsx';
 import AdminChapterHealth from './AdminChapterHealth.jsx';
+import AdminOperations from './AdminOperations.jsx';
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -75,4 +76,4 @@ import './font-polish.css';
 import './comments-mobile-header-fix.css';
 import './admin-studio-pro-v2.css';
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReaderBookmark/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
