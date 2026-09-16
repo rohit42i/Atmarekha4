@@ -19,6 +19,7 @@ async function requireAdmin() {
   if (!user) throw new Error('Your Supabase session has expired.');
   const role = await getAdminRole(user.id);
   if (!role) throw new Error('Admin access required.');
+  return user;
 }
 
 export default function AdminChapterPages({ chapters }) {
@@ -46,8 +47,9 @@ export default function AdminChapterPages({ chapters }) {
     if (!file.type.startsWith('image/')) { setNotice('Please select an image.'); return; }
     if (file.size > MAX_PAGE_SIZE) { setNotice(`${file.name} is larger than 20 MB.`); return; }
     setBusyId(page.id); setNotice(''); let newPath = null;
+    let adminUser = null;
     try {
-      await requireAdmin();
+      adminUser = await requireAdmin();
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       newPath = `${page.chapter_id}/replacements/${page.id}-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(newPath, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
@@ -58,10 +60,12 @@ export default function AdminChapterPages({ chapters }) {
       const oldPath = pathFromUrl(page.image_url); if (oldPath) await supabase.storage.from(BUCKET).remove([oldPath]);
       setPages(current => current.map(item => item.id === page.id ? { ...item, image_url: nextUrl } : item));
       setRetryFiles(current => { const next = { ...current }; delete next[page.id]; return next; });
+      await supabase.from('admin_activity_log').insert({ admin_user_id: adminUser.id, action: 'replace_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name } });
       setNotice(`Page ${page.page_number} replaced successfully.`);
     } catch (error) {
       if (newPath) await supabase.storage.from(BUCKET).remove([newPath]);
       setRetryFiles(current => ({ ...current, [page.id]: file }));
+      if (adminUser) await supabase.from('admin_activity_log').insert({ admin_user_id: adminUser.id, action: 'replace_chapter_page_failed', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name, error: error.message } });
       setNotice(error.message || 'Page replacement failed. The old page was kept. You can retry the same file.');
     } finally { setBusyId(null); }
   };
@@ -69,7 +73,7 @@ export default function AdminChapterPages({ chapters }) {
   const movePage = async (index, direction) => {
     const otherIndex = index + direction; if (otherIndex < 0 || otherIndex >= pages.length || busyId) return;
     const a = pages[index], b = pages[otherIndex]; setBusyId(`move-${a.id}`); setNotice('');
-    try { await requireAdmin(); const first = await supabase.from(PAGES).update({ page_number: 0 }).eq('id', a.id); if (first.error) throw first.error; const second = await supabase.from(PAGES).update({ page_number: a.page_number }).eq('id', b.id); if (second.error) throw second.error; const third = await supabase.from(PAGES).update({ page_number: b.page_number }).eq('id', a.id); if (third.error) throw third.error; await loadPages(); }
+    try { const user = await requireAdmin(); const first = await supabase.from(PAGES).update({ page_number: 0 }).eq('id', a.id); if (first.error) throw first.error; const second = await supabase.from(PAGES).update({ page_number: a.page_number }).eq('id', b.id); if (second.error) throw second.error; const third = await supabase.from(PAGES).update({ page_number: b.page_number }).eq('id', a.id); if (third.error) throw third.error; await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'reorder_chapter_page', entity_type: 'chapter_page', entity_id: a.id, details: { chapter_id: a.chapter_id, from: a.page_number, to: b.page_number } }); await loadPages(); }
     catch (error) { setNotice(error.message || 'Could not reorder pages.'); await loadPages(); }
     finally { setBusyId(null); }
   };
@@ -77,7 +81,7 @@ export default function AdminChapterPages({ chapters }) {
   const deletePage = async page => {
     if (busyId || !window.confirm(`Delete page ${page.page_number}? This cannot be undone.`)) return;
     setBusyId(page.id); setNotice('');
-    try { await requireAdmin(); const { error } = await supabase.from(PAGES).delete().eq('id', page.id); if (error) throw error; const path = pathFromUrl(page.image_url); if (path) await supabase.storage.from(BUCKET).remove([path]); const remaining = pages.filter(item => item.id !== page.id); for (let i = 0; i < remaining.length; i += 1) if (remaining[i].page_number !== i + 1) { const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id); if (reorderError) throw reorderError; } await loadPages(); setNotice(`Page ${page.page_number} deleted.`); }
+    try { const user = await requireAdmin(); const { error } = await supabase.from(PAGES).delete().eq('id', page.id); if (error) throw error; const path = pathFromUrl(page.image_url); if (path) await supabase.storage.from(BUCKET).remove([path]); const remaining = pages.filter(item => item.id !== page.id); for (let i = 0; i < remaining.length; i += 1) if (remaining[i].page_number !== i + 1) { const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id); if (reorderError) throw reorderError; } await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'delete_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number } }); await loadPages(); setNotice(`Page ${page.page_number} deleted.`); }
     catch (error) { setNotice(error.message || 'Page deletion failed.'); await loadPages(); }
     finally { setBusyId(null); }
   };
