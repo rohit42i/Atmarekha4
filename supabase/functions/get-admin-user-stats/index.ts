@@ -22,11 +22,21 @@ Deno.serve(async req => {
     if (adminError || !isAdmin) return json({ error: 'Admin access required.' }, 403, origin);
     const [profiles, push] = await Promise.all([
       admin.from('profiles').select('id', { count: 'exact', head: true }),
-      admin.from('push_subscriptions').select('user_id').not('user_id', 'is', null),
+      admin.from('push_subscriptions').select('user_id'),
     ]);
     if (profiles.error) throw profiles.error;
     if (push.error) throw push.error;
-    return json({ logged_in_users: Number(profiles.count || 0), notification_users: new Set((push.data || []).map(row => row.user_id).filter(Boolean)).size }, 200, origin);
+
+    // Count each logged-in user once, while also counting anonymous notification
+    // subscriptions. The old query silently excluded all anonymous subscribers.
+    const userIds = new Set();
+    let anonymousSubscriptions = 0;
+    for (const row of push.data || []) {
+      if (row.user_id) userIds.add(row.user_id);
+      else anonymousSubscriptions += 1;
+    }
+    const notificationUsers = userIds.size + anonymousSubscriptions;
+    return json({ logged_in_users: Number(profiles.count || 0), notification_users: notificationUsers }, 200, origin);
   } catch (error) {
     console.error('Admin user stats failed:', error instanceof Error ? error.message : 'unknown error');
     return json({ error: 'Unable to load admin user statistics.' }, 500, origin);
