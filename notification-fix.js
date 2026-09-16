@@ -40,6 +40,15 @@ async function saveSubscription(subscription) {
   return data.data;
 }
 
+async function syncExistingSubscription() {
+  try {
+    if (Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) await saveSubscription(subscription);
+  } catch (_) {}
+}
+
 export async function enableAtmaRekhaNotifications() {
   if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
     throw new Error('This browser does not support Web Push.');
@@ -58,18 +67,11 @@ export async function enableAtmaRekhaNotifications() {
   return saveSubscription(subscription);
 }
 
-// Re-link an already granted browser subscription whenever the auth state
-// changes, so signing in after enabling notifications also fixes ownership.
+// Re-link an already granted browser subscription after every auth state that
+// can establish or refresh the signed-in account, including INITIAL_SESSION.
 supabase.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-    queueMicrotask(async () => {
-      try {
-        if (Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) await saveSubscription(subscription);
-      } catch (_) {}
-    });
+  if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+    queueMicrotask(syncExistingSubscription);
   }
 });
 
