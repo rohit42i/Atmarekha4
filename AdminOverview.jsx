@@ -13,7 +13,7 @@ function StatCard({ label, value, delta, note, accent }) { return <article class
 export default function AdminOverview({ chapters, comments, ratings, views, likes, pageCounts, onTab, chapterName }) {
   const [windowKey, setWindowKey] = useState('30');
   const [membershipPlans, setMembershipPlans] = useState(new Map());
-  const [userStats, setUserStats] = useState({ logged_in_users: 0, notification_users: 0 });
+  const [userStats, setUserStats] = useState({ logged_in_users: 0, notification_subscriptions: 0 });
   const [audienceStats, setAudienceStats] = useState({ active_readers: 0, returning_readers: 0, bookmarks: 0 });
   const days = WINDOWS[windowKey];
 
@@ -31,7 +31,7 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       try {
         const { data, error } = await supabase.functions.invoke('get-admin-user-stats');
         if (error) throw error;
-        if (active && data) setUserStats({ logged_in_users: Number(data.logged_in_users || 0), notification_users: Number(data.notification_users || 0) });
+        if (active && data) setUserStats({ logged_in_users: Number(data.logged_in_users || 0), notification_subscriptions: Number(data.notification_subscriptions || 0) });
       } catch (error) {
         console.warn('Admin user stats lookup failed:', error);
       }
@@ -100,7 +100,7 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       <StatCard label="Avg Rating" value={metrics.totalAverage ? `${metrics.totalAverage.toFixed(2)} / 10` : '—'} note={metrics.averageDelta == null ? `${formatNumber(metrics.totalRatings)} ratings` : `${metrics.averageDelta >= 0 ? '+' : ''}${metrics.averageDelta.toFixed(2)} vs previous`} />
       <StatCard label="Total Comments" value={compactNumber(metrics.totalComments)} delta={metrics.commentsDelta} />
       <StatCard label="Logged-in Users" value={compactNumber(userStats.logged_in_users)} note="Registered accounts" />
-      <StatCard label="Notifications On" value={compactNumber(userStats.notification_users)} note="Unique push subscribers" />
+      <StatCard label="Notifications On" value={compactNumber(userStats.notification_subscriptions)} note="Total push subscriptions" />
       <StatCard label="Active Readers" value={compactNumber(audienceStats.active_readers)} note="Unique readers · last 30 days" />
       <StatCard label="Returning Readers" value={compactNumber(audienceStats.returning_readers)} note="Readers seen on 2+ days" />
       <StatCard label="Bookmarks" value={compactNumber(audienceStats.bookmarks)} note="Saved chapter bookmarks" />
