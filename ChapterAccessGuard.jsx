@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { supabase, getCurrentMembership } from './supabase';
 import { formatChapterLabel } from './chapters';
 
-const FREE_CHAPTER_LIMIT = 5;
+const FREE_CHAPTER_LIMIT = 8;
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 const isMember = planId => MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase());
 
@@ -113,8 +113,8 @@ export default function ChapterAccessGuard() {
         <div className="chapter-access-icon" aria-hidden="true">🦚</div>
         <p className="chapter-access-eyebrow">ATMA REKHA · MEMBERS ONLY</p>
         <h2>{label} is waiting for you.</h2>
-        <p className="chapter-access-copy">Chapters 1–5 are free forever. From Chapter 6 onward, membership is required to continue reading.</p>
-        <div className="chapter-access-perks"><span>✦ Full Chapter 6+ access</span><span>✦ UPI AutoPay membership</span><span>✦ Support Atma Rekha</span></div>
+        <p className="chapter-access-copy">Chapters 1–8 are free forever. From Chapter 9 onward, membership is required to continue reading.</p>
+        <div className="chapter-access-perks"><span>✦ Full Chapter 9+ access</span><span>✦ UPI AutoPay membership</span><span>✦ Support Atma Rekha</span></div>
         <button className="chapter-access-cta" type="button" onClick={() => { setLockedChapter(null); window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
         <button className="chapter-access-secondary" type="button" onClick={() => setLockedChapter(null)}>Maybe later</button>
         <p className="chapter-access-note">Choose ₹19, ₹29, or ₹49 per month.</p>
