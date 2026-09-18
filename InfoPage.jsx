@@ -11,7 +11,7 @@ const PAGES = {
       ['Free', 'Chapters 1–8'], ['Age Rating', '16+'], ['Team', 'Solo Creator'],
     ],
     story: [
-      'Atma Rekha is an Indian fantasy adventure blending Indian history, culture, spiritual concepts, ancient traditions, mysterious powers, mythical beings and battles.',
+      'Atma Rekha is an Indian adventure manga/comic where random dreams, imaginations, stories, ancient lore, spiritual traditions, and forgotten histories come to life.',
       'It is written in Roman Hindi and made for Indian readers. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
     ],
   },
