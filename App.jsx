@@ -10,7 +10,7 @@ import { getAdminRole } from './adminAuth';
 import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterView, reportComment, submitRating } from './engagement';
 
-const STORY = { title: 'Atma Rekha', eyebrow: 'INDIAN MANGA', description: 'Atma Rekha is an Indian fantasy adventure blending Indian history, culture, spiritual concepts, ancient traditions, mysterious powers, mythical beings and battles.' };
+const STORY = { title: 'Atma Rekha', eyebrow: 'INDIAN MANGA', description: 'Atma Rekha is an Indian adventure manga/comic where random dreams, imaginations, stories, ancient lore, spiritual traditions, and forgotten histories come to life.' };
 const published = chapter => String(chapter?.status || '').trim().toLowerCase() === 'published';
 function formatDate(value) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
 function formatCount(value) { const n = Number(value) || 0; return new Intl.NumberFormat('en-IN', { notation: n > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(n); }
