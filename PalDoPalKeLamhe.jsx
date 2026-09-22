@@ -57,8 +57,6 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
 
   useEffect(() => {
     let active = true;
-    const controller = new AbortController();
-
     (async () => {
       try {
         const access = await getPdlplMemberAccess();
@@ -88,7 +86,6 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
 
     return () => {
       active = false;
-      controller.abort();
       abortersRef.current.forEach(item => item.abort());
       abortersRef.current.clear();
       urlsRef.current.forEach(url => URL.revokeObjectURL(url));
