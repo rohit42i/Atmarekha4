@@ -48,11 +48,6 @@ export async function getPdlplMemberAccess() {
   };
 }
 
-/**
- * Page metadata is protected by PDLPL RLS.
- * Image bytes are fetched separately through the dedicated Cloudflare Worker,
- * which repeats the membership/admin check before reading from R2.
- */
 export async function buildPdlplChapterPages(chapterId) {
   if (!chapterId) return [];
 
@@ -64,4 +59,22 @@ export async function buildPdlplChapterPages(chapterId) {
 
   if (error) throw error;
   return data || [];
+}
+
+export async function buildPdlplPageCounts(chapterIds = []) {
+  const ids = chapterIds.filter(Boolean);
+  if (!ids.length) return {};
+
+  const { data, error } = await supabase
+    .from(PDLPL_PAGES)
+    .select('chapter_id')
+    .in('chapter_id', ids);
+
+  if (error) throw error;
+
+  const counts = {};
+  for (const row of data || []) {
+    counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+  }
+  return counts;
 }
