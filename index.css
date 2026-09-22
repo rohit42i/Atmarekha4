@@ -28,7 +28,7 @@
 .hero-button, .primary-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 16px; background: var(--legacy-2f6cf6-e75dfb6a); color: var(--legacy-fff-d14f9016); font-weight: 800; text-decoration: none; box-shadow: 0 12px 30px var(--legacy-rgb-47-108-246-22-303eeb4a); transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
 .hero-button { margin-top: 28px; padding: 0 28px; font-size: 16px; }
 .hero-button:hover, .primary-button:hover { transform: translateY(-1px); background: var(--legacy-3b78ff-86640fa3); box-shadow: 0 15px 34px var(--legacy-rgb-47-108-246-28-a1c7501d); }
-.project-card { width: min(610px, calc(100% - 48px)); margin: 34px auto 0; padding: 34px 40px; border: 1px solid var(--legacy-292929-ce596263); border-radius: 28px; background: linear-gradient(180deg, var(--legacy-18181a-261ee1c0), var(--legacy-141415-e98d89d6)); box-shadow: 0 20px 55px var(--legacy-rgb-0-0-0-24-5b0d8c6c); }
+.project-card { width: min(610px, calc(100% - 48px)); margin: 34px auto 0; padding: 34px 40px; border: 1px solid var(--legacy-292929-ce596263); border-radius: 28px; background: linear-gradient(180deg, var(--legacy-18181a-261ee1c0), var(--legacy-141415-e98d89d6)); box-shadow: 0 20px 55px var(--legacy-rgb-0-0-0-22-daefa538); }
 .project-card h2 { margin: 0; font-size: clamp(28px, 5vw, 40px); line-height: 1.08; letter-spacing: -.045em; font-weight: 850; }
 .project-card p { margin: 10px 0 0; color: var(--legacy-a1a1aa-0030ed12); font-size: 15px; line-height: 1.55; }
 .project-card em { display: block; margin-top: 22px; color: var(--legacy-8f8f97-cb8c07a4); font-size: 14px; line-height: 1.6; }
