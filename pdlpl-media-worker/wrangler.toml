@@ -1,0 +1,12 @@
+name = "pdlpl-media"
+main = "index.js"
+compatibility_date = "2026-09-22"
+workers_dev = true
+
+[vars]
+SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co"
+ALLOWED_ORIGINS = "https://www.atmarekha.in,https://atmarekha.in,http://localhost:5173,http://127.0.0.1:5173"
+
+[[r2_buckets]]
+binding = "PDLPL_BUCKET"
+bucket_name = "pdlpl-manga"
