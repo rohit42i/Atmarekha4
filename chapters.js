@@ -60,7 +60,7 @@ function installChapterCoverStyles(chapters) {
 }
 
 export async function buildChapters() {
-  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('*').order('chapter_number', { ascending: true, nullsFirst: false });
+  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,chapter_number,title,description,cover_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {
     console.error('Supabase chapters error:', error);
     throw error;
