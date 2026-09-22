@@ -22,3 +22,138 @@
   .pdlpl-home-fallback::after{font-size:9px;margin-left:8px;margin-top:34px}
   .pdlpl-chapter-action{width:58px;min-width:58px;min-height:48px;border-radius:13px}
 }
+
+/* PDPL compact presentation: same structure as Atma Rekha, scaled down ~30%. */
+.pdlpl-home-card{
+  width:min(427px,calc(100% - 34px)) !important;
+  margin-top:42px !important;
+  border-radius:21px !important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.pdlpl-home-card .hero-art{height:343px !important}
+.pdlpl-home-card .hero-copy{padding:40px 38px 38px !important}
+.pdlpl-home-card .hero-eyebrow{font-size:11px !important;letter-spacing:.21em !important}
+.pdlpl-home-card .hero-copy h1{
+  margin-top:9px !important;
+  font-size:clamp(31px,7vw,47px) !important;
+  line-height:1.02 !important;
+  letter-spacing:-.05em !important;
+  font-weight:850 !important;
+}
+.pdlpl-home-card .hero-description{
+  margin-top:13px !important;
+  font-size:13px !important;
+  line-height:1.5 !important;
+  max-width:350px !important;
+}
+.pdlpl-home-card .hero-button{
+  margin-top:20px !important;
+  min-height:42px !important;
+  padding:0 22px !important;
+  border-radius:13px !important;
+  font-size:13px !important;
+}
+.pdlpl-home-fallback{
+  font-size:clamp(35px,8vw,58px) !important;
+  letter-spacing:-.07em !important;
+}
+.pdlpl-home-fallback::after{
+  margin-left:8px !important;
+  margin-top:34px !important;
+  font-size:8px !important;
+}
+
+/* PDPL admin: use the same compact, polished visual language as the main admin. */
+.pdlpl-admin{
+  min-height:100vh;
+  background:var(--ar-admin-bg,#f5f6f8) !important;
+  color:var(--ar-admin-text,#111722) !important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.pdlpl-admin-header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  min-height:68px;
+  padding:12px 20px !important;
+  background:color-mix(in srgb,var(--ar-admin-surface,#fff) 94%,transparent) !important;
+  border-bottom:1px solid var(--ar-admin-border,#dfe3e8) !important;
+  backdrop-filter:blur(16px);
+}
+.pdlpl-admin-header h1{font-size:21px !important;line-height:1.1 !important;font-weight:820 !important;letter-spacing:-.04em !important}
+.pdlpl-admin-header p{font-size:11px !important;color:var(--ar-admin-muted,#657083) !important}
+.pdlpl-admin-header span{font-size:9px !important;letter-spacing:.16em !important;color:var(--ar-admin-gold,#b86b16) !important}
+.pdlpl-admin-layout{
+  width:min(1120px,calc(100% - 28px)) !important;
+  padding:20px 0 14px !important;
+  gap:12px !important;
+}
+.pdlpl-admin-card{
+  padding:18px !important;
+  border-radius:15px !important;
+  background:var(--ar-admin-surface,#fff) !important;
+  color:var(--ar-admin-text,#111722) !important;
+  border:1px solid var(--ar-admin-border,#dfe3e8) !important;
+  box-shadow:0 10px 28px var(--ar-admin-shadow,rgba(15,23,42,.08)) !important;
+}
+.pdlpl-admin-card-head{margin-bottom:14px !important}
+.pdlpl-admin-card-head h2{font-size:17px !important;line-height:1.15 !important;letter-spacing:-.03em !important}
+.pdlpl-admin-card-head p,.pdlpl-muted{font-size:11px !important;line-height:1.5 !important;color:var(--ar-admin-muted,#657083) !important}
+.pdlpl-form{gap:11px !important}
+.pdlpl-form label{gap:6px !important;font-size:11px !important;color:var(--ar-admin-muted,#657083) !important;font-weight:750 !important}
+.pdlpl-form input,.pdlpl-form textarea,.pdlpl-form select{
+  padding:10px 11px !important;
+  min-height:40px !important;
+  background:var(--ar-admin-surface-2,#f0f2f5) !important;
+  color:var(--ar-admin-text,#111722) !important;
+  border:1px solid var(--ar-admin-border,#dfe3e8) !important;
+  border-radius:10px !important;
+  font:500 12px/1.4 Inter,ui-sans-serif,system-ui,sans-serif !important;
+}
+.pdlpl-form textarea{min-height:94px !important}
+.pdlpl-primary{
+  min-height:42px !important;
+  border-radius:11px !important;
+  background:var(--ar-admin-gold,#b86b16) !important;
+  color:#fff !important;
+  font-size:12px !important;
+  box-shadow:0 8px 20px color-mix(in srgb,var(--ar-admin-gold,#b86b16) 18%,transparent) !important;
+}
+.pdlpl-admin-list{gap:7px !important}
+.pdlpl-admin-list article{
+  padding:9px !important;
+  border-radius:11px !important;
+  background:var(--ar-admin-surface-2,#f0f2f5) !important;
+  border:1px solid var(--ar-admin-border,#dfe3e8) !important;
+}
+.pdlpl-admin-list article.active{border-color:color-mix(in srgb,var(--ar-admin-gold,#b86b16) 48%,var(--ar-admin-border,#dfe3e8)) !important}
+.pdlpl-admin-list article>button strong{font-size:12px !important}
+.pdlpl-admin-list article>button span{font-size:11px !important}
+.pdlpl-admin-list article>button small{font-size:10px !important}
+.pdlpl-admin-list article>div button,.pdlpl-admin-list button{
+  padding:6px 8px !important;
+  border-radius:8px !important;
+  font-size:10px !important;
+  background:transparent !important;
+  color:var(--ar-admin-muted,#657083) !important;
+  border:1px solid var(--ar-admin-border,#dfe3e8) !important;
+}
+.pdlpl-page-manager{width:min(1120px,calc(100% - 28px)) !important;margin-bottom:55px !important}
+.pdlpl-admin-pages{grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:10px !important}
+.pdlpl-admin-pages article{padding:10px !important;border-radius:11px !important;background:var(--ar-admin-surface-2,#f0f2f5) !important;border:1px solid var(--ar-admin-border,#dfe3e8) !important}
+.pdlpl-page-preview{height:210px !important;border-radius:9px !important}
+.pdlpl-page-actions label,.pdlpl-page-actions button{padding:6px 7px !important;border-radius:8px !important;font-size:10px !important}
+@media(max-width:900px){
+  .pdlpl-home-card{width:calc(100% - 28px) !important}
+  .pdlpl-home-card .hero-art{height:300px !important}
+  .pdlpl-home-card .hero-copy{padding:32px 28px 30px !important}
+  .pdlpl-admin-pages{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+@media(max-width:560px){
+  .pdlpl-home-card{width:calc(100% - 24px) !important;margin-top:24px !important;border-radius:18px !important}
+  .pdlpl-home-card .hero-art{height:245px !important}
+  .pdlpl-home-card .hero-copy{padding:27px 23px 25px !important}
+  .pdlpl-home-card .hero-copy h1{font-size:clamp(28px,8vw,37px) !important}
+  .pdlpl-admin-pages{grid-template-columns:1fr !important}
+  .pdlpl-admin-header{padding:10px 12px !important}
+}
