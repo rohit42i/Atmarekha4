@@ -4,3 +4,21 @@
 
 .project-card-action{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13px;font-weight:700;letter-spacing:.02em}.project-card em{display:block}.project-card:hover .project-card-action{transform:translateX(3px)}
 .project-card[href="#pal-do-pal-ke-lamhe"]{display:block;width:min(100%,var(--home-card-width,1100px));box-sizing:border-box;margin:18px auto 0;padding:28px 30px;border:1px solid var(--legacy-292929-ce596263);border-radius:24px;background:var(--legacy-0b0b0c-9089d82e);color:inherit;text-decoration:none;cursor:pointer}.project-card[href="#pal-do-pal-ke-lamhe"] h2{margin:0;font-size:28px;letter-spacing:-.035em}.project-card[href="#pal-do-pal-ke-lamhe"] em{display:block;margin-top:8px;color:var(--legacy-a1a1aa-0030ed12);font-style:normal;font-size:14px;line-height:1.5}.project-card[href="#pal-do-pal-ke-lamhe"]:hover{transform:translateY(-2px);border-color:var(--legacy-3a3a3a-41083189)}.project-card-action{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;font-weight:800;letter-spacing:.02em}.project-card:hover .project-card-action{transform:translateX(3px)}@media(max-width:640px){.project-card[href="#pal-do-pal-ke-lamhe"]{margin-top:14px;padding:22px;border-radius:20px}.project-card[href="#pal-do-pal-ke-lamhe"] h2{font-size:23px}}
+
+/* PDPL: intentionally inherits the exact Atma Rekha home/chapter/reader surfaces. */
+
+.pdlpl-home-card{margin-top:62px}
+.pdlpl-home-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:clamp(46px,9vw,82px);font-weight:900;letter-spacing:-.08em;color:var(--legacy-f7f7f7-e50e19e1);text-shadow:0 18px 50px var(--legacy-rgb-0-0-0-38-d7dfea91)}
+.pdlpl-home-fallback::after{content:'SIDE STORY';display:block;margin-left:12px;margin-top:48px;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--legacy-a1a1aa-0030ed12)}
+.pdlpl-chapter-main{width:100%;min-width:0;box-sizing:border-box;font:inherit;line-height:inherit}
+.pdlpl-chapter-action{min-width:76px;min-height:52px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid var(--legacy-292929-ce596263);border-radius:14px;background:var(--legacy-111112-c769f022);color:var(--legacy-aaaab2-b08c52d1);cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+.pdlpl-chapter-action span{font-size:19px;line-height:1}
+.pdlpl-chapter-action small{font-size:9px;font-weight:800}
+.pdlpl-chapter-action:hover{transform:translateY(-1px);background:var(--legacy-19191b-3e7d3aa8)}
+.pdlpl-reader-content .pdlpl-page-loading{min-height:180px}
+@media(max-width:640px){
+  .pdlpl-home-card{margin-top:34px}
+  .pdlpl-home-fallback{font-size:48px}
+  .pdlpl-home-fallback::after{font-size:9px;margin-left:8px;margin-top:34px}
+  .pdlpl-chapter-action{width:58px;min-width:58px;min-height:48px;border-radius:13px}
+}
