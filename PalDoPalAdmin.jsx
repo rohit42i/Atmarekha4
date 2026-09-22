@@ -168,6 +168,9 @@ export default function PalDoPalAdmin() {
     const uploaded = [];
     let oldPagePaths = [];
     let oldCoverPath = editing?.coverPath || null;
+    let pendingCoverPath = null;
+    let coverCommitted = false;
+    let pagesCommitted = false;
     const wasEditing = Boolean(editing);
 
     try {
@@ -214,7 +217,7 @@ export default function PalDoPalAdmin() {
           .update({ cover_path: path })
           .eq('id', chapterId);
         if (error) throw error;
-        if (wasEditing) oldCoverPath = editing.coverPath || null;
+        pendingCoverPath = path;
       }
 
       if (form.pages.length) {
@@ -235,10 +238,12 @@ export default function PalDoPalAdmin() {
           });
         }
 
-        await supabase.rpc('pdlpl_replace_chapter_pages', {
+        const { error: pageSaveError } = await supabase.rpc('pdlpl_replace_chapter_pages', {
           p_chapter_id: chapterId,
           p_pages: rows,
         });
+        if (pageSaveError) throw pageSaveError;
+        pagesCommitted = true;
 
         setSelectedPages(rows.map((row, index) => ({
           id: `pending-${index}`,
@@ -248,10 +253,19 @@ export default function PalDoPalAdmin() {
         })));
       }
 
-      if (oldPagePaths.length) {
+      if (pendingCoverPath) {
+        const { error: coverSaveError } = await supabase
+          .from(PDLPL_CHAPTERS)
+          .update({ cover_path: pendingCoverPath })
+          .eq('id', chapterId);
+        if (coverSaveError) throw coverSaveError;
+        coverCommitted = true;
+      }
+
+      if (oldPagePaths.length && pagesCommitted) {
         try { await removePdlplFiles(oldPagePaths); } catch (cleanupError) { console.warn('Old PDPL page cleanup:', cleanupError); }
       }
-      if (oldCoverPath && form.cover) {
+      if (oldCoverPath && pendingCoverPath) {
         try { await removePdlplFiles([oldCoverPath]); } catch (cleanupError) { console.warn('Old PDPL cover cleanup:', cleanupError); }
       }
 
@@ -260,6 +274,7 @@ export default function PalDoPalAdmin() {
       setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'}.`);
     } catch (error) {
       for (const path of uploaded) {
+        if ((coverCommitted && path === pendingCoverPath) || pagesCommitted) continue;
         try { await removePdlplFiles([path]); } catch (_) {}
       }
       if (!wasEditing && chapterId) {
