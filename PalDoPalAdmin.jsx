@@ -164,10 +164,11 @@ export default function PalDoPalAdmin() {
     if (busy) return;
     setBusy(true);
     setNotice('');
+
     let chapterId = editing?.id || null;
     const uploaded = [];
     let oldPagePaths = [];
-    let oldCoverPath = editing?.coverPath || null;
+    const oldCoverPath = editing?.coverPath || null;
     let pendingCoverPath = null;
     let coverCommitted = false;
     let pagesCommitted = false;
@@ -202,22 +203,19 @@ export default function PalDoPalAdmin() {
         if (oldPagesResult.error) throw oldPagesResult.error;
         oldPagePaths = (oldPagesResult.data || []).map(row => row.image_path).filter(Boolean);
       } else {
-        const { data, error } = await supabase.from(PDLPL_CHAPTERS).insert(payload).select('id').single();
+        const { data, error } = await supabase
+          .from(PDLPL_CHAPTERS)
+          .insert(payload)
+          .select('id')
+          .single();
         if (error) throw error;
         chapterId = data.id;
       }
 
       if (form.cover) {
-        const path = coverPath(chapterId, form.cover);
-        await uploadPdlplFile(form.cover, path);
-        uploaded.push(path);
-
-        const { error } = await supabase
-          .from(PDLPL_CHAPTERS)
-          .update({ cover_path: path })
-          .eq('id', chapterId);
-        if (error) throw error;
-        pendingCoverPath = path;
+        pendingCoverPath = coverPath(chapterId, form.cover);
+        await uploadPdlplFile(form.cover, pendingCoverPath);
+        uploaded.push(pendingCoverPath);
       }
 
       if (form.pages.length) {
@@ -251,6 +249,14 @@ export default function PalDoPalAdmin() {
           page_number: row.page_number,
           image_path: row.image_path,
         })));
+
+        if (oldPagePaths.length) {
+          try {
+            await removePdlplFiles(oldPagePaths);
+          } catch (cleanupError) {
+            console.warn('Old PDPL page cleanup:', cleanupError);
+          }
+        }
       }
 
       if (pendingCoverPath) {
@@ -260,28 +266,44 @@ export default function PalDoPalAdmin() {
           .eq('id', chapterId);
         if (coverSaveError) throw coverSaveError;
         coverCommitted = true;
-      }
 
-      if (oldPagePaths.length && pagesCommitted) {
-        try { await removePdlplFiles(oldPagePaths); } catch (cleanupError) { console.warn('Old PDPL page cleanup:', cleanupError); }
-      }
-      if (oldCoverPath && pendingCoverPath) {
-        try { await removePdlplFiles([oldCoverPath]); } catch (cleanupError) { console.warn('Old PDPL cover cleanup:', cleanupError); }
+        if (oldCoverPath) {
+          try {
+            await removePdlplFiles([oldCoverPath]);
+          } catch (cleanupError) {
+            console.warn('Old PDPL cover cleanup:', cleanupError);
+          }
+        }
       }
 
       reset();
       await load();
       setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'}.`);
     } catch (error) {
+      if (!wasEditing && chapterId) {
+        try {
+          await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId);
+        } catch (_) {}
+      }
+
       for (const path of uploaded) {
-        if ((coverCommitted && path === pendingCoverPath) || pagesCommitted) continue;
+        const shouldKeep = wasEditing && (
+          (pagesCommitted && path.includes(`/pages/`)) ||
+          (coverCommitted && path === pendingCoverPath)
+        );
+        if (shouldKeep) continue;
         try { await removePdlplFiles([path]); } catch (_) {}
       }
-      if (!wasEditing && chapterId) {
-        try { await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId); } catch (_) {}
-      }
+
       setNotice(error?.message || 'Chapter save failed. Uploaded files that were not committed were cleaned up.');
       setProgress({ current: 0, total: 0, text: '' });
+
+      if (wasEditing && pendingCoverPath && !coverCommitted) {
+        // Keep the previous cover reference untouched if switching to the new cover failed.
+        try {
+          await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId);
+        } catch (_) {}
+      }
     } finally {
       setBusy(false);
     }
