@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Footer from './Footer';
 import { buildPdlplChapterPages, buildPdlplChapters, getPdlplMemberAccess, PDLPL_ROUTE, published } from './palDoPalKeLamhe';
 import { fetchPdlplMedia } from './pdlplR2';
+import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
 const label = chapter => chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
