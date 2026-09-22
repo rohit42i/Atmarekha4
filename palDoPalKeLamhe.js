@@ -32,20 +32,26 @@ export async function buildPdlplChapters() {
   return (data || []).map(mapChapter);
 }
 
+let pdlplAccessCache = { key: '', value: null, expiresAt: 0 };
+const PDLPL_ACCESS_CACHE_MS = 30 * 1000;
+
 export async function getPdlplMemberAccess() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { user: null, member: false, admin: false };
+  if (pdlplAccessCache.key === user.id && pdlplAccessCache.expiresAt > Date.now() && pdlplAccessCache.value) return pdlplAccessCache.value;
 
   const [planId, role] = await Promise.all([
     getCurrentMembership(user.id),
     getAdminRole(user.id),
   ]);
 
-  return {
+  const result = {
     user,
     member: Boolean(planId && String(planId).toLowerCase() !== 'free'),
     admin: isAdminRole(role),
   };
+  pdlplAccessCache = { key: user.id, value: result, expiresAt: Date.now() + PDLPL_ACCESS_CACHE_MS };
+  return result;
 }
 
 export async function buildPdlplChapterPages(chapterId) {
