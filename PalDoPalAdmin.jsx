@@ -76,7 +76,7 @@ function PagePreview({ path }) {
   </div>;
 }
 
-export default function PalDoPalAdmin() {
+export default function PalDoPalAdmin({ embedded = false }) {
   const [role, setRole] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -439,22 +439,27 @@ export default function PalDoPalAdmin() {
     }
   };
 
-  if (loading) return <main className="pdlpl-admin"><div className="pdlpl-loading">Checking side story admin…</div></main>;
-  if (!role) return <main className="pdlpl-admin"><div className="pdlpl-error"><h2>Access denied</h2><p>{notice || 'Admin access required.'}</p><button type="button" onClick={() => { window.location.hash = 'home'; }}>Back to Home</button></div></main>;
+  const Root = embedded ? 'section' : 'main';
+  const rootClass = embedded ? 'pdlpl-admin-embedded' : 'pdlpl-admin';
+
+  if (loading) return <Root className={rootClass}><div className="pdlpl-loading">Checking side story admin…</div></Root>;
+  if (!role) return <Root className={rootClass}><div className="pdlpl-error"><h2>Access denied</h2><p>{notice || 'Admin access required.'}</p><button type="button" onClick={() => { window.location.hash = 'home'; }}>Back to Home</button></div></Root>;
 
   const selectedChapter = chapters.find(item => item.id === selectedId) || null;
 
-  return <main className="pdlpl-admin">
-    <header className="pdlpl-admin-header">
+  return <Root className={rootClass}>
+    {!embedded && <header className="pdlpl-admin-header">
       <div>
         <button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>←</button>
         <div><span>SIDE STORY ADMIN</span><h1>Pal Do Pal Ke Lamhe</h1><p>Cloudflare R2 media · separate PDPL metadata.</p></div>
       </div>
       <button type="button" className="pdlpl-admin-home" onClick={() => { window.location.hash = 'home'; }}>Home</button>
-    </header>
+    </header>}
+
+    {embedded && <div className="pdlpl-embedded-heading"><div><span>PAL DO PAL KE LAMHE</span><h2>Side Story Upload & Management</h2><p>Separate chapters, pages, and Cloudflare R2 media.</p></div></div>}
 
     <section className="pdlpl-admin-layout">
-      <form className="pdlpl-admin-card pdlpl-form" onSubmit={saveChapter}>
+      <form id="pdlpl-upload-chapter" className="pdlpl-admin-card pdlpl-form" onSubmit={saveChapter}>
         <div className="pdlpl-admin-card-head">
           <div><span>CHAPTER SETUP</span><h2>{editing ? 'Edit chapter' : 'Create chapter'}</h2></div>
           {editing && <button type="button" onClick={reset}>New chapter</button>}
@@ -532,5 +537,5 @@ export default function PalDoPalAdmin() {
     </section>}
 
     {notice && <div className="pdlpl-notice">{notice}</div>}
-  </main>;
+  </Root>;
 }
