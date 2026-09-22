@@ -1,16 +1,79 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAdminRole } from './adminAuth';
 import { supabase } from './supabase';
-import { buildPdlplChapters, PDLPL_BUCKET, PDLPL_CHAPTERS, PDLPL_PAGES, removePdlplFiles, replacePdlplPages, uploadPdlplFile } from './palDoPalKeLamhe';
+import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES } from './palDoPalKeLamhe';
+import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
 
-const emptyForm = () => ({ number: '', title: '', description: '', status: 'Draft', releaseDate: '', pages: [] });
-const maxPageSize = 20 * 1024 * 1024;
+const MAX_PAGE_SIZE = 20 * 1024 * 1024;
 
-function label(chapter) { return `Chapter ${chapter.chapterNumber}`; }
-function pathFor(chapterId, revision, file, index) {
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  return `chapters/${chapterId}/${revision}/${String(index + 1).padStart(4, '0')}.${ext}`;
+const emptyForm = () => ({
+  number: '',
+  title: '',
+  description: '',
+  status: 'Draft',
+  releaseDate: '',
+  cover: null,
+  pages: [],
+});
+
+const label = chapter => chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
+
+function safeExt(file, fallback = 'webp') {
+  const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || fallback;
+  return /^[a-z0-9]+$/.test(ext) ? ext : fallback;
+}
+
+function pagePath(chapterId, revision, file, index) {
+  return `chapters/${chapterId}/pages/${revision}/${String(index + 1).padStart(4, '0')}.${safeExt(file)}`;
+}
+
+function coverPath(chapterId, file) {
+  return `covers/chapters/${chapterId}/cover-${Date.now()}.${safeExt(file)}`;
+}
+
+function PagePreview({ path }) {
+  const holder = useRef(null);
+  const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl = '';
+    let observer;
+
+    const load = async () => {
+      try {
+        objectUrl = await fetchPdlplMedia(path);
+        if (active) setUrl(objectUrl);
+        else URL.revokeObjectURL(objectUrl);
+      } catch (err) {
+        if (active) setError(err?.message || 'Preview unavailable.');
+      }
+    };
+
+    if (typeof IntersectionObserver === 'undefined') {
+      load();
+    } else {
+      observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          observer.disconnect();
+          load();
+        }
+      }, { rootMargin: '300px' });
+      if (holder.current) observer.observe(holder.current);
+    }
+
+    return () => {
+      active = false;
+      observer?.disconnect();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [path]);
+
+  return <div ref={holder} className="pdlpl-page-preview">
+    {url ? <img src={url} alt="" loading="lazy" /> : error ? <span>{error}</span> : <span>Loading preview…</span>}
+  </div>;
 }
 
 export default function PalDoPalAdmin() {
@@ -19,7 +82,6 @@ export default function PalDoPalAdmin() {
   const [pageCounts, setPageCounts] = useState({});
   const [selectedId, setSelectedId] = useState('');
   const [selectedPages, setSelectedPages] = useState([]);
-  const [selectedPageFiles, setSelectedPageFiles] = useState({});
   const [form, setForm] = useState(emptyForm());
   const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -34,191 +96,360 @@ export default function PalDoPalAdmin() {
       if (!user) throw new Error('Sign in required.');
       const adminRole = await getAdminRole(user.id);
       if (!adminRole) throw new Error('Admin access required.');
-      setRole(adminRole);
-      const rows = await buildPdlplChapters();
-      const pageResult = await supabase.from(PDLPL_PAGES).select('id,chapter_id,page_number,image_path').order('page_number', { ascending: true });
-      if (pageResult.error) throw pageResult.error;
+
+      const [rows, pagesResult] = await Promise.all([
+        buildPdlplChapters(),
+        supabase.from(PDLPL_PAGES).select('id,chapter_id,page_number,image_path').order('page_number', { ascending: true }),
+      ]);
+      if (pagesResult.error) throw pagesResult.error;
+
       const counts = {};
-      for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+      for (const row of pagesResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+
+      setRole(adminRole);
       setChapters(rows);
       setPageCounts(counts);
       if (!selectedId && rows[0]?.id) setSelectedId(rows[0].id);
     } catch (error) {
-      setNotice(error.message || 'Unable to load side story admin.');
-    } finally { setLoading(false); }
+      setRole(null);
+      setNotice(error?.message || 'Unable to load side story admin.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
 
-  useEffect(() => {
-    if (!selectedId) { setSelectedPages([]); return; }
-    supabase.from(PDLPL_PAGES).select('id,chapter_id,page_number,image_path').eq('chapter_id', selectedId).order('page_number', { ascending: true }).then(({ data, error }) => {
-      if (error) setNotice(error.message);
-      else setSelectedPages(data || []);
-    });
-  }, [selectedId]);
+  const loadPages = async id => {
+    if (!id) {
+      setSelectedPages([]);
+      return;
+    }
+    const { data, error } = await supabase
+      .from(PDLPL_PAGES)
+      .select('id,chapter_id,page_number,image_path')
+      .eq('chapter_id', id)
+      .order('page_number', { ascending: true });
 
-  const sorted = useMemo(() => [...chapters].sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber)), [chapters]);
+    if (error) setNotice(error.message);
+    else setSelectedPages(data || []);
+  };
+
+  useEffect(() => { loadPages(selectedId); }, [selectedId]);
+
+  const sorted = useMemo(
+    () => [...chapters].sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber)),
+    [chapters],
+  );
 
   const choosePages = event => {
     const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
-    const tooLarge = files.find(file => file.size > maxPageSize);
-    if (tooLarge) { event.target.value = ''; setNotice(`${tooLarge.name} is larger than 20 MB.`); return; }
+    const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
+    if (tooLarge) {
+      event.target.value = '';
+      setNotice(`${tooLarge.name} is larger than 20 MB.`);
+      return;
+    }
     setForm(value => ({ ...value, pages: files }));
   };
 
-  const reset = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); };
+  const reset = () => {
+    setEditing(null);
+    setForm(emptyForm());
+    setProgress({ current: 0, total: 0, text: '' });
+  };
 
   const saveChapter = async event => {
     event.preventDefault();
     if (busy) return;
-    setBusy(true); setNotice('');
+    setBusy(true);
+    setNotice('');
     let chapterId = editing?.id || null;
     const uploaded = [];
+    let oldPagePaths = [];
+    let oldCoverPath = editing?.coverPath || null;
+    const wasEditing = Boolean(editing);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const adminRole = await getAdminRole(user?.id);
-      if (!adminRole) throw new Error('Admin access required.');
-      const number = Number(String(form.number || '').trim());
-      if (!Number.isInteger(number) || number < 1) throw new Error('Enter a valid chapter number.');
-      if (!form.title.trim()) throw new Error('Chapter title is required.');
-      if (!editing && !form.pages.length) throw new Error('Select at least one page.');
-      const payload = { chapter_number: number, title: form.title.trim(), description: form.description.trim(), status: form.status, release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null };
+      if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
 
-      if (editing) {
+      const rawNumber = String(form.number || '').trim();
+      const number = rawNumber === '' ? null : Number(rawNumber);
+      if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number.');
+      if (!form.title.trim()) throw new Error('Chapter title is required.');
+      if (!wasEditing && !form.pages.length) throw new Error('Select at least one page for a new chapter.');
+
+      const payload = {
+        chapter_number: number,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        status: form.status,
+        release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null,
+      };
+
+      if (wasEditing) {
         const { error } = await supabase.from(PDLPL_CHAPTERS).update(payload).eq('id', editing.id);
         if (error) throw error;
+
+        const oldPagesResult = await supabase
+          .from(PDLPL_PAGES)
+          .select('image_path')
+          .eq('chapter_id', editing.id);
+        if (oldPagesResult.error) throw oldPagesResult.error;
+        oldPagePaths = (oldPagesResult.data || []).map(row => row.image_path).filter(Boolean);
       } else {
         const { data, error } = await supabase.from(PDLPL_CHAPTERS).insert(payload).select('id').single();
         if (error) throw error;
         chapterId = data.id;
       }
 
+      if (form.cover) {
+        const path = coverPath(chapterId, form.cover);
+        await uploadPdlplFile(form.cover, path);
+        uploaded.push(path);
+
+        const { error } = await supabase
+          .from(PDLPL_CHAPTERS)
+          .update({ cover_path: path })
+          .eq('id', chapterId);
+        if (error) throw error;
+        if (wasEditing) oldCoverPath = editing.coverPath || null;
+      }
+
       if (form.pages.length) {
-        const old = await supabase.from(PDLPL_PAGES).select('id,image_path').eq('chapter_id', chapterId);
-        if (old.error) throw old.error;
         const revision = Date.now();
         const rows = [];
-        setProgress({ current: 0, total: form.pages.length, text: 'Uploading pages…' });
+        setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
+
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
-          const path = pathFor(chapterId, revision, file, i);
+          const path = pagePath(chapterId, revision, file, i);
           await uploadPdlplFile(file, path);
           uploaded.push(path);
           rows.push({ page_number: i + 1, image_path: path });
-          setProgress({ current: i + 1, total: form.pages.length, text: `Uploaded page ${i + 1} of ${form.pages.length}` });
+          setProgress({
+            current: i + 1,
+            total: form.pages.length,
+            text: `Uploaded page ${i + 1} of ${form.pages.length}`,
+          });
         }
-        await replacePdlplPages(chapterId, rows);
-        try { await removePdlplFiles((old.data || []).map(row => row.image_path)); } catch (cleanupError) { console.warn('Old PDLPL page cleanup:', cleanupError); }
+
+        await supabase.rpc('pdlpl_replace_chapter_pages', {
+          p_chapter_id: chapterId,
+          p_pages: rows,
+        });
+
+        setSelectedPages(rows.map((row, index) => ({
+          id: `pending-${index}`,
+          chapter_id: chapterId,
+          page_number: row.page_number,
+          image_path: row.image_path,
+        })));
       }
 
-      reset(); await load(); setNotice(`${label({ chapterNumber: number })} ${editing ? 'updated' : 'created'}.`);
+      if (oldPagePaths.length) {
+        try { await removePdlplFiles(oldPagePaths); } catch (cleanupError) { console.warn('Old PDPL page cleanup:', cleanupError); }
+      }
+      if (oldCoverPath && form.cover) {
+        try { await removePdlplFiles([oldCoverPath]); } catch (cleanupError) { console.warn('Old PDPL cover cleanup:', cleanupError); }
+      }
+
+      reset();
+      await load();
+      setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'}.`);
     } catch (error) {
-      for (const path of uploaded) { try { await removePdlplFiles([path]); } catch (_) {} }
-      if (!editing && chapterId) { try { await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId); } catch (_) {} }
-      setNotice(error.message || 'Chapter save failed.');
+      for (const path of uploaded) {
+        try { await removePdlplFiles([path]); } catch (_) {}
+      }
+      if (!wasEditing && chapterId) {
+        try { await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId); } catch (_) {}
+      }
+      setNotice(error?.message || 'Chapter save failed. Uploaded files that were not committed were cleaned up.');
       setProgress({ current: 0, total: 0, text: '' });
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   const edit = chapter => {
     setEditing(chapter);
-    setForm({ number: chapter.chapterNumber, title: chapter.title, description: chapter.description, status: chapter.status || 'Draft', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', pages: [] });
+    setForm({
+      number: chapter.chapterNumber ?? '',
+      title: chapter.title,
+      description: chapter.description,
+      status: chapter.status || 'Draft',
+      releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '',
+      cover: null,
+      pages: [],
+    });
     setSelectedId(chapter.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const deleteChapter = async chapter => {
-    if (busy || !window.confirm(`Delete ${label(chapter)} and all its pages?`)) return;
-    setBusy(true); setNotice('');
+    if (busy || !window.confirm(`Delete ${label(chapter)} and all its pages and cover?`)) return;
+    setBusy(true);
+    setNotice('');
+
     try {
-      const rows = await supabase.from(PDLPL_PAGES).select('image_path').eq('chapter_id', chapter.id);
-      if (rows.error) throw rows.error;
+      const [pagesResult] = await Promise.all([
+        supabase.from(PDLPL_PAGES).select('image_path').eq('chapter_id', chapter.id),
+      ]);
+      if (pagesResult.error) throw pagesResult.error;
+
       const { error } = await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapter.id);
       if (error) throw error;
-      try { await removePdlplFiles((rows.data || []).map(row => row.image_path)); } catch (_) {}
+
+      const paths = (pagesResult.data || []).map(row => row.image_path).filter(Boolean);
+      if (chapter.coverPath) paths.push(chapter.coverPath);
+      try { await removePdlplFiles(paths); } catch (cleanupError) { console.warn('PDPL delete cleanup:', cleanupError); }
+
+      if (selectedId === chapter.id) {
+        setSelectedId('');
+        setSelectedPages([]);
+      }
       await load();
-      if (selectedId === chapter.id) setSelectedId('');
       setNotice(`${label(chapter)} deleted.`);
-    } catch (error) { setNotice(error.message || 'Delete failed.'); }
-    finally { setBusy(false); }
+    } catch (error) {
+      setNotice(error?.message || 'Delete failed.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const replacePage = async (page, file) => {
-    if (!file || busy || !file.type.startsWith('image/') || file.size > maxPageSize) return;
-    setBusy(true); setNotice('');
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const newPath = `chapters/${page.chapter_id}/replacements/${page.id}-${Date.now()}.${ext}`;
+    if (!file || busy) return;
+    if (!file.type.startsWith('image/')) { setNotice('Please select an image.'); return; }
+    if (file.size > MAX_PAGE_SIZE) { setNotice(`${file.name} is larger than 20 MB.`); return; }
+
+    setBusy(true);
+    setNotice('');
+    const path = `chapters/${page.chapter_id}/replacements/${page.id}-${Date.now()}.${safeExt(file)}`;
+
     try {
-      await uploadPdlplFile(file, newPath);
-      const { error } = await supabase.from(PDLPL_PAGES).update({ image_path: newPath }).eq('id', page.id);
+      await uploadPdlplFile(file, path);
+      const { error } = await supabase
+        .from(PDLPL_PAGES)
+        .update({ image_path: path })
+        .eq('id', page.id);
       if (error) throw error;
-      try { await removePdlplFiles([page.image_path]); } catch (_) {}
-      setSelectedPages(current => current.map(item => item.id === page.id ? { ...item, image_path: newPath } : item));
+
+      try { await removePdlplFiles([page.image_path]); } catch (cleanupError) { console.warn('Old PDPL page cleanup:', cleanupError); }
+
+      setSelectedPages(current => current.map(item => item.id === page.id ? { ...item, image_path: path } : item));
       setNotice(`Page ${page.page_number} replaced.`);
     } catch (error) {
-      try { await removePdlplFiles([newPath]); } catch (_) {}
-      setNotice(error.message || 'Page replacement failed. The old page was kept.');
-    } finally { setBusy(false); }
+      try { await removePdlplFiles([path]); } catch (_) {}
+      setNotice(error?.message || 'Page replacement failed. The original page was kept.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const reorder = async (index, direction) => {
     const otherIndex = index + direction;
     if (otherIndex < 0 || otherIndex >= selectedPages.length || busy) return;
-    const a = selectedPages[index], b = selectedPages[otherIndex];
-    setBusy(true); setNotice('');
+
+    const a = selectedPages[index];
+    const b = selectedPages[otherIndex];
+    setBusy(true);
+    setNotice('');
+
     try {
-      let result = await supabase.from(PDLPL_PAGES).update({ page_number: 0 }).eq('id', a.id); if (result.error) throw result.error;
-      result = await supabase.from(PDLPL_PAGES).update({ page_number: a.page_number }).eq('id', b.id); if (result.error) throw result.error;
-      result = await supabase.from(PDLPL_PAGES).update({ page_number: b.page_number }).eq('id', a.id); if (result.error) throw result.error;
-      const refreshed = await supabase.from(PDLPL_PAGES).select('id,chapter_id,page_number,image_path').eq('chapter_id', selectedId).order('page_number', { ascending: true });
-      if (refreshed.error) throw refreshed.error;
-      setSelectedPages(refreshed.data || []);
-    } catch (error) { setNotice(error.message || 'Reorder failed.'); }
-    finally { setBusy(false); }
+      let result = await supabase.from(PDLPL_PAGES).update({ page_number: 0 }).eq('id', a.id);
+      if (result.error) throw result.error;
+      result = await supabase.from(PDLPL_PAGES).update({ page_number: a.page_number }).eq('id', b.id);
+      if (result.error) throw result.error;
+      result = await supabase.from(PDLPL_PAGES).update({ page_number: b.page_number }).eq('id', a.id);
+      if (result.error) throw result.error;
+      await loadPages(selectedId);
+    } catch (error) {
+      setNotice(error?.message || 'Reorder failed.');
+      await loadPages(selectedId);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const deletePage = async page => {
     if (busy || !window.confirm(`Delete page ${page.page_number}?`)) return;
-    setBusy(true); setNotice('');
+    setBusy(true);
+    setNotice('');
+
     try {
       const { error } = await supabase.from(PDLPL_PAGES).delete().eq('id', page.id);
       if (error) throw error;
-      try { await removePdlplFiles([page.image_path]); } catch (_) {}
+
+      try { await removePdlplFiles([page.image_path]); } catch (cleanupError) { console.warn('PDPL page cleanup:', cleanupError); }
+
       const remaining = selectedPages.filter(item => item.id !== page.id);
-      for (let i = 0; i < remaining.length; i += 1) if (remaining[i].page_number !== i + 1) {
-        const result = await supabase.from(PDLPL_PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id);
-        if (result.error) throw result.error;
+      for (let i = 0; i < remaining.length; i += 1) {
+        if (remaining[i].page_number !== i + 1) {
+          const result = await supabase.from(PDLPL_PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id);
+          if (result.error) throw result.error;
+        }
       }
-      setSelectedPages(remaining.map((item, i) => ({ ...item, page_number: i + 1 })));
+
+      await loadPages(selectedId);
       setPageCounts(current => ({ ...current, [page.chapter_id]: Math.max(0, (current[page.chapter_id] || 1) - 1) }));
-    } catch (error) { setNotice(error.message || 'Delete page failed.'); }
-    finally { setBusy(false); }
+      setNotice(`Page ${page.page_number} deleted.`);
+    } catch (error) {
+      setNotice(error?.message || 'Delete page failed.');
+      await loadPages(selectedId);
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (loading) return <main className="pdlpl-admin"><div className="pdlpl-loading">Checking side story admin…</div></main>;
-  if (!role) return <main className="pdlpl-admin"><div className="pdlpl-error"><h2>Access denied</h2><p>{notice}</p><button type="button" onClick={() => { window.location.hash = 'home'; }}>Back to Home</button></div></main>;
+  if (!role) return <main className="pdlpl-admin"><div className="pdlpl-error"><h2>Access denied</h2><p>{notice || 'Admin access required.'}</p><button type="button" onClick={() => { window.location.hash = 'home'; }}>Back to Home</button></div></main>;
 
   const selectedChapter = chapters.find(item => item.id === selectedId) || null;
+
   return <main className="pdlpl-admin">
     <header className="pdlpl-admin-header">
-      <div><button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>←</button><div><span>SIDE STORY ADMIN</span><h1>Pal Do Pal Ke Lamhe</h1><p>Separate member-only chapter and page management.</p></div></div>
+      <div>
+        <button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>←</button>
+        <div><span>SIDE STORY ADMIN</span><h1>Pal Do Pal Ke Lamhe</h1><p>Cloudflare R2 media · separate PDPL metadata.</p></div>
+      </div>
       <button type="button" className="pdlpl-admin-home" onClick={() => { window.location.hash = 'home'; }}>Home</button>
     </header>
 
     <section className="pdlpl-admin-layout">
       <form className="pdlpl-admin-card pdlpl-form" onSubmit={saveChapter}>
-        <div className="pdlpl-admin-card-head"><div><span>CHAPTER SETUP</span><h2>{editing ? 'Edit chapter' : 'Create chapter'}</h2></div>{editing && <button type="button" onClick={reset}>New chapter</button>}</div>
+        <div className="pdlpl-admin-card-head">
+          <div><span>CHAPTER SETUP</span><h2>{editing ? 'Edit chapter' : 'Create chapter'}</h2></div>
+          {editing && <button type="button" onClick={reset}>New chapter</button>}
+        </div>
+
         <div className="pdlpl-form-grid">
           <label>Chapter number<input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} required /></label>
-          <label>Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Draft</option><option>Published</option></select></label>
+          <label>Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Draft</option><option>Published</option><option>Archived</option></select></label>
         </div>
+
         <label>Title<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required /></label>
         <label>Description<textarea rows="4" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></label>
         <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })} /></label>
-        <label className="pdlpl-file-input">Chapter pages<input type="file" accept="image/*" multiple onChange={choosePages} />{form.pages.length > 0 && <span>{form.pages.length} page(s) selected</span>}</label>
-        {progress.total > 0 && <div className="pdlpl-upload-progress"><div style={{ width: `${Math.round(progress.current / progress.total * 100)}%` }} /></div>}
-        {progress.text && <p className="pdlpl-muted">{progress.text}</p>}
+
+        <label className="pdlpl-file-input">
+          Chapter cover
+          <input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })} />
+          {form.cover && <span>{form.cover.name}</span>}
+        </label>
+
+        <label className="pdlpl-file-input">
+          Manga pages
+          <input type="file" accept="image/*" multiple onChange={choosePages} />
+          {form.pages.length > 0 && <span>{form.pages.length} page(s) selected · selected order preserved</span>}
+        </label>
+
+        {progress.total > 0 && <>
+          <div className="pdlpl-upload-progress"><div style={{ width: `${Math.round(progress.current / progress.total * 100)}%` }} /></div>
+          <p className="pdlpl-muted">{progress.text}</p>
+        </>}
+
+        <p className="pdlpl-muted">All published chapters are members-only. Images never use Supabase Storage.</p>
         <button className="pdlpl-primary" disabled={busy}>{busy ? 'Saving…' : editing ? 'Save chapter' : 'Create chapter'}</button>
       </form>
 
@@ -226,8 +457,15 @@ export default function PalDoPalAdmin() {
         <div className="pdlpl-admin-card-head"><div><span>CHAPTERS</span><h2>{chapters.length} total</h2></div></div>
         <div className="pdlpl-admin-list">
           {sorted.map(chapter => <article key={chapter.id} className={chapter.id === selectedId ? 'active' : ''}>
-            <button type="button" onClick={() => setSelectedId(chapter.id)}><strong>{label(chapter)}</strong><span>{chapter.title}</span><small>{chapter.status} · {pageCounts[chapter.id] || 0} pages</small></button>
-            <div><button type="button" onClick={() => edit(chapter)}>Edit</button><button type="button" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div>
+            <button type="button" onClick={() => setSelectedId(chapter.id)}>
+              <strong>{label(chapter)}</strong>
+              <span>{chapter.title || 'Untitled chapter'}</span>
+              <small>{chapter.status} · {pageCounts[chapter.id] || 0} pages</small>
+            </button>
+            <div>
+              <button type="button" onClick={() => edit(chapter)}>Edit</button>
+              <button type="button" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button>
+            </div>
           </article>)}
           {!sorted.length && <p className="pdlpl-muted">No chapters yet.</p>}
         </div>
@@ -235,19 +473,27 @@ export default function PalDoPalAdmin() {
     </section>
 
     {selectedChapter && <section className="pdlpl-admin-card pdlpl-page-manager">
-      <div className="pdlpl-admin-card-head"><div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete individual pages without re-uploading the chapter.</p></div></div>
-      {!selectedPages.length ? <p className="pdlpl-muted">No pages uploaded.</p> :
-        <div className="pdlpl-admin-pages">{selectedPages.map((page, index) => <article key={page.id}>
-          <div className="pdlpl-page-head"><strong>Page {page.page_number}</strong><span>{index + 1}/{selectedPages.length}</span></div>
-          <p className="pdlpl-page-path">{page.image_path}</p>
-          <div className="pdlpl-page-actions">
-            <label>Replace<input type="file" accept="image/*" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; replacePage(page, file); }} /></label>
-            <button type="button" disabled={busy || index === 0} onClick={() => reorder(index, -1)}>↑</button>
-            <button type="button" disabled={busy || index === selectedPages.length - 1} onClick={() => reorder(index, 1)}>↓</button>
-            <button type="button" className="danger" disabled={busy} onClick={() => deletePage(page)}>Delete</button>
-          </div>
-        </article>)}</div>}
+      <div className="pdlpl-admin-card-head">
+        <div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete one page without re-uploading the whole chapter.</p></div>
+      </div>
+
+      {!selectedPages.length
+        ? <p className="pdlpl-muted">No pages uploaded.</p>
+        : <div className="pdlpl-admin-pages">
+          {selectedPages.map((page, index) => <article key={page.id}>
+            <PagePreview path={page.image_path} />
+            <div className="pdlpl-page-head"><strong>Page {page.page_number}</strong><span>{index + 1}/{selectedPages.length}</span></div>
+            <p className="pdlpl-page-path">{page.image_path}</p>
+            <div className="pdlpl-page-actions">
+              <label>Replace<input type="file" accept="image/*" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; replacePage(page, file); }} /></label>
+              <button type="button" disabled={busy || index === 0} onClick={() => reorder(index, -1)}>↑</button>
+              <button type="button" disabled={busy || index === selectedPages.length - 1} onClick={() => reorder(index, 1)}>↓</button>
+              <button type="button" className="danger" disabled={busy} onClick={() => deletePage(page)}>Delete</button>
+            </div>
+          </article>)}
+        </div>}
     </section>}
+
     {notice && <div className="pdlpl-notice">{notice}</div>}
   </main>;
 }
