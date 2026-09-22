@@ -1,45 +1,130 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Footer from './Footer';
-import { buildPdlplChapterPages, buildPdlplChapters, getPdlplMemberAccess, PDLPL_ROUTE, published } from './palDoPalKeLamhe';
+import {
+  buildPdlplChapterPages,
+  buildPdlplChapters,
+  buildPdlplPageCounts,
+  getPdlplMemberAccess,
+  PDLPL_ROUTE,
+  published,
+} from './palDoPalKeLamhe';
 import { fetchPdlplMedia } from './pdlplR2';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
-const label = chapter => chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
+function formatDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? '—'
+    : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatLabel(chapter) {
+  return chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
+}
 
 function openMembership() {
   window.location.hash = 'membership';
 }
 
 function LockedModal({ chapter, onClose }) {
-  return <div className="pdlpl-lock-backdrop" role="dialog" aria-modal="true" aria-label="Membership required">
-    <button className="pdlpl-lock-bg" aria-label="Close" onClick={onClose} />
-    <section className="pdlpl-lock-modal">
-      <button className="pdlpl-close" type="button" onClick={onClose} aria-label="Close">×</button>
-      <span className="pdlpl-lock-icon" aria-hidden="true">🔒</span>
-      <p className="pdlpl-kicker">PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
-      <h2>{label(chapter)} is for members.</h2>
-      <p>Every chapter of this side story is available only with an active membership.</p>
-      <button className="pdlpl-primary" type="button" onClick={openMembership}>View Membership <span>→</span></button>
-      <button className="pdlpl-secondary" type="button" onClick={onClose}>Maybe later</button>
-    </section>
-  </div>;
+  return (
+    <div className="pdlpl-lock-backdrop" role="dialog" aria-modal="true" aria-label="Membership required">
+      <button className="pdlpl-lock-bg" type="button" aria-label="Close" onClick={onClose} />
+      <section className="pdlpl-lock-modal">
+        <button className="pdlpl-close" type="button" onClick={onClose} aria-label="Close">×</button>
+        <span className="pdlpl-lock-icon" aria-hidden="true">🔒</span>
+        <p className="pdlpl-kicker">PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
+        <h2>{formatLabel(chapter)} is for members.</h2>
+        <p>Every chapter of this side story is available only with an active membership.</p>
+        <button className="pdlpl-primary" type="button" onClick={openMembership}>View Membership <span>→</span></button>
+        <button className="pdlpl-secondary" type="button" onClick={onClose}>Maybe later</button>
+      </section>
+    </div>
+  );
 }
 
-function ChapterRow({ chapter, member, onOpen }) {
-  return <article className={`pdlpl-chapter-row ${member ? '' : 'is-locked'}`}>
-    <button type="button" onClick={() => onOpen(chapter)} className="pdlpl-chapter-main">
-      <div className="pdlpl-chapter-number">{label(chapter)}</div>
-      <h2>{chapter.title || 'Untitled chapter'}</h2>
-      {chapter.description && <p>{chapter.description}</p>}
-      <div className="pdlpl-chapter-meta">
-        <span>{chapter.releaseDate ? new Date(chapter.releaseDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not dated'}</span>
-        <span>·</span>
-        <span>{member ? 'Read chapter' : 'Members only 🔒'}</span>
+function PdlplChapterRow({ chapter, member, onOpen, pageCount }) {
+  const locked = !member;
+
+  return (
+    <article className="chapter-row">
+      <button
+        type="button"
+        className="chapter-row-main pdlpl-chapter-main"
+        onClick={() => onOpen(chapter)}
+        aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}
+      >
+        <div className="chapter-row-title">
+          <span>{formatLabel(chapter)}</span>
+          <h2>{chapter.title || 'Untitled chapter'}</h2>
+        </div>
+        <div className="chapter-row-meta">
+          <span>MEMBERS ONLY</span>
+          <span>•</span>
+          <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+        </div>
+        <div className="chapter-row-details">
+          <span>📄 {pageCount || 0} pages</span>
+        </div>
+      </button>
+      <div className="chapter-row-actions">
+        <button
+          type="button"
+          className="pdlpl-chapter-action"
+          onClick={() => onOpen(chapter)}
+          aria-label={locked ? `${formatLabel(chapter)} is members only` : `Read ${formatLabel(chapter)}`}
+          title={locked ? 'Members only' : 'Read chapter'}
+        >
+          <span>{locked ? '🔒' : '→'}</span>
+          <small>{locked ? 'Members' : 'Read'}</small>
+        </button>
       </div>
-    </button>
-    <span className="pdlpl-row-arrow" aria-hidden="true">→</span>
-  </article>;
+    </article>
+  );
+}
+
+function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack }) {
+  return (
+    <main className="site-shell chapter-list-page">
+      <header className="subpage-header">
+        <button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button>
+        <div>
+          <p className="header-kicker">PAL DO PAL KE LAMHE</p>
+          <h1>Chapter List</h1>
+        </div>
+      </header>
+
+      <section className="chapter-list-section">
+        <div className="chapter-list-heading">
+          <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
+          <span>MEMBERS ONLY · DATE · PAGES</span>
+        </div>
+
+        {chapters.length ? (
+          <div className="chapter-list">
+            {chapters.map(chapter => (
+              <PdlplChapterRow
+                key={chapter.id}
+                chapter={chapter}
+                member={member || admin}
+                onOpen={onOpen}
+                pageCount={pageCounts[chapter.id] || 0}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <h3>Nothing published yet</h3>
+            <p>This side story is still being prepared.</p>
+          </div>
+        )}
+      </section>
+
+      <Footer />
+    </main>
+  );
 }
 
 function Reader({ chapter, chapters, onBack, onOpenChapter }) {
@@ -47,38 +132,38 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   const [index, setIndex] = useState(0);
   const [urls, setUrls] = useState({});
   const urlsRef = useRef(new Map());
+  const abortersRef = useRef(new Map());
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
   const [error, setError] = useState('');
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const abortersRef = useRef(new Map());
-  const minSwipeDistance = 80;
+
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     let active = true;
+
     (async () => {
+      setLoading(true);
+      setError('');
+
       try {
         const access = await getPdlplMemberAccess();
-        if (!active) return;
         if (!access.member && !access.admin) {
-          onBack();
+          if (active) onBack();
           return;
         }
 
         const livePages = await buildPdlplChapterPages(chapter.id);
         if (!active) return;
-        if (!livePages.length) {
-          setPages([]);
-          setLoading(false);
-          return;
-        }
 
         setPages(livePages);
+
         const saved = Number(window.localStorage.getItem(`pdlpl-reading:${chapter.id}`));
         setIndex(Number.isInteger(saved) && saved >= 0 && saved < livePages.length ? saved : 0);
       } catch (err) {
-        if (active && err?.name !== 'AbortError') setError(err?.message || 'Unable to open this chapter.');
+        if (active) setError(err?.message || 'Unable to open this chapter.');
       } finally {
         if (active) setLoading(false);
       }
@@ -86,7 +171,7 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
 
     return () => {
       active = false;
-      abortersRef.current.forEach(item => item.abort());
+      abortersRef.current.forEach(controller => controller.abort());
       abortersRef.current.clear();
       urlsRef.current.forEach(url => URL.revokeObjectURL(url));
       urlsRef.current.clear();
@@ -112,10 +197,13 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   }, [pages]);
 
   useEffect(() => {
-    if (!pages.length) return;
-    setPageLoading(!urlsRef.current.has(index));
-    const needed = new Set([index - 1, index, index + 1].filter(value => value >= 0 && value < pages.length));
+    if (!pages.length) return undefined;
 
+    const needed = new Set(
+      [index - 1, index, index + 1].filter(value => value >= 0 && value < pages.length),
+    );
+
+    setPageLoading(!urlsRef.current.has(index));
     needed.forEach(value => loadPage(value));
 
     for (const [cachedIndex, url] of urlsRef.current.entries()) {
@@ -134,7 +222,9 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   }, [index, pages, loadPage]);
 
   useEffect(() => {
-    if (pages.length) window.localStorage.setItem(`pdlpl-reading:${chapter.id}`, String(index));
+    if (pages.length) {
+      window.localStorage.setItem(`pdlpl-reading:${chapter.id}`, String(index));
+    }
   }, [chapter.id, index, pages.length]);
 
   useEffect(() => {
@@ -149,6 +239,7 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
         onBack();
       }
     };
+
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [pages.length, onBack]);
@@ -157,81 +248,146 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
     setTouchEnd(null);
     setTouchStart(event.targetTouches[0]?.clientX ?? null);
   };
+
   const onTouchMove = event => setTouchEnd(event.targetTouches[0]?.clientX ?? null);
+
   const onTouchEnd = () => {
     if (touchStart === null || touchEnd === null) return;
     const distance = touchStart - touchEnd;
+
     if (Math.abs(distance) >= minSwipeDistance) {
-      setIndex(value => distance > 0 ? Math.min(value + 1, pages.length - 1) : Math.max(value - 1, 0));
+      setIndex(value => distance > 0
+        ? Math.min(value + 1, pages.length - 1)
+        : Math.max(value - 1, 0));
     }
+
     setTouchStart(null);
     setTouchEnd(null);
   };
 
   const currentIndex = chapters.findIndex(item => item.id === chapter.id);
   const previous = currentIndex > 0 ? chapters[currentIndex - 1] : null;
-  const next = currentIndex >= 0 && currentIndex < chapters.length - 1 ? chapters[currentIndex + 1] : null;
+  const next = currentIndex >= 0 && currentIndex < chapters.length - 1
+    ? chapters[currentIndex + 1]
+    : null;
   const progress = pages.length ? ((index + 1) / pages.length) * 100 : 0;
 
-  if (loading) return <main className="pdlpl-reader"><div className="pdlpl-loading">Opening side story…</div></main>;
-  if (error) return <main className="pdlpl-reader"><div className="pdlpl-error"><h2>{error}</h2><button type="button" onClick={onBack}>Back to chapters</button></div></main>;
-  if (!pages.length) return <main className="pdlpl-reader"><div className="pdlpl-error"><h2>This chapter has no readable pages yet.</h2><button type="button" onClick={onBack}>Back to chapters</button></div></main>;
-
-  return <main className="pdlpl-reader">
-    <header className="pdlpl-reader-header">
-      <div>
-        <button type="button" onClick={onBack} aria-label="Back to chapters">←</button>
-        <div>
-          <span>PAL DO PAL KE LAMHE</span>
-          <h1>{label(chapter)} · {chapter.title}</h1>
+  if (loading) return <main className="reader-page"><div className="loading-state"><span className="loading-spinner" /><p>Opening chapter…</p></div></main>;
+  if (error) {
+    return (
+      <main className="reader-page">
+        <div className="reader-error">
+          <div>⌁</div>
+          <h2>{error}</h2>
+          <button className="primary-button" type="button" onClick={onBack}>Back to chapters</button>
         </div>
-      </div>
-      <strong>{index + 1}/{pages.length}</strong>
-    </header>
-    <div className="pdlpl-progress"><span style={{ width: `${progress}%` }} /></div>
+      </main>
+    );
+  }
+  if (!pages.length) {
+    return (
+      <main className="reader-page">
+        <div className="reader-error">
+          <div>⌁</div>
+          <h2>This chapter has no readable pages yet.</h2>
+          <button className="primary-button" type="button" onClick={onBack}>Back to chapters</button>
+        </div>
+      </main>
+    );
+  }
 
-    <section className="pdlpl-reader-content">
-      <div className="pdlpl-stage" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onDoubleClick={event => {
-        if (event.target?.tagName === 'IMG') {
-          if (!document.fullscreenElement) event.target.requestFullscreen?.();
-          else document.exitFullscreen?.();
-        }
-      }}>
-        {urls[index] ? <img src={urls[index]} alt={`${label(chapter)} page ${index + 1}`} decoding="async" draggable="false" /> : <div className="pdlpl-page-loading">{pageLoading ? 'Loading page…' : 'Page unavailable.'}</div>}
-        <button type="button" className="pdlpl-side left" onClick={() => setIndex(value => Math.max(value - 1, 0))} disabled={index === 0}>‹</button>
-        <button type="button" className="pdlpl-side right" onClick={() => setIndex(value => Math.min(pages.length - 1, value + 1))} disabled={index === pages.length - 1}>›</button>
-      </div>
+  return (
+    <main className="reader-page">
+      <header className="reader-header">
+        <div className="reader-header-inner">
+          <button className="reader-back" type="button" onClick={onBack} aria-label="Back to chapters">←</button>
+          <div className="reader-title">
+            <p>PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
+            <h1>{formatLabel(chapter)} · {chapter.title || 'Untitled chapter'}</h1>
+          </div>
+          <div className="reader-engagement">
+            <span className="reader-page-pill">MEMBERS</span>
+            <span className="reader-page-pill">{index + 1}/{pages.length}</span>
+          </div>
+        </div>
+        <div className="reader-progress"><span style={{ width: `${progress}%` }} /></div>
+      </header>
 
-      <div className="pdlpl-reader-controls">
-        <button type="button" onClick={() => setIndex(value => Math.max(value - 1, 0))} disabled={index === 0}>← Previous</button>
-        <span>Page {index + 1} of {pages.length}</span>
-        <button type="button" onClick={() => setIndex(value => Math.min(pages.length - 1, value + 1))} disabled={index === pages.length - 1}>Next →</button>
-      </div>
+      <section className="reader-content">
+        <div
+          className="reader-stage"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onDoubleClick={event => {
+            if (event.target?.tagName === 'IMG') {
+              if (!document.fullscreenElement) event.target.requestFullscreen?.();
+              else document.exitFullscreen?.();
+            }
+          }}
+        >
+          {urls[index]
+            ? <img src={urls[index]} alt={`${formatLabel(chapter)} page ${index + 1}`} decoding="async" fetchPriority={index === 0 ? 'high' : 'auto'} draggable="false" />
+            : <div className="pdlpl-page-loading">{pageLoading ? 'Loading page…' : 'Page unavailable.'}</div>}
+          <button className="reader-side-button left" type="button" onClick={() => setIndex(value => Math.max(value - 1, 0))} disabled={index === 0} aria-label="Previous page">‹</button>
+          <button className="reader-side-button right" type="button" onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))} disabled={index === pages.length - 1} aria-label="Next page">›</button>
+        </div>
 
-      <div className="pdlpl-chapter-nav">
-        {previous ? <button type="button" onClick={() => onOpenChapter(previous)}>← {label(previous)}</button> : <span />}
-        {next ? <button type="button" onClick={() => onOpenChapter(next)}>{label(next)} →</button> : <span />}
-      </div>
-    </section>
-  </main>;
+        <div className="reader-info-row">
+          <span>Page {index + 1} of {pages.length}</span>
+          <span>Members only</span>
+        </div>
+
+        <div className="reader-controls">
+          <button className="reader-control secondary" type="button" disabled={index === 0} onClick={() => setIndex(value => Math.max(value - 1, 0))}>← <span>Previous</span></button>
+          <div className="reader-counter"><strong>{index + 1} / {pages.length}</strong><span>PAGE</span></div>
+          <button className="reader-control primary" type="button" disabled={index === pages.length - 1} onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))}><span>Next</span> →</button>
+        </div>
+
+        <div className="reader-chapter-nav">
+          {previous ? <a href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(previous.id)}`}>← Chapter {previous.chapterNumber}</a> : <span />}
+          {next ? <a href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(next.id)}`}>Chapter {next.chapterNumber} →</a> : <span />}
+        </div>
+      </section>
+    </main>
+  );
 }
 
 export default function PalDoPalKeLamhe() {
   const [chapters, setChapters] = useState([]);
+  const [pageCounts, setPageCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState(false);
   const [admin, setAdmin] = useState(false);
-  const [selected, setSelected] = useState(null);
   const [lockChapter, setLockChapter] = useState(null);
-  const route = window.location.hash.replace(/^#/, '');
+  const [route, setRoute] = useState(() => window.location.hash.replace(/^#/, ''));
+
+  useEffect(() => {
+    const update = () => setRoute(window.location.hash.replace(/^#/, ''));
+    window.addEventListener('hashchange', update);
+    return () => window.removeEventListener('hashchange', update);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
+
     try {
-      const [rows, access] = await Promise.all([buildPdlplChapters(), getPdlplMemberAccess()]);
-      setChapters(rows.filter(published));
+      const [rows, access] = await Promise.all([
+        buildPdlplChapters(),
+        getPdlplMemberAccess(),
+      ]);
+
+      const publishedChapters = rows.filter(published);
+      setChapters(publishedChapters);
       setMember(access.member);
       setAdmin(access.admin);
+
+      try {
+        setPageCounts(await buildPdlplPageCounts(publishedChapters.map(chapter => chapter.id)));
+      } catch (pageError) {
+        console.warn('PDPL page counts:', pageError);
+        setPageCounts({});
+      }
     } catch (error) {
       console.error('PDPL load:', error);
     } finally {
@@ -245,72 +401,55 @@ export default function PalDoPalKeLamhe() {
     return () => listener.subscription.unsubscribe();
   }, [load]);
 
-  useEffect(() => {
-    if (!route.startsWith(`${PDPL_ROUTE}/read/`)) setSelected(null);
-  }, [route]);
-
   const currentReaderId = useMemo(() => {
-    if (!route.startsWith(`${PDPL_ROUTE}/read/`)) return null;
-    return decodeURIComponent(route.slice(`${PDPL_ROUTE}/read/`.length));
+    const prefix = `${PDLPL_ROUTE}/read/`;
+    if (!route.startsWith(prefix)) return null;
+    return decodeURIComponent(route.slice(prefix.length));
   }, [route]);
 
-  const readerChapter = currentReaderId ? chapters.find(item => item.id === currentReaderId) : null;
+  const readerChapter = currentReaderId
+    ? chapters.find(item => item.id === currentReaderId) || null
+    : null;
 
-  const openChapter = chapter => {
+  const openChapter = useCallback(chapter => {
     if (!member && !admin) {
       setLockChapter(chapter);
       return;
     }
-    window.location.hash = `${PDPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`;
-  };
+    window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`;
+  }, [member, admin]);
 
-  const openReaderChapter = chapter => {
-    if (!chapter) return;
-    if (!member && !admin) {
-      setLockChapter(chapter);
-      return;
-    }
-    window.location.hash = `${PDPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`;
-  };
+  const closeReader = useCallback(() => {
+    window.location.hash = PDLPL_ROUTE;
+  }, []);
 
   if (currentReaderId && readerChapter && (member || admin)) {
-    return <Reader
-      chapter={readerChapter}
-      chapters={chapters}
-      onBack={() => { window.location.hash = PDPL_ROUTE; }}
-      onOpenChapter={openReaderChapter}
-    />;
+    return (
+      <Reader
+        chapter={readerChapter}
+        chapters={chapters}
+        onBack={closeReader}
+        onOpenChapter={openChapter}
+      />
+    );
   }
 
-  if (loading) return <main className="pdlpl-page"><div className="pdlpl-loading">Loading side story…</div></main>;
+  if (loading) {
+    return (
+      <main className="home-page">
+        <div className="loading-state"><span className="loading-spinner" /><p>Loading Pal Do Pal Ke Lamhe…</p></div>
+      </main>
+    );
+  }
 
-  return <main className="pdlpl-page">
-    <header className="pdlpl-header">
-      <div>
-        <button type="button" className="pdlpl-back" onClick={() => { window.location.hash = 'home'; }} aria-label="Back to home">←</button>
-        <div>
-          <span>SIDE STORY · SCHOOL LIFE</span>
-          <h1>Pal Do Pal Ke Lamhe</h1>
-          <p>Every chapter is available to members.</p>
-        </div>
-      </div>
-      {admin && <a className="pdlpl-admin-link" href="#pal-do-pal-admin">Side Story Admin</a>}
-    </header>
-
-    <section className="pdlpl-section">
-      <div className="pdlpl-section-head">
-        <div><span>MEMBER STORY</span><h2>Chapters</h2></div>
-        <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
-      </div>
-
-      {!chapters.length
-        ? <div className="pdlpl-empty"><h2>Nothing published yet.</h2><p>This side story is still being prepared.</p></div>
-        : <div className="pdlpl-chapters">{chapters.map(chapter =>
-          <ChapterRow key={chapter.id} chapter={chapter} member={member || admin} onOpen={openChapter} />
-        )}</div>}
-    </section>
-
-    <Footer />
-    {lockChapter && <LockedModal chapter={lockChapter} onClose={() => setLockChapter(null)} />}
-  </main>;
+  return (
+    <ChapterList
+      chapters={chapters}
+      member={member}
+      admin={admin}
+      pageCounts={pageCounts}
+      onOpen={openChapter}
+      onBack={() => { window.location.hash = 'home'; }}
+    />
+  );
 }
