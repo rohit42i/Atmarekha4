@@ -178,6 +178,11 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
     };
   }, [chapter.id, onBack]);
 
+  const prefetchPage = useCallback(async pageIndex => {
+    if (pageIndex < 0 || pageIndex >= pages.length || urlsRef.current.has(pageIndex) || abortersRef.current.has(pageIndex)) return;
+    try { await loadPage(pageIndex); } catch (_) {}
+  }, [pages.length, loadPage]);
+
   const loadPage = useCallback(async pageIndex => {
     const page = pages[pageIndex];
     if (!page || urlsRef.current.has(pageIndex)) return;
@@ -205,6 +210,8 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
 
     setPageLoading(!urlsRef.current.has(index));
     needed.forEach(value => loadPage(value));
+    const farther = index + 2 < pages.length ? index + 2 : index - 2;
+    if (farther >= 0 && farther < pages.length) window.setTimeout(() => prefetchPage(farther), 0);
 
     for (const [cachedIndex, url] of urlsRef.current.entries()) {
       if (!needed.has(cachedIndex)) {
@@ -219,7 +226,7 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
     }
 
     return () => setPageLoading(false);
-  }, [index, pages, loadPage]);
+  }, [index, pages, loadPage, prefetchPage]);
 
   useEffect(() => {
     if (pages.length) {
