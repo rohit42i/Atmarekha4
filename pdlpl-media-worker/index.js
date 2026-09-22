@@ -188,6 +188,11 @@ export default {
           return json(request, env, { error: 'Active membership required.' }, 403);
         }
 
+        const cache = caches.default;
+        const cacheKey = new Request(new URL(request.url).toString(), { method: 'GET' });
+        const cached = await cache.match(cacheKey);
+        if (cached) return withCors(request, env, cached);
+
         const object = await env.PDLPL_BUCKET.get(key);
         if (!object) {
           return json(request, env, { error: 'Media not found.' }, 404);
@@ -196,16 +201,18 @@ export default {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('ETag', object.httpEtag);
-        headers.set('Cache-Control', 'private, max-age=3600');
+        headers.set('Cache-Control', 'private, max-age=86400, stale-while-revalidate=604800');
         headers.set('Content-Disposition', 'inline');
         headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
         headers.set('X-Content-Type-Options', 'nosniff');
 
-        return withCors(
+        const response = withCors(
           request,
           env,
           new Response(object.body, { headers }),
         );
+        await cache.put(cacheKey, response.clone());
+        return response;
       }
 
       if (!admin) {
