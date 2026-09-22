@@ -178,11 +178,6 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
     };
   }, [chapter.id, onBack]);
 
-  const prefetchPage = useCallback(async pageIndex => {
-    if (pageIndex < 0 || pageIndex >= pages.length || urlsRef.current.has(pageIndex) || abortersRef.current.has(pageIndex)) return;
-    try { await loadPage(pageIndex); } catch (_) {}
-  }, [pages.length, loadPage]);
-
   const loadPage = useCallback(async pageIndex => {
     const page = pages[pageIndex];
     if (!page || urlsRef.current.has(pageIndex)) return;
@@ -200,6 +195,11 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
       abortersRef.current.delete(pageIndex);
     }
   }, [pages]);
+
+  const prefetchPage = useCallback(async pageIndex => {
+    if (pageIndex < 0 || pageIndex >= pages.length || urlsRef.current.has(pageIndex) || abortersRef.current.has(pageIndex)) return;
+    try { await loadPage(pageIndex); } catch (_) {}
+  }, [pages.length, loadPage]);
 
   useEffect(() => {
     if (!pages.length) return undefined;
