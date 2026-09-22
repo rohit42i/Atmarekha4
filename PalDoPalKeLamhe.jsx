@@ -411,6 +411,12 @@ export default function PalDoPalKeLamhe() {
     ? chapters.find(item => item.id === currentReaderId) || null
     : null;
 
+  useEffect(() => {
+    if (!loading && currentReaderId && readerChapter && !member && !admin) {
+      setLockChapter(readerChapter);
+    }
+  }, [loading, currentReaderId, readerChapter, member, admin]);
+
   const openChapter = useCallback(chapter => {
     if (!member && !admin) {
       setLockChapter(chapter);
