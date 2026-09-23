@@ -133,11 +133,61 @@ export default function AdminChapterPages({ chapters }) {
 
 
   const movePage = async (index, direction) => {
-    const otherIndex = index + direction; if (otherIndex < 0 || otherIndex >= pages.length || busyId) return;
-    const a = pages[index], b = pages[otherIndex]; setBusyId(`move-${a.id}`); setNotice('');
-    try { const user = await requireAdmin(); const first = await supabase.from(PAGES).update({ page_number: 0 }).eq('id', a.id); if (first.error) throw first.error; const second = await supabase.from(PAGES).update({ page_number: a.page_number }).eq('id', b.id); if (second.error) throw second.error; const third = await supabase.from(PAGES).update({ page_number: b.page_number }).eq('id', a.id); if (third.error) throw third.error; await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'reorder_chapter_page', entity_type: 'chapter_page', entity_id: a.id, details: { chapter_id: a.chapter_id, from: a.page_number, to: b.page_number } }); await loadPages(); }
-    catch (error) { setNotice(error.message || 'Could not reorder pages.'); await loadPages(); }
-    finally { setBusyId(null); }
+    const otherIndex = index + direction;
+    if (otherIndex < 0 || otherIndex >= pages.length || busyId) return;
+    const a = pages[index];
+    const b = pages[otherIndex];
+    const from = Number(a.page_number);
+    const to = Number(b.page_number);
+    if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to < 1) {
+      setNotice('Could not reorder pages because their page numbers are invalid.');
+      return;
+    }
+
+    setBusyId(`move-${a.id}`);
+    setNotice('');
+    let adminUser = null;
+
+    try {
+      adminUser = await requireAdmin();
+      const highest = Math.max(...pages.map(item => Number(item.page_number) || 0), from, to);
+      const temporary = highest + 1;
+
+      const first = await supabase.from(PAGES).update({ page_number: temporary }).eq('id', a.id);
+      if (first.error) throw first.error;
+
+      const second = await supabase.from(PAGES).update({ page_number: from }).eq('id', b.id);
+      if (second.error) {
+        await supabase.from(PAGES).update({ page_number: from }).eq('id', a.id);
+        throw second.error;
+      }
+
+      const third = await supabase.from(PAGES).update({ page_number: to }).eq('id', a.id);
+      if (third.error) {
+        await supabase.from(PAGES).update({ page_number: from }).eq('id', a.id);
+        await supabase.from(PAGES).update({ page_number: to }).eq('id', b.id);
+        throw third.error;
+      }
+
+      await logAdminAction(adminUser, 'reorder_chapter_page', 'chapter_page', a.id, {
+        chapter_id: a.chapter_id,
+        from,
+        to,
+      });
+      await loadPages();
+      setNotice(`Page ${from} moved ${direction < 0 ? 'up' : 'down'}.`);
+    } catch (error) {
+      await logAdminAction(adminUser, 'reorder_chapter_page_failed', 'chapter_page', a.id, {
+        chapter_id: a.chapter_id,
+        from,
+        to,
+        error: error.message,
+      });
+      setNotice(error.message || 'Could not reorder pages.');
+      await loadPages();
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const deletePage = async page => {
