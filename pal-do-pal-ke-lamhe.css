@@ -108,7 +108,7 @@
   color:var(--ar-admin-text,#111722) !important;
   border:1px solid var(--ar-admin-border,#dfe3e8) !important;
   border-radius:10px !important;
-  font:500 12px/1.4 Inter,ui-sans-serif,system-ui,sans-serif !important;
+  font:500 12px/1.4 'Poppins',sans-serif !important;
 }
 .pdlpl-form textarea{min-height:94px !important}
 .pdlpl-primary{
