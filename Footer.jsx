@@ -36,7 +36,7 @@ export default function Footer() {
       <div className="site-footer-inner">
         <div className="footer-brand-block">
           <a className="footer-brand" href="#home">Atma Rekha</a>
-          <p>An original Indian manga story.</p>
+          <p>An original Indian mythical fantasy manga.</p>
         </div>
 
         <nav className="footer-nav" aria-label="Footer navigation">
