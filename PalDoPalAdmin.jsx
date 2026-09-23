@@ -31,6 +31,22 @@ function pagePath(chapterId, revision, file, index) {
 function coverPath(chapterId, file) {
   return `covers/chapters/${chapterId}/cover-${Date.now()}.${safeExt(file)}`;
 }
+async function logAdminAction(user, action, entityType, entityId = null, details = {}) {
+  if (!user?.id) return;
+  try {
+    const { error } = await supabase.from('admin_activity_log').insert({
+      admin_user_id: user.id,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      details,
+    });
+    if (error) console.warn('Admin activity log failed:', error);
+  } catch (error) {
+    console.warn('Admin activity log failed:', error);
+  }
+}
+
 
 function PagePreview({ path }) {
   const holder = useRef(null);
@@ -416,31 +432,73 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const replacePage = async (page, file) => {
     if (!file || busy) return;
     if (!file.type.startsWith('image/')) { setNotice('Please select an image.'); return; }
-    if (file.size > MAX_PAGE_SIZE) { setNotice(`${file.name} is larger than 20 MB.`); return; }
+    if (file.size > MAX_PAGE_SIZE) { setNotice(file.name + ' is larger than 20 MB.'); return; }
 
     setBusy(true);
     setNotice('');
-    const path = `chapters/${page.chapter_id}/replacements/${page.id}-${Date.now()}.${safeExt(file)}`;
+    const path = 'chapters/' + page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
+    let adminUser = null;
+    let databaseCommitted = false;
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
+      adminUser = user;
+
       await uploadPdlplFile(file, path);
       const { error } = await supabase
         .from(PDLPL_PAGES)
         .update({ image_path: path })
         .eq('id', page.id);
       if (error) throw error;
+      databaseCommitted = true;
 
-      try { await removePdlplFiles([page.image_path]); } catch (cleanupError) { console.warn('Old PDPL page cleanup:', cleanupError); }
+      let cleanupPending = false;
+      if (page.image_path) {
+        try {
+          await removePdlplFiles([page.image_path]);
+        } catch (cleanupError) {
+          cleanupPending = true;
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_page', page.id, {
+            provider: 'pdpl',
+            paths: [page.image_path],
+            error: cleanupError.message,
+          });
+        }
+      }
 
       setSelectedPages(current => current.map(item => item.id === page.id ? { ...item, image_path: path } : item));
-      setNotice(`Page ${page.page_number} replaced.`);
+      await logAdminAction(adminUser, 'replace_pdlpl_page', 'pdlpl_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        file_name: file.name,
+        cleanup_pending: cleanupPending,
+      });
+      setNotice(cleanupPending
+        ? 'Page ' + page.page_number + ' replaced. Old R2 cleanup is pending in Operations.'
+        : 'Page ' + page.page_number + ' replaced successfully.');
     } catch (error) {
-      try { await removePdlplFiles([path]); } catch (_) {}
-      setNotice(error?.message || 'Page replacement failed. The original page was kept.');
+      if (path && !databaseCommitted) {
+        try { await removePdlplFiles([path]); } catch (cleanupError) {
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_page', page.id, {
+            provider: 'pdpl',
+            paths: [path],
+            error: cleanupError.message,
+          });
+        }
+      }
+      await logAdminAction(adminUser, 'replace_pdlpl_page_failed', 'pdlpl_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        file_name: file.name,
+        error: error.message,
+      });
+      setNotice(error?.message || 'Page replacement failed. The original page remains active.');
     } finally {
       setBusy(false);
     }
   };
+
 
   const reorder = async (index, direction) => {
     const otherIndex = index + direction;
@@ -468,15 +526,31 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
   const deletePage = async page => {
-    if (busy || !window.confirm(`Delete page ${page.page_number}?`)) return;
+    if (busy || !window.confirm('Delete page ' + page.page_number + '?')) return;
     setBusy(true);
     setNotice('');
+    let adminUser = null;
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
+      adminUser = user;
+
       const { error } = await supabase.from(PDLPL_PAGES).delete().eq('id', page.id);
       if (error) throw error;
 
-      try { await removePdlplFiles([page.image_path]); } catch (cleanupError) { console.warn('PDPL page cleanup:', cleanupError); }
+      let cleanupPending = false;
+      if (page.image_path) {
+        try { await removePdlplFiles([page.image_path]); }
+        catch (cleanupError) {
+          cleanupPending = true;
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_page', page.id, {
+            provider: 'pdpl',
+            paths: [page.image_path],
+            error: cleanupError.message,
+          });
+        }
+      }
 
       const remaining = selectedPages.filter(item => item.id !== page.id);
       for (let i = 0; i < remaining.length; i += 1) {
@@ -486,16 +560,26 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
+      await logAdminAction(adminUser, 'delete_pdlpl_page', 'pdlpl_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        cleanup_pending: cleanupPending,
+      });
       await loadPages(selectedId);
       setPageCounts(current => ({ ...current, [page.chapter_id]: Math.max(0, (current[page.chapter_id] || 1) - 1) }));
-      setNotice(`Page ${page.page_number} deleted.`);
+      setNotice(cleanupPending
+        ? 'Page ' + page.page_number + ' deleted. R2 cleanup is pending in Operations.'
+        : 'Page ' + page.page_number + ' deleted.');
     } catch (error) {
+      await logAdminAction(adminUser, 'delete_pdlpl_page_failed', 'pdlpl_page', page.id, { error: error.message });
       setNotice(error?.message || 'Delete page failed.');
       await loadPages(selectedId);
     } finally {
       setBusy(false);
     }
   };
+
+
 
   const Root = embedded ? 'section' : 'main';
   const rootClass = embedded ? 'pdlpl-admin-embedded' : 'pdlpl-admin';
@@ -577,7 +661,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     {selectedChapter && <section className="pdlpl-admin-card pdlpl-page-manager">
       <div className="pdlpl-admin-card-head">
-        <div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><label className="pdlpl-inline-file">Add pages<input type="file" accept="image/*" multiple disabled={busy} onChange={e => { const files = e.target.files; e.target.value = ''; appendPages(files); }} /></label><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
+        <div><span>PAGE MANAGER · INDIVIDUAL PAGES</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Manage individual pages: preview, replace, add, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><label className="pdlpl-inline-file">Add pages<input type="file" accept="image/*" multiple disabled={busy} onChange={e => { const files = e.target.files; e.target.value = ''; appendPages(files); }} /></label><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
       </div>
 
       {!selectedPages.length
