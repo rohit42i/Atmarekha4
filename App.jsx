@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyebrow } from './chapters';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
@@ -105,6 +105,7 @@ function AdminRoute({ onExit }) {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [checking, setChecking] = useState(true);
+  const sessionUserIdRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -117,12 +118,14 @@ function AdminRoute({ onExit }) {
         if (!active || id !== checkId) return;
 
         if (!currentSession?.user) {
+          sessionUserIdRef.current = null;
           setSession(null);
           setRole(null);
           setChecking(false);
           return;
         }
 
+        sessionUserIdRef.current = currentSession.user.id;
         setSession(currentSession);
         setChecking(true);
 
@@ -149,11 +152,11 @@ function AdminRoute({ onExit }) {
       // Token refreshes can happen while the admin is viewing another page.
       // Keep the existing admin session/role stable and only re-check when the
       // authenticated user actually changes.
-      setSession(previous => {
-        if (previous?.user?.id === nextSession.user.id) return nextSession;
-        check(nextSession);
-        return nextSession;
-      });
+      if (sessionUserIdRef.current === nextSession.user.id) {
+        setSession(nextSession);
+        return;
+      }
+      check(nextSession);
     });
 
     return () => {
