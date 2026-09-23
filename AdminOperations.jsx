@@ -5,7 +5,8 @@ import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
 
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
-const todayStart = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString(); };
+const SITE_TIME_ZONE = 'Asia/Kolkata';
+const todayStart = () => { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: SITE_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); return new Date(`${parts}T00:00:00+05:30`).toISOString(); };
 
 async function requireAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -71,9 +72,17 @@ export default function AdminOperations() {
     setBusy(true); setNotice('');
     try {
       const user = await requireAdmin();
-      const { error } = await supabase.from('chapters').update(patch).eq('id', chapter.id);
+      const safePatch = { ...patch };
+      if (
+        Object.prototype.hasOwnProperty.call(patch, 'status') &&
+        String(patch.status).trim().toLowerCase() === 'published' &&
+        !chapter.release_date
+      ) {
+        safePatch.release_date = new Date().toISOString();
+      }
+      const { error } = await supabase.from('chapters').update(safePatch).eq('id', chapter.id);
       if (error) throw error;
-      await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action, entity_type: 'chapter', entity_id: chapter.id, details: { chapter_number: chapter.chapter_number, title: chapter.title, ...patch } });
+      await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action, entity_type: 'chapter', entity_id: chapter.id, details: { chapter_number: chapter.chapter_number, title: chapter.title, ...safePatch } });
       setNotice('Chapter updated successfully.'); await load();
     } catch (error) {
       setNotice(error.message || 'Chapter update failed.');
