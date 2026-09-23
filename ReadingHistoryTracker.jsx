@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from './supabase';
+import { getRenderedChapterId, legacyChapterIdFromHash } from './routes';
 
-function getChapterIdFromHash() {
-  const route = window.location.hash.replace(/^#/, '');
-  return route.startsWith('read-chapter/') ? decodeURIComponent(route.slice('read-chapter/'.length)) : null;
+function getChapterIdFromLocation() {
+  return getRenderedChapterId() || legacyChapterIdFromHash(window.location.hash);
 }
 
 export default function ReadingHistoryTracker() {
@@ -57,30 +57,34 @@ export default function ReadingHistoryTracker() {
       if (detail.chapterId) schedule(detail.chapterId, detail.pageNumber || 1);
     };
 
-    const onHash = () => {
+    const onLocation = () => {
       lastSavedRef.current = '';
-      const chapterId = getChapterIdFromHash();
-      if (chapterId) schedule(chapterId, 1);
+      window.requestAnimationFrame(() => {
+        const chapterId = getChapterIdFromLocation();
+        if (chapterId) schedule(chapterId, 1);
+      });
     };
 
     window.addEventListener('atma-reading-progress', onProgress);
-    window.addEventListener('hashchange', onHash);
+    window.addEventListener('hashchange', onLocation);
+    window.addEventListener('popstate', onLocation);
 
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       userRef.current = data?.session?.user || null;
-      onHash();
+      onLocation();
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       userRef.current = session?.user || null;
       lastSavedRef.current = '';
-      onHash();
+      onLocation();
     });
 
     return () => {
       active = false;
       window.removeEventListener('atma-reading-progress', onProgress);
-      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('hashchange', onLocation);
+      window.removeEventListener('popstate', onLocation);
       window.clearTimeout(timerRef.current);
       listener.subscription.unsubscribe();
     };
