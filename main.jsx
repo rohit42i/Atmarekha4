@@ -12,7 +12,6 @@ import EnhancedComments from './EnhancedComments.jsx';
 import PublicProfile from './PublicProfile.jsx';
 import FeatureUnlocks from './FeatureUnlocks.jsx';
 import AdminGroupChatTools from './AdminGroupChatTools.jsx';
-import GroupChat from './GroupChat.jsx';
 import AdminModerationTools from './AdminModerationTools.jsx';
 import AdminManagementTools from './AdminManagementTools.jsx';
 import AdminCommandCenter from './AdminCommandCenter.jsx';
