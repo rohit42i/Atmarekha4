@@ -87,16 +87,40 @@ function saveLikedCommentIds(ids) {
 }
 
 export async function fetchCommentLikes(commentIds) {
-  const ids = [...new Set((commentIds || []).filter(Boolean))];
+  const ids = [...new Set((commentIds || []).filter(Boolean))].slice(0, 150);
   if (!ids.length) return { counts: {}, liked: {} };
-  const { data, error } = await supabase
+
+  const { data: countsData, error: countsError } = await supabase
     .from('comment_like_counts')
     .select('comment_id,like_count')
-    .in('comment_id', ids.slice(0, 150));
-  if (error) throw error;
-  const likedIds = getLikedCommentIds();
-  const counts = Object.fromEntries((data || []).map(row => [row.comment_id, Number(row.like_count) || 0]));
-  const liked = Object.fromEntries(ids.map(id => [id, likedIds.has(id)]));
+    .in('comment_id', ids);
+  if (countsError) throw countsError;
+
+  let ownData = [];
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData?.session?.user?.id;
+  if (userId) {
+    const { data, error } = await supabase
+      .from('comment_likes')
+      .select('comment_id')
+      .eq('user_id', userId)
+      .in('comment_id', ids);
+    if (error) throw error;
+    ownData = data || [];
+  }
+
+  const counts = Object.fromEntries((countsData || []).map(row => [
+    row.comment_id,
+    Number(row.like_count) || 0,
+  ]));
+  const liked = Object.fromEntries(ownData.map(row => [row.comment_id, true]));
+
+  // Keep the local set only for legacy compatibility; authenticated state is
+  // now read securely from the database and is authoritative.
+  const legacyLiked = getLikedCommentIds();
+  for (const id of legacyLiked) {
+    if (ids.includes(id) && !liked[id]) liked[id] = false;
+  }
   return { counts, liked };
 }
 
