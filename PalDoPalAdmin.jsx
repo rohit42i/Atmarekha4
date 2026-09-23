@@ -194,6 +194,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (error) throw error;
       await loadPages(selectedChapter.id);
       await load();
+      const { data: { user } } = await supabase.auth.getUser();
+      await logAdminAction(user, 'append_pdlpl_pages', 'pdlpl_chapter', selectedChapter.id, { count: files.length });
       setNotice(`${files.length} page${files.length === 1 ? '' : 's'} added to ${label(selectedChapter)}.`);
     } catch (error) {
       for (const path of uploaded) { try { await removePdlplFiles([path]); } catch (_) {} }
@@ -205,16 +207,30 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
   const setChapterStatus = async (chapter, status) => {
     if (!chapter || busy || savingStatus) return;
-    setSavingStatus(chapter.id); setNotice('');
+    setSavingStatus(chapter.id);
+    setNotice('');
+    let adminUser = null;
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
+      adminUser = user;
       const { error } = await supabase.from(PDLPL_CHAPTERS).update({ status }).eq('id', chapter.id);
       if (error) throw error;
+      await logAdminAction(user, 'change_pdlpl_status', 'pdlpl_chapter', chapter.id, {
+        from: chapter.status,
+        to: status,
+      });
       await load();
-      setNotice(`${label(chapter)} is now ${status.toLowerCase()}.`);
+      setNotice(label(chapter) + ' is now ' + status.toLowerCase() + '.');
     } catch (error) {
+      await logAdminAction(adminUser, 'change_pdlpl_status_failed', 'pdlpl_chapter', chapter.id, { status, error: error.message });
       setNotice(error?.message || 'Status update failed.');
-    } finally { setSavingStatus(null); }
+    } finally {
+      setSavingStatus(null);
+    }
   };
+
+
 
   const choosePages = event => {
     const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
@@ -545,22 +561,36 @@ export default function PalDoPalAdmin({ embedded = false }) {
     const b = selectedPages[otherIndex];
     setBusy(true);
     setNotice('');
+    let adminUser = null;
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
+      adminUser = user;
+
       let result = await supabase.from(PDLPL_PAGES).update({ page_number: 0 }).eq('id', a.id);
       if (result.error) throw result.error;
       result = await supabase.from(PDLPL_PAGES).update({ page_number: a.page_number }).eq('id', b.id);
       if (result.error) throw result.error;
       result = await supabase.from(PDLPL_PAGES).update({ page_number: b.page_number }).eq('id', a.id);
       if (result.error) throw result.error;
+
+      await logAdminAction(user, 'reorder_pdlpl_page', 'pdlpl_page', a.id, {
+        chapter_id: a.chapter_id,
+        from: a.page_number,
+        to: b.page_number,
+      });
       await loadPages(selectedId);
     } catch (error) {
+      await logAdminAction(adminUser, 'reorder_pdlpl_page_failed', 'pdlpl_page', a.id, { error: error.message });
       setNotice(error?.message || 'Reorder failed.');
       await loadPages(selectedId);
     } finally {
       setBusy(false);
     }
   };
+
+
 
   const deletePage = async page => {
     if (busy || !window.confirm('Delete page ' + page.page_number + '?')) return;
