@@ -47,16 +47,17 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
   useEffect(() => {
     let active = true;
     const loadLast24 = async () => {
-      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       try {
-        const [viewsResult, ratingsResult, commentsResult] = await Promise.all([
-          supabase.from('chapter_views').select('id', { count: 'exact', head: true }).gte('created_at', cutoff),
-          supabase.from('chapter_ratings').select('id', { count: 'exact', head: true }).gte('created_at', cutoff),
-          supabase.from('comments').select('id', { count: 'exact', head: true }).gte('created_at', cutoff),
-        ]);
-        const firstError = viewsResult.error || ratingsResult.error || commentsResult.error;
-        if (firstError) throw firstError;
-        if (active) setLast24({ views: Number(viewsResult.count || 0), ratings: Number(ratingsResult.count || 0), comments: Number(commentsResult.count || 0), loading: false });
+        const { data, error } = await supabase.rpc('get_admin_analytics', { p_days: 1 });
+        if (error) throw error;
+        if (active) {
+          setLast24({
+            views: Number(data?.current_views || 0),
+            ratings: Number(data?.current_ratings || 0),
+            comments: Number(data?.current_comments || 0),
+            loading: false,
+          });
+        }
       } catch (error) {
         console.warn('Admin 24-hour activity lookup failed:', error);
         if (active) setLast24(current => ({ ...current, loading: false }));
