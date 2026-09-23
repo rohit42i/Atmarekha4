@@ -195,7 +195,7 @@ export default function AdminProTools() {
       ['Announcements', data.announcements],
       [],
       ['Chapter', 'Status', 'Pages', 'Release date'],
-      ...data.chapters.map(c => [chapterLabel(c), c.status || '', pageCounts.get(c.id) || 0, c.release_date || ''])
+      ...data.chapters.map(c => [chapterLabel(c), c.status || '', pageCounts.get(c.id) || 0, c.release_date || c.created_at || ''])
     ];
     downloadCsv(rows, `atma-rekha-admin-${new Date().toISOString().slice(0, 10)}.csv`);
   };
