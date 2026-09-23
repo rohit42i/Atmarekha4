@@ -31,7 +31,7 @@ export default function AdminCommandCenter(){
       supabase.from('community_posts').select('title,created_at,published_at').order('published_at',{ascending:false}).limit(8),
       supabase.from('comments').select('author_name,content,created_at').order('created_at',{ascending:false}).limit(8),
       supabase.from('moderation_reports').select('reason,created_at,status').order('created_at',{ascending:false}).limit(8)]);
-    [...arguments];[c,p,co,r].forEach(x=>{if(x.error)throw x.error});
+    [c,p,co,r].forEach(x=>{if(x.error)throw x.error});
     const events=[...(c.data||[]).map(x=>({type:'Chapter',title:`Chapter ${x.chapter_number} · ${x.title||'Untitled'}`,time:x.created_at})),...(p.data||[]).map(x=>({type:'Community',title:x.title||'Community post',time:x.published_at||x.created_at})),...(co.data||[]).map(x=>({type:'Comment',title:`${x.author_name||'Reader'} · ${String(x.content||'').slice(0,80)}`,time:x.created_at})),...(r.data||[]).map(x=>({type:'Report',title:x.reason||'Moderation report',time:x.created_at,status:x.status}))].sort((a,b)=>new Date(b.time)-new Date(a.time));
     setMetrics({readers,newReaders,chapters,comments,community,reports});setActivity(events)}catch(e){setNotice(e?.message||'Unable to load dashboard data.')}finally{setLoading(false)}};
   useEffect(()=>{if(open)load()},[open,isAdmin,range]);
