@@ -45,7 +45,7 @@ function upsertJsonLd(data) {
   let script = document.getElementById('atma-rekha-site-schema');
   if (!script) {
     script = document.createElement('script');
-    script.id = 'atma-rekha-seo-schema';
+    script.id = 'atma-rekha-site-schema';
     script.type = 'application/ld+json';
     document.head.appendChild(script);
   }
