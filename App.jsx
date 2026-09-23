@@ -101,7 +101,71 @@ function Reader({ chapterId, onBack, chapters }) {
 
 function Home({ chapters }) { const [adminRole, setAdminRole] = useState(null); const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'; const featured = [...chapters].reverse().find(chapter => chapter.cover) || chapters[chapters.length - 1]; useEffect(() => { let active = true; supabase.auth.getUser().then(({ data: { user } }) => getAdminRole(user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); })); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { getAdminRole(session?.user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); }); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []); return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><div className="flex items-center gap-2">{(adminRole === 'owner' || adminRole === 'admin') && <div className="flex items-center gap-3"><a className="admin-link" href="#admin" aria-label="Admin Panel"><span>Admin Panel</span></a></div>}</div></header><section className="hero-card"><div className="hero-art">{featured?.cover ? <img src={featured.cover} alt="Atma Rekha" loading="eager"/> : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><p className="hero-eyebrow">{STORY.eyebrow}</p><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="/chapters">View Chapters →</a></div></section><section className="hero-card pdlpl-home-card" aria-labelledby="pdlpl-home-title"><div className="hero-art"><span className="hero-fallback pdlpl-home-fallback" aria-hidden="true">PDPL</span></div><div className="hero-copy"><p className="hero-eyebrow">SIDE STORY · SCHOOL LIFE</p><h1 id="pdlpl-home-title">Pal Do Pal Ke Lamhe</h1><p className="hero-description">Thinking About It. Not Today, but Some Day</p><a className="hero-button" href="/pal-do-pal-ke-lamhe">View Chapters →</a></div></section><HomeAnnouncement/><Footer/></main>; }
 function AccessDenied({ onExit }) { return <main className="site-shell"><div className="reader-error"><h2>Access Denied</h2><p>You don't have permission to access the Atma Rekha Admin Panel.</p><button className="primary-button" onClick={onExit}>Back to Home</button></div></main>; }
-function AdminRoute({ onExit }) { const [session, setSession] = useState(null); const [role, setRole] = useState(null); const [checking, setChecking] = useState(true); useEffect(() => { let active = true; const check = async nextSession => { const current = nextSession || (await supabase.auth.getSession()).data.session; if (!current?.user) { if (active) { setSession(null); setRole(null); setChecking(false); } return; } try { const nextRole = await getAdminRole(current.user.id); if (active) { setSession(current); setRole(nextRole); setChecking(false); } } catch { if (active) { setSession(current); setRole(null); setChecking(false); } } }; check(); const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { setChecking(true); check(nextSession); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []); if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>; if (!session || !(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>; return <AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/>; }
+function AdminRoute({ onExit }) {
+  const [session, setSession] = useState(null);
+  const [role, setRole] = useState(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    let checkId = 0;
+
+    const check = async nextSession => {
+      const id = ++checkId;
+      try {
+        const currentSession = nextSession || (await supabase.auth.getSession()).data.session;
+        if (!active || id !== checkId) return;
+
+        if (!currentSession?.user) {
+          setSession(null);
+          setRole(null);
+          setChecking(false);
+          return;
+        }
+
+        setSession(currentSession);
+        setChecking(true);
+
+        const nextRole = await getAdminRole(currentSession.user.id);
+        if (!active || id !== checkId) return;
+
+        setRole(nextRole);
+        setChecking(false);
+      } catch {
+        if (!active || id !== checkId) return;
+        setRole(null);
+        setChecking(false);
+      }
+    };
+
+    check();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'SIGNED_OUT' || !nextSession?.user) {
+        check(null);
+        return;
+      }
+
+      // Token refreshes can happen while the admin is viewing another page.
+      // Keep the existing admin session/role stable and only re-check when the
+      // authenticated user actually changes.
+      setSession(previous => {
+        if (previous?.user?.id === nextSession.user.id) return nextSession;
+        check(nextSession);
+        return nextSession;
+      });
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>;
+  if (!session || !(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
+  return <AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/>;
+}
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
 export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
   useEffect(() => {
