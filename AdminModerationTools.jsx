@@ -54,6 +54,49 @@ export default function AdminModerationTools() {
   };
 
   useEffect(() => { if (open) load(); }, [open, isAdmin]);
+  const updateReportStatus = async (report, status) => {
+    if (busy) return;
+    setBusy(`report:${report.id}`);
+    setNotice('');
+    let adminUser = null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Admin session required.');
+      const role = await getAdminRole(user.id);
+      if (role !== 'owner' && role !== 'admin') throw new Error('Admin access required.');
+      adminUser = user;
+
+      const patch = {
+        status,
+        reviewed_at: status === 'open' ? null : new Date().toISOString(),
+        reviewed_by: status === 'open' ? null : user.id,
+      };
+      const { error } = await supabase.from('moderation_reports').update(patch).eq('id', report.id);
+      if (error) throw error;
+      await supabase.from('admin_activity_log').insert({
+        admin_user_id: user.id,
+        action: 'moderation_report_' + status,
+        entity_type: 'moderation_report',
+        entity_id: report.id,
+        details: patch,
+      });
+      setReports(prev => prev.map(row => row.id === report.id ? { ...row, ...patch } : row));
+    } catch (error) {
+      try {
+        if (adminUser) await supabase.from('admin_activity_log').insert({
+          admin_user_id: adminUser.id,
+          action: 'moderation_report_status_failed',
+          entity_type: 'moderation_report',
+          entity_id: report.id,
+          details: { status, error: error.message },
+        });
+      } catch (_) {}
+      setNotice(error?.message || 'Unable to update the report.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -75,17 +118,6 @@ export default function AdminModerationTools() {
       setUsers(prev => prev.map(row => row.user_id === userId ? { ...row, ...patch } : row));
       setNotice(enabled ? `${type === 'group' ? 'Group chat' : 'Comments'} banned for 24 hours.` : 'Ban removed.');
     } catch (error) { setNotice(error?.message || 'Unable to change the ban.'); }
-    finally { setBusy(null); }
-  };
-
-  const reviewReport = async report => {
-    if (busy) return;
-    setBusy(`report:${report.id}`); setNotice('');
-    try {
-      const { error } = await supabase.from('moderation_reports').update({ status: 'reviewed' }).eq('id', report.id);
-      if (error) throw error;
-      setReports(prev => prev.map(row => row.id === report.id ? { ...row, status: 'reviewed' } : row));
-    } catch (error) { setNotice(error?.message || 'Unable to update the report.'); }
     finally { setBusy(null); }
   };
 
