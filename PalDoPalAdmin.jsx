@@ -106,6 +106,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
   const [query, setQuery] = useState('');
   const [savingStatus, setSavingStatus] = useState(null);
+  const [retryFiles, setRetryFiles] = useState({});
 
   const load = async () => {
     setLoading(true);
@@ -185,6 +186,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     try {
       const revision = Date.now();
+      let databaseCommitted = false;
 
       for (let i = 0; i < files.length; i += 1) {
         const path = pagePath(selectedChapter.id, revision, files[i], i);
@@ -210,8 +212,10 @@ export default function PalDoPalAdmin({ embedded = false }) {
       });
       setNotice(`${files.length} page${files.length === 1 ? '' : 's'} added to ${label(selectedChapter)}.`);
     } catch (error) {
-      for (const uploadedPath of uploaded) {
-        try { await removePdlplFiles([uploadedPath]); } catch (_) {}
+      if (!databaseCommitted) {
+        for (const uploadedPath of uploaded) {
+          try { await removePdlplFiles([uploadedPath]); } catch (_) {}
+        }
       }
       setNotice(error?.message || 'Adding pages failed.');
     } finally {
@@ -562,7 +566,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
         file_name: file.name,
         error: error.message,
       });
-      setNotice(error?.message || 'Page replacement failed. The original page remains active.');
+      setRetryFiles(current => ({ ...current, [page.id]: file }));
+      setNotice(error?.message || 'Page replacement failed. The original page remains active. You can retry the same file.');
     } finally {
       setBusy(false);
     }
@@ -796,7 +801,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
             <div className="pdlpl-page-head"><strong>Page {page.page_number}</strong><span>{index + 1}/{selectedPages.length}</span></div>
             <p className="pdlpl-page-path">{page.image_path}</p>
             <div className="pdlpl-page-actions">
-              <label>Replace<input type="file" accept="image/*" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; replacePage(page, file); }} /></label>
+              <label>Replace<input type="file" accept="image/*" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; replacePage(page, file); }} /></label>{retryFiles[page.id] && <button type="button" onClick={() => replacePage(page, retryFiles[page.id])} disabled={busy}>Retry</button>}
               <button type="button" disabled={busy || index === 0} onClick={() => reorder(index, -1)}>↑</button>
               <button type="button" disabled={busy || index === selectedPages.length - 1} onClick={() => reorder(index, 1)}>↓</button>
               <button type="button" className="danger" disabled={busy} onClick={() => deletePage(page)}>Delete</button>
