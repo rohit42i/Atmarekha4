@@ -157,6 +157,36 @@ export default function PalDoPalAdmin({ embedded = false }) {
     [chapters, query],
   );
 
+  const appendPages = async filesInput => {
+    const files = Array.from(filesInput || []).filter(file => file.type.startsWith('image/'));
+    if (!files.length || !selectedChapter || busy) return;
+    const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
+    if (tooLarge) { setNotice(`${tooLarge.name} is larger than 20 MB.`); return; }
+    setBusy(true); setNotice('');
+    const uploaded = [];
+    try {
+      const revision = Date.now();
+      const rows = selectedPages.map(page => ({ page_number: page.page_number, image_path: page.image_path }));
+      for (let i = 0; i < files.length; i += 1) {
+        const path = pagePath(selectedChapter.id, revision, files[i], rows.length);
+        await uploadPdlplFile(files[i], path);
+        uploaded.push(path);
+        rows.push({ page_number: rows.length + 1, image_path: path });
+        setProgress({ current: i + 1, total: files.length, text: `Adding page ${i + 1} of ${files.length}…` });
+      }
+      const { error } = await supabase.rpc('pdlpl_replace_chapter_pages', { p_chapter_id: selectedChapter.id, p_pages: rows });
+      if (error) throw error;
+      await loadPages(selectedChapter.id);
+      await load();
+      setNotice(`${files.length} page${files.length === 1 ? '' : 's'} added to ${label(selectedChapter)}.`);
+    } catch (error) {
+      for (const path of uploaded) { try { await removePdlplFiles([path]); } catch (_) {} }
+      setNotice(error?.message || 'Adding pages failed.');
+    } finally {
+      setBusy(false); setProgress({ current: 0, total: 0, text: '' });
+    }
+  };
+
   const setChapterStatus = async (chapter, status) => {
     if (!chapter || busy || savingStatus) return;
     setSavingStatus(chapter.id); setNotice('');
@@ -547,7 +577,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     {selectedChapter && <section className="pdlpl-admin-card pdlpl-page-manager">
       <div className="pdlpl-admin-card-head">
-        <div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
+        <div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><label className="pdlpl-inline-file">Add pages<input type="file" accept="image/*" multiple disabled={busy} onChange={e => { const files = e.target.files; e.target.value = ''; appendPages(files); }} /></label><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
       </div>
 
       {!selectedPages.length
