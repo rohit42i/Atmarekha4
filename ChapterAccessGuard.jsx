@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase, getCurrentMembership } from './supabase';
 import { formatChapterLabel } from './chapters';
+import { findChapterForPath, isChapterPath, legacyChapterIdFromHash } from './routes';
 
 const FREE_CHAPTER_LIMIT = 8;
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
@@ -48,30 +49,53 @@ export default function ChapterAccessGuard() {
 
   useEffect(() => {
     if (!ready) return undefined;
-    const getChapterFromHash = () => {
-      const match = window.location.hash.match(/^#read-chapter\/(.+)$/);
-      if (!match) return null;
-      return chapters.find(chapter => String(chapter.id) === String(decodeURIComponent(match[1]))) || null;
+
+    const getChapterFromLocation = () => {
+      const fromPath = findChapterForPath(window.location.pathname, chapters);
+      if (fromPath) return fromPath;
+      const legacyId = legacyChapterIdFromHash(window.location.hash);
+      if (!legacyId) return null;
+      return chapters.find(chapter => String(chapter.id) === String(legacyId)) || null;
     };
+
     const blockLockedChapter = chapter => {
       if (!isLockedChapter(chapter, member)) return false;
-      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#chapters`);
+      window.history.replaceState(null, '', '/#chapters');
+      window.dispatchEvent(new PopStateEvent('popstate'));
       setLockedChapter(chapter);
       return true;
     };
-    const onHashChange = () => blockLockedChapter(getChapterFromHash());
+
+    const onLocationChange = () => blockLockedChapter(getChapterFromLocation());
+
     const onClick = event => {
-      const anchor = event.target?.closest?.('a[href*="#read-chapter/"]');
+      const anchor = event.target?.closest?.('a[href]');
       if (!anchor) return;
-      const match = (anchor.getAttribute('href') || '').match(/#read-chapter\/(.+)$/);
-      if (!match) return;
-      const chapter = chapters.find(item => String(item.id) === String(decodeURIComponent(match[1])));
+      const href = anchor.getAttribute('href') || '';
+
+      if (href.startsWith('#read-chapter/')) {
+        const legacyId = legacyChapterIdFromHash(href);
+        const chapter = chapters.find(item => String(item.id) === String(legacyId));
+        if (blockLockedChapter(chapter)) event.preventDefault();
+        return;
+      }
+
+      const url = new URL(href, window.location.href);
+      if (url.origin !== window.location.origin || !isChapterPath(url.pathname)) return;
+      const chapter = findChapterForPath(url.pathname, chapters);
       if (blockLockedChapter(chapter)) event.preventDefault();
     };
+
     document.addEventListener('click', onClick, true);
-    window.addEventListener('hashchange', onHashChange);
-    onHashChange();
-    return () => { document.removeEventListener('click', onClick, true); window.removeEventListener('hashchange', onHashChange); };
+    window.addEventListener('hashchange', onLocationChange);
+    window.addEventListener('popstate', onLocationChange);
+    onLocationChange();
+
+    return () => {
+      document.removeEventListener('click', onClick, true);
+      window.removeEventListener('hashchange', onLocationChange);
+      window.removeEventListener('popstate', onLocationChange);
+    };
   }, [chapters, member, ready]);
 
   useEffect(() => {
@@ -79,10 +103,9 @@ export default function ChapterAccessGuard() {
     const markLocks = () => {
       document.querySelectorAll('.chapter-row').forEach(row => {
         const link = row.querySelector('a.chapter-row-main');
-        const href = link?.getAttribute('href') || '';
-        const match = href.match(/#read-chapter\/(.+)$/);
-        if (!match) return;
-        const chapter = chapters.find(item => String(item.id) === String(decodeURIComponent(match[1])));
+        const chapterId = row.getAttribute('data-chapter-id');
+        if (!chapterId) return;
+        const chapter = chapters.find(item => String(item.id) === String(chapterId));
         if (!isLockedChapter(chapter, member)) {
           row.classList.remove('chapter-row-locked');
           row.querySelector('.chapter-lock-badge')?.remove();
