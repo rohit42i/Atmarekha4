@@ -35,17 +35,17 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="site-footer-inner">
         <div className="footer-brand-block">
-          <a className="footer-brand" href="#home">Atma Rekha</a>
+          <a className="footer-brand" href="/">Atma Rekha</a>
           <p>An original Indian mythical fantasy manga.</p>
         </div>
 
         <nav className="footer-nav" aria-label="Footer navigation">
-          <a href="#info/about">About</a>
-          <a href="#info/contact">Contact</a>
-          <a href="#info/report">Report</a>
-          <a href="#info/privacy">Privacy</a>
-          <a href="#info/terms">Terms</a>
-          {isAdmin && <a href="#admin" className="footer-admin-link">Admin Login</a>}
+          <a href="/info/about">About</a>
+          <a href="/info/contact">Contact</a>
+          <a href="/info/report">Report</a>
+          <a href="/info/privacy">Privacy</a>
+          <a href="/info/terms">Terms</a>
+          {isAdmin && <a href="/admin" className="footer-admin-link">Admin Login</a>}
         </nav>
 
         <div className="footer-socials" aria-label="Social links">
