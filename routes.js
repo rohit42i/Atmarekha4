@@ -77,6 +77,15 @@ export function getRenderedChapterId() {
   return document.querySelector('.reader-page[data-chapter-id]')?.getAttribute('data-chapter-id') || null;
 }
 
+export function navigateToChapter(chapter, { replace = false } = {}) {
+  if (typeof window === 'undefined' || !chapter?.id) return false;
+  const path = chapterPath(chapter);
+  if (replace) window.history.replaceState(null, '', path);
+  else window.history.pushState(null, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+  return true;
+}
+
 export function getSiteRoute() {
   if (typeof window === 'undefined') return 'home';
   const pathname = cleanPathname(window.location.pathname);
