@@ -80,8 +80,13 @@ export function getRenderedChapterId() {
 export function getSiteRoute() {
   if (typeof window === 'undefined') return 'home';
   const pathname = cleanPathname(window.location.pathname);
+  const hashRoute = window.location.hash.replace(/^#/, '');
+  // Legacy hash routes are still used for site-level pages. When a chapter
+  // URL has a hash such as /chapter/1#chapters, the hash must take priority
+  // so Back/close controls can actually leave the reader.
+  if (hashRoute) return hashRoute;
   if (isChapterPath(pathname)) return pathname.slice(1);
-  return window.location.hash.replace(/^#/, '') || 'home';
+  return 'home';
 }
 
 export function getChapterIdFromLocation(chapters = []) {
