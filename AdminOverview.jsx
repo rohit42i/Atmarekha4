@@ -15,6 +15,7 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
   const [membershipPlans, setMembershipPlans] = useState(new Map());
   const [userStats, setUserStats] = useState({ logged_in_users: 0, notification_subscriptions: 0 });
   const [analytics, setAnalytics] = useState(null);
+  const [last24, setLast24] = useState({ views: 0, ratings: 0, comments: 0, loading: true });
   const days = WINDOWS[windowKey];
 
   useEffect(() => {
@@ -39,6 +40,31 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
     loadUserStats();
     const interval = setInterval(loadUserStats, 30000);
     const onVisibilityChange = () => { if (document.visibilityState === 'visible') loadUserStats(); };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => { active = false; clearInterval(interval); document.removeEventListener('visibilitychange', onVisibilityChange); };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadLast24 = async () => {
+      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      try {
+        const [viewsResult, ratingsResult, commentsResult] = await Promise.all([
+          supabase.from('chapter_views').select('id', { count: 'exact', head: true }).gte('created_at', cutoff),
+          supabase.from('chapter_ratings').select('id', { count: 'exact', head: true }).gte('created_at', cutoff),
+          supabase.from('comments').select('id', { count: 'exact', head: true }).gte('created_at', cutoff),
+        ]);
+        const firstError = viewsResult.error || ratingsResult.error || commentsResult.error;
+        if (firstError) throw firstError;
+        if (active) setLast24({ views: Number(viewsResult.count || 0), ratings: Number(ratingsResult.count || 0), comments: Number(commentsResult.count || 0), loading: false });
+      } catch (error) {
+        console.warn('Admin 24-hour activity lookup failed:', error);
+        if (active) setLast24(current => ({ ...current, loading: false }));
+      }
+    };
+    loadLast24();
+    const interval = setInterval(loadLast24, 60000);
+    const onVisibilityChange = () => { if (document.visibilityState === 'visible') loadLast24(); };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => { active = false; clearInterval(interval); document.removeEventListener('visibilitychange', onVisibilityChange); };
   }, []);
@@ -121,12 +147,24 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       <StatCard label="Returning Readers" value={compactNumber(Number(analytics?.returning_readers || 0))} note="Readers seen on 2+ days" />
       <StatCard label="Bookmarks" value={compactNumber(Number(analytics?.bookmarks || 0))} note="Saved chapter bookmarks" />
     </div>
+    <section className="admin-overview-card admin-last24-card">
+      <div className="admin-overview-card-head"><div><span>LIVE ACTIVITY</span><h3>Last 24 Hours</h3></div><span className="admin-overview-period">Updates every minute</span></div>
+      <div className="admin-last24-grid">
+        <article><span>New Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>Chapter reads in the last 24 hours</small></article>
+        <article><span>New Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>Ratings submitted in the last 24 hours</small></article>
+        <article><span>New Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>Comments and replies in the last 24 hours</small></article>
+      </div>
+    </section>
     <div className="admin-overview-period-summary"><span><b>{periodLabel}</b> activity</span><span>👁 {formatNumber(metrics.currentViews)} views</span><span>♥ {formatNumber(metrics.currentLikes)} likes</span><span>★ {formatNumber(metrics.totalRatings)} ratings</span><span>💬 {formatNumber(metrics.totalComments)} comments</span></div>
     <div className="admin-overview-grid">
       <section className="admin-overview-card comments-card"><div className="admin-overview-card-head"><div><span>COMMUNITY</span><h3>Recent Comments</h3></div><button type="button" onClick={() => onTab('Comments')}>View all →</button></div><div className="admin-overview-comments">{metrics.recentComments.map(comment => <article key={comment.id}><div className="admin-overview-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-overview-comment-top"><strong>{comment.author_name || 'Reader'}<SubscriberBadge planId={membershipPlans.get(comment.user_id)} /></strong><time>{new Date(comment.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time></div><p>{comment.content}</p><small>{chapterName(comment.chapter_id)}</small><button type="button" className="admin-comment-open" onClick={() => onTab('Comments')}>Open comment →</button></div></article>)}{!metrics.recentComments.length && <p className="admin-overview-empty">No comments yet.</p>}</div></section>
       <section className="admin-overview-card rating-card"><div className="admin-overview-card-head"><div><span>RATING OVERVIEW</span><h3>{metrics.totalAverage ? metrics.totalAverage.toFixed(2) : '—'} <em>/10</em></h3></div><span className="admin-card-count">{formatNumber(metrics.totalRatings)} ratings</span></div><div className="admin-overview-stars">★★★★★ <span>Overall rating · {periodLabel}</span></div><div className="admin-rating-bars">{metrics.ratingCounts.map(item => <div key={item.rating}><b>{item.rating} ★</b><i><span style={{ width: `${item.count / maxRatingCount * 100}%` }} /></i><small>{metrics.totalRatings ? Math.round(item.count / metrics.totalRatings * 100) : 0}%</small></div>)}</div></section>
       <section className="admin-overview-card top-chapters-card"><div className="admin-overview-card-head"><div><span>TOP CHAPTERS · BY VIEWS</span><h3>Best performing</h3></div><button type="button" onClick={() => onTab('Chapters')}>View all →</button></div><div className="admin-top-chapters">{metrics.chapterStats.slice(0, 5).map((chapter, index) => { const avg = Number(chapter.ratingAverage || 0); return <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}><b>{index + 1}.</b><div><strong>Chapter {chapter.chapterNumber} — {chapter.title}</strong><span>{formatNumber(chapter.views)} views · ♥ {formatNumber(chapter.likes)} · ★ {avg ? avg.toFixed(1) : '—'}</span></div><i>›</i></button>; })}{!metrics.chapterStats.length && <p className="admin-overview-empty">No published chapters yet.</p>}</div></section>
     </div>
+    <section className="admin-overview-card admin-chapter-views-card">
+      <div className="admin-overview-card-head"><div><span>CHAPTER VIEWS</span><h3>Views by Chapter</h3></div><span className="admin-overview-period">Every published chapter</span></div>
+      <div className="admin-chapter-views-table"><div className="admin-chapter-views-row admin-chapter-views-head"><span>Chapter</span><span>Total views</span><span>Last 24h</span></div>{[...metrics.chapterStats].sort((a,b)=>(Number(a.chapterNumber||0)-Number(b.chapterNumber||0))).map(chapter=><div className="admin-chapter-views-row" key={chapter.id}><span><strong>{chapter.chapterNumber == null ? 'Unnumbered' : 'Chapter ' + chapter.chapterNumber}</strong><small>{chapter.title || 'Untitled'}</small></span><b>{formatNumber(chapter.views)}</b><b>{formatNumber(chapter.periodViews)}</b></div>)}{!metrics.chapterStats.length&&<p className="admin-overview-empty">No published chapters yet.</p>}</div>
+    </section>
     <section className="admin-overview-card performance-card"><div className="admin-overview-card-head"><div><span>PERFORMANCE</span><h3>Chapter performance</h3></div><span className="admin-overview-period">{periodLabel}</span></div><div className="admin-performance-mobile">{metrics.chapterStats.map(chapter => { const avg = Number(chapter.ratingAverage || 0); return <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}><strong>Chapter {chapter.chapterNumber}</strong><span>{chapter.title}</span><b>★ {avg ? avg.toFixed(1) : '—'} · 👁 {formatNumber(chapter.views)} · ♥ {formatNumber(chapter.likes)} · 📄 {formatNumber(chapter.pages)}</b>{days != null && <small>{formatNumber(chapter.periodViews)} views · {formatNumber(chapter.periodLikes)} likes in period</small>}</button>; })}{!metrics.chapterStats.length && <p className="admin-overview-empty">No published chapters yet.</p>}</div></section>
   </section>;
 }
