@@ -737,7 +737,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
                 setSelectedId(chapter.id);
                 window.setTimeout(() => document.getElementById('pdlpl-page-manager')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
               }}>Manage pages</button>
-              {String(chapter.status).toLowerCase() !== 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Published')} disabled={busy || savingStatus === chapter.id}>Publish</button>
+              {String(chapter.status).toLowerCase() !== 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Published')} disabled={busy || savingStatus === chapter.id}>Publish</button>}
               {String(chapter.status).toLowerCase() === 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Draft')} disabled={busy || savingStatus === chapter.id}>Unpublish</button>}
               <button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`; }}>View</button>
               <button type="button" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button>
