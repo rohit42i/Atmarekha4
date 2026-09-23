@@ -22,6 +22,22 @@ async function requireAdmin() {
   return user;
 }
 
+async function logAdminAction(user, action, entityType, entityId = null, details = {}) {
+  if (!user?.id) return;
+  try {
+    const { error } = await supabase.from('admin_activity_log').insert({
+      admin_user_id: user.id,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      details,
+    });
+    if (error) console.warn('Admin activity log failed:', error);
+  } catch (error) {
+    console.warn('Admin activity log failed:', error);
+  }
+}
+
 export default function AdminChapterPages({ chapters }) {
   const [chapterId, setChapterId] = useState(chapters?.[0]?.id || '');
   const [pages, setPages] = useState([]);
@@ -45,30 +61,76 @@ export default function AdminChapterPages({ chapters }) {
   const replacePage = async (page, file) => {
     if (!file || busyId) return;
     if (!file.type.startsWith('image/')) { setNotice('Please select an image.'); return; }
-    if (file.size > MAX_PAGE_SIZE) { setNotice(`${file.name} is larger than 20 MB.`); return; }
-    setBusyId(page.id); setNotice(''); let newPath = null;
+    if (file.size > MAX_PAGE_SIZE) { setNotice(file.name + ' is larger than 20 MB.'); return; }
+    setBusyId(page.id);
+    setNotice('');
     let adminUser = null;
+    let newPath = null;
+    let databaseCommitted = false;
+
     try {
       adminUser = await requireAdmin();
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      newPath = `${page.chapter_id}/replacements/${page.id}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await cloudflareR2.from(BUCKET).upload(newPath, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
+      newPath = page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + ext;
+
+      const { error: uploadError } = await cloudflareR2.from(BUCKET).upload(newPath, file, {
+        upsert: false,
+        contentType: file.type || undefined,
+        cacheControl: '31536000',
+      });
       if (uploadError) throw uploadError;
+
       const nextUrl = publicUrl(newPath);
       const { error: updateError } = await supabase.from(PAGES).update({ image_url: nextUrl }).eq('id', page.id);
       if (updateError) throw updateError;
-      const oldPath = pathFromUrl(page.image_url); if (oldPath) await cloudflareR2.from(BUCKET).remove([oldPath]);
+      databaseCommitted = true;
+
+      if (page.image_url) {
+        const oldPath = pathFromUrl(page.image_url);
+        if (oldPath) {
+          try {
+            await cloudflareR2.from(BUCKET).remove([oldPath]);
+          } catch (cleanupError) {
+            await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_page', page.id, {
+              bucket: BUCKET,
+              paths: [oldPath],
+              error: cleanupError.message,
+            });
+          }
+        }
+      }
+
       setPages(current => current.map(item => item.id === page.id ? { ...item, image_url: nextUrl } : item));
       setRetryFiles(current => { const next = { ...current }; delete next[page.id]; return next; });
-      await supabase.from('admin_activity_log').insert({ admin_user_id: adminUser.id, action: 'replace_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name } });
-      setNotice(`Page ${page.page_number} replaced successfully.`);
+      await logAdminAction(adminUser, 'replace_chapter_page', 'chapter_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        file_name: file.name,
+      });
+      setNotice('Page ' + page.page_number + ' replaced successfully.');
     } catch (error) {
-      if (newPath) await cloudflareR2.from(BUCKET).remove([newPath]);
+      if (newPath && !databaseCommitted) {
+        try { await cloudflareR2.from(BUCKET).remove([newPath]); } catch (cleanupError) {
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_page', page.id, {
+            bucket: BUCKET,
+            paths: [newPath],
+            error: cleanupError.message,
+          });
+        }
+      }
+      if (adminUser) await logAdminAction(adminUser, 'replace_chapter_page_failed', 'chapter_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        file_name: file.name,
+        error: error.message,
+      });
       setRetryFiles(current => ({ ...current, [page.id]: file }));
-      if (adminUser) await supabase.from('admin_activity_log').insert({ admin_user_id: adminUser.id, action: 'replace_chapter_page_failed', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name, error: error.message } });
       setNotice(error.message || 'Page replacement failed. The old page was kept. You can retry the same file.');
-    } finally { setBusyId(null); }
+    } finally {
+      setBusyId(null);
+    }
   };
+
 
   const movePage = async (index, direction) => {
     const otherIndex = index + direction; if (otherIndex < 0 || otherIndex >= pages.length || busyId) return;
@@ -79,12 +141,55 @@ export default function AdminChapterPages({ chapters }) {
   };
 
   const deletePage = async page => {
-    if (busyId || !window.confirm(`Delete page ${page.page_number}? This cannot be undone.`)) return;
-    setBusyId(page.id); setNotice('');
-    try { const user = await requireAdmin(); const { error } = await supabase.from(PAGES).delete().eq('id', page.id); if (error) throw error; const path = pathFromUrl(page.image_url); if (path) await cloudflareR2.from(BUCKET).remove([path]); const remaining = pages.filter(item => item.id !== page.id); for (let i = 0; i < remaining.length; i += 1) if (remaining[i].page_number !== i + 1) { const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id); if (reorderError) throw reorderError; } await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'delete_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number } }); await loadPages(); setNotice(`Page ${page.page_number} deleted.`); }
-    catch (error) { setNotice(error.message || 'Page deletion failed.'); await loadPages(); }
-    finally { setBusyId(null); }
+    if (busyId || !window.confirm('Delete page ' + page.page_number + '? This cannot be undone.')) return;
+    setBusyId(page.id);
+    setNotice('');
+    let adminUser = null;
+
+    try {
+      adminUser = await requireAdmin();
+      const { error } = await supabase.from(PAGES).delete().eq('id', page.id);
+      if (error) throw error;
+
+      let cleanupPending = false;
+      const path = pathFromUrl(page.image_url);
+      if (path) {
+        try { await cloudflareR2.from(BUCKET).remove([path]); }
+        catch (cleanupError) {
+          cleanupPending = true;
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_page', page.id, {
+            bucket: BUCKET,
+            paths: [path],
+            error: cleanupError.message,
+          });
+        }
+      }
+
+      const remaining = pages.filter(item => item.id !== page.id);
+      for (let i = 0; i < remaining.length; i += 1) {
+        if (remaining[i].page_number !== i + 1) {
+          const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id);
+          if (reorderError) throw reorderError;
+        }
+      }
+
+      await logAdminAction(adminUser, 'delete_chapter_page', 'chapter_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        cleanup_pending: cleanupPending,
+      });
+      await loadPages();
+      setNotice(cleanupPending ? 'Page ' + page.page_number + ' deleted. R2 cleanup is pending in Operations.' : 'Page ' + page.page_number + ' deleted.');
+    } catch (error) {
+      await logAdminAction(adminUser, 'delete_chapter_page_failed', 'chapter_page', page.id, { error: error.message });
+      setNotice(error.message || 'Page deletion failed.');
+      await loadPages();
+    } finally {
+      setBusyId(null);
+    }
   };
+
+
 
   return <section className="admin-stack">
     <section className="admin-card"><div className="admin-card-title"><div><span>PAGE MANAGER</span><h2>Manage individual pages</h2><p>Replace, retry, reorder, or delete a single page without re-uploading the chapter. A failed replacement keeps the old page intact and keeps the selected file ready for retry.</p></div></div><select value={chapterId} onChange={event => setChapterId(event.target.value)} className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3">{!chapters.length && <option value="">No chapters available</option>}{chapters.map(chapter => <option key={chapter.id} value={chapter.id}>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'} — {chapter.title || 'Untitled'}</option>)}</select>{selectedChapter && <p className="mt-3 text-sm text-zinc-500">{pages.length} page{pages.length === 1 ? '' : 's'} · changes apply directly to the selected chapter.</p>}</section>
