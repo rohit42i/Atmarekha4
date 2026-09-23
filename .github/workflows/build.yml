@@ -40,7 +40,8 @@ jobs:
         run: npm run build
         env:
           VITE_SUPABASE_URL: https://pbukwjokgkqacaphlqzm.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          # Supabase publishable key is safe for public frontend use.
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
 
@@ -67,8 +68,9 @@ jobs:
       - name: Configure PDPL Worker Supabase secret
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: pdlpl-media-worker
-        run: printf '%s' "${{ secrets.VITE_SUPABASE_ANON_KEY }}" | npx wrangler secret put SUPABASE_ANON_KEY
+        run: printf '%s' "$SUPABASE_ANON_KEY" | npx wrangler secret put SUPABASE_ANON_KEY
         env:
+          SUPABASE_ANON_KEY: sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
