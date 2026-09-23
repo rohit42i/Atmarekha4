@@ -53,7 +53,6 @@ import './public-profile.css';
 import './premium-typography.css';
 import './final-polish.css';
 import './chapter-ui-final.css';
-import './rating-upgrade.js';
 import './membership.css';
 import './chapter-access.css';
 import './visual-polish.css';
