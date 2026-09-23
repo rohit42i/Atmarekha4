@@ -178,30 +178,45 @@ export default function PalDoPalAdmin({ embedded = false }) {
     if (!files.length || !selectedChapter || busy) return;
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) { setNotice(`${tooLarge.name} is larger than 20 MB.`); return; }
-    setBusy(true); setNotice('');
+
+    setBusy(true);
+    setNotice('');
     const uploaded = [];
+
     try {
       const revision = Date.now();
-      const rows = selectedPages.map(page => ({ page_number: page.page_number, image_path: page.image_path }));
+
       for (let i = 0; i < files.length; i += 1) {
-        const path = pagePath(selectedChapter.id, revision, files[i], rows.length);
+        const path = pagePath(selectedChapter.id, revision, files[i], i);
         await uploadPdlplFile(files[i], path);
         uploaded.push(path);
-        rows.push({ page_number: rows.length + 1, image_path: path });
-        setProgress({ current: i + 1, total: files.length, text: `Adding page ${i + 1} of ${files.length}…` });
+        setProgress({
+          current: i + 1,
+          total: files.length,
+          text: `Adding page ${i + 1} of ${files.length}…`,
+        });
       }
-      const { error } = await supabase.rpc('pdlpl_replace_chapter_pages', { p_chapter_id: selectedChapter.id, p_pages: rows });
+
+      const { error } = await supabase.rpc('pdlpl_append_chapter_pages', {
+        p_chapter_id: selectedChapter.id,
+        p_pages: uploaded.map(image_path => ({ image_path })),
+      });
       if (error) throw error;
-      await loadPages(selectedChapter.id);
-      await load();
+
+      await Promise.all([loadPages(selectedChapter.id), load()]);
       const { data: { user } } = await supabase.auth.getUser();
-      await logAdminAction(user, 'append_pdlpl_pages', 'pdlpl_chapter', selectedChapter.id, { count: files.length });
+      await logAdminAction(user, 'append_pdlpl_pages', 'pdlpl_chapter', selectedChapter.id, {
+        count: files.length,
+      });
       setNotice(`${files.length} page${files.length === 1 ? '' : 's'} added to ${label(selectedChapter)}.`);
     } catch (error) {
-      for (const path of uploaded) { try { await removePdlplFiles([path]); } catch (_) {} }
+      for (const uploadedPath of uploaded) {
+        try { await removePdlplFiles([uploadedPath]); } catch (_) {}
+      }
       setNotice(error?.message || 'Adding pages failed.');
     } finally {
-      setBusy(false); setProgress({ current: 0, total: 0, text: '' });
+      setBusy(false);
+      setProgress({ current: 0, total: 0, text: '' });
     }
   };
 
@@ -489,7 +504,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     setBusy(true);
     setNotice('');
-    const path = 'chapters/' + page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
+    const path = `chapters/${page.chapter_id}/replacements/${page.id}-${Date.now()}.${safeExt(file)}`;
     let adminUser = null;
     let databaseCommitted = false;
 
@@ -499,10 +514,11 @@ export default function PalDoPalAdmin({ embedded = false }) {
       adminUser = user;
 
       await uploadPdlplFile(file, path);
-      const { error } = await supabase
-        .from(PDLPL_PAGES)
-        .update({ image_path: path })
-        .eq('id', page.id);
+
+      const { error } = await supabase.rpc('pdlpl_replace_chapter_page', {
+        p_page_id: page.id,
+        p_image_path: path,
+      });
       if (error) throw error;
       databaseCommitted = true;
 
@@ -520,7 +536,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
-      setSelectedPages(current => current.map(item => item.id === page.id ? { ...item, image_path: path } : item));
+      await loadPages(page.chapter_id);
       await logAdminAction(adminUser, 'replace_pdlpl_page', 'pdlpl_page', page.id, {
         chapter_id: page.chapter_id,
         page_number: page.page_number,
@@ -557,8 +573,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     const otherIndex = index + direction;
     if (otherIndex < 0 || otherIndex >= selectedPages.length || busy) return;
 
-    const a = selectedPages[index];
-    const b = selectedPages[otherIndex];
+    const page = selectedPages[index];
     setBusy(true);
     setNotice('');
     let adminUser = null;
@@ -568,21 +583,26 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
-      let result = await supabase.from(PDLPL_PAGES).update({ page_number: 0 }).eq('id', a.id);
-      if (result.error) throw result.error;
-      result = await supabase.from(PDLPL_PAGES).update({ page_number: a.page_number }).eq('id', b.id);
-      if (result.error) throw result.error;
-      result = await supabase.from(PDLPL_PAGES).update({ page_number: b.page_number }).eq('id', a.id);
-      if (result.error) throw result.error;
-
-      await logAdminAction(user, 'reorder_pdlpl_page', 'pdlpl_page', a.id, {
-        chapter_id: a.chapter_id,
-        from: a.page_number,
-        to: b.page_number,
+      const { error } = await supabase.rpc('pdlpl_reorder_chapter_page', {
+        p_page_id: page.id,
+        p_direction: direction,
       });
+      if (error) throw error;
+
       await loadPages(selectedId);
+      await logAdminAction(adminUser, 'reorder_pdlpl_page', 'pdlpl_page', page.id, {
+        chapter_id: page.chapter_id,
+        from: page.page_number,
+        direction,
+      });
+      setNotice(`Page ${page.page_number} moved ${direction < 0 ? 'up' : 'down'}.`);
     } catch (error) {
-      await logAdminAction(adminUser, 'reorder_pdlpl_page_failed', 'pdlpl_page', a.id, { error: error.message });
+      await logAdminAction(adminUser, 'reorder_pdlpl_page_failed', 'pdlpl_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        direction,
+        error: error.message,
+      });
       setNotice(error?.message || 'Reorder failed.');
       await loadPages(selectedId);
     } finally {
@@ -591,25 +611,29 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
 
-
   const deletePage = async page => {
     if (busy || !window.confirm('Delete page ' + page.page_number + '?')) return;
     setBusy(true);
     setNotice('');
     let adminUser = null;
+    let databaseCommitted = false;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
-      const { error } = await supabase.from(PDLPL_PAGES).delete().eq('id', page.id);
+      const { error } = await supabase.rpc('pdlpl_delete_chapter_page', {
+        p_page_id: page.id,
+      });
       if (error) throw error;
+      databaseCommitted = true;
 
       let cleanupPending = false;
       if (page.image_path) {
-        try { await removePdlplFiles([page.image_path]); }
-        catch (cleanupError) {
+        try {
+          await removePdlplFiles([page.image_path]);
+        } catch (cleanupError) {
           cleanupPending = true;
           await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_page', page.id, {
             provider: 'pdpl',
@@ -619,33 +643,27 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
-      const remaining = selectedPages.filter(item => item.id !== page.id);
-      for (let i = 0; i < remaining.length; i += 1) {
-        if (remaining[i].page_number !== i + 1) {
-          const result = await supabase.from(PDLPL_PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id);
-          if (result.error) throw result.error;
-        }
-      }
-
+      await Promise.all([loadPages(selectedId), load()]);
       await logAdminAction(adminUser, 'delete_pdlpl_page', 'pdlpl_page', page.id, {
         chapter_id: page.chapter_id,
         page_number: page.page_number,
         cleanup_pending: cleanupPending,
       });
-      await loadPages(selectedId);
-      setPageCounts(current => ({ ...current, [page.chapter_id]: Math.max(0, (current[page.chapter_id] || 1) - 1) }));
       setNotice(cleanupPending
         ? 'Page ' + page.page_number + ' deleted. R2 cleanup is pending in Operations.'
         : 'Page ' + page.page_number + ' deleted.');
     } catch (error) {
-      await logAdminAction(adminUser, 'delete_pdlpl_page_failed', 'pdlpl_page', page.id, { error: error.message });
+      await logAdminAction(adminUser, 'delete_pdlpl_page_failed', 'pdlpl_page', page.id, {
+        chapter_id: page.chapter_id,
+        page_number: page.page_number,
+        error: error.message,
+      });
       setNotice(error?.message || 'Delete page failed.');
-      await loadPages(selectedId);
+      if (databaseCommitted) await loadPages(selectedId);
     } finally {
       setBusy(false);
     }
   };
-
 
 
   const Root = embedded ? 'section' : 'main';
@@ -715,7 +733,11 @@ export default function PalDoPalAdmin({ embedded = false }) {
             </button>
             <div>
               <button type="button" onClick={() => edit(chapter)}>Edit</button>
-              {String(chapter.status).toLowerCase() !== 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Published')} disabled={busy || savingStatus === chapter.id}>Publish</button>}
+              <button type="button" onClick={() => {
+                setSelectedId(chapter.id);
+                window.setTimeout(() => document.getElementById('pdlpl-page-manager')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+              }}>Manage pages</button>
+              {String(chapter.status).toLowerCase() !== 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Published')} disabled={busy || savingStatus === chapter.id}>Publish</button>
               {String(chapter.status).toLowerCase() === 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Draft')} disabled={busy || savingStatus === chapter.id}>Unpublish</button>}
               <button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`; }}>View</button>
               <button type="button" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button>
@@ -726,7 +748,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       </section>
     </section>
 
-    {selectedChapter && <section className="pdlpl-admin-card pdlpl-page-manager">
+    {selectedChapter && <section id="pdlpl-page-manager" className="pdlpl-admin-card pdlpl-page-manager">
       <div className="pdlpl-admin-card-head">
         <div><span>PAGE MANAGER · INDIVIDUAL PAGES</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Manage individual pages: preview, replace, add, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><label className="pdlpl-inline-file">Add pages<input type="file" accept="image/*" multiple disabled={busy} onChange={e => { const files = e.target.files; e.target.value = ''; appendPages(files); }} /></label><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
       </div>
