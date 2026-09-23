@@ -86,7 +86,7 @@ export function getSiteRoute() {
   // so Back/close controls can actually leave the reader.
   if (hashRoute) return hashRoute;
   if (isChapterPath(pathname)) return pathname.slice(1);
-  const publicPath = /^\/(chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe)$/.test(pathname);
+  const publicPath = /^\/(admin|chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe)$/.test(pathname);
   if (publicPath) return pathname.slice(1);
   return 'home';
 }
