@@ -88,6 +88,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
+  const [query, setQuery] = useState('');
+  const [savingStatus, setSavingStatus] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -138,9 +140,35 @@ export default function PalDoPalAdmin({ embedded = false }) {
   useEffect(() => { loadPages(selectedId); }, [selectedId]);
 
   const sorted = useMemo(
-    () => [...chapters].sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber)),
-    [chapters],
+    () => [...chapters]
+      .filter(chapter => {
+        const needle = query.trim().toLowerCase();
+        if (!needle) return true;
+        return [chapter.title, chapter.description, chapter.status, chapter.chapterNumber]
+          .some(value => String(value ?? '').toLowerCase().includes(needle));
+      })
+      .sort((a, b) => {
+        const an = Number(a.chapterNumber); const bn = Number(b.chapterNumber);
+        if (!Number.isFinite(an) && !Number.isFinite(bn)) return 0;
+        if (!Number.isFinite(an)) return 1;
+        if (!Number.isFinite(bn)) return -1;
+        return an - bn;
+      }),
+    [chapters, query],
   );
+
+  const setChapterStatus = async (chapter, status) => {
+    if (!chapter || busy || savingStatus) return;
+    setSavingStatus(chapter.id); setNotice('');
+    try {
+      const { error } = await supabase.from(PDLPL_CHAPTERS).update({ status }).eq('id', chapter.id);
+      if (error) throw error;
+      await load();
+      setNotice(`${label(chapter)} is now ${status.toLowerCase()}.`);
+    } catch (error) {
+      setNotice(error?.message || 'Status update failed.');
+    } finally { setSavingStatus(null); }
+  };
 
   const choosePages = event => {
     const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
@@ -443,20 +471,20 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const rootClass = embedded ? 'pdlpl-admin-embedded' : 'pdlpl-admin';
 
   if (loading) return <Root className={rootClass}><div className="pdlpl-loading">Checking side story admin…</div></Root>;
-  if (!role) return <Root className={rootClass}><div className="pdlpl-error"><h2>Access denied</h2><p>{notice || 'Admin access required.'}</p><button type="button" onClick={() => { window.location.hash = 'home'; }}>Back to Home</button></div></Root>;
+  if (!role) return <Root className={rootClass}><div className="pdlpl-error"><h2>Access denied</h2><p>{notice || 'Admin access required.'}</p><button type="button" onClick={() => { window.location.hash = 'admin'; }}>Back to Admin</button></div></Root>;
 
   const selectedChapter = chapters.find(item => item.id === selectedId) || null;
 
   return <Root className={rootClass}>
     {!embedded && <header className="pdlpl-admin-header">
       <div>
-        <button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>←</button>
+        <button type="button" onClick={() => { window.location.hash = 'admin'; }}>←</button>
         <div><span>SIDE STORY ADMIN</span><h1>Pal Do Pal Ke Lamhe</h1><p>Cloudflare R2 media · separate PDPL metadata.</p></div>
       </div>
-      <button type="button" className="pdlpl-admin-home" onClick={() => { window.location.hash = 'home'; }}>Home</button>
+      <div className="pdlpl-admin-header-actions"><button type="button" onClick={() => { window.location.hash = 'admin'; }}>Admin Dashboard</button><button type="button" className="pdlpl-admin-home" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>View Side Story</button></div>
     </header>}
 
-    {embedded && <div className="pdlpl-embedded-heading"><div><span>PAL DO PAL KE LAMHE</span><h2>Side Story Upload & Management</h2><p>Separate chapters, pages, and Cloudflare R2 media.</p></div></div>}
+    {embedded && <div className="pdlpl-embedded-heading"><div><span>PAL DO PAL KE LAMHE</span><h2>Side Story Upload & Management</h2><p>Separate chapters, pages, and Cloudflare R2 media.</p></div><div className="pdlpl-admin-header-actions"><button type="button" onClick={load} disabled={loading || busy}>Refresh</button><button type="button" onClick={() => { window.location.hash = 'pal-do-pal-admin'; }}>Open full manager</button><button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>View public side story</button></div></div>}
 
     <section className="pdlpl-admin-layout">
       <form id="pdlpl-upload-chapter" className="pdlpl-admin-card pdlpl-form" onSubmit={saveChapter}>
@@ -496,7 +524,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       </form>
 
       <section className="pdlpl-admin-card">
-        <div className="pdlpl-admin-card-head"><div><span>CHAPTERS</span><h2>{chapters.length} total</h2></div></div>
+        <div className="pdlpl-admin-card-head"><div><span>CHAPTERS</span><h2>{chapters.length} total</h2><p>{chapters.filter(chapter => String(chapter.status).toLowerCase() === 'published').length} published · {chapters.filter(chapter => String(chapter.status).toLowerCase() === 'draft').length} drafts · {chapters.filter(chapter => String(chapter.status).toLowerCase() === 'archived').length} archived</p></div><div className="pdlpl-admin-list-tools"><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search chapters…" aria-label="Search PDPL chapters"/><button type="button" onClick={load} disabled={loading || busy}>Refresh</button></div></div>
         <div className="pdlpl-admin-list">
           {sorted.map(chapter => <article key={chapter.id} className={chapter.id === selectedId ? 'active' : ''}>
             <button type="button" onClick={() => setSelectedId(chapter.id)}>
@@ -506,6 +534,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
             </button>
             <div>
               <button type="button" onClick={() => edit(chapter)}>Edit</button>
+              {String(chapter.status).toLowerCase() !== 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Published')} disabled={busy || savingStatus === chapter.id}>Publish</button>}
+              {String(chapter.status).toLowerCase() === 'published' && <button type="button" onClick={() => setChapterStatus(chapter, 'Draft')} disabled={busy || savingStatus === chapter.id}>Unpublish</button>}
+              <button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`; }}>View</button>
               <button type="button" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button>
             </div>
           </article>)}
@@ -516,7 +547,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     {selectedChapter && <section className="pdlpl-admin-card pdlpl-page-manager">
       <div className="pdlpl-admin-card-head">
-        <div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete one page without re-uploading the whole chapter.</p></div>
+        <div><span>PAGE MANAGER</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Replace, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
       </div>
 
       {!selectedPages.length
