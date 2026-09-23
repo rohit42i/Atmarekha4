@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from './supabase';
+import { supabase, cloudflareR2 } from './supabase';
 import { buildChapters } from './chapters';
 import AdminOverview from './AdminOverview';
 import AdminChapterPages from './AdminChapterPages';
@@ -12,7 +12,7 @@ const MAX_PAGE_SIZE = 20 * 1024 * 1024;
 const PAGE_BUCKET = 'chapter-pages';
 const COVER_BUCKET = 'covers';
 
-const publicUrl = (bucket, path) => supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+const publicUrl = (bucket, path) => cloudflareR2.from(bucket).getPublicUrl(path).data.publicUrl;
 const pathFromUrl = (url, bucket) => {
   if (!url) return null;
   const marker = `/storage/v1/object/public/${bucket}/`;
@@ -31,8 +31,8 @@ async function requireAdmin() {
 async function removeFiles(bucket, paths) {
   const clean = paths.filter(Boolean);
   if (!clean.length) return;
-  const { error } = await supabase.storage.from(bucket).remove(clean);
-  if (error) throw new Error(`Storage cleanup failed: ${error.message}`);
+  const { error } = await cloudflareR2.from(bucket).remove(clean);
+  if (error) throw new Error(`Cloudflare R2 cleanup failed: ${error.message}`);
 }
 
 const emptyForm = () => ({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
@@ -103,7 +103,7 @@ export default function AdminPanel({ onLogout }) {
   };
 
   async function upload(bucket, file, path) {
-    const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
+    const { error } = await cloudflareR2.from(bucket).upload(path, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
     if (error) throw new Error(`Upload to ${bucket} failed: ${error.message}`);
     return publicUrl(bucket, path);
   }
