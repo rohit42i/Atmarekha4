@@ -84,3 +84,18 @@
  .membership-button{min-height:37px}
  .membership-free-note{margin-top:10px;padding:10px 2px}
 }
+
+/* Membership UI refinement v3 — visual/interaction only. */
+.membership-plan{will-change:transform;transform:translateZ(0);animation:membership-card-in .55s cubic-bezier(.22,1,.36,1) both}
+.membership-plan:nth-child(1){animation-delay:.02s}.membership-plan:nth-child(2){animation-delay:.08s}.membership-plan:nth-child(3){animation-delay:.14s}.membership-plan:nth-child(4){animation-delay:.20s}
+.membership-plan::before{display:none!important}
+.membership-plan::after{opacity:.55;transition:opacity .35s ease}.membership-plan:hover::after{opacity:1}
+.membership-plan:hover{transform:translate3d(0,-6px,0) scale(1.012)}
+.membership-plan:active{transform:translate3d(0,-1px,0) scale(.992);transition-duration:.08s}
+.membership-plan-icon{transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .25s ease}.membership-plan:hover .membership-plan-icon{transform:translateY(-2px) rotate(-3deg) scale(1.05)}
+.membership-button{transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease,background-color .25s ease,border-color .25s ease}.membership-button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.16)}
+.membership-plan.is-popular .membership-button:hover:not(:disabled){box-shadow:0 9px 26px rgba(217,70,239,.28)}
+.membership-plans{scroll-behavior:smooth;scrollbar-width:none}.membership-plans::-webkit-scrollbar{display:none}
+@media(max-width:620px){.membership-plans{touch-action:pan-x pan-y;scroll-snap-type:x mandatory;scroll-padding-inline:12px;overscroll-behavior-x:contain;padding-left:12px;padding-right:28px;gap:12px}.membership-plan{scroll-snap-align:start;scroll-snap-stop:always;animation-duration:.45s}.membership-plan:hover{transform:translate3d(0,-3px,0) scale(1.006)}.membership-plan:active{transform:scale(.992)}}
+@keyframes membership-card-in{from{opacity:0;transform:translate3d(0,18px,0) scale(.97)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.membership-plan{animation:none!important}.membership-plan,.membership-plan:hover,.membership-plan:active,.membership-plan-icon,.membership-button{transform:none!important;transition:none!important}}
