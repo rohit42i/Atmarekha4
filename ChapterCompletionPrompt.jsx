@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
+import { getRenderedChapterId, getSiteRoute, legacyChapterIdFromHash } from './routes';
 
-function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
+function routeNow() { return getSiteRoute(); }
 
 export default function ChapterCompletionPrompt() {
   const [route, setRoute] = useState(routeNow);
@@ -9,14 +10,15 @@ export default function ChapterCompletionPrompt() {
   const shown = useRef(new Set());
 
   useEffect(() => {
-    const onHash = () => setRoute(routeNow());
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const onLocation = () => setRoute(routeNow());
+    window.addEventListener('hashchange', onLocation);
+    window.addEventListener('popstate', onLocation);
+    return () => { window.removeEventListener('hashchange', onLocation); window.removeEventListener('popstate', onLocation); };
   }, []);
 
   useEffect(() => {
-    if (!route.startsWith('read-chapter/')) return undefined;
-    const chapterId = decodeURIComponent(route.slice('read-chapter/'.length));
+    if (!route.startsWith('chapter/') && !route.startsWith('read-chapter/')) return undefined;
+    const chapterId = getRenderedChapterId() || legacyChapterIdFromHash('#' + route);
     let active = true;
     const check = async () => {
       const reader = document.querySelector('.reader-page');
