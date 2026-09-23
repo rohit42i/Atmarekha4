@@ -717,6 +717,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     </section>}
   </section>;
 
+  if (embedded) return pageManager;
 
   return <Root className={rootClass}>
     {!embedded && <header className="pdlpl-admin-header">
