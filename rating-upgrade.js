@@ -4,11 +4,13 @@ import { getMyRating, submitRating, buildRatingSummary } from './engagement';
 let mounted = false;
 const chapterIdFromContext = button => {
   const row = button?.closest?.('.chapter-row');
-  const href = row?.querySelector?.('.chapter-row-main')?.getAttribute('href');
-  if (href?.includes('read-chapter/')) return decodeURIComponent(href.split('read-chapter/')[1]);
+  const rowId = row?.getAttribute('data-chapter-id');
+  if (rowId) return rowId;
+  const reader = button?.closest?.('.reader-page');
+  const readerId = reader?.getAttribute('data-chapter-id');
+  if (readerId) return readerId;
   const hash = location.hash || '';
-  if (hash.startsWith('#read-chapter/')) return decodeURIComponent(hash.slice('#read-chapter/'.length));
-  return null;
+  return hash.startsWith('#read-chapter/') ? decodeURIComponent(hash.slice('#read-chapter/'.length)) : null;
 };
 
 async function openRating(button) {
