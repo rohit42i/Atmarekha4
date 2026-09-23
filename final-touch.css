@@ -122,7 +122,6 @@ input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="
 textarea { resize: vertical; }
 
 @media (max-width: 900px) {
-  body { font-size: 15px; }
   main:has(.admin-header-card) > .mx-auto { padding-left: 12px !important; padding-right: 12px !important; }
   main:has(.admin-header-card) .admin-overview-stats { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
   main:has(.admin-header-card) .admin-overview-grid { grid-template-columns: 1fr !important; }
