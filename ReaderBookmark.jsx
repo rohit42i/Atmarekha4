@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from './supabase';
+import { getRenderedChapterId, legacyChapterIdFromHash } from './routes';
 
-function currentChapterId() { const route=window.location.hash.replace(/^#/,''); return route.startsWith('read-chapter/')?decodeURIComponent(route.slice('read-chapter/'.length)):null; }
+function currentChapterId() { return getRenderedChapterId() || legacyChapterIdFromHash(window.location.hash); }
+function currentLocationKey() { return `${window.location.pathname}${window.location.hash}`; }
 export default function ReaderBookmark() {
-  const [route,setRoute]=useState(()=>window.location.hash); const [user,setUser]=useState(null); const [saved,setSaved]=useState(false); const [busy,setBusy]=useState(false); const [error,setError]=useState('');
-  useEffect(()=>{const onHash=()=>setRoute(window.location.hash);window.addEventListener('hashchange',onHash);return()=>window.removeEventListener('hashchange',onHash);},[]);
+  const [route,setRoute]=useState(currentLocationKey); const [user,setUser]=useState(null); const [saved,setSaved]=useState(false); const [busy,setBusy]=useState(false); const [error,setError]=useState('');
+  useEffect(()=>{const onLocation=()=>setRoute(currentLocationKey());window.addEventListener('hashchange',onLocation);window.addEventListener('popstate',onLocation);return()=>{window.removeEventListener('hashchange',onLocation);window.removeEventListener('popstate',onLocation);};},[]);
   useEffect(()=>{let active=true;supabase.auth.getUser().then(({data})=>{if(active)setUser(data?.user||null);});const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>setUser(session?.user||null));return()=>{active=false;listener.subscription.unsubscribe();};},[]);
   const chapterId=currentChapterId();
   useEffect(()=>{let cancelled=false;setError('');if(!user||!chapterId){setSaved(false);return undefined;}supabase.from('bookmarks').select('id').eq('user_id',user.id).eq('chapter_id',chapterId).maybeSingle().then(({data,error})=>{if(cancelled)return;if(error)setError('Unable to load favourite status.');else setSaved(Boolean(data));});return()=>{cancelled=true;};},[user?.id,chapterId,route]);
