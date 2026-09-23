@@ -363,45 +363,203 @@ export default function AdminPanel({ onLogout }) {
     await setReportStatus(id, 'resolved');
   }
 
+  function editAnnouncement(item) {
+    setEditingAnnouncementId(item.id);
+    setAnnouncement({
+      title: item.title?.startsWith('__image_only_') ? '' : (item.title || ''),
+      content: item.content || '',
+      thumbnail: null,
+      is_pinned: Boolean(item.is_pinned),
+    });
+    setTab('Announcements');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelAnnouncementEdit() {
+    setEditingAnnouncementId(null);
+    setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false });
+  }
+
   async function saveAnnouncement(event) {
-    event.preventDefault(); setBusy(true); const uploadedPaths = [];
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    const uploadedPaths = [];
+    let adminUser = null;
+    let imageCommitted = false;
+
     try {
-      await requireAdmin();
-      const title = announcement.title.trim(); const content = announcement.content.trim();
+      adminUser = await requireAdmin();
+      const title = announcement.title.trim();
+      const content = announcement.content.trim();
       if (!title && !content && !announcement.thumbnail) throw new Error('Add a title, text, or thumbnail before publishing.');
-      let imageUrl = null;
+
+      const existing = editingAnnouncementId
+        ? announcements.find(item => item.id === editingAnnouncementId)
+        : null;
+
+      let imageUrl = existing?.image_url || null;
+      const oldImagePath = announcement.thumbnail ? pathFromUrl(existing?.image_url, COVER_BUCKET) : null;
+
       if (announcement.thumbnail) {
         const ext = announcement.thumbnail.name.split('.').pop()?.toLowerCase() || 'jpg';
         const safeName = announcement.thumbnail.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80);
-        const path = `announcements/${Date.now()}-${safeName || `thumbnail.${ext}`}`;
-        imageUrl = await upload(COVER_BUCKET, announcement.thumbnail, path); uploadedPaths.push({ bucket: COVER_BUCKET, path });
+        const path = 'announcements/' + Date.now() + '-' + (safeName || ('thumbnail.' + ext));
+        imageUrl = await upload(COVER_BUCKET, announcement.thumbnail, path);
+        uploadedPaths.push({ bucket: COVER_BUCKET, path });
       }
-      const storedTitle = title || `__image_only_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const { error } = await supabase.from('announcements').insert({ title: storedTitle, content: content || '', image_url: imageUrl, is_pinned: announcement.is_pinned, published_at: new Date().toISOString() });
-      if (error) throw error;
-      setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false }); await load(); setNotice({ type: 'success', text: 'Announcement published.' });
-    } catch (error) { for (const item of uploadedPaths) { try { await removeFiles(item.bucket, [item.path]); } catch (_) {} } setNotice({ type: 'error', text: error.message || 'Announcement publishing failed.' }); }
-    finally { setBusy(false); }
+
+      const storedTitle = title || (
+        existing?.title?.startsWith('__image_only_')
+          ? existing.title
+          : '__image_only_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+      );
+
+      if (existing) {
+        const { error } = await supabase.from('announcements').update({
+          title: storedTitle,
+          content: content || '',
+          image_url: imageUrl,
+          is_pinned: announcement.is_pinned,
+        }).eq('id', existing.id);
+        if (error) throw error;
+        imageCommitted = Boolean(announcement.thumbnail);
+
+        if (oldImagePath) {
+          try { await removeFiles(COVER_BUCKET, [oldImagePath]); }
+          catch (cleanupError) {
+            await logAdminAction(adminUser, 'r2_cleanup_failed', 'announcement', existing.id, {
+              bucket: COVER_BUCKET,
+              paths: [oldImagePath],
+              error: cleanupError.message,
+            });
+          }
+        }
+
+        await logAdminAction(adminUser, 'update_announcement', 'announcement', existing.id, {
+          title: storedTitle,
+          pinned: announcement.is_pinned,
+          image_changed: Boolean(announcement.thumbnail),
+        });
+      } else {
+        const { data, error } = await supabase.from('announcements').insert({
+          title: storedTitle,
+          content: content || '',
+          image_url: imageUrl,
+          is_pinned: announcement.is_pinned,
+          published_at: new Date().toISOString(),
+        }).select('id').single();
+        if (error) throw error;
+        imageCommitted = Boolean(announcement.thumbnail);
+        await logAdminAction(adminUser, 'create_announcement', 'announcement', data?.id || null, {
+          title: storedTitle,
+          pinned: announcement.is_pinned,
+          image_changed: Boolean(announcement.thumbnail),
+        });
+      }
+
+      cancelAnnouncementEdit();
+      await load();
+      setNotice({ type: 'success', text: existing ? 'Announcement updated.' : 'Announcement published.' });
+    } catch (error) {
+      for (const item of uploadedPaths) {
+        if (!imageCommitted) {
+          try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
+        }
+      }
+      await logAdminAction(adminUser, editingAnnouncementId ? 'update_announcement_failed' : 'create_announcement_failed', 'announcement', editingAnnouncementId || null, {
+        error: error.message,
+        r2_cleanup: error.r2Cleanup || null,
+      });
+      setNotice({ type: 'error', text: error.message || 'Announcement save failed.' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveMedia(event) {
-    event.preventDefault(); setBusy(true);
-    try { await requireAdmin(); if (!mediaForm.title.trim() || !mediaForm.image_url.trim() || !mediaForm.category.trim()) throw new Error('Title, image URL, and category are required.'); const { error } = await supabase.from('media').insert({ title: mediaForm.title.trim(), image_url: mediaForm.image_url.trim(), category: mediaForm.category.trim() }); if (error) throw error; setMediaForm({ title: '', image_url: '', category: '' }); await load(); setNotice({ type: 'success', text: 'Media added.' }); }
-    catch (error) { setNotice({ type: 'error', text: error.message || 'Media save failed.' }); } finally { setBusy(false); }
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      if (!mediaForm.title.trim() || !mediaForm.image_url.trim() || !mediaForm.category.trim()) {
+        throw new Error('Title, image URL, and category are required.');
+      }
+      const { data, error } = await supabase.from('media').insert({
+        title: mediaForm.title.trim(),
+        image_url: mediaForm.image_url.trim(),
+        category: mediaForm.category.trim(),
+      }).select('id').single();
+      if (error) throw error;
+      await logAdminAction(adminUser, 'create_media', 'media', data?.id || null, { title: mediaForm.title.trim(), category: mediaForm.category.trim() });
+      setMediaForm({ title: '', image_url: '', category: '' });
+      await load();
+      setNotice({ type: 'success', text: 'Media added.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'create_media_failed', 'media', null, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Media save failed.' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function deleteAnnouncement(item) {
     if (!window.confirm('Delete this announcement permanently?')) return;
     setBusy(true);
-    try { await requireAdmin(); const { error } = await supabase.from('announcements').delete().eq('id', item.id); if (error) throw error; await load(); setNotice({ type: 'success', text: 'Announcement deleted.' }); }
-    catch (error) { setNotice({ type: 'error', text: error.message || 'Announcement delete failed.' }); } finally { setBusy(false); }
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const { error } = await supabase.from('announcements').delete().eq('id', item.id);
+      if (error) throw error;
+
+      const oldImagePath = pathFromUrl(item.image_url, COVER_BUCKET);
+      let cleanupPending = false;
+      if (oldImagePath) {
+        try { await removeFiles(COVER_BUCKET, [oldImagePath]); }
+        catch (cleanupError) {
+          cleanupPending = true;
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'announcement', item.id, {
+            bucket: COVER_BUCKET,
+            paths: [oldImagePath],
+            error: cleanupError.message,
+          });
+        }
+      }
+
+      await logAdminAction(adminUser, 'delete_announcement', 'announcement', item.id, { cleanup_pending: cleanupPending });
+      if (editingAnnouncementId === item.id) cancelAnnouncementEdit();
+      await load();
+      setNotice({
+        type: 'success',
+        text: cleanupPending ? 'Announcement deleted. Image cleanup is pending in Operations.' : 'Announcement deleted.',
+      });
+    } catch (error) {
+      await logAdminAction(adminUser, 'delete_announcement_failed', 'announcement', item.id, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Announcement delete failed.' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function deleteMedia(id) {
     if (!window.confirm('Delete this media item permanently?')) return;
     setBusy(true);
-    try { await requireAdmin(); const { error } = await supabase.from('media').delete().eq('id', id); if (error) throw error; await load(); setNotice({ type: 'success', text: 'Media deleted.' }); }
-    catch (error) { setNotice({ type: 'error', text: error.message || 'Media delete failed.' }); } finally { setBusy(false); }
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const { error } = await supabase.from('media').delete().eq('id', id);
+      if (error) throw error;
+      await logAdminAction(adminUser, 'delete_media', 'media', id);
+      await load();
+      setNotice({ type: 'success', text: 'Media deleted.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'delete_media_failed', 'media', id, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Media delete failed.' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
@@ -409,7 +567,7 @@ export default function AdminPanel({ onLogout }) {
   const tabs = ['Overview', 'Chapters', 'Pal Do Pal Ke Lamhe', 'Pages', 'Comments', 'Reports', 'Announcements', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
-  const reportCount = reports.length;
+  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
 
   return <main className="admin-page min-h-screen bg-zinc-950 text-[var(--text-color)]" data-admin-root="true"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
     <header className="admin-header-card"><div><p className="text-xs font-black tracking-[0.25em] text-blue-400">REKHA · PUBLISHER</p><h1 className="mt-1 text-3xl font-black tracking-tight">Admin Dashboard</h1><p className="mt-1 text-sm text-zinc-500">{email || 'Admin'} · Supabase protected</p></div><div className="flex flex-wrap gap-2"><button onClick={() => { setTab('Chapters'); resetForm(); }} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black shadow-lg shadow-blue-900/20">+ Atma Rekha chapter</button><button onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">+ PDPL chapter</button><button onClick={load} disabled={busy} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">Refresh</button><button onClick={logout} className="rounded-xl bg-zinc-800 px-4 py-2.5 text-sm font-bold">Sign out</button></div></header>
