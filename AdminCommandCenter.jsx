@@ -25,9 +25,9 @@ export default function AdminCommandCenter(){
   useEffect(()=>{let alive=true;const check=async()=>{try{await verifyAdmin();if(alive)setIsAdmin(true)}catch{if(alive)setIsAdmin(false)}};check();const {data:l}=supabase.auth.onAuthStateChange(check);return()=>{alive=false;l?.subscription?.unsubscribe()}},[]);
   useEffect(()=>{if(!isAdmin)return;const attach=()=>{const el=document.querySelector('.admin-tabs');if(el){setNav(el);return true}return false};if(attach())return;const o=new MutationObserver(attach);o.observe(document.body,{childList:true,subtree:true});return()=>o.disconnect()},[isAdmin]);
   const load=async()=>{if(!isAdmin)return;setLoading(true);setNotice('');try{await verifyAdmin();const [readers,newReaders,chapters,comments,community,reports]=await Promise.all([
-    count('profiles'),count('profiles',q=>q.gte('created_at',since(range))),count('chapters',q=>q.eq('status','Published')),count('comments'),count('community_posts'),count('moderation_reports',q=>q.eq('status','open'))]);
+    count('profiles'),count('profiles',q=>q.gte('created_at',since(range))),count('chapters',q=>q.ilike('status','published')),count('comments'),count('community_posts'),count('moderation_reports',q=>q.eq('status','open'))]);
     const [c,p,co,r]=await Promise.all([
-      supabase.from('chapters').select('chapter_number,title,status,release_date,created_at').eq('status','Published').order('release_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false}).limit(8),
+      supabase.from('chapters').select('chapter_number,title,status,release_date,created_at').ilike('status','published').order('release_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false}).limit(8),
       supabase.from('community_posts').select('title,created_at,published_at').order('published_at',{ascending:false}).limit(8),
       supabase.from('comments').select('author_name,content,created_at').order('created_at',{ascending:false}).limit(8),
       supabase.from('moderation_reports').select('reason,created_at,status').order('created_at',{ascending:false}).limit(8)]);
