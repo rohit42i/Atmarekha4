@@ -328,7 +328,11 @@ export default function PalDoPalAdmin({ embedded = false }) {
           try {
             await removePdlplFiles(oldPagePaths);
           } catch (cleanupError) {
-            console.warn('Old PDPL page cleanup:', cleanupError);
+            await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_chapter_pages', chapterId, {
+              provider: 'pdpl',
+              paths: oldPagePaths,
+              error: cleanupError.message,
+            });
           }
         }
       }
@@ -345,7 +349,11 @@ export default function PalDoPalAdmin({ embedded = false }) {
           try {
             await removePdlplFiles([oldCoverPath]);
           } catch (cleanupError) {
-            console.warn('Old PDPL cover cleanup:', cleanupError);
+            await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_cover', chapterId, {
+              provider: 'pdpl',
+              paths: [oldCoverPath],
+              error: cleanupError.message,
+            });
           }
         }
       }
@@ -399,14 +407,20 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
   const deleteChapter = async chapter => {
-    if (busy || !window.confirm(`Delete ${label(chapter)} and all its pages and cover?`)) return;
+    if (busy || !window.confirm('Delete ' + label(chapter) + ' and all its pages and cover?')) return;
     setBusy(true);
     setNotice('');
+    let adminUser = null;
 
     try {
-      const [pagesResult] = await Promise.all([
-        supabase.from(PDLPL_PAGES).select('image_path').eq('chapter_id', chapter.id),
-      ]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
+      adminUser = user;
+
+      const pagesResult = await supabase
+        .from(PDLPL_PAGES)
+        .select('image_path')
+        .eq('chapter_id', chapter.id);
       if (pagesResult.error) throw pagesResult.error;
 
       const { error } = await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapter.id);
@@ -414,20 +428,43 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       const paths = (pagesResult.data || []).map(row => row.image_path).filter(Boolean);
       if (chapter.coverPath) paths.push(chapter.coverPath);
-      try { await removePdlplFiles(paths); } catch (cleanupError) { console.warn('PDPL delete cleanup:', cleanupError); }
+
+      let cleanupPending = false;
+      if (paths.length) {
+        try {
+          await removePdlplFiles(paths);
+        } catch (cleanupError) {
+          cleanupPending = true;
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_chapter', chapter.id, {
+            provider: 'pdpl',
+            paths,
+            error: cleanupError.message,
+          });
+        }
+      }
+
+      await logAdminAction(adminUser, 'delete_pdlpl_chapter', 'pdlpl_chapter', chapter.id, {
+        chapter_number: chapter.chapterNumber,
+        title: chapter.title,
+        cleanup_pending: cleanupPending,
+      });
 
       if (selectedId === chapter.id) {
         setSelectedId('');
         setSelectedPages([]);
       }
       await load();
-      setNotice(`${label(chapter)} deleted.`);
+      setNotice(cleanupPending
+        ? label(chapter) + ' deleted. Some R2 files need cleanup retry in Operations.'
+        : label(chapter) + ' deleted.');
     } catch (error) {
+      await logAdminAction(adminUser, 'delete_pdlpl_chapter_failed', 'pdlpl_chapter', chapter.id, { error: error.message });
       setNotice(error?.message || 'Delete failed.');
     } finally {
       setBusy(false);
     }
   };
+
 
   const replacePage = async (page, file) => {
     if (!file || busy) return;
