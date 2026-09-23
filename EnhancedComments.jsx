@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, getPublicReaderTiers } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { fetchChapterComments, fetchCommentLikes, likeComment, unlikeComment, reportComment, addComment } from './engagement';
+import { getRenderedChapterId, legacyChapterIdFromHash } from './routes';
 
 const ago = value => { const d = Math.max(0, Date.now() - new Date(value).getTime()); const m = Math.floor(d / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m`; const h = Math.floor(m / 60); if (h < 24) return `${h}h`; const days = Math.floor(h / 24); if (days < 30) return `${days}d`; if (days < 365) return `${Math.floor(days / 30)}mo`; return `${Math.floor(days / 365)}y`; };
 const profileLabel = p => p?.username || 'reader';
 const friendlyError = (error, fallback = 'Something went wrong. Please try again.') => { const raw = String(error?.message || error || '').toLowerCase(); if (!raw || raw.includes('jwt') || raw.includes('auth') || raw.includes('permission denied') || raw.includes('row-level security') || raw.includes('rls') || raw.includes('profiles') || raw.includes('not authenticated') || raw.includes('unauthorized')) { if (raw.includes('auth') || raw.includes('jwt') || raw.includes('not authenticated') || raw.includes('unauthorized') || raw.includes('permission denied')) return 'Please log in to do this action.'; return fallback; } return fallback; };
-function getChapterId(button) { const row = button?.closest?.('.chapter-row'); const href = row?.querySelector?.('.chapter-row-main')?.getAttribute('href'); if (href?.includes('read-chapter/')) return decodeURIComponent(href.split('read-chapter/')[1]); const hash = window.location.hash || ''; if (hash.includes('read-chapter/')) return decodeURIComponent(hash.split('read-chapter/')[1].split('/')[0]); return null; }
+function getChapterId(button) { const row = button?.closest?.('.chapter-row'); const rowId = row?.getAttribute('data-chapter-id'); if (rowId) return rowId; const readerId = getRenderedChapterId(); if (readerId) return readerId; return legacyChapterIdFromHash(window.location.hash); }
 
 export default function EnhancedComments() {
   const [open,setOpen]=useState(false),[chapterId,setChapterId]=useState(null),[comments,setComments]=useState([]),[profiles,setProfiles]=useState({}),[membershipPlans,setMembershipPlans]=useState(new Map()),[likes,setLikes]=useState({counts:{},liked:{}}),[user,setUser]=useState(null),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[text,setText]=useState(''),[replyTo,setReplyTo]=useState(null),[preview,setPreview]=useState(null),[copied,setCopied]=useState(null),[reporting,setReporting]=useState(null);
