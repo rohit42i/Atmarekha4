@@ -674,6 +674,41 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
   const selectedChapter = chapters.find(item => item.id === selectedId) || null;
 
+  const pageManager = <section className="admin-stack">
+    <section className="admin-card">
+      <div className="admin-card-title">
+        <div>
+          <span>PAGE MANAGER</span>
+          <h2>Manage individual pages</h2>
+          <p>Replace, retry, reorder, or delete a single page without re-uploading the chapter. A failed replacement keeps the old page intact and keeps the selected file ready for retry.</p>
+        </div>
+      </div>
+      <select value={selectedId} onChange={event => setSelectedId(event.target.value)} className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3">
+        {!chapters.length && <option value="">No chapters available</option>}
+        {chapters.map(chapter => <option key={chapter.id} value={chapter.id}>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'} — {chapter.title || 'Untitled'}</option>)}
+      </select>
+      {selectedChapter && <p className="mt-3 text-sm text-zinc-500">{selectedPages.length} page{selectedPages.length === 1 ? '' : 's'} · changes apply directly to the selected chapter.</p>}
+    </section>
+    {notice && <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 text-sm">{notice}</div>}
+    {loading ? <div className="admin-loading">Loading pages…</div> : !selectedPages.length ? <section className="admin-card"><p className="muted center">This chapter has no readable pages yet.</p></section> : <section className="admin-card">
+      <div className="admin-page-manager-grid">
+        {selectedPages.map((page, index) => <article key={page.id} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-3">
+          <div className="mb-3 flex items-center justify-between"><strong>Page {page.page_number}</strong><span className="text-xs text-zinc-500">{index + 1}/{selectedPages.length}</span></div>
+          <PagePreview path={page.image_path} />
+          <div className="flex flex-wrap gap-2">
+            <label className="cursor-pointer rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold">Replace<input type="file" accept="image/*" className="hidden" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; replacePage(page, file); }}/></label>
+            <button type="button" onClick={() => reorder(index, -1)} disabled={busy || index === 0} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm font-bold">↑</button>
+            <button type="button" onClick={() => reorder(index, 1)} disabled={busy || index === selectedPages.length - 1} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm font-bold">↓</button>
+            <button type="button" onClick={() => deletePage(page)} disabled={busy} className="rounded-xl border border-rose-900 px-3 py-2 text-sm font-bold text-rose-300">Delete</button>
+          </div>
+          {busy && <p className="mt-2 text-xs text-zinc-500">Working…</p>}
+        </article>)}
+      </div>
+    </section>}
+  </section>;
+
+  if (embedded) return pageManager;
+
   return <Root className={rootClass}>
     {!embedded && <header className="pdlpl-admin-header">
       <div>
