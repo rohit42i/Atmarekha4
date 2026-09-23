@@ -168,7 +168,11 @@ export async function likeChapter(chapterId) {
 }
 
 export async function likeComment(commentId) {
-  const { error } = await supabase.from('comment_likes').upsert({ comment_id: commentId, viewer_key: getViewerKey() }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
+  const user = await requireUser();
+  const { error } = await supabase.from('comment_likes').upsert(
+    { comment_id: commentId, viewer_key: getViewerKey(), user_id: user.id },
+    { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true }
+  );
   if (error) throw error;
   const likedIds = getLikedCommentIds();
   likedIds.add(String(commentId));
@@ -176,7 +180,11 @@ export async function likeComment(commentId) {
 }
 
 export async function unlikeComment(commentId) {
-  const { error } = await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('viewer_key', getViewerKey());
+  const user = await requireUser();
+  const { error } = await supabase.from('comment_likes')
+    .delete()
+    .eq('comment_id', commentId)
+    .eq('user_id', user.id);
   if (error) throw error;
   const likedIds = getLikedCommentIds();
   likedIds.delete(String(commentId));
