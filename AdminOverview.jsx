@@ -104,8 +104,6 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
     };
   }, [analytics, comments]);
 
-  const maxRatingCount
-
   const maxRatingCount = Math.max(...metrics.ratingCounts.map(item => item.count), 1);
   const periodLabel = days == null ? 'All time' : `Last ${days} days`;
 
