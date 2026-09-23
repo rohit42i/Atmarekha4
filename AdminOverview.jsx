@@ -122,6 +122,9 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       likesDelta: pct(currentLikes, previousLikes),
       commentsDelta: pct(currentComments, previousComments),
       averageDelta: null,
+      currentRatings: Number(data.current_ratings || 0),
+      currentComments: Number(data.current_comments || 0),
+      currentLikes,
       released: Number(data.released || 0),
       ratingCounts,
       chapterStats,
@@ -132,7 +135,7 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
   }, [analytics, comments]);
 
   const maxRatingCount = Math.max(...metrics.ratingCounts.map(item => item.count), 1);
-  const periodLabel = days == null ? 'All time' : `Last ${days} days`;
+  const periodLabel = days == null ? 'All time' : days === 1 ? 'Last 24 hours' : `Last ${days} days`;
 
   return <section className="admin-overview">
     <div className="admin-overview-toolbar"><div><span className="admin-overview-kicker">ATMA REKHA · ANALYTICS</span><h2>Dashboard</h2><p>Welcome back, Admin 👋</p></div><label className="admin-period-control"><span>ANALYTICS PERIOD</span><select value={windowKey} onChange={e => setWindowKey(e.target.value)} aria-label="Analytics time range"><option value="7">Last 7 Days</option><option value="30">Last 30 Days</option><option value="90">Last 90 Days</option><option value="all">All Time</option></select></label></div>
@@ -140,7 +143,7 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
       <StatCard label="Total Chapters" value={chapters.length} note={`${metrics.released} released in ${periodLabel.toLowerCase()}`} accent />
       <StatCard label="Total Views" value={compactNumber(metrics.totalViews)} delta={metrics.viewsDelta} />
       <StatCard label="Total Likes" value={compactNumber(metrics.totalLikes)} delta={metrics.likesDelta} />
-      <StatCard label="Avg Rating" value={metrics.totalAverage ? `${metrics.totalAverage.toFixed(2)} / 10` : '—'} note={metrics.averageDelta == null ? `${formatNumber(metrics.totalRatings)} ratings` : `${metrics.averageDelta >= 0 ? '+' : ''}${metrics.averageDelta.toFixed(2)} vs previous`} />
+      <StatCard label="Avg Rating" value={metrics.totalAverage ? `${metrics.totalAverage.toFixed(2)} / 10` : '—'} note={`${formatNumber(metrics.totalRatings)} ratings · all time`} />
       <StatCard label="Total Comments" value={compactNumber(metrics.totalComments)} delta={metrics.commentsDelta} />
       <StatCard label="Logged-in Users" value={compactNumber(userStats.logged_in_users)} note="Registered accounts" />
       <StatCard label="Notifications On" value={compactNumber(userStats.notification_subscriptions)} note="Total push subscriptions" />
@@ -156,10 +159,10 @@ export default function AdminOverview({ chapters, comments, ratings, views, like
         <article><span>New Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>Comments and replies in the last 24 hours</small></article>
       </div>
     </section>
-    <div className="admin-overview-period-summary"><span><b>{periodLabel}</b> activity</span><span>👁 {formatNumber(metrics.currentViews)} views</span><span>♥ {formatNumber(metrics.currentLikes)} likes</span><span>★ {formatNumber(metrics.totalRatings)} ratings</span><span>💬 {formatNumber(metrics.totalComments)} comments</span></div>
+    <div className="admin-overview-period-summary"><span><b>{periodLabel}</b> activity</span><span>👁 {formatNumber(metrics.currentViews)} views</span><span>♥ {formatNumber(metrics.currentLikes)} likes</span><span>★ {formatNumber(metrics.currentRatings)} ratings</span><span>💬 {formatNumber(metrics.currentComments)} comments</span></div>
     <div className="admin-overview-grid">
       <section className="admin-overview-card comments-card"><div className="admin-overview-card-head"><div><span>COMMUNITY</span><h3>Recent Comments</h3></div><button type="button" onClick={() => onTab('Comments')}>View all →</button></div><div className="admin-overview-comments">{metrics.recentComments.map(comment => <article key={comment.id}><div className="admin-overview-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-overview-comment-top"><strong>{comment.author_name || 'Reader'}<SubscriberBadge planId={membershipPlans.get(comment.user_id)} /></strong><time>{new Date(comment.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</time></div><p>{comment.content}</p><small>{chapterName(comment.chapter_id)}</small><button type="button" className="admin-comment-open" onClick={() => onTab('Comments')}>Open comment →</button></div></article>)}{!metrics.recentComments.length && <p className="admin-overview-empty">No comments yet.</p>}</div></section>
-      <section className="admin-overview-card rating-card"><div className="admin-overview-card-head"><div><span>RATING OVERVIEW</span><h3>{metrics.totalAverage ? metrics.totalAverage.toFixed(2) : '—'} <em>/10</em></h3></div><span className="admin-card-count">{formatNumber(metrics.totalRatings)} ratings</span></div><div className="admin-overview-stars">★★★★★ <span>Overall rating · {periodLabel}</span></div><div className="admin-rating-bars">{metrics.ratingCounts.map(item => <div key={item.rating}><b>{item.rating} ★</b><i><span style={{ width: `${item.count / maxRatingCount * 100}%` }} /></i><small>{metrics.totalRatings ? Math.round(item.count / metrics.totalRatings * 100) : 0}%</small></div>)}</div></section>
+      <section className="admin-overview-card rating-card"><div className="admin-overview-card-head"><div><span>RATING OVERVIEW</span><h3>{metrics.totalAverage ? metrics.totalAverage.toFixed(2) : '—'} <em>/10</em></h3></div><span className="admin-card-count">{formatNumber(metrics.totalRatings)} ratings</span></div><div className="admin-overview-stars">★★★★★ <span>Overall rating · all time</span></div><div className="admin-rating-bars">{metrics.ratingCounts.map(item => <div key={item.rating}><b>{item.rating} ★</b><i><span style={{ width: `${item.count / maxRatingCount * 100}%` }} /></i><small>{metrics.totalRatings ? Math.round(item.count / metrics.totalRatings * 100) : 0}%</small></div>)}</div></section>
       <section className="admin-overview-card top-chapters-card"><div className="admin-overview-card-head"><div><span>TOP CHAPTERS · BY VIEWS</span><h3>Best performing</h3></div><button type="button" onClick={() => onTab('Chapters')}>View all →</button></div><div className="admin-top-chapters">{metrics.chapterStats.slice(0, 5).map((chapter, index) => { const avg = Number(chapter.ratingAverage || 0); return <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}><b>{index + 1}.</b><div><strong>Chapter {chapter.chapterNumber} — {chapter.title}</strong><span>{formatNumber(chapter.views)} views · ♥ {formatNumber(chapter.likes)} · ★ {avg ? avg.toFixed(1) : '—'}</span></div><i>›</i></button>; })}{!metrics.chapterStats.length && <p className="admin-overview-empty">No published chapters yet.</p>}</div></section>
     </div>
     <section className="admin-overview-card admin-chapter-views-card">
