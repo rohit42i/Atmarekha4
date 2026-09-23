@@ -18,11 +18,12 @@ export default function ChapterCompletionPrompt() {
 
   useEffect(() => {
     if (!route.startsWith('chapter/') && !route.startsWith('read-chapter/')) return undefined;
-    const chapterId = getRenderedChapterId() || legacyChapterIdFromHash('#' + route);
     let active = true;
     const check = async () => {
       const reader = document.querySelector('.reader-page');
       if (!reader) return;
+      const chapterId = reader.getAttribute('data-chapter-id') || getRenderedChapterId() || legacyChapterIdFromHash('#' + route);
+      if (!chapterId) return;
       const counter = Array.from(reader.querySelectorAll('span')).find(node => /^Page\s+\d+$/i.test(node.textContent.trim()));
       const totalNode = Array.from(reader.querySelectorAll('span')).find(node => /^of\s+\d+$/i.test(node.textContent.trim()));
       if (!counter || !totalNode) return;
