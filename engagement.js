@@ -182,12 +182,17 @@ export async function likeComment(commentId) {
 
 export async function unlikeComment(commentId) {
   const user = await requireUser();
-  const viewerKey = getViewerKey();
-  const { error } = await supabase.from('comment_likes')
+  const { error: ownError } = await supabase.from('comment_likes')
     .delete()
     .eq('comment_id', commentId)
-    .or('user_id.eq.' + user.id + ',viewer_key.eq.' + viewerKey);
-  if (error) throw error;
+    .eq('user_id', user.id);
+  if (ownError) throw ownError;
+  const { error: legacyError } = await supabase.from('comment_likes')
+    .delete()
+    .eq('comment_id', commentId)
+    .is('user_id', null)
+    .eq('viewer_key', getViewerKey());
+  if (legacyError) throw legacyError;
   const likedIds = getLikedCommentIds();
   likedIds.delete(String(commentId));
   saveLikedCommentIds(likedIds);
