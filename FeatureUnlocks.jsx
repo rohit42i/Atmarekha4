@@ -20,13 +20,20 @@ async function readFeatureFlags() {
 
 async function recordLoginOncePerUser() {
   const { data: sessionData } = await supabase.auth.getSession();
-  if (!sessionData?.session?.user) return null;
-  const { data, error } = await supabase.rpc('record_feature_login');
-  if (error) {
+  const user = sessionData?.session?.user;
+  if (!user) return null;
+
+  const { error } = await supabase
+    .from('feature_login_users')
+    .insert({ user_id: user.id });
+
+  // A duplicate means this user was already counted, which is expected.
+  if (error && error.code !== '23505') {
     console.warn('Feature login tracking failed:', error);
     return null;
   }
-  return data || null;
+
+  return await readFeatureFlags();
 }
 
 function GroupChatLauncherGate() {
