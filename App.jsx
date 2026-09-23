@@ -12,7 +12,7 @@ import { getAdminRole } from './adminAuth';
 import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterView, reportComment, submitRating } from './engagement';
 
-const STORY = { title: 'Atma Rekha', eyebrow: 'INDIAN MANGA', description: 'Atma Rekha is an Indian adventure manga/comic where random dreams, imaginations, stories, ancient lore, spiritual traditions, and forgotten histories come to life.' };
+const STORY = { title: 'Atma Rekha', eyebrow: 'INDIAN MANGA', description: 'Read Atma Rekha, an Indian mythical fantasy manga about ancient traditions, mysterious powers and mythical beings.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Mythical Fantasy Manga';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian mythical fantasy manga about ancient traditions, mysterious powers and mythical beings.';
@@ -42,7 +42,7 @@ function upsertCanonical(href) {
 
 function upsertJsonLd(data) {
   if (typeof document === 'undefined') return;
-  let script = document.getElementById('atma-rekha-seo-schema');
+  let script = document.getElementById('atma-rekha-site-schema');
   if (!script) {
     script = document.createElement('script');
     script.id = 'atma-rekha-seo-schema';
@@ -161,6 +161,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       {
         '@type': 'WebSite',
         '@id': SITE_URL + '/#website',
+        sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
         name: 'Atma Rekha',
         url: SITE_URL + '/',
         description: DEFAULT_SEO_DESCRIPTION,
