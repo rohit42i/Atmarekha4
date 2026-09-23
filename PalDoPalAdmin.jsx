@@ -128,7 +128,11 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setRole(adminRole);
       setChapters(rows);
       setPageCounts(counts);
-      if (!selectedId && rows[0]?.id) setSelectedId(rows[0].id);
+      const nextSelectedId = selectedId && rows.some(row => row.id === selectedId)
+        ? selectedId
+        : (rows[0]?.id || '');
+      setSelectedId(nextSelectedId);
+      if (!nextSelectedId) setSelectedPages([]);
     } catch (error) {
       setRole(null);
       setNotice(error?.message || 'Unable to load side story admin.');
@@ -204,6 +208,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         p_pages: uploaded.map(image_path => ({ image_path })),
       });
       if (error) throw error;
+      databaseCommitted = true;
 
       await Promise.all([loadPages(selectedChapter.id), load()]);
       const { data: { user } } = await supabase.auth.getUser();
