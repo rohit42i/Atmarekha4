@@ -2,9 +2,6 @@
 -- Page mutations remain SECURITY INVOKER and explicitly require an admin.
 -- The UI uses these operations for append, single-page replacement, reorder, and deletion.
 
-create unique index if not exists pdlpl_chapter_pages_chapter_page_number_uidx
-on public.pal_do_pal_ke_lamhe_chapter_pages (chapter_id, page_number);
-
 create or replace function public.pdlpl_replace_chapter_pages(
   p_chapter_id uuid,
   p_pages jsonb
