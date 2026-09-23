@@ -270,33 +270,97 @@ export default function AdminPanel({ onLogout }) {
   };
 
   async function deleteChapter(chapter) {
-    if (!window.confirm(`Delete ${chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'this unnumbered entry'} permanently?`)) return;
+    if (!window.confirm('Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently?')) return;
     setBusy(true);
+    let adminUser = null;
     try {
-      await requireAdmin();
+      adminUser = await requireAdmin();
       const pages = await supabase.from(PAGES).select('image_url').eq('chapter_id', chapter.id);
-      if (pages.error) throw new Error(`Could not read chapter pages: ${pages.error.message}`);
+      if (pages.error) throw new Error('Could not read chapter pages: ' + pages.error.message);
       const pagePaths = (pages.data || []).map(row => pathFromUrl(row.image_url, PAGE_BUCKET)).filter(Boolean);
       const coverPath = pathFromUrl(chapter.cover, COVER_BUCKET);
       const deleted = await supabase.from(CHAPTERS).delete().eq('id', chapter.id);
-      if (deleted.error) throw new Error(`Chapter delete failed: ${deleted.error.message}`);
-      await removeFiles(PAGE_BUCKET, pagePaths); if (coverPath) await removeFiles(COVER_BUCKET, [coverPath]);
-      if (editing?.id === chapter.id) resetForm(); await load(); setNotice({ type: 'success', text: `${chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered entry'} deleted.` });
-    } catch (error) { setNotice({ type: 'error', text: error.message || 'Delete failed.' }); }
-    finally { setBusy(false); }
+      if (deleted.error) throw new Error('Chapter delete failed: ' + deleted.error.message);
+
+      const cleanupFailures = [];
+      if (pagePaths.length) {
+        try { await removeFiles(PAGE_BUCKET, pagePaths); }
+        catch (error) { cleanupFailures.push({ bucket: PAGE_BUCKET, paths: pagePaths, error: error.message }); }
+      }
+      if (coverPath) {
+        try { await removeFiles(COVER_BUCKET, [coverPath]); }
+        catch (error) { cleanupFailures.push({ bucket: COVER_BUCKET, paths: [coverPath], error: error.message }); }
+      }
+      for (const failure of cleanupFailures) {
+        await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter', chapter.id, failure);
+      }
+      await logAdminAction(adminUser, 'delete_chapter', 'chapter', chapter.id, {
+        chapter_number: chapter.chapterNumber,
+        title: chapter.title,
+        cleanup_pending: cleanupFailures.length > 0,
+      });
+
+      if (editing?.id === chapter.id) resetForm();
+      await load();
+      setNotice({
+        type: 'success',
+        text: cleanupFailures.length
+          ? 'Chapter deleted. Some old R2 files need cleanup retry in Operations.'
+          : (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'Unnumbered entry') + ' deleted.',
+      });
+    } catch (error) {
+      await logAdminAction(adminUser, 'delete_chapter_failed', 'chapter', chapter.id, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Delete failed.' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function deleteComment(id) {
     if (!window.confirm('Delete this comment and its replies?')) return;
     setBusy(true);
-    try { await requireAdmin(); const { error } = await supabase.from('comments').delete().eq('id', id); if (error) throw error; await load(); }
-    catch (error) { setNotice({ type: 'error', text: error.message }); } finally { setBusy(false); }
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const { error } = await supabase.from('comments').delete().eq('id', id);
+      if (error) throw error;
+      await logAdminAction(adminUser, 'delete_comment', 'comment', id);
+      await load();
+      setNotice({ type: 'success', text: 'Comment deleted.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'delete_comment_failed', 'comment', id, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Comment deletion failed.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function setReportStatus(id, status) {
+    if (busy) return;
+    setBusy(true);
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const patch = {
+        status,
+        reviewed_at: status === 'open' ? null : new Date().toISOString(),
+        reviewed_by: status === 'open' ? null : adminUser.id,
+      };
+      const { error } = await supabase.from('comment_reports').update(patch).eq('id', id);
+      if (error) throw error;
+      await logAdminAction(adminUser, 'report_' + status, 'comment_report', id, patch);
+      await load();
+      setNotice({ type: 'success', text: 'Report marked ' + status + '.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'report_status_failed', 'comment_report', id, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Report update failed.' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function clearReport(id) {
-    setBusy(true);
-    try { await requireAdmin(); const { error } = await supabase.from('comment_reports').delete().eq('id', id); if (error) throw error; await load(); }
-    catch (error) { setNotice({ type: 'error', text: error.message }); } finally { setBusy(false); }
+    await setReportStatus(id, 'resolved');
   }
 
   async function saveAnnouncement(event) {
