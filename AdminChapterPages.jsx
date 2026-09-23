@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabase';
+import { supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 
 const PAGES = 'chapter_pages';
 const BUCKET = 'chapter-pages';
 const MAX_PAGE_SIZE = 20 * 1024 * 1024;
 
-const publicUrl = path => supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+const publicUrl = path => cloudflareR2.from(BUCKET).getPublicUrl(path).data.publicUrl;
 const pathFromUrl = url => {
   if (!url) return null;
   const marker = `/storage/v1/object/public/${BUCKET}/`;
@@ -52,18 +52,18 @@ export default function AdminChapterPages({ chapters }) {
       adminUser = await requireAdmin();
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       newPath = `${page.chapter_id}/replacements/${page.id}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(newPath, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
+      const { error: uploadError } = await cloudflareR2.from(BUCKET).upload(newPath, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
       if (uploadError) throw uploadError;
       const nextUrl = publicUrl(newPath);
       const { error: updateError } = await supabase.from(PAGES).update({ image_url: nextUrl }).eq('id', page.id);
       if (updateError) throw updateError;
-      const oldPath = pathFromUrl(page.image_url); if (oldPath) await supabase.storage.from(BUCKET).remove([oldPath]);
+      const oldPath = pathFromUrl(page.image_url); if (oldPath) await cloudflareR2.from(BUCKET).remove([oldPath]);
       setPages(current => current.map(item => item.id === page.id ? { ...item, image_url: nextUrl } : item));
       setRetryFiles(current => { const next = { ...current }; delete next[page.id]; return next; });
       await supabase.from('admin_activity_log').insert({ admin_user_id: adminUser.id, action: 'replace_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name } });
       setNotice(`Page ${page.page_number} replaced successfully.`);
     } catch (error) {
-      if (newPath) await supabase.storage.from(BUCKET).remove([newPath]);
+      if (newPath) await cloudflareR2.from(BUCKET).remove([newPath]);
       setRetryFiles(current => ({ ...current, [page.id]: file }));
       if (adminUser) await supabase.from('admin_activity_log').insert({ admin_user_id: adminUser.id, action: 'replace_chapter_page_failed', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name, error: error.message } });
       setNotice(error.message || 'Page replacement failed. The old page was kept. You can retry the same file.');
@@ -81,7 +81,7 @@ export default function AdminChapterPages({ chapters }) {
   const deletePage = async page => {
     if (busyId || !window.confirm(`Delete page ${page.page_number}? This cannot be undone.`)) return;
     setBusyId(page.id); setNotice('');
-    try { const user = await requireAdmin(); const { error } = await supabase.from(PAGES).delete().eq('id', page.id); if (error) throw error; const path = pathFromUrl(page.image_url); if (path) await supabase.storage.from(BUCKET).remove([path]); const remaining = pages.filter(item => item.id !== page.id); for (let i = 0; i < remaining.length; i += 1) if (remaining[i].page_number !== i + 1) { const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id); if (reorderError) throw reorderError; } await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'delete_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number } }); await loadPages(); setNotice(`Page ${page.page_number} deleted.`); }
+    try { const user = await requireAdmin(); const { error } = await supabase.from(PAGES).delete().eq('id', page.id); if (error) throw error; const path = pathFromUrl(page.image_url); if (path) await cloudflareR2.from(BUCKET).remove([path]); const remaining = pages.filter(item => item.id !== page.id); for (let i = 0; i < remaining.length; i += 1) if (remaining[i].page_number !== i + 1) { const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id); if (reorderError) throw reorderError; } await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'delete_chapter_page', entity_type: 'chapter_page', entity_id: page.id, details: { chapter_id: page.chapter_id, page_number: page.page_number } }); await loadPages(); setNotice(`Page ${page.page_number} deleted.`); }
     catch (error) { setNotice(error.message || 'Page deletion failed.'); await loadPages(); }
     finally { setBusyId(null); }
   };
