@@ -1,5 +1,6 @@
 import './admin-mobile.css';
 import { supabase } from './supabase';
+import { chapterPath } from './routes';
 
 const CHAPTERS_TABLE = 'chapters';
 const PAGES_TABLE = 'chapter_pages';
@@ -48,7 +49,7 @@ function installChapterCoverStyles(chapters) {
   const id = 'atma-rekha-chapter-cover-styles';
   document.getElementById(id)?.remove();
   const rules = chapters.filter((chapter) => chapter.cover).map((chapter) => {
-    const href = `#read-chapter/${encodeURIComponent(chapter.id)}`;
+    const href = chapterPath(chapter);
     const cover = JSON.stringify(String(chapter.cover));
     return `.chapter-row-main[href="${href}"]::before{background-image:url(${cover});}`;
   }).join('');
