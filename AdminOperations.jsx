@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from './supabase';
+import { supabase, cloudflareR2 } from './supabase';
+import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
 
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -80,6 +81,44 @@ export default function AdminOperations() {
     } finally { setBusy(false); }
   };
 
+  const retryCleanup = async item => {
+    if (busy) return;
+    const details = item?.details || {};
+    const paths = Array.isArray(details.paths) ? details.paths.filter(Boolean) : [];
+    const provider = details.provider === 'pdpl' ? 'pdpl' : 'atma';
+    const bucket = details.bucket;
+    if (!paths.length || (provider === 'atma' && !bucket)) {
+      setNotice('This cleanup record does not contain enough media information to retry.');
+      return;
+    }
+
+    setBusy(true);
+    setNotice('');
+    try {
+      await requireAdmin();
+      if (provider === 'pdpl') {
+        await removePdlplFiles(paths);
+      } else {
+        const { error } = await cloudflareR2.from(bucket).remove(paths);
+        if (error) throw error;
+      }
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('admin_activity_log').insert({
+        admin_user_id: user.id,
+        action: 'r2_cleanup_retried',
+        entity_type: item.entity_type || 'media',
+        entity_id: item.entity_id || null,
+        details: { provider, bucket: bucket || null, paths, source_failure_id: item.id },
+      });
+      setNotice('R2 cleanup completed successfully.');
+      await load();
+    } catch (error) {
+      setNotice(error.message || 'R2 cleanup retry failed. The file remains available for another retry.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const preview = async chapter => {
     setSelectedChapter(chapter); setPreviewPages([]); setPreviewLoading(true);
     try {
@@ -133,7 +172,7 @@ export default function AdminOperations() {
       <div className="ar-ops-grid"><div>
         <Section label="CHAPTER CONTROL" title="Status, preview & publishing" text="Use preview before publishing. Unpublish keeps the chapter and pages intact."><div className="ar-ops-list">{activeChapters.map(chapter => <article className="ar-ops-row" key={chapter.id}><div className="ar-ops-row-main"><strong>{chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : 'Unnumbered'} — {chapter.title || 'Untitled'}</strong><p>{chapter.status || 'Draft'} · {chapter.release_date ? `Release ${fmt(chapter.release_date)}` : 'No release date'}</p></div><div className="ar-ops-actions"><button onClick={() => preview(chapter)}>Preview</button><select className="ar-ops-select" value={chapter.status || 'Draft'} onChange={e => updateChapter(chapter, { status: e.target.value }, 'change_chapter_status')} disabled={busy}><option>Draft</option><option>Pre-uploaded</option><option>Scheduled</option><option>Published</option></select>{String(chapter.status).toLowerCase() === 'published' && <button onClick={() => unpublish(chapter)}>Unpublish</button>}<button className="danger" onClick={() => archive(chapter)}>Archive</button></div></article>)}{!activeChapters.length && <div className="ar-ops-empty">No active chapters.</div>}</div></Section>
         <Section label="RECOVERY" title="Safe Archive → Recovery" text="Archived chapters keep their database row and can be restored to the previous status."><div className="ar-ops-list">{deleted.map(chapter => <article className="ar-ops-row" key={chapter.id}><div className="ar-ops-row-main"><strong>{chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : 'Unnumbered'} — {chapter.title || 'Untitled'}</strong><p>Archived {fmt(chapter.deleted_at)} · previous status: {chapter.deleted_previous_status || 'Draft'}</p></div><div className="ar-ops-actions"><button onClick={() => restore(chapter)} disabled={busy}>Restore</button></div></article>)}{!deleted.length && <div className="ar-ops-empty">Recovery is empty.</div>}</div></Section>
-        <Section label="FAILED OPERATIONS" title="Failed-operation panel" text="Only recorded admin failures appear here."><div className="ar-ops-list">{failures.map(item => <article className="ar-ops-row" key={item.id}><div className="ar-ops-row-main"><strong>{item.action}</strong><p>{item.details?.error || 'Operation failed'} · {fmt(item.created_at)}</p></div></article>)}{!failures.length && <div className="ar-ops-empty">No failed admin operations recorded.</div>}</div></Section>
+        <Section label="FAILED OPERATIONS" title="Failed-operation panel" text="Recorded failures stay here until you recover them. R2 cleanup failures can be retried without touching the database record."><div className="ar-ops-list">{failures.map(item => <article className="ar-ops-row" key={item.id}><div className="ar-ops-row-main"><strong>{item.action}</strong><p>{item.details?.error || 'Operation failed'} · {fmt(item.created_at)}</p></div><div className="ar-ops-actions">{((Array.isArray(item.details?.paths) && item.details.paths.length) && (item.details?.provider === 'pdpl' || item.details?.bucket)) && <button onClick={() => retryCleanup(item)} disabled={busy}>Retry cleanup</button>}</div></article>)}{!failures.length && <div className="ar-ops-empty">No failed admin operations recorded.</div>}</div></Section>
       </div><div>
         <Section label="NOTIFICATIONS" title="Send notification" text={`${subscriberCount.toLocaleString('en-IN')} unique push subscribers.`}><div className="ar-ops-form"><div className="ar-ops-form-grid"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Notification title"/><select value={target} onChange={e => setTarget(e.target.value)}><option value="all">Everyone</option><option value="community">Community</option><option value="user">Selected user</option></select></div>{target === 'user' && <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}><option value="">Select a user…</option>{users.map(user => <option key={user.id} value={user.id}>{user.display_name || user.username || user.id.slice(0, 8)}</option>)}</select>}<textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Notification message"/><label style={{fontSize:9,color:'var(--muted-color)'}}>Schedule (optional)<input type="datetime-local" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)}/></label><div className="ar-ops-form-actions"><button onClick={() => send(true)} disabled={busy}>Test on myself</button><button className="ar-ops-primary" onClick={() => send(false)} disabled={busy}>{scheduleAt ? 'Save scheduled record' : 'Send notification'}</button><button onClick={load} disabled={busy}>Refresh</button></div><small style={{color:'var(--faint-color)',fontSize:8}}>Duplicate sends are blocked by a unique notification key.</small></div></Section>
         <Section label="DELIVERY" title="Notification history"><div className="ar-ops-list ar-ops-history">{notifications.map(item => <article className="ar-ops-row" key={item.id}><div className="ar-ops-row-main"><strong>{item.title || 'Notification'}</strong><p>{item.target} · {item.sent_count || 0}/{item.target_count || 0} delivered · {item.failed_count || 0} failed · {fmt(item.sent_at || item.scheduled_for || item.created_at)}</p><span className={`ar-ops-status ${item.status === 'failed' ? 'failed' : item.status === 'scheduled' ? 'scheduled' : item.status === 'sent' ? 'sent' : ''}`}>{item.status}</span></div></article>)}{!notifications.length && <div className="ar-ops-empty">No notification records yet.</div>}</div></Section>
