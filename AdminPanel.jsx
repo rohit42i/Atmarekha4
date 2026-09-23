@@ -136,68 +136,131 @@ export default function AdminPanel({ onLogout }) {
   async function saveChapter(event) {
     event.preventDefault();
     if (busy) return;
-    setBusy(true); setNotice({ type: '', text: '' });
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+
+    let adminUser = null;
     let chapterId = editing?.id || null;
+    let pagesCommitted = false;
+    let coverCommitted = false;
+    let chapterCreated = false;
     const uploadedPaths = [];
+
     try {
-      await requireAdmin();
+      adminUser = await requireAdmin();
       const rawNumber = String(form.number ?? '').trim();
       const number = rawNumber === '' ? null : Number(rawNumber);
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number or leave it blank.');
       if (!form.title.trim()) throw new Error('Chapter title is required.');
       if (!editing && !form.pages.length) throw new Error('Select at least one manga page.');
-      const payload = { chapter_number: number, title: form.title.trim(), description: form.description.trim(), status: form.status, release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null };
+
+      const payload = {
+        chapter_number: number,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        status: form.status,
+        release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null,
+      };
+
       if (editing) {
         const { error } = await supabase.from(CHAPTERS).update(payload).eq('id', editing.id);
-        if (error) throw new Error(`Chapter update failed: ${error.message}`);
+        if (error) throw new Error('Chapter update failed: ' + error.message);
       } else {
         const { data, error } = await supabase.from(CHAPTERS).insert(payload).select('id, chapter_number').single();
-        if (error) throw new Error(`Chapter creation failed: ${error.message}`);
+        if (error) throw new Error('Chapter creation failed: ' + error.message);
         chapterId = data.id;
+        chapterCreated = true;
       }
+
       let oldCoverPath = null;
       if (form.cover) {
         const ext = form.cover.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const path = `chapters/${chapterId}/cover-${Date.now()}.${ext}`;
-        const url = await upload(COVER_BUCKET, form.cover, path);
-        uploadedPaths.push({ bucket: COVER_BUCKET, path });
+        const path = 'chapters/' + chapterId + '/cover-' + Date.now() + '.' + ext;
+        await upload(COVER_BUCKET, form.cover, path);
+        uploadedPaths.push({ bucket: COVER_BUCKET, path, kind: 'cover' });
         oldCoverPath = pathFromUrl(editing?.cover, COVER_BUCKET);
+
+        const url = publicUrl(COVER_BUCKET, path);
         const { error } = await supabase.from(CHAPTERS).update({ cover_url: url }).eq('id', chapterId);
-        if (error) throw new Error(`Cover save failed: ${error.message}`);
+        if (error) throw new Error('Cover save failed: ' + error.message);
+        coverCommitted = true;
+
+        if (oldCoverPath) {
+          try { await removeFiles(COVER_BUCKET, [oldCoverPath]); }
+          catch (cleanupError) {
+            await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_cover', chapterId, { bucket: COVER_BUCKET, paths: [oldCoverPath], error: cleanupError.message });
+          }
+        }
       }
+
       if (form.pages.length) {
         setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
         const old = await supabase.from(PAGES).select('id, image_url').eq('chapter_id', chapterId);
-        if (old.error) throw new Error(`Could not read existing pages: ${old.error.message}`);
+        if (old.error) throw new Error('Could not read existing pages: ' + old.error.message);
         const oldPaths = (old.data || []).map(row => pathFromUrl(row.image_url, PAGE_BUCKET)).filter(Boolean);
         const revision = Date.now();
         const rows = [];
+
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
           const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-          const path = `${chapterId}/${revision}/${String(i + 1).padStart(4, '0')}.${ext}`;
-          const url = await upload(PAGE_BUCKET, file, path);
-          uploadedPaths.push({ bucket: PAGE_BUCKET, path });
+          const pagePath = chapterId + '/' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + ext;
+          const url = await upload(PAGE_BUCKET, file, pagePath);
+          uploadedPaths.push({ bucket: PAGE_BUCKET, path: pagePath, kind: 'page' });
           rows.push({ chapter_id: chapterId, page_number: i + 1, image_url: url });
-          setProgress({ current: i + 1, total: form.pages.length, text: `Uploaded page ${i + 1} of ${form.pages.length}` });
+          setProgress({ current: i + 1, total: form.pages.length, text: 'Uploaded page ' + (i + 1) + ' of ' + form.pages.length });
         }
-        const deleted = await supabase.from(PAGES).delete().eq('chapter_id', chapterId);
-        if (deleted.error) throw new Error(`Could not replace old pages: ${deleted.error.message}`);
+
         const inserted = await supabase.from(PAGES).insert(rows);
-        if (inserted.error) throw new Error(`Saving chapter pages failed: ${inserted.error.message}`);
-        await removeFiles(PAGE_BUCKET, oldPaths);
+        if (inserted.error) throw new Error('Saving chapter pages failed: ' + inserted.error.message);
+        pagesCommitted = true;
+
+        if (oldPaths.length) {
+          try { await removeFiles(PAGE_BUCKET, oldPaths); }
+          catch (cleanupError) {
+            await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_pages', chapterId, { bucket: PAGE_BUCKET, paths: oldPaths, error: cleanupError.message });
+          }
+        }
       }
-      if (oldCoverPath) await removeFiles(COVER_BUCKET, [oldCoverPath]);
-      const savedLabel = number === null ? 'Special / unnumbered' : `Chapter ${number}`;
+
+      await logAdminAction(adminUser, editing ? 'update_chapter' : 'create_chapter', 'chapter', chapterId, {
+        chapter_number: number,
+        title: form.title.trim(),
+        status: form.status,
+        pages: form.pages.length || 0,
+        cover_changed: Boolean(form.cover),
+      });
+
+      const savedLabel = number === null ? 'Special / unnumbered' : 'Chapter ' + number;
       const wasEditing = Boolean(editing);
-      resetForm(); await load(); setNotice({ type: 'success', text: `${savedLabel} ${wasEditing ? 'updated' : 'uploaded'} successfully.` });
+      resetForm();
+      await load();
+      setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' });
     } catch (error) {
       console.error(error);
-      for (const item of uploadedPaths) { try { await removeFiles(item.bucket, [item.path]); } catch (_) {} }
-      if (!editing && chapterId) { try { await supabase.from(CHAPTERS).delete().eq('id', chapterId); } catch (_) {} }
+      for (const item of uploadedPaths) {
+        const committed = (item.kind === 'page' && pagesCommitted) || (item.kind === 'cover' && coverCommitted);
+        if (!committed) {
+          try { await removeFiles(item.bucket, [item.path]); }
+          catch (cleanupError) {
+            await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, { bucket: item.bucket, paths: [item.path], error: cleanupError.message });
+          }
+        }
+      }
+
+      if (chapterCreated && !pagesCommitted && !coverCommitted && chapterId) {
+        try { await supabase.from(CHAPTERS).delete().eq('id', chapterId); } catch (_) {}
+      }
+
+      if (adminUser) await logAdminAction(adminUser, 'chapter_operation_failed', 'chapter', chapterId, {
+        error: error.message,
+        r2_cleanup: error.r2Cleanup || null,
+      });
       setNotice({ type: 'error', text: error.message || 'Chapter upload failed.' });
       setProgress({ current: 0, total: 0, text: '' });
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   const editChapter = chapter => {
