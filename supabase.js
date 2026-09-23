@@ -74,7 +74,7 @@ async function compressImage(file) {
   throw new Error(`${file.name} could not be compressed below 1 MB while preserving acceptable quality.`);
 }
 
-const r2Storage = {
+export const cloudflareR2 = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
     const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
@@ -151,7 +151,7 @@ export async function isCurrentlySubscribed(userId) { return Boolean(await getCu
 
 export const supabase = new Proxy(client, {
   get(target, property, receiver) {
-    if (property === 'storage') return r2Storage;
+    if (property === 'storage') return cloudflareR2;
     if (property === 'from') return table => table === CHAPTER_PAGES_TABLE ? chapterPagesTable() : client.from(table);
     return Reflect.get(target, property, receiver);
   },
