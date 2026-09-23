@@ -4,37 +4,7 @@ import { supabase } from './supabase';
 
 function chapterIdFromTarget(target) {
   const row = target?.closest?.('.chapter-row');
-  if (!row) return null;
-
-  const links = Array.from(row.querySelectorAll('a[href]'));
-  for (const link of links) {
-    const href = link.getAttribute('href') || '';
-    const marker = 'read-chapter/';
-    const markerIndex = href.indexOf(marker);
-    if (markerIndex === -1) continue;
-
-    const rawId = href.slice(markerIndex + marker.length).split(/[?#]/, 1)[0];
-    if (!rawId) continue;
-
-    try {
-      return decodeURIComponent(rawId);
-    } catch {
-      return rawId;
-    }
-  }
-
-  const hash = window.location.hash || '';
-  if (hash.startsWith('#read-chapter/')) {
-    const rawId = hash.slice('#read-chapter/'.length).split(/[?#]/, 1)[0];
-    if (rawId) {
-      try {
-        return decodeURIComponent(rawId);
-      } catch {
-        return rawId;
-      }
-    }
-  }
-
+  if (row?.getAttribute('data-chapter-id')) return row.getAttribute('data-chapter-id');
   return null;
 }
 
@@ -88,6 +58,7 @@ export default function ChapterFavorites() {
     });
 
     window.addEventListener('hashchange', scheduleScan);
+    window.addEventListener('popstate', scheduleScan);
     window.addEventListener('resize', scheduleScan);
 
     return () => {
@@ -95,6 +66,7 @@ export default function ChapterFavorites() {
       cancelAnimationFrame(frame);
       window.clearTimeout(retryTimer);
       window.removeEventListener('hashchange', scheduleScan);
+      window.removeEventListener('popstate', scheduleScan);
       window.removeEventListener('resize', scheduleScan);
     };
   }, []);
