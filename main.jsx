@@ -73,7 +73,6 @@ import './admin-studio-tokens.css';
 import './admin-ultimate-ui.css';
 import './admin-productivity.js';
 import './membership-fullscreen-fix.css';
-import './font-polish.css';
 import './comments-mobile-header-fix.css';
 import './admin-studio-pro-v2.css';
 import './pal-do-pal-ke-lamhe.css';
