@@ -44,6 +44,7 @@ export default function AdminProTools() {
   const [query, setQuery] = useState('');
   const [range, setRange] = useState(30);
   const [data, setData] = useState({ chapters: [], pages: [], comments: [], reports: 0, openReports: 0, users: 0, announcements: 0, views: 0 });
+  const [health, setHealth] = useState({ auth: 'checking', database: 'checking', r2: 'checking' });
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -96,6 +97,8 @@ export default function AdminProTools() {
     setNotice('');
     try {
       await verifyAdmin();
+      setHealth(current => ({ ...current, auth: 'online' }));
+
       const [chaptersResult, pagesResult, commentsResult, reports, openReports, users, announcements, views] = await Promise.all([
         supabase.from('chapters').select('id,chapter_number,title,status,release_date,cover_url,created_at').order('chapter_number', { ascending: true, nullsFirst: false }),
         supabase.from('chapter_pages').select('chapter_id,page_number,image_url').order('page_number', { ascending: true }),
@@ -104,9 +107,26 @@ export default function AdminProTools() {
         headCount('moderation_reports', q => q.eq('status', 'open')),
         headCount('profiles'),
         headCount('announcements'),
-        headCount('chapter_views', q => q.gte('created_at', since(range)))
+        headCount('chapter_views', q => q.gte('created_at', since(range))),
       ]);
+
       for (const result of [chaptersResult, pagesResult, commentsResult]) if (result.error) throw result.error;
+      setHealth(current => ({ ...current, database: 'online' }));
+
+      let r2Status = 'unknown';
+      const samplePage = (pagesResult.data || []).find(page => page.image_url);
+      if (samplePage?.image_url) {
+        try {
+          const response = await fetch(samplePage.image_url, { method: 'HEAD', cache: 'no-store' });
+          r2Status = response.status < 500 ? 'online' : 'error';
+        } catch {
+          r2Status = 'error';
+        }
+      } else {
+        r2Status = 'no-media';
+      }
+      setHealth(current => ({ ...current, r2: r2Status }));
+
       setData({
         chapters: chaptersResult.data || [],
         pages: pagesResult.data || [],
@@ -115,9 +135,10 @@ export default function AdminProTools() {
         openReports,
         users,
         announcements,
-        views
+        views,
       });
     } catch (error) {
+      setHealth(current => ({ ...current, database: 'error' }));
       setNotice(error?.message || 'Unable to load admin control data.');
     } finally {
       setLoading(false);
@@ -272,9 +293,10 @@ export default function AdminProTools() {
               <section className="ar-pro-card">
                 <div className="ar-pro-card-head"><h3>System health</h3><span>Live checks</span></div>
                 <div className="ar-pro-health">
-                  <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: 'var(--success-color)' }} />Admin auth</span><b>Verified</b></div>
-                  <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: 'var(--success-color)' }} />Chapter data</span><b>Online</b></div>
-                  <div className="ar-pro-health-row"><span><i className={`ar-pro-dot`} style={{ color: missingPages.length ? 'var(--warning-color)' : 'var(--success-color)' }} />Page integrity</span><b>{missingPages.length ? 'Review' : 'Ready'}</b></div>
+                  <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: health.auth === 'online' ? 'var(--success-color)' : 'var(--warning-color)' }} />Admin auth</span><b>{health.auth === 'online' ? 'Verified' : 'Checking'}</b></div>
+                  <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: health.database === 'online' ? 'var(--success-color)' : 'var(--danger-color)' }} />Supabase data</span><b>{health.database === 'online' ? 'Online' : health.database === 'error' ? 'Error' : 'Checking'}</b></div>
+                  <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: health.r2 === 'online' ? 'var(--success-color)' : health.r2 === 'error' ? 'var(--danger-color)' : 'var(--warning-color)' }} />Cloudflare R2 media</span><b>{health.r2 === 'online' ? 'Reachable' : health.r2 === 'error' ? 'Error' : health.r2 === 'no-media' ? 'No media' : 'Checking'}</b></div>
+                  <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: missingPages.length ? 'var(--warning-color)' : 'var(--success-color)' }} />Page integrity</span><b>{missingPages.length ? 'Review' : 'Ready'}</b></div>
                   <div className="ar-pro-health-row"><span><i className="ar-pro-dot" style={{ color: data.openReports ? 'var(--warning-color)' : 'var(--success-color)' }} />Moderation</span><b>{data.openReports ? 'Review' : 'Clear'}</b></div>
                 </div>
                 <div className="ar-pro-shortcuts">Ctrl/Cmd + K focuses search · Esc closes Studio</div>
