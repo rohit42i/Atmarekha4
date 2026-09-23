@@ -17,21 +17,48 @@ export function buildRatingSummary(rows = []) {
   return { average: ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : 0, count: ratings.length };
 }
 
+const emptyChapterStats = () => ({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 });
+
 export async function fetchPublicEngagement(chapterIds) {
   const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
   if (!ids.length) return {};
-  const { data, error } = await supabase.rpc('get_public_chapter_stats', { p_chapter_ids: ids });
+  const { data, error } = await supabase
+    .from('chapter_engagement_summary')
+    .select('chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count')
+    .in('chapter_id', ids);
   if (error) throw error;
-  const payload = data && typeof data === 'object' ? data : {};
-  const empty = { rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 };
-  return Object.fromEntries(ids.map(id => [id, payload[id] || empty]));
+  const rows = data || [];
+  return Object.fromEntries(ids.map(id => {
+    const row = rows.find(item => String(item.chapter_id) === String(id));
+    const count = Number(row?.ratings_count) || 0;
+    const sum = Number(row?.ratings_sum) || 0;
+    return [id, {
+      rating: { average: count ? sum / count : 0, count },
+      views: Number(row?.views_count) || 0,
+      likes: Number(row?.likes_count) || 0,
+      comments: Number(row?.comments_count) || 0,
+      pages: Number(row?.pages_count) || 0,
+    }];
+  }));
 }
 
 export async function fetchChapterEngagement(chapterId) {
-  if (!chapterId) return { rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 };
-  const { data, error } = await supabase.rpc('get_public_chapter_stats', { p_chapter_ids: [chapterId] });
+  if (!chapterId) return emptyChapterStats();
+  const { data, error } = await supabase
+    .from('chapter_engagement_summary')
+    .select('chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count')
+    .eq('chapter_id', chapterId)
+    .maybeSingle();
   if (error) throw error;
-  return data?.[chapterId] || { rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 };
+  const count = Number(data?.ratings_count) || 0;
+  const sum = Number(data?.ratings_sum) || 0;
+  return {
+    rating: { average: count ? sum / count : 0, count },
+    views: Number(data?.views_count) || 0,
+    likes: Number(data?.likes_count) || 0,
+    comments: Number(data?.comments_count) || 0,
+    pages: Number(data?.pages_count) || 0,
+  };
 }
 
 export async function fetchChapterComments(chapterId) {
@@ -42,28 +69,34 @@ export async function fetchChapterComments(chapterId) {
   return data || [];
 }
 
+const LIKED_COMMENT_STORAGE = 'atma-rekha-liked-comments-v1';
+
+function getLikedCommentIds() {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const values = JSON.parse(window.localStorage.getItem(LIKED_COMMENT_STORAGE) || '[]');
+    return new Set(Array.isArray(values) ? values.filter(Boolean) : []);
+  } catch (_) {
+    return new Set();
+  }
+}
+
+function saveLikedCommentIds(ids) {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(LIKED_COMMENT_STORAGE, JSON.stringify([...ids].slice(-1000))); } catch (_) {}
+}
+
 export async function fetchCommentLikes(commentIds) {
   const ids = [...new Set((commentIds || []).filter(Boolean))];
   if (!ids.length) return { counts: {}, liked: {} };
-  const viewerKey = getViewerKey();
-  const chunks = [];
-  for (let i = 0; i < ids.length; i += 150) chunks.push(ids.slice(i, i + 150));
-  const results = await Promise.all(chunks.map(chunk =>
-    supabase.rpc('get_public_comment_like_summary', {
-      p_comment_ids: chunk,
-      p_viewer_key: viewerKey,
-    })
-  ));
-  for (const result of results) if (result.error) throw result.error;
-  const counts = {};
-  const liked = {};
-  for (const result of results) {
-    const payload = result.data && typeof result.data === 'object' ? result.data : {};
-    for (const id of Object.keys(payload)) {
-      counts[id] = Number(payload[id]?.count) || 0;
-      liked[id] = payload[id]?.liked === true;
-    }
-  }
+  const { data, error } = await supabase
+    .from('comment_like_counts')
+    .select('comment_id,like_count')
+    .in('comment_id', ids.slice(0, 150));
+  if (error) throw error;
+  const likedIds = getLikedCommentIds();
+  const counts = Object.fromEntries((data || []).map(row => [row.comment_id, Number(row.like_count) || 0]));
+  const liked = Object.fromEntries(ids.map(id => [id, likedIds.has(id)]));
   return { counts, liked };
 }
 
@@ -137,11 +170,17 @@ export async function likeChapter(chapterId) {
 export async function likeComment(commentId) {
   const { error } = await supabase.from('comment_likes').upsert({ comment_id: commentId, viewer_key: getViewerKey() }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
   if (error) throw error;
+  const likedIds = getLikedCommentIds();
+  likedIds.add(String(commentId));
+  saveLikedCommentIds(likedIds);
 }
 
 export async function unlikeComment(commentId) {
   const { error } = await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('viewer_key', getViewerKey());
   if (error) throw error;
+  const likedIds = getLikedCommentIds();
+  likedIds.delete(String(commentId));
+  saveLikedCommentIds(likedIds);
 }
 
 export async function reportComment(commentId, reason = 'Reported by reader') {
