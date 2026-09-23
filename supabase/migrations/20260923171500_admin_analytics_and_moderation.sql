@@ -43,8 +43,8 @@ begin
     raise exception 'Admin access required';
   end if;
 
-  if p_days is not null and p_days not in (7, 30, 90) then
-    raise exception 'Analytics period must be 7, 30, 90, or null';
+  if p_days is not null and p_days not in (1, 7, 30, 90) then
+    raise exception 'Analytics period must be 1, 7, 30, 90, or null';
   end if;
 
   v_cutoff := case when p_days is null then null else now() - make_interval(days => p_days) end;
