@@ -9,9 +9,10 @@ const R2_WORKER_URL = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
 const R2_BUCKETS = new Set(['chapter-pages', 'covers']);
 const CHAPTER_PAGES_TABLE = 'chapter_pages';
 
-const IMAGE_MIN_SIZE = 500 * 1024;
-const IMAGE_MAX_SIZE = 1024 * 1024;
-const IMAGE_MAX_EDGE = 2400;
+// Manga pages keep a wider quality envelope to preserve line texture, hatching and small text.
+const IMAGE_MIN_SIZE = 2 * 1024 * 1024;
+const IMAGE_MAX_SIZE = 4 * 1024 * 1024;
+const IMAGE_MAX_EDGE = 3200;
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn('Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.');
@@ -71,7 +72,7 @@ async function compressImage(file) {
       scale *= 0.86;
     }
   } finally { image.close?.(); }
-  throw new Error(`${file.name} could not be compressed below 1 MB while preserving acceptable quality.`);
+  throw new Error(`${file.name} could not be compressed below 4 MB while preserving acceptable quality.`);
 }
 
 export const cloudflareR2 = {
