@@ -18,8 +18,14 @@ Deno.serve(async req => {
     const admin = createClient(url, service);
     const { data: { user }, error: authError } = await admin.auth.getUser(token);
     if (authError || !user) return json({ error: 'Authentication failed.' }, 401, origin);
-    const { data: isAdmin, error: adminError } = await admin.rpc('is_admin');
-    if (adminError || !isAdmin) return json({ error: 'Admin access required.' }, 403, origin);
+    const { data: adminRow, error: adminError } = await admin
+      .from('admins')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (adminError || !adminRow || !['owner', 'admin'].includes(adminRow.role)) {
+      return json({ error: 'Admin access required.' }, 403, origin);
+    }
     const [profiles, push] = await Promise.all([
       admin.from('profiles').select('id', { count: 'exact', head: true }),
       admin.from('push_subscriptions').select('endpoint,user_id'),
