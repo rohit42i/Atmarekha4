@@ -248,8 +248,15 @@ export default function AdminPanel({ onLogout }) {
         }
       }
 
-      if (chapterCreated && !pagesCommitted && !coverCommitted && chapterId) {
-        try { await supabase.from(CHAPTERS).delete().eq('id', chapterId); } catch (_) {}
+      if (chapterCreated && !pagesCommitted && chapterId) {
+        try {
+          await supabase.from(CHAPTERS).delete().eq('id', chapterId);
+          // The new chapter was never valid without its required page set.
+          // Mark committed uploads as cleanable so they do not become R2 orphans.
+          for (const item of uploadedPaths) {
+            try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
+          }
+        } catch (_) {}
       }
 
       if (adminUser) await logAdminAction(adminUser, 'chapter_operation_failed', 'chapter', chapterId, {
