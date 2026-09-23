@@ -32,7 +32,26 @@ async function removeFiles(bucket, paths) {
   const clean = paths.filter(Boolean);
   if (!clean.length) return;
   const { error } = await cloudflareR2.from(bucket).remove(clean);
-  if (error) throw new Error(`Cloudflare R2 cleanup failed: ${error.message}`);
+  if (error) {
+    const cleanupError = new Error('Cloudflare R2 cleanup failed: ' + error.message);
+    cleanupError.r2Cleanup = { bucket, paths: clean };
+    throw cleanupError;
+  }
+}
+async function logAdminAction(user, action, entityType, entityId = null, details = {}) {
+  if (!user?.id) return;
+  try {
+    const { error } = await supabase.from('admin_activity_log').insert({
+      admin_user_id: user.id,
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      details,
+    });
+    if (error) console.warn('Admin activity log failed:', error);
+  } catch (error) {
+    console.warn('Admin activity log failed:', error);
+  }
 }
 
 const emptyForm = () => ({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
@@ -56,6 +75,7 @@ export default function AdminPanel({ onLogout }) {
   const [form, setForm] = useState(emptyForm());
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
   const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false });
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
@@ -73,21 +93,26 @@ export default function AdminPanel({ onLogout }) {
     try {
       const user = await requireAdmin();
       setEmail(user.email || '');
-      const [chapterData, pageResult, commentResult, reportResult, ratingResult, viewResult, likeResult, announcementResult, mediaResult] = await Promise.all([
+      const [chapterData, pageResult, commentResult, reportResult, announcementResult, mediaResult] = await Promise.all([
         buildChapters(),
-        supabase.from(PAGES).select('id, chapter_id, page_number, image_url'),
-        supabase.from('comments').select('id, user_id, chapter_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }),
-        supabase.from('comment_reports').select('id, comment_id, reason, created_at').order('created_at', { ascending: false }),
-        supabase.from('chapter_ratings').select('id, chapter_id, rating, created_at').order('created_at', { ascending: false }),
-        supabase.from('chapter_views').select('id, chapter_id, created_at'),
-        supabase.from('chapter_likes').select('id, chapter_id, created_at'),
+        supabase.from(PAGES).select('id, chapter_id, page_number, image_url').order('page_number', { ascending: true }),
+        supabase.from('comments').select('id, user_id, chapter_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100),
+        supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
         supabase.from('announcements').select('id, title, content, image_url, is_pinned, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
-        supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }),
+        supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200),
       ]);
-      for (const result of [pageResult, commentResult, reportResult, ratingResult, viewResult, likeResult, announcementResult, mediaResult]) if (result.error) throw result.error;
+      for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
       const counts = {};
       for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-      setChapters(chapterData || []); setPageCounts(counts); setComments(commentResult.data || []); setReports(reportResult.data || []); setRatings(ratingResult.data || []); setViews(viewResult.data || []); setLikes(likeResult.data || []); setAnnouncements(announcementResult.data || []); setMedia(mediaResult.data || []);
+      setChapters(chapterData || []);
+      setPageCounts(counts);
+      setComments(commentResult.data || []);
+      setReports(reportResult.data || []);
+      setAnnouncements(announcementResult.data || []);
+      setMedia(mediaResult.data || []);
+      setRatings([]);
+      setViews([]);
+      setLikes([]);
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
     } finally { setLoading(false); }
