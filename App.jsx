@@ -155,7 +155,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       author,
       inLanguage: 'en-IN',
       url: SITE_URL + '/',
-      image
+      image: DEFAULT_SEO_IMAGE
     };
     const graph = [
       {
