@@ -18,43 +18,26 @@ export function buildRatingSummary(rows = []) {
 }
 
 export async function fetchPublicEngagement(chapterIds) {
-  const ids = [...new Set((chapterIds || []).filter(Boolean))];
+  const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
   if (!ids.length) return {};
-  const [ratings, views, likes, comments] = await Promise.all([
-    supabase.from('chapter_ratings').select('chapter_id,rating').in('chapter_id', ids),
-    supabase.from('chapter_views').select('chapter_id').in('chapter_id', ids),
-    supabase.from('chapter_likes').select('chapter_id').in('chapter_id', ids),
-    supabase.from('comments').select('id,chapter_id').in('chapter_id', ids),
-  ]);
-  for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
-  return Object.fromEntries(ids.map(id => [id, {
-    rating: buildRatingSummary((ratings.data || []).filter(row => row.chapter_id === id)),
-    views: (views.data || []).filter(row => row.chapter_id === id).length,
-    likes: (likes.data || []).filter(row => row.chapter_id === id).length,
-    comments: (comments.data || []).filter(row => row.chapter_id === id).length,
-  }]));
+  const { data, error } = await supabase.rpc('get_public_chapter_stats', { p_chapter_ids: ids });
+  if (error) throw error;
+  const payload = data && typeof data === 'object' ? data : {};
+  const empty = { rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 };
+  return Object.fromEntries(ids.map(id => [id, payload[id] || empty]));
 }
 
 export async function fetchChapterEngagement(chapterId) {
-  const [ratings, views, likes, comments] = await Promise.all([
-    supabase.from('chapter_ratings').select('id,rating,created_at').eq('chapter_id', chapterId),
-    supabase.from('chapter_views').select('id').eq('chapter_id', chapterId),
-    supabase.from('chapter_likes').select('id').eq('chapter_id', chapterId),
-    supabase.from('comments').select('id').eq('chapter_id', chapterId),
-  ]);
-  for (const result of [ratings, views, likes, comments]) if (result.error) throw result.error;
-  return {
-    rating: buildRatingSummary(ratings.data || []),
-    views: (views.data || []).length,
-    likes: (likes.data || []).length,
-    comments: (comments.data || []).length,
-  };
+  if (!chapterId) return { rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 };
+  const { data, error } = await supabase.rpc('get_public_chapter_stats', { p_chapter_ids: [chapterId] });
+  if (error) throw error;
+  return data?.[chapterId] || { rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0, pages: 0 };
 }
 
 export async function fetchChapterComments(chapterId) {
   const { data, error } = await supabase.from('comments')
     .select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id')
-    .eq('chapter_id', chapterId).order('created_at', { ascending: true });
+    .eq('chapter_id', chapterId).order('created_at', { ascending: true }).limit(500);
   if (error) throw error;
   return data || [];
 }
@@ -63,15 +46,25 @@ export async function fetchCommentLikes(commentIds) {
   const ids = [...new Set((commentIds || []).filter(Boolean))];
   if (!ids.length) return { counts: {}, liked: {} };
   const viewerKey = getViewerKey();
-  const [all, own] = await Promise.all([
-    supabase.from('comment_likes').select('comment_id').in('comment_id', ids),
-    supabase.from('comment_likes').select('comment_id').in('comment_id', ids).eq('viewer_key', viewerKey),
-  ]);
-  if (all.error) throw all.error;
-  if (own.error) throw own.error;
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += 150) chunks.push(ids.slice(i, i + 150));
+  const results = await Promise.all(chunks.map(chunk =>
+    supabase.rpc('get_public_comment_like_summary', {
+      p_comment_ids: chunk,
+      p_viewer_key: viewerKey,
+    })
+  ));
+  for (const result of results) if (result.error) throw result.error;
   const counts = {};
-  for (const row of all.data || []) counts[row.comment_id] = (counts[row.comment_id] || 0) + 1;
-  return { counts, liked: Object.fromEntries((own.data || []).map(row => [row.comment_id, true])) };
+  const liked = {};
+  for (const result of results) {
+    const payload = result.data && typeof result.data === 'object' ? result.data : {};
+    for (const id of Object.keys(payload)) {
+      counts[id] = Number(payload[id]?.count) || 0;
+      liked[id] = payload[id]?.liked === true;
+    }
+  }
+  return { counts, liked };
 }
 
 async function requireUser() {
