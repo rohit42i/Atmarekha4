@@ -238,10 +238,19 @@ export async function submitRating(chapterId, rating) {
   const user = await requireUser();
   const value = Number(rating);
   if (!Number.isInteger(value) || value < 1 || value > 10) throw new Error('Choose a rating from 1 to 10.');
+
+  const { data: existing, error: existingError } = await supabase
+    .from('chapter_ratings')
+    .select('id,rating,created_at')
+    .eq('chapter_id', chapterId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (existingError) throw existingError;
+
   const { data, error } = await supabase.from('chapter_ratings').upsert(
     { chapter_id: chapterId, rating: value, user_id: user.id },
     { onConflict: 'user_id,chapter_id' }
   ).select('id,rating,created_at').single();
   if (error) throw error;
-  return data;
+  return { ...data, previousRating: existing?.rating ?? null, alreadyRated: Boolean(existing) };
 }
