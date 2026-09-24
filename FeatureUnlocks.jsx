@@ -5,6 +5,12 @@ import { supabase } from './supabase';
 
 const DEFAULT_FLAGS = { membership_unlocked: false, group_chat_unlocked: false };
 
+// Public visibility is manually disabled until explicitly re-enabled.
+const MANUAL_FEATURE_VISIBILITY = {
+  membership: false,
+  group_chat: false,
+};
+
 async function readFeatureFlags() {
   const { data, error } = await supabase
     .from('feature_unlock_config')
