@@ -112,8 +112,8 @@ export default function FeatureUnlocks() {
   }, []);
 
   return <>
-    {flags.membership_unlocked && <Membership />}
-    {flags.group_chat_unlocked && <GroupChatLauncherGate />}
-    {flags.group_chat_unlocked && <GroupChat />}
+    {MANUAL_FEATURE_VISIBILITY.membership && flags.membership_unlocked && <Membership />}
+    {MANUAL_FEATURE_VISIBILITY.group_chat && flags.group_chat_unlocked && <GroupChatLauncherGate />}
+    {MANUAL_FEATURE_VISIBILITY.group_chat && flags.group_chat_unlocked && <GroupChat />}
   </>;
 }
