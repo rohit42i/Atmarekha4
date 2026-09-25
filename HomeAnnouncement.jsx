@@ -13,7 +13,7 @@ export default function HomeAnnouncement() {
       try {
         const { data, error } = await supabase
           .from('announcements')
-          .select('id, title, content, image_url, published_at, created_at')
+          .select('id, title, content, image_url, is_pinned, display_position, published_at, created_at')
           .order('published_at', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .limit(10);
@@ -30,9 +30,22 @@ export default function HomeAnnouncement() {
 
   if (!announcements.length) return null;
 
+  const orderedAnnouncements = [...announcements].sort((a, b) => {
+    const pinnedDiff = Number(Boolean(b.is_pinned)) - Number(Boolean(a.is_pinned));
+    if (pinnedDiff) return pinnedDiff;
+
+    const aPosition = Number.isInteger(Number(a.display_position)) ? Number(a.display_position) : null;
+    const bPosition = Number.isInteger(Number(b.display_position)) ? Number(b.display_position) : null;
+    if (aPosition !== null && bPosition !== null && aPosition !== bPosition) return aPosition - bPosition;
+    if (aPosition !== null && bPosition === null) return -1;
+    if (aPosition === null && bPosition !== null) return 1;
+
+    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
+  });
+
   return (
     <section className="home-announcements" aria-label="Announcements">
-      {announcements.map(item => {
+      {orderedAnnouncements.map(item => {
         const storedTitle = String(item.title || '').trim();
         const title = storedTitle.startsWith('__image_only_') ? '' : storedTitle;
         const content = String(item.content || '').trim();
