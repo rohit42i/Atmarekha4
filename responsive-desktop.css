@@ -113,3 +113,40 @@
     margin-top: 34px;
   }
 }
+
+/* Chapter marker polish — desktop/laptop only.
+   Keeps the existing mobile reader typography untouched. */
+@media (min-width:901px) {
+  .reader-title p {
+    display: inline-block;
+    margin: 0;
+    padding: 3px 0 4px;
+    color: var(--legacy-f7f7f7-e50e19e1);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(17px, 1.45vw, 21px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    text-shadow:
+      0 1px 0 rgba(255,255,255,.12),
+      0 2px 8px rgba(0,0,0,.45);
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.96) 0,
+      rgba(255,255,255,.96) 1px,
+      rgba(255,255,255,.78) 1px,
+      rgba(255,255,255,.78) 2px
+    );
+    background-size: 4px 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .reader-title {
+    align-items: center;
+  }
+}
