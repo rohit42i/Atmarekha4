@@ -74,7 +74,7 @@ export default function AdminPanel({ onLogout }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
-  const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false, display_position: '' });
+  const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false, pin_target: 'none', display_position: '' });
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [pageEditorProject, setPageEditorProject] = useState('atma');
@@ -382,6 +382,7 @@ export default function AdminPanel({ onLogout }) {
       content: item.content || '',
       thumbnail: null,
       is_pinned: Boolean(item.is_pinned),
+      pin_target: item.pin_target || (item.is_pinned ? 'atma' : 'none'),
       display_position: item.display_position ? String(item.display_position) : '',
     });
     setTab('Announcements');
@@ -407,6 +408,8 @@ export default function AdminPanel({ onLogout }) {
       const content = announcement.content.trim();
       const displayPositionRaw = String(announcement.display_position ?? '').trim();
       const displayPosition = displayPositionRaw === '' ? null : Number(displayPositionRaw);
+      const pinTarget = announcement.is_pinned ? announcement.pin_target : 'none';
+      if (!['none', 'atma', 'pdpkl'].includes(pinTarget)) throw new Error('Choose a valid pin destination.');
       if (displayPosition !== null && (!Number.isInteger(displayPosition) || displayPosition < 1 || displayPosition > 10)) {
         throw new Error('Choose a valid announcement position from 1 to 10, or leave it on Automatic.');
       }
@@ -438,7 +441,8 @@ export default function AdminPanel({ onLogout }) {
           title: storedTitle,
           content: content || '',
           image_url: imageUrl,
-          is_pinned: announcement.is_pinned,
+          is_pinned: pinTarget !== 'none',
+          pin_target: pinTarget,
           display_position: displayPosition,
         }).eq('id', existing.id);
         if (error) throw error;
@@ -457,7 +461,8 @@ export default function AdminPanel({ onLogout }) {
 
         await logAdminAction(adminUser, 'update_announcement', 'announcement', existing.id, {
           title: storedTitle,
-          pinned: announcement.is_pinned,
+          pinned: pinTarget !== 'none',
+          pin_target: pinTarget,
           display_position: displayPosition,
           image_changed: Boolean(announcement.thumbnail),
         });
@@ -466,7 +471,8 @@ export default function AdminPanel({ onLogout }) {
           title: storedTitle,
           content: content || '',
           image_url: imageUrl,
-          is_pinned: announcement.is_pinned,
+          is_pinned: pinTarget !== 'none',
+          pin_target: pinTarget,
           display_position: displayPosition,
           published_at: new Date().toISOString(),
         }).select('id').single();
@@ -663,7 +669,8 @@ export default function AdminPanel({ onLogout }) {
         <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept="image/*" onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
         <div className="admin-form-grid">
           <label><span>Placement</span><select value={announcement.display_position} onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}><option value="">Automatic · normal order</option>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card</option>)}</select></label>
-          <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked })}/> Pin to top</label>
+          <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked, pin_target: e.target.checked ? (announcement.pin_target === 'none' ? 'atma' : announcement.pin_target) : 'none' })}/> Pin to top</label>
+          {announcement.is_pinned && <label><span>Pin on</span><select value={announcement.pin_target} onChange={e => setAnnouncement({ ...announcement, pin_target: e.target.value })}><option value="atma">Atma Rekha</option><option value="pdpkl">PDPKL</option></select></label>}
         </div>
         <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
         <button className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
