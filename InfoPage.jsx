@@ -7,12 +7,12 @@ const PAGES = {
     title: 'About Atma Rekha',
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['Release', '14 September 2026'], ['Read', 'Website & Print (Working)'],
+      ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
       ['Free', 'Chapters 1–8'], ['Age Rating', '16+'], ['Team', 'Solo Creator'],
     ],
     story: [
       'Atma Rekha is an Indian mythical fantasy manga where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.',
-      'It is written in Roman Hindi and made for Indian readers. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
+      'It is written in Roman Hindi and made for Indian readers. New chapters are released on the 14th of each month. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
     ],
   },
   contact: {
