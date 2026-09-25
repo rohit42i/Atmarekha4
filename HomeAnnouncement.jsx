@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import './home-announcement.css';
 import './admin-announcement.css';
 
-export default function HomeAnnouncement() {
+export default function HomeAnnouncement({ target = null, variant = 'all' }) {
   const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function HomeAnnouncement() {
   const dateNewestFirst = (a, b) =>
     new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
 
-  const pinTarget = document.body?.dataset?.announcementTarget || (window.location.pathname.toLowerCase().includes('pdpkl') ? 'pdpkl' : 'atma');
+  const pinTarget = target || document.body?.dataset?.announcementTarget || (window.location.pathname.toLowerCase().includes('pdpkl') ? 'pdpkl' : 'atma');
   const pinned = announcements.filter(item => Boolean(item.is_pinned) && (item.pin_target || 'atma') === pinTarget).sort(dateNewestFirst);
   const unpinned = announcements.filter(item => !item.is_pinned).sort(dateNewestFirst);
 
@@ -57,7 +57,12 @@ export default function HomeAnnouncement() {
     orderedUnpinned.push(item || automatic[automaticIndex++]);
   }
 
-  const orderedAnnouncements = [...pinned, ...orderedUnpinned.filter(Boolean)];
+  const orderedAnnouncements =
+    variant === 'pinned'
+      ? pinned
+      : variant === 'normal'
+        ? orderedUnpinned.filter(Boolean)
+        : [...pinned, ...orderedUnpinned.filter(Boolean)];
 
   return (
     <section className="home-announcements" aria-label="Announcements">
