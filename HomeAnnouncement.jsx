@@ -64,8 +64,14 @@ export default function HomeAnnouncement({ target = null, variant = 'all' }) {
         ? orderedUnpinned.filter(Boolean)
         : [...pinned, ...orderedUnpinned.filter(Boolean)];
 
+  const announcementClasses = [
+    'home-announcements',
+    target ? `home-announcements-target-${target}` : '',
+    variant !== 'all' ? `home-announcements-variant-${variant}` : ''
+  ].filter(Boolean).join(' ');
+
   return (
-    <section className="home-announcements" aria-label="Announcements">
+    <section className={announcementClasses} aria-label="Announcements">
       {orderedAnnouncements.map(item => {
         const storedTitle = String(item.title || '').trim();
         const title = storedTitle.startsWith('__image_only_') ? '' : storedTitle;
