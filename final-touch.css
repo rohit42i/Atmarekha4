@@ -140,3 +140,76 @@ textarea { resize: vertical; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* Reader favourite: simple, stable heart control immediately left of rating. */
+.reader-engagement { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.reader-favorite-button {
+  order: 0;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  opacity: .82;
+  cursor: pointer;
+}
+.reader-favorite-button:hover:not(:disabled),
+.reader-favorite-button:focus-visible { opacity: 1; }
+.reader-favorite-button svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.reader-favorite-button.is-saved { opacity: 1; }
+.reader-favorite-button.is-saved svg { fill: currentColor; }
+.reader-favorite-button:disabled { cursor: wait; opacity: .55; }
+.reader-rating-button { order: 1; }
+.reader-comments-button { order: 2; }
+.reader-page-pill { order: 3; }
+.reader-favorite-status {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+@media (max-width: 700px) {
+  .reader-engagement { gap: 6px; }
+  .reader-favorite-button {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 7px;
+  }
+  .reader-favorite-button svg { width: 17px; height: 17px; }
+}
+@media (max-width: 380px) {
+  .reader-engagement { gap: 4px; }
+  .reader-favorite-button {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+  .reader-favorite-button svg { width: 16px; height: 16px; }
+}
