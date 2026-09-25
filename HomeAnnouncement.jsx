@@ -13,7 +13,7 @@ export default function HomeAnnouncement() {
       try {
         const { data, error } = await supabase
           .from('announcements')
-          .select('id, title, content, image_url, is_pinned, display_position, published_at, created_at')
+          .select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at')
           .order('published_at', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .limit(10);
@@ -33,7 +33,8 @@ export default function HomeAnnouncement() {
   const dateNewestFirst = (a, b) =>
     new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
 
-  const pinned = announcements.filter(item => Boolean(item.is_pinned)).sort(dateNewestFirst);
+  const pinTarget = document.body?.dataset?.announcementTarget || (window.location.pathname.toLowerCase().includes('pdpkl') ? 'pdpkl' : 'atma');
+  const pinned = announcements.filter(item => Boolean(item.is_pinned) && (item.pin_target || 'atma') === pinTarget).sort(dateNewestFirst);
   const unpinned = announcements.filter(item => !item.is_pinned).sort(dateNewestFirst);
 
   // Explicit positions occupy their exact requested slots. Automatic announcements
