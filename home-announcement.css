@@ -12,6 +12,7 @@
 
 .home-announcement {
   width: 100%;
+  position: relative;
   min-height: 0;
   margin: 0;
   overflow: hidden;
@@ -27,6 +28,30 @@
 .home-announcement-image img { width: 100%; height: auto; max-width: 100%; display: block; object-fit: contain; }
 .home-announcement-image.image-only { height: auto; }
 .home-announcement-image.image-only img { max-height: none; }
+
+.home-announcement-comments {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(12,12,15,.68);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease;
+}
+.home-announcement-comments:hover { transform: translateY(-1px); background: rgba(12,12,15,.84); border-color: rgba(255,255,255,.28); }
+.home-announcement-comments:active { transform: scale(.94); }
+.home-announcement-comments:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.home-announcement-comments svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 .home-announcement-copy {
   min-width: 0;
@@ -62,6 +87,7 @@
 @media (max-width: 560px) {
   .home-page > .home-announcements { width: calc(100% - 32px); margin: 14px auto 16px; gap: 10px; }
   .home-announcement { border-radius: 16px; }
+  .home-announcement-comments { top: 10px; right: 10px; width: 36px; height: 36px; padding: 8px; }
   .home-announcement-copy { padding: 16px 17px 17px; }
   .home-announcement-copy.text-only { min-height: 96px; }
   .home-announcement-copy h2 { font-size: 21px; }
