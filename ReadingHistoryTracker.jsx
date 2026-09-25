@@ -61,7 +61,7 @@ export default function ReadingHistoryTracker() {
       lastSavedRef.current = '';
       window.requestAnimationFrame(() => {
         const chapterId = getChapterIdFromLocation();
-        if (chapterId) schedule(chapterId, 1);
+        if (!chapterId) return; const saved = Number(window.localStorage.getItem(`atma-reading:${chapterId}`)); if (Number.isInteger(saved) && saved >= 0) schedule(chapterId, saved + 1);
       });
     };
 
