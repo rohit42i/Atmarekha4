@@ -78,10 +78,9 @@
   color: var(--legacy-a1a1aa-0030ed12);
   font-size: 13px;
   line-height: 1.5;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: visible;
   display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 560px) {
@@ -91,7 +90,7 @@
   .home-announcement-copy { padding: 16px 17px 17px; }
   .home-announcement-copy.text-only { min-height: 96px; }
   .home-announcement-copy h2 { font-size: 21px; }
-  .home-announcement-copy p { margin-top: 7px; font-size: 12.5px; line-height: 1.5; -webkit-line-clamp: 2; }
+  .home-announcement-copy p { margin-top: 7px; font-size: 12.5px; line-height: 1.5; }
 }
 
 @media (max-width: 360px) {
