@@ -74,7 +74,7 @@ export default function AdminPanel({ onLogout }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
-  const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false });
+  const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false, display_position: '' });
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [pageEditorProject, setPageEditorProject] = useState('atma');
@@ -99,7 +99,7 @@ export default function AdminPanel({ onLogout }) {
         supabase.from(PAGES).select('id, chapter_id, page_number, image_url').order('page_number', { ascending: true }),
         supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100),
         supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
-        supabase.from('announcements').select('id, title, content, image_url, is_pinned, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
+        supabase.from('announcements').select('id, title, content, image_url, is_pinned, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
         supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200),
       ]);
       for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
@@ -382,6 +382,7 @@ export default function AdminPanel({ onLogout }) {
       content: item.content || '',
       thumbnail: null,
       is_pinned: Boolean(item.is_pinned),
+      display_position: item.display_position ? String(item.display_position) : '',
     });
     setTab('Announcements');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -389,7 +390,7 @@ export default function AdminPanel({ onLogout }) {
 
   function cancelAnnouncementEdit() {
     setEditingAnnouncementId(null);
-    setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false });
+    setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false, display_position: '' });
   }
 
   async function saveAnnouncement(event) {
@@ -404,6 +405,11 @@ export default function AdminPanel({ onLogout }) {
       adminUser = await requireAdmin();
       const title = announcement.title.trim();
       const content = announcement.content.trim();
+      const displayPositionRaw = String(announcement.display_position ?? '').trim();
+      const displayPosition = displayPositionRaw === '' ? null : Number(displayPositionRaw);
+      if (displayPosition !== null && (!Number.isInteger(displayPosition) || displayPosition < 1 || displayPosition > 10)) {
+        throw new Error('Choose a valid announcement position from 1 to 10, or leave it on Automatic.');
+      }
       if (!title && !content && !announcement.thumbnail) throw new Error('Add a title, text, or thumbnail before publishing.');
 
       const existing = editingAnnouncementId
@@ -433,6 +439,7 @@ export default function AdminPanel({ onLogout }) {
           content: content || '',
           image_url: imageUrl,
           is_pinned: announcement.is_pinned,
+          display_position: displayPosition,
         }).eq('id', existing.id);
         if (error) throw error;
         imageCommitted = Boolean(announcement.thumbnail);
@@ -451,6 +458,7 @@ export default function AdminPanel({ onLogout }) {
         await logAdminAction(adminUser, 'update_announcement', 'announcement', existing.id, {
           title: storedTitle,
           pinned: announcement.is_pinned,
+          display_position: displayPosition,
           image_changed: Boolean(announcement.thumbnail),
         });
       } else {
@@ -459,6 +467,7 @@ export default function AdminPanel({ onLogout }) {
           content: content || '',
           image_url: imageUrl,
           is_pinned: announcement.is_pinned,
+          display_position: displayPosition,
           published_at: new Date().toISOString(),
         }).select('id').single();
         if (error) throw error;
@@ -466,6 +475,7 @@ export default function AdminPanel({ onLogout }) {
         await logAdminAction(adminUser, 'create_announcement', 'announcement', data?.id || null, {
           title: storedTitle,
           pinned: announcement.is_pinned,
+          display_position: displayPosition,
           image_changed: Boolean(announcement.thumbnail),
         });
       }
@@ -649,16 +659,19 @@ export default function AdminPanel({ onLogout }) {
           {editingAnnouncementId && <button type="button" onClick={cancelAnnouncementEdit}>Cancel edit</button>}
         </div>
         <input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)"/>
-        <textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="5"/>
+        <textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="7"/>
         <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept="image/*" onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
-        <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked })}/> Pin announcement</label>
-        <p className="admin-form-hint">No thumbnail → title/text card. Thumbnail + text → image with title/text. Thumbnail only → image-only card. Editing keeps the existing image unless you choose a replacement.</p>
+        <div className="admin-form-grid">
+          <label><span>Placement</span><select value={announcement.display_position} onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}><option value="">Automatic · normal order</option>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card</option>)}</select></label>
+          <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked })}/> Pin to top</label>
+        </div>
+        <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
         <button className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
       </form>
       <div className="admin-card">
         <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
         <div className="admin-mini-list">{announcements.map(item => <div key={item.id}>
-          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div>
+          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div>
           <div className="admin-row-actions"><button onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
