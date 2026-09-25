@@ -30,18 +30,33 @@ export default function HomeAnnouncement() {
 
   if (!announcements.length) return null;
 
-  const orderedAnnouncements = [...announcements].sort((a, b) => {
-    const pinnedDiff = Number(Boolean(b.is_pinned)) - Number(Boolean(a.is_pinned));
-    if (pinnedDiff) return pinnedDiff;
+  const dateNewestFirst = (a, b) =>
+    new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
 
-    const aPosition = Number.isInteger(Number(a.display_position)) ? Number(a.display_position) : null;
-    const bPosition = Number.isInteger(Number(b.display_position)) ? Number(b.display_position) : null;
-    if (aPosition !== null && bPosition !== null && aPosition !== bPosition) return aPosition - bPosition;
-    if (aPosition !== null && bPosition === null) return -1;
-    if (aPosition === null && bPosition !== null) return 1;
+  const pinned = announcements.filter(item => Boolean(item.is_pinned)).sort(dateNewestFirst);
+  const unpinned = announcements.filter(item => !item.is_pinned).sort(dateNewestFirst);
 
-    return new Date(b.published_at || b.created_at || 0) - new Date(a.published_at || a.created_at || 0);
-  });
+  // Explicit positions occupy their exact requested slots. Automatic announcements
+  // fill whatever slots remain, preserving newest-first order.
+  const positioned = new Map();
+  const automatic = [];
+  for (const item of unpinned) {
+    const position = Number(item.display_position);
+    if (Number.isInteger(position) && position >= 1 && position <= 10 && !positioned.has(position)) {
+      positioned.set(position, item);
+    } else {
+      automatic.push(item);
+    }
+  }
+
+  const orderedUnpinned = [];
+  let automaticIndex = 0;
+  for (let slot = 1; slot <= unpinned.length; slot += 1) {
+    const item = positioned.get(slot);
+    orderedUnpinned.push(item || automatic[automaticIndex++]);
+  }
+
+  const orderedAnnouncements = [...pinned, ...orderedUnpinned.filter(Boolean)];
 
   return (
     <section className="home-announcements" aria-label="Announcements">
