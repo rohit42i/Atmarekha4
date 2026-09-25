@@ -5,13 +5,12 @@ const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
 export function getViewerKey() {
   if (typeof window === 'undefined') return 'server-viewer-key';
   let key = window.localStorage.getItem(VIEWER_KEY_STORAGE);
-  if (!key) {
-    key = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  if (!key || key.length < 16 || key.length > 128) {
+    key = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `1790365175770-${Math.random().toString(36).slice(2)}`;
     window.localStorage.setItem(VIEWER_KEY_STORAGE, key);
   }
   return key;
 }
-
 export function buildRatingSummary(rows = []) {
   const ratings = rows.map(row => Number(row.rating)).filter(Number.isFinite);
   return { average: ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : 0, count: ratings.length };
@@ -198,8 +197,14 @@ export async function deleteComment(commentId) {
 }
 
 export async function recordChapterView(chapterId) {
-  const { error } = await supabase.from('chapter_views').upsert({ chapter_id: chapterId, viewer_key: getViewerKey() }, { onConflict: 'chapter_id,viewer_key', ignoreDuplicates: true });
-  if (error) throw error;
+  if (!chapterId) throw new Error('Chapter ID is required.');
+  const viewerKey = getViewerKey();
+  const { error } = await supabase.from('chapter_views').insert({
+    chapter_id: chapterId,
+    viewer_key: viewerKey,
+  });
+  if (error && error.code !== '23505') throw error;
+  return { recorded: !error };
 }
 
 export async function likeChapter(chapterId) {
