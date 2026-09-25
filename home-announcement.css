@@ -80,8 +80,8 @@
   line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  overflow: visible;
+  display: block;
 }
 
 @media (max-width: 560px) {
