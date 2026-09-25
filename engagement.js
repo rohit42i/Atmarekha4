@@ -63,8 +63,16 @@ export async function fetchChapterEngagement(chapterId) {
 
 export async function fetchChapterComments(chapterId) {
   const { data, error } = await supabase.from('comments')
-    .select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id')
+    .select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id')
     .eq('chapter_id', chapterId).order('created_at', { ascending: true }).limit(500);
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchAnnouncementComments(announcementId) {
+  const { data, error } = await supabase.from('comments')
+    .select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id')
+    .eq('announcement_id', announcementId).order('created_at', { ascending: true }).limit(500);
   if (error) throw error;
   return data || [];
 }
@@ -150,15 +158,23 @@ async function getAccountUsername(user) {
   return username || 'reader';
 }
 
-export async function addComment({ chapterId, content, parentCommentId = null }) {
+export async function addComment({ chapterId = null, announcementId = null, content, parentCommentId = null }) {
   const user = await requireUser();
+  const hasChapter = Boolean(chapterId);
+  const hasAnnouncement = Boolean(announcementId);
+  if (hasChapter === hasAnnouncement) throw new Error('Choose exactly one comment destination.');
   const cleanContent = String(content || '').trim();
   if (!cleanContent) throw new Error('Write a comment first.');
   if (cleanContent.length > 2000) throw new Error('Comments are limited to 2000 characters.');
   const username = await getAccountUsername(user);
   const { data, error } = await supabase.from('comments').insert({
-    user_id: user.id, chapter_id: chapterId, author_name: username, content: cleanContent, parent_comment_id: parentCommentId,
-  }).select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
+    user_id: user.id,
+    chapter_id: hasChapter ? chapterId : null,
+    announcement_id: hasAnnouncement ? announcementId : null,
+    author_name: username,
+    content: cleanContent,
+    parent_comment_id: parentCommentId,
+  }).select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
   return data;
 }
@@ -170,7 +186,7 @@ export async function updateComment(commentId, content) {
   if (clean.length > 2000) throw new Error('Comments are limited to 2000 characters.');
   const { data, error } = await supabase.from('comments').update({ content: clean, updated_at: new Date().toISOString() })
     .eq('id', commentId).eq('user_id', user.id)
-    .select('id,user_id,chapter_id,author_name,content,created_at,updated_at,parent_comment_id').single();
+    .select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
   return data;
 }
