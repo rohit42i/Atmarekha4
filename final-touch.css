@@ -213,3 +213,11 @@ textarea { resize: vertical; }
   }
   .reader-favorite-button svg { width: 16px; height: 16px; }
 }
+
+
+/* Reader header: compact chapter label only; chapter title remains on Chapter List. */
+.reader-title { min-width: 0; display: flex; align-items: center; }
+.reader-title p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 700px) {
+  .reader-title { flex: 1 1 auto; }
+}
