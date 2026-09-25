@@ -65,3 +65,51 @@
 @media (min-width:600px) and (prefers-reduced-motion:reduce){
   .hero-button,.primary-button,.latest-item,.chapter-row,.reader-progress span{transition:none!important}
 }
+
+/* Atma Rekha — laptop layout optimization.
+   Desktop-only spacing/width balance. Mobile rules remain unchanged. */
+@media (min-width:901px) {
+  .project-card,
+  .home-anchor-section,
+  .site-footer {
+    width: min(900px, calc(100% - 96px));
+  }
+
+  .hero-card {
+    margin-top: 46px;
+  }
+
+  .project-card {
+    margin-top: 28px;
+    padding: 32px 44px;
+  }
+
+  .home-anchor-section {
+    padding: 16px 0;
+  }
+
+  .site-footer {
+    margin-top: 30px;
+  }
+}
+
+@media (min-width:1280px) {
+  .project-card,
+  .home-anchor-section,
+  .site-footer {
+    width: min(960px, calc(100% - 120px));
+  }
+
+  .project-card {
+    margin-top: 30px;
+    padding: 34px 52px;
+  }
+
+  .home-anchor-section {
+    padding: 18px 0;
+  }
+
+  .site-footer {
+    margin-top: 34px;
+  }
+}
