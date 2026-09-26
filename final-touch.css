@@ -236,3 +236,33 @@ textarea { resize: vertical; }
 
 /* Refined chapter share icon */
 .reader-share-button{width:44px;height:44px;border-radius:50%;padding:0;background:transparent;border:1px solid color-mix(in srgb,currentColor 24%,transparent);box-shadow:0 3px 12px rgba(0,0,0,.16)}.reader-share-button svg{width:20px;height:20px;stroke-width:2.1}.reader-share-button:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 6px 18px rgba(0,0,0,.24)}.reader-share-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}.reader-share-button:active{transform:scale(.94)}
+
+
+/* Reader chapter navigation + share sizing */
+.reader-chapter-nav-item>a,
+.reader-chapter-nav-empty{
+  min-height:64px;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+}
+.reader-chapter-nav-empty{
+  align-items:center;
+  padding:11px 15px;
+  border:1px solid var(--legacy-292929-ce596263);
+  border-radius:14px;
+  background:var(--legacy-0b0b0c-9089d82e);
+  color:var(--legacy-71717a-70e3f8a8);
+}
+.reader-chapter-nav-empty small{font-size:9px;font-weight:900;letter-spacing:.16em}
+.reader-share-button{width:36px!important;height:36px!important;min-width:36px!important;padding:0!important;border-radius:8px!important;box-shadow:none!important}
+.reader-share-button svg{width:17px!important;height:17px!important}
+@media(max-width:700px){
+  .reader-share-button{width:34px!important;height:34px!important;min-width:34px!important;flex-basis:34px!important;border-radius:7px!important}
+  .reader-share-button svg{width:16px!important;height:16px!important}
+}
+@media(max-width:380px){
+  .reader-share-button{width:32px!important;height:32px!important;min-width:32px!important;flex-basis:32px!important}
+}
