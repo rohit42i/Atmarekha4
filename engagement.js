@@ -196,6 +196,16 @@ export async function deleteComment(commentId) {
   if (error) throw error;
 }
 
+export async function recordChapterShare(chapterId) {
+  if (!chapterId) throw new Error('Chapter ID is required.');
+  const { error } = await supabase.from('chapter_shares').insert({
+    chapter_id: chapterId,
+    viewer_key: getViewerKey(),
+  });
+  if (error) throw error;
+  return { recorded: true };
+}
+
 export async function recordChapterView(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
   const viewerKey = getViewerKey();
