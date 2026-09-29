@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
 import { buildChapters } from './chapters';
 import AdminOverview from './AdminOverview';
+import AdminMembership from './AdminMembership.jsx';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
@@ -67,6 +68,9 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
+  ]},
+  { label: 'Monetization', items: [
+    { key: 'Membership & Earnings', icon: 'chart', label: 'Membership & Earnings' },
   ]},
   { label: 'Library', items: [
     { key: 'Media', icon: 'image', label: 'Media' },
@@ -613,7 +617,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Chapters', 'Pal Do Pal Ke Lamhe', 'Pages', 'Comments', 'Reports', 'Announcements', 'Media'];
+  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Membership & Earnings', 'Media', 'Pal Do Pal Ke Lamhe'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -649,7 +653,7 @@ export default function AdminPanel({ onLogout }) {
         <div className="ar-admin-content">
           <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Manage chapters, community activity and publishing operations.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">+ Chapter</button><button type="button" onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="ar-admin-secondary-action">+ PDPL</button></div></div>
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
       <section className="admin-card">
         <div className="admin-card-title">
           <div>
