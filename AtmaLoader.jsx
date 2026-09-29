@@ -57,13 +57,37 @@ export default function AtmaLoader(){
   useEffect(()=>{
     const hide=(variant)=>{const el=variant==='refresh'?refreshRef.current:mainRef.current;if(!el)return;el.classList.add('hidden');clearTimeout(timers.current[variant]);timers.current[variant]=setTimeout(()=>{el.hidden=true},500)};
     const show=(variant='main')=>{const el=variant==='refresh'?refreshRef.current:mainRef.current;if(!el)return;clearTimeout(timers.current[variant]);el.hidden=false;requestAnimationFrame(()=>el.classList.remove('hidden'))};
+    const isAdminRoute=()=>{const hash=window.location.hash.replace(/^#/,'').split('?')[0].replace(/\/+$/,'');const path=window.location.pathname.replace(/\/+$/,'');return hash==='admin'||path==='/admin'||Boolean(document.querySelector('[data-admin-premium="true"]'));};
+    const syncForAdmin=()=>{if(isAdminRoute()){hide('main');hide('refresh');}};
     const hideMain=()=>setTimeout(()=>hide('main'),400);
+    const onLoad=()=>hide('refresh');
+    const onRoute=()=>syncForAdmin();
     window.AtmaLoader={show,hide,showMain:()=>show('main'),hideMain:()=>hide('main'),showRefresh:()=>show('refresh'),hideRefresh:()=>hide('refresh')};
     const nav=performance.getEntriesByType?.('navigation')?.[0];
     const isReload=nav?.type==='reload';
-    if(isReload){mainRef.current.hidden=true;mainRef.current.classList.add('hidden');show('refresh');window.addEventListener('load',()=>hide('refresh'),{once:true})}
-    else{refreshRef.current.hidden=true;refreshRef.current.classList.add('hidden');show('main');if(document.readyState==='complete')hideMain();else window.addEventListener('load',hideMain,{once:true})}
-    return()=>{window.removeEventListener('load',hideMain);clearTimeout(timers.current.main);clearTimeout(timers.current.refresh);};
+    if(isAdminRoute()){
+      mainRef.current.hidden=true;mainRef.current.classList.add('hidden');
+      refreshRef.current.hidden=true;refreshRef.current.classList.add('hidden');
+    }else if(isReload){
+      mainRef.current.hidden=true;mainRef.current.classList.add('hidden');
+      show('refresh');window.addEventListener('load',onLoad,{once:true});
+    }else{
+      refreshRef.current.hidden=true;refreshRef.current.classList.add('hidden');
+      show('main');
+      if(document.readyState==='complete')hideMain();else window.addEventListener('load',hideMain,{once:true});
+    }
+    const observer=new MutationObserver(syncForAdmin);
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+    window.addEventListener('hashchange',onRoute);
+    window.addEventListener('popstate',onRoute);
+    return()=>{
+      window.removeEventListener('load',hideMain);
+      window.removeEventListener('load',onLoad);
+      window.removeEventListener('hashchange',onRoute);
+      window.removeEventListener('popstate',onRoute);
+      observer.disconnect();
+      clearTimeout(timers.current.main);clearTimeout(timers.current.refresh);
+    };
   },[]);
   return <><style>{CSS}</style>
     <div ref={mainRef} className="atma-loader-overlay" data-variant="main" role="status" aria-label="Loading Atma Rekha"><Artwork/></div>
