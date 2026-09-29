@@ -340,3 +340,173 @@ html:has([data-admin-premium="true"]) .atma-loader-overlay[data-variant="refresh
     width:100%;
   }
 }
+
+
+/* Final phone UX pass */
+.ar-mobile-backdrop{display:none}
+
+.ar-mobile-bottom-nav{display:none}
+
+@media(max-width:980px){
+  [data-admin-premium="true"]{
+    padding-bottom:74px;
+  }
+  [data-admin-premium="true"] .ar-sidebar{
+    z-index:120;
+  }
+  [data-admin-premium="true"] .ar-mobile-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    z-index:110;
+    border:0;
+    padding:0;
+    background:rgba(0,0,0,.58);
+    backdrop-filter:blur(2px);
+    -webkit-backdrop-filter:blur(2px);
+  }
+  [data-admin-premium="true"] .ar-topbar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    padding-top:max(8px,env(safe-area-inset-top));
+    background:rgba(10,10,13,.94);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+  [data-admin-premium="true"] .ar-content{
+    position:relative;
+    z-index:1;
+  }
+  [data-admin-premium="true"] .ar-notice{
+    position:sticky;
+    top:68px;
+    z-index:40;
+    margin-bottom:12px;
+  }
+  [data-admin-premium="true"] .ar-mobile-bottom-nav{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:105;
+    min-height:64px;
+    padding:6px 6px max(6px,env(safe-area-inset-bottom));
+    background:rgba(14,14,17,.96);
+    border-top:1px solid rgba(255,255,255,.08);
+    box-shadow:0 -12px 32px rgba(0,0,0,.24);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+  }
+  [data-admin-premium="true"] .ar-mobile-bottom-nav button{
+    position:relative;
+    min-width:0;
+    min-height:52px;
+    padding:5px 3px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    color:#858997;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.01em;
+    -webkit-tap-highlight-color:transparent;
+  }
+  [data-admin-premium="true"] .ar-mobile-bottom-nav button.active{
+    color:#a78bfa;
+    background:rgba(139,92,246,.10);
+  }
+  [data-admin-premium="true"] .ar-mobile-bottom-nav button:active{
+    transform:scale(.96);
+  }
+  [data-admin-premium="true"] .ar-mobile-bottom-icon{
+    position:relative;
+    width:24px;
+    height:22px;
+    display:grid;
+    place-items:center;
+  }
+  [data-admin-premium="true"] .ar-mobile-bottom-icon b{
+    position:absolute;
+    top:-5px;
+    right:-7px;
+    min-width:15px;
+    height:15px;
+    padding:0 4px;
+    border-radius:99px;
+    display:grid;
+    place-items:center;
+    background:#ef4444;
+    color:#fff;
+    font-size:8px;
+    line-height:1;
+  }
+  [data-admin-premium="true"] .ar-sidebar.mobile-open{
+    box-shadow:20px 0 70px rgba(0,0,0,.55);
+  }
+}
+
+@media(max-width:560px){
+  [data-admin-premium="true"]{
+    padding-bottom:72px;
+  }
+  [data-admin-premium="true"] .ar-content{
+    padding-bottom:24px;
+  }
+  [data-admin-premium="true"] .ar-topbar{
+    min-height:58px;
+  }
+  [data-admin-premium="true"] .ar-search input{
+    border-radius:12px;
+  }
+  [data-admin-premium="true"] .ar-stat-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  [data-admin-premium="true"] .ar-period-switcher{
+    position:sticky;
+    top:67px;
+    z-index:35;
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-row-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-row-actions button{
+    width:100%;
+    min-width:0;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-submit{
+    width:100%;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-dropzone{
+    min-height:130px!important;
+    padding:16px 12px!important;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-card{
+    border-radius:15px!important;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-card-title h2{
+    font-size:17px!important;
+    line-height:1.2;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-card-title p{
+    font-size:11px!important;
+    line-height:1.45;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-comment-meta{
+    flex-wrap:wrap;
+    gap:3px 7px;
+  }
+  [data-admin-premium="true"] .admin-premium-embedded .admin-comment-meta span{
+    width:100%;
+  }
+}
