@@ -95,7 +95,6 @@ export default function AdminOverview({chapters,comments,reports=[],ratings,view
     const healthyPublished=published.filter(function(ch){return Number(pageCounts?.[ch.id]||ch.pages||0)>0;}).length;
     const openReports=(reports||[]).filter(function(r){return (r.status||'open')==='open';}).length;
     const health=published.length?Math.max(0,Math.round(healthyPublished/published.length*100)-Math.min(openReports*4,20)):100;
-    const chapterStats=chapterStats;
     return {
       totalViews:Number(data.total_views||0),totalLikes:Number(data.total_likes||0),totalShares:Number(data.total_shares||0),
       totalRatings:totalRatings,totalComments:Number(data.total_comments||0),totalAverage:totalAverage,
@@ -104,7 +103,7 @@ export default function AdminOverview({chapters,comments,reports=[],ratings,view
       activeReaders:Number(data.active_readers||0),returningReaders:Number(data.returning_readers||0),bookmarks:Number(data.bookmarks||0),released:Number(data.released||0),
       chapterStats:chapterStats,ratingCounts:ratingCounts,health:health,
       recentComments:[...(comments||[])].sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);}).slice(0,5),
-      topChapters:[...chapterStats].sort(function(a,b){return (b.periodViews-b.periodViews)||0 || b.views-a.views;}).slice(0,6)
+      topChapters:[...chapterStats].sort(function(a,b){return (b.periodViews-a.periodViews) || (b.views-a.views);}).slice(0,6)
     };
   },[analytics,chapters,comments,pageCounts,reports]);
 
