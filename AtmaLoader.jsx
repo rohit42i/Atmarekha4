@@ -1,5 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 
+const isAdminLocation = () => {
+  if (typeof window === 'undefined') return false;
+  const hash = window.location.hash.replace(/^#/, '').split('?')[0].replace(/\/+$/, '');
+  const path = window.location.pathname.replace(/\/+$/, '');
+  return hash === 'admin' || path === '/admin';
+};
+
 const PARTICLES = [
   [5,28,38,'-1.2s','4.6s'],[20,34,-42,'-.4s','5.2s'],[35,31,52,'-2.8s','4.1s'],[51,37,-30,'-1.7s','5.8s'],
   [68,28,44,'-3.1s','4.8s'],[84,34,-52,'-.8s','5.2s'],[101,30,35,'-2.1s','4.4s'],[119,38,-48,'-3.6s','5.7s'],
@@ -57,8 +64,12 @@ export default function AtmaLoader(){
   useEffect(()=>{
     const hide=(variant)=>{const el=variant==='refresh'?refreshRef.current:mainRef.current;if(!el)return;el.classList.add('hidden');clearTimeout(timers.current[variant]);timers.current[variant]=setTimeout(()=>{el.hidden=true},500)};
     const show=(variant='main')=>{const el=variant==='refresh'?refreshRef.current:mainRef.current;if(!el)return;clearTimeout(timers.current[variant]);el.hidden=false;requestAnimationFrame(()=>el.classList.remove('hidden'))};
-    const isAdminRoute=()=>{const hash=window.location.hash.replace(/^#/,'').split('?')[0].replace(/\/+$/,'');const path=window.location.pathname.replace(/\/+$/,'');return hash==='admin'||path==='/admin'||Boolean(document.querySelector('[data-admin-premium="true"]'));};
-    const syncForAdmin=()=>{if(isAdminRoute()){hide('main');hide('refresh');}};
+    const isAdminRoute=()=>isAdminLocation()||Boolean(document.querySelector('[data-admin-premium="true"]'))||Boolean(document.querySelector('.admin-auth-checking'));
+    const syncForAdmin=()=>{
+      const admin=isAdminRoute();
+      document.documentElement.toggleAttribute('data-atma-admin-route', admin);
+      if(admin){hide('main');hide('refresh');}
+    };
     const hideMain=()=>setTimeout(()=>hide('main'),400);
     const onLoad=()=>hide('refresh');
     const onRoute=()=>syncForAdmin();
@@ -66,6 +77,7 @@ export default function AtmaLoader(){
     const nav=performance.getEntriesByType?.('navigation')?.[0];
     const isReload=nav?.type==='reload';
     if(isAdminRoute()){
+      document.documentElement.setAttribute('data-atma-admin-route','true');
       mainRef.current.hidden=true;mainRef.current.classList.add('hidden');
       refreshRef.current.hidden=true;refreshRef.current.classList.add('hidden');
     }else if(isReload){
@@ -89,8 +101,9 @@ export default function AtmaLoader(){
       clearTimeout(timers.current.main);clearTimeout(timers.current.refresh);
     };
   },[]);
+  const adminInitially = isAdminLocation();
   return <><style>{CSS}</style>
-    <div ref={mainRef} className="atma-loader-overlay" data-variant="main" role="status" aria-label="Loading Atma Rekha"><Artwork/></div>
-    <div ref={refreshRef} className="atma-loader-overlay hidden" data-variant="refresh" role="status" aria-label="Refreshing Atma Rekha"><Artwork/></div>
+    {!adminInitially && <div ref={mainRef} className="atma-loader-overlay" data-variant="main" role="status" aria-label="Loading Atma Rekha"><Artwork/></div>
+    {!adminInitially && <div ref={refreshRef} className="atma-loader-overlay hidden" data-variant="refresh" role="status" aria-label="Refreshing Atma Rekha"><Artwork/></div>}
   </>;
 }
