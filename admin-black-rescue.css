@@ -1,6 +1,6 @@
 /* Atma Rekha — admin runtime isolation and legacy rescue. */
 
-html[data-atma-admin-route="true"] .atma-loader-overlay,
+html[data-atma-admin-route] .atma-loader-overlay,
 html:has(.ar-shell) .atma-loader-overlay,
 html:has(.admin-auth-checking) .atma-loader-overlay,
 html:has(main.admin-dashboard-shell) .atma-loader-overlay,
