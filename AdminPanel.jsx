@@ -675,7 +675,7 @@ export default function AdminPanel({ onLogout }) {
         :tab==='Pal Do Pal Ke Lamhe'?<div className='admin-premium-embedded'><PalDoPalAdmin/></div>
         :tab==='Pages'?<div className='admin-premium-embedded'><section className='admin-stack'>
           <section className='admin-card'><div className='admin-card-title'><div><span>PAGE EDITOR</span><h2>Choose project</h2><p>Switch between Atma Rekha and Pal Do Pal Ke Lamhe without leaving the page editor.</p></div></div>
-            <div className='flex flex-wrap gap-2' role='tablist' aria-label='Page editor project'>
+            <div className='ar-project-switcher' role='tablist' aria-label='Page editor project'>
               <button type='button' role='tab' aria-selected={pageEditorProject==='atma'} onClick={function(){setPageEditorProject('atma');}} className={pageEditorProject==='atma'?'rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black':'rounded-xl border border-zinc-700 bg-transparent px-4 py-2.5 text-sm font-bold'}>Atma Rekha</button>
               <button type='button' role='tab' aria-selected={pageEditorProject==='pdpkl'} onClick={function(){setPageEditorProject('pdpkl');}} className={pageEditorProject==='pdpkl'?'rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black':'rounded-xl border border-zinc-700 bg-transparent px-4 py-2.5 text-sm font-bold'}>Pal Do Pal Ke Lamhe (PDPKL)</button>
             </div>
