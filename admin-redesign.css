@@ -1340,3 +1340,19 @@ html[data-theme="light"] .ar-admin-v3 .ar-membership-activity-row{
   border-color:#e1e4ea!important;
   box-shadow:0 2px 8px rgba(18,24,35,.025)!important;
 }
+
+
+/* Admin-only isolation guard: these visual tokens never target public UI. */
+html[data-theme="light"] [data-admin-root="true"].ar-admin-v3{
+  isolation:isolate;
+  color-scheme:light;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(91,91,214,.055), transparent 25%),
+    #f5f6fa!important;
+}
+html[data-theme="light"] [data-admin-root="true"].ar-admin-v3 *{
+  color-scheme:light;
+}
+html[data-theme="light"] [data-admin-root="true"].ar-admin-v3 .ar-admin-content{
+  background:transparent!important;
+}
