@@ -660,3 +660,94 @@ html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list stron
 .ar-admin-v3 .admin-overview-comments article {
   overflow: visible;
 }
+
+
+/* Membership & earnings */
+.ar-membership{display:flex;flex-direction:column;gap:18px}
+.ar-membership-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:24px 26px;border:1px solid var(--ar-border);border-radius:22px;background:linear-gradient(135deg,rgba(109,40,217,.12),rgba(190,24,93,.06) 55%,rgba(37,99,235,.06));box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.ar-membership-hero>div:first-child{min-width:0}
+.ar-membership-hero h2{margin:7px 0 6px;font-size:clamp(24px,3vw,34px);font-weight:900;letter-spacing:-.035em}
+.ar-membership-hero p{margin:0;color:var(--ar-text-2);max-width:720px;line-height:1.55}
+.ar-membership-live{display:flex;align-items:center;gap:10px;flex:0 0 auto;padding:10px 12px;border:1px solid var(--ar-border);border-radius:14px;background:var(--ar-surface);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.ar-membership-live>div{display:flex;flex-direction:column;gap:2px}
+.ar-membership-live strong{font-size:12px}
+.ar-membership-live small{font-size:10px;color:var(--ar-muted)}
+.ar-membership-live button{width:34px;height:34px;padding:0;border:1px solid var(--ar-border);border-radius:10px;background:transparent;color:var(--ar-text-2);display:grid;place-items:center;cursor:pointer}
+.ar-membership-live button:hover{color:var(--ar-violet);border-color:rgba(109,40,217,.28)}
+.ar-membership-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ar-membership-main-grid,.ar-membership-secondary-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);gap:14px}
+.ar-membership-money-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.ar-membership-money-row>div{padding:18px;border:1px solid var(--ar-border);border-radius:16px;background:var(--ar-surface-2)}
+.ar-membership-money-row span,.ar-membership-metrics span,.ar-membership-processed-list span,.ar-membership-health-grid span{display:block;font-size:11px;color:var(--ar-muted);font-weight:700}
+.ar-membership-money-row strong{display:block;margin:5px 0;font-size:30px;line-height:1;font-weight:950;letter-spacing:-.04em}
+.ar-membership-money-row small,.ar-membership-metrics small,.ar-membership-health-grid small{display:block;color:var(--ar-text-2);font-size:10px;line-height:1.45}
+.ar-membership-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.ar-membership-metrics>div,.ar-membership-health-grid>div{padding:14px;border:1px solid var(--ar-border);border-radius:14px;background:var(--ar-surface-2)}
+.ar-membership-metrics strong{display:block;margin:4px 0;font-size:18px}
+.ar-membership-processed-total{padding:18px;border-radius:16px;background:linear-gradient(135deg,rgba(161,98,7,.10),rgba(109,40,217,.07));border:1px solid rgba(161,98,7,.14)}
+.ar-membership-processed-total span{display:block;font-size:11px;color:var(--ar-muted);font-weight:700}
+.ar-membership-processed-total strong{display:block;margin-top:4px;font-size:32px;line-height:1;font-weight:950;letter-spacing:-.04em}
+.ar-membership-processed-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.ar-membership-processed-list>div{padding:12px;border:1px solid var(--ar-border);border-radius:13px;background:var(--ar-surface-2)}
+.ar-membership-processed-list strong{display:block;margin-top:4px;font-size:13px;color:var(--ar-text)}
+.ar-membership-plan-grid{display:flex;flex-direction:column;gap:10px}
+.ar-membership-plan{padding:15px;border:1px solid var(--ar-border);border-radius:15px;background:var(--ar-surface-2)}
+.ar-membership-plan-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ar-membership-plan-top>span{font-weight:850;font-size:14px}
+.ar-membership-plan-top>b{font-size:14px}
+.ar-membership-plan-top small{font-size:9px;color:var(--ar-muted);margin-left:2px}
+.ar-membership-plan-bar{height:7px;margin:11px 0;border-radius:999px;background:rgba(109,40,217,.08);overflow:hidden}
+.ar-membership-plan-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6d28d9,#be185d)}
+.ar-membership-plan-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.ar-membership-plan-stats span{font-size:9px;color:var(--ar-muted)}
+.ar-membership-plan-stats strong{color:var(--ar-text);font-size:12px;margin-right:2px}
+.ar-membership-health-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ar-membership-health-grid strong{display:block;margin:4px 0;font-size:20px}
+.ar-membership-trend{position:relative;min-height:220px;padding:16px 8px 42px}
+.ar-membership-trend-col{height:160px;display:inline-flex;width:calc(16.666% - 8px);margin:0 4px;vertical-align:bottom;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.ar-membership-trend-bars{width:100%;height:132px;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:0 7px;border-bottom:1px solid var(--ar-border)}
+.ar-membership-trend-bars i,.ar-membership-trend-bars b{display:block;width:15px;min-height:4px;border-radius:5px 5px 0 0}
+.ar-membership-trend-bars i{background:linear-gradient(180deg,#8b5cf6,#6d28d9)}
+.ar-membership-trend-bars b{background:linear-gradient(180deg,#f472b6,#be185d)}
+.ar-membership-trend-col>span{font-size:9px;color:var(--ar-muted);font-weight:800}
+.ar-membership-trend-col>small{font-size:9px;color:var(--ar-text-2)}
+.ar-membership-trend-legend{position:absolute;left:8px;right:8px;bottom:0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:9px;color:var(--ar-muted)}
+.ar-membership-trend-legend span{display:inline-flex;align-items:center;gap:5px}
+.ar-membership-trend-legend .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.ar-membership-activity{display:flex;flex-direction:column;gap:6px}
+.ar-membership-activity-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--ar-border);border-radius:12px;background:var(--ar-surface-2)}
+.ar-membership-activity-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:rgba(109,40,217,.09);color:var(--ar-violet);flex:0 0 auto}
+.ar-membership-activity-row>div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.ar-membership-activity-row strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ar-membership-activity-row small{font-size:9px;color:var(--ar-muted)}
+.ar-membership-status{display:inline-block;padding:2px 6px;border-radius:999px;font-weight:800;font-size:8px;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.ar-membership-status.status-active{background:rgba(22,163,74,.10);color:#15803d}
+.ar-membership-status.status-cancelled{background:rgba(220,38,38,.10);color:#dc2626}
+.ar-membership-status.status-pending{background:rgba(161,98,7,.10);color:#a16207}
+.ar-membership-status.status-failed{background:rgba(220,38,38,.10);color:#dc2626}
+.ar-membership-note{display:flex;gap:12px;align-items:flex-start;padding:16px 18px;border:1px solid var(--ar-border);border-radius:16px;background:var(--ar-surface-2)}
+.ar-membership-note>svg{color:var(--ar-violet);margin-top:2px;flex:0 0 auto}
+.ar-membership-note strong{font-size:12px}
+.ar-membership-note p{margin:5px 0 0;color:var(--ar-text-2);font-size:10px;line-height:1.65}
+.ar-membership-note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px}
+.ar-membership-empty{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--ar-muted)}
+.ar-membership-empty strong{color:var(--ar-text)}
+.ar-membership-empty span{max-width:320px;font-size:10px;line-height:1.5}
+.ar-membership-error{padding:18px;border:1px solid rgba(220,38,38,.18);border-radius:16px;background:rgba(220,38,38,.05);display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#dc2626}
+.ar-membership-error span{flex:1 1 280px;color:var(--ar-text-2);font-size:11px}
+.ar-membership-error button{min-height:36px;padding:0 12px;border:1px solid currentColor;border-radius:10px;background:transparent;color:inherit;cursor:pointer}
+@media(max-width:1100px){
+  .ar-membership-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ar-membership-main-grid,.ar-membership-secondary-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .ar-membership-hero{align-items:stretch;flex-direction:column;padding:19px 17px}
+  .ar-membership-live{width:100%;box-sizing:border-box}
+  .ar-membership-kpis{grid-template-columns:1fr 1fr;gap:8px}
+  .ar-membership-money-row,.ar-membership-metrics,.ar-membership-health-grid,.ar-membership-processed-list{grid-template-columns:1fr}
+  .ar-membership-plan-stats{grid-template-columns:1fr 1fr}
+  .ar-membership-trend-col{width:calc(16.666% - 6px);margin:0 3px}
+  .ar-membership-trend-bars{padding:0 3px}
+  .ar-membership-trend-bars i,.ar-membership-trend-bars b{width:10px}
+  .ar-membership-note{padding:14px}
+}
