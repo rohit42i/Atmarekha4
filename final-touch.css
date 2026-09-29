@@ -277,3 +277,19 @@ textarea { resize: vertical; }
 .reader-chapter-nav-item > .reader-chapter-nav-empty strong { font-size: 15px !important; letter-spacing: .02em; }
 .reader-chapter-nav-item small { display: none !important; }
 @media (max-width: 640px) { .reader-chapter-nav { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; } .reader-chapter-nav-item > a, .reader-chapter-nav-item > .reader-chapter-nav-empty { min-height: 52px; padding-inline: 8px; } }
+
+
+/* Reader chapter navigation: retain the two-button layout on phones. */
+.reader-chapter-nav-item>button{
+  width:100%;min-height:58px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--legacy-292929-ce596263);border-radius:14px;background:var(--legacy-0b0b0c-9089d82e);
+  color:var(--legacy-f7f7f7-e50e19e1);cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+.reader-chapter-nav-item>button:hover:not(:disabled){transform:translateY(-1px);border-color:var(--legacy-4f7ffb-11a5aef5);box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.reader-chapter-nav-item>button:active:not(:disabled){transform:scale(.985)}
+.reader-chapter-nav-item>button strong{font-size:20px;font-weight:900;line-height:1.05}
+@media(max-width:640px){
+  .reader-chapter-nav{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .reader-chapter-nav-item>button,.reader-chapter-nav-empty{min-height:54px}
+  .reader-chapter-nav-item>button strong,.reader-chapter-nav-empty strong{font-size:14px!important}
+}
