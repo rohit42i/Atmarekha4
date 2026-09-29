@@ -168,7 +168,7 @@ function AdminRoute({ onExit }) {
     };
   }, []);
 
-  if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>;
+  if (checking) return <main className="site-shell admin-auth-checking" data-admin-route="true"><LoadingState label="Checking admin access…"/></main>;
   if (!session || !(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
   return <AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/>;
 }
