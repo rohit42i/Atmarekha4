@@ -623,8 +623,8 @@ export default function AdminPanel({ onLogout }) {
     if(item.disabled)return;
     setTab(item.target||item.label);
     setMobileSidebarOpen(false);
-    if(item.scroll)window.setTimeout(function(){document.getElementById(item.scroll)?.scrollIntoView({behavior:'smooth',block:'start'});},80);
-    window.scrollTo({top:0,behavior:'smooth'});
+    if(item.scroll) window.setTimeout(function(){document.getElementById(item.scroll)?.scrollIntoView({behavior:'smooth',block:'start'});},120);
+    else window.scrollTo({top:0,behavior:'smooth'});
   };
   const visibleGroups=navGroups.map(function(group){return {...group,items:group.items.filter(function(item){return !navSearch.trim()||item.label.toLowerCase().includes(navSearch.trim().toLowerCase());})};}).filter(function(group){return group.items.length;});
   const initials=(email||'A').trim().slice(0,1).toUpperCase();
