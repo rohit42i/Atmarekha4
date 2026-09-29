@@ -5,6 +5,7 @@ import AdminOverview from './AdminOverview';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
+import { Icon, Skeleton } from './admin-premium-ui.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -592,97 +593,115 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Chapters', 'Pal Do Pal Ke Lamhe', 'Pages', 'Comments', 'Reports', 'Announcements', 'Media'];
-  const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
-  const commentById = id => comments.find(comment => comment.id === id);
-  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
 
-  return <main className="admin-page min-h-screen bg-zinc-950 text-[var(--text-color)]" data-admin-root="true"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
-    <header className="admin-header-card"><div><p className="text-xs font-black tracking-[0.25em] text-blue-400">REKHA · PUBLISHER</p><h1 className="mt-1 text-3xl font-black tracking-tight">Admin Dashboard</h1><p className="mt-1 text-sm text-zinc-500">{email || 'Admin'} · Supabase protected</p></div><div className="flex flex-wrap gap-2"><button onClick={() => { setTab('Chapters'); resetForm(); }} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black shadow-lg shadow-blue-900/20">+ Atma Rekha chapter</button><button onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">+ PDPL chapter</button><button onClick={load} disabled={busy} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">Refresh</button><button onClick={logout} className="rounded-xl bg-zinc-800 px-4 py-2.5 text-sm font-bold">Sign out</button></div></header>
-    {notice.text && <div className={`mb-5 rounded-2xl border p-4 text-sm ${notice.type === 'error' ? 'border-rose-900 bg-rose-950/40 text-rose-300' : 'border-emerald-900 bg-emerald-950/40 text-emerald-300'}`}>{notice.text}</div>}
-    <nav className="admin-tabs">{tabs.map(item => <button key={item} onClick={() => setTab(item)} className={tab === item ? 'active' : ''}>{item}{item === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</nav>
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={setTab} chapterName={chapterName} /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
-      <section className="admin-card">
-        <div className="admin-card-title">
-          <div>
-            <span>PAGE EDITOR</span>
-            <h2>Choose project</h2>
-            <p>Switch between Atma Rekha and Pal Do Pal Ke Lamhe without leaving the page editor.</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Page editor project">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={pageEditorProject === 'atma'}
-            onClick={() => setPageEditorProject('atma')}
-            className={pageEditorProject === 'atma'
-              ? 'rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black'
-              : 'rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold'}
-          >
-            Atma Rekha
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={pageEditorProject === 'pdpkl'}
-            onClick={() => setPageEditorProject('pdpkl')}
-            className={pageEditorProject === 'pdpkl'
-              ? 'rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black'
-              : 'rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold'}
-          >
-            Pal Do Pal Ke Lamhe (PDPKL)
-          </button>
-        </div>
-      </section>
-      {pageEditorProject === 'atma'
-        ? <AdminChapterPages chapters={sorted} />
-        : <PalDoPalAdmin embedded />}
-    </section> : tab === 'Chapters' ? <section className="admin-stack"><section className="admin-card upload-card"><div className="admin-card-title"><div><span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span><h2>{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter'}</h2><p>Select all manga pages at once. Their selected order will be preserved exactly during upload.</p></div>{editing && <button onClick={resetForm}>Cancel</button>}</div><form onSubmit={saveChapter} className="admin-form"><div className="admin-form-grid"><input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/><label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label><label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label></div><label className="admin-dropzone"><strong>Manga pages</strong><span>Select pages in the exact order you want them published. Filename sorting is disabled.</span><input type="file" multiple accept="image/*" onChange={choosePages}/>{form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}</label>{progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}<button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button></form></section><section className="admin-card"><div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button onClick={resetForm}>+ New chapter</button></div><div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button onClick={() => editChapter(chapter)}>Edit</button><button className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div></section></section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
-      <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
-      <div className="admin-report-list">{reports.map(report => {
-        const comment = commentById(report.comment_id);
-        const status = report.status || 'open';
-        return <article key={report.id}>
-          <div>
-            <span className="report-label">REPORT · {status}</span>
-            <strong>{comment?.author_name || 'Reader'}</strong>
-            <p>{comment?.content || 'Comment unavailable'}</p>
-            <small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}{report.reviewed_at ? ' · reviewed ' + new Date(report.reviewed_at).toLocaleString('en-IN') : ''}</small>
-          </div>
-          <div className="admin-row-actions">
-            {comment && <button className="danger" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete comment</button>}
-            {status === 'open' && <button onClick={() => setReportStatus(report.id, 'reviewed')} disabled={busy}>Review</button>}
-            {status !== 'resolved' && <button onClick={() => setReportStatus(report.id, 'resolved')} disabled={busy}>Resolve</button>}
-            {status !== 'open' && <button onClick={() => setReportStatus(report.id, 'open')} disabled={busy}>Reopen</button>}
-          </div>
-        </article>;
-      })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div>
-    </section> : tab === 'Announcements' ? <section className="admin-stack">
-      <form onSubmit={saveAnnouncement} className="admin-card admin-form">
-        <div className="admin-card-title">
-          <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
-          {editingAnnouncementId && <button type="button" onClick={cancelAnnouncementEdit}>Cancel edit</button>}
-        </div>
-        <input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)"/>
-        <textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="7"/>
-        <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept="image/*" onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
-        <div className="admin-form-grid">
-          <label><span>Placement</span><select value={announcement.display_position} onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}><option value="">Automatic · normal order</option>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card</option>)}</select></label>
-          <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked, pin_target: e.target.checked ? (announcement.pin_target === 'none' ? 'atma' : announcement.pin_target) : 'none' })}/> Pin to top</label>
-          {announcement.is_pinned && <label><span>Pin on</span><select value={announcement.pin_target} onChange={e => setAnnouncement({ ...announcement, pin_target: e.target.value })}><option value="atma">Atma Rekha</option><option value="pdpkl">PDPKL</option></select></label>}
-        </div>
-        <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
-        <button className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
-      </form>
-      <div className="admin-card">
-        <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
-        <div className="admin-mini-list">{announcements.map(item => <div key={item.id}>
-          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div>
-          <div className="admin-row-actions"><button onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
-        </div>)}</div>
-        {!announcements.length && <p className="muted center">No announcements yet.</p>}
+  const reportCount = reports.filter(function(report){ return (report.status || 'open') === 'open'; }).length;
+  const [sidebarCollapsed,setSidebarCollapsed]=useState(false);
+  const [mobileSidebarOpen,setMobileSidebarOpen]=useState(false);
+  const [profileOpen,setProfileOpen]=useState(false);
+  const [navSearch,setNavSearch]=useState('');
+
+  const navGroups=[
+    {label:'Workspace',items:[
+      {label:'Overview',icon:'overview',target:'Overview'},
+      {label:'Analytics',icon:'analytics',target:'Overview',scroll:'analytics-section'},
+      {label:'Chapters',icon:'chapters',target:'Chapters'},
+      {label:'Pages',icon:'pages',target:'Pages'}
+    ]},
+    {label:'Community',items:[
+      {label:'Comments',icon:'community',target:'Comments'},
+      {label:'Announcements',icon:'activity',target:'Announcements'},
+      {label:'Media',icon:'pages',target:'Media'}
+    ]},
+    {label:'Moderation',items:[{label:'Reports',icon:'moderation',target:'Reports',badge:reportCount}]},
+    {label:'Platform',items:[
+      {label:'Memberships',icon:'users',disabled:true,soon:true},
+      {label:'Finance',icon:'finance',disabled:true,soon:true},
+      {label:'Settings',icon:'settings',disabled:true,soon:true}
+    ]}
+  ];
+
+  const openTab=function(item){
+    if(item.disabled)return;
+    setTab(item.target||item.label);
+    setMobileSidebarOpen(false);
+    if(item.scroll) window.setTimeout(function(){document.getElementById(item.scroll)?.scrollIntoView({behavior:'smooth',block:'start'});},120);
+    else window.scrollTo({top:0,behavior:'smooth'});
+  };
+  const visibleGroups=navGroups.map(function(group){return {...group,items:group.items.filter(function(item){return !navSearch.trim()||item.label.toLowerCase().includes(navSearch.trim().toLowerCase());})};}).filter(function(group){return group.items.length;});
+  const initials=(email||'A').trim().slice(0,1).toUpperCase();
+
+  return <main className='ar-shell' data-admin-premium='true'>
+    <aside className={'ar-sidebar '+(sidebarCollapsed?'collapsed ':'')+(mobileSidebarOpen?'mobile-open':'')} aria-label='Admin navigation'>
+      <div className='ar-brand'>
+        <div className='ar-brand-mark'><Icon name='sparkles' size={18}/></div>
+        <div className='ar-brand-copy'><strong>Atma Rekha</strong><span>Admin workspace</span></div>
+        <button type='button' className='ar-collapse' onClick={function(){setSidebarCollapsed(function(value){return !value;});}} aria-label='Toggle sidebar'><Icon name='chevron' size={14} className={sidebarCollapsed?'rotate-180':''}/></button>
       </div>
-    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
-  </div></main>;
+      <div className='ar-sidebar-nav admin-tabs'>
+        {visibleGroups.map(function(group){return <div key={group.label}>
+          <div className='ar-sidebar-section'>{group.label}</div>
+          {group.items.map(function(item){return <button key={item.label} type='button' onClick={function(){openTab(item);}} disabled={item.disabled} className={tab===item.target&&!item.scroll?'active':''} title={sidebarCollapsed?item.label:undefined}>
+            <span className='ar-nav-icon'><Icon name={item.icon} size={16}/></span><span>{item.label}</span>
+            {item.badge>0?<b className='ar-nav-badge'>{item.badge}</b>:null}{item.soon?<em className='ar-nav-soon'>Soon</em>:null}
+          </button>;})}
+        </div>})}
+      </div>
+      <div className='ar-sidebar-bottom'><div className='ar-system-card'><div className='status'><span className='ar-system-dot'/> System online</div><p>Supabase auth and content services are responding from the current session.</p></div></div>
+    </aside>
+
+    <section className={'ar-main '+(sidebarCollapsed?'sidebar-collapsed':'')}>
+      <header className='ar-topbar'>
+        <button type='button' className='ar-mobile-menu' onClick={function(){setMobileSidebarOpen(function(value){return !value;});}} aria-label='Open navigation'><Icon name={mobileSidebarOpen?'close':'menu'} size={18}/></button>
+        <div className='ar-brand-inline'><div className='ar-brand-mark'><Icon name='sparkles' size={16}/></div><span>Atma Rekha Admin</span></div>
+        <div className='ar-search'><Icon name='search' size={16}/><input value={navSearch} onChange={function(event){setNavSearch(event.target.value);}} placeholder='Search admin pages…' aria-label='Search admin pages'/></div>
+        <div className='ar-topbar-spacer'/>
+        <button type='button' className='ar-header-primary' onClick={function(){resetForm();setTab('Chapters');}}><Icon name='plus' size={15}/> New chapter</button>
+        <button type='button' className='ar-top-icon' onClick={load} disabled={busy} aria-label='Refresh dashboard'><Icon name='refresh' size={16}/></button>
+        <button type='button' className='ar-top-icon' aria-label='Notifications' onClick={function(){if(reportCount)setTab('Reports');}}><Icon name='bell' size={16}/>{reportCount>0?<b className='ar-notification-dot'>{Math.min(reportCount,99)}</b>:null}</button>
+        <div className='ar-profile'>
+          <button type='button' className='ar-profile-button' onClick={function(){setProfileOpen(function(value){return !value;});}} aria-expanded={profileOpen}><span className='ar-profile-avatar'>{initials}</span><div><strong>Admin</strong><span>{email||'Protected session'}</span></div><Icon name='chevronDown' size={14}/></button>
+          {profileOpen&&<div className='ar-profile-menu'><div className='menu-head'><strong>Admin session</strong><span>{email||'Protected session'}</span></div><button type='button' onClick={function(){setProfileOpen(false);logout();}}><Icon name='logout' size={15}/> Sign out</button></div>}
+        </div>
+      </header>
+
+      <div className='ar-content'>
+        {notice.text&&<div className={'ar-notice '+notice.type}>{notice.text}</div>}
+        {loading?<div className='ar-glass-card' style={{padding:24}}><div className='ar-skeleton' style={{height:28,width:230}}/><div className='mt-5 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-5'>{Array.from({length:10},function(_,i){return <div key={i} className='ar-skeleton' style={{height:128}}/>;})}</div></div>
+        :tab==='Overview'?<AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={setTab} chapterName={chapterName}/>
+        :tab==='Pal Do Pal Ke Lamhe'?<div className='admin-premium-embedded'><PalDoPalAdmin/></div>
+        :tab==='Pages'?<div className='admin-premium-embedded'><section className='admin-stack'>
+          <section className='admin-card'><div className='admin-card-title'><div><span>PAGE EDITOR</span><h2>Choose project</h2><p>Switch between Atma Rekha and Pal Do Pal Ke Lamhe without leaving the page editor.</p></div></div>
+            <div className='flex flex-wrap gap-2' role='tablist' aria-label='Page editor project'>
+              <button type='button' role='tab' aria-selected={pageEditorProject==='atma'} onClick={function(){setPageEditorProject('atma');}} className={pageEditorProject==='atma'?'rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black':'rounded-xl border border-zinc-700 bg-transparent px-4 py-2.5 text-sm font-bold'}>Atma Rekha</button>
+              <button type='button' role='tab' aria-selected={pageEditorProject==='pdpkl'} onClick={function(){setPageEditorProject('pdpkl');}} className={pageEditorProject==='pdpkl'?'rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black':'rounded-xl border border-zinc-700 bg-transparent px-4 py-2.5 text-sm font-bold'}>Pal Do Pal Ke Lamhe (PDPKL)</button>
+            </div>
+          </section>
+          {pageEditorProject==='atma'?<AdminChapterPages chapters={sorted}/>:<PalDoPalAdmin embedded/>}
+        </section></div>
+        :tab==='Chapters'?<div className='admin-premium-embedded'><section className='admin-stack'>
+          <section className='admin-card upload-card'><div className='admin-card-title'><div><span>{editing?'EDIT CHAPTER':'PUBLISHER'}</span><h2>{editing?'Edit '+(editing.chapterNumber?'Chapter '+editing.chapterNumber:'Unnumbered Entry'):'Upload a chapter'}</h2><p>Select all manga pages at once. Their selected order will be preserved exactly during upload.</p></div>{editing&&<button onClick={resetForm}>Cancel</button>}</div>
+            <form onSubmit={saveChapter} className='admin-form'><div className='admin-form-grid'><input type='number' min='1' value={form.number} onChange={function(e){setForm({...form,number:e.target.value});}} placeholder='Chapter number (optional)'/><select value={form.status} onChange={function(e){setForm({...form,status:e.target.value});}}><option>Published</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={function(e){setForm({...form,title:e.target.value});}} placeholder='Chapter title' required className='wide'/><textarea value={form.description} onChange={function(e){setForm({...form,description:e.target.value});}} placeholder='Description' rows='3' className='wide'/><label>Release date<input type='datetime-local' value={form.releaseDate} onChange={function(e){setForm({...form,releaseDate:e.target.value});}}/></label><label>Cover image<input type='file' accept='image/*' onChange={function(e){setForm({...form,cover:e.target.files?.[0]||null});}}/></label></div>
+            <label className='admin-dropzone'><strong>Manga pages</strong><span>Select pages in the exact order you want them published. Filename sorting is disabled.</span><input type='file' multiple accept='image/*' onChange={choosePages}/>{form.pages.length>0?<em>{form.pages.length} pages ready · selected order preserved</em>:null}</label>
+            {progress.total>0&&<div className='admin-progress'><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{width:(progress.current/progress.total*100)+'%'}}/></i></div>}
+            <button disabled={busy} className='admin-submit'>{busy?'Working…':editing?'Save chapter changes':'Upload chapter'}</button></form>
+          </section>
+          <section className='admin-card'><div className='admin-card-title'><div><span>LIBRARY</span><h2>All chapters</h2></div><button onClick={resetForm}>+ New chapter</button></div><div className='admin-chapter-list'>{sorted.map(function(chapter){return <article key={chapter.id}><div><div className='admin-status-line'><strong>{chapter.chapterNumber?'Chapter '+chapter.chapterNumber:'Unnumbered'}</strong><span>{chapter.status||'Pre-uploaded'}</span></div><h3>{chapter.title||'Untitled chapter'}</h3><p>{(pageCounts[chapter.id]||0)+' pages · '+(chapter.releaseDate||chapter.createdAt?new Date(chapter.releaseDate||chapter.createdAt).toLocaleDateString('en-IN'):'No release date')}</p></div><div className='admin-row-actions'><button onClick={function(){editChapter(chapter);}}>Edit</button><button className='danger' onClick={function(){deleteChapter(chapter);}} disabled={busy}>Delete</button></div></article>;})}{!sorted.length&&<p className='muted center'>No chapters yet.</p>}</div></section>
+        </section></div>
+        :tab==='Comments'?<div className='admin-premium-embedded'><section className='admin-card'><div className='admin-card-title'><div><span>COMMUNITY</span><h2>Comments</h2><p>{comments.length+' total comments · replies included'}</p></div></div><div className='admin-comment-list'>{comments.map(function(comment){return <article key={comment.id}><div className='admin-comment-avatar'>{(comment.author_name||'R').slice(0,1).toUpperCase()}</div><div><div className='admin-comment-meta'><strong>{comment.author_name||'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id?'Announcement':chapterName(comment.chapter_id)}{comment.parent_comment_id?' · Reply':''}</small></div><button className='danger-text' onClick={function(){deleteComment(comment.id);}} disabled={busy}>Delete</button></article>;})}{!comments.length&&<p className='muted center'>No comments yet.</p>}</div></section></div>
+        :tab==='Reports'?<div className='admin-premium-embedded'><section className='admin-card'><div className='admin-card-title'><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount+' open report'+(reportCount===1?'':'s')+' · '+reports.length+' recent reports shown.'}</p></div></div><div className='admin-report-list'>{reports.map(function(report){const comment=commentById(report.comment_id),status=report.status||'open';return <article key={report.id}><div><span className='report-label'>{'REPORT · '+status}</span><strong>{comment?.author_name||'Reader'}</strong><p>{comment?.content||'Comment unavailable'}</p><small>{(report.reason||'Reported by reader')+' · '+new Date(report.created_at).toLocaleString('en-IN')+(report.reviewed_at?' · reviewed '+new Date(report.reviewed_at).toLocaleString('en-IN'):'')}</small></div><div className='admin-row-actions'>{comment&&<button className='danger' onClick={function(){deleteComment(comment.id);}} disabled={busy}>Delete comment</button>}{status==='open'&&<button onClick={function(){setReportStatus(report.id,'reviewed');}} disabled={busy}>Review</button>}{status!=='resolved'&&<button onClick={function(){setReportStatus(report.id,'resolved');}} disabled={busy}>Resolve</button>}{status!=='open'&&<button onClick={function(){setReportStatus(report.id,'open');}} disabled={busy}>Reopen</button>}</div></article>;})}{!reports.length&&<p className='muted center'>No reports. Everything is clean.</p>}</div></section></div>
+        :tab==='Announcements'?<div className='admin-premium-embedded'><section className='admin-stack'>
+          <form onSubmit={saveAnnouncement} className='admin-card admin-form'><div className='admin-card-title'><div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId?'Edit an existing announcement without losing its record.':'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>{editingAnnouncementId&&<button type='button' onClick={cancelAnnouncementEdit}>Cancel edit</button>}</div>
+            <input value={announcement.title} onChange={function(e){setAnnouncement({...announcement,title:e.target.value});}} placeholder='Title (optional for image-only update)'/>
+            <textarea value={announcement.content} onChange={function(e){setAnnouncement({...announcement,content:e.target.value});}} placeholder='Text (optional for image-only update)' rows='7'/>
+            <label className='admin-file-field'><span>Thumbnail / image (optional)</span><input type='file' accept='image/*' onChange={function(e){setAnnouncement({...announcement,thumbnail:e.target.files?.[0]||null});}}/>{announcement.thumbnail?<em>{announcement.thumbnail.name}</em>:null}</label>
+            <div className='admin-form-grid'><label><span>Placement</span><select value={announcement.display_position} onChange={function(e){setAnnouncement({...announcement,display_position:e.target.value});}}><option value=''>Automatic · normal order</option>{Array.from({length:10},function(_,i){return <option key={i+1} value={String(i+1)}>{String(i+1)+(i===0?'st':i===1?'nd':i===2?'rd':'th')} card</option>;})}</select></label><label className='check-row'><input type='checkbox' checked={announcement.is_pinned} onChange={function(e){setAnnouncement({...announcement,is_pinned:e.target.checked,pin_target:e.target.checked?(announcement.pin_target==='none'?'atma':announcement.pin_target):'none'});}}/> Pin to top</label>{announcement.is_pinned&&<label><span>Pin on</span><select value={announcement.pin_target} onChange={function(e){setAnnouncement({...announcement,pin_target:e.target.value});}}><option value='atma'>Atma Rekha</option><option value='pdpkl'>PDPKL</option></select></label>}</div>
+            <button className='admin-submit' disabled={busy}>{busy?(editingAnnouncementId?'Saving…':'Publishing…'):(editingAnnouncementId?'Save announcement changes':'Publish announcement')}</button>
+          </form>
+          <div className='admin-card'><div className='admin-card-title'><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div><div className='admin-mini-list'>{announcements.map(function(item){return <div key={item.id}><div className='admin-announcement-admin-row'>{item.image_url&&<img src={item.image_url} alt='' loading='lazy'/>}<div><strong>{item.title?.startsWith('__image_only_')?'Image-only announcement':item.title||'Announcement'}</strong><p>{item.content||(item.image_url?'Image-only announcement':'')}</p><small>{(item.is_pinned?'Pinned · ':'')+(item.display_position?'Position '+item.display_position+' · ':'')+new Date(item.published_at||item.created_at).toLocaleString('en-IN')}</small></div></div><div className='admin-row-actions'><button onClick={function(){editAnnouncement(item);}} disabled={busy}>Edit</button><button className='danger-text' onClick={function(){deleteAnnouncement(item);}} disabled={busy}>Delete</button></div></div>;})}</div>{!announcements.length&&<p className='muted center'>No announcements yet.</p>}</div>
+        </section></div>
+        :<div className='admin-premium-embedded'><section className='admin-stack'><form onSubmit={saveMedia} className='admin-card admin-form'><div className='admin-card-title'><div><span>CONTENT</span><h2>Media library</h2></div></div><div className='admin-form-grid'><input value={mediaForm.title} onChange={function(e){setMediaForm({...mediaForm,title:e.target.value});}} placeholder='Title' required/><input value={mediaForm.category} onChange={function(e){setMediaForm({...mediaForm,category:e.target.value});}} placeholder='Category' required/><input value={mediaForm.image_url} onChange={function(e){setMediaForm({...mediaForm,image_url:e.target.value});}} placeholder='Image URL' required className='wide'/></div><button className='admin-submit' disabled={busy}>Add media</button></form><div className='admin-media-grid'>{media.map(function(item){return <article key={item.id}>{item.image_url&&<img src={item.image_url} alt='' loading='lazy'/>}<div><strong>{item.title}</strong><span>{item.category}</span><button className='danger-text' onClick={function(){deleteMedia(item.id);}}>Delete</button></div></article>;})}</div></section></div>}
+      </div>
+    </section>
+  </main>;
+
 }
