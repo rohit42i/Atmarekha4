@@ -5,6 +5,7 @@ import AdminOverview from './AdminOverview';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
+import { Icon, Skeleton } from './admin-premium-ui.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
