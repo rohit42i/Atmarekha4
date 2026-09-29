@@ -429,3 +429,168 @@
 @media(prefers-reduced-motion:reduce){
   .ar-admin-v3 *,.ar-admin-v3 *::before,.ar-admin-v3 *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+
+/* Mobile refinement: denser controls, larger hit areas, no clipped actions. */
+@media(max-width:1023px){
+  .ar-admin-v3 .ar-admin-sidebar{padding:14px 10px!important}
+  .ar-admin-v3 .ar-admin-nav{padding-bottom:10px!important}
+  .ar-admin-v3 .ar-admin-nav button{min-height:46px!important;padding:0 12px!important}
+  .ar-admin-v3 .ar-admin-mobile-close{width:44px;height:44px}
+  .ar-admin-v3 .ar-admin-topbar{min-height:64px}
+  .ar-admin-v3 .ar-admin-menu-button,
+  .ar-admin-v3 .ar-admin-icon-button,
+  .ar-admin-v3 .ar-admin-refresh{min-width:44px;min-height:44px}
+}
+@media(max-width:780px){
+  .ar-admin-v3 .ar-admin-topbar{padding:0 10px;gap:6px}
+  .ar-admin-v3 .ar-admin-topbar-left{min-width:0}
+  .ar-admin-v3 .ar-admin-search{height:42px;min-width:0;padding:0 10px}
+  .ar-admin-v3 .ar-admin-search input{font-size:11px!important}
+  .ar-admin-v3 .ar-admin-content{padding:18px 10px 56px}
+  .ar-admin-v3 .ar-admin-command-row{margin-bottom:18px}
+  .ar-admin-v3 .ar-admin-quick-actions{gap:7px}
+  .ar-admin-v3 .ar-admin-primary-action,
+  .ar-admin-v3 .ar-admin-secondary-action{min-height:44px;flex:1;padding:0 12px}
+  .ar-admin-v3 .ar-overview-hero{padding-bottom:16px}
+  .ar-admin-v3 .ar-period-switch{max-width:100%;overflow-x:auto}
+  .ar-admin-v3 .ar-period-switch button{min-height:42px;padding:0 13px;flex:0 0 auto}
+  .ar-admin-v3 .ar-stat-card{padding:14px;border-radius:17px!important}
+  .ar-admin-v3 .ar-stat-top{gap:8px}
+  .ar-admin-v3 .ar-stat-icon{width:30px;height:30px;flex:none}
+  .ar-admin-v3 .ar-stat-card>strong{font-size:24px;margin-top:11px}
+  .ar-admin-v3 .ar-glass-card{padding:15px;border-radius:18px!important}
+  .ar-admin-v3 .ar-section-header{margin-bottom:13px}
+  .ar-admin-v3 .ar-section-header h3{font-size:14px}
+  .ar-admin-v3 .ar-text-action{min-height:40px;padding:0 4px}
+  .ar-admin-v3 .ar-top-list>button,
+  .ar-admin-v3 .ar-upcoming>button{min-height:48px}
+  .ar-admin-v3 .ar-live-grid>div{min-height:76px}
+  .ar-admin-v3 .ar-admin-content .admin-submit,
+  .ar-admin-v3 .ar-admin-content .admin-row-actions button,
+  .ar-admin-v3 .ar-admin-content .admin-card-title button{min-height:44px!important}
+  .ar-admin-v3 .ar-admin-content .admin-row-actions{gap:7px}
+  .ar-admin-v3 .ar-admin-content .admin-form-grid{gap:9px}
+  .ar-admin-v3 .ar-admin-content .admin-form input,
+  .ar-admin-v3 .ar-admin-content .admin-form textarea,
+  .ar-admin-v3 .ar-admin-content .admin-form select{min-height:46px!important}
+  .ar-admin-v3 .ar-admin-content .admin-media-grid{gap:8px}
+}
+@media(max-width:420px){
+  .ar-admin-v3 .ar-admin-topbar{min-height:60px;padding:0 8px}
+  .ar-admin-v3 .ar-admin-page-context strong{max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ar-admin-v3 .ar-admin-search{height:40px}
+  .ar-admin-v3 .ar-admin-profile{min-width:44px;min-height:44px}
+  .ar-admin-v3 .ar-admin-content{padding-left:8px;padding-right:8px}
+  .ar-admin-v3 .ar-overview-kpis{grid-template-columns:1fr 1fr}
+  .ar-admin-v3 .ar-stat-card>strong{font-size:22px}
+  .ar-admin-v3 .ar-stat-top>span:first-child{font-size:8px}
+  .ar-admin-v3 .ar-stat-card>small,.ar-admin-v3 .ar-delta{font-size:7px}
+}
+
+/* Admin-only light mode: restrained lavender/rose/gold accents, never applied to public UI. */
+html[data-theme="light"] .ar-admin-v3{
+  --ar-bg:#f6f5f8;
+  --ar-surface:#ffffff;
+  --ar-surface-2:#faf9fc;
+  --ar-surface-3:#f0eef5;
+  --ar-border:rgba(30,25,45,.10);
+  --ar-border-strong:rgba(30,25,45,.15);
+  --ar-text:#18151d;
+  --ar-text-2:#5f5a68;
+  --ar-muted:#817b8c;
+  --ar-violet:#7c3aed;
+  --ar-violet-2:#6d28d9;
+  --ar-pink:#db2777;
+  --ar-green:#16a34a;
+  --ar-red:#dc2626;
+  color-scheme:light!important;
+  background:
+    radial-gradient(circle at 82% -10%,rgba(124,58,237,.08),transparent 28rem),
+    radial-gradient(circle at 10% 18%,rgba(219,39,119,.04),transparent 24rem),
+    var(--ar-bg)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-sidebar{
+  background:rgba(255,255,255,.88)!important;
+  box-shadow:0 20px 55px rgba(33,24,48,.10)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-topbar{
+  background:rgba(246,245,248,.82)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-brand strong,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-page-context strong,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-command-row h1,
+html[data-theme="light"] .ar-admin-v3 .ar-overview-hero h2,
+html[data-theme="light"] .ar-admin-v3 .ar-section-header h3,
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card>strong,
+html[data-theme="light"] .ar-admin-v3 .ar-top-value{color:var(--ar-text)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-brand span,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-workspace small,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-page-context span,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-command-row p,
+html[data-theme="light"] .ar-admin-v3 .ar-section-header p,
+html[data-theme="light"] .ar-admin-v3 .ar-stat-top>span:first-child,
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card>small,
+html[data-theme="light"] .ar-admin-v3 .ar-note,
+html[data-theme="light"] .ar-admin-v3 .ar-data-note p{color:var(--ar-muted)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-search,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-workspace,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-status-card,
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card,
+html[data-theme="light"] .ar-admin-v3 .ar-glass-card,
+html[data-theme="light"] .ar-admin-v3 .ar-period-switch,
+html[data-theme="light"] .ar-admin-v3 .ar-live-grid>div,
+html[data-theme="light"] .ar-admin-v3 .ar-rating-mini>div,
+html[data-theme="light"] .ar-admin-v3 .ar-health-stats>div,
+html[data-theme="light"] .ar-admin-v3 .ar-insight-list>div,
+html[data-theme="light"] .ar-admin-v3 .ar-data-note{
+  background:rgba(255,255,255,.80)!important;
+  border-color:var(--ar-border)!important;
+  box-shadow:0 9px 24px rgba(33,24,48,.055)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button{color:#676171!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button:hover{background:rgba(124,58,237,.055)!important;color:#2d2537!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active{
+  background:rgba(124,58,237,.11)!important;color:#4c1d95!important;border-color:rgba(124,58,237,.15)!important
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon{color:#7c3aed!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-pink .ar-stat-icon{background:rgba(219,39,119,.10);color:#be185d}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-blue .ar-stat-icon{background:rgba(37,99,235,.09);color:#2563eb}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-gold .ar-stat-icon{background:rgba(234,179,8,.10);color:#a16207}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-violet .ar-stat-icon{background:rgba(124,58,237,.09);color:#7c3aed}
+html[data-theme="light"] .ar-admin-v3 .ar-chart-track{border-bottom-color:rgba(30,25,45,.10)}
+html[data-theme="light"] .ar-admin-v3 .ar-chart-track:before{background:repeating-linear-gradient(to bottom,transparent 0,transparent 54px,rgba(30,25,45,.035) 55px)}
+html[data-theme="light"] .ar-admin-v3 .ar-chart-track i{background:linear-gradient(180deg,#8b5cf6,#6d28d9)}
+html[data-theme="light"] .ar-admin-v3 .ar-chart-track b{background:linear-gradient(180deg,#f472b6,#be185d)}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-primary-action{background:linear-gradient(135deg,#8b5cf6,#6d28d9)!important;color:#fff!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-secondary-action,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-menu-button,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-icon-button,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-refresh,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-profile{
+  background:rgba(124,58,237,.035)!important;border-color:var(--ar-border)!important;color:#524a5c!important
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content input,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content textarea,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content select{
+  background:#fff!important;color:#2b2630!important;border-color:rgba(30,25,45,.12)!important
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content input:focus,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content textarea:focus,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content select:focus{
+  border-color:rgba(124,58,237,.45)!important;box-shadow:0 0 0 3px rgba(124,58,237,.09)!important
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-row-actions button,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-card-title button{
+  background:rgba(124,58,237,.035)!important;color:#5b5265!important
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list article,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-mini-list>div,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list article,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list article{
+  background:rgba(255,255,255,.72)!important;border-color:var(--ar-border)!important
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list strong,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-mini-list strong,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list strong,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list strong{color:#2b2630!important}
