@@ -1123,3 +1123,220 @@ html[data-theme="light"] .ar-admin-v3 .ar-membership-live{
   border-color:#e2e5e9!important;
   box-shadow:0 4px 14px rgba(24,30,40,.04)!important;
 }
+
+
+/* =========================================================
+   Admin light depth + color refinement v5
+   More dimensional surfaces with restrained semantic tints.
+   ========================================================= */
+html[data-theme="light"] .ar-admin-v3{
+  --ar-bg:#f5f6fa;
+  --ar-surface:#ffffff;
+  --ar-surface-2:#f9fafc;
+  --ar-surface-3:#f1f3f7;
+  --ar-border:#e1e4ea;
+  --ar-border-strong:#cfd4dd;
+  --ar-text:#151922;
+  --ar-text-2:#535b6a;
+  --ar-muted:#7a8392;
+  --ar-violet:#5b5bd6;
+  --ar-violet-2:#4b4bc3;
+  --ar-pink:#c24b82;
+  --ar-blue:#3474df;
+  --ar-gold:#b77a25;
+  --ar-green:#188651;
+  --ar-red:#c63e4d;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(91,91,214,.055), transparent 25%),
+    #f5f6fa!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-admin-main{
+  background:transparent!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content{
+  filter:none!important;
+}
+
+/* Layered elevation: crisp edge + soft ambient shadow. */
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card,
+html[data-theme="light"] .ar-admin-v3 .ar-glass-card,
+html[data-theme="light"] .ar-admin-v3 .ar-overview .admin-overview-card,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-card,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list article,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-mini-list>div,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list article,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list article,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-media-grid article{
+  border:1px solid rgba(215,219,227,.9)!important;
+  box-shadow:
+    0 1px 2px rgba(18,24,35,.035),
+    0 8px 24px rgba(18,24,35,.055)!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-glass-card:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-card:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list article:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list article:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list article:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-media-grid article:hover{
+  transform:translateY(-2px);
+  border-color:rgba(91,91,214,.20)!important;
+  box-shadow:
+    0 2px 4px rgba(18,24,35,.04),
+    0 14px 34px rgba(18,24,35,.09)!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card{
+  background:linear-gradient(180deg,#fff 0%,#fcfcfe 100%)!important;
+  border-top-width:3px!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card:not(.accent-blue):not(.accent-pink):not(.accent-gold){
+  border-top-color:#7777df!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-blue{
+  border-top-color:#4f82df!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfcff 100%)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-pink{
+  border-top-color:#cc5c8d!important;
+  background:linear-gradient(180deg,#fff 0%,#fffafc 100%)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-gold{
+  border-top-color:#c58a35!important;
+  background:linear-gradient(180deg,#fff 0%,#fffdf8 100%)!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-stat-icon{
+  background:#ededff!important;
+  color:#5555c9!important;
+  box-shadow:inset 0 0 0 1px rgba(91,91,214,.08),0 5px 12px rgba(91,91,214,.08)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-blue .ar-stat-icon{
+  background:#eaf1ff!important;
+  color:#2766cf!important;
+  box-shadow:inset 0 0 0 1px rgba(47,111,237,.08),0 5px 12px rgba(47,111,237,.09)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-pink .ar-stat-icon{
+  background:#ffedf4!important;
+  color:#b63d73!important;
+  box-shadow:inset 0 0 0 1px rgba(194,65,122,.08),0 5px 12px rgba(194,65,122,.08)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-gold .ar-stat-icon{
+  background:#fff4df!important;
+  color:#a96b18!important;
+  box-shadow:inset 0 0 0 1px rgba(183,122,37,.08),0 5px 12px rgba(183,122,37,.08)!important;
+}
+
+/* Section/card hierarchy */
+html[data-theme="light"] .ar-admin-v3 .ar-section-header{
+  padding-bottom:10px;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-section-header h3{
+  letter-spacing:-.035em!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-section-header span{
+  color:#687181!important;
+  font-weight:800!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-live-grid>div,
+html[data-theme="light"] .ar-admin-v3 .ar-rating-mini>div,
+html[data-theme="light"] .ar-admin-v3 .ar-health-stats>div,
+html[data-theme="light"] .ar-admin-v3 .ar-insight-list>div,
+html[data-theme="light"] .ar-admin-v3 .ar-data-note{
+  background:#f8f9fb!important;
+  border:1px solid #e2e5eb!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 8px rgba(18,24,35,.025)!important;
+}
+
+/* Navigation + controls get tactile depth instead of flat fills. */
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button{
+  position:relative;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active{
+  background:#eeeeff!important;
+  border-color:#d8d7f6!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.75),
+    0 2px 8px rgba(91,91,214,.08)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon{
+  filter:drop-shadow(0 2px 4px rgba(91,91,214,.16));
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-admin-icon-button,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-refresh,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-profile,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-search,
+html[data-theme="light"] .ar-admin-v3 .ar-period-switch,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-row-actions button,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-card-title>button{
+  box-shadow:
+    0 1px 2px rgba(18,24,35,.035),
+    0 3px 10px rgba(18,24,35,.035)!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-admin-primary-action,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-submit{
+  background:linear-gradient(180deg,#6666df 0%,#5757cf 100%)!important;
+  border-color:#5656c9!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 3px 7px rgba(91,91,214,.15),
+    0 10px 22px rgba(91,91,214,.13)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-primary-action:hover,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-submit:hover:not(:disabled){
+  background:linear-gradient(180deg,#7070e5 0%,#4f4fc5 100%)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 5px 10px rgba(91,91,214,.17),
+    0 14px 28px rgba(91,91,214,.16)!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-admin-secondary-action,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-row-actions button,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-card-title>button{
+  background:linear-gradient(180deg,#fff 0%,#fafbfc 100%)!important;
+}
+
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content input,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content textarea,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content select{
+  box-shadow:
+    inset 0 1px 2px rgba(18,24,35,.035),
+    0 1px 0 rgba(255,255,255,.85)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content input:focus,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content textarea:focus,
+html[data-theme="light"] .ar-admin-v3 .ar-admin-content select:focus{
+  border-color:#9695e0!important;
+  box-shadow:
+    0 0 0 3px rgba(91,91,214,.10),
+    0 4px 12px rgba(91,91,214,.07)!important;
+}
+
+/* Membership surfaces */
+html[data-theme="light"] .ar-admin-v3 .ar-membership-hero{
+  background:
+    linear-gradient(135deg,#f0efff 0%,#f8f7fc 58%,#eef4ff 100%)!important;
+  border-color:#d9daf0!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.88),
+    0 3px 8px rgba(52,60,86,.04),
+    0 12px 30px rgba(52,60,86,.06)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-membership-live{
+  box-shadow:
+    0 1px 2px rgba(18,24,35,.03),
+    0 6px 16px rgba(18,24,35,.05)!important;
+}
+html[data-theme="light"] .ar-admin-v3 .ar-membership-note,
+html[data-theme="light"] .ar-admin-v3 .ar-membership-activity-row{
+  background:#f9fafc!important;
+  border-color:#e1e4ea!important;
+  box-shadow:0 2px 8px rgba(18,24,35,.025)!important;
+}
