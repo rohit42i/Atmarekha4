@@ -648,6 +648,10 @@ export default function AdminPanel({ onLogout }) {
       </div>
       <div className='ar-sidebar-bottom'><div className='ar-system-card'><div className='status'><span className='ar-system-dot'/> System online</div><p>Supabase auth and content services are responding from the current session.</p></div></div>
     </aside>
+    {mobileSidebarOpen&&<button type='button' className='ar-mobile-backdrop' aria-label='Close navigation' onClick={function(){setMobileSidebarOpen(false);}}/>}
+    <nav className='ar-mobile-bottom-nav' aria-label='Quick admin navigation'>
+      {[{label:'Overview',icon:'overview',target:'Overview'},{label:'Chapters',icon:'chapters',target:'Chapters'},{label:'Comments',icon:'message',target:'Comments',badge:comments.length},{label:'Reports',icon:'moderation',target:'Reports',badge:reportCount}].map(function(item){return <button key={item.label} type='button' className={tab===item.target?'active':''} onClick={function(){openTab(item);}}><span className='ar-mobile-bottom-icon'><Icon name={item.icon} size={18}/>{item.badge>0?<b>{Math.min(item.badge,99)}</b>:null}</span><span>{item.label}</span></button>;})}
+    </nav>
 
     <section className={'ar-main '+(sidebarCollapsed?'sidebar-collapsed':'')}>
       <header className='ar-topbar'>
