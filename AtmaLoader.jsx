@@ -104,7 +104,7 @@ export default function AtmaLoader(){
   },[]);
   const adminInitially = isAdminLocation();
   return <><style>{CSS}</style>
-    {!adminInitially && <div ref={mainRef} className="atma-loader-overlay" data-variant="main" role="status" aria-label="Loading Atma Rekha"><Artwork/></div>
-    {!adminInitially && <div ref={refreshRef} className="atma-loader-overlay hidden" data-variant="refresh" role="status" aria-label="Refreshing Atma Rekha"><Artwork/></div>}
+    <div ref={mainRef} hidden={adminInitially} className={'atma-loader-overlay'+(adminInitially?' hidden':'')} data-variant="main" role="status" aria-label="Loading Atma Rekha"><Artwork/></div>
+    <div ref={refreshRef} hidden={adminInitially} className="atma-loader-overlay hidden" data-variant="refresh" role="status" aria-label="Refreshing Atma Rekha"><Artwork/></div>
   </>;
 }
