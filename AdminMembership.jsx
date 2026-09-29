@@ -17,7 +17,7 @@ const dateTime = value => {
 
 function MembershipTrend({ rows }) {
   if (!rows.length) return <div className="ar-membership-empty"><AdminIcon name="chart" size={24}/><strong>No membership history yet</strong><span>New subscriptions and charges will appear here once membership is used.</span></div>;
-  const max = Math.max(...rows.map(row => Math.max(row.newSubscriptions, row.cancellations, row.charges)), 1);
+  const max = Math.max(...rows.map(row => Math.max(row.newSubscriptions, row.cancellations)), 1);
   return <div className="ar-membership-trend">
     {rows.map(row => <div className="ar-membership-trend-col" key={row.monthStart}>
       <div className="ar-membership-trend-bars" title={row.month + ' · ' + money(row.charges)}>
