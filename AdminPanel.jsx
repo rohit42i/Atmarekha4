@@ -5,6 +5,7 @@ import AdminOverview from './AdminOverview';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
+import { AdminIcon } from './admin-redesign-ui.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -56,6 +57,23 @@ async function logAdminAction(user, action, entityType, entityId = null, details
 
 const emptyForm = () => ({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
 
+const ADMIN_NAV_GROUPS = [
+  { label: 'Workspace', items: [
+    { key: 'Overview', icon: 'grid', label: 'Overview' },
+    { key: 'Chapters', icon: 'book', label: 'Chapters' },
+    { key: 'Pages', icon: 'layers', label: 'Pages' },
+  ]},
+  { label: 'Community', items: [
+    { key: 'Comments', icon: 'message', label: 'Comments' },
+    { key: 'Reports', icon: 'flag', label: 'Reports' },
+    { key: 'Announcements', icon: 'bell', label: 'Announcements' },
+  ]},
+  { label: 'Library', items: [
+    { key: 'Media', icon: 'image', label: 'Media' },
+    { key: 'Pal Do Pal Ke Lamhe', icon: 'layers', label: 'Pal Do Pal Ke Lamhe' },
+  ]},
+];
+
 export default function AdminPanel({ onLogout }) {
   const [tab, setTab] = useState('Overview');
   const [chapters, setChapters] = useState([]);
@@ -78,6 +96,9 @@ export default function AdminPanel({ onLogout }) {
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [pageEditorProject, setPageEditorProject] = useState('atma');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [navSearch, setNavSearch] = useState('');
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -597,11 +618,43 @@ export default function AdminPanel({ onLogout }) {
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
 
-  return <main className="admin-page min-h-screen bg-zinc-950 text-[var(--text-color)]" data-admin-root="true"><div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
-    <header className="admin-header-card"><div><p className="text-xs font-black tracking-[0.25em] text-blue-400">REKHA · PUBLISHER</p><h1 className="mt-1 text-3xl font-black tracking-tight">Admin Dashboard</h1><p className="mt-1 text-sm text-zinc-500">{email || 'Admin'} · Supabase protected</p></div><div className="flex flex-wrap gap-2"><button onClick={() => { setTab('Chapters'); resetForm(); }} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black shadow-lg shadow-blue-900/20">+ Atma Rekha chapter</button><button onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">+ PDPL chapter</button><button onClick={load} disabled={busy} className="rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-bold">Refresh</button><button onClick={logout} className="rounded-xl bg-zinc-800 px-4 py-2.5 text-sm font-bold">Sign out</button></div></header>
-    {notice.text && <div className={`mb-5 rounded-2xl border p-4 text-sm ${notice.type === 'error' ? 'border-rose-900 bg-rose-950/40 text-rose-300' : 'border-emerald-900 bg-emerald-950/40 text-emerald-300'}`}>{notice.text}</div>}
-    <nav className="admin-tabs">{tabs.map(item => <button key={item} onClick={() => setTab(item)} className={tab === item ? 'active' : ''}>{item}{item === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</nav>
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={setTab} chapterName={chapterName} /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
+  const tabs = ['Overview', 'Chapters', 'Pal Do Pal Ke Lamhe', 'Pages', 'Comments', 'Reports', 'Announcements', 'Media'];
+  const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
+  const commentById = id => comments.find(comment => comment.id === id);
+  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
+  const filteredNav = navSearch.trim()
+    ? ADMIN_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.label.toLowerCase().includes(navSearch.trim().toLowerCase())) })).filter(group => group.items.length)
+    : ADMIN_NAV_GROUPS;
+  const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
+  const runSearch = event => {
+    if (event.key !== 'Enter') return;
+    const query = navSearch.trim().toLowerCase();
+    if (!query) return;
+    const match = tabs.find(item => item.toLowerCase().includes(query));
+    if (match) activateTab(match);
+  };
+
+  return <main className="admin-page ar-admin-v3" data-admin-root="true">
+    <div className="ar-admin-app">
+      <aside className={'ar-admin-sidebar' + (mobileSidebarOpen ? ' is-open' : '')} aria-label="Admin navigation">
+        <div className="ar-admin-brand"><div className="ar-admin-brand-mark">AR</div><div><strong>Atma Rekha</strong><span>Admin workspace</span></div><button type="button" className="ar-admin-mobile-close" onClick={() => setMobileSidebarOpen(false)} aria-label="Close navigation"><AdminIcon name="close" size={20}/></button></div>
+        <div className="ar-admin-workspace"><span className="ar-admin-avatar-mini">A</span><div><strong>Publisher</strong><small>{email || 'Protected admin'}</small></div></div>
+        <nav className="admin-tabs ar-admin-nav">
+          {filteredNav.map(group => <div className="ar-admin-nav-group" key={group.label}><span className="ar-admin-nav-label">{group.label}</span>{group.items.map(item => <button key={item.key} type="button" className={tab === item.key ? 'active' : ''} onClick={() => activateTab(item.key)} aria-current={tab === item.key ? 'page' : undefined} title={item.label}><span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={17}/></span><span className="ar-admin-nav-text">{item.label}</span>{item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</div>)}
+        </nav>
+        <div className="ar-admin-status-card"><span className={'status-dot ' + (notice.type === 'error' ? 'danger' : '')}/><div><strong>Data connection</strong><small>{loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}</small></div></div>
+      </aside>
+      {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation"/>}
+      <div className="ar-admin-main">
+        <header className="ar-admin-topbar">
+          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{tab}</strong></div></div>
+          <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>↵</kbd></div>
+          <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
+        </header>
+        <div className="ar-admin-content">
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Manage chapters, community activity and publishing operations.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">+ Chapter</button><button type="button" onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="ar-admin-secondary-action">+ PDPL</button></div></div>
+          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
       <section className="admin-card">
         <div className="admin-card-title">
           <div>
@@ -684,5 +737,9 @@ export default function AdminPanel({ onLogout }) {
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
       </div>
     </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
-  </div></main>;
+
+        </div>
+      </div>
+    </div>
+  </main>;
 }
