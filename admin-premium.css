@@ -1,3 +1,4 @@
+/* Atma Rekha premium admin surface */
 
 [data-admin-premium="true"]{--ar-bg:#09090b;--ar-card:rgba(24,24,27,.78);--ar-card2:#151517;--ar-line:rgba(255,255,255,.07);--ar-line2:rgba(255,255,255,.11);--ar-text:#fafafa;--ar-muted:#a1a1aa;--ar-dim:#71717a;--ar-violet:#8b5cf6;--ar-pink:#ec4899;min-height:100vh;background:radial-gradient(900px 480px at 88% -10%,rgba(139,92,246,.12),transparent 55%),radial-gradient(700px 420px at 10% 100%,rgba(124,58,237,.08),transparent 60%),var(--ar-bg);color:var(--ar-text)}
 [data-admin-premium="true"] *{box-sizing:border-box}[data-admin-premium="true"] button,[data-admin-premium="true"] input,[data-admin-premium="true"] select{font:inherit}[data-admin-premium="true"] button{cursor:pointer}
