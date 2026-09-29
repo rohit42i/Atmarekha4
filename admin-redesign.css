@@ -637,3 +637,23 @@ html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list stron
     min-width: 72px;
   }
 }
+
+
+/* Preserve native emoji glyphs in admin comment/activity text */
+.ar-admin-v3 .admin-comment-list p,
+.ar-admin-v3 .admin-overview-comments article p,
+.ar-admin-v3 .ar-command-feed strong,
+.ar-admin-v3 .admin-report-list p {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Color Emoji", "Apple Color Emoji", sans-serif !important;
+  font-variant-emoji: emoji !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.ar-admin-v3 .ar-command-feed article,
+.ar-admin-v3 .admin-comment-list article,
+.ar-admin-v3 .admin-overview-comments article {
+  overflow: visible;
+}
