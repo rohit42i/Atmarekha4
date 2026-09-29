@@ -100,7 +100,7 @@ export default function AdminOverview({chapters,comments,reports=[],ratings,view
       totalRatings:totalRatings,totalComments:Number(data.total_comments||0),totalAverage:totalAverage,
       viewsDelta:pct(currentViews,previousViews),likesDelta:pct(currentLikes,previousLikes),sharesDelta:pct(currentShares,previousShares),commentsDelta:pct(currentComments,previousComments),
       currentViews:currentViews,currentLikes:currentLikes,currentShares:currentShares,currentComments:currentComments,currentRatings:currentRatings,currentEngagement:engagementCurrent,engagementDelta:pct(engagementCurrent,engagementPrevious),
-      activeReaders:Number(data.active_readers||0),returningReaders:Number(data.returning_readers||0),bookmarks:Number(data.bookmarks||0),released:Number(data.released||0),
+      activeReaders:Number(data.active_readers||0),returningReaders:Number(data.returning_readers||0),bookmarks:Number(data.bookmarks||0),released:Number(data.released||0),publishedCount:published.length,
       chapterStats:chapterStats,ratingCounts:ratingCounts,health:health,
       recentComments:[...(comments||[])].sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);}).slice(0,5),
       topChapters:[...chapterStats].sort(function(a,b){return (b.periodViews-a.periodViews) || (b.views-a.views);}).slice(0,6)
@@ -156,8 +156,8 @@ export default function AdminOverview({chapters,comments,reports=[],ratings,view
       <StatCard label='Comments' value={metrics.totalComments} delta={metrics.commentsDelta} icon='message' tone='pink'/>
       <StatCard label='Logged-in users' value={userStats.logged_in_users} note='Registered accounts' icon='users' tone='indigo'/>
       <StatCard label='Notifications on' value={userStats.notification_subscriptions} note='Push subscriptions' icon='bell' tone='violet'/>
-      <StatCard label='Engagement signals' value={metrics.totalLikes+metrics.totalShares} note='Likes + shares baseline' icon='heart' tone='pink'/>
-      <StatCard label='Published chapters' value={chapters.length} note={formatNumber(metrics.released)+' released in '+periodLabel.toLowerCase()} icon='chapters' tone='green'/>
+      <StatCard label='Total shares' value={metrics.totalShares} delta={metrics.sharesDelta} icon='share' tone='pink'/>
+      <StatCard label='Published chapters' value={metrics.publishedCount} note={formatNumber(metrics.released)+' released in '+periodLabel.toLowerCase()} icon='chapters' tone='green'/>
     </div>
 
     <div className='ar-feature-grid'>
@@ -171,7 +171,7 @@ export default function AdminOverview({chapters,comments,reports=[],ratings,view
         <SectionHeader eyebrow='ACTIVITY' title='Publishing & community' description='A 28-day view of observable admin activity.'/>
         <div className='ar-calendar'>{calendar.map(function(item){return <span key={item.key} className={'level-'+item.level} title={item.key+': '+item.value+' activity'}/>;})}</div>
         <div className='ar-calendar-legend'><span>Less</span><i className='level-0'/><i className='level-1'/><i className='level-2'/><i className='level-3'/><i className='level-4'/><span>More</span></div>
-        <div className='ar-calendar-footer'><div><span>Published chapters</span><strong>{chapters.length}</strong></div><div><span>Comments tracked</span><strong>{formatNumber((comments||[]).length)}</strong></div></div>
+        <div className='ar-calendar-footer'><div><span>Published chapters</span><strong>{metrics.publishedCount}</strong></div><div><span>Comments tracked</span><strong>{formatNumber((comments||[]).length)}</strong></div></div>
       </GlassCard>
     </div>
 
