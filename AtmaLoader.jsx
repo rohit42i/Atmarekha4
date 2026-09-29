@@ -67,7 +67,7 @@ export default function AtmaLoader(){
     const isAdminRoute=()=>isAdminLocation()||Boolean(document.querySelector('[data-admin-premium="true"]'))||Boolean(document.querySelector('.admin-auth-checking'));
     const syncForAdmin=()=>{
       const admin=isAdminRoute();
-      document.documentElement.toggleAttribute('data-atma-admin-route', admin);
+      if(admin) document.documentElement.setAttribute('data-atma-admin-route', 'true'); else document.documentElement.removeAttribute('data-atma-admin-route');
       if(admin){hide('main');hide('refresh');}
     };
     const hideMain=()=>setTimeout(()=>hide('main'),400);
