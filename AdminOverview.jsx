@@ -119,11 +119,12 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
   useEffect(() => {
     let active = true;
+    setAnalytics(null);
     const loadAnalytics = async () => {
       try {
-        const { data, error } = await supabase.rpc('get_admin_analytics', { p_days: days });
+        const { data, error } = await supabase.rpc('get_admin_analytics', { p_days: Number(days) });
         if (error) throw error;
-        if (active) setAnalytics(data || null);
+        if (active) setAnalytics(data || {});
       } catch (error) {
         console.warn('Admin analytics lookup failed:', error);
         if (active) setAnalytics(null);

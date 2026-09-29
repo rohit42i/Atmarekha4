@@ -594,3 +594,46 @@ html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list stro
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-mini-list strong,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list strong,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list strong{color:#2b2630!important}
+
+
+/* Final mobile interaction fixes */
+@media (max-width: 640px) {
+  .ar-admin-v3 input,
+  .ar-admin-v3 select,
+  .ar-admin-v3 textarea {
+    font-size: 16px !important;
+  }
+
+  .ar-admin-v3 button,
+  .ar-admin-v3 a {
+    touch-action: manipulation;
+  }
+
+  .ar-admin-v3 .ar-period-switch {
+    position: relative;
+    z-index: 5;
+  }
+
+  .ar-admin-v3 .ar-period-switch button {
+    min-height: 44px;
+    min-width: 68px;
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .ar-admin-v3 .ar-period-switch {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .ar-admin-v3 .ar-period-switch::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ar-admin-v3 .ar-period-switch button {
+    min-width: 72px;
+  }
+}
