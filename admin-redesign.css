@@ -490,32 +490,33 @@
 
 /* Admin-only light mode: restrained lavender/rose/gold accents, never applied to public UI. */
 html[data-theme="light"] .ar-admin-v3{
-  --ar-bg:#f6f5f8;
+  --ar-bg:#f4f3f7;
   --ar-surface:#ffffff;
   --ar-surface-2:#faf9fc;
-  --ar-surface-3:#f0eef5;
-  --ar-border:rgba(30,25,45,.10);
-  --ar-border-strong:rgba(30,25,45,.15);
+  --ar-surface-3:#f1eff6;
+  --ar-border:rgba(28,24,38,.10);
+  --ar-border-strong:rgba(28,24,38,.16);
   --ar-text:#18151d;
-  --ar-text-2:#5f5a68;
-  --ar-muted:#817b8c;
-  --ar-violet:#7c3aed;
-  --ar-violet-2:#6d28d9;
-  --ar-pink:#db2777;
-  --ar-green:#16a34a;
+  --ar-text-2:#5f5969;
+  --ar-muted:#81798b;
+  --ar-violet:#6d28d9;
+  --ar-violet-2:#5b21b6;
+  --ar-pink:#be185d;
+  --ar-blue:#2563eb;
+  --ar-gold:#a16207;
+  --ar-green:#15803d;
   --ar-red:#dc2626;
   color-scheme:light!important;
-  background:
-    radial-gradient(circle at 82% -10%,rgba(124,58,237,.08),transparent 28rem),
-    radial-gradient(circle at 10% 18%,rgba(219,39,119,.04),transparent 24rem),
-    var(--ar-bg)!important;
+  background:linear-gradient(180deg,#faf9fc 0,#f4f3f7 100%)!important;
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-sidebar{
-  background:rgba(255,255,255,.88)!important;
-  box-shadow:0 20px 55px rgba(33,24,48,.10)!important;
+  background:#ffffff!important;
+  border-right-color:rgba(28,24,38,.09)!important;
+  box-shadow:8px 0 30px rgba(35,25,55,.055)!important;
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-topbar{
-  background:rgba(246,245,248,.82)!important;
+  background:rgba(250,249,252,.94)!important;
+  border-bottom-color:rgba(28,24,38,.08)!important;
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-brand strong,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-page-context strong,
@@ -544,58 +545,60 @@ html[data-theme="light"] .ar-admin-v3 .ar-rating-mini>div,
 html[data-theme="light"] .ar-admin-v3 .ar-health-stats>div,
 html[data-theme="light"] .ar-admin-v3 .ar-insight-list>div,
 html[data-theme="light"] .ar-admin-v3 .ar-data-note{
-  background:rgba(255,255,255,.80)!important;
+  background:#ffffff!important;
   border-color:var(--ar-border)!important;
-  box-shadow:0 9px 24px rgba(33,24,48,.055)!important;
+  box-shadow:0 5px 18px rgba(35,25,55,.045)!important;
 }
-html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button{color:#676171!important}
-html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button:hover{background:rgba(124,58,237,.055)!important;color:#2d2537!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card{border-top:2px solid rgba(109,40,217,.14)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-pink{border-top-color:rgba(190,24,93,.24)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-blue{border-top-color:rgba(37,99,235,.24)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-gold{border-top-color:rgba(161,98,7,.25)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button{color:#655f6d!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button:hover{background:#f5f1fb!important;color:#342744!important}
 html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active{
-  background:rgba(124,58,237,.11)!important;color:#4c1d95!important;border-color:rgba(124,58,237,.15)!important
+  background:#eee8fa!important;color:#5420a5!important;border-color:#ded2f3!important
 }
-html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon{color:#7c3aed!important}
-html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-pink .ar-stat-icon{background:rgba(219,39,119,.10);color:#be185d}
-html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-blue .ar-stat-icon{background:rgba(37,99,235,.09);color:#2563eb}
-html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-gold .ar-stat-icon{background:rgba(234,179,8,.10);color:#a16207}
-html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-violet .ar-stat-icon{background:rgba(124,58,237,.09);color:#7c3aed}
-html[data-theme="light"] .ar-admin-v3 .ar-chart-track{border-bottom-color:rgba(30,25,45,.10)}
-html[data-theme="light"] .ar-admin-v3 .ar-chart-track:before{background:repeating-linear-gradient(to bottom,transparent 0,transparent 54px,rgba(30,25,45,.035) 55px)}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon{color:var(--ar-violet)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-pink .ar-stat-icon{background:#fce7f3!important;color:var(--ar-pink)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-blue .ar-stat-icon{background:#e8efff!important;color:var(--ar-blue)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-gold .ar-stat-icon{background:#fff6d9!important;color:var(--ar-gold)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-stat-card.accent-violet .ar-stat-icon{background:#eee8fa!important;color:var(--ar-violet)!important}
+html[data-theme="light"] .ar-admin-v3 .ar-chart-track{border-bottom-color:rgba(28,24,38,.10)}
+html[data-theme="light"] .ar-admin-v3 .ar-chart-track:before{background:repeating-linear-gradient(to bottom,transparent 0,transparent 54px,rgba(28,24,38,.035) 55px)}
 html[data-theme="light"] .ar-admin-v3 .ar-chart-track i{background:linear-gradient(180deg,#8b5cf6,#6d28d9)}
 html[data-theme="light"] .ar-admin-v3 .ar-chart-track b{background:linear-gradient(180deg,#f472b6,#be185d)}
-html[data-theme="light"] .ar-admin-v3 .ar-admin-primary-action{background:linear-gradient(135deg,#8b5cf6,#6d28d9)!important;color:#fff!important}
+html[data-theme="light"] .ar-admin-v3 .ar-admin-primary-action{background:#6d28d9!important;color:#fff!important;box-shadow:0 5px 14px rgba(109,40,217,.20)!important}
 html[data-theme="light"] .ar-admin-v3 .ar-admin-secondary-action,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-menu-button,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-icon-button,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-refresh,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-profile{
-  background:rgba(124,58,237,.035)!important;border-color:var(--ar-border)!important;color:#524a5c!important
+  background:#faf9fc!important;border-color:var(--ar-border)!important;color:#524a5c!important
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content input,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content textarea,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content select{
-  background:#fff!important;color:#2b2630!important;border-color:rgba(30,25,45,.12)!important
+  background:#fff!important;color:#2b2630!important;border-color:rgba(28,24,38,.12)!important
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content input:focus,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content textarea:focus,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content select:focus{
-  border-color:rgba(124,58,237,.45)!important;box-shadow:0 0 0 3px rgba(124,58,237,.09)!important
+  border-color:rgba(109,40,217,.45)!important;box-shadow:0 0 0 3px rgba(109,40,217,.08)!important
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-row-actions button,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-card-title button{
-  background:rgba(124,58,237,.035)!important;color:#5b5265!important
+  background:#faf9fc!important;color:#554d60!important;border-color:var(--ar-border)!important
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list article,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-mini-list>div,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list article,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list article{
-  background:rgba(255,255,255,.72)!important;border-color:var(--ar-border)!important
+  background:#ffffff!important;border-color:var(--ar-border)!important
 }
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-chapter-list strong,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-mini-list strong,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-comment-list strong,
 html[data-theme="light"] .ar-admin-v3 .ar-admin-content .admin-report-list strong{color:#2b2630!important}
-
-
 /* Final mobile interaction fixes */
 @media (max-width: 640px) {
   .ar-admin-v3 input,
