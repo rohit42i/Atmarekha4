@@ -19,6 +19,7 @@ const PARTICLES = [
 const CSS = `
 .atma-loader-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07070a;z-index:2147483647;opacity:1;visibility:visible;pointer-events:auto;overflow:hidden;transition:opacity .5s ease,visibility 0s linear 0s}
 .atma-loader-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .5s ease,visibility 0s linear .5s}
+.atma-loader-overlay[hidden]{display:none!important}
 .atma-loader-overlay[data-variant="refresh"]{background:transparent;align-items:flex-start;padding-top:32vh;z-index:2147483646}
 .atma-loader{position:relative;width:220px;height:220px;flex:none}
 .atma-loader-overlay[data-variant="refresh"] .atma-loader{width:120px;height:120px}
