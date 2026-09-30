@@ -76,5 +76,6 @@ import './admin-studio-pro-v2.css';
 import './pal-do-pal-ke-lamhe.css';
 import './admin-redesign.css';
 import './admin-premium-overhaul.css';
+import './reader-theme-surface-fix.css';
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
