@@ -1,0 +1,440 @@
+/* Atma Rekha — final reader/theme surface recovery.
+   Keeps all reader logic intact and fixes incomplete/transparent surfaces
+   created by the layered theme + legacy CSS stack. */
+
+:root{
+  --ar-reader-surface:var(--surface-2-color);
+  --ar-reader-surface-strong:var(--surface-color);
+  --ar-reader-control:var(--card-bg);
+  --ar-reader-text:var(--text-color);
+  --ar-reader-muted:var(--muted-color);
+  --ar-reader-border:var(--border-color);
+}
+
+/* Full-screen overlays must own their entire viewport. */
+.overlay-backdrop,
+.comment-sheet-backdrop{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:16px!important;
+  background:var(--overlay-color)!important;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:3000!important;
+}
+
+/* Rating sheet — explicit surface, sizing and internal layout. */
+.rating-sheet{
+  width:min(560px,100%)!important;
+  max-width:560px!important;
+  max-height:min(90dvh,760px)!important;
+  box-sizing:border-box!important;
+  overflow:auto!important;
+  padding:22px!important;
+  margin:0!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:22px!important;
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-text)!important;
+  box-shadow:0 24px 80px var(--shadow-color)!important;
+  overscroll-behavior:contain;
+}
+
+.rating-sheet .sheet-head{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:16px!important;
+  padding:0 0 16px!important;
+  margin:0!important;
+  border-bottom:1px solid var(--border-soft-color)!important;
+}
+
+.rating-sheet .sheet-head > div{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.rating-sheet .sheet-head .section-eyebrow{
+  margin:0!important;
+  color:var(--ar-reader-muted)!important;
+}
+
+.rating-sheet .sheet-head h2{
+  margin:6px 0 0!important;
+  color:var(--ar-reader-text)!important;
+  font-size:clamp(21px,5.5vw,28px)!important;
+  line-height:1.15!important;
+  font-weight:800!important;
+  overflow-wrap:anywhere;
+}
+
+.rating-sheet .sheet-head .icon-button{
+  width:42px!important;
+  min-width:42px!important;
+  height:42px!important;
+  flex:0 0 42px!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:12px!important;
+  background:var(--ar-reader-control)!important;
+  color:var(--ar-reader-text)!important;
+  font-size:28px!important;
+  line-height:1!important;
+}
+
+.rating-sheet .rating-big{
+  display:flex!important;
+  align-items:baseline!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin:20px 0 18px!important;
+}
+
+.rating-sheet .rating-big strong{
+  color:var(--ar-reader-text)!important;
+  font-size:42px!important;
+  line-height:1!important;
+  letter-spacing:-.05em!important;
+}
+
+.rating-sheet .rating-big span{
+  color:var(--ar-reader-muted)!important;
+  font-size:14px!important;
+}
+
+.rating-sheet .rating-scale{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:8px!important;
+  width:100%!important;
+}
+
+.rating-sheet .rating-scale button{
+  min-width:0!important;
+  min-height:52px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:2px!important;
+  padding:6px 4px!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:12px!important;
+  background:var(--ar-reader-control)!important;
+  color:var(--ar-reader-text)!important;
+  font-weight:800!important;
+  box-shadow:none!important;
+}
+
+.rating-sheet .rating-scale button span{
+  color:inherit!important;
+  font-size:15px!important;
+  line-height:1!important;
+}
+
+.rating-sheet .rating-scale button small{
+  color:var(--ar-reader-muted)!important;
+  font-size:11px!important;
+  line-height:1!important;
+}
+
+.rating-sheet .rating-scale button:hover:not(:disabled),
+.rating-sheet .rating-scale button:focus-visible{
+  background:var(--ar-reader-surface-strong)!important;
+  border-color:var(--ar-reader-text)!important;
+}
+
+.rating-sheet .rating-scale button:disabled{
+  opacity:.42!important;
+  cursor:not-allowed!important;
+}
+
+.rating-sheet .sheet-message{
+  margin:14px 0 0!important;
+  padding:11px 12px!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:10px!important;
+  background:var(--ar-reader-control)!important;
+  color:var(--ar-reader-text)!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+
+/* Reader header action controls — one complete surface per control. */
+.reader-engagement{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  flex:0 0 auto!important;
+  min-width:0;
+}
+
+.reader-favorite-button,
+.reader-engagement-button,
+.reader-share-button{
+  box-sizing:border-box!important;
+  flex:0 0 auto!important;
+  min-height:36px!important;
+  border:1px solid var(--ar-reader-border)!important;
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-text)!important;
+  box-shadow:none!important;
+}
+
+.reader-favorite-button{
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  padding:0!important;
+  border-radius:10px!important;
+}
+
+.reader-favorite-button svg{
+  width:18px!important;
+  height:18px!important;
+  stroke:currentColor!important;
+}
+
+.reader-engagement-button{
+  min-width:44px!important;
+  height:36px!important;
+  padding:0 9px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  border-radius:10px!important;
+  font-size:11px!important;
+  font-weight:850!important;
+}
+
+.reader-engagement-button span{
+  color:inherit!important;
+  font-size:13px!important;
+  line-height:1!important;
+}
+
+.reader-share-button{
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  padding:0!important;
+  border-radius:10px!important;
+}
+
+.reader-share-button svg{
+  width:17px!important;
+  height:17px!important;
+  stroke:currentColor!important;
+}
+
+.reader-page-pill{
+  order:3;
+  min-width:40px!important;
+  height:36px!important;
+  padding:0 8px!important;
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:10px!important;
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-text)!important;
+  font-size:11px!important;
+  font-weight:850!important;
+}
+
+/* Page navigation: disabled buttons retain their full card/background. */
+.reader-controls{
+  width:100%!important;
+}
+
+.reader-control{
+  box-sizing:border-box!important;
+  min-height:52px!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:14px!important;
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-text)!important;
+}
+
+.reader-control.secondary{
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-text)!important;
+}
+
+.reader-control.primary{
+  background:var(--accent-color)!important;
+  color:var(--accent-contrast)!important;
+  border-color:var(--accent-color)!important;
+}
+
+.reader-control:disabled{
+  opacity:.48!important;
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-muted)!important;
+  border-color:var(--ar-reader-border)!important;
+}
+
+/* Previous/Next chapter cards are always fully painted, including the empty side. */
+.reader-chapter-nav{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  width:100%!important;
+  margin-top:14px!important;
+}
+
+.reader-chapter-nav-item{
+  min-width:0!important;
+}
+
+.reader-chapter-nav-item > a,
+.reader-chapter-nav-item > .reader-chapter-nav-empty{
+  width:100%!important;
+  min-height:54px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 10px!important;
+  border:1px solid var(--ar-reader-border)!important;
+  border-radius:12px!important;
+  background:var(--ar-reader-surface)!important;
+  color:var(--ar-reader-text)!important;
+  text-align:center!important;
+  text-decoration:none!important;
+  overflow:hidden;
+}
+
+.reader-chapter-nav-item > a:hover{
+  background:var(--ar-reader-surface-strong)!important;
+  border-color:var(--ar-reader-text)!important;
+  transform:translateY(-1px);
+}
+
+.reader-chapter-nav-item > a strong,
+.reader-chapter-nav-item > .reader-chapter-nav-empty strong{
+  color:inherit!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  white-space:nowrap;
+}
+
+.reader-chapter-nav-item > .reader-chapter-nav-empty{
+  opacity:.55!important;
+}
+
+/* Do not let admin-only floating tools cover the reading experience. */
+body:has(.reader-page) .community-admin-launch,
+body:has(.reader-page) .ar-mod-launch,
+body:has(.pdlpl-reader) .community-admin-launch,
+body:has(.pdlpl-reader) .ar-mod-launch{
+  display:none!important;
+}
+
+@media(max-width:700px){
+  .overlay-backdrop,
+  .comment-sheet-backdrop{
+    padding:12px!important;
+  }
+
+  .rating-sheet{
+    width:100%!important;
+    max-width:640px!important;
+    padding:18px!important;
+    border-radius:20px!important;
+  }
+
+  .rating-sheet .rating-big strong{
+    font-size:38px!important;
+  }
+
+  .reader-engagement{
+    gap:4px!important;
+  }
+
+  .reader-favorite-button,
+  .reader-share-button{
+    width:34px!important;
+    min-width:34px!important;
+    height:34px!important;
+    min-height:34px!important;
+    border-radius:9px!important;
+  }
+
+  .reader-engagement-button{
+    min-width:40px!important;
+    height:34px!important;
+    padding-inline:7px!important;
+    border-radius:9px!important;
+  }
+
+  .reader-page-pill{
+    min-width:38px!important;
+    height:34px!important;
+    padding-inline:7px!important;
+    border-radius:9px!important;
+  }
+
+  .reader-chapter-nav{
+    gap:7px!important;
+  }
+
+  .reader-chapter-nav-item > a,
+  .reader-chapter-nav-item > .reader-chapter-nav-empty{
+    min-height:52px!important;
+    padding-inline:7px!important;
+  }
+}
+
+@media(max-width:380px){
+  .reader-title{
+    flex:1 1 auto!important;
+    min-width:18px!important;
+  }
+
+  .reader-engagement{
+    gap:3px!important;
+  }
+
+  .reader-favorite-button,
+  .reader-share-button{
+    width:32px!important;
+    min-width:32px!important;
+    height:32px!important;
+    min-height:32px!important;
+  }
+
+  .reader-engagement-button{
+    min-width:36px!important;
+    height:32px!important;
+    padding-inline:5px!important;
+    font-size:10px!important;
+  }
+
+  .reader-page-pill{
+    min-width:36px!important;
+    height:32px!important;
+    font-size:10px!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .overlay-backdrop,
+  .comment-sheet-backdrop,
+  .reader-chapter-nav-item > a{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    transform:none!important;
+  }
+}
