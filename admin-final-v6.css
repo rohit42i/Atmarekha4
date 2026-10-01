@@ -11,15 +11,16 @@ body:has(main.admin-page.ar-admin-v3) {
   --ar6-text:#090a0c;
   --ar6-muted:#5f6670;
   --ar6-faint:#7a828c;
-  --ar6-accent:#2563eb;
-  --ar6-accent-hover:#1d4ed8;
+  --ar6-accent:#111214;
+  --ar6-accent-hover:#000000;
+  --ar6-accent-contrast:#ffffff;
   --ar6-success:#137333;
   --ar6-success-bg:#edf8f0;
   --ar6-danger:#b42318;
   --ar6-danger-bg:#fff2f1;
   --ar6-warning:#8a5a00;
   --ar6-warning-bg:#fff8e1;
-  --ar6-focus:rgba(37,99,235,.20);
+  --ar6-focus:rgba(17,18,20,.16);
 }
 
 html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) {
@@ -32,15 +33,16 @@ html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) {
   --ar6-text:#ffffff;
   --ar6-muted:#b6bac1;
   --ar6-faint:#888e97;
-  --ar6-accent:#60a5fa;
-  --ar6-accent-hover:#93c5fd;
+  --ar6-accent:#ffffff;
+  --ar6-accent-hover:#eeeeee;
+  --ar6-accent-contrast:#000000;
   --ar6-success:#78d693;
   --ar6-success-bg:#102216;
   --ar6-danger:#ff7979;
   --ar6-danger-bg:#241111;
   --ar6-warning:#f1c86a;
   --ar6-warning-bg:#211a0b;
-  --ar6-focus:rgba(96,165,250,.24);
+  --ar6-focus:rgba(255,255,255,.18);
 }
 
 main.admin-page.ar-admin-v3,
@@ -330,7 +332,7 @@ main.admin-page.ar-admin-v3 .ar-admin-secondary-action {
 main.admin-page.ar-admin-v3 .ar-admin-primary-action {
   background:var(--ar6-accent)!important;
   border-color:var(--ar6-accent)!important;
-  color:#fff!important;
+  color:var(--ar6-accent-contrast)!important;
 }
 
 main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover:not(:disabled) {
