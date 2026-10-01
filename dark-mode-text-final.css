@@ -1,7 +1,7 @@
 /* Atma Rekha — final dark-mode text authority.
    Loaded last. Visual-only: text colour/opacity only; no functionality changes. */
 
-@media (prefers-color-scheme: dark) {
+html[data-theme="dark"] {
   html,
   body,
   #root {
