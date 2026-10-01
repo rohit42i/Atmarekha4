@@ -59,7 +59,8 @@ export default function AdminManagementTools(){
       const url=pushForm.url.trim()||'/';
       if(!title)throw new Error('Notification title is required.');
       if(!body)throw new Error('Notification message is required.');
-      const {data,error:e}=await supabase.functions.invoke('send-chapter-notification-v2',{body:{title,body,url,communityOnly:pushForm.audience==='community',tag:pushForm.audience==='community'?'atma-rekha-community':'atma-rekha-admin'}});
+      const target = pushForm.audience === 'community' ? 'community' : 'all';
+      const {data,error:e}=await supabase.functions.invoke('send-chapter-notification-v2',{body:{title,body,url,target,tag:target==='community'?'atma-rekha-community':'atma-rekha-admin'}});
       if(e)throw e;
       if(!data?.ok)throw new Error(data?.error||'Notification delivery failed.');
       setPushResult(`Sent ${Number(data.sent||0)} notification${Number(data.sent||0)===1?'':'s'} successfully${data.failed?`; ${Number(data.failed)} failed`:''}.`);
