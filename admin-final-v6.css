@@ -1248,3 +1248,115 @@ body:has(main.admin-page.ar-admin-v3) .community-file-preview {
     transition:none!important;
   }
 }
+
+/* Embedded side-story manager + membership view. */
+main.admin-page.ar-admin-v3 .pdlpl-admin-layout,
+main.admin-page.ar-admin-v3 .pdlpl-page-manager{
+  width:100%!important;max-width:none!important;margin:0!important;padding:0!important;
+  background:transparent!important;color:var(--ar6-text)!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-admin-layout{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-card,
+main.admin-page.ar-admin-v3 .pdlpl-admin-pages article{
+  background:var(--ar6-surface)!important;color:var(--ar6-text)!important;
+  border:1px solid var(--ar6-border)!important;border-radius:12px!important;box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-admin-card{padding:18px!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-card-head{border-bottom:1px solid var(--ar6-border)!important;padding-bottom:12px!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-card-head h2,
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article strong{color:var(--ar6-text)!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-card-head span,
+main.admin-page.ar-admin-v3 .pdlpl-embedded-heading span{color:var(--ar6-faint)!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-card-head p,
+main.admin-page.ar-admin-v3 .pdlpl-muted,
+main.admin-page.ar-admin-v3 .pdlpl-page-path,
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article small{color:var(--ar6-muted)!important}
+main.admin-page.ar-admin-v3 .pdlpl-form label{color:var(--ar6-text)!important}
+main.admin-page.ar-admin-v3 .pdlpl-form input,
+main.admin-page.ar-admin-v3 .pdlpl-form textarea,
+main.admin-page.ar-admin-v3 .pdlpl-form select,
+main.admin-page.ar-admin-v3 .pdlpl-file-input,
+main.admin-page.ar-admin-v3 .pdlpl-admin-list-tools input{
+  background:var(--ar6-surface-2)!important;color:var(--ar6-text)!important;
+  border:1px solid var(--ar6-border)!important;border-radius:9px!important;box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-file-input span{color:var(--ar6-accent)!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-header-actions,
+main.admin-page.ar-admin-v3 .pdlpl-page-actions{gap:6px!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-header-actions button,
+main.admin-page.ar-admin-v3 .pdlpl-inline-file,
+main.admin-page.ar-admin-v3 .pdlpl-page-actions button,
+main.admin-page.ar-admin-v3 .pdlpl-page-actions label{
+  min-height:38px!important;padding:0 11px!important;border:1px solid var(--ar6-border)!important;
+  border-radius:8px!important;background:var(--ar6-surface-2)!important;color:var(--ar6-text)!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-primary{
+  min-height:44px!important;border:1px solid var(--ar6-accent)!important;border-radius:9px!important;
+  background:var(--ar6-accent)!important;color:#fff!important;box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article{padding:8px!important;background:var(--ar6-surface-2)!important;border-color:var(--ar6-border)!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article.active{border-color:var(--ar6-accent)!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article>button{color:var(--ar6-text)!important}
+main.admin-page.ar-admin-v3 .pdlpl-admin-pages article{background:var(--ar6-surface-2)!important;padding:10px!important}
+main.admin-page.ar-admin-v3 .pdlpl-page-preview{background:#050505!important;border-color:var(--ar6-border)!important}
+main.admin-page.ar-admin-v3 .pdlpl-upload-progress{background:var(--ar6-surface-3)!important}
+main.admin-page.ar-admin-v3 .pdlpl-upload-progress div{background:var(--ar6-accent)!important}
+
+main.admin-page.ar-admin-v3 .ar-membership-hero,
+main.admin-page.ar-admin-v3 .ar-membership-revenue-card,
+main.admin-page.ar-admin-v3 .ar-membership-processed-card,
+main.admin-page.ar-admin-v3 .ar-membership-secondary-grid>*,
+main.admin-page.ar-admin-v3 .ar-membership-note,
+main.admin-page.ar-admin-v3 .ar-membership-plan,
+main.admin-page.ar-admin-v3 .ar-membership-health-grid>div,
+main.admin-page.ar-admin-v3 .ar-membership-processed-list,
+main.admin-page.ar-admin-v3 .ar-membership-activity-row{
+  background:var(--ar6-surface)!important;color:var(--ar6-text)!important;
+  border-color:var(--ar6-border)!important;box-shadow:none!important;background-image:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-membership-hero{border-radius:12px!important;padding:20px!important}
+main.admin-page.ar-admin-v3 .ar-membership-hero p,
+main.admin-page.ar-admin-v3 .ar-membership-plan-stats,
+main.admin-page.ar-admin-v3 .ar-membership-processed-list span,
+main.admin-page.ar-admin-v3 .ar-membership-health-grid span,
+main.admin-page.ar-admin-v3 .ar-membership-health-grid small,
+main.admin-page.ar-admin-v3 .ar-membership-activity-row small{color:var(--ar6-muted)!important}
+main.admin-page.ar-admin-v3 .ar-membership .ar-stat-card:before,
+main.admin-page.ar-admin-v3 .ar-membership .ar-stat-card:after,
+main.admin-page.ar-admin-v3 .ar-membership-hero:before,
+main.admin-page.ar-admin-v3 .ar-membership-hero:after{display:none!important}
+main.admin-page.ar-admin-v3 .ar-membership-live{border:1px solid var(--ar6-border)!important;background:var(--ar6-surface-2)!important}
+main.admin-page.ar-admin-v3 .ar-membership-live .status-dot{background:var(--ar6-success)!important}
+main.admin-page.ar-admin-v3 .ar-membership-live strong{color:var(--ar6-text)!important}
+main.admin-page.ar-admin-v3 .ar-membership-live small{color:var(--ar6-muted)!important}
+main.admin-page.ar-admin-v3 .ar-membership-live button{
+  min-width:38px!important;min-height:38px!important;border:1px solid var(--ar6-border)!important;
+  background:var(--ar6-surface)!important;color:var(--ar6-text)!important;box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-membership-plan-bar{background:var(--ar6-surface-3)!important}
+main.admin-page.ar-admin-v3 .ar-membership-plan-bar i{background:var(--ar6-accent)!important}
+main.admin-page.ar-admin-v3 .ar-membership-processed-total strong,
+main.admin-page.ar-admin-v3 .ar-membership-money-row strong,
+main.admin-page.ar-admin-v3 .ar-membership-metrics strong,
+main.admin-page.ar-admin-v3 .ar-membership-plan-top b,
+main.admin-page.ar-admin-v3 .ar-membership-health-grid strong{color:var(--ar6-text)!important}
+
+/* Remove legacy decorative gradients from the admin shell. */
+main.admin-page.ar-admin-v3 *{background-image:none!important}
+
+@media(max-width:900px){
+  main.admin-page.ar-admin-v3 .pdlpl-admin-layout{grid-template-columns:1fr!important}
+}
+@media(max-width:600px){
+  main.admin-page.ar-admin-v3 .pdlpl-admin-card{padding:14px!important}
+  main.admin-page.ar-admin-v3 .pdlpl-admin-header-actions,
+  main.admin-page.ar-admin-v3 .pdlpl-admin-list-tools,
+  main.admin-page.ar-admin-v3 .pdlpl-page-actions{width:100%!important}
+  main.admin-page.ar-admin-v3 .pdlpl-admin-header-actions button,
+  main.admin-page.ar-admin-v3 .pdlpl-inline-file{flex:1 1 0!important;min-width:0!important}
+  main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div{flex-wrap:wrap!important}
+  main.admin-page.ar-admin-v3 .ar-membership-hero{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important}
+  main.admin-page.ar-admin-v3 .ar-membership-main-grid,
+  main.admin-page.ar-admin-v3 .ar-membership-secondary-grid{grid-template-columns:1fr!important}
+}
