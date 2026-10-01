@@ -873,3 +873,102 @@ main.admin-page.ar-admin-v3 select:focus-visible{
   main.admin-page.ar-admin-v3 .ar-admin-nav button{min-height:44px!important;font-size:13px!important}
   main.admin-page.ar-admin-v3 .ar-period-switch button{min-height:44px!important}
 }
+
+
+/* Root tokens are also needed by the event-driven admin modals, which render outside the admin <main>. */
+:root{
+  --a-bg:#050505;--a-surface:#0b0b0c;--a-surface-2:#111214;--a-surface-3:#17181a;
+  --a-border:#292a2d;--a-border-strong:#3a3b3f;--a-text:#f7f7f8;--a-muted:#a2a3a8;--a-faint:#73757b;
+  --a-accent:#fff;--a-accent-contrast:#050505;--a-danger:#ff6675;--a-danger-bg:#241216;
+  --a-success:#57d48d;--a-success-bg:#10271c;--a-warning:#e8c66e;--a-warning-bg:#29220f;
+  --a-overlay:rgba(0,0,0,.78);--a-input:#08090a;--a-modal:#0b0b0c;
+}
+html[data-theme="light"]{
+  --a-bg:#f5f5f3;--a-surface:#fff;--a-surface-2:#fafaf8;--a-surface-3:#f1f1ee;
+  --a-border:#d8d8d3;--a-border-strong:#c0c0ba;--a-text:#111214;--a-muted:#5e6065;--a-faint:#7c7e84;
+  --a-accent:#111214;--a-accent-contrast:#fff;--a-danger:#c7374a;--a-danger-bg:#fff1f3;
+  --a-success:#177847;--a-success-bg:#edf9f2;--a-warning:#8a6511;--a-warning-bg:#fff8df;
+  --a-overlay:rgba(17,18,20,.42);--a-input:#fff;--a-modal:#fff;
+}
+
+/* Event-driven tools render outside the admin main; keep them fully theme-safe. */
+.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mod-backdrop,.ar-mgmt-backdrop,.community-admin-backdrop{
+  position:fixed!important;inset:0!important;z-index:100000!important;display:grid!important;place-items:center!important;padding:18px!important;
+  background:var(--a-overlay)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mod-modal,.ar-mgmt-panel,.community-admin-modal{
+  width:min(1180px,100%)!important;max-width:1180px!important;max-height:94vh!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;
+  background:var(--a-modal)!important;color:var(--a-text)!important;border:1px solid var(--a-border-strong)!important;border-radius:16px!important;box-shadow:none!important;
+}
+.ar-command-head,.ar-pro-head,.ar-ops-head,.ar-health-head,.ar-gcm-head,.ar-mod-head,.ar-mgmt-head,.community-admin-head{
+  flex:none!important;background:var(--a-modal)!important;color:var(--a-text)!important;border-color:var(--a-border)!important;
+}
+.ar-command-panel .ar-command-body,.ar-pro-panel .ar-pro-body,.ar-ops-panel .ar-ops-body,.ar-health-panel .ar-health-body,.ar-gcm-modal .ar-gcm-list,.ar-gcm-modal .ar-gcm-members,.ar-mod-modal .ar-mod-body,.ar-mgmt-panel .ar-mgmt-body,.community-admin-modal .community-admin-manage{
+  min-width:0!important;overflow:auto!important;color:var(--a-text)!important;background:var(--a-modal)!important;
+}
+.ar-command-panel button,.ar-pro-panel button,.ar-ops-panel button,.ar-health-panel button,.ar-gcm-modal button,.ar-mod-modal button,.ar-mgmt-panel button,.community-admin-modal button{
+  box-shadow:none!important;transform:none!important;touch-action:manipulation!important;
+}
+.ar-command-panel input,.ar-command-panel select,.ar-pro-panel input,.ar-pro-panel select,.ar-ops-panel input,.ar-ops-panel select,.ar-health-panel input,.ar-health-panel select,
+.ar-gcm-modal input,.ar-gcm-modal select,.ar-mod-modal input,.ar-mod-modal select,.ar-mgmt-panel input,.ar-mgmt-panel select,.community-admin-modal input,.community-admin-modal select,.community-admin-modal textarea{
+  background:var(--a-input)!important;color:var(--a-text)!important;border-color:var(--a-border)!important;box-shadow:none!important;
+}
+.ar-command-panel button:not(:disabled),.ar-pro-panel button:not(:disabled),.ar-ops-panel button:not(:disabled),.ar-health-panel button:not(:disabled),
+.ar-gcm-modal button:not(:disabled),.ar-mod-modal button:not(:disabled),.ar-mgmt-panel button:not(:disabled),.community-admin-modal button:not(:disabled){
+  background:var(--a-surface-2)!important;color:var(--a-text)!important;border-color:var(--a-border)!important;
+}
+.ar-command-panel button:not(:disabled):hover,.ar-pro-panel button:not(:disabled):hover,.ar-ops-panel button:not(:disabled):hover,.ar-health-panel button:not(:disabled):hover,
+.ar-gcm-modal button:not(:disabled):hover,.ar-mod-modal button:not(:disabled):hover,.ar-mgmt-panel button:not(:disabled):hover,.community-admin-modal button:not(:disabled):hover{
+  background:var(--a-surface-3)!important;border-color:var(--a-border-strong)!important;color:var(--a-text)!important;
+}
+.ar-command-toolbar button.active,.ar-pro-range button.active,.ar-gcm-tab.active,.ar-command-panel button.active{
+  background:var(--a-accent)!important;color:var(--a-accent-contrast)!important;border-color:var(--a-accent)!important;
+}
+.ar-command-close,.ar-pro-close,.ar-ops-close,.ar-health-close,.ar-gcm-close,.ar-mod-close,.ar-mgmt-close{
+  background:var(--a-surface-2)!important;color:var(--a-text)!important;border:1px solid var(--a-border)!important;box-shadow:none!important;
+}
+.ar-ops-primary,.ar-push-send,.community-admin-send{
+  background:var(--a-accent)!important;color:var(--a-accent-contrast)!important;border-color:var(--a-accent)!important;
+}
+.ar-mod-btn.danger,.ar-ops-actions .danger,.ar-gcm-delete{
+  color:var(--a-danger)!important;border-color:color-mix(in srgb,var(--a-danger) 32%,var(--a-border))!important;background:var(--a-danger-bg)!important;
+}
+.ar-ops-status.sent,.ar-health-badge.good{color:var(--a-success)!important}
+.ar-ops-status.scheduled{color:var(--a-warning)!important}
+.ar-ops-status.failed,.ar-health-badge.bad{color:var(--a-danger)!important}
+.ar-command-card,.ar-pro-card,.ar-ops-metric,.ar-ops-row,.ar-health-row,.ar-mod-card,.ar-gcm-row,.ar-gcm-member,.ar-command-section,.ar-push-card,.community-admin-manage{
+  background:var(--a-surface-2)!important;color:var(--a-text)!important;border-color:var(--a-border)!important;box-shadow:none!important;
+}
+.ar-command-card:hover,.ar-pro-card:hover,.ar-ops-row:hover,.ar-health-row:hover,.ar-mod-card:hover,.ar-gcm-row:hover{
+  background:var(--a-surface-3)!important;border-color:var(--a-border-strong)!important;
+}
+.ar-gcm-meta span,.ar-gcm-content,.ar-mod-meta,.ar-mod-report,.ar-ops-row-main p,.ar-health-row p,.ar-pro-card small,.ar-mgmt-empty,.ar-gcm-empty{color:var(--a-muted)!important}
+.ar-gcm-avatar,.ar-mod-avatar,.ar-mgmt-avatar{background:var(--a-surface-3)!important;color:var(--a-text)!important}
+.ar-pro-badge,.ar-mgmt-badge,.ar-mgmt-type{background:var(--a-surface-3)!important;color:var(--a-text)!important;border-color:var(--a-border)!important}
+.ar-mgmt-table{background:var(--a-modal)!important;color:var(--a-text)!important}
+.ar-mgmt-table th,.ar-mgmt-table td{background:var(--a-modal)!important;color:var(--a-text)!important;border-color:var(--a-border)!important}
+.ar-mgmt-table tbody tr:hover td{background:var(--a-surface-2)!important}
+.ar-mgmt-error{background:var(--a-danger-bg)!important;color:var(--a-danger)!important;border-color:color-mix(in srgb,var(--a-danger) 28%,var(--a-border))!important}
+.ar-mod-btn.ok{color:var(--a-success)!important}
+.ar-mod-notice,.ar-gcm-notice,.ar-push-note,.community-admin-sub{color:var(--a-muted)!important}
+
+@media(max-width:720px){
+  .ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mod-backdrop,.ar-mgmt-backdrop,.community-admin-backdrop{padding:0!important}
+  .ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mod-modal,.ar-mgmt-panel,.community-admin-modal{
+    width:100%!important;max-width:none!important;height:100dvh!important;max-height:none!important;border-radius:0!important;border-left:0!important;border-right:0!important;
+  }
+  .ar-command-head,.ar-pro-head,.ar-ops-head,.ar-health-head,.ar-gcm-head,.ar-mod-head,.ar-mgmt-head,.community-admin-head{padding:14px!important}
+  .ar-command-body,.ar-pro-body,.ar-ops-body,.ar-health-body,.ar-mod-body{padding:12px!important}
+  .ar-command-grid,.ar-pro-grid{grid-template-columns:1fr 1fr!important}
+  .ar-ops-metrics{grid-template-columns:1fr 1fr!important}
+  .ar-ops-grid{grid-template-columns:1fr!important}
+  .ar-gcm-tools{display:grid!important;grid-template-columns:1fr 1fr!important}
+  .ar-gcm-search{grid-column:1/-1!important;min-width:0!important}
+  .ar-gcm-action{min-height:44px!important}
+  .ar-mod-row{align-items:flex-start!important;flex-wrap:wrap!important}
+  .ar-mod-buttons{width:100%!important;margin-left:48px!important;justify-content:flex-start!important}
+}
+@media(max-width:430px){
+  .ar-command-grid,.ar-pro-grid,.ar-ops-metrics,.ar-gcm-tools{grid-template-columns:1fr!important}
+  .ar-gcm-search{grid-column:auto!important}
+}
