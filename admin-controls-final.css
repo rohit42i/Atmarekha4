@@ -1,0 +1,204 @@
+/* Atma Rekha Admin — final control system. Loaded after all other admin styles. */
+main.admin-page.ar-admin-v3 button,
+main.admin-page.ar-admin-v3 a,
+main.admin-page.ar-admin-v3 [role="button"],
+main.admin-page.ar-admin-v3 label.admin-file-field,
+main.admin-page.ar-admin-v3 label.pdlpl-inline-file,
+main.admin-page.ar-admin-v3 .admin-page-manager-grid label{
+  -webkit-tap-highlight-color:transparent!important;
+  touch-action:manipulation!important;
+}
+main.admin-page.ar-admin-v3 button{
+  appearance:none!important;
+  min-height:44px!important;
+  padding:0 14px!important;
+  border:1px solid rgba(17,17,17,.13)!important;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,#fff,#f5f6f8)!important;
+  color:#17191d!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 2px 5px rgba(18,24,35,.05),0 7px 16px rgba(18,24,35,.045)!important;
+  font:800 12px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;
+  cursor:pointer!important;
+  transition:transform .16s cubic-bezier(.22,1,.36,1),box-shadow .16s ease,border-color .16s ease,background .16s ease,color .16s ease,opacity .16s ease!important;
+}
+main.admin-page.ar-admin-v3 button:hover:not(:disabled){
+  transform:translateY(-1px)!important;
+  border-color:rgba(17,17,17,.23)!important;
+  background:linear-gradient(180deg,#fff,#eef0f3)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 3px 7px rgba(18,24,35,.06),0 10px 22px rgba(18,24,35,.065)!important;
+}
+main.admin-page.ar-admin-v3 button:active:not(:disabled){
+  transform:translateY(0) scale(.985)!important;
+  box-shadow:inset 0 2px 5px rgba(18,24,35,.08),0 1px 2px rgba(18,24,35,.04)!important;
+}
+main.admin-page.ar-admin-v3 button:focus-visible,
+main.admin-page.ar-admin-v3 input:focus-visible,
+main.admin-page.ar-admin-v3 textarea:focus-visible,
+main.admin-page.ar-admin-v3 select:focus-visible{
+  outline:2px solid rgba(79,70,229,.58)!important;
+  outline-offset:2px!important;
+}
+main.admin-page.ar-admin-v3 button:disabled{opacity:.45!important;cursor:not-allowed!important;transform:none!important}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav button{
+  min-height:46px!important;
+  justify-content:flex-start!important;
+  gap:10px!important;
+  padding:0 13px!important;
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button:hover:not(:disabled){
+  background:rgba(127,127,127,.08)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active{
+  background:linear-gradient(180deg,rgba(79,70,229,.14),rgba(79,70,229,.08))!important;
+  border-color:rgba(79,70,229,.19)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 5px 16px rgba(79,70,229,.08)!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+main.admin-page.ar-admin-v3 .ar-admin-menu-button{
+  width:44px!important;min-width:44px!important;padding:0!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-refresh{min-width:88px!important}
+main.admin-page.ar-admin-v3 .ar-admin-profile{min-height:44px!important;min-width:138px!important}
+main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+main.admin-page.ar-admin-v3 .admin-submit{
+  min-height:48px!important;
+  padding:0 18px!important;
+  border-color:#111!important;
+  background:linear-gradient(180deg,#292c32,#111317)!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 8px rgba(17,17,17,.12),0 11px 24px rgba(17,17,17,.11)!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .admin-submit:hover:not(:disabled){
+  background:linear-gradient(180deg,#34373e,#17191d)!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-secondary-action,
+main.admin-page.ar-admin-v3 .admin-card-title>button,
+main.admin-page.ar-admin-v3 .admin-row-actions button{
+  min-height:44px!important;
+  background:linear-gradient(180deg,#fff,#f5f6f8)!important;
+  color:#17191d!important;
+}
+main.admin-page.ar-admin-v3 .admin-row-actions{
+  display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;
+}
+main.admin-page.ar-admin-v3 .admin-row-actions button{
+  min-width:78px!important;padding:0 13px!important;
+}
+main.admin-page.ar-admin-v3 .admin-row-actions button.danger,
+main.admin-page.ar-admin-v3 .danger-text{color:#b42318!important}
+main.admin-page.ar-admin-v3 .admin-row-actions button.danger{
+  background:linear-gradient(180deg,#fff7f7,#fff0f1)!important;border-color:#efc5ca!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card,
+main.admin-page.ar-admin-v3 .ar-glass-card,
+main.admin-page.ar-admin-v3 .ar-stat-card,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card{
+  background:linear-gradient(145deg,rgba(17,17,17,.028),transparent 44%),#fff!important;
+  border-color:rgba(17,17,17,.10)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 32px rgba(18,24,35,.06)!important;
+}
+main.admin-page.ar-admin-v3 .admin-card:hover,
+main.admin-page.ar-admin-v3 .ar-glass-card:hover,
+main.admin-page.ar-admin-v3 .ar-stat-card:hover{
+  border-color:rgba(17,17,17,.17)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 16px 38px rgba(18,24,35,.075)!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content input,
+main.admin-page.ar-admin-v3 .ar-admin-content textarea,
+main.admin-page.ar-admin-v3 .ar-admin-content select{
+  min-height:46px!important;border-radius:11px!important;font-size:13px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content textarea{min-height:116px!important}
+main.admin-page.ar-admin-v3 .admin-dropzone{
+  min-height:142px!important;border-radius:14px!important;
+  background:repeating-linear-gradient(135deg,rgba(17,17,17,.018) 0 8px,transparent 8px 16px),#fafaf8!important;
+}
+main.admin-page.ar-admin-v3 .admin-file-field,
+main.admin-page.ar-admin-v3 .pdlpl-inline-file,
+main.admin-page.ar-admin-v3 .admin-page-manager-grid label{
+  min-height:44px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;padding:0 14px!important;border:1px solid rgba(17,17,17,.13)!important;border-radius:12px!important;
+  background:linear-gradient(180deg,#fff,#f5f6f8)!important;color:#17191d!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 12px rgba(18,24,35,.05)!important;
+  font-size:11px!important;font-weight:850!important;cursor:pointer!important;
+}
+main.admin-page.ar-admin-v3 .admin-page-manager-grid label input[type=file],
+main.admin-page.ar-admin-v3 .admin-file-field input[type=file],
+main.admin-page.ar-admin-v3 .pdlpl-inline-file input[type=file]{display:none!important}
+main.admin-page.ar-admin-v3 .ar-period-switch button{min-height:44px!important;padding:0 13px!important;border-radius:10px!important}
+main.admin-page.ar-admin-v3 .ar-top-list>button,
+main.admin-page.ar-admin-v3 .ar-upcoming>button{min-height:52px!important}
+main.admin-page.ar-admin-v3 .ar-stat-card{min-height:126px!important}
+main.admin-page.ar-admin-v3 .ar-stat-card>strong{font-size:28px!important}
+
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) button{
+  min-height:44px;padding:0 13px;border-radius:11px;font-weight:800;cursor:pointer;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease,color .16s ease;
+}
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) button:hover:not(:disabled){transform:translateY(-1px)}
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) button:active:not(:disabled){transform:scale(.985)}
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) button:focus-visible{outline:2px solid rgba(127,127,255,.62);outline-offset:2px}
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) button:disabled{opacity:.45;cursor:not-allowed}
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) input,
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) select,
+:is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) textarea{min-height:44px;border-radius:11px}
+.ar-command-panel .ar-command-toolbar button,
+.ar-command-panel .ar-command-action,
+.ar-mgmt-tools button,.ar-mod-refresh,.ar-gcm-action{min-height:44px}
+.ar-command-panel .ar-command-action{background:linear-gradient(180deg,#fff,#f3f4f7);border:1px solid rgba(17,17,17,.12);color:#17191d;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 12px rgba(18,24,35,.05)}
+.ar-command-panel .ar-command-action:hover:not(:disabled){background:linear-gradient(180deg,#fff,#eef0f3);border-color:rgba(17,17,17,.22)}
+.ar-mgmt-close,.ar-mod-close,.ar-gcm-close{min-width:44px!important;min-height:44px!important;padding:0!important}
+.ar-mod-btn,.ar-gcm-delete{min-height:42px!important}
+.ar-mod-launch,.community-admin-launch{min-height:46px!important;padding:0 15px!important;border-radius:13px!important;font-weight:850!important;box-shadow:0 10px 24px rgba(0,0,0,.18)!important}
+
+@media(max-width:900px){
+  main.admin-page.ar-admin-v3 .ar-admin-content{padding-left:16px!important;padding-right:16px!important}
+  main.admin-page.ar-admin-v3 .ar-admin-refresh{min-width:44px!important;width:44px!important;padding:0!important}
+  main.admin-page.ar-admin-v3 .ar-admin-refresh span{display:none!important}
+  main.admin-page.ar-admin-v3 .ar-admin-profile{min-width:44px!important;width:44px!important;padding:0!important}
+  main.admin-page.ar-admin-v3 .ar-admin-profile>span:nth-child(2),
+  main.admin-page.ar-admin-v3 .ar-admin-profile>svg{display:none!important}
+  main.admin-page.ar-admin-v3 .admin-row-actions button{min-height:46px!important}
+}
+@media(max-width:640px){
+  main.admin-page.ar-admin-v3 .ar-admin-content{padding-left:12px!important;padding-right:12px!important}
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions{width:100%!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important}
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions button{width:100%!important;min-height:48px!important}
+  main.admin-page.ar-admin-v3 .admin-card{padding:16px!important;border-radius:16px!important}
+  main.admin-page.ar-admin-v3 .admin-card-title{align-items:stretch!important;flex-direction:column!important}
+  main.admin-page.ar-admin-v3 .admin-card-title>button{width:100%!important}
+  main.admin-page.ar-admin-v3 .admin-row-actions{width:100%!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  main.admin-page.ar-admin-v3 .admin-row-actions button{width:100%!important;min-width:0!important;min-height:46px!important}
+  main.admin-page.ar-admin-v3 .ar-admin-content input,
+  main.admin-page.ar-admin-v3 .ar-admin-content select,
+  main.admin-page.ar-admin-v3 .admin-form textarea{font-size:16px!important}
+  :is(.ar-command-panel,.ar-mgmt-panel,.ar-mod-modal,.ar-gcm-modal,.ar-health-panel,.ar-pro-panel,.ar-ops-panel) button{min-height:46px}
+}
+@media(max-width:420px){
+  main.admin-page.ar-admin-v3 .ar-admin-content{padding-left:10px!important;padding-right:10px!important}
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions{grid-template-columns:1fr!important}
+}
+
+/* Dark mode: same hierarchy, darker tactile surfaces. */
+html[data-theme="dark"] main.admin-page.ar-admin-v3 button{
+  border-color:rgba(255,255,255,.13)!important;
+  background:linear-gradient(180deg,#1a1b1f,#101114)!important;color:#f7f7f8!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 3px 8px rgba(0,0,0,.22),0 10px 20px rgba(0,0,0,.15)!important;
+}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 button:hover:not(:disabled){background:linear-gradient(180deg,#212329,#15171b)!important}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .admin-card,
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-glass-card,
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-stat-card,
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card{
+  background:linear-gradient(145deg,rgba(255,255,255,.035),transparent 43%),#0b0c0f!important;
+  border-color:rgba(255,255,255,.10)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 16px 38px rgba(0,0,0,.34)!important;
+}
