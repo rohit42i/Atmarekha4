@@ -90,8 +90,7 @@ async function main() {
     urls.push({ loc, lastmod });
   };
 
-  const today = new Date().toISOString().slice(0, 10);
-  add('/', today);
+  add('/');
   for (const path of STATIC_PATHS.slice(1)) add(path);
   for (const chapter of chapters) add(chapterPath(chapter), validIsoDate(chapter.release_date || chapter.created_at));
 
