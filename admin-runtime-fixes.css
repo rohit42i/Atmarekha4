@@ -602,3 +602,43 @@ html[data-theme="dark"] :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-he
     max-width:100%!important;
   }
 }
+
+
+/* Admin login */
+.admin-login-page {
+  min-height:100dvh!important;
+  background:var(--ar-admin-bg)!important;
+  color:var(--ar-admin-text)!important;
+}
+.admin-login-card {
+  background:var(--ar-admin-surface)!important;
+  color:var(--ar-admin-text)!important;
+  border:1px solid var(--ar-admin-border)!important;
+  box-shadow:none!important;
+}
+.admin-login-page :is(input,button) {
+  box-sizing:border-box!important;
+  font:inherit!important;
+}
+.admin-login-page input {
+  background:var(--ar-admin-input)!important;
+  color:var(--ar-admin-text)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+.admin-login-page input:focus {
+  border-color:var(--ar-admin-accent)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--ar-admin-accent) 18%,transparent)!important;
+}
+.admin-login-page button {
+  min-height:44px!important;
+  background:var(--ar-admin-accent)!important;
+  color:#fff!important;
+  border:1px solid var(--ar-admin-accent)!important;
+}
+.admin-login-page button:hover:not(:disabled) {
+  background:var(--ar-admin-accent-hover)!important;
+}
+.admin-login-page .text-zinc-300,
+.admin-login-page .text-zinc-400 {
+  color:var(--ar-admin-muted)!important;
+}
