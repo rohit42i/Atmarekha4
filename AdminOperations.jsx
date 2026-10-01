@@ -28,7 +28,7 @@ export default function AdminOperations() {
   const [title, setTitle] = useState(''), [body, setBody] = useState(''), [target, setTarget] = useState('all'), [selectedUser, setSelectedUser] = useState(''), [scheduleAt, setScheduleAt] = useState('');
   const [busy, setBusy] = useState(false), [notice, setNotice] = useState('');
 
-  useEffect(() => { const handler = () => { if (isAdmin) setOpen(true); }; window.addEventListener('atma-admin-open-operations', handler); return () => window.removeEventListener('atma-admin-open-operations', handler); }, [isAdmin]);
+  useEffect(() => { const handler = () => { setOpen(true); }; window.addEventListener('atma-admin-open-operations', handler); return () => window.removeEventListener('atma-admin-open-operations', handler); }, [isAdmin]);
 
   const load = async () => {
     try {
