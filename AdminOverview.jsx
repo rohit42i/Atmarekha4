@@ -54,7 +54,7 @@ function SkeletonGrid() {
   return <div className="ar-overview-kpis">{Array.from({ length: 10 }, (_, i) => <div className="ar-stat-card" key={i}><div className="ar-skeleton ar-stat-label-skel"/><div className="ar-skeleton ar-stat-number"/><div className="ar-skeleton ar-stat-foot"/></div>)}</div>;
 }
 
-export default function AdminOverview({ chapters = [], comments = [], reports = [], ratings = [], views = [], likes = [], pageCounts = {}, onTab, chapterName }) {
+export default function AdminOverview({ chapters = [], comments = [], reports = [], pageCounts = {}, onTab, chapterName }) {
   const [windowKey, setWindowKey] = useState('month');
   const [membershipPlans, setMembershipPlans] = useState(new Map());
   const [userStats, setUserStats] = useState({ logged_in_users: 0, notification_subscriptions: 0 });
@@ -221,8 +221,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-hero">
       <div>
         <span className="ar-kicker">ATMA REKHA · CONTROL CENTER</span>
-        <h2>Welcome back, Admin <span>👋</span></h2>
-        <p>Monitor your manga library, readership and community from one place.</p>
+        <h2>Admin dashboard</h2>
+        <p>See what needs attention, publish updates, and track reader activity.</p>
       </div>
       <div className="ar-period-switch" role="tablist" aria-label="Analytics period">
         {Object.entries(WINDOW_LABELS).map(([key, label]) => <button type="button" key={key} className={windowKey === key ? 'active' : ''} onClick={() => setWindowKey(key)}>{label}</button>)}
@@ -244,17 +244,17 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
-        <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description="Views and interactions across the latest published chapters."/>
+        <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description="Views and interactions across your latest published chapters."/>
         <LibraryChart chapters={metrics.chapterStats}/>
       </GlassCard>
       <GlassCard className="ar-activity-card">
-        <SectionHeader eyebrow="LIVE" title="Last 24 hours" description="Auto-refreshes every minute."/>
+        <SectionHeader eyebrow="LIVE" title="Last 24 hours" description="Refreshes automatically while this page is open."/>
         <div className="ar-live-grid">
           <div><span>Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>chapter reads</small></div>
           <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>submitted</small></div>
           <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>posted</small></div>
         </div>
-        <div className="ar-live-foot"><AdminIcon name="pulse" size={15}/><span>Live counts use the existing admin analytics RPC.</span></div>
+        <div className="ar-live-foot"><AdminIcon name="pulse" size={15}/><span>Live counts are read from the admin analytics service.</span></div>
       </GlassCard>
     </div>
 
@@ -283,7 +283,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <GlassCard>
         <SectionHeader eyebrow="READERS" title="Reader lifecycle"/>
         <div className="ar-funnel-list">{lifecycle.map(item => <div key={item[0]}><div><span>{item[0]}</span><strong>{formatNumber(item[1])}</strong></div><i><em style={{ width: (item[1] ? Math.max(9, item[1] / lifecycleMax * 100) : 3) + '%' }}/></i></div>)}</div>
-        <p className="ar-note">Uses real registered, active and returning-reader metrics. Membership conversion is not exposed by the current backend.</p>
+        <p className="ar-note">Uses registered, active and returning-reader data. Membership conversion is not available in the current admin data.</p>
       </GlassCard>
     </div>
 
@@ -321,8 +321,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     </div>
 
     <GlassCard className="ar-data-note">
-      <div><AdminIcon name="settings" size={16}/><div><strong>Data coverage</strong><p>Revenue, age demographics and membership conversion are not currently available from the existing Supabase admin contract, so this dashboard does not invent them.</p></div></div>
-      <div className="ar-data-tags"><span>Supabase RPC</span><span>Live refresh</span><span>R2-aware</span></div>
+      <div><AdminIcon name="settings" size={16}/><div><strong>Data coverage</strong><p>Some business metrics are not available in the current admin data, so they are intentionally omitted rather than estimated.</p></div></div>
+      <div className="ar-data-tags"><span>Live analytics</span><span>Reader activity</span><span>Content health</span></div>
     </GlassCard>
   </section>;
 }
