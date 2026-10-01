@@ -1,0 +1,206 @@
+/* Atma Rekha — light mode restored from 81225ca only.
+   Dark mode and application behavior are intentionally untouched. */
+
+:root[data-theme="light"] {
+  color-scheme: light !important;
+  --bg-color:#fff !important;
+  --surface-color:#fafafa !important;
+  --surface-2-color:#f5f5f5 !important;
+  --card-bg:#fff !important;
+  --input-bg:#fff !important;
+  --text-color:#000 !important;
+  --text-secondary:#1a1a1a !important;
+  --muted-color:#333 !important;
+  --faint-color:#444 !important;
+  --border-color:#ddd !important;
+  --border-soft-color:#e8e8e8 !important;
+  --accent-color:#2f6cf6 !important;
+  --accent-hover:#2459d6 !important;
+  --accent-contrast:#fff !important;
+  --on-dark-surface:#000 !important;
+  --success-color:#146c2e !important;
+  --danger-color:#b42318 !important;
+  --danger-bg:#fff4f2 !important;
+  --warning-color:#8a5a00 !important;
+  --warning-bg:#fff8e6 !important;
+  --overlay-color:rgb(0 0 0/.45) !important;
+  --shadow-color:rgb(0 0 0/.12) !important;
+  --icon-color:#000 !important;
+  --arrow-color:#000 !important;
+  --control-border-color:#ddd !important;
+}
+
+:root[data-theme="light"] html,
+:root[data-theme="light"] body,
+:root[data-theme="light"] #root,
+:root[data-theme="light"] .home-page,
+:root[data-theme="light"] .site-shell,
+:root[data-theme="light"] .reader-page,
+:root[data-theme="light"] .community-page,
+:root[data-theme="light"] .profile-page,
+:root[data-theme="light"] .profile-v2-page,
+:root[data-theme="light"] .profile-v2,
+:root[data-theme="light"] .info-page,
+:root[data-theme="light"] .chapter-list-page,
+:root[data-theme="light"] .admin-page,
+:root[data-theme="light"] .auth-page,
+:root[data-theme="light"] .settings-page,
+:root[data-theme="light"] .membership-page,
+:root[data-theme="light"] .page-shell,
+:root[data-theme="light"] .app-shell {
+  background:#fff !important;
+  color:#000 !important;
+}
+
+:root[data-theme="light"] .home-header,
+:root[data-theme="light"] .subpage-header,
+:root[data-theme="light"] .community-header,
+:root[data-theme="light"] .reader-header,
+:root[data-theme="light"] .profile-v2-header,
+:root[data-theme="light"] .site-footer {
+  background:#f6f6f7 !important;
+  border-color:#dedee3 !important;
+  color:#18181b !important;
+}
+
+:root[data-theme="light"] .brand-wordmark,
+:root[data-theme="light"] .subpage-header h1,
+:root[data-theme="light"] .home-section h2,
+:root[data-theme="light"] .latest-item,
+:root[data-theme="light"] .chapter-row,
+:root[data-theme="light"] .reader-title h1 {
+  color:#18181b !important;
+}
+
+:root[data-theme="light"] .home-section,
+:root[data-theme="light"] .hero-card,
+:root[data-theme="light"] .chapter-row,
+:root[data-theme="light"] .latest-item,
+:root[data-theme="light"] .community-hero,
+:root[data-theme="light"] .community-post,
+:root[data-theme="light"] .info-card,
+:root[data-theme="light"] .about-card,
+:root[data-theme="light"] .legal-card,
+:root[data-theme="light"] .profile-v2-card,
+:root[data-theme="light"] .membership-plan,
+:root[data-theme="light"] .rating-card,
+:root[data-theme="light"] .reader-rating-card,
+:root[data-theme="light"] .admin-card,
+:root[data-theme="light"] .admin-header-card,
+:root[data-theme="light"] .admin-stat {
+  background:#fff !important;
+  background-image:none !important;
+  border-color:#e1e1e6 !important;
+  color:#18181b !important;
+  box-shadow:0 14px 40px rgb(0 0 0/.06) !important;
+}
+
+:root[data-theme="light"] .hero-description,
+:root[data-theme="light"] .home-section > p:not(.section-eyebrow),
+:root[data-theme="light"] .latest-note,
+:root[data-theme="light"] .chapter-row-meta,
+:root[data-theme="light"] .chapter-row-details {
+  color:#65656e !important;
+}
+
+:root[data-theme="light"] .community-post > p,
+:root[data-theme="light"] .ec-content {
+  color:#2f2f35 !important;
+}
+
+:root[data-theme="light"] .community-hero p,
+:root[data-theme="light"] .community-meta,
+:root[data-theme="light"] .community-post-head span,
+:root[data-theme="light"] .community-attachment small {
+  color:#686871 !important;
+}
+
+:root[data-theme="light"] .community-post-actions button {
+  color:#5f6068 !important;
+}
+
+:root[data-theme="light"] .ec-backdrop,
+:root[data-theme="light"] .community-admin-backdrop {
+  background:rgb(20 20 24/.36) !important;
+}
+
+:root[data-theme="light"] .ec-sheet,
+:root[data-theme="light"] .community-admin-modal,
+:root[data-theme="light"] .ec-preview {
+  background:#fff !important;
+  color:#18181b !important;
+  border-color:#dddee2 !important;
+}
+
+:root[data-theme="light"] .ec-header,
+:root[data-theme="light"] .ec-composer {
+  background:rgb(255 255 255/.94) !important;
+  border-color:#e4e4e8 !important;
+}
+
+:root[data-theme="light"] .ec-comment {
+  border-color:#ececf0 !important;
+}
+
+:root[data-theme="light"] .ec-meta strong,
+:root[data-theme="light"] .ec-empty strong,
+:root[data-theme="light"] .ec-state strong,
+:root[data-theme="light"] .community-empty h3,
+:root[data-theme="light"] .community-empty strong {
+  color:#202025 !important;
+}
+
+:root[data-theme="light"] .ec-meta time,
+:root[data-theme="light"] .ec-actions button,
+:root[data-theme="light"] .ec-header p:last-child,
+:root[data-theme="light"] .ec-empty,
+:root[data-theme="light"] .ec-state,
+:root[data-theme="light"] .community-empty {
+  color:#73737c !important;
+}
+
+:root[data-theme="light"] .ec-join,
+:root[data-theme="light"] .ec-compose-row textarea,
+:root[data-theme="light"] .community-admin-modal input:not([type="checkbox"]),
+:root[data-theme="light"] .community-admin-modal textarea,
+:root[data-theme="light"] .community-file,
+:root[data-theme="light"] .community-file-preview {
+  background:#f7f7f8 !important;
+  border-color:#dddee3 !important;
+  color:#202025 !important;
+}
+
+:root[data-theme="light"] .profile-v2-card {
+  background:#fff !important;
+  border-color:#dedee4 !important;
+}
+
+:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select) {
+  background:#fff !important;
+  color:#000 !important;
+  border-color:#ddd !important;
+}
+
+:root[data-theme="light"] body :where(.hero-button,.primary-button,.reader-control.primary,.reader-comment-button,.like-button,.community-join,.admin-submit,.membership-button) {
+  background:#2f6cf6 !important;
+  color:#fff !important;
+  border-color:#2f6cf6 !important;
+}
+
+:root[data-theme="light"] body :where(.hero-button:hover,.primary-button:hover,.reader-control.primary:hover,.reader-comment-button:hover,.like-button:hover,.community-join:hover,.admin-submit:hover,.membership-button:hover) {
+  background:#2459d6 !important;
+  border-color:#2459d6 !important;
+  color:#fff !important;
+}
+
+:root[data-theme="light"] body :where(.reader-control.secondary,.engagement-icon,.reader-engagement-button,.reader-page-pill,.reader-chapter-nav a) {
+  background:#f5f5f5 !important;
+  color:#1a1a1a !important;
+  border-color:#ddd !important;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme:light !important;
+  }
+}
