@@ -204,3 +204,73 @@ button, input, textarea, select { font: inherit; }
   .community-post { border-radius:17px; }
   .profile-v2-shell { padding-left:10px; padding-right:10px; }
 }
+
+
+/* Enhanced comments — dark-mode surface separation */
+@media (prefers-color-scheme: dark) {
+  .ec-backdrop {
+    background: rgba(3, 4, 7, .72) !important;
+  }
+
+  .ec-sheet {
+    background: #101216 !important;
+    border-color: #292d35 !important;
+    box-shadow: 0 -24px 80px rgba(0,0,0,.58) !important;
+  }
+
+  .ec-header {
+    background: rgba(16, 18, 22, .97) !important;
+    border-bottom-color: #282c34 !important;
+  }
+
+  .ec-list {
+    background: #0d0f13 !important;
+  }
+
+  .ec-comment {
+    border-bottom-color: #252932 !important;
+  }
+
+  .ec-replies {
+    border-left-color: #343944 !important;
+  }
+
+  .ec-actions button:hover,
+  .ec-actions button.liked {
+    background: #1b2028 !important;
+  }
+
+  .ec-join {
+    background: #171a20 !important;
+    border-color: #2b3039 !important;
+  }
+
+  .ec-empty,
+  .ec-state {
+    background: #14171c !important;
+    border-color: #343944 !important;
+  }
+
+  .ec-notice {
+    background: #191817 !important;
+  }
+
+  .ec-composer {
+    background: rgba(16, 18, 22, .98) !important;
+    border-top-color: #2a2e36 !important;
+  }
+
+  .ec-compose-row textarea {
+    background: #0d0f13 !important;
+    border-color: #343944 !important;
+  }
+
+  .ec-preview {
+    background: #15181d !important;
+    border-color: #30353e !important;
+  }
+
+  .ec-close {
+    background: #1b1f26 !important;
+  }
+}
