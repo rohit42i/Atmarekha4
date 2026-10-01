@@ -60,9 +60,9 @@ const emptyForm = () => ({ number: '', title: '', description: '', status: 'Publ
 
 const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
-    { key: 'Overview', icon: 'grid', label: 'Overview' },
-    { key: 'Chapters', icon: 'book', label: 'Chapters' },
-    { key: 'Pages', icon: 'layers', label: 'Pages' },
+    { key: 'Overview', icon: 'grid', label: 'Dashboard' },
+    { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
+    { key: 'Pages', icon: 'layers', label: 'Page Editor' },
   ]},
   { label: 'Community', items: [
     { key: 'Comments', icon: 'message', label: 'Comments' },
@@ -70,7 +70,7 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
   ]},
   { label: 'Monetization', items: [
-    { key: 'Membership & Earnings', icon: 'chart', label: 'Membership & Earnings' },
+    { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
   ]},
   { label: 'Library', items: [
     { key: 'Media', icon: 'image', label: 'Media Library' },
@@ -648,6 +648,7 @@ export default function AdminPanel({ onLogout }) {
   const filteredNav = navSearch.trim()
     ? ADMIN_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.label.toLowerCase().includes(navSearch.trim().toLowerCase())) })).filter(group => group.items.length)
     : ADMIN_NAV_GROUPS;
+  const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   const openAdminTool = (action, detail) => {
     setMobileSidebarOpen(false);
@@ -678,7 +679,7 @@ export default function AdminPanel({ onLogout }) {
       {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation"/>}
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
-          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{tab}</strong></div></div>
+          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div></div>
           <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>↵</kbd></div>
           <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
         </header>
