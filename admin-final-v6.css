@@ -1,0 +1,1250 @@
+/* Atma Rekha Admin — final consistency + responsive interaction layer.
+   Loaded after every legacy admin stylesheet. Visual/interaction only. */
+
+body:has(main.admin-page.ar-admin-v3) {
+  --ar6-bg:#ffffff;
+  --ar6-surface:#ffffff;
+  --ar6-surface-2:#f7f8fa;
+  --ar6-surface-3:#eef1f4;
+  --ar6-border:#e1e4e8;
+  --ar6-border-strong:#cbd0d6;
+  --ar6-text:#090a0c;
+  --ar6-muted:#5f6670;
+  --ar6-faint:#7a828c;
+  --ar6-accent:#2563eb;
+  --ar6-accent-hover:#1d4ed8;
+  --ar6-success:#137333;
+  --ar6-success-bg:#edf8f0;
+  --ar6-danger:#b42318;
+  --ar6-danger-bg:#fff2f1;
+  --ar6-warning:#8a5a00;
+  --ar6-warning-bg:#fff8e1;
+  --ar6-focus:rgba(37,99,235,.20);
+}
+
+html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) {
+  --ar6-bg:#000000;
+  --ar6-surface:#0b0b0c;
+  --ar6-surface-2:#111214;
+  --ar6-surface-3:#181a1d;
+  --ar6-border:#27292d;
+  --ar6-border-strong:#3b3e43;
+  --ar6-text:#ffffff;
+  --ar6-muted:#b6bac1;
+  --ar6-faint:#888e97;
+  --ar6-accent:#60a5fa;
+  --ar6-accent-hover:#93c5fd;
+  --ar6-success:#78d693;
+  --ar6-success-bg:#102216;
+  --ar6-danger:#ff7979;
+  --ar6-danger-bg:#241111;
+  --ar6-warning:#f1c86a;
+  --ar6-warning-bg:#211a0b;
+  --ar6-focus:rgba(96,165,250,.24);
+}
+
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3 *,
+main.admin-page.ar-admin-v3 *::before,
+main.admin-page.ar-admin-v3 *::after {
+  box-sizing:border-box!important;
+}
+
+main.admin-page.ar-admin-v3 {
+  width:100%!important;
+  min-height:100dvh!important;
+  margin:0!important;
+  padding:0!important;
+  overflow-x:hidden!important;
+  background:var(--ar6-bg)!important;
+  color:var(--ar6-text)!important;
+  color-scheme:light!important;
+  font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+
+html[data-theme="dark"] main.admin-page.ar-admin-v3 { color-scheme:dark!important; }
+
+main.admin-page.ar-admin-v3 .ar-admin-app {
+  width:100%!important;
+  min-height:100dvh!important;
+  display:grid!important;
+  grid-template-columns:256px minmax(0,1fr)!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--ar6-bg)!important;
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  position:sticky!important;
+  top:0!important;
+  left:auto!important;
+  width:auto!important;
+  height:100dvh!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:14px 11px!important;
+  border:0!important;
+  border-right:1px solid var(--ar6-border)!important;
+  border-radius:0!important;
+  background:var(--ar6-surface)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  overflow:hidden!important;
+  z-index:100!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-main {
+  width:auto!important;
+  min-width:0!important;
+  min-height:100dvh!important;
+  margin:0!important;
+  padding:0!important;
+  background:var(--ar6-bg)!important;
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  position:sticky!important;
+  top:0!important;
+  z-index:110!important;
+  display:flex!important;
+  align-items:center!important;
+  width:100%!important;
+  min-height:64px!important;
+  margin:0!important;
+  padding:9px 22px!important;
+  border:0!important;
+  border-bottom:1px solid var(--ar6-border)!important;
+  border-radius:0!important;
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-content {
+  width:min(1480px,100%)!important;
+  min-width:0!important;
+  margin:0 auto!important;
+  padding:26px 24px 44px!important;
+  background:transparent!important;
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-brand,
+main.admin-page.ar-admin-v3 .ar-admin-workspace,
+main.admin-page.ar-admin-v3 .ar-admin-status-card,
+main.admin-page.ar-admin-v3 .admin-card,
+main.admin-page.ar-admin-v3 .ar-glass-card,
+main.admin-page.ar-admin-v3 .ar-stat-card,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card,
+main.admin-page.ar-admin-v3 .ar-admin-search,
+main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+main.admin-page.ar-admin-v3 .ar-admin-refresh,
+main.admin-page.ar-admin-v3 .ar-admin-profile {
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-brand {
+  min-height:50px!important;
+  padding:3px 5px 13px!important;
+  border-bottom:1px solid var(--ar6-border)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  width:34px!important;
+  height:34px!important;
+  flex:0 0 34px!important;
+  border-radius:9px!important;
+  background:var(--ar6-text)!important;
+  background-image:none!important;
+  color:var(--ar6-surface)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-brand strong,
+main.admin-page.ar-admin-v3 .ar-admin-brand span,
+main.admin-page.ar-admin-v3 .ar-admin-workspace strong,
+main.admin-page.ar-admin-v3 .ar-admin-status-card strong {
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-brand span,
+main.admin-page.ar-admin-v3 .ar-admin-workspace small,
+main.admin-page.ar-admin-v3 .ar-admin-status-card small {
+  color:var(--ar6-faint)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-workspace {
+  margin:13px 3px 12px!important;
+  padding:9px!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:10px!important;
+  background:var(--ar6-surface-2)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-avatar-mini,
+main.admin-page.ar-admin-v3 .ar-admin-avatar {
+  background:var(--ar6-text)!important;
+  color:var(--ar6-surface)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav {
+  gap:12px!important;
+  padding:0 2px!important;
+  min-height:0!important;
+  background:transparent!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav-group {
+  gap:2px!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav-label {
+  padding:3px 9px 5px!important;
+  color:var(--ar6-faint)!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.14em!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav button {
+  width:100%!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:0 10px!important;
+  border:1px solid transparent!important;
+  border-radius:9px!important;
+  background:transparent!important;
+  color:var(--ar6-muted)!important;
+  box-shadow:none!important;
+  transform:none!important;
+  text-align:left!important;
+  touch-action:manipulation!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav button:hover:not(:disabled) {
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-text)!important;
+  border-color:var(--ar6-border)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active,
+main.admin-page.ar-admin-v3 .ar-admin-nav button[aria-current="page"] {
+  background:var(--ar6-text)!important;
+  color:var(--ar6-surface)!important;
+  border-color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-nav button b {
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-danger)!important;
+  border:1px solid var(--ar6-danger)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search {
+  min-height:38px!important;
+  height:38px!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:9px!important;
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search:focus-within {
+  border-color:var(--ar6-accent)!important;
+  background:var(--ar6-surface)!important;
+  box-shadow:0 0 0 3px var(--ar6-focus)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search input {
+  min-width:0!important;
+  color:var(--ar6-text)!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search input::placeholder {
+  color:var(--ar6-faint)!important;
+  opacity:1!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+main.admin-page.ar-admin-v3 .ar-admin-refresh,
+main.admin-page.ar-admin-v3 .ar-admin-profile,
+main.admin-page.ar-admin-v3 .ar-admin-menu-button {
+  min-height:38px!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:9px!important;
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  touch-action:manipulation!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-icon-button { width:38px!important;min-width:38px!important;padding:0!important; }
+main.admin-page.ar-admin-v3 .ar-admin-refresh { min-width:82px!important;padding:0 10px!important; }
+main.admin-page.ar-admin-v3 .ar-admin-profile { min-width:128px!important;padding:3px 7px 3px 4px!important; }
+
+main.admin-page.ar-admin-v3 .ar-admin-icon-button:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .ar-admin-refresh:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .ar-admin-profile:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .ar-admin-menu-button:hover:not(:disabled) {
+  background:var(--ar6-surface-2)!important;
+  border-color:var(--ar6-border-strong)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-command-row {
+  margin-bottom:16px!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-command-row h1 {
+  color:var(--ar6-text)!important;
+  font-size:clamp(26px,3vw,32px)!important;
+  font-weight:900!important;
+  letter-spacing:-.045em!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-command-row p {
+  color:var(--ar6-muted)!important;
+  font-size:11px!important;
+  line-height:1.5!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-kicker {
+  color:var(--ar6-faint)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+main.admin-page.ar-admin-v3 .ar-admin-secondary-action {
+  min-height:42px!important;
+  border-radius:9px!important;
+  box-shadow:none!important;
+  touch-action:manipulation!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-primary-action {
+  background:var(--ar6-accent)!important;
+  border-color:var(--ar6-accent)!important;
+  color:#fff!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover:not(:disabled) {
+  background:var(--ar6-accent-hover)!important;
+  border-color:var(--ar6-accent-hover)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-secondary-action {
+  background:var(--ar6-surface)!important;
+  border-color:var(--ar6-border)!important;
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-notice {
+  border:1px solid var(--ar6-border)!important;
+  border-radius:9px!important;
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-notice.success {
+  background:var(--ar6-success-bg)!important;
+  color:var(--ar6-success)!important;
+  border-color:color-mix(in srgb,var(--ar6-success) 28%,var(--ar6-border))!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-notice.error {
+  background:var(--ar6-danger-bg)!important;
+  color:var(--ar6-danger)!important;
+  border-color:color-mix(in srgb,var(--ar6-danger) 30%,var(--ar6-border))!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card,
+main.admin-page.ar-admin-v3 .ar-glass-card,
+main.admin-page.ar-admin-v3 .ar-stat-card,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card {
+  background:var(--ar6-surface)!important;
+  border:1px solid var(--ar6-border)!important;
+  color:var(--ar6-text)!important;
+  border-radius:12px!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title {
+  border-bottom:1px solid var(--ar6-border)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title h2,
+main.admin-page.ar-admin-v3 .admin-card-title > div > span {
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title > div > span {
+  color:var(--ar6-faint)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title p,
+main.admin-page.ar-admin-v3 .muted,
+main.admin-page.ar-admin-v3 .center.muted {
+  color:var(--ar6-muted)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-form input:not([type="checkbox"]):not([type="file"]),
+main.admin-page.ar-admin-v3 .admin-form textarea,
+main.admin-page.ar-admin-v3 .admin-form select,
+main.admin-page.ar-admin-v3 .admin-form-grid input,
+main.admin-page.ar-admin-v3 .admin-form-grid textarea,
+main.admin-page.ar-admin-v3 .admin-form-grid select,
+main.admin-page.ar-admin-v3 .admin-file-field,
+main.admin-page.ar-admin-v3 .admin-dropzone {
+  width:100%!important;
+  max-width:100%!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:10px!important;
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-form input:focus,
+main.admin-page.ar-admin-v3 .admin-form textarea:focus,
+main.admin-page.ar-admin-v3 .admin-form select:focus,
+main.admin-page.ar-admin-v3 .admin-file-field:focus-within,
+main.admin-page.ar-admin-v3 .admin-dropzone:focus-within {
+  border-color:var(--ar6-accent)!important;
+  box-shadow:0 0 0 3px var(--ar6-focus)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-form input::placeholder,
+main.admin-page.ar-admin-v3 .admin-form textarea::placeholder {
+  color:var(--ar6-faint)!important;
+  opacity:1!important;
+}
+
+main.admin-page.ar-admin-v3 button {
+  font-family:inherit!important;
+  -webkit-tap-highlight-color:transparent!important;
+  touch-action:manipulation!important;
+}
+
+main.admin-page.ar-admin-v3 button:disabled {
+  cursor:not-allowed!important;
+  opacity:.55!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-submit {
+  min-height:46px!important;
+  background:var(--ar6-accent)!important;
+  border:1px solid var(--ar6-accent)!important;
+  color:#fff!important;
+  border-radius:10px!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-submit:hover:not(:disabled) {
+  background:var(--ar6-accent-hover)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions {
+  gap:6px!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions button,
+main.admin-page.ar-admin-v3 .admin-card-title > button {
+  min-height:38px!important;
+  padding:0 11px!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:8px!important;
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:none!important;
+  touch-action:manipulation!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions button:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .admin-card-title > button:hover:not(:disabled) {
+  background:var(--ar6-surface-2)!important;
+  border-color:var(--ar6-border-strong)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions button.danger,
+main.admin-page.ar-admin-v3 .admin-row-actions button.danger-text,
+main.admin-page.ar-admin-v3 .danger-text {
+  background:var(--ar6-danger-bg)!important;
+  color:var(--ar6-danger)!important;
+  border-color:color-mix(in srgb,var(--ar6-danger) 32%,var(--ar6-border))!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-chapter-list article,
+main.admin-page.ar-admin-v3 .admin-report-list article,
+main.admin-page.ar-admin-v3 .admin-comment-list article,
+main.admin-page.ar-admin-v3 .admin-mini-list > div {
+  background:var(--ar6-surface-2)!important;
+  border-color:var(--ar6-border)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-chapter-list article:hover,
+main.admin-page.ar-admin-v3 .admin-report-list article:hover {
+  background:var(--ar6-surface)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-status-line strong,
+main.admin-page.ar-admin-v3 .admin-chapter-list h3,
+main.admin-page.ar-admin-v3 .admin-comment-list p,
+main.admin-page.ar-admin-v3 .admin-report-list > article > div:first-child > strong,
+main.admin-page.ar-admin-v3 .admin-announcement-admin-row strong,
+main.admin-page.ar-admin-v3 .admin-media-grid strong {
+  color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-status-line span,
+main.admin-page.ar-admin-v3 .admin-chapter-list p,
+main.admin-page.ar-admin-v3 .admin-comment-meta span,
+main.admin-page.ar-admin-v3 .admin-comment-list small,
+main.admin-page.ar-admin-v3 .admin-report-list small,
+main.admin-page.ar-admin-v3 .admin-announcement-admin-row p,
+main.admin-page.ar-admin-v3 .admin-announcement-admin-row small,
+main.admin-page.ar-admin-v3 .admin-media-grid span,
+main.admin-page.ar-admin-v3 .admin-card-title p {
+  color:var(--ar6-muted)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-media-grid {
+  gap:10px!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-media-grid article {
+  background:var(--ar6-surface)!important;
+  border-color:var(--ar6-border)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-media-grid article > div {
+  background:var(--ar6-surface)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-media-grid .danger-text {
+  background:var(--ar6-danger-bg)!important;
+  color:var(--ar6-danger)!important;
+  border-color:color-mix(in srgb,var(--ar6-danger) 32%,var(--ar6-border))!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-overview-kpis { gap:9px!important; }
+main.admin-page.ar-admin-v3 .ar-stat-card {
+  min-height:118px!important;
+  padding:15px!important;
+}
+main.admin-page.ar-admin-v3 .ar-stat-card > strong,
+main.admin-page.ar-admin-v3 .ar-top-copy strong,
+main.admin-page.ar-admin-v3 .ar-top-value,
+main.admin-page.ar-admin-v3 .ar-comment-feed p {
+  color:var(--ar6-text)!important;
+}
+main.admin-page.ar-admin-v3 .ar-stat-card > small,
+main.admin-page.ar-admin-v3 .ar-stat-top > span:first-child,
+main.admin-page.ar-admin-v3 .ar-top-copy span,
+main.admin-page.ar-admin-v3 .ar-upcoming small,
+main.admin-page.ar-admin-v3 .ar-comment-feed small,
+main.admin-page.ar-admin-v3 .ar-comment-meta time {
+  color:var(--ar6-muted)!important;
+}
+main.admin-page.ar-admin-v3 .ar-stat-icon,
+main.admin-page.ar-admin-v3 .ar-live-grid > div,
+main.admin-page.ar-admin-v3 .ar-rating-mini > div,
+main.admin-page.ar-admin-v3 .ar-health-stats > div,
+main.admin-page.ar-admin-v3 .ar-health-card,
+main.admin-page.ar-admin-v3 .ar-queue,
+main.admin-page.ar-admin-v3 .ar-chart-track {
+  background:var(--ar6-surface-2)!important;
+  border-color:var(--ar6-border)!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-chart-bars { border-color:var(--ar6-border)!important; }
+main.admin-page.ar-admin-v3 .ar-top-list > button,
+main.admin-page.ar-admin-v3 .ar-upcoming > button {
+  color:var(--ar6-text)!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-top-list > button:hover,
+main.admin-page.ar-admin-v3 .ar-upcoming > button:hover {
+  background:var(--ar6-surface-2)!important;
+  border-color:var(--ar6-border)!important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header h3 { color:var(--ar6-text)!important; }
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header span { color:var(--ar6-faint)!important; }
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header p { color:var(--ar6-muted)!important; }
+
+main.admin-page.ar-admin-v3 .ar-period-switch {
+  display:flex!important;
+  align-items:center!important;
+  gap:2px!important;
+  min-height:42px!important;
+  padding:3px!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:10px!important;
+  background:var(--ar6-surface-2)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-period-switch .ar-period-status { display:none!important; }
+
+main.admin-page.ar-admin-v3 .ar-period-switch button {
+  min-width:58px!important;
+  min-height:36px!important;
+  padding:0 10px!important;
+  border:1px solid transparent!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:var(--ar6-muted)!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-period-switch button:hover:not(:disabled) {
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  border-color:var(--ar6-border)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-period-switch button.active,
+main.admin-page.ar-admin-v3 .ar-period-switch button[aria-selected="true"],
+main.admin-page.ar-admin-v3 .ar-period-switch button[aria-pressed="true"] {
+  background:var(--ar6-text)!important;
+  color:var(--ar6-surface)!important;
+  border-color:var(--ar6-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-period-switch button:focus-visible {
+  outline:2px solid var(--ar6-accent)!important;
+  outline-offset:1px!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu {
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  border-color:var(--ar6-border)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.10)!important;
+}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-admin-profile-menu { box-shadow:none!important; }
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu button { color:var(--ar6-danger)!important; }
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu button:hover { background:var(--ar6-danger-bg)!important; }
+
+main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop {
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147482000!important;
+  width:100vw!important;
+  height:100dvh!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:rgba(0,0,0,.42)!important;
+  backdrop-filter:none!important;
+}
+
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop {
+  background:rgba(0,0,0,.72)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) {
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483000!important;
+  width:100vw!important;
+  height:100dvh!important;
+  margin:0!important;
+  padding:20px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:auto!important;
+  overscroll-behavior:contain!important;
+  isolation:isolate!important;
+  background:rgba(7,10,15,.25)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) {
+  background:rgba(0,0,0,.74)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) {
+  width:min(1240px,calc(100vw - 40px))!important;
+  max-width:1240px!important;
+  max-height:calc(100dvh - 40px)!important;
+  min-width:0!important;
+  margin:0 auto!important;
+  overflow:auto!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:14px!important;
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.16)!important;
+}
+
+html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) {
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:0 24px 80px rgba(0,0,0,.55)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) > * {
+  text-shadow:none!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) h1,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) h2,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) h3,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) h4,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) strong,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) b {
+  color:var(--ar6-text)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) p,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) small,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) label,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) time {
+  color:var(--ar6-muted)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) button,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) input,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) select,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) textarea {
+  font-family:inherit!important;
+  box-shadow:none!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) button {
+  min-height:40px!important;
+  padding:0 12px!important;
+  border-radius:9px!important;
+  border:1px solid var(--ar6-border)!important;
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-text)!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  transform:none!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) button:hover:not(:disabled) {
+  background:var(--ar6-surface-3)!important;
+  border-color:var(--ar6-border-strong)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) button:disabled {
+  opacity:.52!important;
+  cursor:not-allowed!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) input,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) select,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) textarea {
+  max-width:100%!important;
+  color:var(--ar6-text)!important;
+  background:var(--ar6-surface-2)!important;
+  border:1px solid var(--ar6-border)!important;
+  outline:none!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) input:focus,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) select:focus,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) textarea:focus {
+  border-color:var(--ar6-accent)!important;
+  box-shadow:0 0 0 3px var(--ar6-focus)!important;
+}
+
+html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) input::placeholder,
+html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) textarea::placeholder,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) input::placeholder,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) textarea::placeholder {
+  color:var(--ar6-faint)!important;
+  opacity:1!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-alert strong,.ar-command-alert small,.ar-pro-kpi.alert strong,.ar-pro-kpi.alert small,.ar-health-badge.bad,.ar-mod-btn.danger,.ar-mod-report,.admin-error,.notice.error) {
+  color:var(--ar6-danger)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-good strong,.ar-command-good small,.ar-pro-kpi.good strong,.ar-pro-kpi.good small,.ar-health-badge.good,.ar-mod-btn.ok,.admin-success,.notice.success) {
+  color:var(--ar6-success)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-pro-primary,.ar-ops-primary,.ar-push-send,.community-admin-send) {
+  background:var(--ar6-accent)!important;
+  border-color:var(--ar6-accent)!important;
+  color:#fff!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-pro-primary,.ar-ops-primary,.ar-push-send,.community-admin-send):hover:not(:disabled) {
+  background:var(--ar6-accent-hover)!important;
+  border-color:var(--ar6-accent-hover)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) button:focus-visible,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) input:focus-visible,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) select:focus-visible,
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) textarea:focus-visible {
+  outline:2px solid var(--ar6-accent)!important;
+  outline-offset:2px!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-close,.ar-pro-close,.ar-ops-close,.ar-health-close,.ar-gcm-close,.ar-mgmt-close,.ar-mod-close) {
+  width:40px!important;
+  min-width:40px!important;
+  min-height:40px!important;
+  flex:0 0 40px!important;
+  margin-left:auto!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-ops-preview {
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483100!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:20px!important;
+  background:rgba(0,0,0,.55)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-ops-preview-panel {
+  width:min(1050px,calc(100vw - 40px))!important;
+  max-height:calc(100dvh - 40px)!important;
+  margin:0 auto!important;
+  overflow:auto!important;
+  background:var(--ar6-surface)!important;
+  color:var(--ar6-text)!important;
+  border:1px solid var(--ar6-border)!important;
+  border-radius:14px!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-ops-preview-pages {
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-ops-preview-pages img {
+  width:100%!important;
+  max-height:430px!important;
+  object-fit:contain!important;
+  background:#000!important;
+  border-radius:10px!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mod-buttons,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-tools,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-actions,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-actions,
+body:has(main.admin-page.ar-admin-v3) .ar-push-actions {
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mod-card,
+body:has(main.admin-page.ar-admin-v3) .ar-command-card,
+body:has(main.admin-page.ar-admin-v3) .ar-command-section,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-kpi,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-card,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-metric,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-section,
+body:has(main.admin-page.ar-admin-v3) .ar-health-stat,
+body:has(main.admin-page.ar-admin-v3) .ar-health-row,
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-feed article,
+body:has(main.admin-page.ar-admin-v3) .ar-push-card,
+body:has(main.admin-page.ar-admin-v3) .community-admin-manage {
+  background:var(--ar6-surface)!important;
+  border-color:var(--ar6-border)!important;
+  color:var(--ar6-text)!important;
+  box-shadow:none!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-row,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-member {
+  background:transparent!important;
+  border-color:var(--ar6-border)!important;
+  color:var(--ar6-text)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-row:hover {
+  background:var(--ar6-surface-2)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-content {
+  color:var(--ar6-text)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-body,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-list,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-members,
+body:has(main.admin-page.ar-admin-v3) .ar-command-feed,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-list {
+  scrollbar-color:var(--ar6-border-strong) transparent;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-table {
+  color:var(--ar6-text)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-table th {
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-muted)!important;
+  border-color:var(--ar6-border)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-table td {
+  color:var(--ar6-text)!important;
+  border-color:var(--ar6-border)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-badge {
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-text)!important;
+  border-color:var(--ar6-border)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-push-result,
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-error {
+  color:var(--ar6-danger)!important;
+}
+
+html[data-theme="dark"] body:has(main.admin-page.ar-admin-v3) .ar-mgmt-error {
+  background:var(--ar6-danger-bg)!important;
+  border-color:var(--ar6-border)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-push-note,
+body:has(main.admin-page.ar-admin-v3) .ar-command-feed time,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-list small,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-card-head span,
+body:has(main.admin-page.ar-admin-v3) .ar-health-row p,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-section header p,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-row-main p,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-metric small,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-meta span,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-member-info span {
+  color:var(--ar6-muted)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-command-health-row,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-health-row,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-row,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-stat,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-row,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-member,
+body:has(main.admin-page.ar-admin-v3) .ar-mgmt-feed article {
+  border-color:var(--ar6-border)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .ar-admin-extra-tab,
+body:has(main.admin-page.ar-admin-v3) .ar-command-tab,
+body:has(main.admin-page.ar-admin-v3) .ar-pro-tab,
+body:has(main.admin-page.ar-admin-v3) .ar-ops-tab,
+body:has(main.admin-page.ar-admin-v3) .ar-health-tab,
+body:has(main.admin-page.ar-admin-v3) .ar-gcm-nav-tab,
+body:has(main.admin-page.ar-admin-v3) .ar-mod-launch {
+  display:none!important;
+  pointer-events:none!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .community-admin-sub,
+body:has(main.admin-page.ar-admin-v3) .community-file-preview,
+body:has(main.admin-page.ar-admin-v3) .community-admin-notice {
+  color:var(--ar6-muted)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .community-admin-head {
+  border-color:var(--ar6-border)!important;
+}
+
+body:has(main.admin-page.ar-admin-v3) .community-file,
+body:has(main.admin-page.ar-admin-v3) .community-attachment-preview,
+body:has(main.admin-page.ar-admin-v3) .community-file-preview {
+  border-color:var(--ar6-border)!important;
+  background:var(--ar6-surface-2)!important;
+  color:var(--ar6-text)!important;
+}
+
+@media (max-width:1100px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app {
+    grid-template-columns:232px minmax(0,1fr)!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-kpis {
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  main.admin-page.ar-admin-v3 .admin-media-grid {
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding-left:18px!important;
+    padding-right:18px!important;
+  }
+}
+
+@media (max-width:820px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app {
+    display:block!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+    position:fixed!important;
+    inset:auto!important;
+    top:0!important;
+    left:0!important;
+    width:min(310px,88vw)!important;
+    height:100dvh!important;
+    z-index:2147482100!important;
+    transform:translateX(-103%)!important;
+    transition:transform .18s ease!important;
+    overflow:auto!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar.is-open {
+    transform:translateX(0)!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-main {
+    width:100%!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-menu-button {
+    display:grid!important;
+    place-items:center!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-topbar {
+    min-height:58px!important;
+    padding:8px 13px!important;
+    gap:8px!important;
+    flex-wrap:wrap!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-search {
+    order:3!important;
+    width:100%!important;
+    max-width:none!important;
+    flex-basis:100%!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding:18px 14px 34px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-command-row {
+    align-items:stretch!important;
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions {
+    width:100%!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions button {
+    flex:1!important;
+    min-width:0!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-kpis {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-period-switch {
+    width:100%!important;
+    justify-content:stretch!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-period-switch button {
+    flex:1 1 0!important;
+    min-width:0!important;
+  }
+  main.admin-page.ar-admin-v3 .admin-form-grid {
+    grid-template-columns:1fr!important;
+  }
+  main.admin-page.ar-admin-v3 .admin-form-grid .wide {
+    grid-column:auto!important;
+  }
+  main.admin-page.ar-admin-v3 .admin-media-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-command-grid,
+  main.admin-page.ar-admin-v3 .ar-pro-kpis {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) {
+    width:min(100%,calc(100vw - 28px))!important;
+    max-width:none!important;
+    max-height:calc(100dvh - 28px)!important;
+    border-radius:14px!important;
+  }
+}
+
+@media (max-width:600px) {
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding:14px 10px 28px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-command-row h1 {
+    font-size:24px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-profile {
+    width:38px!important;
+    min-width:38px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-profile > span:nth-child(2),
+  main.admin-page.ar-admin-v3 .ar-admin-profile > svg {
+    display:none!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-refresh {
+    width:38px!important;
+    min-width:38px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-refresh span {
+    display:none!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-icon-button {
+    display:none!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-kpis {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-stat-card {
+    min-height:106px!important;
+    padding:12px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-stat-card > strong {
+    font-size:21px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-period-switch {
+    overflow-x:auto!important;
+    scrollbar-width:none!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-period-switch::-webkit-scrollbar {
+    display:none!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-period-switch button {
+    min-width:68px!important;
+    flex:1 0 68px!important;
+    min-height:42px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-backdrop,.ar-pro-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-gcm-backdrop,.ar-mgmt-backdrop,.ar-mod-backdrop,.community-admin-backdrop) {
+    padding:0!important;
+    place-items:stretch!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) {
+    width:100%!important;
+    max-width:none!important;
+    height:100dvh!important;
+    max-height:none!important;
+    border-radius:0!important;
+    border-left:0!important;
+    border-right:0!important;
+    margin:0!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-head,.ar-pro-head,.ar-ops-head,.ar-health-head,.ar-gcm-head,.ar-mgmt-head) {
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-body,.ar-pro-body,.ar-ops-body,.ar-health-body) {
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-grid,.ar-pro-kpis) {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-command-toolbar,
+  body:has(main.admin-page.ar-admin-v3) .ar-pro-search,
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-form-grid,
+  body:has(main.admin-page.ar-admin-v3) .ar-push-grid {
+    grid-template-columns:1fr!important;
+    flex-wrap:wrap!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-command-toolbar input,
+  body:has(main.admin-page.ar-admin-v3) .ar-pro-search input {
+    flex-basis:100%!important;
+    width:100%!important;
+    min-width:0!important;
+    font-size:16px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-metrics {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-pro-grid,
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-grid {
+    grid-template-columns:1fr!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-pro-search button,
+  body:has(main.admin-page.ar-admin-v3) .ar-command-toolbar button,
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-actions button,
+  body:has(main.admin-page.ar-admin-v3) .ar-gcm-action,
+  body:has(main.admin-page.ar-admin-v3) .ar-mod-btn,
+  body:has(main.admin-page.ar-admin-v3) .ar-mgmt-tools button {
+    min-height:42px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-gcm-tools,
+  body:has(main.admin-page.ar-admin-v3) .ar-mod-toolbar,
+  body:has(main.admin-page.ar-admin-v3) .ar-mgmt-tools {
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-gcm-stats {
+    grid-template-columns:1fr 1fr!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-gcm-row {
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-gcm-delete {
+    min-width:42px!important;
+    padding:0 10px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-health-summary {
+    grid-template-columns:1fr 1fr!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-health-summary .ar-health-stat:last-child {
+    grid-column:1/-1!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-preview {
+    padding:0!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-preview-panel {
+    width:100%!important;
+    max-height:none!important;
+    height:100dvh!important;
+    border-radius:0!important;
+    border-left:0!important;
+    border-right:0!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-ops-preview-pages {
+    grid-template-columns:1fr!important;
+    padding:12px!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) .ar-mgmt-table {
+    min-width:640px!important;
+  }
+}
+
+@media (max-width:460px) {
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions {
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-quick-actions button {
+    width:100%!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary,
+  main.admin-page.ar-admin-v3 .ar-overview-grid-3,
+  main.admin-page.ar-admin-v3 .ar-overview-grid-2 {
+    grid-template-columns:1fr!important;
+  }
+  body:has(main.admin-page.ar-admin-v3) :is(.ar-command-grid,.ar-pro-kpis) {
+    grid-template-columns:1fr 1fr!important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+    transition:none!important;
+  }
+}
