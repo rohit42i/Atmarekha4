@@ -54,6 +54,8 @@ export default function AdminModerationTools() {
   };
 
   useEffect(() => { if (open) load(); }, [open, isAdmin]);
+  useEffect(() => { const handler = () => { if (isAdmin) setOpen(true); }; window.addEventListener('atma-admin-open-moderation', handler); return () => window.removeEventListener('atma-admin-open-moderation', handler); }, [isAdmin]);
+
   const updateReportStatus = async (report, status) => {
     if (busy) return;
     setBusy(`report:${report.id}`);
