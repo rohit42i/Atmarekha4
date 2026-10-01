@@ -685,6 +685,14 @@ export default function AdminPanel({ onLogout }) {
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
   const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Membership & Earnings', 'Media', 'Pal Do Pal Ke Lamhe'];
+  useEffect(() => {
+    const handler = event => {
+      const nextTab = event?.detail?.tab;
+      if (tabs.includes(nextTab)) activateTab(nextTab);
+    };
+    window.addEventListener('atma-admin-select-tab', handler);
+    return () => window.removeEventListener('atma-admin-select-tab', handler);
+  }, []);
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -715,7 +723,7 @@ export default function AdminPanel({ onLogout }) {
         <div className="ar-admin-brand"><div className="ar-admin-brand-mark">AR</div><div><strong>Atma Rekha</strong><span>Admin workspace</span></div><button type="button" className="ar-admin-mobile-close" onClick={() => setMobileSidebarOpen(false)} aria-label="Close navigation"><AdminIcon name="close" size={20}/></button></div>
         <div className="ar-admin-workspace"><span className="ar-admin-avatar-mini">A</span><div><strong>Publisher</strong><small>{email || 'Protected admin'}</small></div></div>
         <nav className="admin-tabs ar-admin-nav">
-          {filteredNav.map(group => <div className="ar-admin-nav-group" key={group.label}><span className="ar-admin-nav-label">{group.label}</span>{group.items.map(item => <button key={item.key} type="button" className={!item.action && tab === item.key ? 'active' : ''} onClick={() => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)} aria-current={!item.action && tab === item.key ? 'page' : undefined} title={item.label}><span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={17}/></span><span className="ar-admin-nav-text">{item.label}</span>{item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</div>)}
+          {filteredNav.map(group => <div className="ar-admin-nav-group" key={group.label}><span className="ar-admin-nav-label">{group.label}</span>{group.items.map(item => <button key={item.key} type="button" data-admin-tab={item.key} className={!item.action && tab === item.key ? 'active' : ''} onClick={() => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)} aria-current={!item.action && tab === item.key ? 'page' : undefined} title={item.label}><span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={17}/></span><span className="ar-admin-nav-text">{item.label}</span>{item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</div>)}
         </nav>
         <div className="ar-admin-status-card"><span className={'status-dot ' + (notice.type === 'error' ? 'danger' : '')}/><div><strong>Data connection</strong><small>{loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}</small></div></div>
       </aside>
@@ -779,10 +787,10 @@ export default function AdminPanel({ onLogout }) {
             <small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}{report.reviewed_at ? ' · reviewed ' + new Date(report.reviewed_at).toLocaleString('en-IN') : ''}</small>
           </div>
           <div className="admin-row-actions">
-            {comment && <button className="danger" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete comment</button>}
-            {status === 'open' && <button onClick={() => setReportStatus(report.id, 'reviewed')} disabled={busy}>Review</button>}
-            {status !== 'resolved' && <button onClick={() => setReportStatus(report.id, 'resolved')} disabled={busy}>Resolve</button>}
-            {status !== 'open' && <button onClick={() => setReportStatus(report.id, 'open')} disabled={busy}>Reopen</button>}
+            {comment && <button type="button" className="danger" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete comment</button>}
+            {status === 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'reviewed')} disabled={busy}>Review</button>}
+            {status !== 'resolved' && <button type="button" onClick={() => setReportStatus(report.id, 'resolved')} disabled={busy}>Resolve</button>}
+            {status !== 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'open')} disabled={busy}>Reopen</button>}
           </div>
         </article>;
       })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div>
@@ -807,11 +815,11 @@ export default function AdminPanel({ onLogout }) {
         <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
         <div className="admin-mini-list">{announcements.map(item => <div key={item.id}>
           <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div>
-          <div className="admin-row-actions"><button onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
+          <div className="admin-row-actions"><button type="button" onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button type="button" className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
       </div>
-    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
+    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
 
         </div>
       </div>
