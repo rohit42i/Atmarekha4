@@ -91,6 +91,8 @@ export default function AdminProTools() {
     return () => window.removeEventListener('keydown', keydown);
   }, [open]);
 
+  useEffect(() => { const handler = () => { if (isAdmin) setOpen(true); }; window.addEventListener('atma-admin-open-pro', handler); return () => window.removeEventListener('atma-admin-open-pro', handler); }, [isAdmin]);
+
   const load = async () => {
     if (!isAdmin) return;
     setLoading(true);
