@@ -1,192 +1,943 @@
-/* Atma Rekha — admin runtime rescue. Loaded after every other stylesheet. */
+/* Atma Rekha — final admin visual/runtime layer.
+   Loaded after the other admin stylesheets so the admin UI has one authoritative palette.
+   Visual-only: no data, auth, routing, upload, payment or moderation logic is changed. */
+
+main.admin-auth-checking,
+main.admin-auth-checking.site-shell {
+  min-height:100vh!important;
+  width:100%!important;
+  background:#050505!important;
+  color:#fff!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+
+html:has(main.admin-auth-checking),
+html:has(main.admin-auth-checking) body,
+html:has(main.admin-auth-checking) #root {
+  background:#050505!important;
+  color:#fff!important;
+}
 
 html:has(main.admin-dashboard-shell),
 html:has(main.admin-dashboard-shell) body,
 html:has(main.admin-dashboard-shell) #root,
-html:has(main.admin-auth-checking),
-html:has(main.admin-auth-checking) body,
-html:has(main.admin-auth-checking) #root {
-  background: #111827 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
+html:has(main.admin-page.ar-admin-v3),
+html:has(main.admin-page.ar-admin-v3) body,
+html:has(main.admin-page.ar-admin-v3) #root {
+  background:#050505!important;
+  color:#fff!important;
 }
 
-html:has(main.admin-dashboard-shell) body,
-html:has(main.admin-auth-checking) body {
-  min-height: 100vh !important;
+main.admin-page.ar-admin-v3 {
+  --admin-bg:#050505!important;
+  --admin-surface:#0a0a0a!important;
+  --admin-surface-2:#0f0f10!important;
+  --admin-surface-3:#151516!important;
+  --admin-border:rgba(255,255,255,.11)!important;
+  --admin-border-strong:rgba(255,255,255,.19)!important;
+  --admin-text:#fff!important;
+  --admin-text-2:#fff!important;
+  --admin-muted:#fff!important;
+  --admin-accent:#fff!important;
+  --admin-accent-soft:rgba(255,255,255,.08)!important;
+  --admin-success:#55d98a!important;
+  --admin-danger:#ff6b78!important;
+  --admin-warning:#ffd166!important;
+  --admin-shadow:0 18px 50px rgba(0,0,0,.48)!important;
+
+  min-height:100vh!important;
+  width:100%!important;
+  background:
+    radial-gradient(circle at 78% -8%,rgba(255,255,255,.055),transparent 28rem),
+    radial-gradient(circle at 8% 20%,rgba(255,255,255,.025),transparent 22rem),
+    linear-gradient(180deg,#080808 0%,#050505 55%,#000 100%)!important;
+  color:#fff!important;
+  color-scheme:dark!important;
+  font-family:Inter,"SF Pro Display","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;
 }
 
-main.admin-auth-checking,
-main.admin-auth-checking.site-shell {
-  min-height: 100vh !important;
-  width: 100% !important;
-  background: #111827 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
-  opacity: 1 !important;
-  visibility: visible !important;
+main.admin-page.ar-admin-v3 *,
+main.admin-page.ar-admin-v3 button,
+main.admin-page.ar-admin-v3 input,
+main.admin-page.ar-admin-v3 select,
+main.admin-page.ar-admin-v3 textarea {
+  box-sizing:border-box!important;
+  font-family:inherit!important;
 }
 
-main.admin-dashboard-shell,
-main:has(.admin-header-card) {
-  position: relative !important;
-  z-index: 1 !important;
-  display: block !important;
-  min-height: 100vh !important;
-  width: 100% !important;
-  background: #111827 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  --bg-color: #111827 !important;
-  --surface-color: #1f2937 !important;
-  --surface-2-color: #374151 !important;
-  --card-bg: #1f2937 !important;
-  --text-color: #f9fafb !important;
-  --text-secondary: #d1d5db !important;
-  --muted-color: #9ca3af !important;
-  --border-color: #4b5563 !important;
-  --admin-bg: #111827 !important;
-  --admin-surface: #1f2937 !important;
-  --admin-text: #f9fafb !important;
-  --admin-v2-bg: #111827 !important;
-  --admin-v2-surface: #1f2937 !important;
-  --admin-v2-text: #f9fafb !important;
-  --admin-v2-muted: #9ca3af !important;
-  --ar-admin-bg: #111827 !important;
-  --ar-admin-surface: #1f2937 !important;
-  --ar-admin-text: #f9fafb !important;
+/* Sidebar */
+main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  background:rgba(6,6,6,.94)!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  box-shadow:0 24px 75px rgba(0,0,0,.55)!important;
+  backdrop-filter:blur(18px)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
 }
 
-main.admin-dashboard-shell .admin-header-card,
-main:has(.admin-header-card) .admin-header-card,
-main.admin-dashboard-shell .admin-tabs,
-main:has(.admin-header-card) .admin-tabs {
-  position: relative !important;
-  inset: auto !important;
-  left: auto !important;
-  right: auto !important;
-  top: auto !important;
-  bottom: auto !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  z-index: 2 !important;
-  transform: none !important;
+main.admin-page.ar-admin-v3 .ar-admin-brand,
+main.admin-page.ar-admin-v3 .ar-admin-workspace {
+  border-color:rgba(255,255,255,.10)!important;
 }
 
-main.admin-dashboard-shell > .mx-auto,
-main:has(.admin-header-card) > .mx-auto,
-main:has(.admin-header-card) > div:first-child {
-  position: relative !important;
-  z-index: 2 !important;
-  padding: 16px !important;
-  max-width: 1100px !important;
-  margin: 0 auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  background: transparent !important;
-  background-image: none !important;
-  color: #f9fafb !important;
+main.admin-page.ar-admin-v3 .ar-admin-brand strong,
+main.admin-page.ar-admin-v3 .ar-admin-workspace strong,
+main.admin-page.ar-admin-v3 .ar-admin-profile strong {
+  color:#fff!important;
+  font-weight:850!important;
 }
 
-main.admin-dashboard-shell .admin-header-card,
-main.admin-dashboard-shell .admin-card,
-main.admin-dashboard-shell .admin-overview-card,
-main.admin-dashboard-shell .admin-stat,
-main.admin-dashboard-shell .admin-overview-stat,
-main.admin-dashboard-shell .admin-tabs,
-main:has(.admin-header-card) .admin-header-card,
-main:has(.admin-header-card) .admin-card,
-main:has(.admin-header-card) .admin-overview-card,
-main:has(.admin-header-card) .admin-stat,
-main:has(.admin-header-card) .admin-overview-stat,
-main:has(.admin-header-card) .admin-tabs {
-  background: #1f2937 !important;
-  background-color: #1f2937 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
-  border-color: #4b5563 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  box-shadow: none !important;
+main.admin-page.ar-admin-v3 .ar-admin-brand span,
+main.admin-page.ar-admin-v3 .ar-admin-workspace small,
+main.admin-page.ar-admin-v3 .ar-admin-profile small,
+main.admin-page.ar-admin-v3 .ar-admin-status-card small {
+  color:#fff!important;
+  opacity:.60!important;
 }
 
-main.admin-dashboard-shell h1,
-main.admin-dashboard-shell h2,
-main.admin-dashboard-shell h3,
-main.admin-dashboard-shell h4,
-main.admin-dashboard-shell strong {
-  color: #f9fafb !important;
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark,
+main.admin-page.ar-admin-v3 .ar-admin-avatar-mini,
+main.admin-page.ar-admin-v3 .ar-admin-avatar {
+  background:#fff!important;
+  color:#000!important;
+  box-shadow:0 8px 24px rgba(255,255,255,.10)!important;
 }
 
-main.admin-dashboard-shell p,
-main.admin-dashboard-shell span,
-main.admin-dashboard-shell label,
-main.admin-dashboard-shell small,
-main.admin-dashboard-shell li {
-  color: #d1d5db !important;
+main.admin-page.ar-admin-v3 .ar-admin-workspace,
+main.admin-page.ar-admin-v3 .ar-admin-status-card {
+  background:#0a0a0a!important;
+  border-color:rgba(255,255,255,.10)!important;
 }
 
-main.admin-dashboard-shell [class*="text-zinc-"] {
-  color: #d1d5db !important;
+main.admin-page.ar-admin-v3 .ar-admin-nav-label {
+  color:#fff!important;
+  opacity:.42!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  letter-spacing:.15em!important;
 }
 
-main.admin-dashboard-shell button,
-main.admin-dashboard-shell a,
-main.admin-dashboard-shell [role="button"] {
-  opacity: 1 !important;
-  visibility: visible !important;
+main.admin-page.ar-admin-v3 .ar-admin-nav button {
+  color:#fff!important;
+  opacity:.64!important;
+  background:transparent!important;
+  border-color:transparent!important;
+  font-weight:750!important;
 }
 
-main.admin-dashboard-shell input,
-main.admin-dashboard-shell textarea,
-main.admin-dashboard-shell select {
-  background: #374151 !important;
-  background-color: #374151 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
-  border-color: #4b5563 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
+main.admin-page.ar-admin-v3 .ar-admin-nav button:hover {
+  color:#fff!important;
+  opacity:1!important;
+  background:#101010!important;
+  border-color:rgba(255,255,255,.08)!important;
+  transform:translateX(2px)!important;
 }
 
-main.admin-dashboard-shell input::placeholder,
-main.admin-dashboard-shell textarea::placeholder {
-  color: #9ca3af !important;
-  opacity: 1 !important;
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  color:#000!important;
+  opacity:1!important;
+  background:#fff!important;
+  border-color:#fff!important;
+  box-shadow:0 10px 28px rgba(255,255,255,.10)!important;
 }
 
-html:has(main.min-h-screen form) main.min-h-screen {
-  background: #111827 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon {
+  color:#000!important;
 }
 
-html:has(main.min-h-screen form) main.min-h-screen > div {
-  background: #1f2937 !important;
-  background-image: none !important;
-  color: #f9fafb !important;
-  border-color: #4b5563 !important;
+main.admin-page.ar-admin-v3 .ar-admin-nav button b {
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.16)!important;
 }
 
-html:has(main.min-h-screen form) main.min-h-screen [class*="text-zinc-"] {
-  color: #d1d5db !important;
+/* Topbar */
+main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  background:rgba(5,5,5,.88)!important;
+  border-bottom:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:0 10px 32px rgba(0,0,0,.22)!important;
+  backdrop-filter:blur(18px)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
 }
 
-html:has(main.min-h-screen form) main.min-h-screen input {
-  background: #374151 !important;
-  color: #f9fafb !important;
-  border-color: #4b5563 !important;
+main.admin-page.ar-admin-v3 .ar-admin-page-context span,
+main.admin-page.ar-admin-v3 .ar-kicker,
+main.admin-page.ar-admin-v3 .ar-overview .ar-kicker {
+  color:#fff!important;
+  opacity:.48!important;
 }
 
+main.admin-page.ar-admin-v3 .ar-admin-page-context strong,
+main.admin-page.ar-admin-v3 .ar-admin-command-row h1,
+main.admin-page.ar-admin-v3 .ar-overview-hero h2 {
+  color:#fff!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search {
+  background:#090909!important;
+  border-color:rgba(255,255,255,.12)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search:focus-within {
+  background:#0d0d0d!important;
+  border-color:rgba(255,255,255,.36)!important;
+  box-shadow:0 0 0 3px rgba(255,255,255,.07)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search input {
+  color:#fff!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-search input::placeholder,
+main.admin-page.ar-admin-v3 .ar-admin-search kbd {
+  color:#fff!important;
+  opacity:.40!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+main.admin-page.ar-admin-v3 .ar-admin-refresh,
+main.admin-page.ar-admin-v3 .ar-admin-profile {
+  color:#fff!important;
+  opacity:.76!important;
+  background:#080808!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-icon-button:hover,
+main.admin-page.ar-admin-v3 .ar-admin-refresh:hover,
+main.admin-page.ar-admin-v3 .ar-admin-profile:hover {
+  opacity:1!important;
+  background:#111!important;
+  border-color:rgba(255,255,255,.20)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-icon-button i {
+  border-color:#050505!important;
+}
+
+/* Command area */
+main.admin-page.ar-admin-v3 .ar-admin-command-row p,
+main.admin-page.ar-admin-v3 .ar-overview-hero p,
+main.admin-page.ar-admin-v3 .ar-admin-card-title p {
+  color:#fff!important;
+  opacity:.58!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+main.admin-page.ar-admin-v3 .admin-submit {
+  background:#fff!important;
+  color:#000!important;
+  border:1px solid #fff!important;
+  box-shadow:0 12px 30px rgba(255,255,255,.10)!important;
+  font-weight:850!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,
+main.admin-page.ar-admin-v3 .admin-submit:hover:not(:disabled) {
+  background:#ededed!important;
+  color:#000!important;
+  border-color:#fff!important;
+  transform:translateY(-1px)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-secondary-action {
+  background:#090909!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.16)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-secondary-action:hover {
+  background:#121212!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.28)!important;
+}
+
+/* Notifications */
+main.admin-page.ar-admin-v3 .ar-admin-notice {
+  background:#090909!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-notice.success {
+  background:rgba(45,190,105,.08)!important;
+  border-color:rgba(85,217,138,.26)!important;
+  color:#55d98a!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-admin-notice.error {
+  background:rgba(255,72,88,.08)!important;
+  border-color:rgba(255,107,120,.28)!important;
+  color:#ff6b78!important;
+}
+
+/* Main cards — three clear depth levels */
+main.admin-page.ar-admin-v3 .ar-stat-card,
+main.admin-page.ar-admin-v3 .ar-glass-card,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card,
+main.admin-page.ar-admin-v3 .admin-card,
+main.admin-page.ar-admin-v3 .admin-stat,
+main.admin-page.ar-admin-v3 .admin-loading,
+main.admin-page.ar-admin-v3 .performance-card {
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,0) 46%),
+    #0a0a0a!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.44),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card,
+main.admin-page.ar-admin-v3 .ar-glass-card,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card {
+  border-radius:18px!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card:hover,
+main.admin-page.ar-admin-v3 .ar-glass-card:hover,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card:hover,
+main.admin-page.ar-admin-v3 .ar-stat-card:hover,
+main.admin-page.ar-admin-v3 .admin-stat:hover {
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,0) 50%),
+    #0d0d0d!important;
+  border-color:rgba(255,255,255,.20)!important;
+  box-shadow:0 22px 58px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title span,
+main.admin-page.ar-admin-v3 .ar-stat-top>span:first-child,
+main.admin-page.ar-admin-v3 .ar-section-header span {
+  color:#fff!important;
+  opacity:.48!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title h2,
+main.admin-page.ar-admin-v3 .ar-section-header h3,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card h3,
+main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card h2 {
+  color:#fff!important;
+  font-weight:850!important;
+  letter-spacing:-.035em!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title button {
+  background:#101010!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:10px!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-card-title button:hover {
+  background:#181818!important;
+  border-color:rgba(255,255,255,.26)!important;
+}
+
+/* KPI cards */
+main.admin-page.ar-admin-v3 .ar-stat-card {
+  min-height:124px!important;
+  padding:18px!important;
+  border-radius:16px!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-stat-card>strong,
+main.admin-page.ar-admin-v3 .admin-stat strong {
+  color:#fff!important;
+  font-size:30px!important;
+  font-weight:900!important;
+  letter-spacing:-.045em!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-stat-card>small,
+main.admin-page.ar-admin-v3 .ar-delta,
+main.admin-page.ar-admin-v3 .admin-stat span {
+  color:#fff!important;
+  opacity:.58!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-stat-icon {
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-stat-card.accent-blue .ar-stat-icon,
+main.admin-page.ar-admin-v3 .ar-stat-card.accent-pink .ar-stat-icon,
+main.admin-page.ar-admin-v3 .ar-stat-card.accent-gold .ar-stat-icon {
+  background:#111!important;
+  color:#fff!important;
+}
+
+/* Inner data blocks */
+main.admin-page.ar-admin-v3 .ar-live-grid>div,
+main.admin-page.ar-admin-v3 .ar-rating-mini>div,
+main.admin-page.ar-admin-v3 .ar-health-stats>div,
+main.admin-page.ar-admin-v3 .ar-insight-list>div,
+main.admin-page.ar-admin-v3 .ar-data-note,
+main.admin-page.ar-admin-v3 .admin-performance>div,
+main.admin-page.ar-admin-v3 .admin-chapter-list article,
+main.admin-page.ar-admin-v3 .admin-comment-list article,
+main.admin-page.ar-admin-v3 .admin-report-list article,
+main.admin-page.ar-admin-v3 .admin-mini-list>div,
+main.admin-page.ar-admin-v3 .admin-progress {
+  background:#070707!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:12px!important;
+}
+
+main.admin-page.ar-admin-v3 .ar-live-grid>div:hover,
+main.admin-page.ar-admin-v3 .ar-rating-mini>div:hover,
+main.admin-page.ar-admin-v3 .ar-health-stats>div:hover,
+main.admin-page.ar-admin-v3 .ar-insight-list>div:hover,
+main.admin-page.ar-admin-v3 .admin-performance>div:hover,
+main.admin-page.ar-admin-v3 .admin-chapter-list article:hover,
+main.admin-page.ar-admin-v3 .admin-comment-list article:hover,
+main.admin-page.ar-admin-v3 .admin-report-list article:hover,
+main.admin-page.ar-admin-v3 .admin-mini-list>div:hover {
+  background:#0e0e0e!important;
+  border-color:rgba(255,255,255,.16)!important;
+  transform:translateY(-1px)!important;
+}
+
+/* Forms — black fields inside black cards */
+main.admin-page.ar-admin-v3 .admin-form input,
+main.admin-page.ar-admin-v3 .admin-form textarea,
+main.admin-page.ar-admin-v3 .admin-form select,
+main.admin-page.ar-admin-v3 .admin-form-grid input,
+main.admin-page.ar-admin-v3 .admin-form-grid textarea,
+main.admin-page.ar-admin-v3 .admin-form-grid select,
+main.admin-page.ar-admin-v3 input,
+main.admin-page.ar-admin-v3 textarea,
+main.admin-page.ar-admin-v3 select {
+  min-height:45px!important;
+  background:#030303!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:10px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+  font-size:13px!important;
+}
+
+main.admin-page.ar-admin-v3 textarea {
+  min-height:112px!important;
+  line-height:1.55!important;
+}
+
+main.admin-page.ar-admin-v3 input::placeholder,
+main.admin-page.ar-admin-v3 textarea::placeholder {
+  color:#fff!important;
+  opacity:.38!important;
+}
+
+main.admin-page.ar-admin-v3 input:focus,
+main.admin-page.ar-admin-v3 textarea:focus,
+main.admin-page.ar-admin-v3 select:focus {
+  border-color:rgba(255,255,255,.48)!important;
+  box-shadow:0 0 0 3px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.04)!important;
+  outline:none!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-form label,
+main.admin-page.ar-admin-v3 .admin-form label span,
+main.admin-page.ar-admin-v3 .admin-form-hint {
+  color:#fff!important;
+  opacity:.62!important;
+}
+
+/* Upload dropzone */
+main.admin-page.ar-admin-v3 .admin-dropzone {
+  min-height:132px!important;
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 8px,transparent 8px 16px),
+    #050505!important;
+  border:1px dashed rgba(255,255,255,.20)!important;
+  border-radius:14px!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-dropzone:hover,
+main.admin-page.ar-admin-v3 .admin-dropzone:focus-within {
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.028) 0 8px,transparent 8px 16px),
+    #090909!important;
+  border-color:rgba(255,255,255,.42)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-dropzone strong {
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:850!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-dropzone span {
+  color:#fff!important;
+  opacity:.55!important;
+}
+
+/* Tables */
+main.admin-page.ar-admin-v3 table {
+  background:#080808!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  border-radius:14px!important;
+}
+
+main.admin-page.ar-admin-v3 th {
+  background:#101010!important;
+  color:#fff!important;
+  opacity:.52!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  letter-spacing:.10em!important;
+  text-transform:uppercase!important;
+}
+
+main.admin-page.ar-admin-v3 td {
+  color:#fff!important;
+}
+
+main.admin-page.ar-admin-v3 tbody tr:hover td {
+  background:#0d0d0d!important;
+}
+
+/* Status / semantic colours */
+main.admin-page.ar-admin-v3 .status-dot {
+  background:#55d98a!important;
+  box-shadow:0 0 12px rgba(85,217,138,.62)!important;
+}
+
+main.admin-page.ar-admin-v3 .status-dot.danger {
+  background:#ff6b78!important;
+  box-shadow:0 0 12px rgba(255,107,120,.55)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-status-line span {
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+}
+
+main.admin-page.ar-admin-v3 .report-label,
+main.admin-page.ar-admin-v3 .danger-text,
+main.admin-page.ar-admin-v3 .admin-row-actions button.danger {
+  color:#ff6b78!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions button.danger {
+  background:rgba(255,107,120,.07)!important;
+  border-color:rgba(255,107,120,.22)!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions button {
+  min-height:36px!important;
+  padding:0 12px!important;
+  background:#0b0b0b!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+  font-weight:750!important;
+}
+
+main.admin-page.ar-admin-v3 .admin-row-actions button:hover:not(:disabled) {
+  background:#161616!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.25)!important;
+}
+
+/* Loading */
+main.admin-page.ar-admin-v3 .admin-loading,
+main.admin-page.ar-admin-v3 .ar-admin-loading {
+  min-height:300px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#070707!important;
+  color:#fff!important;
+  opacity:.65!important;
+}
+
+/* Accessibility / interaction */
+main.admin-page.ar-admin-v3 button:focus-visible,
+main.admin-page.ar-admin-v3 a:focus-visible,
+main.admin-page.ar-admin-v3 input:focus-visible,
+main.admin-page.ar-admin-v3 textarea:focus-visible,
+main.admin-page.ar-admin-v3 select:focus-visible {
+  outline:2px solid rgba(255,255,255,.70)!important;
+  outline-offset:2px!important;
+}
+
+main.admin-page.ar-admin-v3 button:disabled {
+  opacity:.46!important;
+  cursor:not-allowed!important;
+}
+
+main.admin-page.ar-admin-v3 a {
+  color:#fff!important;
+}
+
+main.admin-page.ar-admin-v3 .muted,
+main.admin-page.ar-admin-v3 .center {
+  color:#fff!important;
+  opacity:.56!important;
+}
+
+/* Preserve the runtime rescue guarantees: never let a loader obscure admin. */
 html:has(main.admin-dashboard-shell) .atma-loader-overlay,
 html:has(main.admin-auth-checking) .atma-loader-overlay,
+html:has(main.admin-page.ar-admin-v3) .atma-loader-overlay,
 html:has(main.min-h-screen form) .atma-loader-overlay {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+
+/* Legacy auth/admin containers which use the old shell. */
+html:has(main.min-h-screen form) main.min-h-screen {
+  min-height:100vh!important;
+  background:#050505!important;
+  color:#fff!important;
+}
+html:has(main.min-h-screen form) main.min-h-screen>div {
+  background:#0a0a0a!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+/* Mobile */
+@media(max-width:900px){
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+    background:#050505!important;
+    border-color:rgba(255,255,255,.14)!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding:24px 16px 56px!important;
+  }
+}
+
+@media(max-width:640px){
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding:20px 12px 48px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-command-row {
+    gap:14px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-command-row h1 {
+    font-size:28px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-card {
+    padding:17px!important;
+    border-radius:16px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-card-title h2 {
+    font-size:19px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-form-grid {
+    grid-template-columns:1fr!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-form-grid .wide {
+    grid-column:auto!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-stat-card,
+  main.admin-page.ar-admin-v3 .admin-stat {
+    min-height:108px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-stat-card>strong,
+  main.admin-page.ar-admin-v3 .admin-stat strong {
+    font-size:26px!important;
+  }
+}
+
+@media(max-width:420px){
+  main.admin-page.ar-admin-v3 .ar-admin-command-row h1 {
+    font-size:25px!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-card {
+    padding:15px!important;
+  }
+}
+
+@media(prefers-color-scheme:light){
+  html:has(main.admin-page.ar-admin-v3),
+  html:has(main.admin-page.ar-admin-v3) body,
+  html:has(main.admin-page.ar-admin-v3) #root {
+    background:#f5f5f3!important;
+    color:#111!important;
+  }
+
+  main.admin-page.ar-admin-v3 {
+    --admin-bg:#f5f5f3!important;
+    --admin-surface:#fff!important;
+    --admin-surface-2:#fafafa!important;
+    --admin-surface-3:#f2f2f2!important;
+    --admin-border:rgba(17,17,17,.11)!important;
+    --admin-border-strong:rgba(17,17,17,.18)!important;
+    --admin-text:#111!important;
+    --admin-muted:#111!important;
+    background:
+      radial-gradient(circle at 82% -10%,rgba(17,17,17,.035),transparent 26rem),
+      #f5f5f3!important;
+    color:#111!important;
+    color-scheme:light!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar,
+  main.admin-page.ar-admin-v3 .ar-admin-topbar {
+    background:rgba(255,255,255,.94)!important;
+    border-color:rgba(17,17,17,.10)!important;
+    box-shadow:0 16px 45px rgba(17,17,17,.07)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-brand strong,
+  main.admin-page.ar-admin-v3 .ar-admin-workspace strong,
+  main.admin-page.ar-admin-v3 .ar-admin-profile strong,
+  main.admin-page.ar-admin-v3 .ar-admin-page-context strong,
+  main.admin-page.ar-admin-v3 .ar-admin-command-row h1,
+  main.admin-page.ar-admin-v3 .ar-overview-hero h2,
+  main.admin-page.ar-admin-v3 .admin-card-title h2,
+  main.admin-page.ar-admin-v3 .ar-section-header h3,
+  main.admin-page.ar-admin-v3 .ar-stat-card>strong,
+  main.admin-page.ar-admin-v3 .admin-stat strong {
+    color:#111!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-brand span,
+  main.admin-page.ar-admin-v3 .ar-admin-workspace small,
+  main.admin-page.ar-admin-v3 .ar-admin-profile small,
+  main.admin-page.ar-admin-v3 .ar-admin-status-card small,
+  main.admin-page.ar-admin-v3 .ar-admin-command-row p,
+  main.admin-page.ar-admin-v3 .ar-overview-hero p,
+  main.admin-page.ar-admin-v3 .ar-admin-card-title p,
+  main.admin-page.ar-admin-v3 .admin-card-title p {
+    color:#111!important;
+    opacity:.58!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-brand-mark,
+  main.admin-page.ar-admin-v3 .ar-admin-avatar-mini,
+  main.admin-page.ar-admin-v3 .ar-admin-avatar {
+    background:#111!important;
+    color:#fff!important;
+    box-shadow:none!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-workspace,
+  main.admin-page.ar-admin-v3 .ar-admin-status-card,
+  main.admin-page.ar-admin-v3 .ar-admin-search,
+  main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+  main.admin-page.ar-admin-v3 .ar-admin-refresh,
+  main.admin-page.ar-admin-v3 .ar-admin-profile {
+    background:#fff!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.10)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-nav button {
+    color:#111!important;
+    opacity:.62!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-nav button:hover {
+    background:#f1f1ef!important;
+    border-color:rgba(17,17,17,.07)!important;
+    color:#111!important;
+    opacity:1!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+    background:#111!important;
+    color:#fff!important;
+    border-color:#111!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon {
+    color:#fff!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-nav button b {
+    background:#f1f1ef!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.10)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-stat-card,
+  main.admin-page.ar-admin-v3 .ar-glass-card,
+  main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card,
+  main.admin-page.ar-admin-v3 .admin-card,
+  main.admin-page.ar-admin-v3 .admin-stat,
+  main.admin-page.ar-admin-v3 .admin-loading,
+  main.admin-page.ar-admin-v3 .performance-card {
+    background:
+      linear-gradient(145deg,rgba(17,17,17,.025),transparent 48%),
+      #fff!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.10)!important;
+    box-shadow:0 10px 30px rgba(17,17,17,.055),inset 0 1px 0 rgba(255,255,255,.8)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-stat-card:hover,
+  main.admin-page.ar-admin-v3 .admin-card:hover,
+  main.admin-page.ar-admin-v3 .ar-glass-card:hover,
+  main.admin-page.ar-admin-v3 .ar-overview .admin-overview-card:hover,
+  main.admin-page.ar-admin-v3 .admin-stat:hover {
+    background:
+      linear-gradient(145deg,rgba(17,17,17,.035),transparent 48%),
+      #fff!important;
+    border-color:rgba(17,17,17,.18)!important;
+    box-shadow:0 16px 38px rgba(17,17,17,.075)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-stat-card>small,
+  main.admin-page.ar-admin-v3 .ar-delta,
+  main.admin-page.ar-admin-v3 .admin-stat span,
+  main.admin-page.ar-admin-v3 .admin-card-title span,
+  main.admin-page.ar-admin-v3 .ar-stat-top>span:first-child,
+  main.admin-page.ar-admin-v3 .ar-section-header span {
+    color:#111!important;
+    opacity:.52!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-stat-icon {
+    background:#f1f1ef!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.08)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-live-grid>div,
+  main.admin-page.ar-admin-v3 .ar-rating-mini>div,
+  main.admin-page.ar-admin-v3 .ar-health-stats>div,
+  main.admin-page.ar-admin-v3 .ar-insight-list>div,
+  main.admin-page.ar-admin-v3 .ar-data-note,
+  main.admin-page.ar-admin-v3 .admin-performance>div,
+  main.admin-page.ar-admin-v3 .admin-chapter-list article,
+  main.admin-page.ar-admin-v3 .admin-comment-list article,
+  main.admin-page.ar-admin-v3 .admin-report-list article,
+  main.admin-page.ar-admin-v3 .admin-mini-list>div,
+  main.admin-page.ar-admin-v3 .admin-progress {
+    background:#fafaf8!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.08)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-secondary-action,
+  main.admin-page.ar-admin-v3 .admin-card-title button,
+  main.admin-page.ar-admin-v3 .admin-row-actions button {
+    background:#fff!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.13)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-form input,
+  main.admin-page.ar-admin-v3 .admin-form textarea,
+  main.admin-page.ar-admin-v3 .admin-form select,
+  main.admin-page.ar-admin-v3 .admin-form-grid input,
+  main.admin-page.ar-admin-v3 .admin-form-grid textarea,
+  main.admin-page.ar-admin-v3 .admin-form-grid select,
+  main.admin-page.ar-admin-v3 input,
+  main.admin-page.ar-admin-v3 textarea,
+  main.admin-page.ar-admin-v3 select {
+    background:#fff!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.14)!important;
+    box-shadow:inset 0 1px 2px rgba(17,17,17,.035)!important;
+  }
+
+  main.admin-page.ar-admin-v3 input::placeholder,
+  main.admin-page.ar-admin-v3 textarea::placeholder {
+    color:#111!important;
+    opacity:.35!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-dropzone {
+    background:
+      repeating-linear-gradient(135deg,rgba(17,17,17,.018) 0 8px,transparent 8px 16px),
+      #fafaf8!important;
+    border-color:rgba(17,17,17,.22)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-dropzone:hover,
+  main.admin-page.ar-admin-v3 .admin-dropzone:focus-within {
+    background:#f5f5f3!important;
+    border-color:rgba(17,17,17,.40)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-row-actions button:hover:not(:disabled),
+  main.admin-page.ar-admin-v3 .admin-card-title button:hover {
+    background:#f3f3f1!important;
+    border-color:rgba(17,17,17,.22)!important;
+  }
+
+  main.admin-page.ar-admin-v3 table {
+    background:#fff!important;
+    color:#111!important;
+    border-color:rgba(17,17,17,.10)!important;
+  }
+
+  main.admin-page.ar-admin-v3 th {
+    background:#f3f3f1!important;
+    color:#111!important;
+  }
+
+  main.admin-page.ar-admin-v3 td {
+    color:#111!important;
+  }
+
+  main.admin-page.ar-admin-v3 tbody tr:hover td {
+    background:#f7f7f5!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+  main.admin-page.ar-admin-v3 .admin-submit {
+    background:#111!important;
+    color:#fff!important;
+    border-color:#111!important;
+    box-shadow:0 10px 24px rgba(17,17,17,.14)!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,
+  main.admin-page.ar-admin-v3 .admin-submit:hover:not(:disabled) {
+    background:#222!important;
+    color:#fff!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-notice.success {
+    background:#f1fbf5!important;
+    border-color:#bce8cc!important;
+    color:#176b35!important;
+  }
+
+  main.admin-page.ar-admin-v3 .ar-admin-notice.error {
+    background:#fff4f5!important;
+    border-color:#f0c5cb!important;
+    color:#b42318!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-row-actions button.danger,
+  main.admin-page.ar-admin-v3 .danger-text,
+  main.admin-page.ar-admin-v3 .report-label {
+    color:#b42318!important;
+  }
+
+  main.admin-page.ar-admin-v3 .admin-row-actions button.danger {
+    background:#fff5f5!important;
+    border-color:#efc5ca!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  main.admin-page.ar-admin-v3 * {
+    scroll-behavior:auto!important;
+    transition:none!important;
+    animation:none!important;
+  }
 }
