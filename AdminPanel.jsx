@@ -260,8 +260,13 @@ export default function AdminPanel({ onLogout }) {
           setProgress({ current: i + 1, total: form.pages.length, text: 'Uploaded page ' + (i + 1) + ' of ' + form.pages.length });
         }
 
-        const inserted = await supabase.from(PAGES).insert(rows);
-        if (inserted.error) throw new Error('Saving chapter pages failed: ' + inserted.error.message);
+        const { error: pagesError } = await supabase.rpc('replace_chapter_pages', {
+          p_chapter_id: chapterId,
+          p_pages: rows.map(({ page_number, image_url }) => ({ page_number, image_url })),
+        });
+        if (pagesError) throw new Error('Saving chapter pages failed: ' + pagesError.message);
+        // replace_chapter_pages is transactional: existing rows remain untouched
+        // when validation/insertion fails, and the entire replacement commits together.
         pagesCommitted = true;
 
         if (oldPaths.length) {
@@ -435,7 +440,7 @@ export default function AdminPanel({ onLogout }) {
 
   function cancelAnnouncementEdit() {
     setEditingAnnouncementId(null);
-    setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false, display_position: '' });
+    setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false, pin_target: 'none', display_position: '' });
   }
 
   async function saveAnnouncement(event) {
