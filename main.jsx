@@ -80,6 +80,7 @@ import './reader-theme-surface-fix.css';
 import './dark-mode-text-final.css';
 import './admin-controls-final.css';
 import './light-mode-81225-restore.css';
+import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
