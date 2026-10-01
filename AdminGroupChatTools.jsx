@@ -36,7 +36,7 @@ export default function AdminGroupChatTools() {
     return () => observer?.disconnect();
   }, [isAdmin]);
 
-  useEffect(() => { const handler = () => { if (isAdmin) setOpen(true); }; window.addEventListener('atma-admin-open-group-chat', handler); return () => window.removeEventListener('atma-admin-open-group-chat', handler); }, [isAdmin]);
+  useEffect(() => { const handler = () => { setOpen(true); }; window.addEventListener('atma-admin-open-group-chat', handler); return () => window.removeEventListener('atma-admin-open-group-chat', handler); }, [isAdmin]);
 
   const load = async () => {
     if (!isAdmin) return;
