@@ -1,169 +1,260 @@
-/* Atma Rekha — exact light-mode compatibility layer for 81225ca.
-   Replays only the light-mode visual rules from that state.
-   Dark mode, routing, data, auth, payments and functionality are untouched. */
+/* Atma Rekha — final light-mode compatibility layer.
+   Based on 81225ca's light-mode structure, with gray surface tones removed.
+   Dark mode and application functionality are untouched. */
 
-/* 81225ca theme-system light variables. */
+/* Core light palette */
 :root[data-theme="light"] {
-  color-scheme:light;
-  --bg-color:#fff;
-  --surface-color:#fafafa;
-  --surface-2-color:#f5f5f5;
-  --card-bg:#fff;
-  --input-bg:#fff;
-  --text-color:#000;
-  --text-secondary:#1a1a1a;
-  --muted-color:#333;
-  --faint-color:#444;
-  --border-color:#ddd;
-  --border-soft-color:#e8e8e8;
-  --accent-color:#2f6cf6;
-  --accent-hover:#2459d6;
-  --accent-contrast:#fff;
-  --on-dark-surface:#000;
-  --success-color:#146c2e;
-  --danger-color:#b42318;
-  --danger-bg:#fff4f2;
-  --warning-color:#8a5a00;
-  --warning-bg:#fff8e6;
-  --overlay-color:rgb(0 0 0/.45);
-  --shadow-color:rgb(0 0 0/.12);
-  --icon-color:#000;
-  --arrow-color:#000;
-  --control-border-color:#ddd;
+  color-scheme: light !important;
+  --bg-color: #ffffff !important;
+  --surface-color: #ffffff !important;
+  --surface-2-color: #ffffff !important;
+  --card-bg: #ffffff !important;
+  --input-bg: #ffffff !important;
+  --text-color: #111111 !important;
+  --text-secondary: #222222 !important;
+  --muted-color: #666666 !important;
+  --faint-color: #777777 !important;
+  --border-color: #dedede !important;
+  --border-soft-color: #e9e9e9 !important;
+  --accent-color: #2f6cf6 !important;
+  --accent-hover: #2459d6 !important;
+  --accent-contrast: #ffffff !important;
+  --on-dark-surface: #000000 !important;
+  --success-color: #146c2e !important;
+  --danger-color: #b42318 !important;
+  --danger-bg: #fff4f2 !important;
+  --warning-color: #8a5a00 !important;
+  --warning-bg: #fff8e6 !important;
+  --overlay-color: rgb(0 0 0 / .45) !important;
+  --shadow-color: rgb(0 0 0 / .10) !important;
+  --icon-color: #111111 !important;
+  --arrow-color: #111111 !important;
+  --control-border-color: #dedede !important;
 }
 
-/* This broad reset is important: it was present in 81225ca and is what
-   makes the light surfaces consistently lose old dark gradients/textures. */
-:root[data-theme="light"] body :where(*):not(img):not(video) {
-  color:var(--text-color)!important;
-  border-color:var(--control-border-color)!important;
-  background-color:var(--card-bg)!important;
-  background-image:none!important;
+/* Eliminate the gray page/surface wash. */
+html:root[data-theme="light"],
+:root[data-theme="light"] body,
+:root[data-theme="light"] #root {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
 }
 
-:root[data-theme="light"] body :where(html,body,#root,.home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,.info-page,.chapter-list-page,.admin-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell) {
-  background-color:var(--bg-color)!important;
+/* Strong light reset for all normal UI surfaces.
+   This is intentionally loaded last so later light/dark polish layers
+   cannot reintroduce gray backgrounds in the light theme. */
+:root[data-theme="light"] body :where(
+  *:not(img):not(video):not(canvas)
+) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
 }
 
-:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select) {
-  background-color:var(--card-bg)!important;
-  color:var(--text-color)!important;
-  border:1px solid var(--control-border-color)!important;
+/* Page shells and major containers */
+:root[data-theme="light"] body :where(
+  .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,
+  .profile-v2,.info-page,.chapter-list-page,.admin-page,.auth-page,.settings-page,
+  .membership-page,.page-shell,.app-shell,#root
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
 }
 
-:root[data-theme="light"] body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join) {
-  background-color:var(--accent-color)!important;
-  color:var(--accent-contrast)!important;
-  border-color:var(--accent-color)!important;
+/* Headers / footer */
+:root[data-theme="light"] body :where(
+  header,nav,footer,.home-header,.subpage-header,.reader-header,.community-header,
+  .profile-header,.profile-v2-header,.admin-header,.site-footer
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #e1e1e1 !important;
+  color: #111111 !important;
+  box-shadow: 0 8px 28px rgb(0 0 0 / .05) !important;
 }
 
-:root[data-theme="light"] body :where(a) {
-  color:var(--text-color)!important;
+/* Cards / sheets / panels */
+:root[data-theme="light"] body :where(
+  [class*="card"],[class*="panel"],[class*="sheet"],[class*="modal"],
+  [class*="dialog"],[class*="chapter-row"],[class*="latest-item"],
+  [class*="community-post"],[class*="admin-stat"],[class*="admin-card"],
+  [class*="admin-performance"],[class*="membership-plan"],[class*="membership-phone"],
+  [class*="rating-card"],[class*="comment-sheet"],[class*="auth-panel"]
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #e1e1e1 !important;
+  color: #111111 !important;
 }
 
-:root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]) {
-  color:var(--danger-color)!important;
-  background-color:var(--danger-bg)!important;
+/* Hero artwork/copy */
+:root[data-theme="light"] body .hero-art,
+:root[data-theme="light"] body .hero-copy {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Inputs and controls */
+:root[data-theme="light"] body :where(
+  input,textarea,select,button,[role="button"]
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
+  border-color: #dedede !important;
+}
+
+:root[data-theme="light"] body :where(
+  button.primary,.primary-button,.hero-button,.primary,.admin-submit,
+  .reader-comment-button,.like-button,.reader-control.primary,
+  .community-join,.ec-join button,.membership-button,
+  .ec-compose-row > button
+) {
+  background: #2f6cf6 !important;
+  background-color: #2f6cf6 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border-color: #2f6cf6 !important;
+}
+
+:root[data-theme="light"] body :where(
+  button.primary:hover,.primary-button:hover,.hero-button:hover,
+  .admin-submit:hover,.reader-comment-button:hover,.like-button:hover,
+  .community-join:hover,.membership-button:hover,.ec-compose-row > button:hover
+) {
+  background: #2459d6 !important;
+  background-color: #2459d6 !important;
+  color: #ffffff !important;
+  border-color: #2459d6 !important;
+}
+
+/* Secondary controls stay white — never gray-filled. */
+:root[data-theme="light"] body :where(
+  .reader-control.secondary,.engagement-icon,.reader-engagement-button,
+  .reader-page-pill,.reader-chapter-nav a,.footer-social,.back-button,
+  .reader-back,.icon-button
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
+  border-color: #dedede !important;
+}
+
+/* Keep ordinary readable muted text, without gray surface blocks. */
+:root[data-theme="light"] body :where(
+  .hero-description,.home-section > p:not(.section-eyebrow),.latest-note,
+  .chapter-row-meta,.chapter-row-details,.reader-info-row,
+  .community-hero p,.community-meta,.community-post-head span,
+  .community-attachment small,.ec-meta time,.ec-actions button,
+  .ec-header p:last-child,.ec-empty,.ec-state,.community-empty
+) {
+  color: #666666 !important;
+}
+
+/* Comments/community sheets */
+:root[data-theme="light"] body :where(
+  .ec-sheet,.community-admin-modal,.ec-preview,.ec-header,.ec-composer,
+  .ec-join,.ec-compose-row textarea,.community-admin-modal input:not([type="checkbox"]),
+  .community-admin-modal textarea,.community-file,.community-file-preview
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
+  border-color: #e1e1e1 !important;
+}
+
+/* Light overlay */
+:root[data-theme="light"] body :where(.ec-backdrop,.community-admin-backdrop) {
+  background: rgb(0 0 0 / .36) !important;
+}
+
+/* Reader image stage remains black for clean manga presentation. */
+:root[data-theme="light"] body .reader-stage {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Error/status surfaces */
+:root[data-theme="light"] body :where(
+  .error,.form-error,.inline-error,[aria-invalid="true"]
+) {
+  color: #b42318 !important;
+  background: #fff4f2 !important;
+  background-color: #fff4f2 !important;
+  border-color: #efc5ca !important;
 }
 
 :root[data-theme="light"] body :where(.success,[data-status="success"]) {
-  color:var(--success-color)!important;
+  color: #146c2e !important;
 }
 
 :root[data-theme="light"] body :where(.warning,[data-status="warning"]) {
-  color:var(--warning-color)!important;
-  background-color:var(--warning-bg)!important;
+  color: #8a5a00 !important;
+  background: #fff8e6 !important;
+  background-color: #fff8e6 !important;
 }
 
-/* 81225ca final-polish light appearance. */
+/* Admin v3: override the newer gray admin light palette without changing
+   admin functionality or dark mode. */
+html:root[data-theme="light"]:has(main.admin-page.ar-admin-v3),
+html:root[data-theme="light"]:has(main.admin-page.ar-admin-v3) body,
+html:root[data-theme="light"]:has(main.admin-page.ar-admin-v3) #root,
+html:root[data-theme="light"]:has(main.admin-dashboard-shell),
+html:root[data-theme="light"]:has(main.admin-dashboard-shell) body,
+html:root[data-theme="light"]:has(main.admin-dashboard-shell) #root {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
+}
+
+:root[data-theme="light"] main.admin-page.ar-admin-v3,
+:root[data-theme="light"] main.admin-dashboard-shell,
+:root[data-theme="light"] main:has(.admin-header-card) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
+}
+
+:root[data-theme="light"] main.admin-page.ar-admin-v3 *,
+:root[data-theme="light"] main.admin-dashboard-shell *,
+:root[data-theme="light"] main:has(.admin-header-card) * {
+  background-image: none !important;
+}
+
+:root[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-sidebar,
+:root[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-topbar,
+:root[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-card,
+:root[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-stat,
+:root[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-panel,
+:root[data-theme="light"] main.admin-dashboard-shell .admin-header-card,
+:root[data-theme="light"] main.admin-dashboard-shell .admin-card,
+:root[data-theme="light"] main.admin-dashboard-shell .admin-overview-card,
+:root[data-theme="light"] main.admin-dashboard-shell .admin-stat,
+:root[data-theme="light"] main.admin-dashboard-shell .admin-overview-stat,
+:root[data-theme="light"] main.admin-dashboard-shell .admin-tabs {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111111 !important;
+  border-color: #e1e1e1 !important;
+}
+
+/* Explicit light fallback before the theme controller finishes applying. */
 @media (prefers-color-scheme: light) {
-  :root { color-scheme: light; }
-  html,body {
-    background:var(--legacy-f6f6f7-25845f2c);
-    color:var(--legacy-18181b-8c7368d0);
+  :root:not([data-theme="dark"]) {
+    color-scheme: light !important;
   }
-  .home-page,.site-shell,.reader-page,.community-page {
-    background:var(--legacy-f6f6f7-25845f2c);
-    color:var(--legacy-18181b-8c7368d0);
-  }
-  .home-header,.subpage-header,.community-header {
-    background:var(--legacy-rgb-246-246-247-92-7a354ae7);
-    border-color:var(--legacy-dedee3-1be97d6e);
-  }
-  .brand-wordmark,.subpage-header h1,.home-section h2,.latest-item,.chapter-row,.reader-title h1 {
-    color:var(--legacy-18181b-8c7368d0);
-  }
-  .home-section,.hero-card,.chapter-row,.latest-item {
-    background:var(--legacy-fff-d14f9016);
-    border-color:var(--legacy-e1e1e6-5ee65c02);
-    box-shadow:0 14px 40px var(--legacy-rgb-0-0-0-06-8130433a);
-  }
-  .hero-description,.home-section > p:not(.section-eyebrow),.latest-note,.chapter-row-meta,.chapter-row-details {
-    color:var(--legacy-65656e-e623da21);
-  }
-  .community-page {
-    background:var(--legacy-f6f6f7-25845f2c);
-  }
-  .community-hero,.community-post {
-    background:var(--legacy-fff-d14f9016);
-    border-color:var(--legacy-dedee4-f11028dc);
-    box-shadow:0 10px 30px var(--legacy-rgb-0-0-0-05-1f4ce1fb);
-  }
-  .community-post > p,.ec-content {
-    color:var(--legacy-2f2f35-b77e5941);
-  }
-  .community-hero p,.community-meta,.community-post-head span,.community-attachment small {
-    color:var(--legacy-686871-fad13476);
-  }
-  .community-post-actions button {
-    color:var(--legacy-5f6068-e2c553fc);
-  }
-  .ec-backdrop,.community-admin-backdrop {
-    background:var(--legacy-rgb-20-20-24-36-f2cfded4);
-  }
-  .ec-sheet,.community-admin-modal,.ec-preview {
-    background:var(--legacy-fff-d14f9016);
-    color:var(--legacy-18181b-8c7368d0);
-    border-color:var(--legacy-dddde2-19feb636);
-  }
-  .ec-header,.ec-composer {
-    background:var(--legacy-rgb-255-255-255-94-39a7060e);
-    border-color:var(--legacy-e4e4e8-1f1b9a1a);
-  }
-  .ec-comment {
-    border-color:var(--legacy-ececf0-57e383f0);
-  }
-  .ec-meta strong {
-    color:var(--legacy-202025-657bc008);
-  }
-  .ec-meta time,.ec-actions button,.ec-header p:last-child {
-    color:var(--legacy-74747d-64e1708a);
-  }
-  .ec-join,.ec-compose-row textarea,.community-admin-modal input:not([type="checkbox"]),.community-admin-modal textarea,.community-file,.community-file-preview {
-    background:var(--legacy-f7f7f8-ba901ab4);
-    border-color:var(--legacy-dddde3-ac3af0d0);
-    color:var(--legacy-202025-657bc008);
-  }
-  .ec-empty,.ec-state,.community-empty {
-    border-color:var(--legacy-d7d7dd-4658fe87);
-    color:var(--legacy-73737c-947baa68);
-  }
-  .ec-empty strong,.ec-state strong,.community-empty h3,.community-empty strong {
-    color:var(--legacy-202025-657bc008);
-  }
-  .profile-v2-card {
-    background:var(--legacy-fff-d14f9016);
-    border-color:var(--legacy-dedee4-f11028dc);
-  }
-}
-
-/* The 81225ca restore did not contain the later light-surface block that
-   was added after that commit. The rules above intentionally win over it
-   because this stylesheet is loaded last. */
-
-/* Restore the 81225ca light button/surface hierarchy for explicit theme mode. */
-:root[data-theme="light"] body :where(.reader-control.secondary,.engagement-icon,.reader-engagement-button,.reader-page-pill,.reader-chapter-nav a) {
-  background-color:var(--surface-2-color)!important;
-  color:var(--text-secondary)!important;
-  border-color:var(--border-color)!important;
 }
