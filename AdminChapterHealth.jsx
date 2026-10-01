@@ -49,6 +49,8 @@ export default function AdminChapterHealth() {
     return () => observer.disconnect();
   }, [isAdmin]);
 
+  useEffect(() => { const handler = () => { if (isAdmin) setOpen(true); }; window.addEventListener('atma-admin-open-health', handler); return () => window.removeEventListener('atma-admin-open-health', handler); }, [isAdmin]);
+
   const runCheck = async () => {
     setLoading(true); setNotice('');
     try {
