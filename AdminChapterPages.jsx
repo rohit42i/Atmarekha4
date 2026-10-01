@@ -47,7 +47,15 @@ export default function AdminChapterPages({ chapters }) {
   const [notice, setNotice] = useState('');
 
   const selectedChapter = chapters.find(chapter => chapter.id === chapterId);
-  useEffect(() => { if (!chapterId && chapters?.[0]?.id) setChapterId(chapters[0].id); }, [chapters, chapterId]);
+  useEffect(() => {
+    if (!chapters?.length) {
+      if (chapterId) setChapterId('');
+      return;
+    }
+    if (!chapters.some(chapter => chapter.id === chapterId)) {
+      setChapterId(chapters[0].id);
+    }
+  }, [chapters, chapterId]);
 
   const loadPages = async () => {
     if (!chapterId) return;
