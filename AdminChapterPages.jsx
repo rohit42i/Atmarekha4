@@ -133,11 +133,33 @@ export default function AdminChapterPages({ chapters }) {
 
 
   const movePage = async (index, direction) => {
-    const otherIndex = index + direction; if (otherIndex < 0 || otherIndex >= pages.length || busyId) return;
-    const a = pages[index], b = pages[otherIndex]; setBusyId(`move-${a.id}`); setNotice('');
-    try { const user = await requireAdmin(); const first = await supabase.from(PAGES).update({ page_number: 0 }).eq('id', a.id); if (first.error) throw first.error; const second = await supabase.from(PAGES).update({ page_number: a.page_number }).eq('id', b.id); if (second.error) throw second.error; const third = await supabase.from(PAGES).update({ page_number: b.page_number }).eq('id', a.id); if (third.error) throw third.error; await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'reorder_chapter_page', entity_type: 'chapter_page', entity_id: a.id, details: { chapter_id: a.chapter_id, from: a.page_number, to: b.page_number } }); await loadPages(); }
-    catch (error) { setNotice(error.message || 'Could not reorder pages.'); await loadPages(); }
-    finally { setBusyId(null); }
+    const otherIndex = index + direction;
+    if (otherIndex < 0 || otherIndex >= pages.length || busyId) return;
+    const a = pages[index];
+    const b = pages[otherIndex];
+    setBusyId(`move-${a.id}`);
+    setNotice('');
+    try {
+      const user = await requireAdmin();
+      const { error } = await supabase.rpc('reorder_chapter_page', {
+        p_page_id: a.id,
+        p_direction: direction,
+      });
+      if (error) throw error;
+      await supabase.from('admin_activity_log').insert({
+        admin_user_id: user.id,
+        action: 'reorder_chapter_page',
+        entity_type: 'chapter_page',
+        entity_id: a.id,
+        details: { chapter_id: a.chapter_id, from: a.page_number, to: b.page_number },
+      });
+      await loadPages();
+    } catch (error) {
+      setNotice(error.message || 'Could not reorder pages.');
+      await loadPages();
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const deletePage = async page => {
@@ -148,7 +170,7 @@ export default function AdminChapterPages({ chapters }) {
 
     try {
       adminUser = await requireAdmin();
-      const { error } = await supabase.from(PAGES).delete().eq('id', page.id);
+      const { error } = await supabase.rpc('delete_chapter_page', { p_page_id: page.id });
       if (error) throw error;
 
       let cleanupPending = false;
@@ -162,14 +184,6 @@ export default function AdminChapterPages({ chapters }) {
             paths: [path],
             error: cleanupError.message,
           });
-        }
-      }
-
-      const remaining = pages.filter(item => item.id !== page.id);
-      for (let i = 0; i < remaining.length; i += 1) {
-        if (remaining[i].page_number !== i + 1) {
-          const { error: reorderError } = await supabase.from(PAGES).update({ page_number: i + 1 }).eq('id', remaining[i].id);
-          if (reorderError) throw reorderError;
         }
       }
 
