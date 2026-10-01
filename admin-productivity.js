@@ -1,34 +1,56 @@
-/* Atma Rekha Admin productivity layer — additive, no backend changes. */
+/* Atma Rekha Admin productivity layer — safe navigation shortcuts. */
 (() => {
-  const tabNames = ['Overview','Chapters','Comments','Reports','Announcements','Media'];
-  const getTabs = () => Array.from(document.querySelectorAll('.admin-tabs button')).filter(Boolean);
-  const getCommand = () => document.querySelector('.ar-command-tab');
-  const getRefresh = () => Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Refresh');
-  const isTyping = el => ['INPUT','TEXTAREA','SELECT'].includes(el?.tagName);
-  const flash = text => {
+  const ADMIN_TABS = ['Overview','Chapters','Pages','Comments','Reports','Announcements'];
+  const isAdmin = () => Boolean(document.querySelector('main.admin-page.ar-admin-v3'));
+  const dispatch = (name, detail) => window.dispatchEvent(new CustomEvent(name, detail ? { detail } : undefined));
+  const flash = message => {
     let node = document.querySelector('.ar-admin-shortcut-toast');
-    if (!node) { node=document.createElement('div'); node.className='ar-admin-shortcut-toast'; document.body.appendChild(node); }
-    node.textContent=text; node.classList.add('show'); clearTimeout(node._timer); node._timer=setTimeout(()=>node.classList.remove('show'),1100);
+    if (!node) {
+      node = document.createElement('div');
+      node.className = 'ar-admin-shortcut-toast';
+      document.body.appendChild(node);
+    }
+    node.textContent = message;
+    node.classList.add('show');
+    clearTimeout(node._timer);
+    node._timer = setTimeout(() => node.classList.remove('show'), 1100);
   };
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      const close=document.querySelector('.ar-command-close');
+  const isTyping = el => ['INPUT','TEXTAREA','SELECT'].includes(el?.tagName);
+  const openCommandSearch = () => {
+    dispatch('atma-admin-open-command');
+    window.setTimeout(() => document.querySelector('.ar-command-panel input')?.focus(), 40);
+  };
+  document.addEventListener('keydown', event => {
+    if (!isAdmin()) return;
+    if (event.key === 'Escape') {
+      const close = document.querySelector(
+        '.ar-command-close,.ar-pro-close,.ar-ops-close,.ar-health-close,.ar-gcm-close,.ar-mgmt-close,.ar-mod-close,.community-admin-head button'
+      );
       if (close) { close.click(); return; }
     }
-    if (isTyping(e.target)) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault(); getCommand()?.click(); flash('Command Center'); return;
-    }
-    if (e.key === '/') {
-      const input=document.querySelector('.ar-command-toolbar input');
-      if (input) { e.preventDefault(); getCommand()?.click(); setTimeout(()=>input.focus(),40); }
+    if (isTyping(event.target)) return;
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      dispatch('atma-admin-open-command');
+      flash('Command Center');
       return;
     }
-    if (e.key.toLowerCase() === 'r') { getRefresh()?.click(); flash('Refreshing'); return; }
-    const n=Number(e.key);
-    if (n >= 1 && n <= tabNames.length) {
-      const tabs=getTabs(); const tab=tabs.find(b=>b.textContent.trim().startsWith(tabNames[n-1]));
-      if (tab) { tab.click(); flash(tabNames[n-1]); }
+    if (event.key === '/') {
+      event.preventDefault();
+      openCommandSearch();
+      return;
+    }
+    if (event.key.toLowerCase() === 'r') {
+      event.preventDefault();
+      document.querySelector('main.admin-page.ar-admin-v3 .ar-admin-refresh')?.click();
+      flash('Refreshing');
+      return;
+    }
+    const index = Number(event.key) - 1;
+    if (index >= 0 && index < ADMIN_TABS.length) {
+      event.preventDefault();
+      dispatch('atma-admin-select-tab', { tab: ADMIN_TABS[index] });
+      flash(ADMIN_TABS[index]);
     }
   });
 })();
