@@ -533,6 +533,49 @@ export default function AdminPanel({ onLogout }) {
           display_position: displayPosition,
           image_changed: Boolean(announcement.thumbnail),
         });
+
+        // Keep the public announcement rail intentionally small and predictable.
+        // Remove anything beyond the 10 newest records after the new item commits.
+        try {
+          const { data: overflow, error: overflowError } = await supabase
+            .from('announcements')
+            .select('id, image_url')
+            .order('published_at', { ascending: false, nullsFirst: false })
+            .order('created_at', { ascending: false })
+            .range(10, 200);
+          if (overflowError) throw overflowError;
+          if (overflow?.length) {
+            const overflowIds = overflow.map(item => item.id);
+            const overflowPaths = overflow.map(item => pathFromUrl(item.image_url, COVER_BUCKET)).filter(Boolean);
+            const { error: overflowDeleteError } = await supabase
+              .from('announcements')
+              .delete()
+              .in('id', overflowIds);
+            if (overflowDeleteError) throw overflowDeleteError;
+
+            if (overflowPaths.length) {
+              try {
+                await removeFiles(COVER_BUCKET, overflowPaths);
+              } catch (cleanupError) {
+                await logAdminAction(adminUser, 'r2_cleanup_failed', 'announcements', null, {
+                  bucket: COVER_BUCKET,
+                  paths: overflowPaths,
+                  error: cleanupError.message,
+                });
+              }
+            }
+
+            await logAdminAction(adminUser, 'trim_announcements', 'announcements', null, {
+              removed: overflowIds.length,
+            });
+          }
+        } catch (retentionError) {
+          // The new announcement is already safely saved. Do not turn a
+          // retention/cleanup issue into a false "publish failed" message.
+          await logAdminAction(adminUser, 'announcement_retention_failed', 'announcements', null, {
+            error: retentionError.message,
+          });
+        }
       }
 
       cancelAnnouncementEdit();
