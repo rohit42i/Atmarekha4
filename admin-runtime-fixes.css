@@ -510,3 +510,95 @@ html[data-theme="dark"] :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-he
     animation:none!important;
   }
 }
+
+
+/* Chapter health */
+.ar-health-panel { background:var(--ar-admin-surface)!important; color:var(--ar-admin-text)!important; }
+.ar-health-head,.ar-health-row { border-color:var(--ar-admin-border)!important; }
+.ar-health-head h2,.ar-health-row strong,.ar-health-row b { color:var(--ar-admin-text)!important; }
+.ar-health-head p,.ar-health-row small,.ar-health-issues,.ar-health-summary span { color:var(--ar-admin-muted)!important; }
+.ar-health-summary,.ar-health-stat,.ar-health-row {
+  background:var(--ar-admin-surface-2)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+.ar-health-stat strong { color:var(--ar-admin-text)!important; }
+.ar-health-close,.ar-health-run,.ar-health-actions button {
+  background:var(--ar-admin-surface-2)!important;
+  color:var(--ar-admin-text)!important;
+  border:1px solid var(--ar-admin-border)!important;
+}
+.ar-health-run { background:var(--ar-admin-accent)!important;color:#fff!important;border-color:var(--ar-admin-accent)!important; }
+
+/* Operations */
+.ar-ops-panel { background:var(--ar-admin-surface)!important;color:var(--ar-admin-text)!important; }
+.ar-ops-section,.ar-ops-metric,.ar-ops-row { background:var(--ar-admin-surface-2)!important;color:var(--ar-admin-text)!important;border-color:var(--ar-admin-border)!important; }
+.ar-ops-head,.ar-ops-section header,.ar-ops-row { border-color:var(--ar-admin-border)!important; }
+.ar-ops-head h2,.ar-ops-section h3,.ar-ops-row-main strong,.ar-ops-metric strong { color:var(--ar-admin-text)!important; }
+.ar-ops-head p,.ar-ops-section header p,.ar-ops-row-main p,.ar-ops-metric small,.ar-ops-empty { color:var(--ar-admin-muted)!important; }
+.ar-ops-actions button,.ar-ops-select,.ar-ops-input,.ar-ops-form :is(input,textarea,select),
+.ar-ops-close,.ar-ops-preview-close {
+  background:var(--ar-admin-surface)!important;
+  color:var(--ar-admin-text)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+.ar-ops-actions button:hover:not(:disabled),.ar-ops-form-actions button:hover:not(:disabled) {
+  background:var(--ar-admin-surface-2)!important;
+  border-color:var(--ar-admin-border-strong)!important;
+}
+.ar-ops-actions button.danger { color:var(--ar-admin-danger)!important; }
+.ar-ops-primary { background:var(--ar-admin-accent)!important;color:#fff!important;border-color:var(--ar-admin-accent)!important; }
+.ar-ops-notice { background:var(--ar-admin-surface-2)!important;color:var(--ar-admin-text)!important;border-color:var(--ar-admin-border)!important; }
+.ar-ops-preview { background:var(--ar-admin-overlay)!important; }
+.ar-ops-preview-panel { background:var(--ar-admin-surface)!important;color:var(--ar-admin-text)!important;border-color:var(--ar-admin-border)!important; }
+.ar-ops-preview-head { border-color:var(--ar-admin-border)!important; }
+.ar-ops-preview-head h3 { color:var(--ar-admin-text)!important; }
+.ar-ops-preview-head p { color:var(--ar-admin-muted)!important; }
+
+/* Community admin portal */
+.community-admin-modal { background:var(--ar-admin-surface)!important;color:var(--ar-admin-text)!important; }
+.community-admin-head,.community-admin-manage-head { border-color:var(--ar-admin-border)!important; }
+.community-admin-modal :is(.community-admin-sub,.community-admin-manage-head span) { color:var(--ar-admin-muted)!important; }
+.community-admin-modal :is(.community-file,.community-admin-manage,.community-attachment-preview) {
+  background:var(--ar-admin-surface-2)!important;
+  color:var(--ar-admin-text)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+.community-admin-modal :is(input,textarea,select) {
+  background:var(--ar-admin-input)!important;
+  color:var(--ar-admin-text)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+.community-admin-modal :is(input,textarea,select)::placeholder { color:var(--ar-admin-faint)!important; }
+.community-admin-modal .community-admin-send {
+  background:var(--ar-admin-accent)!important;
+  color:#fff!important;
+  border-color:var(--ar-admin-accent)!important;
+}
+.community-admin-modal .community-admin-notice {
+  background:var(--ar-admin-surface-2)!important;
+  color:var(--ar-admin-text)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+.community-admin-modal .community-admin-manage button,
+.community-admin-modal .community-pin-toggle {
+  background:var(--ar-admin-surface)!important;
+  color:var(--ar-admin-text)!important;
+  border-color:var(--ar-admin-border)!important;
+}
+
+/* Touch targets / overflow */
+:is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) {
+  min-width:0!important;
+  min-height:0!important;
+}
+:is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) :is(button,select) {
+  min-height:38px!important;
+}
+@media(max-width:600px) {
+  :is(.ar-command-panel,.ar-pro-panel,.ar-ops-panel,.ar-health-panel,.ar-gcm-modal,.ar-mgmt-panel,.ar-mod-modal,.community-admin-modal) :is(button,select) {
+    min-height:42px!important;
+  }
+  .ar-ops-actions,.ar-health-actions,.ar-mod-buttons,.ar-gcm-tools,.ar-mgmt-tools {
+    max-width:100%!important;
+  }
+}
