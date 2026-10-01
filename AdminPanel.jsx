@@ -73,8 +73,17 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Membership & Earnings' },
   ]},
   { label: 'Library', items: [
-    { key: 'Media', icon: 'image', label: 'Media' },
+    { key: 'Media', icon: 'image', label: 'Media Library' },
     { key: 'Pal Do Pal Ke Lamhe', icon: 'layers', label: 'Pal Do Pal Ke Lamhe' },
+  ]},
+  { label: 'Tools', items: [
+    { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
+    { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
+    { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
+    { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
+    { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
+    { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
+    { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
   ]},
 ];
 
@@ -84,9 +93,6 @@ export default function AdminPanel({ onLogout }) {
   const [pageCounts, setPageCounts] = useState({});
   const [comments, setComments] = useState([]);
   const [reports, setReports] = useState([]);
-  const [ratings, setRatings] = useState([]);
-  const [views, setViews] = useState([]);
-  const [likes, setLikes] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [media, setMedia] = useState([]);
   const [email, setEmail] = useState('');
@@ -132,16 +138,29 @@ export default function AdminPanel({ onLogout }) {
       for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
       setChapters(chapterData || []);
       setPageCounts(counts);
-      setComments(commentResult.data || []);
+      const mergedComments = await mergeReportedComments(reportResult.data || [], commentResult.data || []);
+      setComments(mergedComments);
       setReports(reportResult.data || []);
       setAnnouncements(announcementResult.data || []);
       setMedia(mediaResult.data || []);
-      setRatings([]);
-      setViews([]);
-      setLikes([]);
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
     } finally { setLoading(false); }
+  };
+
+  // Reports can reference comments outside the latest comments page.
+  // Load those missing comment rows so moderation actions never show a dead record.
+  const mergeReportedComments = async (reportRows, commentRows) => {
+    const ids = [...new Set((reportRows || []).map(row => row.comment_id).filter(Boolean))];
+    const known = new Set((commentRows || []).map(row => row.id));
+    const missing = ids.filter(id => !known.has(id));
+    if (!missing.length) return commentRows || [];
+    const { data, error } = await supabase
+      .from('comments')
+      .select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id')
+      .in('id', missing);
+    if (error) throw error;
+    return [...(commentRows || []), ...(data || [])];
   };
 
   useEffect(() => { load(); }, []);
@@ -625,12 +644,20 @@ export default function AdminPanel({ onLogout }) {
     ? ADMIN_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.label.toLowerCase().includes(navSearch.trim().toLowerCase())) })).filter(group => group.items.length)
     : ADMIN_NAV_GROUPS;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
+  const openAdminTool = (action, detail) => {
+    setMobileSidebarOpen(false);
+    setProfileOpen(false);
+    window.dispatchEvent(new CustomEvent(action, { detail }));
+  };
   const runSearch = event => {
     if (event.key !== 'Enter') return;
     const query = navSearch.trim().toLowerCase();
     if (!query) return;
-    const match = tabs.find(item => item.toLowerCase().includes(query));
-    if (match) activateTab(match);
+    const routeMatch = ADMIN_NAV_GROUPS.flatMap(group => group.items)
+      .find(item => item.label.toLowerCase().includes(query) || item.key.toLowerCase().includes(query));
+    if (!routeMatch) return;
+    if (routeMatch.action) openAdminTool(routeMatch.action, routeMatch.detail);
+    else activateTab(routeMatch.key);
   };
 
   return <main className="admin-page ar-admin-v3" data-admin-root="true">
@@ -639,7 +666,7 @@ export default function AdminPanel({ onLogout }) {
         <div className="ar-admin-brand"><div className="ar-admin-brand-mark">AR</div><div><strong>Atma Rekha</strong><span>Admin workspace</span></div><button type="button" className="ar-admin-mobile-close" onClick={() => setMobileSidebarOpen(false)} aria-label="Close navigation"><AdminIcon name="close" size={20}/></button></div>
         <div className="ar-admin-workspace"><span className="ar-admin-avatar-mini">A</span><div><strong>Publisher</strong><small>{email || 'Protected admin'}</small></div></div>
         <nav className="admin-tabs ar-admin-nav">
-          {filteredNav.map(group => <div className="ar-admin-nav-group" key={group.label}><span className="ar-admin-nav-label">{group.label}</span>{group.items.map(item => <button key={item.key} type="button" className={tab === item.key ? 'active' : ''} onClick={() => activateTab(item.key)} aria-current={tab === item.key ? 'page' : undefined} title={item.label}><span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={17}/></span><span className="ar-admin-nav-text">{item.label}</span>{item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</div>)}
+          {filteredNav.map(group => <div className="ar-admin-nav-group" key={group.label}><span className="ar-admin-nav-label">{group.label}</span>{group.items.map(item => <button key={item.key} type="button" className={!item.action && tab === item.key ? 'active' : ''} onClick={() => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)} aria-current={!item.action && tab === item.key ? 'page' : undefined} title={item.label}><span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={17}/></span><span className="ar-admin-nav-text">{item.label}</span>{item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</div>)}
         </nav>
         <div className="ar-admin-status-card"><span className={'status-dot ' + (notice.type === 'error' ? 'danger' : '')}/><div><strong>Data connection</strong><small>{loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}</small></div></div>
       </aside>
@@ -651,9 +678,9 @@ export default function AdminPanel({ onLogout }) {
           <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
         </header>
         <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Manage chapters, community activity and publishing operations.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">+ Chapter</button><button type="button" onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="ar-admin-secondary-action">+ PDPL</button></div></div>
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button><button type="button" onClick={() => { setTab('Pal Do Pal Ke Lamhe'); window.setTimeout(() => document.getElementById('pdlpl-upload-chapter')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} className="ar-admin-secondary-action">New side story</button></div></div>
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} ratings={ratings} views={views} likes={likes} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pal Do Pal Ke Lamhe' ? <PalDoPalAdmin /> : tab === 'Pages' ? <section className="admin-stack">
       <section className="admin-card">
         <div className="admin-card-title">
           <div>
