@@ -1360,3 +1360,17 @@ main.admin-page.ar-admin-v3 *{background-image:none!important}
   main.admin-page.ar-admin-v3 .ar-membership-main-grid,
   main.admin-page.ar-admin-v3 .ar-membership-secondary-grid{grid-template-columns:1fr!important}
 }
+
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-toolbar button.active,.ar-pro-range button.active,.ar-gcm-tab.active,.ar-mod-filter button.active,.ar-mgmt-tab.active){
+  background:var(--ar6-accent)!important;
+  border-color:var(--ar6-accent)!important;
+  color:#fff!important;
+}
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-action,.ar-pro-actions button,.ar-ops-actions button,.ar-mod-btn,.ar-gcm-action,.ar-mgmt-tools button){
+  min-height:40px!important;
+}
+body:has(main.admin-page.ar-admin-v3) :is(.ar-command-action,.ar-pro-actions button,.ar-ops-actions button,.ar-mod-btn,.ar-gcm-action,.ar-mgmt-tools button).danger{
+  background:var(--ar6-danger-bg)!important;
+  border-color:var(--ar6-danger)!important;
+  color:var(--ar6-danger)!important;
+}
