@@ -188,7 +188,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       if (chapter) {
         const label = formatChapterLabel(chapter.chapterNumber, { title: chapter.title });
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
-        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian mythical fantasy manga about ancient traditions, mysterious powers and mythical beings.');
+        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.');
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'read-chapter') {
@@ -197,7 +197,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       if (chapter) {
         const label = formatChapterLabel(chapter.chapterNumber, { title: chapter.title });
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
-        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian mythical fantasy manga about ancient traditions, mysterious powers and mythical beings.');
+        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.');
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'chapters') {
