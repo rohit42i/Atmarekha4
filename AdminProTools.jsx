@@ -175,9 +175,7 @@ export default function AdminProTools() {
 
   const go = tab => {
     setOpen(false);
-    document.querySelector('.admin-tabs button')?.focus();
-    const buttons = [...document.querySelectorAll('.admin-tabs button')];
-    buttons.find(button => button.textContent.trim().startsWith(tab))?.click();
+    window.dispatchEvent(new CustomEvent('atma-admin-select-tab', { detail: { tab } }));
   };
 
   const exportReport = () => {
