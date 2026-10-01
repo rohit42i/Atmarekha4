@@ -20,8 +20,8 @@ function LibraryChart({ chapters }) {
   const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
   if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
 
-  const maxViews = Math.max(...rows.map(row => row.views), 1);
-  const maxEngagement = Math.max(...rows.map(row => row.likes + row.shares + row.ratingCount), 1);
+  const maxViews = Math.max(...rows.map(row => row.periodViews), 1);
+  const maxEngagement = Math.max(...rows.map(row => row.periodLikes + row.periodShares + row.periodRatingCount), 1);
   return <div className="ar-chart-wrap">
     <div className="ar-chart-legend">
       <span><i className="dot violet"/>Views</span>
@@ -30,8 +30,8 @@ function LibraryChart({ chapters }) {
     </div>
     <div className="ar-chart-bars" role="img" aria-label="Chapter views and engagement">
       {rows.map(row => {
-        const viewH = Math.max(8, row.views / maxViews * 100);
-        const engagementH = Math.max(5, (row.likes + row.shares + row.ratingCount) / maxEngagement * 100);
+        const viewH = Math.max(8, row.periodViews / maxViews * 100);
+        const engagementH = Math.max(5, (row.periodLikes + row.periodShares + row.periodRatingCount) / maxEngagement * 100);
         return <div className="ar-chart-column" key={row.id}>
           <div className="ar-chart-track"><i style={{ height: viewH + '%' }}/><b style={{ height: engagementH + '%' }}/></div>
           <span>{row.chapterNumber == null ? '—' : 'Ch ' + row.chapterNumber}</span>
@@ -60,6 +60,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const [userStats, setUserStats] = useState({ logged_in_users: 0, notification_subscriptions: 0 });
   const [analytics, setAnalytics] = useState(null);
   const [last24, setLast24] = useState({ views: 0, ratings: 0, comments: 0, loading: true });
+  const [periodLoading, setPeriodLoading] = useState(false);
 
   const days = WINDOWS[windowKey];
 
@@ -119,6 +120,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
   useEffect(() => {
     let active = true;
+    setPeriodLoading(true);
     setAnalytics(null);
     const loadAnalytics = async () => {
       try {
@@ -128,6 +130,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       } catch (error) {
         console.warn('Admin analytics lookup failed:', error);
         if (active) setAnalytics(null);
+      } finally {
+        if (active) setPeriodLoading(false);
       }
     };
     loadAnalytics();
@@ -147,6 +151,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       shares: Number(chapter.shares || 0),
       periodShares: Number(chapter.period_shares || 0),
       ratingCount: Number(chapter.rating_count || 0),
+      periodRatingCount: Number(chapter.period_rating_count || 0),
       ratingAverage: Number(chapter.rating_average || 0),
       pages: Number(chapter.pages || pageCounts[chapter.id] || 0),
     }));
@@ -156,7 +161,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       const date = safeDate(chapter.releaseDate);
       return date && date.getTime() > Date.now();
     }).sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)).slice(0, 4);
-    const top = [...chapterStats].sort((a, b) => b.views - a.views).slice(0, 5);
+    const top = [...chapterStats].sort((a, b) => b.periodViews - a.periodViews).slice(0, 5);
     return {
       totalViews: Number(data.total_views || 0),
       totalLikes: Number(data.total_likes || 0),
@@ -175,6 +180,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       currentRatings: Number(data.current_ratings || 0),
       activeReaders: Number(data.active_readers || 0),
       returningReaders: Number(data.returning_readers || 0),
+      periodActiveReaders: Number(data.period_active_readers || data.active_readers || 0),
+      periodReturningReaders: Number(data.period_returning_readers || data.returning_readers || 0),
       bookmarks: Number(data.bookmarks || 0),
       released: Number(data.released || 0),
       chapterStats,
@@ -198,6 +205,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const deltaLikes = pct(metrics.currentLikes, metrics.previousLikes);
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
   const deltaShares = pct(metrics.currentShares, metrics.previousShares);
+  const periodUnit = windowKey === 'today' ? 'today' : windowKey === 'week' ? '7d' : windowKey === 'month' ? '30d' : '90d';
   const maxTop = Math.max(...metrics.top.map(chapter => chapter.views), 1);
 
   const insights = useMemo(() => {
@@ -212,8 +220,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
   const lifecycle = [
     ['Registered', Number(userStats.logged_in_users || 0)],
-    ['Active · 30d', metrics.activeReaders],
-    ['Returning · 30d', metrics.returningReaders],
+    ['Active · ' + periodUnit, metrics.periodActiveReaders],
+    ['Returning · ' + periodUnit, metrics.periodReturningReaders],
   ];
   const lifecycleMax = Math.max(lifecycle[0][1], 1);
 
@@ -225,26 +233,27 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         <p>See what needs attention, publish updates, and track reader activity.</p>
       </div>
       <div className="ar-period-switch" role="tablist" aria-label="Analytics period">
-        {Object.entries(WINDOW_LABELS).map(([key, label]) => <button type="button" key={key} className={windowKey === key ? 'active' : ''} onClick={() => setWindowKey(key)}>{label}</button>)}
+        <span className="ar-period-status" aria-live="polite">{periodLoading ? 'Updating…' : (windowKey === 'today' ? 'Rolling 24h' : windowKey === 'week' ? '7-day window' : windowKey === 'month' ? '30-day window' : '90-day window')}</span>
+        {Object.entries(WINDOW_LABELS).map(([key, label]) => <button type="button" key={key} role="tab" aria-selected={windowKey === key} aria-pressed={windowKey === key} className={windowKey === key ? 'active' : ''} onClick={() => { if (key !== windowKey) setWindowKey(key); }}>{label}</button>)}
       </div>
     </div>
 
     {analytics === null ? <SkeletonGrid/> : <div className="ar-overview-kpis">
       <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released + ' released in period'} icon="book" accent="violet"/>
-      <StatCard label="Total Views" value={compactNumber(metrics.totalViews)} delta={deltaViews} icon="chart" accent="violet"/>
-      <StatCard label="Active Readers" value={compactNumber(metrics.activeReaders)} note="Unique readers · last 30d" icon="pulse" accent="blue"/>
+      <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} icon="chart" accent="violet"/>
+      <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note="Unique viewers in selected period" icon="pulse" accent="blue"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="pink"/>
       <StatCard label="Avg Rating" value={metrics.average ? metrics.average.toFixed(2) + ' / 10' : '—'} note={formatNumber(metrics.totalRatings) + ' ratings · all time'} icon="sparkle" accent="gold"/>
-      <StatCard label="Total Comments" value={compactNumber(metrics.totalComments)} delta={deltaComments} icon="message" accent="violet"/>
-      <StatCard label="Returning Readers" value={compactNumber(metrics.returningReaders)} note="Seen on 2+ days · 30d" icon="pulse" accent="pink"/>
+      <StatCard label={"Comments · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentComments)} delta={deltaComments} icon="message" accent="violet"/>
+      <StatCard label={"Returning Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodReturningReaders)} note="Returned on 2+ days in period" icon="pulse" accent="pink"/>
       <StatCard label="Bookmarks" value={compactNumber(metrics.bookmarks)} note="Saved chapter bookmarks" icon="bookmark" accent="blue"/>
-      <StatCard label="Total Shares" value={compactNumber(metrics.totalShares)} delta={deltaShares} icon="chart" accent="violet"/>
+      <StatCard label={"Shares · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentShares)} delta={deltaShares} icon="chart" accent="violet"/>
       <StatCard label="Notifications On" value={compactNumber(userStats.notification_subscriptions)} note="Push subscriptions" icon="bell" accent="blue"/>
     </div>}
 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
-        <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description="Views and interactions across your latest published chapters."/>
+        <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description={"Views and engagement · " + WINDOW_LABELS[windowKey]}/>
         <LibraryChart chapters={metrics.chapterStats}/>
       </GlassCard>
       <GlassCard className="ar-activity-card">
