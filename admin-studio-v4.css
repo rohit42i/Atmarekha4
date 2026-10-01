@@ -481,3 +481,44 @@
 @media (prefers-reduced-motion:reduce) {
   .ar-admin-sidebar,.admin-progress > i > span { transition:none!important; }
 }
+
+
+/* Final browser/a11y pass */
+.ar-admin-app button,
+.ar-admin-app input,
+.ar-admin-app select,
+.ar-admin-app textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+.ar-admin-app button:focus-visible,
+.ar-admin-app a:focus-visible,
+.ar-admin-app input:focus-visible,
+.ar-admin-app select:focus-visible,
+.ar-admin-app textarea:focus-visible {
+  outline:2px solid var(--admin-accent)!important;
+  outline-offset:2px!important;
+}
+.ar-admin-mobile-close {
+  display:none;
+}
+@media(max-width:820px) {
+  .ar-admin-mobile-close {
+    display:grid!important;
+    place-items:center!important;
+    width:38px!important;
+    height:38px!important;
+    margin-left:auto!important;
+    border:1px solid var(--admin-border)!important;
+    border-radius:10px!important;
+    background:var(--admin-surface-2)!important;
+    color:var(--admin-text)!important;
+    cursor:pointer!important;
+  }
+  .ar-admin-sidebar {
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .ar-admin-nav {
+    overscroll-behavior:contain;
+  }
+}
