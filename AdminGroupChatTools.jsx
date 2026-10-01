@@ -59,12 +59,25 @@ export default function AdminGroupChatTools() {
   const toggleSelected=id=>setSelected(prev=>{const next=new Set(prev);next.has(id)?next.delete(id):next.add(id);return next;});
   const selectVisible=()=>setSelected(prev=>{const next=new Set(prev);filtered.forEach(m=>next.add(m.id));return next;});
   const clearSelection=()=>setSelected(new Set());
-  const deleteIds = async ids => { if (!ids.length || deleting) return; setDeleting(true); setNotice({type:'',text:''}); try { await verifyAdmin(); for (const table of DEPENDENCY_TABLES) {
-        const { error } = await supabase.from(table).delete().in('message_id', ids);
-        if (error) throw new Error('Could not remove message dependencies from ' + table + ': ' + error.message);
-      }
+  const deleteIds = async ids => {
+    if (!ids.length || deleting) return;
+    setDeleting(true);
+    setNotice({type:'',text:''});
+    try {
+      await verifyAdmin();
+      // Dependent likes/reactions/reads cascade from the message row in Postgres.
+      // Deleting only the parent avoids RLS failures on the dependency tables.
       const { error } = await supabase.from('group_chat_messages').delete().in('id', ids);
-      if (error) throw error; setMessages(prev=>prev.filter(m=>!ids.includes(m.id))); setSelected(new Set()); setNotice({type:'success',text:`${ids.length} message${ids.length===1?'':'s'} deleted.`}); } catch(error){setNotice({type:'error',text:error.message||'Unable to delete message(s).'});} finally{setDeleting(false);} };
+      if (error) throw error;
+      setMessages(prev=>prev.filter(m=>!ids.includes(m.id)));
+      setSelected(new Set());
+      setNotice({type:'success',text:ids.length+' message'+(ids.length===1?'':'s')+' deleted.'});
+    } catch(error) {
+      setNotice({type:'error',text:error.message||'Unable to delete message(s).'});
+    } finally {
+      setDeleting(false);
+    }
+  };
   const deleteOne=async m=>{if(window.confirm('Delete this message permanently? This cannot be undone.'))await deleteIds([m.id]);};
   const deleteSelected=async()=>{const ids=[...selected];if(ids.length&&window.confirm(`Delete ${ids.length} selected message${ids.length===1?'':'s'} permanently?`))await deleteIds(ids);};
   if(!isAdmin)return null;
