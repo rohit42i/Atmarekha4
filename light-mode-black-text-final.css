@@ -1,0 +1,113 @@
+/* Atma Rekha — final light-mode black text authority.
+   Visual-only: no functionality, routing, data, auth or payment changes. */
+
+:root[data-theme="light"] body :where(
+  h1,h2,h3,h4,h5,h6,
+  p,span,strong,b,em,i,label,small,time,
+  a,li,dt,dd,blockquote,figcaption,caption,
+  th,td,legend,summary,
+  button,[role="button"],input,textarea,select,option,
+  .brand-wordmark,.hero-description,.hero-eyebrow,.section-eyebrow,
+  .header-kicker,.project-card,.home-section,.home-anchor-section,
+  .latest-item,.latest-note,.chapter-row,.chapter-row-title,
+  .chapter-row-meta,.chapter-row-details,.reader-title,
+  .reader-info-row,.reader-page-pill,.reader-counter,
+  .reader-hint,.rating-summary,.rating-number,.rating-max,.rating-label,
+  .rating-notice,.comment-meta,.comment-body,.comment-actions,
+  .comment-form-title,.comment-count,.footer-kicker,.footer-brand,
+  .footer-nav,.footer-legal,.footer-bottom,
+  .admin-tabs,.admin-stat,.admin-card-title,.admin-mini-list,
+  .admin-performance,.admin-form,.admin-dropzone,.admin-progress,
+  .admin-status-line,.admin-chapter-list,.admin-row-actions,
+  .admin-comment-meta,.admin-comment-list,.admin-report-list,
+  .admin-media-grid,.muted,.hint,.description,.subtitle,
+  .community-page,.community-hero,.community-meta,
+  .community-post-head,.community-post,.community-post-actions,
+  .community-empty,.community-attachment,
+  .ec-sheet,.ec-header,.ec-content,.ec-meta,.ec-actions,
+  .ec-empty,.ec-state,.ec-join,.community-admin-modal,
+  .info-section,.about-card,.legal-card,.membership-plan,
+  .profile-v2-card,.profile-community-card
+) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Text nested inside controls must remain true black too. */
+:root[data-theme="light"] body :where(
+  button,[role="button"],input,textarea,select,
+  .admin-tabs button,.reader-control,.reader-engagement-button,
+  .reader-chapter-nav a,.footer-social,.back-button,.reader-back,.icon-button
+) :where(span,strong,b,small,svg) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Placeholders are also real text — no gray. */
+:root[data-theme="light"] body :where(input,textarea)::placeholder {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  opacity: 1 !important;
+}
+
+/* Remove faded text treatment from semantic text controls. */
+:root[data-theme="light"] body :where(
+  h1,h2,h3,h4,h5,h6,p,span,strong,b,em,i,label,small,time,
+  a,li,dt,dd,blockquote,figcaption,caption,th,td,
+  button,[role="button"],input,textarea,select
+) {
+  opacity: 1 !important;
+}
+
+/* Keep icon strokes aligned with the black text system. */
+:root[data-theme="light"] body :where(
+  button,a,[role="button"],.icon-button,.back-button,.reader-back
+) svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* Explicit light-mode text rule wins over old muted/gray utility classes. */
+:root[data-theme="light"] body :where(
+  [class*="text-"],
+  [class*="title"],
+  [class*="name"],
+  [class*="label"],
+  [class*="meta"],
+  [class*="description"],
+  [class*="subtitle"],
+  [class*="note"],
+  [class*="caption"],
+  [class*="kicker"],
+  [class*="heading"],
+  [class*="copy"],
+  [class*="link"],
+  [class*="count"],
+  [class*="value"],
+  [class*="status"],
+  [class*="hint"]
+) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Blue action surfaces remain blue, but the requested light-mode text stays black. */
+:root[data-theme="light"] body :where(
+  .hero-button,.primary-button,.reader-control.primary,
+  .reader-comment-button,.like-button,.community-join,
+  .admin-submit,.membership-button,.ec-compose-row > button,
+  .ec-join button,.community-admin-send
+) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+:root[data-theme="light"] body :where(
+  .hero-button *,.primary-button *,.reader-control.primary *,
+  .reader-comment-button *,.like-button *,.community-join *,
+  .admin-submit *,.membership-button *,.ec-compose-row > button *,
+  .ec-join button *,.community-admin-send *
+) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
