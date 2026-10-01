@@ -13,10 +13,10 @@ import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './engagement';
 import { chapterCanonicalUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 
-const STORY = { title: 'Atma Rekha', eyebrow: 'INDIAN MANGA', description: 'Read Atma Rekha, an Indian mythical fantasy manga about ancient traditions, mysterious powers and mythical beings.' };
+const STORY = { title: 'Atma Rekha', eyebrow: 'INDIAN MANGA', description: 'Read Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.' };
 const SITE_URL = 'https://www.atmarekha.in';
-const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Mythical Fantasy Manga';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian mythical fantasy manga about ancient traditions, mysterious powers and mythical beings.';
+const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';
+const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
 
 function upsertMeta(attribute, key, content) {
@@ -202,12 +202,12 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       }
     } else if (type === 'chapters') {
       title = 'Atma Rekha | Chapters';
-      description = 'Read the published chapters of Atma Rekha, an Indian mythical fantasy manga.';
+      description = 'Read the published chapters of Atma Rekha, an Indian fantasy adventure manga.';
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
       const labels = { about: 'About Atma Rekha', contact: 'Contact Atma Rekha', report: 'Report Atma Rekha Content', privacy: 'Atma Rekha Privacy Policy', terms: 'Atma Rekha Terms and Conditions' };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
-      description = infoType === 'about' ? 'Learn about Atma Rekha, its creator Arkesh, its Indian mythical fantasy setting and how to read the manga.' : (labels[infoType] || 'Atma Rekha') + ' information from the official website.';
+      description = infoType === 'about' ? 'Learn about Atma Rekha, its creator Arkesh, its Indian fantasy adventure setting and how to read the manga.' : (labels[infoType] || 'Atma Rekha') + ' information from the official website.';
     } else if (type === 'pal-do-pal-ke-lamhe') {
       title = 'Atma Rekha | Pal Do Pal Ke Lamhe';
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha.';
@@ -242,7 +242,10 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       '@type': 'CreativeWorkSeries',
       '@id': SITE_URL + '/#atma-rekha',
       name: 'Atma Rekha',
-      genre: ['Mythical Fantasy', 'Adventure'],
+      genre: ['Fantasy', 'Adventure', 'Manga'],
+      alternateName: 'Atma Rekha Fantasy Adventure Manga',
+      description: DEFAULT_SEO_DESCRIPTION,
+      keywords: 'Indian manga, fantasy adventure manga, Indian fantasy comic, mythology-inspired manga, Roman Hindi manga',
       author,
       inLanguage: 'en-IN',
       url: SITE_URL + '/',
@@ -256,7 +259,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         name: 'Atma Rekha',
         url: SITE_URL + '/',
         description: DEFAULT_SEO_DESCRIPTION,
-        inLanguage: 'en-IN'
+        inLanguage: ['en-IN', 'hi-Latn-IN'],
+        creator: author,
+        about: ['Indian mythology', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings']
       },
       series
     ];
