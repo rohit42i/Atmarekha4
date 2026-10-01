@@ -206,7 +206,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
   const deltaShares = pct(metrics.currentShares, metrics.previousShares);
   const periodUnit = windowKey === 'today' ? 'today' : windowKey === 'week' ? '7d' : windowKey === 'month' ? '30d' : '90d';
-  const maxTop = Math.max(...metrics.top.map(chapter => chapter.views), 1);
+  const maxTop = Math.max(...metrics.top.map(chapter => chapter.periodViews), 1);
 
   const insights = useMemo(() => {
     const values = [];
@@ -273,8 +273,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         <div className="ar-top-list">
           {metrics.top.map((chapter, index) => <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}>
             <b>{String(index + 1).padStart(2, '0')}</b>
-            <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, chapter.views / maxTop * 100) + '%' }}/></i></div>
-            <strong className="ar-top-value">{formatNumber(chapter.views)}</strong>
+            <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, chapter.periodViews / maxTop * 100) + '%' }}/></i></div>
+            <strong className="ar-top-value">{formatNumber(chapter.periodViews)}</strong>
             <AdminIcon name="chevron" size={16}/>
           </button>)}
           {!metrics.top.length && <div className="ar-empty-inline">No chapter analytics yet.</div>}
