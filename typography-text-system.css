@@ -1,0 +1,320 @@
+/* Atma Rekha — final typography and text-color system.
+   Visual-only: no layout, routing, data, auth or payment behavior changes. */
+
+/* ---------- Base type ---------- */
+html,
+body {
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+body {
+  font-size: 16px !important;
+  line-height: 1.55 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Strong hierarchy ---------- */
+body :where(
+  h1,h2,h3,h4,h5,h6,
+  strong,b,th
+) {
+  font-family: inherit !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.15 !important;
+}
+
+body :where(h1) {
+  font-size: clamp(2rem, 5vw, 3.6rem) !important;
+  font-weight: 850 !important;
+  letter-spacing: -0.045em !important;
+}
+
+body :where(h2) {
+  font-size: clamp(1.55rem, 3.5vw, 2.35rem) !important;
+  font-weight: 850 !important;
+}
+
+body :where(h3) {
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem) !important;
+  font-weight: 800 !important;
+}
+
+body :where(h4,h5,h6) {
+  font-size: 1rem !important;
+}
+
+/* ---------- Reading text ---------- */
+body :where(
+  p,li,dt,dd,blockquote,figcaption,caption
+) {
+  font-family: inherit !important;
+  font-weight: 550 !important;
+  line-height: 1.65 !important;
+}
+
+body :where(
+  .hero-description,
+  .project-card p,
+  .home-section > p:not(.section-eyebrow),
+  .home-anchor-section p,
+  .community-post > p,
+  .community-hero p,
+  .info-section p,
+  .about-details,
+  .about-card p,
+  .legal-card p,
+  .comment-body > p,
+  .ec-content,
+  .enhanced-comments .comment-text
+) {
+  font-size: 16px !important;
+  font-weight: 550 !important;
+  line-height: 1.68 !important;
+}
+
+/* ---------- Navigation / actions ---------- */
+body :where(
+  button,
+  [role="button"],
+  .hero-button,
+  .primary-button,
+  .reader-control,
+  .reader-comment-button,
+  .like-button,
+  .community-join,
+  .admin-submit,
+  .membership-button,
+  .footer-nav a,
+  .footer-legal a,
+  .section-link
+) {
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.005em !important;
+}
+
+body :where(.hero-button,.primary-button,.reader-comment-button,.like-button,.community-join,.admin-submit,.membership-button) {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+/* ---------- Labels / metadata ---------- */
+body :where(
+  label,
+  small,
+  time,
+  .muted,
+  .secondary-text,
+  .faint,
+  .hint,
+  .description,
+  .subtitle,
+  .latest-note,
+  .chapter-row-meta,
+  .chapter-row-details,
+  .reader-info-row,
+  .reader-hint,
+  .rating-label,
+  .rating-notice,
+  .rating-max,
+  .community-meta,
+  .community-post-head span,
+  .community-attachment small,
+  .ec-meta time,
+  .ec-actions button,
+  .admin-card-title p,
+  .admin-mini-list p,
+  .admin-performance p
+) {
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+}
+
+body :where(
+  .hero-eyebrow,
+  .section-eyebrow,
+  .header-kicker,
+  .footer-kicker,
+  .latest-item span,
+  .home-anchor-section span,
+  .chapter-row-title > span,
+  .reader-title p,
+  .admin-stat span,
+  .admin-card-title > span,
+  .admin-form label,
+  .report-label
+) {
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  letter-spacing: .12em !important;
+  line-height: 1.3 !important;
+}
+
+/* ---------- Inputs ---------- */
+body :where(input,textarea,select) {
+  font-family: inherit !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.45 !important;
+}
+
+body :where(input,textarea,select)::placeholder {
+  font-weight: 550 !important;
+}
+
+/* ---------- Reader ---------- */
+body :where(.reader-title h1) {
+  font-size: clamp(17px, 3vw, 22px) !important;
+  font-weight: 850 !important;
+  letter-spacing: -0.025em !important;
+}
+
+body :where(.reader-page-pill) {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+body :where(.reader-counter strong) {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+/* ---------- Chapter cards ---------- */
+body :where(.chapter-row-title h2) {
+  font-size: clamp(16px, 2vw, 22px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body :where(.latest-item h3) {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+/* ---------- Admin ---------- */
+body :where(
+  .admin-stat strong,
+  .admin-card-title h2,
+  .admin-chapter-list h3,
+  .admin-media-grid strong,
+  .admin-mini-list strong,
+  .admin-performance strong,
+  .admin-status-line strong
+) {
+  font-weight: 800 !important;
+}
+
+body :where(.admin-stat strong) {
+  font-size: 28px !important;
+}
+
+body :where(.admin-card-title h2) {
+  font-size: 19px !important;
+}
+
+/* ---------- Exact text colors ---------- */
+/* Light: all normal text black. */
+:root[data-theme="light"] body :where(
+  h1,h2,h3,h4,h5,h6,p,span,strong,b,em,i,label,small,time,
+  a,li,dt,dd,blockquote,figcaption,caption,th,td,
+  button,[role="button"],input,textarea,select,option
+) {
+  color: #000000 !important;
+}
+
+/* Light: primary controls keep white text over blue. */
+:root[data-theme="light"] body :where(
+  .hero-button,.primary-button,.reader-control.primary,
+  .reader-comment-button,.like-button,.community-join,
+  .admin-submit,.membership-button,.ec-compose-row > button,
+  .ec-join button
+) {
+  color: #ffffff !important;
+}
+
+:root[data-theme="light"] body :where(
+  .hero-button *,.primary-button *,.reader-control.primary *,
+  .reader-comment-button *,.like-button *,.community-join *,
+  .admin-submit *,.membership-button *,.ec-compose-row > button *,
+  .ec-join button *
+) {
+  color: #ffffff !important;
+}
+
+/* Dark: all normal text white. */
+:root[data-theme="dark"] body :where(
+  h1,h2,h3,h4,h5,h6,p,span,strong,b,em,i,label,small,time,
+  a,li,dt,dd,blockquote,figcaption,caption,th,td,
+  button,[role="button"],input,textarea,select,option
+) {
+  color: #ffffff !important;
+}
+
+/* Dark: white primary controls use black text. */
+:root[data-theme="dark"] body :where(
+  .hero-button,.primary-button,.reader-control.primary,
+  .reader-comment-button,.like-button,.community-join,
+  .admin-submit,.membership-button,.ec-compose-row > button,
+  .ec-join button
+) {
+  color: #000000 !important;
+}
+
+:root[data-theme="dark"] body :where(
+  .hero-button *,.primary-button *,.reader-control.primary *,
+  .reader-comment-button *,.like-button *,.community-join *,
+  .admin-submit *,.membership-button *,.ec-compose-row > button *,
+  .ec-join button *
+) {
+  color: #000000 !important;
+}
+
+/* Keep SVG icons in the same text color. */
+:root[data-theme="light"] body :where(button,a,[role="button"]) svg,
+:root[data-theme="dark"] body :where(button,a,[role="button"]) svg {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+@media (max-width: 700px) {
+  body { font-size: 15px !important; }
+
+  body :where(h1) {
+    font-size: clamp(1.8rem, 8vw, 2.75rem) !important;
+  }
+
+  body :where(h2) {
+    font-size: clamp(1.4rem, 6vw, 2rem) !important;
+  }
+
+  body :where(
+    .hero-description,
+    .project-card p,
+    .home-section > p:not(.section-eyebrow),
+    .home-anchor-section p,
+    .community-post > p,
+    .community-hero p,
+    .info-section p,
+    .about-card p,
+    .legal-card p,
+    .comment-body > p,
+    .ec-content,
+    .enhanced-comments .comment-text
+  ) {
+    font-size: 15px !important;
+    line-height: 1.62 !important;
+  }
+
+  body :where(button,[role="button"]) {
+    font-size: 13px !important;
+  }
+}
