@@ -13,7 +13,7 @@ import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './engagement';
 import { chapterCanonicalUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 
-const STORY = { title: 'Atma Rekha', description: 'ATMA REKHA is an Indian fantasy manga/comuc where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.' };
+const STORY = { title: 'Atma Rekha', description: 'ATMA REKHA is an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.';
