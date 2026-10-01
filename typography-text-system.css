@@ -318,3 +318,48 @@ body :where(.admin-card-title h2) {
     font-size: 13px !important;
   }
 }
+
+
+/* Final light-mode text lock: true black text everywhere in the light theme.
+   This targets inherited/current text as well as common component text nodes. */
+html[data-theme="light"] body,
+html[data-theme="light"] body * {
+  color: #000000 !important;
+}
+
+html[data-theme="light"] body ::placeholder {
+  color: #000000 !important;
+  opacity: 0.65 !important;
+}
+
+html[data-theme="light"] body :where(
+  svg, svg *, button, button *, a, a *, [role="button"], [role="button"] *,
+  input, textarea, select, option, label, p, span, strong, b, em, i,
+  h1, h2, h3, h4, h5, h6, small, time, li, td, th
+) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* Blue/colored primary controls intentionally keep white text. */
+html[data-theme="light"] body :where(
+  .hero-button,.primary-button,.reader-control.primary,
+  .reader-comment-button,.like-button,.community-join,
+  .admin-submit,.membership-button,.ec-compose-row > button,
+  .ec-join button
+),
+html[data-theme="light"] body :where(
+  .hero-button *,.primary-button *,.reader-control.primary *,
+  .reader-comment-button *,.like-button *,.community-join *,
+  .admin-submit *,.membership-button *,.ec-compose-row > button *,
+  .ec-join button *
+) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Preserve the intentional black reader stage. */
+html[data-theme="light"] body .reader-stage,
+html[data-theme="light"] body .reader-stage * {
+  color: inherit !important;
+}
