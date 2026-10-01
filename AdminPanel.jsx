@@ -685,14 +685,6 @@ export default function AdminPanel({ onLogout }) {
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
   const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Membership & Earnings', 'Media', 'Pal Do Pal Ke Lamhe'];
-  useEffect(() => {
-    const handler = event => {
-      const nextTab = event?.detail?.tab;
-      if (tabs.includes(nextTab)) activateTab(nextTab);
-    };
-    window.addEventListener('atma-admin-select-tab', handler);
-    return () => window.removeEventListener('atma-admin-select-tab', handler);
-  }, []);
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -701,6 +693,14 @@ export default function AdminPanel({ onLogout }) {
     : ADMIN_NAV_GROUPS;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
+  useEffect(() => {
+    const handler = event => {
+      const nextTab = event?.detail?.tab;
+      if (tabs.includes(nextTab)) activateTab(nextTab);
+    };
+    window.addEventListener('atma-admin-select-tab', handler);
+    return () => window.removeEventListener('atma-admin-select-tab', handler);
+  }, []);
   const openAdminTool = (action, detail) => {
     setMobileSidebarOpen(false);
     setProfileOpen(false);
