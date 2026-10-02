@@ -460,20 +460,21 @@ export default function AdminPanel({ onLogout }) {
       const content = announcement.content.trim();
       const displayPositionRaw = String(announcement.display_position ?? '').trim();
       const displayPosition = displayPositionRaw === '' ? null : Number(displayPositionRaw);
-      // The database requires pin_target to be either "atma" or "pdpkl" even when the announcement is not pinned.
-      // Keep a valid stored target and use is_pinned to control whether it is actually shown as pinned.
-      const pinTarget = announcement.is_pinned
+      const existing = editingAnnouncementId
+        ? announcements.find(item => item.id === editingAnnouncementId)
+        : null;
+
+      // pin_target is constrained to "atma" or "pdpkl" by the database.
+      // Keep that field valid even when is_pinned is false; is_pinned controls visibility.
+      const isPinned = Boolean(announcement.is_pinned);
+      const pinTarget = isPinned
         ? (['atma', 'pdpkl'].includes(announcement.pin_target) ? announcement.pin_target : 'atma')
         : (['atma', 'pdpkl'].includes(existing?.pin_target) ? existing.pin_target : 'atma');
-      if (!['none', 'atma', 'pdpkl'].includes(pinTarget)) throw new Error('Choose a valid pin destination.');
+
       if (displayPosition !== null && (!Number.isInteger(displayPosition) || displayPosition < 1 || displayPosition > 10)) {
         throw new Error('Choose a valid announcement position from 1 to 10, or leave it on Automatic.');
       }
       if (!title && !content && !announcement.thumbnail) throw new Error('Add a title, text, or thumbnail before publishing.');
-
-      const existing = editingAnnouncementId
-        ? announcements.find(item => item.id === editingAnnouncementId)
-        : null;
 
       let imageUrl = existing?.image_url || null;
       const oldImagePath = announcement.thumbnail ? pathFromUrl(existing?.image_url, COVER_BUCKET) : null;
@@ -497,7 +498,7 @@ export default function AdminPanel({ onLogout }) {
           title: storedTitle,
           content: content || '',
           image_url: imageUrl,
-          is_pinned: pinTarget !== 'none',
+          is_pinned: isPinned,
           pin_target: pinTarget,
           display_position: displayPosition,
         }).eq('id', existing.id);
@@ -517,7 +518,7 @@ export default function AdminPanel({ onLogout }) {
 
         await logAdminAction(adminUser, 'update_announcement', 'announcement', existing.id, {
           title: storedTitle,
-          pinned: pinTarget !== 'none',
+          pinned: isPinned,
           pin_target: pinTarget,
           display_position: displayPosition,
           image_changed: Boolean(announcement.thumbnail),
@@ -527,7 +528,7 @@ export default function AdminPanel({ onLogout }) {
           title: storedTitle,
           content: content || '',
           image_url: imageUrl,
-          is_pinned: pinTarget !== 'none',
+          is_pinned: isPinned,
           pin_target: pinTarget,
           display_position: displayPosition,
           published_at: new Date().toISOString(),
