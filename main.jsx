@@ -1,4 +1,113 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.jsx';
+import UserAuth from './UserAuth.jsx';
+import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
+import AuthGate from './AuthGate.jsx';
+import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
+import CommunityPage from './CommunityPage.jsx';
+import CommunityAdmin from './CommunityAdmin.jsx';
+import EnhancedComments from './EnhancedComments.jsx';
+import PublicProfile from './PublicProfile.jsx';
+import FeatureUnlocks from './FeatureUnlocks.jsx';
+import AdminGroupChatTools from './AdminGroupChatTools.jsx';
+import AdminModerationTools from './AdminModerationTools.jsx';
+import AdminManagementTools from './AdminManagementTools.jsx';
+import AdminCommandCenter from './AdminCommandCenter.jsx';
+import AdminProTools from './AdminProTools.jsx';
+import AdminChapterHealth from './AdminChapterHealth.jsx';
+import AdminOperations from './AdminOperations.jsx';
+import ChapterAccessGuard from './ChapterAccessGuard.jsx';
+import AtmaLoader from './AtmaLoader.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
+import './index.css';
+import './ui-polish.css';
+import './interaction-polish.css';
+import './admin-polish.css';
+import './admin-upgrade.css';
+import './admin-overview-upgrade.css';
+import './admin-dashboard-reference.css';
+import './admin-dashboard-pro.css';
+import './mihon-reader-polish.css';
+import './admin-link-fix.css';
+import './notification-fix.js';
+import './notification-prompt.js';
+import './reader-performance.css';
+import './reader-performance.js';
+import './reader-swipe-fix.js';
+import './user-auth.css';
+import './user-auth-layout.css';
+import './profile-v2.css';
+import './auth-gate.css';
+import './auth-gate-pro.css';
+import './chapter-completion.css';
+import './engagement-fixes.css';
+import './rating-modal.css';
+import './rating-upgrade.css';
+import './community.css';
+import './group-chat.css';
+import './group-chat-feed-fix.css';
+import './enhanced-comments.css';
+import './public-profile.css';
+import './premium-typography.css';
+import './final-polish.css';
+import './chapter-ui-final.css';
+import './membership.css';
+import './chapter-access.css';
+import './visual-polish.css';
+import './theme-legacy-vars.css';
+import './theme-system.js';
+import './theme-system.css';
+import './final-experience.css';
+import './responsive-desktop.css';
+import './InfoPage.css';
+import './micro-polish.css';
+import './ui-refinement.css';
+import './final-touch.css';
+import './content-moderation.js';
+import './admin-final-system.css';
+import './admin-dark-upgrade.css';
+import './admin-studio-tokens.css';
+import './admin-ultimate-ui.css';
+import './admin-productivity.js';
+import './membership-fullscreen-fix.css';
+import './comments-mobile-header-fix.css';
+import './admin-studio-pro-v2.css';
+import './pal-do-pal-ke-lamhe.css';
+import './admin-redesign.css';
+import './admin-premium-overhaul.css';
+import './reader-theme-surface-fix.css';
+import './dark-mode-text-final.css';
+import './admin-controls-final.css';
+import './light-mode-81225-restore.css';
+import './light-mode-shadow-cleanup.css';
+import './typography-text-system.css';
+import './admin-studio-v4.css';
+import './admin-dashboard-v4.css';
 import './admin-final-v5.css';
 import './admin-runtime-fixes.css';
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <AtmaLoader/>
+    <App/>
+    <UserAuth/>
+    <ReadingHistoryTracker/>
+    <AuthGate/>
+    <ChapterCompletionPrompt/>
+    <CommunityPage/>
+    <CommunityAdmin/>
+    <EnhancedComments/>
+    <PublicProfile/>
+    <FeatureUnlocks/>
+    <AdminCommandCenter/>
+    <AdminProTools/>
+    <AdminChapterHealth/>
+    <AdminGroupChatTools/>
+    <AdminManagementTools/>
+    <AdminModerationTools/>
+    <AdminOperations/>
+    <ChapterAccessGuard/>
+    <ThemeToggle/>
+  </React.StrictMode>
+);
