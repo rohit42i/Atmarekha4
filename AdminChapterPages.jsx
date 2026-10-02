@@ -97,7 +97,8 @@ export default function AdminChapterPages({ chapters }) {
         const oldPath = pathFromUrl(page.image_url);
         if (oldPath) {
           try {
-            await cloudflareR2.from(BUCKET).remove([oldPath]);
+            const { error: cleanupError } = await cloudflareR2.from(BUCKET).remove([oldPath]);
+            if (cleanupError) throw cleanupError;
           } catch (cleanupError) {
             await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_page', page.id, {
               bucket: BUCKET,
@@ -118,7 +119,10 @@ export default function AdminChapterPages({ chapters }) {
       setNotice('Page ' + page.page_number + ' replaced successfully.');
     } catch (error) {
       if (newPath && !databaseCommitted) {
-        try { await cloudflareR2.from(BUCKET).remove([newPath]); } catch (cleanupError) {
+        try {
+          const { error: cleanupError } = await cloudflareR2.from(BUCKET).remove([newPath]);
+          if (cleanupError) throw cleanupError;
+        } catch (cleanupError) {
           await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_page', page.id, {
             bucket: BUCKET,
             paths: [newPath],
