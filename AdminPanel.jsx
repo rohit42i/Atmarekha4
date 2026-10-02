@@ -460,7 +460,11 @@ export default function AdminPanel({ onLogout }) {
       const content = announcement.content.trim();
       const displayPositionRaw = String(announcement.display_position ?? '').trim();
       const displayPosition = displayPositionRaw === '' ? null : Number(displayPositionRaw);
-      const pinTarget = announcement.is_pinned ? announcement.pin_target : 'none';
+      // The database requires pin_target to be either "atma" or "pdpkl" even when the announcement is not pinned.
+      // Keep a valid stored target and use is_pinned to control whether it is actually shown as pinned.
+      const pinTarget = announcement.is_pinned
+        ? (['atma', 'pdpkl'].includes(announcement.pin_target) ? announcement.pin_target : 'atma')
+        : (['atma', 'pdpkl'].includes(existing?.pin_target) ? existing.pin_target : 'atma');
       if (!['none', 'atma', 'pdpkl'].includes(pinTarget)) throw new Error('Choose a valid pin destination.');
       if (displayPosition !== null && (!Number.isInteger(displayPosition) || displayPosition < 1 || displayPosition > 10)) {
         throw new Error('Choose a valid announcement position from 1 to 10, or leave it on Automatic.');
