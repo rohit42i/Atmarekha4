@@ -34,7 +34,6 @@ import './notification-fix.js';
 import './notification-prompt.js';
 import './reader-performance.css';
 import './reader-performance.js';
-import './reader-swipe-fix.js';
 import './user-auth.css';
 import './user-auth-layout.css';
 import './profile-v2.css';
