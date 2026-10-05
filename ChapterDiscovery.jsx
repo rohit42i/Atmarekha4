@@ -19,6 +19,7 @@ function navigateToChapter(chapter) {
 export default function ChapterDiscovery({ chapters, stats, renderChapter }) {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('chapter');
+  const [sortOpen, setSortOpen] = useState(false);
   const [recentChapterIds, setRecentChapterIds] = useState({});
 
   useEffect(() => {
@@ -71,13 +72,41 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter }) {
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" />
           {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear chapter search">×</button>}
         </label>
-        <select value={sort} onChange={event => setSort(event.target.value)} aria-label="Sort chapters">
-          <option value="chapter">Chapter order</option>
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="rating">Top rated</option>
-          <option value="views">Most viewed</option>
-        </select>
+        <div className="chapter-sort">
+          <button
+            type="button"
+            className="chapter-sort-button"
+            onClick={() => setSortOpen(value => !value)}
+            aria-haspopup="listbox"
+            aria-expanded={sortOpen}
+          >
+            <span>Sort</span>
+            <b>{sort === 'chapter' ? 'Order' : sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : sort === 'rating' ? 'Rating' : 'Views'}</b>
+            <span aria-hidden="true">⌄</span>
+          </button>
+          {sortOpen && (
+            <div className="chapter-sort-menu" role="listbox" aria-label="Chapter sort order">
+              {[
+                ['chapter', 'Chapter order'],
+                ['newest', 'Newest first'],
+                ['oldest', 'Oldest first'],
+                ['rating', 'Top rated'],
+                ['views', 'Most viewed']
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="option"
+                  aria-selected={sort === value}
+                  className={sort === value ? 'active' : ''}
+                  onClick={() => { setSort(value); setSortOpen(false); }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {renderChapter(visible, recentChapterIds, navigateToChapter)}
