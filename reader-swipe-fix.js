@@ -4,8 +4,8 @@
     .reader-stage{overflow:auto!important}
     .reader-stage img{max-width:none!important;max-height:none!important}
     @media(min-width:900px){
-      .reader-stage{overflow:hidden!important}
-      .reader-stage img{max-width:100%!important;max-height:82vh!important;width:auto!important;height:auto!important}
+      .reader-stage{overflow:auto!important}
+      .reader-stage img{max-width:100%!important;max-height:none!important;width:auto!important;height:auto!important}
     }
     .reader-page img.ar-swipe-active,.ar-fullscreen-swipe-active{will-change:transform;transition:none!important;transform:translate3d(var(--ar-x),0,0) rotate(var(--ar-r)) scale(var(--ar-s))!important}
     .reader-page img.ar-swipe-settle,.ar-fullscreen-swipe-settle{transition:transform 180ms cubic-bezier(.22,.8,.2,1)!important}
