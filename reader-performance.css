@@ -1,4 +1,4 @@
-.reader-page .reader-performance-image{opacity:.72;transition:opacity .16s ease,transform .18s ease}.reader-page .reader-performance-image.reader-image-loaded{opacity:1}.reader-page .reader-performance-image{content-visibility:auto}
+.reader-page .reader-performance-image{opacity:.72;transition:opacity .16s ease,transform .18s cubic-bezier(.22,.8,.2,1);transform:translate3d(var(--reader-swipe-x,0px),0,0) rotate(var(--reader-swipe-rotate,0deg)) scale(var(--reader-swipe-scale,1));backface-visibility:hidden;-webkit-backface-visibility:hidden}.reader-page .reader-performance-image.reader-image-loaded{opacity:1}.reader-page .reader-performance-image{content-visibility:auto}
 
 /* Smooth touch reader: compositor-first swipe motion. */
 .reader-swipe-stage{touch-action:pan-y;overscroll-behavior-x:contain;perspective:1200px;--swipe-p:0;--swipe-dir:0;--swipe-angle:90deg;--swipe-rotate:0deg;--swipe-scale:1;--swipe-overlay:0;--swipe-edge:0}
@@ -15,3 +15,9 @@
 .reader-swipe-stage > .relative > .relative::after{content:"";position:absolute;inset:0;z-index:6;pointer-events:none;border-radius:inherit;background:linear-gradient(var(--swipe-angle),rgba(0,0,0,.22),rgba(0,0,0,.06) 24%,transparent 52%,rgba(255,255,255,.08) 78%,transparent);opacity:var(--swipe-edge);filter:blur(1px);transition:opacity 180ms ease}
 .reader-swipe-stage.reader-swipe-enhanced-active .reader-swipe-image,.reader-swipe-stage.reader-swipe-enhanced-settling .reader-swipe-image{filter:saturate(.94) contrast(1.025)}
 @media(prefers-reduced-motion:reduce){.reader-swipe-stage > .relative > .relative,.reader-swipe-stage > .relative > .relative::before,.reader-swipe-stage > .relative > .relative::after{transition:none!important}.reader-swipe-stage.reader-swipe-enhanced-active > .relative > .relative,.reader-swipe-stage.reader-swipe-enhanced-settling > .relative > .relative{transform:none;filter:none}}
+
+/* Keep the reader responsive while allowing vertical page scroll. */
+.reader-page .reader-stage{touch-action:pan-y;overscroll-behavior-x:contain;contain:layout paint;}
+.reader-page .reader-performance-image.reader-swipe-active{will-change:transform;transition:none!important;}
+.reader-page .reader-performance-image.reader-swipe-settle{will-change:transform;transition:transform 160ms cubic-bezier(.22,.8,.2,1)!important;}
+.reader-page .reader-performance-image.reader-swipe-return{will-change:transform;transition:transform 180ms cubic-bezier(.2,.8,.2,1)!important;}
