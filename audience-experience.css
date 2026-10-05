@@ -1,5 +1,8 @@
 /* Audience-focused interaction layer: reader controls, chapter discovery and resume UI. */
 
+.reader-page .ar-experience-trigger,
+.reader-page .ar-back-to-top { display: none !important; }
+
 .reader-experience-tools {
   position: fixed;
   left: 18px;
@@ -14,8 +17,6 @@
   background: rgba(255,255,255,.94);
   color: #0a0a0a;
   box-shadow: 0 12px 34px rgba(0,0,0,.13);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 .reader-experience-tools button {
   min-width: 34px;
@@ -53,8 +54,6 @@
   letter-spacing: .06em;
   text-transform: uppercase;
   box-shadow: 0 8px 24px rgba(0,0,0,.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   pointer-events: none;
 }
 .reader-focus-badge strong {
@@ -95,8 +94,6 @@
   justify-content: center;
   padding: 18px;
   background: rgba(0,0,0,.38);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 .reader-experience-sheet {
   width: min(560px,100%);
