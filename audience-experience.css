@@ -306,3 +306,53 @@ html[data-theme="dark"] .continue-reading-button,
   text-shadow: none !important;
   -webkit-text-fill-color: #000 !important;
 }
+
+
+/* =========================================================
+   Native Chrome browser-zoom compatibility for the reader.
+   Keep the desktop reader canvas in fixed CSS pixels so
+   Ctrl+/Ctrl− changes its physical size instead of being
+   cancelled by responsive max-width/max-height rules.
+   ========================================================= */
+@media (min-width: 900px) {
+  body:has(.reader-page) {
+    overflow-x: auto !important;
+  }
+
+  body:has(.reader-page) .reader-page {
+    overflow: visible !important;
+    backface-visibility: visible !important;
+    -webkit-backface-visibility: visible !important;
+  }
+
+  body:has(.reader-page) .reader-content {
+    width: 1000px !important;
+    max-width: none !important;
+    overflow: visible !important;
+    contain: none !important;
+  }
+
+  body:has(.reader-page) .reader-stage {
+    width: 1000px !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: calc(100vh - 100px) !important;
+    max-height: none !important;
+    overflow: auto !important;
+    contain: none !important;
+    touch-action: auto !important;
+    transform: none !important;
+  }
+
+  body:has(.reader-page) .reader-stage img,
+  body:has(.reader-page) .reader-performance-image {
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    content-visibility: visible !important;
+    transform: none !important;
+    backface-visibility: visible !important;
+    -webkit-backface-visibility: visible !important;
+  }
+}
