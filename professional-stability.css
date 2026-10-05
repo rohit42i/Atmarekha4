@@ -174,3 +174,59 @@ button,
     transition-duration: .001ms !important;
   }
 }
+
+
+/* Global scroll recovery: keep normal pages on the document scroller.
+   Full-screen sheets/modals retain their own scroll locks. */
+html {
+  overflow-y: auto !important;
+}
+
+body:not(
+  :has(.membership-page),
+  :has(.ar-command-backdrop),
+  :has(.ar-pro-backdrop),
+  :has(.ar-ops-backdrop),
+  :has(.ar-health-backdrop),
+  :has(.ar-gcm-backdrop),
+  :has(.ar-mgmt-backdrop),
+  :has(.ar-mod-backdrop),
+  :has(.community-admin-backdrop),
+  :has(.ar-admin-drawer-backdrop),
+  :has(.pdlpl-lock-backdrop)
+) {
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+}
+
+body:not(
+  :has(.membership-page),
+  :has(.ar-command-backdrop),
+  :has(.ar-pro-backdrop),
+  :has(.ar-ops-backdrop),
+  :has(.ar-health-backdrop),
+  :has(.ar-gcm-backdrop),
+  :has(.ar-mgmt-backdrop),
+  :has(.ar-mod-backdrop),
+  :has(.community-admin-backdrop),
+  :has(.ar-admin-drawer-backdrop),
+  :has(.pdlpl-lock-backdrop)
+) #root {
+  overflow: visible !important;
+}
+
+.home-page,
+.reader-page,
+.site-shell,
+.pdlpl-page,
+.pdlpl-reader,
+.pdlpl-admin {
+  height: auto !important;
+  min-height: 100dvh !important;
+  overflow: visible !important;
+}
+
+.reader-stage {
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
