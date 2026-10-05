@@ -371,19 +371,32 @@ html[data-theme="dark"] .continue-reading-button,
 }
 
 
-/* Final reader zoom compatibility.
-   Loaded last so viewport-fitting rules cannot shrink the manga page
-   back down when Chrome changes page scale. */
-.reader-page .reader-stage {
-  overflow: auto !important;
+/* Native browser behavior for the reader.
+   Do not constrain pinch/page zoom, panning, overscroll, or scroll anchoring. */
+html:has(.reader-page),
+html:has(.reader-page) body,
+body:has(.reader-page) {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  overflow-anchor: auto !important;
+  overscroll-behavior: auto !important;
+  scroll-behavior: auto !important;
+}
+
+body:has(.reader-page) .reader-page,
+body:has(.reader-page) .reader-content,
+body:has(.reader-page) .reader-stage {
+  overflow: visible !important;
   contain: none !important;
   touch-action: auto !important;
   overscroll-behavior: auto !important;
-  overflow-anchor: none !important;
+  overflow-anchor: auto !important;
+  transform: none !important;
   text-align: left !important;
 }
 
-.reader-page .reader-stage img {
+body:has(.reader-page) .reader-stage img,
+body:has(.reader-page) .reader-performance-image {
   display: block !important;
   flex: 0 0 auto !important;
   width: 960px !important;
@@ -394,15 +407,14 @@ html[data-theme="dark"] .continue-reading-button,
   margin-right: 0 !important;
   object-fit: contain !important;
   content-visibility: visible !important;
+  transform: none !important;
+  backface-visibility: visible !important;
+  -webkit-backface-visibility: visible !important;
 }
 
 @media (max-width: 700px) {
-  .reader-page .reader-stage {
-    overflow: auto !important;
-    touch-action: pan-y pinch-zoom !important;
-  }
-
-  .reader-page .reader-stage img {
+  body:has(.reader-page) .reader-stage img,
+  body:has(.reader-page) .reader-performance-image {
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
