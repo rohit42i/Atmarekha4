@@ -207,7 +207,7 @@ button, input, textarea, select { font: inherit; }
 
 
 /* Enhanced comments — dark-mode surface separation */
-@media (prefers-color-scheme: dark) {
+html[data-theme="dark"] {
   .ec-backdrop {
     background: rgba(3, 4, 7, .72) !important;
   }
