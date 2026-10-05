@@ -118,7 +118,7 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
             <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
           </div>
           <div className="chapter-row-details">
-            <span>📄 {chapter.pageCount || '—'} pages</span>
+            <span>📄 {item.pages || '—'} pages</span>
             {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
           </div>
         </a>
