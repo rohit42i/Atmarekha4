@@ -138,6 +138,8 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   const [error, setError] = useState('');
   const touchStartRef = useRef(null);
   const touchCurrentRef = useRef(null);
+  const touchStartYRef = useRef(null);
+  const touchAxisRef = useRef(null);
 
   const minSwipeDistance = 50;
 
