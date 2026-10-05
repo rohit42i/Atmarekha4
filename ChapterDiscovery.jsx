@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { chapterPath, findChapterForPath } from './routes';
+import { chapterPath } from './routes';
 
 function formatDate(value) {
   if (!value) return '';
