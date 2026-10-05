@@ -374,11 +374,12 @@ html[data-theme="dark"] .continue-reading-button,
 .reader-page .reader-stage img {
   display: block !important;
   flex: 0 0 auto !important;
-  width: auto !important;
+  width: 960px !important;
   height: auto !important;
   max-width: none !important;
   max-height: none !important;
-  object-fit: initial !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
   content-visibility: visible !important;
 }
 
