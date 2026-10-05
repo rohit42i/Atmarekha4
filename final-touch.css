@@ -293,3 +293,79 @@ textarea { resize: vertical; }
   .reader-chapter-nav-item>button,.reader-chapter-nav-empty{min-height:54px}
   .reader-chapter-nav-item>button strong,.reader-chapter-nav-empty strong{font-size:14px!important}
 }
+
+
+/* =========================================================
+   Final explicit dark-theme surface + overscroll fix
+   Loaded after the theme stack so older prefers-color-scheme
+   rules cannot brighten the explicit dark theme.
+   ========================================================= */
+html[data-theme="dark"] {
+  color-scheme: dark !important;
+  background: #000 !important;
+  background-color: #000 !important;
+  overscroll-behavior: none !important;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root,
+html[data-theme="dark"] .site-shell,
+html[data-theme="dark"] main,
+html[data-theme="dark"] .home-page,
+html[data-theme="dark"] .reader-page,
+html[data-theme="dark"] .community-page,
+html[data-theme="dark"] .profile-page,
+html[data-theme="dark"] .profile-v2,
+html[data-theme="dark"] .info-page,
+html[data-theme="dark"] .chapter-list-page {
+  background: #000 !important;
+  background-color: #000 !important;
+  background-image: none !important;
+}
+
+/* Actual card surfaces — including the area containing text/buttons. */
+html[data-theme="dark"] .hero-card,
+html[data-theme="dark"] .home-section,
+html[data-theme="dark"] .project-card,
+html[data-theme="dark"] .chapter-row,
+html[data-theme="dark"] .latest-item,
+html[data-theme="dark"] .community-post,
+html[data-theme="dark"] .info-card,
+html[data-theme="dark"] .about-card,
+html[data-theme="dark"] .legal-card,
+html[data-theme="dark"] .profile-v2-card,
+html[data-theme="dark"] .profile-community-card,
+html[data-theme="dark"] .profile-v2-list-item,
+html[data-theme="dark"] .profile-v2-comment-item,
+html[data-theme="dark"] .profile-v2-edit-button {
+  background: #030303 !important;
+  background-color: #030303 !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+
+/* Profile action/button area stays dark; primary buttons remain white. */
+html[data-theme="dark"] .profile-v2-card button,
+html[data-theme="dark"] .profile-community-card button,
+html[data-theme="dark"] .profile-actions {
+  background-color: #030303 !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .profile-v2-card .primary-button,
+html[data-theme="dark"] .profile-v2-card button.primary,
+html[data-theme="dark"] .profile-community-card .primary-button {
+  background: #fff !important;
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+/* Cover the browser canvas during mobile pull-to-overscroll. */
+html[data-theme="dark"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: #000 !important;
+}
