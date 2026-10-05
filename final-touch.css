@@ -432,168 +432,39 @@ html[data-theme="dark"] .chapter-discovery > label {
 }
 html[data-theme="dark"] .chapter-discovery > label > .chapter-search-icon { color: #fff; }
 
-/* Continue Reading — clean card directly below the main Atma Rekha card. */
-.continue-reading-card {
-  width: min(940px, calc(100% - 32px));
-  margin: 14px auto 0;
-  padding: 12px;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 13px;
-  border: 1px solid rgba(0,0,0,.12);
-  border-radius: 14px;
-  background: #fff;
-  color: #111;
-  box-shadow: 0 8px 24px rgba(0,0,0,.07);
-}
-.continue-reading-art {
-  width: 58px;
-  height: 58px;
-  border-radius: 10px;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  background: #f1f1f1;
-  color: #111;
-  font-weight: 900;
-}
-.continue-reading-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.continue-reading-copy { min-width: 0; display: grid; gap: 3px; }
-.continue-reading-copy .section-eyebrow { margin: 0; font-size: 9px; font-weight: 900; letter-spacing: .15em; }
-.continue-reading-copy h2 {
-  margin: 0;
-  min-width: 0;
-  font-size: 15px;
-  line-height: 1.15;
-  font-weight: 850;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.continue-reading-copy > span { font-size: 10px; font-weight: 650; opacity: .58; }
-.continue-reading-button {
-  min-height: 42px;
-  padding: 0 15px;
-  border: 1px solid #111;
-  border-radius: 10px;
-  background: #111;
-  color: #fff;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 850;
-  white-space: nowrap;
-  transition: transform .16s ease, opacity .16s ease;
-}
-.continue-reading-button {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: start;
-  align-self: end;
-  margin-top: 3px;
-  min-height: 36px;
-  padding: 0 14px;
-  font-size: 10px;
-}
-.continue-reading-button:hover { transform: translateY(-1px); }
-.continue-reading-button:active { transform: scale(.98); }
-html[data-theme="dark"] .continue-reading-card {
-  border-color: #242424;
-  background: #030303;
-  color: #fff;
-  box-shadow: 0 12px 30px rgba(0,0,0,.38);
-}
-html[data-theme="dark"] .continue-reading-art { background: #101010; color: #fff; }
-html[data-theme="dark"] .continue-reading-button { border-color: #fff; background: #fff; color: #000; }
-
-@media (max-width: 700px) {
-  .continue-reading-card {
-    width: calc(100% - 20px);
-    grid-template-columns: 48px minmax(0,1fr) auto;
-    gap: 9px;
-    padding: 9px;
-    border-radius: 12px;
-  }
-  .continue-reading-art { width: 48px; height: 48px; border-radius: 8px; }
-  .continue-reading-copy h2 { font-size: 12px; }
-  .continue-reading-copy > span { font-size: 9px; }
-  .continue-reading-button { min-height: 36px; padding: 0 10px; font-size: 9px; border-radius: 9px; }
-}
-@media (max-width: 420px) {
-  .continue-reading-card { grid-template-columns: 42px minmax(0,1fr); }
-  .continue-reading-art { width: 42px; height: 42px; }
-  .continue-reading-button {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: start;
-    align-self: end;
-    min-height: 32px;
-    margin-top: 2px;
-  }
-}
-
-/* Continue Reading: keep the action below the chapter information, never beside the title. */
+/* Continue Reading — compact reading card with a clear action hierarchy. */
 .continue-reading-card{
-  grid-template-columns:58px minmax(0,1fr)!important;
-  align-items:start!important;
+  width:min(940px,calc(100% - 32px));
+  margin:14px auto 0;
+  padding:14px;
+  box-sizing:border-box;
+  display:grid;
+  grid-template-columns:64px minmax(0,1fr);
+  align-items:start;
+  gap:14px;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:16px;
+  background:#fff;
+  color:#111;
+  box-shadow:0 8px 24px rgba(0,0,0,.07);
 }
-.continue-reading-copy{
-  min-width:0;
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:flex-start!important;
-  gap:4px!important;
+.continue-reading-art{
+  width:64px;
+  height:76px;
+  border-radius:10px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  background:#f1f1f1;
+  color:#111;
+  font-weight:900;
 }
-.continue-reading-copy h2{
+.continue-reading-art img{
   width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
 }
-.continue-reading-copy > span{
-  line-height:1.3;
-}
-.continue-reading-button{
-  grid-column:auto!important;
-  grid-row:auto!important;
-  justify-self:auto!important;
-  align-self:auto!important;
-  margin:6px 0 0!important;
-  min-height:36px!important;
-  padding:0 15px!important;
-  border-radius:9px!important;
-}
-html[data-theme="dark"] .continue-reading-button{
-  border-color:#fff!important;
-  background:#fff!important;
-  color:#000!important;
-}
-@media(max-width:700px){
-  .continue-reading-card{
-    grid-template-columns:48px minmax(0,1fr)!important;
-    align-items:start!important;
-  }
-  .continue-reading-button{
-    min-height:34px!important;
-    padding:0 12px!important;
-    margin-top:5px!important;
-  }
-}
-@media(max-width:420px){
-  .continue-reading-card{
-    grid-template-columns:42px minmax(0,1fr)!important;
-  }
-  .continue-reading-button{
-    min-height:32px!important;
-    padding:0 11px!important;
-    font-size:9px!important;
-  }
-}
-
-/* Atma Rekha reader: Previous/Next chapter controls are retired. */
-body:has(.reader-page) .reader-chapter-nav{
-  display:none!important;
-}
-
-/* Continue Reading: clear reading hierarchy with the Resume action beneath the metadata. */
 .continue-reading-copy{
   min-width:0;
   display:flex!important;
@@ -601,45 +472,115 @@ body:has(.reader-page) .reader-chapter-nav{
   align-items:stretch!important;
   gap:4px!important;
 }
+.continue-reading-copy .section-eyebrow{
+  margin:0;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.15em;
+  line-height:1.2;
+}
 .continue-reading-copy h2{
-  width:100%;
   margin:0!important;
+  width:100%;
+  min-width:0;
+  font-size:17px;
+  line-height:1.2;
+  font-weight:850;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .continue-reading-copy > span{
-  line-height:1.3;
+  font-size:10px;
+  font-weight:650;
+  line-height:1.35;
+  opacity:.58;
 }
 .continue-reading-action{
   width:100%;
   display:flex;
+  align-items:center;
   justify-content:flex-end;
-  margin-top:7px;
+  margin-top:8px;
 }
 .continue-reading-button{
-  grid-column:auto!important;
-  grid-row:auto!important;
-  justify-self:auto!important;
-  align-self:auto!important;
   margin:0!important;
   min-height:36px!important;
   padding:0 16px!important;
-  border-radius:9px!important;
+  border:1px solid #111;
+  border-radius:9px;
+  background:#111;
+  color:#fff;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:850;
+  line-height:1;
+  white-space:nowrap;
+  transition:transform .16s ease,opacity .16s ease,background-color .16s ease;
 }
+.continue-reading-button:hover{transform:translateY(-1px)}
+.continue-reading-button:active{transform:scale(.98)}
+html[data-theme="dark"] .continue-reading-card{
+  border-color:#242424;
+  background:#030303;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(0,0,0,.38);
+}
+html[data-theme="dark"] .continue-reading-art{
+  background:#101010;
+  color:#fff;
+}
+html[data-theme="dark"] .continue-reading-button{
+  border-color:#fff;
+  background:#fff;
+  color:#000;
+}
+
+/* Atma Rekha reader: chapter-to-chapter controls are retired. */
+body:has(.reader-page) .reader-chapter-nav{
+  display:none!important;
+}
+
 @media(max-width:700px){
+  .continue-reading-card{
+    width:calc(100% - 20px);
+    grid-template-columns:50px minmax(0,1fr);
+    gap:10px;
+    padding:10px;
+    border-radius:13px;
+  }
+  .continue-reading-art{
+    width:50px;
+    height:62px;
+    border-radius:8px;
+  }
+  .continue-reading-copy h2{font-size:14px}
+  .continue-reading-copy > span{font-size:9px}
   .continue-reading-action{
-    margin-top:6px;
+    justify-content:flex-start;
+    margin-top:7px;
   }
   .continue-reading-button{
     min-height:34px!important;
     padding:0 13px!important;
+    font-size:9px;
   }
 }
 @media(max-width:420px){
-  .continue-reading-action{
-    justify-content:flex-start;
+  .continue-reading-card{
+    grid-template-columns:42px minmax(0,1fr);
+    gap:9px;
+    padding:9px;
   }
+  .continue-reading-art{
+    width:42px;
+    height:54px;
+  }
+  .continue-reading-copy h2{font-size:13px}
+  .continue-reading-action{margin-top:6px}
   .continue-reading-button{
     min-height:32px!important;
     padding:0 12px!important;
-    font-size:9px!important;
+    font-size:9px;
   }
 }
