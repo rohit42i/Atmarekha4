@@ -136,8 +136,10 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
   const [error, setError] = useState('');
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  const touchStartRef = useRef(null);
+  const touchCurrentRef = useRef(null);
+  const touchStartYRef = useRef(null);
+  const touchAxisRef = useRef(null);
 
   const minSwipeDistance = 50;
 
@@ -252,24 +254,44 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   }, [pages.length, onBack]);
 
   const onTouchStart = event => {
-    setTouchEnd(null);
-    setTouchStart(event.targetTouches[0]?.clientX ?? null);
+    if (event.touches?.length !== 1) return;
+    const x = event.touches[0]?.clientX;
+    if (typeof x !== 'number') return;
+    touchStartRef.current = x;
+    touchCurrentRef.current = x;
+    touchStartYRef.current = event.touches[0].clientY;
+    touchAxisRef.current = null;
   };
 
-  const onTouchMove = event => setTouchEnd(event.targetTouches[0]?.clientX ?? null);
+  const onTouchMove = event => {
+    if (event.touches?.length !== 1 || touchStartRef.current === null) return;
+    const x = event.touches[0]?.clientX;
+    const y = event.touches[0]?.clientY;
+    if (typeof x !== 'number' || typeof y !== 'number') return;
+    touchCurrentRef.current = x;
+    if (touchStartYRef.current !== null && touchAxisRef.current === null) {
+      const dx = Math.abs(x - touchStartRef.current);
+      const dy = Math.abs(y - touchStartYRef.current);
+      if (dx > 8 || dy > 8) touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
+    }
+  };
 
   const onTouchEnd = () => {
-    if (touchStart === null || touchEnd === null) return;
-    const distance = touchStart - touchEnd;
+    const start = touchStartRef.current;
+    const end = touchCurrentRef.current;
+    const axis = touchAxisRef.current;
+    touchStartRef.current = null;
+    touchCurrentRef.current = null;
+    touchStartYRef.current = null;
+    touchAxisRef.current = null;
+    if (start === null || end === null || axis !== 'horizontal') return;
+    const distance = start - end;
 
     if (Math.abs(distance) >= minSwipeDistance) {
       setIndex(value => distance > 0
         ? Math.min(value + 1, pages.length - 1)
         : Math.max(value - 1, 0));
     }
-
-    setTouchStart(null);
-    setTouchEnd(null);
   };
 
   const currentIndex = chapters.findIndex(item => item.id === chapter.id);
