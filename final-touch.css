@@ -616,3 +616,7 @@ html[data-theme="dark"] .continue-reading-button {
     transition: none !important;
   }
 }
+
+
+/* Reader must be allowed to overflow horizontally when Chrome zoom increases page scale. */
+body:has(.reader-page){overflow-x:auto!important}
