@@ -796,3 +796,16 @@ html[data-theme="dark"] {
   }
 }
 
+
+
+/* Remove the browser's purple tap flash from chapter navigation buttons. */
+.hero-button,
+.pdlpl-home-card .hero-button {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.hero-button:focus:not(:focus-visible),
+.pdlpl-home-card .hero-button:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
