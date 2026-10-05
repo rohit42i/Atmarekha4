@@ -326,14 +326,14 @@ html[data-theme="dark"] .continue-reading-button,
   }
 
   body:has(.reader-page) .reader-content {
-    width: 1000px !important;
+    width: 960px !important;
     max-width: none !important;
     overflow: visible !important;
     contain: none !important;
   }
 
   body:has(.reader-page) .reader-stage {
-    width: 1000px !important;
+    width: 960px !important;
     max-width: none !important;
     height: auto !important;
     min-height: calc(100vh - 100px) !important;
@@ -348,7 +348,7 @@ html[data-theme="dark"] .continue-reading-button,
   body:has(.reader-page) .reader-stage img,
   body:has(.reader-page) .reader-performance-image {
     display: block !important;
-    width: auto !important;
+    width: 960px !important;
     max-width: none !important;
     height: auto !important;
     max-height: none !important;
