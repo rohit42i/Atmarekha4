@@ -17,7 +17,6 @@ function navigateToChapter(chapter) {
 }
 
 export default function ChapterDiscovery({ chapters, stats, renderChapter }) {
-  const [query, setQuery] = useState('');
   const [sort, setSort] = useState('chapter');
   const [sortOpen, setSortOpen] = useState(false);
   const [recentChapterIds, setRecentChapterIds] = useState({});
