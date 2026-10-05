@@ -317,10 +317,12 @@ html[data-theme="dark"] .continue-reading-button,
 @media (min-width: 900px) {
   body:has(.reader-page) {
     overflow-x: auto !important;
+    overflow-anchor: none !important;
   }
 
   body:has(.reader-page) .reader-page {
     overflow: visible !important;
+    margin: 0 !important;
     backface-visibility: visible !important;
     -webkit-backface-visibility: visible !important;
   }
@@ -328,6 +330,8 @@ html[data-theme="dark"] .continue-reading-button,
   body:has(.reader-page) .reader-content {
     width: 960px !important;
     max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
     overflow: visible !important;
     contain: none !important;
   }
@@ -338,9 +342,14 @@ html[data-theme="dark"] .continue-reading-button,
     height: auto !important;
     min-height: calc(100vh - 100px) !important;
     max-height: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     overflow: auto !important;
     contain: none !important;
     display: block !important;
+    text-align: left !important;
     touch-action: pan-y pinch-zoom !important;
     transform: none !important;
   }
@@ -352,7 +361,8 @@ html[data-theme="dark"] .continue-reading-button,
     max-width: none !important;
     height: auto !important;
     max-height: none !important;
-    margin: 0 auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
     content-visibility: visible !important;
     transform: none !important;
     backface-visibility: visible !important;
@@ -369,6 +379,8 @@ html[data-theme="dark"] .continue-reading-button,
   contain: none !important;
   touch-action: auto !important;
   overscroll-behavior: auto !important;
+  overflow-anchor: none !important;
+  text-align: left !important;
 }
 
 .reader-page .reader-stage img {
@@ -378,7 +390,8 @@ html[data-theme="dark"] .continue-reading-button,
   height: auto !important;
   max-width: none !important;
   max-height: none !important;
-  margin: 0 auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   object-fit: contain !important;
   content-visibility: visible !important;
 }
@@ -393,6 +406,8 @@ html[data-theme="dark"] .continue-reading-button,
     width: 100% !important;
     max-width: 100% !important;
     max-height: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
     flex: 0 0 auto !important;
     object-fit: contain !important;
   }
