@@ -161,3 +161,13 @@ html[data-theme="dark"] .membership-phone-modal {
   color: #f7f7f7 !important;
   border-color: #292929 !important;
 }
+
+/* Prevent overscroll / scroll-bounce from exposing a white root behind dark pages. */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root {
+  background-color: #000000 !important;
+}
+html[data-theme="dark"] {
+  overscroll-behavior-y: none;
+}
