@@ -130,16 +130,19 @@ html[data-theme="dark"] .latest-item,
 html[data-theme="dark"] .reader-rating-card,
 html[data-theme="dark"] .community-post,
 html[data-theme="dark"] .profile-v2-card,
-html[data-theme="dark"] .info-card {
-  background: #090909 !important;
+html[data-theme="dark"] .info-card,
+html[data-theme="dark"] .profile-community-card,
+html[data-theme="dark"] .profile-v2-list-item,
+html[data-theme="dark"] .profile-v2-comment-item {
+  background: #020202 !important;
   color: #f7f7f7 !important;
   border-color: #292929 !important;
 }
 
 html[data-theme="dark"] .hero-card {
   background:
-    radial-gradient(circle at 82% 18%, rgba(255,255,255,.055), transparent 30%),
-    linear-gradient(145deg, #101010 0%, #080808 58%, #030303 100%) !important;
+    radial-gradient(circle at 82% 18%, rgba(255,255,255,.04), transparent 30%),
+    linear-gradient(145deg, #060606 0%, #020202 58%, #000000 100%) !important;
 }
 
 html[data-theme="dark"] input,
@@ -171,6 +174,9 @@ html[data-theme="dark"] :where(
   .profile-panel,
   .user-profile-card,
   .profile-v2-card,
+  .profile-community-card,
+  .profile-v2-list-item,
+  .profile-v2-comment-item,
   .profile-actions,
   .profile-card button,
   .profile-panel button
@@ -187,4 +193,28 @@ html[data-theme="dark"] #root {
 }
 html[data-theme="dark"] {
   overscroll-behavior-y: none;
+}
+
+/* Dark mode: keep every profile content surface and its action area near-black. */
+html[data-theme="dark"] .profile-v2-card,
+html[data-theme="dark"] .profile-community-card,
+html[data-theme="dark"] .profile-v2-list,
+html[data-theme="dark"] .profile-v2-list-item,
+html[data-theme="dark"] .profile-v2-comment-item,
+html[data-theme="dark"] .profile-v2-edit-button {
+  background-color: #010101 !important;
+  background-image: none !important;
+}
+
+/* Native browser overscroll/canvas must stay dark too. */
+html[data-theme="dark"] {
+  color-scheme: dark !important;
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root,
+html[data-theme="dark"] .profile-v2-overlay {
+  background: #000000 !important;
+  background-color: #000000 !important;
 }
