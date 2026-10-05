@@ -295,3 +295,14 @@ html[data-theme="dark"] .reader-chapter-nav-item > button:disabled {
     font-size: 13px !important;
   }
 }
+
+
+/* Final dark-mode Resume button contrast. */
+html[data-theme="dark"] .continue-reading-button,
+[data-theme="dark"] .continue-reading-button {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #fff !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #000 !important;
+}

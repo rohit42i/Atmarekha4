@@ -126,9 +126,6 @@ function ChapterList({ chapters, onBack }) {
         <div><p className="header-kicker">ATMA REKHA</p><h1>Chapter List</h1></div>
       </header>
       <section className="chapter-list-section">
-        <div className="chapter-list-heading">
-          <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
-        </div>
         {loading ? <LoadingState/> : (
           <ChapterDiscovery chapters={chapters} stats={stats} renderChapter={renderRows}/>
         )}
