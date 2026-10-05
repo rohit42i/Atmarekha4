@@ -308,69 +308,6 @@ html[data-theme="dark"] .continue-reading-button,
 }
 
 
-/* =========================================================
-   Native Chrome browser-zoom compatibility for the reader.
-   Keep the desktop reader canvas in fixed CSS pixels so
-   Ctrl+/Ctrl− changes its physical size instead of being
-   cancelled by responsive max-width/max-height rules.
-   ========================================================= */
-@media (min-width: 900px) {
-  body:has(.reader-page) {
-    overflow-x: auto !important;
-    overflow-anchor: none !important;
-  }
-
-  body:has(.reader-page) .reader-page {
-    overflow: visible !important;
-    margin: 0 !important;
-    backface-visibility: visible !important;
-    -webkit-backface-visibility: visible !important;
-  }
-
-  body:has(.reader-page) .reader-content {
-    width: 960px !important;
-    max-width: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    overflow: visible !important;
-    contain: none !important;
-  }
-
-  body:has(.reader-page) .reader-stage {
-    width: 960px !important;
-    max-width: none !important;
-    height: auto !important;
-    min-height: calc(100vh - 100px) !important;
-    max-height: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    overflow: auto !important;
-    contain: none !important;
-    display: block !important;
-    text-align: left !important;
-    touch-action: pan-y pinch-zoom !important;
-    transform: none !important;
-  }
-
-  body:has(.reader-page) .reader-stage img,
-  body:has(.reader-page) .reader-performance-image {
-    display: block !important;
-    width: 960px !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    content-visibility: visible !important;
-    transform: none !important;
-    backface-visibility: visible !important;
-    -webkit-backface-visibility: visible !important;
-  }
-}
-
-
 /* Native browser behavior for the reader.
    Do not constrain pinch/page zoom, panning, overscroll, or scroll anchoring. */
 html:has(.reader-page),
