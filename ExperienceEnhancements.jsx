@@ -4,14 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const COMMANDS = [
-  { id: 'home', label: 'Home', hint: 'Go to homepage', icon: '⌂', action: () => navigate('/') },
-  { id: 'chapters', label: 'Chapters', hint: 'Browse published chapters', icon: '▤', action: () => navigate('/chapters') },
-  { id: 'about', label: 'About Atma Rekha', hint: 'Story, creator and release details', icon: 'i', action: () => navigate('/info/about') },
-  { id: 'contact', label: 'Contact', hint: 'Feedback and publishing enquiries', icon: '↗', action: () => navigate('/info/contact') },
-  { id: 'community', label: 'Community', hint: 'Open the reader community', icon: '◎', action: () => navigateHash('community') },
-  { id: 'profile', label: 'Profile', hint: 'Open your reader profile', icon: '◯', action: () => navigateHash('profile') },
-  { id: 'theme', label: 'Toggle theme', hint: 'Switch light / dark mode', icon: '◐', action: () => window.ArTheme?.toggle?.() },
+const COMMANDS = [  { id: 'theme', label: 'Toggle theme', hint: 'Switch light / dark mode', icon: '◐', action: () => window.ArTheme?.toggle?.() },
   { id: 'top', label: 'Back to top', hint: 'Return to the top of the page', icon: '↑', action: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
 ];
 
