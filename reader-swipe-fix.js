@@ -4,8 +4,8 @@
     .reader-stage{overflow:auto!important}
     .reader-stage img{max-width:none!important;max-height:none!important}
     @media(min-width:900px){
-      .reader-stage{overflow:auto!important}
-      .reader-stage img{max-width:100%!important;max-height:none!important;width:auto!important;height:auto!important}
+      .reader-stage{overflow:auto!important;touch-action:auto!important;contain:none!important}
+      .reader-stage img{max-width:none!important;max-height:none!important;width:auto!important;height:auto!important;content-visibility:visible!important}
     }
     .reader-page img.ar-swipe-active,.ar-fullscreen-swipe-active{will-change:transform;transition:none!important;transform:translate3d(var(--ar-x),0,0) rotate(var(--ar-r)) scale(var(--ar-s))!important}
     .reader-page img.ar-swipe-settle,.ar-fullscreen-swipe-settle{transition:transform 180ms cubic-bezier(.22,.8,.2,1)!important}
@@ -63,6 +63,13 @@
     clearTimeout(timer);
     timer=setTimeout(()=>{i.classList.remove(settle,ret);['--ar-x','--ar-r','--ar-s'].forEach(k=>i.style.removeProperty(k))},220);
   };
+  // Never let reader keyboard navigation swallow Chrome's browser-zoom shortcuts.
+  document.addEventListener('keydown',event=>{
+    if(!document.querySelector('.reader-page'))return;
+    if(!(event.ctrlKey||event.metaKey))return;
+    if(!['+','=','-','_','0'].includes(event.key))return;
+    event.stopImmediatePropagation();
+  },{capture:true});
   document.addEventListener('pointerdown',start,{passive:true,capture:true});
   document.addEventListener('pointermove',move,{passive:true,capture:true});
   document.addEventListener('pointerup',end,{passive:true,capture:true});
