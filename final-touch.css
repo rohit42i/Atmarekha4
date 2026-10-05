@@ -432,155 +432,20 @@ html[data-theme="dark"] .chapter-discovery > label {
 }
 html[data-theme="dark"] .chapter-discovery > label > .chapter-search-icon { color: #fff; }
 
-/* Continue Reading — compact reading card with a clear action hierarchy. */
-.continue-reading-card{
-  width:min(940px,calc(100% - 32px));
-  margin:14px auto 0;
-  padding:14px;
-  box-sizing:border-box;
-  display:grid;
-  grid-template-columns:64px minmax(0,1fr);
-  align-items:start;
-  gap:14px;
-  border:1px solid rgba(0,0,0,.12);
-  border-radius:16px;
-  background:#fff;
-  color:#111;
-  box-shadow:0 8px 24px rgba(0,0,0,.07);
-}
-.continue-reading-art{
-  width:64px;
-  height:76px;
-  border-radius:10px;
-  overflow:hidden;
-  display:grid;
-  place-items:center;
-  background:#f1f1f1;
-  color:#111;
-  font-weight:900;
-}
-.continue-reading-art img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-.continue-reading-copy{
-  min-width:0;
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:stretch!important;
-  gap:4px!important;
-}
-.continue-reading-copy .section-eyebrow{
-  margin:0;
-  font-size:9px;
-  font-weight:900;
-  letter-spacing:.15em;
-  line-height:1.2;
-}
-.continue-reading-copy h2{
-  margin:0!important;
-  width:100%;
-  min-width:0;
-  font-size:17px;
-  line-height:1.2;
-  font-weight:850;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.continue-reading-copy > span{
-  font-size:10px;
-  font-weight:650;
-  line-height:1.35;
-  opacity:.58;
-}
-.continue-reading-action{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  margin-top:8px;
-}
-.continue-reading-button{
-  margin:0!important;
-  min-height:36px!important;
-  padding:0 16px!important;
-  border:1px solid #111;
-  border-radius:9px;
-  background:#111;
-  color:#fff;
-  cursor:pointer;
-  font-size:10px;
-  font-weight:850;
-  line-height:1;
-  white-space:nowrap;
-  transition:transform .16s ease,opacity .16s ease,background-color .16s ease;
-}
-.continue-reading-button:hover{transform:translateY(-1px)}
-.continue-reading-button:active{transform:scale(.98)}
-html[data-theme="dark"] .continue-reading-card{
-  border-color:#242424;
-  background:#030303;
-  color:#fff;
-  box-shadow:0 12px 30px rgba(0,0,0,.38);
-}
-html[data-theme="dark"] .continue-reading-art{
-  background:#101010;
-  color:#fff;
-}
-html[data-theme="dark"] .continue-reading-button{
-  border-color:#fff;
-  background:#fff;
-  color:#000;
-}
-
-/* Atma Rekha reader: chapter-to-chapter controls are retired. */
-body:has(.reader-page) .reader-chapter-nav{
-  display:none!important;
-}
-
-@media(max-width:700px){
-  .continue-reading-card{
-    width:calc(100% - 20px);
-    grid-template-columns:50px minmax(0,1fr);
-    gap:10px;
-    padding:10px;
-    border-radius:13px;
-  }
-  .continue-reading-art{
-    width:50px;
-    height:62px;
-    border-radius:8px;
-  }
-  .continue-reading-copy h2{font-size:14px}
-  .continue-reading-copy > span{font-size:9px}
-  .continue-reading-action{
-    justify-content:flex-start;
-    margin-top:7px;
-  }
-  .continue-reading-button{
-    min-height:34px!important;
-    padding:0 13px!important;
-    font-size:9px;
-  }
-}
-@media(max-width:420px){
-  .continue-reading-card{
-    grid-template-columns:42px minmax(0,1fr);
-    gap:9px;
-    padding:9px;
-  }
-  .continue-reading-art{
-    width:42px;
-    height:54px;
-  }
-  .continue-reading-copy h2{font-size:13px}
-  .continue-reading-action{margin-top:6px}
-  .continue-reading-button{
-    min-height:32px!important;
-    padding:0 12px!important;
-    font-size:9px;
-  }
-}
+/* Continue Reading — larger thumbnail/text with Resume on the left. */
+.continue-reading-card{width:min(940px,calc(100% - 32px));margin:14px auto 0;padding:16px;box-sizing:border-box;display:grid;grid-template-columns:92px minmax(0,1fr) 110px;align-items:center;gap:18px;border:1px solid rgba(0,0,0,.12);border-radius:16px;background:#fff;color:#111;box-shadow:0 8px 24px rgba(0,0,0,.07)}
+.continue-reading-art{width:92px;height:108px;border-radius:11px;overflow:hidden;display:grid;place-items:center;background:#f1f1f1;color:#111;font-weight:900}
+.continue-reading-art img{width:100%;height:100%;object-fit:cover;display:block}
+.continue-reading-copy{min-width:0;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important}
+.continue-reading-copy .section-eyebrow{margin:0;font-size:11px;font-weight:900;letter-spacing:.15em;line-height:1.2}
+.continue-reading-copy h2{margin:0!important;width:100%;min-width:0;font-size:22px;line-height:1.2;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.continue-reading-copy > span{font-size:13px;font-weight:650;line-height:1.4;opacity:.58}
+.continue-reading-action{display:flex;align-items:center;justify-content:flex-start}
+.continue-reading-button{margin:0!important;width:100%;min-height:44px!important;padding:0 12px!important;border:1px solid #111;border-radius:10px;background:#111;color:#fff;cursor:pointer;font-size:11px;font-weight:850;line-height:1;white-space:nowrap;transition:transform .16s ease,opacity .16s ease}
+.continue-reading-button:hover{transform:translateY(-1px)}.continue-reading-button:active{transform:scale(.98)}
+html[data-theme="dark"] .continue-reading-card{border-color:#242424;background:#030303;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.38)}
+html[data-theme="dark"] .continue-reading-art{background:#101010;color:#fff}
+html[data-theme="dark"] .continue-reading-button{border-color:#fff;background:#fff;color:#000}
+body:has(.reader-page) .reader-chapter-nav{display:none!important}
+@media(max-width:700px){.continue-reading-card{width:calc(100% - 20px);grid-template-columns:70px minmax(0,1fr);gap:12px;padding:12px;align-items:start;border-radius:13px}.continue-reading-art{width:70px;height:86px;border-radius:9px}.continue-reading-copy{gap:5px!important}.continue-reading-copy .section-eyebrow{font-size:9px}.continue-reading-copy h2{font-size:17px}.continue-reading-copy > span{font-size:11px}.continue-reading-action{grid-column:2;justify-content:flex-start;margin-top:8px}.continue-reading-button{width:auto;min-height:38px!important;padding:0 16px!important;font-size:10px}}
+@media(max-width:420px){.continue-reading-card{grid-template-columns:58px minmax(0,1fr);gap:10px;padding:10px}.continue-reading-art{width:58px;height:72px}.continue-reading-copy h2{font-size:15px}.continue-reading-copy > span{font-size:10px}.continue-reading-action{margin-top:7px}.continue-reading-button{min-height:36px!important;padding:0 14px!important;font-size:9px}}
