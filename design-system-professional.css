@@ -1,65 +1,155 @@
-/* Atma Rekha — unified professional visual system.
-   Final override layer: visual only; no routing, auth, data, payment or reader logic. */
+/* Atma Rekha — professional theme system.
+   Design direction informed by Apple-style semantic surfaces + Material-style
+   tonal elevation: the page establishes the canvas; cards establish hierarchy.
+   Visual only. No routing, auth, data, payment or reader logic. */
 
 :root{
-  --ar-bg:#f5f5f2;
+  /* Core semantic palette — light */
+  --ar-bg:#f4f4f1;
   --ar-surface:#ffffff;
-  --ar-surface-2:#eeeeea;
-  --ar-text:#000000;
-  --ar-border:#d8d8d2;
-  --ar-border-strong:#bdbdb5;
-  --ar-muted:rgba(0,0,0,.62);
-  --ar-faint:rgba(0,0,0,.46);
-  --ar-accent:#9b772f;
+  --ar-surface-2:#f7f7f4;
+  --ar-surface-3:#ededeb;
+  --ar-text:#111111;
+  --ar-text-secondary:#3d3d3d;
+  --ar-text-muted:#666666;
+  --ar-text-faint:#858585;
+  --ar-border:#d9d9d4;
+  --ar-border-strong:#b9b9b2;
+  --ar-accent:#9a742b;
+  --ar-accent-strong:#7f5d1f;
   --ar-control:#ffffff;
-  --ar-primary:#000000;
+  --ar-primary:#111111;
   --ar-primary-text:#ffffff;
-  --ar-shadow:0 14px 40px rgba(0,0,0,.07);
-  --ar-shadow-hover:0 20px 52px rgba(0,0,0,.11);
+  --ar-danger:#b42318;
+  --ar-danger-bg:#fff3f0;
+  --ar-success:#13744a;
+  --ar-success-bg:#edf9f2;
+  --ar-warning:#8c6410;
+  --ar-warning-bg:#fff8e5;
+  --ar-shadow:0 1px 2px rgba(0,0,0,.05),0 10px 28px rgba(0,0,0,.055);
+  --ar-shadow-hover:0 2px 4px rgba(0,0,0,.06),0 14px 34px rgba(0,0,0,.08);
+  --ar-modal-shadow:0 24px 80px rgba(0,0,0,.22);
   --ar-radius:18px;
   --ar-radius-lg:24px;
+
+  /* Feed the older theme layer from one source of truth. */
+  --bg-color:var(--ar-bg);
+  --surface-color:var(--ar-surface);
+  --surface-2-color:var(--ar-surface-2);
+  --card-bg:var(--ar-surface);
+  --input-bg:var(--ar-control);
+  --text-color:var(--ar-text);
+  --text-secondary:var(--ar-text-secondary);
+  --muted-color:var(--ar-text-muted);
+  --faint-color:var(--ar-text-faint);
+  --border-color:var(--ar-border);
+  --border-soft-color:#e7e7e2;
+  --accent-color:var(--ar-primary);
+  --accent-hover:#000000;
+  --accent-contrast:var(--ar-primary-text);
+  --success-color:var(--ar-success);
+  --danger-color:var(--ar-danger);
+  --danger-bg:var(--ar-danger-bg);
+  --warning-color:var(--ar-warning);
+  --warning-bg:var(--ar-warning-bg);
+  --overlay-color:rgb(0 0 0 / .46);
+  --shadow-color:rgb(0 0 0 / .10);
+  --icon-color:var(--ar-text);
+  --arrow-color:var(--ar-text);
+  --control-border-color:var(--ar-border);
 }
 
 :root[data-theme="dark"]{
+  /* User-selected canvas: pure black page, gray/charcoal cards. */
   --ar-bg:#000000;
   --ar-surface:#0d0d0d;
   --ar-surface-2:#161616;
+  --ar-surface-3:#1d1d1d;
   --ar-text:#ffffff;
+  --ar-text-secondary:#ededed;
+  --ar-text-muted:#b8b8b8;
+  --ar-text-faint:#858585;
   --ar-border:#292929;
-  --ar-border-strong:#444444;
-  --ar-muted:rgba(255,255,255,.68);
-  --ar-faint:rgba(255,255,255,.46);
-  --ar-accent:#d0ad63;
-  --ar-control:#090909;
+  --ar-border-strong:#454545;
+  --ar-accent:#d1ad63;
+  --ar-accent-strong:#e2c17b;
+  --ar-control:#0a0a0a;
   --ar-primary:#ffffff;
   --ar-primary-text:#000000;
-  --ar-shadow:0 18px 52px rgba(0,0,0,.48);
-  --ar-shadow-hover:0 24px 64px rgba(0,0,0,.62);
+  --ar-danger:#ff9a92;
+  --ar-danger-bg:#211110;
+  --ar-success:#8edcaf;
+  --ar-success-bg:#0f1d15;
+  --ar-warning:#e8c56d;
+  --ar-warning-bg:#211c0e;
+  --ar-shadow:0 0 0 1px rgba(255,255,255,.045),0 8px 24px rgba(0,0,0,.34);
+  --ar-shadow-hover:0 0 0 1px rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.48);
+  --ar-modal-shadow:0 28px 90px rgba(0,0,0,.72);
+
+  --bg-color:var(--ar-bg);
+  --surface-color:var(--ar-surface);
+  --surface-2-color:var(--ar-surface-2);
+  --card-bg:var(--ar-surface);
+  --input-bg:var(--ar-control);
+  --text-color:var(--ar-text);
+  --text-secondary:var(--ar-text-secondary);
+  --muted-color:var(--ar-text-muted);
+  --faint-color:var(--ar-text-faint);
+  --border-color:var(--ar-border);
+  --border-soft-color:#1b1b1b;
+  --accent-color:var(--ar-primary);
+  --accent-hover:#f2f2f2;
+  --accent-contrast:var(--ar-primary-text);
+  --success-color:var(--ar-success);
+  --danger-color:var(--ar-danger);
+  --danger-bg:var(--ar-danger-bg);
+  --warning-color:var(--ar-warning);
+  --warning-bg:var(--ar-warning-bg);
+  --overlay-color:rgb(0 0 0 / .72);
+  --shadow-color:rgb(0 0 0 / .58);
+  --icon-color:var(--ar-text);
+  --arrow-color:var(--ar-text);
+  --control-border-color:var(--ar-border);
 }
 
+html{
+  color-scheme:light;
+  background:var(--ar-bg)!important;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+}
 html,body,#root{
+  min-height:100%;
   background:var(--ar-bg)!important;
   color:var(--ar-text)!important;
 }
-:root[data-theme="dark"] body,
-:root[data-theme="dark"] #root{
-  background:#000000!important;
-  background-image:none!important;
-}
-html{color-scheme:light!important}
-:root[data-theme="dark"]{color-scheme:dark!important}
-
 body{
-  font-family:Inter,"SF Pro Display","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  font-family:Poppins,Inter,"SF Pro Display","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+::selection{
+  background:var(--ar-text);
+  color:var(--ar-bg);
 }
 
-/* Kill legacy visual drift without touching structure. */
-:where(.home-page,.site-shell,.reader-page,.community-page,.info-page,.profile-v2-shell,.membership-page,.admin-page,.pdlpl-page,.pdlpl-reader,.pdlpl-admin){
+/* Page canvas: never gradient. */
+:where(
+  .home-page,.site-shell,.reader-page,.community-page,.info-page,
+  .profile-v2-shell,.membership-page,.admin-page,.pdlpl-page,
+  .pdlpl-reader,.pdlpl-admin
+){
   background:var(--ar-bg)!important;
   background-image:none!important;
   color:var(--ar-text)!important;
 }
-:where(.home-header,.subpage-header,.reader-header,.community-header,.profile-v2-header,.site-footer){
+
+/* Headers stay quiet so the content hierarchy does the work. */
+:where(
+  .home-header,.subpage-header,.reader-header,.community-header,
+  .profile-v2-header,.site-footer
+){
   background:var(--ar-bg)!important;
   background-image:none!important;
   color:var(--ar-text)!important;
@@ -68,16 +158,48 @@ body{
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
 }
-:where(h1,h2,h3,h4,h5,h6,strong,b,p,span,small,label,li,time,figcaption,summary,dt,dd,a,button){
+
+/* Text hierarchy — do not force links/buttons into one color. */
+:where(
+  h1,h2,h3,h4,h5,h6,strong,b,p,span,small,label,li,time,
+  figcaption,summary,dt,dd
+){
   color:var(--ar-text);
 }
-:where(.hero-description,.latest-note,.chapter-row-meta,.chapter-row-details,.reader-info-row,.reader-hint,.community-meta,.community-post-head span,.community-attachment small,.info-card p,.about-card p,.legal-card p,.home-section>p:not(.section-eyebrow)){
-  color:var(--ar-text)!important;
-  opacity:.64;
+:where(
+  .hero-description,.latest-note,.chapter-row-meta,.chapter-row-details,
+  .reader-info-row,.reader-hint,.community-meta,.community-post-head span,
+  .community-attachment small,.info-card p,.about-card p,.legal-card p,
+  .home-section>p:not(.section-eyebrow),.project-card p
+){
+  color:var(--ar-text-secondary)!important;
+  opacity:.78;
+}
+:where(a){
+  color:var(--ar-text);
 }
 
-/* Consistent content surfaces. */
-:where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-hero,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.reader-rating-card,.rating-card,.admin-header-card,.admin-card,.admin-stat,.admin-overview-card,.admin-overview-stat,.performance-card,.admin-media-grid article){
+/* One restrained accent — metadata, selected states and meaningful emphasis. */
+:where(.hero-eyebrow,.section-eyebrow,.header-kicker,.footer-kicker,
+       .reader-title p,.chapter-row-title>span,.latest-item>div>span){
+  color:var(--ar-accent)!important;
+  opacity:1!important;
+}
+:where(.section-link,.admin-link){
+  color:var(--ar-accent)!important;
+}
+:where(.section-link,.admin-link):hover{
+  color:var(--ar-accent-strong)!important;
+}
+
+/* Content surfaces: clear hierarchy, restrained radius and elevation. */
+:where(
+  .hero-card,.home-section,.project-card,.chapter-row,.latest-item,
+  .community-hero,.community-post,.info-card,.about-card,.legal-card,
+  .profile-v2-card,.profile-community-card,.reader-rating-card,.rating-card,
+  .admin-header-card,.admin-card,.admin-stat,.admin-overview-card,
+  .admin-overview-stat,.performance-card,.admin-media-grid article
+){
   background:var(--ar-surface)!important;
   background-image:none!important;
   color:var(--ar-text)!important;
@@ -85,41 +207,75 @@ body{
   border-radius:var(--ar-radius)!important;
   box-shadow:var(--ar-shadow)!important;
 }
-:where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.admin-card,.admin-stat,.performance-card):hover{
+:root[data-theme="dark"] :where(
+  .hero-card,.home-section,.project-card,.chapter-row,.latest-item,
+  .community-hero,.community-post,.info-card,.about-card,.legal-card,
+  .profile-v2-card,.profile-community-card,.reader-rating-card,.rating-card,
+  .admin-header-card,.admin-card,.admin-stat,.admin-overview-card,
+  .admin-overview-stat,.performance-card,.admin-media-grid article
+){
+  background:#0d0d0d!important;
+  background-image:none!important;
+}
+:where(
+  .hero-card,.home-section,.project-card,.chapter-row,.latest-item,
+  .community-post,.info-card,.about-card,.legal-card,.profile-v2-card,
+  .profile-community-card,.admin-card,.admin-stat,.performance-card
+):hover{
   border-color:var(--ar-border-strong)!important;
   box-shadow:var(--ar-shadow-hover)!important;
-  transform:translateY(-1px);
-}
-@media (prefers-reduced-motion:reduce){
-  :where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.admin-card,.admin-stat,.performance-card):hover{transform:none}
+  transform:none!important;
 }
 
-/* Home: cleaner editorial hierarchy. */
-.hero-card{overflow:hidden!important}
-.hero-art{
+/* Nested/secondary surfaces use the next tonal step rather than new colors. */
+:where(
+  .hero-art,.community-attachment,.community-attachment-preview,
+  .community-file-preview,.ec-join,.ec-empty,.ec-state,.ec-notice,
+  .admin-performance>div,.admin-chapter-list article,
+  .admin-comment-list article,.admin-report-list article,.admin-dropzone,
+  .admin-progress,.reader-page-pill,.reader-chapter-nav-item
+){
   background:var(--ar-surface-2)!important;
   background-image:none!important;
+  color:var(--ar-text)!important;
   border-color:var(--ar-border)!important;
 }
+:root[data-theme="dark"] :where(
+  .hero-art,.community-attachment,.community-attachment-preview,
+  .community-file-preview,.ec-join,.ec-empty,.ec-state,.ec-notice,
+  .admin-performance>div,.admin-chapter-list article,
+  .admin-comment-list article,.admin-report-list article,.admin-dropzone,
+  .admin-progress,.reader-page-pill,.reader-chapter-nav-item
+){
+  background:#161616!important;
+}
+
+/* Home / editorial rhythm. */
+.hero-card{overflow:hidden!important}
 .hero-copy{background:var(--ar-surface)!important}
 .hero-copy h1{
   color:var(--ar-text)!important;
+  font-weight:800!important;
   letter-spacing:-.055em!important;
-  font-weight:900!important;
 }
-.hero-description{color:var(--ar-text)!important;opacity:.72}
-.home-section h2,.chapter-row-title h2,.latest-item h3{
+.home-section h2,.project-card h2,.chapter-row-title h2,.latest-item h3{
   color:var(--ar-text)!important;
-  font-weight:850!important;
+  font-weight:800!important;
   letter-spacing:-.035em!important;
 }
-.section-eyebrow,.header-kicker,.footer-kicker{
-  color:var(--ar-accent)!important;
-  opacity:1!important;
+.latest-item{
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.latest-item:hover{
+  background:var(--ar-surface-2)!important;
 }
 
-/* One button language: black/white, no gradients. */
-:where(.hero-button,.primary-button,.reader-control.primary,.community-join,.ec-join button,.ec-compose-row>button,.community-admin-send,.admin-submit,.membership-button){
+/* Buttons: solid, readable, no gradient. */
+:where(
+  .hero-button,.primary-button,.reader-control.primary,.community-join,
+  .ec-join button,.ec-compose-row>button,.community-admin-send,
+  .admin-submit,.membership-button
+){
   background:var(--ar-primary)!important;
   background-image:none!important;
   color:var(--ar-primary-text)!important;
@@ -127,53 +283,81 @@ body{
   box-shadow:none!important;
   font-weight:800!important;
 }
-:where(.hero-button,.primary-button,.reader-control.primary,.community-join,.ec-join button,.ec-compose-row>button,.community-admin-send,.admin-submit,.membership-button):hover:not(:disabled){
-  background:var(--ar-primary)!important;
-  color:var(--ar-primary-text)!important;
-  border-color:var(--ar-primary)!important;
-  box-shadow:0 8px 22px rgba(0,0,0,.12)!important;
+:root[data-theme="light"] :where(
+  .hero-button,.primary-button,.reader-control.primary,.community-join,
+  .ec-join button,.ec-compose-row>button,.community-admin-send,
+  .admin-submit,.membership-button
+):hover:not(:disabled){
+  background:#000!important;
 }
-:root[data-theme="dark"] :where(.hero-button,.primary-button,.reader-control.primary,.community-join,.ec-join button,.ec-compose-row>button,.community-admin-send,.admin-submit,.membership-button):hover:not(:disabled){
-  box-shadow:0 8px 24px rgba(255,255,255,.10)!important;
+:root[data-theme="dark"] :where(
+  .hero-button,.primary-button,.reader-control.primary,.community-join,
+  .ec-join button,.ec-compose-row>button,.community-admin-send,
+  .admin-submit,.membership-button
+):hover:not(:disabled){
+  background:#f2f2f2!important;
 }
 
-/* Secondary controls. */
-:where(.back-button,.reader-back,.icon-button,.engagement-icon,.reader-control,.section-link,.footer-social,.reader-page-pill,.membership-close){
+/* Secondary controls keep the page tone and rely on border contrast. */
+:where(
+  .back-button,.reader-back,.icon-button,.engagement-icon,.reader-control,
+  .section-link,.footer-social,.reader-page-pill,.membership-close
+){
   background:var(--ar-control)!important;
   background-image:none!important;
   color:var(--ar-text)!important;
   border:1px solid var(--ar-border)!important;
   box-shadow:none!important;
 }
-:where(.back-button,.reader-back,.icon-button,.engagement-icon,.reader-control,.section-link,.footer-social,.reader-page-pill,.membership-close):hover:not(:disabled){
+:where(
+  .back-button,.reader-back,.icon-button,.engagement-icon,.reader-control,
+  .footer-social,.reader-page-pill,.membership-close
+):hover:not(:disabled){
   background:var(--ar-surface-2)!important;
   border-color:var(--ar-border-strong)!important;
 }
 
-/* Inputs: unmistakable focus and clean surfaces. */
+/* Inputs: one clean field style with visible focus. */
 :where(input,textarea,select){
   background:var(--ar-control)!important;
   color:var(--ar-text)!important;
   border:1px solid var(--ar-border)!important;
   border-radius:12px!important;
   box-shadow:none!important;
+  caret-color:var(--ar-text)!important;
 }
-:where(input,textarea,select)::placeholder{color:var(--ar-text)!important;opacity:.42!important}
+:where(input,textarea,select)::placeholder{
+  color:var(--ar-text)!important;
+  opacity:.44!important;
+}
 :where(input,textarea,select):focus{
   border-color:var(--ar-border-strong)!important;
-  box-shadow:0 0 0 3px color-mix(in srgb,var(--ar-accent) 18%,transparent)!important;
+  box-shadow:0 0 0 3px rgb(154 116 43 / .18)!important;
   outline:none!important;
 }
 
-/* Reader stays distraction-free. */
+/* Reader is an intentional black void; controls around it still follow the theme. */
 .reader-content,.reader-stage,.reader-info,.reader-thumbnails{
   background:#000!important;
+  background-image:none!important;
   color:#fff!important;
 }
-.reader-stage{box-shadow:none!important}
-.reader-progress{background:var(--ar-surface-2)!important}
-.reader-progress span{background:var(--ar-text)!important}
-.reader-title h1{color:var(--ar-text)!important}
+.reader-stage{
+  box-shadow:none!important;
+}
+.reader-stage img{
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.reader-progress{
+  background:#1a1a1a!important;
+}
+.reader-progress span{
+  background:#ffffff!important;
+}
+.reader-title h1{
+  color:#fff!important;
+}
 .reader-chapter-nav{
   gap:10px!important;
 }
@@ -186,16 +370,16 @@ body{
   color:var(--ar-text)!important;
 }
 
-/* Sheets / dialogs: solid, readable, no glass effect. */
-:where(.rating-sheet,.comment-sheet,.ec-sheet,.community-admin-modal,.ec-preview,.membership-sheet,.membership-phone-modal,.auth-panel){
+/* Sheets/dialogs: solid surfaces, one level above cards. */
+:where(
+  .rating-sheet,.comment-sheet,.ec-sheet,.community-admin-modal,
+  .ec-preview,.membership-sheet,.membership-phone-modal,.auth-panel
+){
   background:var(--ar-surface)!important;
   background-image:none!important;
   color:var(--ar-text)!important;
   border:1px solid var(--ar-border)!important;
-  box-shadow:0 28px 90px rgba(0,0,0,.28)!important;
-}
-:root[data-theme="dark"] :where(.rating-sheet,.comment-sheet,.ec-sheet,.community-admin-modal,.ec-preview,.membership-sheet,.membership-phone-modal,.auth-panel){
-  box-shadow:0 28px 100px rgba(0,0,0,.72)!important;
+  box-shadow:var(--ar-modal-shadow)!important;
 }
 :where(.sheet-head,.comment-sheet-head,.ec-header,.ec-composer){
   background:var(--ar-surface)!important;
@@ -203,27 +387,27 @@ body{
   border-color:var(--ar-border)!important;
   backdrop-filter:none!important;
 }
-:where(.overlay-backdrop,.comment-sheet-backdrop,.ec-backdrop,.community-admin-backdrop,.membership-backdrop,.membership-phone-backdrop){
-  background:rgba(0,0,0,.68)!important;
+:where(
+  .overlay-backdrop,.comment-sheet-backdrop,.ec-backdrop,
+  .community-admin-backdrop,.membership-backdrop,.membership-phone-backdrop
+){
+  background:rgb(0 0 0 / .68)!important;
   backdrop-filter:none!important;
 }
 
-/* Community/comments follow the same system. */
-:where(.ec-list,.community-feed){background:var(--ar-bg)!important}
-:where(.ec-comment,.ec-replies,.comment-item,.comment-reply,.community-post-actions){
-  border-color:var(--ar-border)!important;
+/* Community/comments: preserve content, unify chrome. */
+:where(.ec-list,.community-feed){
+  background:var(--ar-bg)!important;
 }
-:where(.ec-join,.ec-empty,.ec-state,.ec-notice,.ec-compose-row textarea,.community-attachment,.community-attachment-preview,.community-file-preview){
-  background:var(--ar-surface-2)!important;
-  color:var(--ar-text)!important;
+:where(.ec-comment,.ec-replies,.comment-item,.comment-reply,.community-post-actions){
   border-color:var(--ar-border)!important;
 }
 :where(.ec-actions button,.community-post-actions button){
   color:var(--ar-text)!important;
-  opacity:.62;
+  opacity:.72;
 }
 
-/* Admin: professional workspace instead of a separate visual language. */
+/* Admin workspace: same system, stronger structure. */
 .ar-admin-v3,.ar-admin-shell,.admin-page{
   background:var(--ar-bg)!important;
   color:var(--ar-text)!important;
@@ -237,79 +421,152 @@ body{
   color:var(--ar-text)!important;
   background:transparent!important;
   border-color:transparent!important;
-  opacity:.62;
+  opacity:.68;
+  transition:background-color .16s ease,color .16s ease,opacity .16s ease;
+}
+:where(.admin-tabs button:hover,.ar-admin-nav button:hover){
+  opacity:1;
+  background:var(--ar-surface-2)!important;
 }
 :where(.admin-tabs button.active,.ar-admin-nav button.active){
   background:var(--ar-primary)!important;
   color:var(--ar-primary-text)!important;
   opacity:1!important;
 }
-:where(.admin-performance>div,.admin-chapter-list article,.admin-comment-list article,.admin-report-list article,.admin-form input,.admin-form textarea,.admin-form select,.admin-form-grid input,.admin-form-grid textarea,.admin-form-grid select,.admin-dropzone,.admin-progress){
-  background:var(--ar-surface-2)!important;
-  color:var(--ar-text)!important;
-  border-color:var(--ar-border)!important;
-}
-:where(.admin-tabs button.active) *{color:var(--ar-primary-text)!important}
+:where(.admin-tabs button.active *){color:var(--ar-primary-text)!important}
 
-/* Membership: preserve its function while removing competing visual styles. */
+/* Membership: one primary card, not a different visual language. */
 .membership-plan{
   background:var(--ar-surface)!important;
   background-image:none!important;
   border-color:var(--ar-border)!important;
   box-shadow:var(--ar-shadow)!important;
 }
+.membership-plan:hover{
+  border-color:var(--ar-border-strong)!important;
+  transform:none!important;
+}
 .membership-plan.is-popular{
   border-color:var(--ar-accent)!important;
-  box-shadow:0 18px 46px color-mix(in srgb,var(--ar-accent) 14%,transparent)!important;
+  box-shadow:var(--ar-shadow-hover)!important;
 }
 .membership-plan::after{display:none!important}
-.membership-popular{background:var(--ar-accent)!important;color:#fff!important}
+.membership-popular{
+  background:var(--ar-accent)!important;
+  color:#fff!important;
+}
 
-/* Status colors remain meaningful. */
-:where(.error,.form-error,.inline-error,[aria-invalid="true"]){color:#b42318!important}
-:root[data-theme="dark"] :where(.error,.form-error,.inline-error,[aria-invalid="true"]){color:#ff8b8b!important}
-:where(.success,[data-status="success"]){color:#147a4b!important}
-:root[data-theme="dark"] :where(.success,[data-status="success"]){color:#8ee0b7!important}
+/* Status colors carry meaning; they do not become monochrome text. */
+:where(.error,.form-error,.inline-error,[aria-invalid="true"]){
+  color:var(--ar-danger)!important;
+}
+:where(.success,[data-status="success"]){
+  color:var(--ar-success)!important;
+}
+:where(.warning,[data-status="warning"]){
+  color:var(--ar-warning)!important;
+}
+:root[data-theme="light"] :where(.error,.form-error,.inline-error,[aria-invalid="true"]){
+  background:var(--ar-danger-bg)!important;
+  border-color:#efc4bd!important;
+}
+:root[data-theme="dark"] :where(.error,.form-error,.inline-error,[aria-invalid="true"]){
+  background:var(--ar-danger-bg)!important;
+  border-color:#55332f!important;
+}
+:root[data-theme="light"] :where(.success,[data-status="success"]){
+  background:var(--ar-success-bg)!important;
+}
+:root[data-theme="dark"] :where(.success,[data-status="success"]){
+  background:var(--ar-success-bg)!important;
+}
 
-/* Accessibility + touch polish. */
-:where(button,a,[role="button"]){-webkit-tap-highlight-color:transparent}
+/* Accessibility and touch targets. */
+:where(button,a,[role="button"]){
+  -webkit-tap-highlight-color:transparent;
+}
 :where(button,a,input,textarea,select):focus-visible{
   outline:2px solid var(--ar-accent)!important;
   outline-offset:3px!important;
 }
-:where(button,.hero-button,.primary-button,.reader-control,.icon-button,.back-button,.reader-back,.membership-button,.admin-submit){
+:where(
+  button,.hero-button,.primary-button,.reader-control,.icon-button,
+  .back-button,.reader-back,.membership-button,.admin-submit
+){
   min-height:44px;
 }
-@media(max-width:640px){
-  .hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card{border-radius:18px!important}
-  .hero-copy{padding:28px 20px!important}
-  .home-header,.subpage-header,.reader-header,.community-header{min-height:64px}
+
+/* Theme toggle follows the same surface hierarchy. */
+.theme-toggle{
+  width:44px!important;
+  height:44px!important;
+  border:1px solid var(--ar-border)!important;
+  border-radius:999px!important;
+  background:var(--ar-surface)!important;
+  color:var(--ar-text)!important;
+  box-shadow:var(--ar-shadow)!important;
 }
-@media(min-width:900px){
-  .hero-card,.home-section,.project-card{border-radius:26px!important}
+.theme-toggle:hover{
+  background:var(--ar-surface-2)!important;
+  border-color:var(--ar-border-strong)!important;
+  transform:none!important;
 }
 
-/* Never let the old OS preference silently change an explicit theme. */
-:root[data-theme="light"]{
-  --legacy-black-466bc8ce:#000;
-  --legacy-white-528cef87:#000;
-}
-:root[data-theme="dark"]{
-  --legacy-black-466bc8ce:#fff;
-  --legacy-white-528cef87:#fff;
-}
-
-
-/* Dark mode: pure black page, subtly elevated charcoal cards only. */
-:root[data-theme="dark"] :where(.home-page,.site-shell,.community-page,.info-page,.profile-v2-shell,.admin-page,.pdlpl-page,.pdlpl-reader,.pdlpl-admin){
+/* Explicit dark canvas: no accidental gray page background. */
+:root[data-theme="dark"] :where(
+  .home-page,.site-shell,.community-page,.info-page,.profile-v2-shell,
+  .admin-page,.pdlpl-page,.pdlpl-reader,.pdlpl-admin
+){
   background:#000!important;
   background-image:none!important;
 }
-:root[data-theme="dark"] :where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.reader-rating-card,.rating-card,.admin-header-card,.admin-card,.admin-stat,.admin-overview-card,.admin-overview-stat,.performance-card,.admin-media-grid article){
-  background:#0d0d0d!important;
+:root[data-theme="dark"] :where(
+  .home-header,.subpage-header,.community-header,.site-footer,
+  .admin-page .ar-admin-shell
+){
+  background:#000!important;
   background-image:none!important;
 }
-:root[data-theme="dark"] :where(.hero-art,.community-attachment,.community-attachment-preview,.community-file-preview,.ec-join,.ec-empty,.ec-state,.ec-notice,.admin-performance>div,.admin-chapter-list article,.admin-comment-list article,.admin-report-list article,.admin-form input,.admin-form textarea,.admin-form select,.admin-form-grid input,.admin-form-grid textarea,.admin-form-grid select,.admin-dropzone,.admin-progress){
-  background:#161616!important;
-  background-image:none!important;
+
+/* Responsive: keep the hierarchy, tighten only the spacing. */
+@media(max-width:640px){
+  .hero-card,.home-section,.project-card,.chapter-row,.latest-item,
+  .community-post,.info-card,.about-card,.legal-card,.profile-v2-card,
+  .profile-community-card{
+    border-radius:18px!important;
+  }
+  .hero-copy{
+    padding:28px 20px!important;
+  }
+  .home-header,.subpage-header,.reader-header,.community-header{
+    min-height:64px;
+  }
+  :where(.reader-side-button){
+    width:44px;
+    height:44px;
+  }
+}
+
+@media(min-width:900px){
+  .hero-card,.home-section,.project-card{
+    border-radius:24px!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    animation:none!important;
+    transition-duration:.001ms!important;
+  }
+  :where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,
+         .community-post,.info-card,.about-card,.legal-card,.profile-v2-card,
+         .profile-community-card,.membership-plan){
+    transform:none!important;
+  }
+}
+
+/* Keep the reader image/interaction performance classes intact. */
+.reader-performance-image{
+  contain-intrinsic-size:auto 900px;
 }
