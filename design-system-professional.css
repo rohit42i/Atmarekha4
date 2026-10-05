@@ -22,8 +22,8 @@
 
 :root[data-theme="dark"]{
   --ar-bg:#000000;
-  --ar-surface:#080808;
-  --ar-surface-2:#111111;
+  --ar-surface:#0d0d0d;
+  --ar-surface-2:#161616;
   --ar-text:#ffffff;
   --ar-border:#292929;
   --ar-border-strong:#444444;
@@ -40,6 +40,11 @@
 html,body,#root{
   background:var(--ar-bg)!important;
   color:var(--ar-text)!important;
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root{
+  background:#000000!important;
+  background-image:none!important;
 }
 html{color-scheme:light!important}
 :root[data-theme="dark"]{color-scheme:dark!important}
@@ -292,4 +297,19 @@ body{
 :root[data-theme="dark"]{
   --legacy-black-466bc8ce:#fff;
   --legacy-white-528cef87:#fff;
+}
+
+
+/* Dark mode: pure black page, subtly elevated charcoal cards only. */
+:root[data-theme="dark"] :where(.home-page,.site-shell,.community-page,.info-page,.profile-v2-shell,.admin-page,.pdlpl-page,.pdlpl-reader,.pdlpl-admin){
+  background:#000!important;
+  background-image:none!important;
+}
+:root[data-theme="dark"] :where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.reader-rating-card,.rating-card,.admin-header-card,.admin-card,.admin-stat,.admin-overview-card,.admin-overview-stat,.performance-card,.admin-media-grid article){
+  background:#0d0d0d!important;
+  background-image:none!important;
+}
+:root[data-theme="dark"] :where(.hero-art,.community-attachment,.community-attachment-preview,.community-file-preview,.ec-join,.ec-empty,.ec-state,.ec-notice,.admin-performance>div,.admin-chapter-list article,.admin-comment-list article,.admin-report-list article,.admin-form input,.admin-form textarea,.admin-form select,.admin-form-grid input,.admin-form-grid textarea,.admin-form-grid select,.admin-dropzone,.admin-progress){
+  background:#161616!important;
+  background-image:none!important;
 }
