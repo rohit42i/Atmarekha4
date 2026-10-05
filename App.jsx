@@ -86,18 +86,30 @@ function Reader({ chapterId, onBack, chapters }) {
     if (typeof x !== 'number') return;
     touchStartRef.current = x;
     touchCurrentRef.current = x;
+    touchStartYRef.current = event.touches[0].clientY;
+    touchAxisRef.current = null;
   };
   const onTouchMove = event => {
     if (event.touches?.length !== 1 || touchStartRef.current === null) return;
     const x = event.touches[0]?.clientX;
-    if (typeof x === 'number') touchCurrentRef.current = x;
+    const y = event.touches[0]?.clientY;
+    if (typeof x !== 'number' || typeof y !== 'number') return;
+    touchCurrentRef.current = x;
+    if (touchStartYRef.current !== null && touchAxisRef.current === null) {
+      const dx = Math.abs(x - touchStartRef.current);
+      const dy = Math.abs(y - touchStartYRef.current);
+      if (dx > 8 || dy > 8) touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
+    }
   };
   const onTouchEnd = () => {
     const start = touchStartRef.current;
     const end = touchCurrentRef.current;
+    const axis = touchAxisRef.current;
     touchStartRef.current = null;
     touchCurrentRef.current = null;
-    if (start === null || end === null) return;
+    touchStartYRef.current = null;
+    touchAxisRef.current = null;
+    if (start === null || end === null || axis !== 'horizontal') return;
     const distance = start - end;
     if (Math.abs(distance) < minSwipeDistance) return;
     if (distance > 0) setIndex(value => Math.min(value + 1, pages.length - 1));
