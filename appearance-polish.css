@@ -86,10 +86,10 @@ body :where(.back-button,.reader-back,.icon-button) {
  * Visual-only: keeps the current light theme and functionality unchanged.
  */
 html[data-theme="dark"] {
-  --ar-bg: #050505;
-  --ar-surface: #0b0b0b;
-  --ar-card: #121212;
-  --ar-card-soft: #181818;
+  --ar-bg: #000000;
+  --ar-surface: #050505;
+  --ar-card: #0b0b0b;
+  --ar-card-soft: #111111;
   --ar-border: #292929;
   --ar-text: #f7f7f7;
   --ar-muted: #a1a1aa;
@@ -98,7 +98,7 @@ html[data-theme="dark"] {
 
 html[data-theme="dark"] body,
 html[data-theme="dark"] #root {
-  background: #050505 !important;
+  background: #000000 !important;
   color: #f5f5f5 !important;
 }
 
@@ -110,7 +110,7 @@ html[data-theme="dark"] .profile-page,
 html[data-theme="dark"] .profile-v2,
 html[data-theme="dark"] .info-page,
 html[data-theme="dark"] .chapter-list-page {
-  background: #050505 !important;
+  background: #000000 !important;
   color: #f7f7f7 !important;
 }
 
@@ -118,7 +118,7 @@ html[data-theme="dark"] .home-header,
 html[data-theme="dark"] .subpage-header,
 html[data-theme="dark"] .reader-header,
 html[data-theme="dark"] .community-header {
-  background: rgb(5 5 5 / .94) !important;
+  background: rgb(0 0 0 / .94) !important;
   color: #f7f7f7 !important;
   border-color: #292929 !important;
 }
@@ -131,7 +131,7 @@ html[data-theme="dark"] .reader-rating-card,
 html[data-theme="dark"] .community-post,
 html[data-theme="dark"] .profile-v2-card,
 html[data-theme="dark"] .info-card {
-  background: linear-gradient(180deg, #181818, #121212) !important;
+  background: linear-gradient(180deg, #111111, #090909) !important;
   color: #f7f7f7 !important;
   border-color: #292929 !important;
 }
@@ -139,7 +139,7 @@ html[data-theme="dark"] .info-card {
 html[data-theme="dark"] input,
 html[data-theme="dark"] textarea,
 html[data-theme="dark"] select {
-  background: #0b0b0b !important;
+  background: #050505 !important;
   color: #ffffff !important;
   border-color: #333333 !important;
 }
@@ -151,7 +151,7 @@ html[data-theme="dark"] button {
 html[data-theme="dark"] .membership-sheet,
 html[data-theme="dark"] .membership-plan,
 html[data-theme="dark"] .membership-phone-modal {
-  background: #0b0b0b !important;
+  background: #050505 !important;
   color: #f7f7f7 !important;
   border-color: #292929 !important;
 }
