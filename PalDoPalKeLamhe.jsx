@@ -236,6 +236,8 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
 
   useEffect(() => {
     const handler = event => {
+      if (!document.querySelector('.pdlpl-reader')) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.key === 'ArrowRight' || event.key === ' ') {
         event.preventDefault();
         setIndex(value => Math.min(value + 1, pages.length - 1));
