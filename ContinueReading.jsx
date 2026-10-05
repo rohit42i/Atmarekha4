@@ -49,10 +49,10 @@ export default function ContinueReading({ chapters }) {
         <p className="section-eyebrow">CONTINUE READING</p>
         <h2>{resume.chapter.title || `Chapter ${resume.chapter.chapterNumber ?? ''}`}</h2>
         <span>Chapter {resume.chapter.chapterNumber ?? 'Special'} · Page {resume.pageNumber}</span>
+        <button type="button" className="continue-reading-button" onClick={() => resumePath(resume.chapter)}>
+          Resume →
+        </button>
       </div>
-      <button type="button" className="continue-reading-button" onClick={() => resumePath(resume.chapter)}>
-        Resume →
-      </button>
     </section>
   );
 }
