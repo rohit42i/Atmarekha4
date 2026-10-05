@@ -340,16 +340,19 @@ html[data-theme="dark"] .continue-reading-button,
     max-height: none !important;
     overflow: auto !important;
     contain: none !important;
-    touch-action: auto !important;
+    display: block !important;
+    touch-action: pan-y pinch-zoom !important;
     transform: none !important;
   }
 
   body:has(.reader-page) .reader-stage img,
   body:has(.reader-page) .reader-performance-image {
+    display: block !important;
     width: auto !important;
     max-width: none !important;
     height: auto !important;
     max-height: none !important;
+    margin: 0 auto !important;
     content-visibility: visible !important;
     transform: none !important;
     backface-visibility: visible !important;
