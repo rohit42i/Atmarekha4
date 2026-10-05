@@ -1,0 +1,295 @@
+/* Atma Rekha — unified professional visual system.
+   Final override layer: visual only; no routing, auth, data, payment or reader logic. */
+
+:root{
+  --ar-bg:#f5f5f2;
+  --ar-surface:#ffffff;
+  --ar-surface-2:#eeeeea;
+  --ar-text:#000000;
+  --ar-border:#d8d8d2;
+  --ar-border-strong:#bdbdb5;
+  --ar-muted:rgba(0,0,0,.62);
+  --ar-faint:rgba(0,0,0,.46);
+  --ar-accent:#9b772f;
+  --ar-control:#ffffff;
+  --ar-primary:#000000;
+  --ar-primary-text:#ffffff;
+  --ar-shadow:0 14px 40px rgba(0,0,0,.07);
+  --ar-shadow-hover:0 20px 52px rgba(0,0,0,.11);
+  --ar-radius:18px;
+  --ar-radius-lg:24px;
+}
+
+:root[data-theme="dark"]{
+  --ar-bg:#000000;
+  --ar-surface:#080808;
+  --ar-surface-2:#111111;
+  --ar-text:#ffffff;
+  --ar-border:#292929;
+  --ar-border-strong:#444444;
+  --ar-muted:rgba(255,255,255,.68);
+  --ar-faint:rgba(255,255,255,.46);
+  --ar-accent:#d0ad63;
+  --ar-control:#090909;
+  --ar-primary:#ffffff;
+  --ar-primary-text:#000000;
+  --ar-shadow:0 18px 52px rgba(0,0,0,.48);
+  --ar-shadow-hover:0 24px 64px rgba(0,0,0,.62);
+}
+
+html,body,#root{
+  background:var(--ar-bg)!important;
+  color:var(--ar-text)!important;
+}
+html{color-scheme:light!important}
+:root[data-theme="dark"]{color-scheme:dark!important}
+
+body{
+  font-family:Inter,"SF Pro Display","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+/* Kill legacy visual drift without touching structure. */
+:where(.home-page,.site-shell,.reader-page,.community-page,.info-page,.profile-v2-shell,.membership-page,.admin-page,.pdlpl-page,.pdlpl-reader,.pdlpl-admin){
+  background:var(--ar-bg)!important;
+  background-image:none!important;
+  color:var(--ar-text)!important;
+}
+:where(.home-header,.subpage-header,.reader-header,.community-header,.profile-v2-header,.site-footer){
+  background:var(--ar-bg)!important;
+  background-image:none!important;
+  color:var(--ar-text)!important;
+  border-color:var(--ar-border)!important;
+  box-shadow:0 1px 0 var(--ar-border)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+:where(h1,h2,h3,h4,h5,h6,strong,b,p,span,small,label,li,time,figcaption,summary,dt,dd,a,button){
+  color:var(--ar-text);
+}
+:where(.hero-description,.latest-note,.chapter-row-meta,.chapter-row-details,.reader-info-row,.reader-hint,.community-meta,.community-post-head span,.community-attachment small,.info-card p,.about-card p,.legal-card p,.home-section>p:not(.section-eyebrow)){
+  color:var(--ar-text)!important;
+  opacity:.64;
+}
+
+/* Consistent content surfaces. */
+:where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-hero,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.reader-rating-card,.rating-card,.admin-header-card,.admin-card,.admin-stat,.admin-overview-card,.admin-overview-stat,.performance-card,.admin-media-grid article){
+  background:var(--ar-surface)!important;
+  background-image:none!important;
+  color:var(--ar-text)!important;
+  border:1px solid var(--ar-border)!important;
+  border-radius:var(--ar-radius)!important;
+  box-shadow:var(--ar-shadow)!important;
+}
+:where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.admin-card,.admin-stat,.performance-card):hover{
+  border-color:var(--ar-border-strong)!important;
+  box-shadow:var(--ar-shadow-hover)!important;
+  transform:translateY(-1px);
+}
+@media (prefers-reduced-motion:reduce){
+  :where(.hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card,.admin-card,.admin-stat,.performance-card):hover{transform:none}
+}
+
+/* Home: cleaner editorial hierarchy. */
+.hero-card{overflow:hidden!important}
+.hero-art{
+  background:var(--ar-surface-2)!important;
+  background-image:none!important;
+  border-color:var(--ar-border)!important;
+}
+.hero-copy{background:var(--ar-surface)!important}
+.hero-copy h1{
+  color:var(--ar-text)!important;
+  letter-spacing:-.055em!important;
+  font-weight:900!important;
+}
+.hero-description{color:var(--ar-text)!important;opacity:.72}
+.home-section h2,.chapter-row-title h2,.latest-item h3{
+  color:var(--ar-text)!important;
+  font-weight:850!important;
+  letter-spacing:-.035em!important;
+}
+.section-eyebrow,.header-kicker,.footer-kicker{
+  color:var(--ar-accent)!important;
+  opacity:1!important;
+}
+
+/* One button language: black/white, no gradients. */
+:where(.hero-button,.primary-button,.reader-control.primary,.community-join,.ec-join button,.ec-compose-row>button,.community-admin-send,.admin-submit,.membership-button){
+  background:var(--ar-primary)!important;
+  background-image:none!important;
+  color:var(--ar-primary-text)!important;
+  border:1px solid var(--ar-primary)!important;
+  box-shadow:none!important;
+  font-weight:800!important;
+}
+:where(.hero-button,.primary-button,.reader-control.primary,.community-join,.ec-join button,.ec-compose-row>button,.community-admin-send,.admin-submit,.membership-button):hover:not(:disabled){
+  background:var(--ar-primary)!important;
+  color:var(--ar-primary-text)!important;
+  border-color:var(--ar-primary)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)!important;
+}
+:root[data-theme="dark"] :where(.hero-button,.primary-button,.reader-control.primary,.community-join,.ec-join button,.ec-compose-row>button,.community-admin-send,.admin-submit,.membership-button):hover:not(:disabled){
+  box-shadow:0 8px 24px rgba(255,255,255,.10)!important;
+}
+
+/* Secondary controls. */
+:where(.back-button,.reader-back,.icon-button,.engagement-icon,.reader-control,.section-link,.footer-social,.reader-page-pill,.membership-close){
+  background:var(--ar-control)!important;
+  background-image:none!important;
+  color:var(--ar-text)!important;
+  border:1px solid var(--ar-border)!important;
+  box-shadow:none!important;
+}
+:where(.back-button,.reader-back,.icon-button,.engagement-icon,.reader-control,.section-link,.footer-social,.reader-page-pill,.membership-close):hover:not(:disabled){
+  background:var(--ar-surface-2)!important;
+  border-color:var(--ar-border-strong)!important;
+}
+
+/* Inputs: unmistakable focus and clean surfaces. */
+:where(input,textarea,select){
+  background:var(--ar-control)!important;
+  color:var(--ar-text)!important;
+  border:1px solid var(--ar-border)!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+}
+:where(input,textarea,select)::placeholder{color:var(--ar-text)!important;opacity:.42!important}
+:where(input,textarea,select):focus{
+  border-color:var(--ar-border-strong)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--ar-accent) 18%,transparent)!important;
+  outline:none!important;
+}
+
+/* Reader stays distraction-free. */
+.reader-content,.reader-stage,.reader-info,.reader-thumbnails{
+  background:#000!important;
+  color:#fff!important;
+}
+.reader-stage{box-shadow:none!important}
+.reader-progress{background:var(--ar-surface-2)!important}
+.reader-progress span{background:var(--ar-text)!important}
+.reader-title h1{color:var(--ar-text)!important}
+.reader-chapter-nav{
+  gap:10px!important;
+}
+.reader-chapter-nav-item{
+  background:var(--ar-surface)!important;
+  border:1px solid var(--ar-border)!important;
+  border-radius:14px!important;
+}
+.reader-chapter-nav-item a,.reader-chapter-nav-empty{
+  color:var(--ar-text)!important;
+}
+
+/* Sheets / dialogs: solid, readable, no glass effect. */
+:where(.rating-sheet,.comment-sheet,.ec-sheet,.community-admin-modal,.ec-preview,.membership-sheet,.membership-phone-modal,.auth-panel){
+  background:var(--ar-surface)!important;
+  background-image:none!important;
+  color:var(--ar-text)!important;
+  border:1px solid var(--ar-border)!important;
+  box-shadow:0 28px 90px rgba(0,0,0,.28)!important;
+}
+:root[data-theme="dark"] :where(.rating-sheet,.comment-sheet,.ec-sheet,.community-admin-modal,.ec-preview,.membership-sheet,.membership-phone-modal,.auth-panel){
+  box-shadow:0 28px 100px rgba(0,0,0,.72)!important;
+}
+:where(.sheet-head,.comment-sheet-head,.ec-header,.ec-composer){
+  background:var(--ar-surface)!important;
+  color:var(--ar-text)!important;
+  border-color:var(--ar-border)!important;
+  backdrop-filter:none!important;
+}
+:where(.overlay-backdrop,.comment-sheet-backdrop,.ec-backdrop,.community-admin-backdrop,.membership-backdrop,.membership-phone-backdrop){
+  background:rgba(0,0,0,.68)!important;
+  backdrop-filter:none!important;
+}
+
+/* Community/comments follow the same system. */
+:where(.ec-list,.community-feed){background:var(--ar-bg)!important}
+:where(.ec-comment,.ec-replies,.comment-item,.comment-reply,.community-post-actions){
+  border-color:var(--ar-border)!important;
+}
+:where(.ec-join,.ec-empty,.ec-state,.ec-notice,.ec-compose-row textarea,.community-attachment,.community-attachment-preview,.community-file-preview){
+  background:var(--ar-surface-2)!important;
+  color:var(--ar-text)!important;
+  border-color:var(--ar-border)!important;
+}
+:where(.ec-actions button,.community-post-actions button){
+  color:var(--ar-text)!important;
+  opacity:.62;
+}
+
+/* Admin: professional workspace instead of a separate visual language. */
+.ar-admin-v3,.ar-admin-shell,.admin-page{
+  background:var(--ar-bg)!important;
+  color:var(--ar-text)!important;
+}
+:where(.admin-tabs,.ar-admin-nav){
+  background:var(--ar-surface)!important;
+  border-color:var(--ar-border)!important;
+  box-shadow:none!important;
+}
+:where(.admin-tabs button,.ar-admin-nav button){
+  color:var(--ar-text)!important;
+  background:transparent!important;
+  border-color:transparent!important;
+  opacity:.62;
+}
+:where(.admin-tabs button.active,.ar-admin-nav button.active){
+  background:var(--ar-primary)!important;
+  color:var(--ar-primary-text)!important;
+  opacity:1!important;
+}
+:where(.admin-performance>div,.admin-chapter-list article,.admin-comment-list article,.admin-report-list article,.admin-form input,.admin-form textarea,.admin-form select,.admin-form-grid input,.admin-form-grid textarea,.admin-form-grid select,.admin-dropzone,.admin-progress){
+  background:var(--ar-surface-2)!important;
+  color:var(--ar-text)!important;
+  border-color:var(--ar-border)!important;
+}
+:where(.admin-tabs button.active) *{color:var(--ar-primary-text)!important}
+
+/* Membership: preserve its function while removing competing visual styles. */
+.membership-plan{
+  background:var(--ar-surface)!important;
+  background-image:none!important;
+  border-color:var(--ar-border)!important;
+  box-shadow:var(--ar-shadow)!important;
+}
+.membership-plan.is-popular{
+  border-color:var(--ar-accent)!important;
+  box-shadow:0 18px 46px color-mix(in srgb,var(--ar-accent) 14%,transparent)!important;
+}
+.membership-plan::after{display:none!important}
+.membership-popular{background:var(--ar-accent)!important;color:#fff!important}
+
+/* Status colors remain meaningful. */
+:where(.error,.form-error,.inline-error,[aria-invalid="true"]){color:#b42318!important}
+:root[data-theme="dark"] :where(.error,.form-error,.inline-error,[aria-invalid="true"]){color:#ff8b8b!important}
+:where(.success,[data-status="success"]){color:#147a4b!important}
+:root[data-theme="dark"] :where(.success,[data-status="success"]){color:#8ee0b7!important}
+
+/* Accessibility + touch polish. */
+:where(button,a,[role="button"]){-webkit-tap-highlight-color:transparent}
+:where(button,a,input,textarea,select):focus-visible{
+  outline:2px solid var(--ar-accent)!important;
+  outline-offset:3px!important;
+}
+:where(button,.hero-button,.primary-button,.reader-control,.icon-button,.back-button,.reader-back,.membership-button,.admin-submit){
+  min-height:44px;
+}
+@media(max-width:640px){
+  .hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,.legal-card,.profile-v2-card,.profile-community-card{border-radius:18px!important}
+  .hero-copy{padding:28px 20px!important}
+  .home-header,.subpage-header,.reader-header,.community-header{min-height:64px}
+}
+@media(min-width:900px){
+  .hero-card,.home-section,.project-card{border-radius:26px!important}
+}
+
+/* Never let the old OS preference silently change an explicit theme. */
+:root[data-theme="light"]{
+  --legacy-black-466bc8ce:#000;
+  --legacy-white-528cef87:#000;
+}
+:root[data-theme="dark"]{
+  --legacy-black-466bc8ce:#fff;
+  --legacy-white-528cef87:#fff;
+}
