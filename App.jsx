@@ -78,11 +78,43 @@ function Comment({ comment, replies, likes, reported, onLike, onReply, onReport 
 function ChapterList({ chapters, onBack }) { const [stats, setStats] = useState({}); const [pageCounts, setPageCounts] = useState({}); const [ratingChapter, setRatingChapter] = useState(null); const [commentChapter, setCommentChapter] = useState(null); const [loading, setLoading] = useState(true); const refresh = async () => { if (!chapters.length) { setLoading(false); return; } setLoading(true); try { const ids = chapters.map(chapter => chapter.id); const engagement = await fetchPublicEngagement(ids); const counts = Object.fromEntries(ids.map(id => [id, Number(engagement[id]?.pages) || 0])); setStats(engagement); setPageCounts(counts); } catch (error) { console.error('Chapter list data:', error); } finally { setLoading(false); } }; useEffect(() => { refresh(); }, [chapters]); return <main className="site-shell chapter-list-page"><header className="subpage-header"><button className="back-button" onClick={onBack} aria-label="Back to home">←</button><div><p className="header-kicker">ATMA REKHA</p><h1>Chapter List</h1></div></header><section className="chapter-list-section"><div className="chapter-list-heading"><p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p><span>RATING · DATE · VIEWS</span></div>{loading ? <LoadingState/> : <div className="chapter-list">{chapters.map(chapter => { const item = stats[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 }; return <article className="chapter-row" key={chapter.id} data-chapter-id={String(chapter.id)}><a className="chapter-row-main" href={chapterPath(chapter)}><div className="chapter-row-title"><span>{formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}</span><h2>{chapter.title || 'Untitled chapter'}</h2></div><div className="chapter-row-meta"><span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span><span>•</span><span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span><span>•</span><span>👁 {formatCount(item.views)}</span></div><div className="chapter-row-details"><span>📄 {pageCounts[chapter.id] || 0} pages</span></div></a><div className="chapter-row-actions"><IconButton label={`Rate ${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}`} onClick={() => setRatingChapter(chapter)}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></IconButton><IconButton label={`Comments for ${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })}`} onClick={() => setCommentChapter(chapter)}><span>💬</span><small>{formatCount(item.comments)}</small></IconButton></div></article>; })}</div>}</section><Footer/>{ratingChapter && <RatingSheet chapter={ratingChapter} summary={stats[ratingChapter.id]?.rating} open onClose={() => setRatingChapter(null)} onChanged={refresh}/>} {commentChapter && <CommentsPanel chapter={commentChapter} open onClose={() => setCommentChapter(null)}/>}</main>; }
 
 function Reader({ chapterId, onBack, chapters }) {
-  const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [index, setIndex] = useState(0); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null); const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const progressHydratedRef = useRef(false);
+  const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [index, setIndex] = useState(0); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const touchStartRef = useRef(null); const touchCurrentRef = useRef(null); const touchStartYRef = useRef(null); const touchAxisRef = useRef(null); const [favoriteUser, setFavoriteUser] = useState(null); const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const progressHydratedRef = useRef(false);
   const minSwipeDistance = 50;
-  const onTouchStart = event => { setTouchEnd(null); setTouchStart(event.targetTouches[0].clientX); };
-  const onTouchMove = event => { setTouchEnd(event.targetTouches[0].clientX); };
-  const onTouchEnd = () => { if (touchStart === null || touchEnd === null) return; const distance = touchStart - touchEnd; if (Math.abs(distance) < minSwipeDistance) return; if (distance > 0) setIndex(value => Math.min(value + 1, pages.length - 1)); else setIndex(value => Math.max(value - 1, 0)); setTouchStart(null); setTouchEnd(null); };
+  const onTouchStart = event => {
+    if (event.touches?.length !== 1) return;
+    const x = event.touches[0]?.clientX;
+    if (typeof x !== 'number') return;
+    touchStartRef.current = x;
+    touchCurrentRef.current = x;
+    touchStartYRef.current = event.touches[0].clientY;
+    touchAxisRef.current = null;
+  };
+  const onTouchMove = event => {
+    if (event.touches?.length !== 1 || touchStartRef.current === null) return;
+    const x = event.touches[0]?.clientX;
+    const y = event.touches[0]?.clientY;
+    if (typeof x !== 'number' || typeof y !== 'number') return;
+    touchCurrentRef.current = x;
+    if (touchStartYRef.current !== null && touchAxisRef.current === null) {
+      const dx = Math.abs(x - touchStartRef.current);
+      const dy = Math.abs(y - touchStartYRef.current);
+      if (dx > 8 || dy > 8) touchAxisRef.current = dx > dy ? 'horizontal' : 'vertical';
+    }
+  };
+  const onTouchEnd = () => {
+    const start = touchStartRef.current;
+    const end = touchCurrentRef.current;
+    const axis = touchAxisRef.current;
+    touchStartRef.current = null;
+    touchCurrentRef.current = null;
+    touchStartYRef.current = null;
+    touchAxisRef.current = null;
+    if (start === null || end === null || axis !== 'horizontal') return;
+    const distance = start - end;
+    if (Math.abs(distance) < minSwipeDistance) return;
+    if (distance > 0) setIndex(value => Math.min(value + 1, pages.length - 1));
+    else setIndex(value => Math.max(value - 1, 0));
+  };
   useEffect(() => { let cancelled = false; progressHydratedRef.current = false; const load = async () => { setLoading(true); setError(''); try { const all = chapters?.length ? chapters : await buildChapters(); const found = all.find(item => String(item.id) === String(chapterId)); if (!found || !published(found)) throw new Error('Chapter not found or not published.'); const livePages = await buildChapterPages(found.id); if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id).catch(viewError => { console.warn('View tracking skipped:', viewError); }); fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
   useEffect(() => { if (progressHydratedRef.current && chapter && pages.length) window.localStorage.setItem(`atma-reading:${chapter.id}`, String(index)); }, [chapter, pages.length, index]);
   useEffect(() => {
@@ -92,7 +124,7 @@ function Reader({ chapterId, onBack, chapters }) {
     return undefined;
   }, [index, pages]);
   useEffect(() => { if (chapter && pages.length > 0) { window.dispatchEvent(new CustomEvent('atma-reading-progress', { detail: { chapterId: chapter.id, pageNumber: index + 1 } })); } }, [chapter, index, pages.length]);
-  useEffect(() => { const keyHandler = event => { if (event.key === 'ArrowRight' || event.key === ' ') setIndex(value => Math.min(value + 1, pages.length - 1)); if (event.key === 'ArrowLeft') setIndex(value => Math.max(value - 1, 0)); if (event.key === 'Escape') { setRatingOpen(false); setCommentsOpen(false); } }; window.addEventListener('keydown', keyHandler); return () => window.removeEventListener('keydown', keyHandler); }, [pages.length]);
+  useEffect(() => { const keyHandler = event => { if (event.key === 'ArrowRight' || event.key === ' ') { event.preventDefault(); setIndex(value => Math.min(value + 1, pages.length - 1)); } if (event.key === 'ArrowLeft') { event.preventDefault(); setIndex(value => Math.max(value - 1, 0)); } if (event.key === 'Escape') { setRatingOpen(false); setCommentsOpen(false); } }; window.addEventListener('keydown', keyHandler); return () => window.removeEventListener('keydown', keyHandler); }, [pages.length]);
   useEffect(() => { let active = true; supabase.auth.getUser().then(({ data }) => { if (active) setFavoriteUser(data?.user || null); }); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { if (active) setFavoriteUser(session?.user || null); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []);
   useEffect(() => { let cancelled = false; setFavoriteSaved(false); setFavoriteError(''); if (!favoriteUser || !chapter?.id) return undefined; supabase.from('bookmarks').select('id').eq('user_id', favoriteUser.id).eq('chapter_id', chapter.id).maybeSingle().then(({ data, error: bookmarkError }) => { if (cancelled) return; if (bookmarkError) setFavoriteError(bookmarkError.message || 'Unable to load favourite status.'); else setFavoriteSaved(Boolean(data)); }); return () => { cancelled = true; }; }, [favoriteUser?.id, chapter?.id]);
   const toggleFavorite = async () => { if (favoriteBusy || !chapter?.id) return; if (!favoriteUser) { window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login' } })); return; } setFavoriteBusy(true); setFavoriteError(''); try { if (favoriteSaved) { const { error: deleteError } = await supabase.from('bookmarks').delete().eq('user_id', favoriteUser.id).eq('chapter_id', chapter.id); if (deleteError) throw deleteError; setFavoriteSaved(false); } else { const { error: insertError } = await supabase.from('bookmarks').insert({ user_id: favoriteUser.id, chapter_id: chapter.id }); if (insertError) throw insertError; setFavoriteSaved(true); } } catch (err) { console.error('Favourite toggle failed:', err); setFavoriteError(err?.message || 'Unable to update favourite.'); } finally { setFavoriteBusy(false); } };
@@ -169,7 +201,8 @@ function AdminRoute({ onExit }) {
   }, []);
 
   if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>;
-  if (!session || !(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
+  if (!session) return <AdminLogin onLoginSuccess={() => window.location.reload()} />;
+  if (!(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
   return <AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/>;
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }

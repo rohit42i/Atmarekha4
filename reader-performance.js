@@ -68,7 +68,7 @@
 
   function paint() {
     raf = 0;
-    if (!gesture) return;
+    if (!gesture || gesture.axis !== 'horizontal') return;
     const { reader, image, startX, x } = gesture;
     const width = reader.clientWidth || window.innerWidth || 1;
     const dx = x - startX;
@@ -86,13 +86,13 @@
 
   function finish(cancelled) {
     if (!gesture) return;
-    const { reader, image, startX, x } = gesture;
+    const { reader, image, startX, x, axis } = gesture;
     gesture = null;
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
     clearTimeout(settleTimer);
     const dx = x - startX;
     const width = reader?.clientWidth || window.innerWidth || 1;
-    const p = clamp(Math.abs(dx) / width, 0, 1);
+    const p = axis === 'horizontal' ? clamp(Math.abs(dx) / width, 0, 1) : 0;
     if (!reader) return;
 
     reader.classList.remove('reader-swipe-active', 'reader-swipe-commit', 'reader-swipe-cancel');
@@ -130,8 +130,9 @@
     if (!reader) return;
     const image = getImage(reader);
     const x = event.touches[0].clientX;
+    const y = event.touches[0].clientY;
     clearTimeout(settleTimer);
-    gesture = { reader, image, startX: x, x };
+    gesture = { reader, image, startX: x, startY: y, x, y, axis: null };
     reader.classList.add('reader-swipe-active');
   }
 
@@ -139,7 +140,19 @@
     if (!gesture || event.touches.length !== 1) return;
     if (getReader(event.target) !== gesture.reader) return;
     gesture.x = event.touches[0].clientX;
-    if (!raf) raf = requestAnimationFrame(paint);
+    gesture.y = event.touches[0].clientY;
+    if (!gesture.axis) {
+      const dx = Math.abs(gesture.x - gesture.startX);
+      const dy = Math.abs(gesture.y - gesture.startY);
+      if (dx > 8 || dy > 8) {
+        gesture.axis = dx > dy ? 'horizontal' : 'vertical';
+        if (gesture.axis === 'vertical') {
+          finish(true);
+          return;
+        }
+      }
+    }
+    if (gesture.axis === 'horizontal' && !raf) raf = requestAnimationFrame(paint);
   }
 
   function start() {
