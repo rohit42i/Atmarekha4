@@ -138,11 +138,11 @@ function ChapterList({ chapters, onBack }) {
 }
 
 function Reader({ chapterId, onBack, chapters }) {
-  const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [index, setIndex] = useState(0); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null); const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const progressHydratedRef = useRef(false); const readerZoomAnchorRef = useRef(null);
+  const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [index, setIndex] = useState(0); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null); const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const progressHydratedRef = useRef(false);
   const minSwipeDistance = 80;
-  const onTouchStart = event => { setTouchEnd(null); setTouchStart(event.targetTouches[0].clientX); };
-  const onTouchMove = event => { setTouchEnd(event.targetTouches[0].clientX); };
-  const onTouchEnd = () => { if (touchStart === null || touchEnd === null) return; const distance = touchStart - touchEnd; if (Math.abs(distance) < minSwipeDistance) return; if (distance > 0) setIndex(value => Math.min(value + 1, pages.length - 1)); else setIndex(value => Math.max(value - 1, 0)); setTouchStart(null); setTouchEnd(null); };
+  const onTouchStart = event => { if (event.touches.length !== 1) { setTouchStart(null); setTouchEnd(null); return; } setTouchEnd(null); setTouchStart(event.touches[0].clientX); };
+  const onTouchMove = event => { if (event.touches.length !== 1) { setTouchStart(null); setTouchEnd(null); return; } setTouchEnd(event.touches[0].clientX); };
+  const onTouchEnd = event => { if (event.touches?.length) return; if (touchStart === null || touchEnd === null) return; const distance = touchStart - touchEnd; if (Math.abs(distance) < minSwipeDistance) { setTouchStart(null); setTouchEnd(null); return; } if (distance > 0) setIndex(value => Math.min(value + 1, pages.length - 1)); else setIndex(value => Math.max(value - 1, 0)); setTouchStart(null); setTouchEnd(null); };
   useEffect(() => { let cancelled = false; progressHydratedRef.current = false; const load = async () => { setLoading(true); setError(''); try { const all = chapters?.length ? chapters : await buildChapters(); const found = all.find(item => String(item.id) === String(chapterId)); if (!found || !published(found)) throw new Error('Chapter not found or not published.'); const livePages = await buildChapterPages(found.id); if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id).catch(viewError => { console.warn('View tracking skipped:', viewError); }); fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
   useEffect(() => { if (progressHydratedRef.current && chapter && pages.length) { window.localStorage.setItem(`atma-reading:${chapter.id}`, String(index)); window.localStorage.setItem('atma-reading-last', JSON.stringify({ chapterId: chapter.id, pageNumber: index + 1 })); } }, [chapter, pages.length, index]);
   useEffect(() => {
@@ -153,45 +153,6 @@ function Reader({ chapterId, onBack, chapters }) {
   }, [index, pages]);
   useEffect(() => { if (chapter && pages.length > 0) { window.dispatchEvent(new CustomEvent('atma-reading-progress', { detail: { chapterId: chapter.id, pageNumber: index + 1 } })); } }, [chapter, index, pages.length]);
   useEffect(() => { const keyHandler = event => { if (!document.querySelector('.reader-page')) return; const tagName = String(event.target?.tagName || '').toLowerCase(); const typing = tagName === 'input' || tagName === 'textarea' || tagName === 'select' || event.target?.isContentEditable; if (typing || event.ctrlKey || event.metaKey || event.altKey) return; if (event.key === 'ArrowRight' || event.key === ' ') { event.preventDefault(); setIndex(value => Math.min(value + 1, pages.length - 1)); } if (event.key === 'ArrowLeft') { event.preventDefault(); setIndex(value => Math.max(value - 1, 0)); } if (event.key === 'Escape') { setRatingOpen(false); setCommentsOpen(false); } }; window.addEventListener('keydown', keyHandler); return () => window.removeEventListener('keydown', keyHandler); }, [pages.length]);
-  useEffect(() => {
-    if (!pages.length || typeof window === 'undefined') return undefined;
-    const capturePointerAnchor = event => {
-      if (event.pointerType && event.pointerType !== 'mouse') return;
-      const image = event.currentTarget?.querySelector?.('img');
-      if (!image) return;
-      const rect = image.getBoundingClientRect();
-      if (!rect.width || !rect.height || event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
-      readerZoomAnchorRef.current = { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height, clientX: event.clientX, clientY: event.clientY };
-    };
-    const restoreZoomAnchor = () => {
-      if (window.innerWidth < 900) return;
-      const anchor = readerZoomAnchorRef.current;
-      if (!anchor) return;
-      requestAnimationFrame(() => {
-        const image = document.querySelector('.reader-page .reader-stage img');
-        if (!image) return;
-        const rect = image.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const desiredX = rect.left + rect.width * anchor.x;
-        const desiredY = rect.top + rect.height * anchor.y;
-        const dx = desiredX - anchor.clientX;
-        const dy = desiredY - anchor.clientY;
-        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) window.scrollBy({ left: dx, top: dy, behavior: 'auto' });
-      });
-    };
-    const stage = document.querySelector('.reader-page .reader-stage');
-    if (!stage) return undefined;
-    stage.addEventListener('pointermove', capturePointerAnchor, { passive: true });
-    stage.addEventListener('pointerdown', capturePointerAnchor, { passive: true });
-    window.addEventListener('resize', restoreZoomAnchor, { passive: true });
-    window.visualViewport?.addEventListener('resize', restoreZoomAnchor, { passive: true });
-    return () => {
-      stage.removeEventListener('pointermove', capturePointerAnchor);
-      stage.removeEventListener('pointerdown', capturePointerAnchor);
-      window.removeEventListener('resize', restoreZoomAnchor);
-      window.visualViewport?.removeEventListener('resize', restoreZoomAnchor);
-    };
-  }, [pages.length, index]);
   useEffect(() => { let active = true; supabase.auth.getUser().then(({ data }) => { if (active) setFavoriteUser(data?.user || null); }); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { if (active) setFavoriteUser(session?.user || null); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []);
   useEffect(() => { let cancelled = false; setFavoriteSaved(false); setFavoriteError(''); if (!favoriteUser || !chapter?.id) return undefined; supabase.from('bookmarks').select('id').eq('user_id', favoriteUser.id).eq('chapter_id', chapter.id).maybeSingle().then(({ data, error: bookmarkError }) => { if (cancelled) return; if (bookmarkError) setFavoriteError(bookmarkError.message || 'Unable to load favourite status.'); else setFavoriteSaved(Boolean(data)); }); return () => { cancelled = true; }; }, [favoriteUser?.id, chapter?.id]);
   const toggleFavorite = async () => { if (favoriteBusy || !chapter?.id) return; if (!favoriteUser) { window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login' } })); return; } setFavoriteBusy(true); setFavoriteError(''); try { if (favoriteSaved) { const { error: deleteError } = await supabase.from('bookmarks').delete().eq('user_id', favoriteUser.id).eq('chapter_id', chapter.id); if (deleteError) throw deleteError; setFavoriteSaved(false); } else { const { error: insertError } = await supabase.from('bookmarks').insert({ user_id: favoriteUser.id, chapter_id: chapter.id }); if (insertError) throw insertError; setFavoriteSaved(true); } } catch (err) { console.error('Favourite toggle failed:', err); setFavoriteError(err?.message || 'Unable to update favourite.'); } finally { setFavoriteBusy(false); } };
