@@ -356,3 +356,40 @@ html[data-theme="dark"] .continue-reading-button,
     -webkit-backface-visibility: visible !important;
   }
 }
+
+
+/* Final reader zoom compatibility.
+   Loaded last so viewport-fitting rules cannot shrink the manga page
+   back down when Chrome changes page scale. */
+.reader-page .reader-stage {
+  overflow: auto !important;
+  contain: none !important;
+  touch-action: auto !important;
+  overscroll-behavior: auto !important;
+}
+
+.reader-page .reader-stage img {
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: initial !important;
+  content-visibility: visible !important;
+}
+
+@media (max-width: 700px) {
+  .reader-page .reader-stage {
+    overflow: auto !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+
+  .reader-page .reader-stage img {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    object-fit: contain !important;
+  }
+}
