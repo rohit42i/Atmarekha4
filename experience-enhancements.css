@@ -1,3 +1,51 @@
-@media (hover:hover) and (pointer:fine){.hero-card,.chapter-row,.info-card,.about-card,.legal-card,.profile-v2-card{position:relative;isolation:isolate;overflow:hidden}.hero-card::after,.chapter-row::after,.info-card::after,.about-card::after,.legal-card::after,.profile-v2-card::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(220px circle at var(--ar-spot-x,50%) var(--ar-spot-y,35%),rgba(255,255,255,.055),transparent 68%);opacity:0;transition:opacity .18s ease}.hero-card:hover::after,.chapter-row:hover::after,.info-card:hover::after,.about-card:hover::after,.legal-card:hover::after,.profile-v2-card:hover::after{opacity:1}.hero-card>*,.chapter-row>*,.info-card>*,.about-card>*,.legal-card>*,.profile-v2-card>*{position:relative;z-index:1}}
-.ar-experience-trigger span:nth-child(2){display:none}.ar-experience-trigger kbd{font-size:8px}.ar-back-to-top{right:12px;bottom:64px}.ar-command-backdrop{padding:7vh 10px 16px}.ar-command-palette{border-radius:15px}.ar-command-list{max-height:58vh}}
-.ar-experience-trigger,.ar-back-to-top{transition:none}}
+@media (hover:hover) and (pointer:fine){
+  .hero-card,
+  .chapter-row,
+  .info-card,
+  .about-card,
+  .legal-card,
+  .profile-v2-card{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+  }
+
+  .hero-card::after,
+  .chapter-row::after,
+  .info-card::after,
+  .about-card::after,
+  .legal-card::after,
+  .profile-v2-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:radial-gradient(
+      220px circle at var(--ar-spot-x,50%) var(--ar-spot-y,35%),
+      rgba(255,255,255,.055),
+      transparent 68%
+    );
+    opacity:0;
+    transition:opacity .18s ease;
+  }
+
+  .hero-card:hover::after,
+  .chapter-row:hover::after,
+  .info-card:hover::after,
+  .about-card:hover::after,
+  .legal-card:hover::after,
+  .profile-v2-card:hover::after{
+    opacity:1;
+  }
+
+  .hero-card>*,
+  .chapter-row>*,
+  .info-card>*,
+  .about-card>*,
+  .legal-card>*,
+  .profile-v2-card>*{
+    position:relative;
+    z-index:1;
+  }
+}
