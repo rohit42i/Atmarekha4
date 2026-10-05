@@ -519,8 +519,10 @@ html[data-theme="dark"] .chapter-discovery-reset {
     grid-template-columns: 1fr;
   }
   .chapter-discovery {
-    grid-template-columns: 70% 30%;
-    gap: 6px;
+    justify-content: flex-end;
+  }
+  .chapter-sort {
+    width: 180px;
   }
   .continue-reading-card {
     width: min(940px, calc(100% - 20px));
