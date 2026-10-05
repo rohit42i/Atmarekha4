@@ -162,6 +162,23 @@ html[data-theme="dark"] .membership-phone-modal {
   border-color: #292929 !important;
 }
 
+/* Extra-deep dark card interiors: text areas and profile/action cards. */
+html[data-theme="dark"] :where(
+  .card,
+  .panel,
+  .surface,
+  .profile-card,
+  .profile-panel,
+  .user-profile-card,
+  .profile-v2-card,
+  .profile-actions,
+  .profile-card button,
+  .profile-panel button
+) {
+  background-color: #010101 !important;
+  background-image: none !important;
+}
+
 /* Prevent overscroll / scroll-bounce from exposing a white root behind dark pages. */
 html[data-theme="dark"],
 html[data-theme="dark"] body,
