@@ -94,3 +94,4 @@ import './admin-pdlpl-final.css';
 import './admin-final-v6.css';
 import './admin-runtime-fixes.css';
 import './professional-stability.css';
+import './design-system-professional.css';
