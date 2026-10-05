@@ -121,7 +121,6 @@ function ChapterList({ chapters, onBack }) {
       <section className="chapter-list-section">
         <div className="chapter-list-heading">
           <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
-          <span>RATING · DATE · VIEWS</span>
         </div>
         {loading ? <LoadingState/> : (
           <ChapterDiscovery chapters={chapters} stats={stats} renderChapter={renderRows}/>
