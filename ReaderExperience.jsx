@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
-export default function ReaderExperience({ chapter, pages }) {
+export default function ReaderExperience({ chapter, pages, index }) {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
   const total = pages.length;
-  const page = Math.min(Math.max(Number(chapter?.currentPage || 1), 1), Math.max(total, 1));
+  const page = Math.min(Math.max(Number(index) + 1, 1), Math.max(total, 1));
 
   useEffect(() => {
     const remember = () => {
