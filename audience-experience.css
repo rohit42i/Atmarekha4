@@ -292,8 +292,8 @@
 
 .chapter-discovery {
   display: grid;
-  grid-template-columns: minmax(0,1fr) 190px;
-  gap: 10px;
+  grid-template-columns: 70% 30%;
+  gap: 8px;
   align-items: center;
   margin: 0 0 12px;
 }
@@ -312,8 +312,7 @@
   opacity: .45;
   font-size: 17px;
 }
-.chapter-discovery input,
-.chapter-discovery select {
+.chapter-discovery input {
   width: 100%;
   min-width: 0;
   border: 0;
@@ -321,13 +320,6 @@
   background: transparent;
   color: inherit;
   font: 600 11px/1.2 system-ui,sans-serif;
-}
-.chapter-discovery select {
-  min-height: 42px;
-  padding: 0 11px;
-  border: 1px solid rgba(0,0,0,.12);
-  border-radius: 11px;
-  cursor: pointer;
 }
 .chapter-discovery > label > button {
   width: 25px;
@@ -338,6 +330,60 @@
   opacity: .55;
   cursor: pointer;
   font-size: 16px;
+}
+.chapter-sort {
+  position: relative;
+  min-width: 0;
+}
+.chapter-sort-button {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 11px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+  font: 600 10px/1.1 system-ui,sans-serif;
+}
+.chapter-sort-button b {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.chapter-sort-button > span:first-child {
+  opacity: .5;
+}
+.chapter-sort-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: min(190px, 100%);
+  z-index: 50;
+  padding: 5px;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 14px 35px rgba(0,0,0,.14);
+}
+.chapter-sort-menu button {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: 650 10px/1.1 system-ui,sans-serif;
+}
+.chapter-sort-menu button:hover,
+.chapter-sort-menu button.active {
+  background: #f1f1f1;
 }
 .chapter-discovery-reset {
   margin: 12px 0 0;
@@ -431,6 +477,20 @@ html[data-theme="dark"] .chapter-discovery select {
   background: #050505;
   color: #fff;
 }
+html[data-theme="dark"] .chapter-sort-button,
+html[data-theme="dark"] .chapter-sort-menu {
+  border-color: #252525;
+  background: #050505;
+  color: #fff;
+}
+html[data-theme="dark"] .chapter-sort-menu {
+  box-shadow: 0 16px 40px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .chapter-sort-menu button:hover,
+html[data-theme="dark"] .chapter-sort-menu button.active {
+  background: #111;
+}
+
 html[data-theme="dark"] .chapter-discovery-reset {
   border-color: #2b2b2b;
 }
@@ -459,7 +519,8 @@ html[data-theme="dark"] .chapter-discovery-reset {
     grid-template-columns: 1fr;
   }
   .chapter-discovery {
-    grid-template-columns: 1fr;
+    grid-template-columns: 70% 30%;
+    gap: 6px;
   }
   .continue-reading-card {
     width: min(940px, calc(100% - 20px));
