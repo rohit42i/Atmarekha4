@@ -125,7 +125,10 @@
   }
 
   function startGesture(event) {
-    if (event.touches.length !== 1) return;
+    if (event.touches.length !== 1) {
+      if (gesture) finish(true);
+      return;
+    }
     const reader = getReader(event.target);
     if (!reader) return;
     const image = getImage(reader);
@@ -136,7 +139,11 @@
   }
 
   function moveGesture(event) {
-    if (!gesture || event.touches.length !== 1) return;
+    if (!gesture) return;
+    if (event.touches.length !== 1) {
+      finish(true);
+      return;
+    }
     if (getReader(event.target) !== gesture.reader) return;
     gesture.x = event.touches[0].clientX;
     if (!raf) raf = requestAnimationFrame(paint);
