@@ -587,3 +587,59 @@ html[data-theme="dark"] .continue-reading-button{
     font-size:9px!important;
   }
 }
+
+/* Atma Rekha reader: Previous/Next chapter controls are retired. */
+body:has(.reader-page) .reader-chapter-nav{
+  display:none!important;
+}
+
+/* Continue Reading: clear reading hierarchy with the Resume action beneath the metadata. */
+.continue-reading-copy{
+  min-width:0;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:4px!important;
+}
+.continue-reading-copy h2{
+  width:100%;
+  margin:0!important;
+}
+.continue-reading-copy > span{
+  line-height:1.3;
+}
+.continue-reading-action{
+  width:100%;
+  display:flex;
+  justify-content:flex-end;
+  margin-top:7px;
+}
+.continue-reading-button{
+  grid-column:auto!important;
+  grid-row:auto!important;
+  justify-self:auto!important;
+  align-self:auto!important;
+  margin:0!important;
+  min-height:36px!important;
+  padding:0 16px!important;
+  border-radius:9px!important;
+}
+@media(max-width:700px){
+  .continue-reading-action{
+    margin-top:6px;
+  }
+  .continue-reading-button{
+    min-height:34px!important;
+    padding:0 13px!important;
+  }
+}
+@media(max-width:420px){
+  .continue-reading-action{
+    justify-content:flex-start;
+  }
+  .continue-reading-button{
+    min-height:32px!important;
+    padding:0 12px!important;
+    font-size:9px!important;
+  }
+}
