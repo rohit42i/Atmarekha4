@@ -227,3 +227,71 @@ html[data-theme="dark"] .chapter-discovery-reset {
     animation: none;
   }
 }
+
+
+/* Final reader chapter navigation layer — equal, visible, touch-friendly controls. */
+.reader-chapter-nav {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100%;
+  margin-top: 18px !important;
+}
+.reader-chapter-nav-item {
+  min-width: 0;
+}
+.reader-chapter-nav-item > button {
+  width: 100% !important;
+  min-width: 0;
+  min-height: 56px !important;
+  box-sizing: border-box !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(0,0,0,.16) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #111 !important;
+  font: 800 14px/1 system-ui,sans-serif !important;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background-color .16s ease, opacity .16s ease;
+}
+.reader-chapter-nav-item > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #111 !important;
+}
+.reader-chapter-nav-item > button:active:not(:disabled) {
+  transform: translateY(0) scale(.985);
+}
+.reader-chapter-nav-item > button:disabled {
+  cursor: default;
+  opacity: .32;
+}
+.reader-chapter-nav-item > button strong {
+  margin: 0 !important;
+  font: inherit !important;
+  letter-spacing: .01em;
+}
+html[data-theme="dark"] .reader-chapter-nav-item > button {
+  border-color: #292929 !important;
+  background: #030303 !important;
+  color: #fff !important;
+}
+html[data-theme="dark"] .reader-chapter-nav-item > button:hover:not(:disabled) {
+  border-color: #555 !important;
+  background: #080808 !important;
+}
+html[data-theme="dark"] .reader-chapter-nav-item > button:disabled {
+  border-color: #1b1b1b !important;
+  background: #030303 !important;
+}
+@media (max-width: 520px) {
+  .reader-chapter-nav { gap: 8px !important; }
+  .reader-chapter-nav-item > button {
+    min-height: 52px !important;
+    padding: 0 8px !important;
+    border-radius: 11px !important;
+    font-size: 13px !important;
+  }
+}
