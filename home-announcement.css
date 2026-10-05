@@ -20,13 +20,14 @@
    below another project's card. */
 .home-page > .home-announcements-target-atma.home-announcements-variant-pinned { order: 1 !important; }
 .home-page > .hero-card:not(.pdlpl-home-card) { order: 2 !important; }
-.home-page > .home-announcements-target-pdpkl.home-announcements-variant-pinned { order: 3 !important; }
-.home-page > .hero-card.pdlpl-home-card { order: 4 !important; }
-.home-page > .home-announcements-variant-normal { order: 5 !important; }
+.home-page > .continue-reading-card { order: 3 !important; }
+.home-page > .home-announcements-target-pdpkl.home-announcements-variant-pinned { order: 4 !important; }
+.home-page > .hero-card.pdlpl-home-card { order: 5 !important; }
+.home-page > .home-announcements-variant-normal { order: 6 !important; }
 
 .home-page > footer,
 .home-page > .site-footer,
-.home-page > [class*="footer"] { order: 6 !important; }
+.home-page > [class*="footer"] { order: 7 !important; }
 
 .home-announcement {
   width: 100%;
