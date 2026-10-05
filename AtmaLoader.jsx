@@ -60,8 +60,20 @@ export default function AtmaLoader(){
     window.AtmaLoader={show,hide,showMain:()=>show('main'),hideMain:()=>hide('main'),showRefresh:()=>show('refresh'),hideRefresh:()=>hide('refresh')};
     const nav=performance.getEntriesByType?.('navigation')?.[0];
     const isReload=nav?.type==='reload';
-    if(isReload){mainRef.current.hidden=true;mainRef.current.classList.add('hidden');show('refresh');window.addEventListener('load',()=>hide('refresh'),{once:true})}
-    else{refreshRef.current.hidden=true;refreshRef.current.classList.add('hidden');show('main');if(document.readyState==='complete')hideMain();else window.addEventListener('load',hideMain,{once:true})}
+    if(isReload){
+      mainRef.current.hidden=true;
+      mainRef.current.classList.add('hidden');
+      show('refresh');
+      const hideRefresh=()=>hide('refresh');
+      if(document.readyState==='complete') requestAnimationFrame(hideRefresh);
+      else window.addEventListener('load',hideRefresh,{once:true});
+    } else {
+      refreshRef.current.hidden=true;
+      refreshRef.current.classList.add('hidden');
+      show('main');
+      if(document.readyState==='complete') hideMain();
+      else window.addEventListener('load',hideMain,{once:true});
+    }
     return()=>{window.removeEventListener('load',hideMain);clearTimeout(timers.current.main);clearTimeout(timers.current.refresh);};
   },[]);
   return <><style>{CSS}</style>
