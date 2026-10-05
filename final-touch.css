@@ -486,6 +486,16 @@ html[data-theme="dark"] .chapter-discovery > label > .chapter-search-icon { colo
   white-space: nowrap;
   transition: transform .16s ease, opacity .16s ease;
 }
+.continue-reading-button {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: start;
+  align-self: end;
+  margin-top: 3px;
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 10px;
+}
 .continue-reading-button:hover { transform: translateY(-1px); }
 .continue-reading-button:active { transform: scale(.98); }
 html[data-theme="dark"] .continue-reading-card {
@@ -513,5 +523,12 @@ html[data-theme="dark"] .continue-reading-button { border-color: #fff; backgroun
 @media (max-width: 420px) {
   .continue-reading-card { grid-template-columns: 42px minmax(0,1fr); }
   .continue-reading-art { width: 42px; height: 42px; }
-  .continue-reading-button { grid-column: 2; justify-self: start; min-height: 34px; margin-top: 2px; }
+  .continue-reading-button {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+    align-self: end;
+    min-height: 32px;
+    margin-top: 2px;
+  }
 }
