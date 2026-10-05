@@ -29,17 +29,20 @@ async function recordLoginOncePerUser() {
   const user = sessionData?.session?.user;
   if (!user) return null;
 
-  const { error } = await supabase
-    .from('feature_login_users')
-    .insert({ user_id: user.id });
-
-  // A duplicate means this user was already counted, which is expected.
-  if (error && error.code !== '23505') {
+  // The table intentionally denies direct client writes. Use the existing
+  // SECURITY DEFINER RPC so the server can atomically count this login while
+  // keeping feature_login_users protected by RLS.
+  const { data, error } = await supabase.rpc('record_feature_login');
+  if (error) {
     console.warn('Feature login tracking failed:', error);
     return null;
   }
 
-  return await readFeatureFlags();
+  if (!data) return await readFeatureFlags();
+  return {
+    membership_unlocked: data.membership_unlocked === true,
+    group_chat_unlocked: data.group_chat_unlocked === true,
+  };
 }
 
 function GroupChatLauncherGate() {
