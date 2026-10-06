@@ -7,7 +7,7 @@ import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
-import { AdminUIProvider, useAdminUI } from './AdminUIProvider.jsx';
+import { useAdminUI } from './AdminUIProvider.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -1064,5 +1064,5 @@ function AdminPanelContent({ onLogout }) {
 }
 
 export default function AdminPanel({ onLogout }) {
-  return <AdminUIProvider><AdminPanelContent onLogout={onLogout}/></AdminUIProvider>;
+  return <AdminPanelContent onLogout={onLogout}/>;
 }
