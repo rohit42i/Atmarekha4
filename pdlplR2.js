@@ -69,9 +69,15 @@ function createMediaError(path, response, body) {
 async function request(path, options = {}, retried = false) {
   const method = String(options.method || 'GET').toUpperCase();
   const url = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
+  const isPublicCoverGet =
+    method === 'GET' &&
+    /^covers\/chapters\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[^/]+$/i.test(
+      String(path || ''),
+    );
+
   const headers = {
     ...(options.headers || {}),
-    ...(await authHeaders({ refresh: retried })),
+    ...(isPublicCoverGet ? {} : await authHeaders({ refresh: retried })),
   };
 
   let response;
