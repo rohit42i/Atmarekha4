@@ -69,3 +69,18 @@
 .membership-button,.membership-plan.is-popular .membership-button,.membership-plan .membership-button.current{background:#111;border-color:#111;color:#fff}
 .membership-timing-note{background:#fff;border-color:#d6d6d9}.membership-timing-note small{color:#666}.membership-timing-icon{background:#f1f1f2;color:#111;border-color:#d1d1d5}
 }
+
+/* Layout fix: prevent membership cards from overlapping at every breakpoint */
+.membership-plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:14px;width:min(1040px,100%);margin-left:auto;margin-right:auto}
+.membership-plan{width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:1050px){
+ .membership-plans{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .membership-plan{width:100%;min-width:0}
+}
+@media(max-width:620px){
+ .membership-plans{display:grid;grid-template-columns:1fr;gap:10px;width:100%;overflow:visible}
+ .membership-plan{width:100%;min-width:0;min-height:0;padding:13px}
+ .membership-plan-top{min-height:35px}
+ .membership-plan-top h2{font-size:20px}
+ .membership-plan ul{flex:0 0 auto}
+}
