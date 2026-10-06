@@ -11,21 +11,20 @@ export default function AdminLogin({ onLoginSuccess }) {
   async function handleSubmit(event) {
     event.preventDefault();
     setBusy(true); setError('');
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (authError) {
-      setError(authError.message || 'Login failed.');
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (authError) throw authError;
+      const role = await getAdminRole(data.user?.id);
+      if (!role) {
+        await supabase.auth.signOut();
+        throw new Error('This account is not authorized as an Atma Rekha admin.');
+      }
+      onLoginSuccess?.();
+    } catch (loginError) {
+      setError(loginError?.message || 'Login failed.');
+    } finally {
       setBusy(false);
-      return;
     }
-    const role = await getAdminRole(data.user?.id);
-    if (!role) {
-      await supabase.auth.signOut();
-      setError('This account is not authorized as an Atma Rekha admin.');
-      setBusy(false);
-      return;
-    }
-    onLoginSuccess?.();
-    setBusy(false);
   }
 
   return (
