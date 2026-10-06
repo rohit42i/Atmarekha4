@@ -23,6 +23,22 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
   const [recentChapterIds, setRecentChapterIds] = useState({});
 
   useEffect(() => {
+    const close = event => {
+      if (event.key === 'Escape') setSortOpen(false);
+    };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
+  }, []);
+
+  useEffect(() => {
+    const close = event => {
+      if (!event.target.closest?.('.chapter-sort')) setSortOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, []);
+
+  useEffect(() => {
     const next = {};
     chapters.forEach(chapter => {
       try {
