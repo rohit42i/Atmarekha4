@@ -760,7 +760,7 @@
 }
 @media (max-width: 980px) {
   .ar-admin-sidebar {
-    top: 0 !important; bottom: 0 !important; left: 0 !important; inset-right: auto !important;
+    top: 0 !important; bottom: 0 !important; left: 0 !important; right: auto !important;
     width: min(300px,88vw) !important; height: 100dvh !important;
     border-radius: 0 14px 14px 0 !important;
     transform: translateX(-102%) !important;
@@ -850,3 +850,35 @@
     scroll-behavior: auto !important;
   }
 }
+
+.admin-th-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+.admin-th-button:hover { color: var(--admin-text); }
+.admin-form-actions { display: flex; align-items: center; gap: 7px; justify-content: flex-end; flex-wrap: wrap; }
+.admin-context-grid { display: grid; gap: 10px; }
+.admin-context-block {
+  padding: 12px; border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg); background: var(--admin-surface-2);
+}
+.admin-context-block > span { display:block; color:var(--admin-gold-bright); font-size:7px; font-weight:850; letter-spacing:.1em; text-transform:uppercase; }
+.admin-context-block > strong { display:block; margin-top:5px; font-size:10px; }
+.admin-context-block > p { margin:6px 0 0; color:var(--admin-muted); font-size:9px; line-height:1.55; }
+.admin-warning-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:8px; }
+.admin-warning-grid > div { padding:9px; border:1px solid var(--admin-border-soft); border-radius:8px; background:var(--admin-surface-3); }
+.admin-warning-grid strong,.admin-warning-grid span { display:block; }
+.admin-warning-grid strong { font-size:14px; }
+.admin-warning-grid span { margin-top:3px; color:var(--admin-muted); font-size:7px; }
+.admin-studio-publisher-card .admin-card-title { margin-bottom: 10px; }
+.admin-moderation-toolbar { grid-template-columns:minmax(240px,1.5fr) repeat(3,minmax(130px,.7fr)); }
+.admin-table-wrap + .admin-empty-state { border-top:1px solid var(--admin-border-soft); }
+.ar-stat-card.accent-violet .ar-stat-icon,
+.ar-stat-card.accent-blue .ar-stat-icon,
+.ar-stat-card.accent-pink .ar-stat-icon,
+.ar-stat-card.accent-gold .ar-stat-icon { color:var(--admin-gold-bright); background:var(--admin-surface-3); }
