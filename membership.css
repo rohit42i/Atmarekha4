@@ -483,3 +483,28 @@
 .membership-button.current,.membership-button:disabled{background:#111!important;color:#777!important;border-color:rgba(255,255,255,.10)!important;box-shadow:none!important}
 @media(max-width:620px){.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#050505!important}.membership-button{min-height:40px;border-radius:10px;font-size:11px}}
 @media(prefers-color-scheme:light){.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#050505!important;color:#fff!important}.membership-plan h2,.membership-plan .membership-price,.membership-plan li{color:#fff!important}.membership-plan ul,.membership-plan .membership-price small{color:#b8b8bd!important}.membership-button{background:#fff!important;color:#050505!important;border-color:#fff!important}}
+
+
+/* PDPKL Chapter 1 membership context: keep the decision focused and monochrome. */
+.membership-pdlpl-context-note{border-color:rgba(255,255,255,.16)!important;background:#111!important;color:#fff!important;box-shadow:none!important}
+.membership-pdlpl-context-note .membership-timing-icon{background:#050505!important;color:#fff!important;border-color:#292929!important}
+.membership-pdlpl-context-note strong,.membership-pdlpl-context-note small{color:#fff!important}
+.membership-plan.is-pdlpl-plan{border-color:rgba(255,255,255,.34)!important;box-shadow:0 16px 34px rgba(0,0,0,.30)!important}
+.membership-plan.is-pdlpl-plan::after{content:none!important}
+.membership-plan.is-atma-only-plan{opacity:.72}
+.membership-plan-context-badge{display:inline-block;margin-top:5px;padding:3px 6px;border:1px solid rgba(255,255,255,.18);border-radius:999px;color:#fff;font-size:7px;font-weight:850;letter-spacing:.10em;text-transform:uppercase}
+.membership-plan.is-atma-only-plan .membership-button{background:#111!important;border-color:#333!important;color:#8f8f95!important;cursor:not-allowed!important}
+@media(prefers-color-scheme:light){
+  .membership-pdlpl-context-note{background:#f5f5f5!important;color:#000!important;border-color:#d9d9d9!important}
+  .membership-pdlpl-context-note .membership-timing-icon{background:#fff!important;color:#000!important;border-color:#d0d0d0!important}
+  .membership-pdlpl-context-note strong,.membership-pdlpl-context-note small{color:#000!important}
+  .membership-plan.is-pdlpl-plan{border-color:#222!important;box-shadow:0 14px 30px rgba(0,0,0,.10)!important}
+  .membership-plan-context-badge{border-color:#222;color:#000}
+  .membership-plan.is-atma-only-plan{opacity:.58}
+}
+html[data-theme="light"] .membership-pdlpl-context-note{background:#f5f5f5!important;color:#000!important;border-color:#d9d9d9!important}
+html[data-theme="light"] .membership-pdlpl-context-note .membership-timing-icon{background:#fff!important;color:#000!important;border-color:#d0d0d0!important}
+html[data-theme="light"] .membership-pdlpl-context-note strong,html[data-theme="light"] .membership-pdlpl-context-note small{color:#000!important}
+html[data-theme="light"] .membership-plan.is-pdlpl-plan{border-color:#222!important}
+html[data-theme="light"] .membership-plan-context-badge{border-color:#222;color:#000}
+html[data-theme="dark"] .membership-plan-context-badge{border-color:#333;color:#fff}
