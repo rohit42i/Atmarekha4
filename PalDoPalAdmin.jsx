@@ -5,6 +5,7 @@ import { normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES, PDLPL_ROUTE } from './palDoPalKeLamhe';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
+import { useAdminUI } from './AdminUIProvider.jsx';
 
 const MAX_PAGE_SIZE = 95 * 1024 * 1024;
 
@@ -148,6 +149,7 @@ function PagePreview({ path }) {
 }
 
 export default function PalDoPalAdmin({ embedded = false }) {
+  const { requestConfirm } = useAdminUI();
   const [role, setRole] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -607,7 +609,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
   const deleteChapter = async chapter => {
-    if (busy || !window.confirm('Delete ' + label(chapter) + ' and all its pages and cover?')) return;
+    if (busy) return;
+    const ok = await requestConfirm({ title: 'Delete side-story chapter', message: 'Delete ' + label(chapter) + ' and all its pages and cover?', confirmLabel: 'Delete chapter', danger: true });
+    if (!ok) return;
     setBusy(true);
     setNotice('');
     let adminUser = null;
@@ -783,7 +787,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
 
   const deletePage = async page => {
-    if (busy || !window.confirm('Delete page ' + page.page_number + '?')) return;
+    if (busy) return;
+    const ok = await requestConfirm({ title: 'Delete page', message: 'Delete page ' + page.page_number + '?', confirmLabel: 'Delete page', danger: true });
+    if (!ok) return;
     setBusy(true);
     setNotice('');
     let adminUser = null;
