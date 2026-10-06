@@ -68,7 +68,11 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
   const locked = !member && !admin;
 
   return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
-    <button type="button" className="chapter-row-main pdlpl-chapter-row-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
+    <a className="chapter-row-main pdlpl-chapter-row-main" href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`} onClick={event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      onOpen(chapter);
+    }} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <PdlplChapterThumbnail chapter={chapter} />
       <div className="chapter-row-copy pdlpl-chapter-row-copy">
         <div className="chapter-row-title">
@@ -86,7 +90,7 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
           <span>📄 {pageCount || '—'} pages</span>
         </div>
       </div>
-    </button>
+    </a>
     <div className="chapter-row-actions">
       <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}>
         <span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small>
