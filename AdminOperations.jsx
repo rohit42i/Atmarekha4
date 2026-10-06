@@ -133,6 +133,7 @@ export default function AdminOperations() {
   };
 
   const preview = async chapter => {
+    for (const page of previewPages) if (page.previewUrl) URL.revokeObjectURL(page.previewUrl);
     setSelectedChapter(chapter); setPreviewPages([]); setPreviewLoading(true);
     try {
       const { data, error } = await supabase.from('chapter_pages').select('page_number,image_url').eq('chapter_id', chapter.id).order('page_number', { ascending: true });
