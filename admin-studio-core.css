@@ -521,7 +521,7 @@
 }
 .admin-studio-table {
   width: 100%;
-  min-width: 880px;
+  min-width: 1020px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -960,3 +960,14 @@
   .admin-command-palette-hints { flex-wrap:wrap; gap:7px; }
   .ar-admin-freshness { display:none; }
 }
+
+.ar-admin-shortcut-toast {
+  position:fixed; left:50%; bottom:22px; z-index:120000;
+  transform:translate(-50%,10px); opacity:0; pointer-events:none;
+  padding:8px 11px; border:1px solid var(--admin-border);
+  border-radius:8px; background:var(--admin-surface-2); color:var(--admin-text);
+  box-shadow:var(--admin-shadow-soft); font:800 9px/1 var(--admin-font);
+  transition:opacity .14s ease, transform .14s ease;
+}
+.ar-admin-shortcut-toast.show { opacity:1; transform:translate(-50%,0); }
+@media(max-width:720px){ .ar-admin-shortcut-toast{bottom:78px;} }
