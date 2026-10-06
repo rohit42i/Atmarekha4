@@ -43,6 +43,11 @@ function upsertCanonical(href) {
   link.setAttribute('href', href);
 }
 
+function removeMeta(attribute, key) {
+  if (typeof document === 'undefined') return;
+  document.head.querySelectorAll('meta[' + attribute + '="' + key + '"]').forEach(tag => tag.remove());
+}
+
 function upsertJsonLd(data) {
   if (typeof document === 'undefined') return;
   let script = document.getElementById('atma-rekha-site-schema');
@@ -329,6 +334,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     upsertMeta('name', 'twitter:image', image);
     upsertMeta('name', 'twitter:image:alt', title);
     upsertCanonical(canonicalUrl);
+    removeMeta('property', 'article:published_time');
+    removeMeta('property', 'article:author');
     if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
     if (chapter) upsertMeta('property', 'article:author', 'Arkesh');
 
