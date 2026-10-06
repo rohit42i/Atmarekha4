@@ -1,0 +1,35 @@
+{
+  "snapshot_utc": "2026-10-06",
+  "workers": {
+    "atmarekha4": {
+      "latest_version": 2415,
+      "latest_version_id": "a79f757e-24b0-4938-9c2f-1632d09b9fce",
+      "compatibility_date": "2026-08-10"
+    },
+    "pdlpl-media": {
+      "latest_version": 851,
+      "latest_version_id": "db0bcfa5-4f0a-4578-bbd4-6bd305cda146",
+      "compatibility_date": "2026-09-22"
+    },
+    "tiny-pond-c959": {
+      "latest_version": 13,
+      "latest_version_id": "e97ab4ff-d0d1-463f-91bf-262e0424e589",
+      "compatibility_date": "2026-10-06"
+    }
+  },
+  "r2": {
+    "atma-rekha-manga": {
+      "objects": 76,
+      "bytes": 42789111,
+      "managed_domain_enabled": false,
+      "custom_domain": "cdn.atmarekha.in",
+      "custom_domain_enabled": true
+    },
+    "pdlpl-manga": {
+      "objects": 4,
+      "bytes": 3252451,
+      "managed_domain_enabled": false,
+      "custom_domains": []
+    }
+  }
+}
