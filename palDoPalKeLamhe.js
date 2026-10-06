@@ -16,6 +16,7 @@ export function mapChapter(row) {
     title: row.title || '',
     description: row.description || '',
     coverPath: row.cover_path || null,
+    language: String(row.language || 'hi').toLowerCase() === 'en' ? 'en' : 'hi',
     status: row.status || '',
     releaseDate: row.release_date || null,
     createdAt: row.created_at || null,
@@ -25,7 +26,7 @@ export function mapChapter(row) {
 export async function buildPdlplChapters() {
   const { data, error } = await supabase
     .from(PDLPL_CHAPTERS)
-    .select('id,chapter_number,title,description,cover_path,status,release_date,created_at')
+    .select('id,chapter_number,title,description,cover_path,status,release_date,created_at,language')
     .order('chapter_number', { ascending: true });
 
   if (error) throw error;
