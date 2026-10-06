@@ -318,14 +318,14 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
-      statusStage = 'Preparing status change';
+      stage = 'Preparing status change';
       const requestedStatus = String(status || '').trim();
       const releaseDate = String(requestedStatus).toLowerCase() === 'published'
         ? (chapter.releaseDate || null)
         : null;
 
-      statusStage = 'Publishing status through Supabase';
-      statusStage = 'Saving chapter status in Supabase';
+      stage = 'Publishing status through Supabase';
+      stage = 'Saving chapter status in Supabase';
       const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
         p_chapter_id: chapter.id,
         p_status: requestedStatus,
@@ -338,7 +338,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         throw new Error('PDPKL status verification failed. The chapter was not saved.');
       }
 
-      statusStage = 'Refreshing and verifying chapter status';
+      stage = 'Refreshing and verifying chapter status';
       await logAdminAction(user, 'change_pdlpl_status', 'pdlpl_chapter', chapter.id, {
         from: chapter.status,
         to: saved.status,
