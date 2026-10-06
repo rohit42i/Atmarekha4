@@ -801,6 +801,19 @@ export default function AdminPanel({ onLogout }) {
     window.addEventListener('atma-admin-select-tab', handler);
     return () => window.removeEventListener('atma-admin-select-tab', handler);
   }, []);
+
+  useEffect(() => {
+    const handler = event => {
+      const id = event?.detail?.commentId;
+      if (!id) return;
+      activateTab('Comments');
+      window.setTimeout(() => {
+        document.querySelector(`[data-admin-comment-id="${id}"]`)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+      }, 0);
+    };
+    window.addEventListener('atma-admin-focus-comment', handler);
+    return () => window.removeEventListener('atma-admin-focus-comment', handler);
+  }, []);
   const openAdminTool = (action, detail) => {
     setMobileSidebarOpen(false);
     setProfileOpen(false);
@@ -889,7 +902,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
