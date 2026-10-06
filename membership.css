@@ -378,3 +378,29 @@
 @media(max-width:1050px){.membership-plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.membership-plans{display:flex;grid-template-columns:none;align-items:stretch;gap:11px}.membership-plan{flex:0 0 min(84vw,350px);width:min(84vw,350px);min-width:min(84vw,350px);background:#17181b!important}.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#1b1c20!important}}
 @media(prefers-color-scheme:light){.membership-page{background:#f5f5f7}.membership-plan{background:#fff!important;border-color:rgba(24,24,27,.13)!important;box-shadow:0 14px 30px rgba(0,0,0,.09)!important}.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#fafafa!important;border-color:rgba(24,24,27,.23)!important}}
+
+/* Compact membership cards */
+.membership-plans{width:min(1000px,100%);gap:12px}
+.membership-plan{min-height:300px;padding:17px 16px 14px;border-radius:16px}
+.membership-plan-top{min-height:40px}
+.membership-plan-top h2{font-size:22px}
+.membership-plan-icon{width:34px;height:34px;font-size:16px}
+.membership-price{font-size:35px;margin-top:10px}
+.membership-plan ul{margin:11px 0 12px;gap:6px}
+.membership-plan li{font-size:12px}
+.membership-button{min-height:38px;font-size:11px}
+@media(max-width:1050px){
+  .membership-plans{width:min(900px,100%);gap:11px}
+  .membership-plan{min-height:290px}
+}
+@media(max-width:620px){
+  .membership-plans{width:100%;gap:10px}
+  .membership-plan{flex:0 0 min(78vw,320px);width:min(78vw,320px);min-width:min(78vw,320px);min-height:270px;padding:15px 14px 12px;border-radius:15px}
+  .membership-plan-top{min-height:36px}
+  .membership-plan-top h2{font-size:20px}
+  .membership-plan-icon{width:31px;height:31px;font-size:14px}
+  .membership-price{font-size:30px;margin-top:7px}
+  .membership-plan ul{margin:9px 0 10px;gap:5px}
+  .membership-plan li{font-size:11px}
+  .membership-button{min-height:34px;font-size:10px}
+}
