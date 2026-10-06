@@ -39,8 +39,8 @@ function LockedModal({ chapter, onClose }) {
         <span className="pdlpl-lock-icon" aria-hidden="true">🔒</span>
         <p className="pdlpl-kicker">PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
         <h2>{formatLabel(chapter)} is for members.</h2>
-        <p>Every chapter of this side story is available only with an active membership.</p>
-        <button className="pdlpl-primary" type="button" onClick={openMembership}>View Membership <span>→</span></button>
+        <p><strong>{formatLabel(chapter)}</strong> is available only to members. Unlock this chapter and every other PDPKL chapter with an active membership.</p>
+        <button className="pdlpl-primary" type="button" onClick={openMembership}>View Membership Plans <span>→</span></button>
         <button className="pdlpl-secondary" type="button" onClick={onClose}>Maybe later</button>
       </section>
     </div>
@@ -464,13 +464,18 @@ export default function PalDoPalKeLamhe() {
   }
 
   return (
-    <ChapterList
-      chapters={chapters}
-      member={member}
-      admin={admin}
-      pageCounts={pageCounts}
-      onOpen={openChapter}
-      onBack={() => { window.location.hash = 'home'; }}
-    />
+    <>
+      <ChapterList
+        chapters={chapters}
+        member={member}
+        admin={admin}
+        pageCounts={pageCounts}
+        onOpen={openChapter}
+        onBack={() => { window.location.hash = 'home'; }}
+      />
+      {lockChapter && !member && !admin && (
+        <LockedModal chapter={lockChapter} onClose={() => setLockChapter(null)} />
+      )}
+    </>
   );
 }
