@@ -1345,3 +1345,329 @@
   background:var(--admin-surface-3) !important;
   border-color:rgba(212,175,55,.18) !important;
 }
+
+
+/* FINAL TYPOGRAPHY + SPACING + CONTROL PASS */
+.admin-page.ar-admin-v3 {
+  letter-spacing: -0.01em;
+}
+
+.admin-page.ar-admin-v3 h1,
+.admin-page.ar-admin-v3 h2,
+.admin-page.ar-admin-v3 h3,
+.admin-page.ar-admin-v3 h4,
+.admin-page.ar-admin-v3 strong,
+.admin-page.ar-admin-v3 b {
+  font-family: var(--admin-font);
+  font-weight: 750;
+}
+
+.admin-page.ar-admin-v3 h1 {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.admin-page.ar-admin-v3 h2,
+.admin-page.ar-admin-v3 h3 {
+  font-weight: 780;
+  letter-spacing: -0.025em;
+}
+
+.admin-page.ar-admin-v3 p,
+.admin-page.ar-admin-v3 td,
+.admin-page.ar-admin-v3 th,
+.admin-page.ar-admin-v3 label,
+.admin-page.ar-admin-v3 input,
+.admin-page.ar-admin-v3 textarea,
+.admin-page.ar-admin-v3 select,
+.admin-page.ar-admin-v3 button {
+  letter-spacing: -0.005em;
+}
+
+.admin-page.ar-admin-v3 p {
+  line-height: 1.55;
+}
+
+.admin-page.ar-admin-v3 .admin-card,
+.admin-page.ar-admin-v3 .ar-glass-card,
+.admin-page.ar-admin-v3 .admin-header-card,
+.admin-page.ar-admin-v3 .admin-overview-card,
+.admin-page.ar-admin-v3 .performance-card {
+  padding: 20px;
+}
+
+.admin-page.ar-admin-v3 .admin-card-title {
+  margin-bottom: 17px;
+  gap: 18px;
+}
+
+.admin-page.ar-admin-v3 .admin-card-title h2,
+.admin-page.ar-admin-v3 .ar-section-header h3 {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .admin-card-title p,
+.admin-page.ar-admin-v3 .ar-section-header p {
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.admin-page.ar-admin-v3 .admin-form,
+.admin-page.ar-admin-v3 .admin-stack {
+  gap: 14px;
+}
+
+.admin-page.ar-admin-v3 .admin-form-grid,
+.admin-page.ar-admin-v3 .admin-studio-form-grid {
+  gap: 13px;
+}
+
+.admin-page.ar-admin-v3 label {
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.admin-page.ar-admin-v3 label > span {
+  margin-bottom: 6px;
+}
+
+.admin-page.ar-admin-v3 input,
+.admin-page.ar-admin-v3 textarea,
+.admin-page.ar-admin-v3 select {
+  min-height: 40px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.admin-page.ar-admin-v3 textarea {
+  min-height: 100px;
+}
+
+.admin-page.ar-admin-v3 button {
+  font-weight: 750;
+  line-height: 1.1;
+}
+
+.admin-page.ar-admin-v3 .ar-admin-primary-action,
+.admin-page.ar-admin-v3 .admin-submit,
+.admin-page.ar-admin-v3 .admin-studio-button-primary {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.admin-page.ar-admin-v3 .admin-studio-button,
+.admin-page.ar-admin-v3 .admin-row-actions button,
+.admin-page.ar-admin-v3 .admin-card-title > button,
+.admin-page.ar-admin-v3 .admin-card button:not(.admin-submit):not(.ar-admin-primary-action) {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.admin-page.ar-admin-v3 .admin-row-actions {
+  gap: 8px;
+}
+
+.admin-page.ar-admin-v3 .admin-studio-table th,
+.admin-page.ar-admin-v3 .admin-studio-table td {
+  padding: 11px 12px;
+}
+
+.admin-page.ar-admin-v3 .admin-studio-table th {
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.admin-page.ar-admin-v3 .admin-studio-table td {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.admin-page.ar-admin-v3 .admin-chapter-cell strong {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .admin-chapter-cell span {
+  margin-top: 4px;
+  font-size: 9px;
+}
+
+.admin-page.ar-admin-v3 .ar-admin-topbar {
+  padding: 0 24px;
+  gap: 16px;
+}
+
+.admin-page.ar-admin-v3 .ar-admin-command-trigger,
+.admin-page.ar-admin-v3 .ar-admin-search {
+  height: 40px;
+  border-radius: 9px;
+  padding: 0 13px;
+}
+
+.admin-page.ar-admin-v3 .ar-admin-icon-button,
+.admin-page.ar-admin-v3 .ar-admin-refresh,
+.admin-page.ar-admin-v3 .ar-admin-profile {
+  min-height: 38px;
+  border-radius: 9px;
+}
+
+.admin-page.ar-admin-v3 .studio-page-hero {
+  padding: 24px;
+  gap: 22px;
+}
+
+.admin-page.ar-admin-v3 .studio-page-hero h2 {
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .studio-page-hero p {
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.admin-page.ar-admin-v3 .studio-page-controls {
+  padding: 14px;
+  gap: 11px;
+}
+
+.admin-page.ar-admin-v3 .studio-project-switch button {
+  min-height: 62px;
+  padding: 9px;
+  border-radius: 10px;
+}
+
+.admin-page.ar-admin-v3 .studio-project-switch b {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .studio-project-switch small {
+  font-size: 8px;
+}
+
+.admin-page.ar-admin-v3 .studio-chapter-strip > button {
+  min-height: 58px;
+  padding: 9px;
+  border-radius: 10px;
+}
+
+.admin-page.ar-admin-v3 .studio-chapter-strip b {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .studio-page-grid {
+  padding: 16px;
+  gap: 11px;
+}
+
+.admin-page.ar-admin-v3 .studio-page-grid-item {
+  border-radius: 10px;
+}
+
+.admin-page.ar-admin-v3 .studio-grid-footer {
+  min-height: 34px;
+  padding: 0 9px;
+}
+
+.admin-page.ar-admin-v3 .studio-grid-footer b {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .studio-panel-head {
+  padding: 17px;
+}
+
+.admin-page.ar-admin-v3 .studio-panel-head h3 {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .studio-panel-head p {
+  font-size: 9px;
+}
+
+.admin-page.ar-admin-v3 .studio-panel-head > button,
+.admin-page.ar-admin-v3 .studio-retry,
+.admin-page.ar-admin-v3 .studio-two-actions button,
+.admin-page.ar-admin-v3 .studio-delete-action {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.admin-page.ar-admin-v3 .studio-replace {
+  min-height: 62px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.admin-page.ar-admin-v3 .studio-replace b {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .admin-page.ar-admin-v3 .ar-admin-content {
+    padding: 18px 14px 48px;
+  }
+
+  .admin-page.ar-admin-v3 .admin-card,
+  .admin-page.ar-admin-v3 .ar-glass-card,
+  .admin-page.ar-admin-v3 .admin-header-card,
+  .admin-page.ar-admin-v3 .admin-overview-card,
+  .admin-page.ar-admin-v3 .performance-card {
+    padding: 16px;
+  }
+
+  .admin-page.ar-admin-v3 .admin-card-title {
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .admin-page.ar-admin-v3 .admin-card-title h2,
+  .admin-page.ar-admin-v3 .ar-section-header h3 {
+    font-size: 16px;
+  }
+
+  .admin-page.ar-admin-v3 .ar-admin-primary-action,
+  .admin-page.ar-admin-v3 .admin-submit,
+  .admin-page.ar-admin-v3 .admin-studio-button-primary {
+    min-height: 42px;
+    padding: 0 14px;
+  }
+
+  .admin-page.ar-admin-v3 .admin-studio-button,
+  .admin-page.ar-admin-v3 .admin-row-actions button,
+  .admin-page.ar-admin-v3 .admin-card-title > button {
+    min-height: 38px;
+  }
+
+  .admin-page.ar-admin-v3 .studio-page-hero {
+    padding: 18px;
+  }
+
+  .admin-page.ar-admin-v3 .studio-page-hero h2 {
+    font-size: 25px;
+  }
+
+  .admin-page.ar-admin-v3 .studio-page-grid {
+    padding: 11px;
+    gap: 9px;
+  }
+}
