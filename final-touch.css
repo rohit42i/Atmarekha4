@@ -620,3 +620,81 @@ html[data-theme="dark"] .continue-reading-button {
 
 /* Reader must be allowed to overflow horizontally when Chrome zoom increases page scale. */
 body:has(.reader-page){overflow-x:auto!important}
+
+/* Chapter discovery controls: one clean full-width control, no nested/inner borders. */
+.chapter-discovery > label:not(.chapter-language),
+.chapter-discovery .chapter-language {
+  box-sizing: border-box !important;
+  border: 1px solid rgba(0,0,0,.16) !important;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.chapter-discovery > label:not(.chapter-language) input,
+.chapter-discovery > label:not(.chapter-language) input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #000 !important;
+}
+
+.chapter-discovery .chapter-language {
+  cursor: pointer;
+}
+
+.chapter-discovery .chapter-language > span {
+  color: #000 !important;
+}
+
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-language select:focus,
+.chapter-discovery .chapter-language select:hover {
+  min-width: 0;
+  flex: 1 1 auto;
+  width: 100%;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #000 !important;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.chapter-discovery .chapter-language option {
+  background: #fff;
+  color: #000;
+}
+
+.chapter-discovery > label:not(.chapter-language) input::placeholder {
+  color: #000 !important;
+  opacity: .55;
+}
+
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language),
+html[data-theme="dark"] .chapter-discovery .chapter-language {
+  border-color: #292929 !important;
+  background: #030303 !important;
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input,
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input:focus,
+html[data-theme="dark"] .chapter-discovery .chapter-language > span,
+html[data-theme="dark"] .chapter-discovery .chapter-language select,
+html[data-theme="dark"] .chapter-discovery .chapter-language select:focus,
+html[data-theme="dark"] .chapter-discovery .chapter-language select:hover {
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input::placeholder {
+  color: #fff !important;
+  opacity: .55;
+}
+
+html[data-theme="dark"] .chapter-discovery .chapter-language option {
+  background: #030303;
+  color: #fff;
+}
+\n
