@@ -9,7 +9,6 @@ const PLANS = [
     label: 'FREE',
     name: 'Reader',
     amount: 0,
-    description: 'Start reading and experience Atma Rekha at no cost.',
     features: ['Chapters 1–8', 'Bookmarks & reading history', 'Ratings & comments', 'Reading progress', 'Notifications'],
   },
   {
@@ -17,7 +16,6 @@ const PLANS = [
     label: 'SUPPORT',
     name: 'Supporter',
     amount: 19,
-    description: 'The simplest way to support the manga and keep reading.',
     features: ['All released chapters', 'Supporter badge', 'Member updates', 'Reading progress'],
   },
   {
@@ -26,7 +24,6 @@ const PLANS = [
     name: 'Premium Supporter',
     amount: 29,
     popular: true,
-    description: 'More support, more recognition, same full reading access.',
     features: ['All released chapters', 'Premium Supporter badge', 'Member recognition', 'Member updates', 'Reading progress'],
   },
   {
@@ -34,7 +31,6 @@ const PLANS = [
     label: 'TOP SUPPORTER',
     name: 'Super Supporter',
     amount: 49,
-    description: 'For readers who want to support Atma Rekha a little more.',
     features: ['All released chapters', 'Super Supporter badge', 'Super Supporter recognition', 'Member updates', 'Reading progress'],
   },
 ];
@@ -405,10 +401,8 @@ function PlanCard({ plan, current, busy, onChoose }) {
           <p className="membership-plan-label">{plan.label}</p>
           <h2>{plan.name}</h2>
         </div>
-        {plan.popular && <span className="membership-popular">MOST CHOSEN</span>}
       </div>
 
-      <p className="membership-plan-description">{plan.description}</p>
 
       <div className="membership-price-row">
         <strong>₹{plan.amount}</strong>
