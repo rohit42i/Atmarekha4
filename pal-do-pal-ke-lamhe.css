@@ -564,3 +564,160 @@ main.admin-page.ar-admin-v3 .pdlpl-dropzone input{
     grid-column:auto;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   PDPKL embedded Admin — authoritative light/dark card surfaces
+   The PDPKL manager lives inside Admin v3, so it must inherit the admin
+   theme explicitly instead of mixing legacy palette variables.
+   -------------------------------------------------------------------------- */
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
+  --pdlpl-bg:var(--admin-bg);
+  --pdlpl-surface:var(--admin-surface);
+  --pdlpl-surface-2:var(--admin-surface-2);
+  --pdlpl-text:var(--admin-text);
+  --pdlpl-muted:var(--admin-muted);
+  --pdlpl-border:var(--admin-border);
+  background:transparent!important;
+  color:var(--pdlpl-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-embedded-heading,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-card,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-page-manager{
+  background:var(--pdlpl-surface)!important;
+  background-image:none!important;
+  color:var(--pdlpl-text)!important;
+  border:1px solid var(--pdlpl-border)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-embedded-heading{
+  margin:0 0 14px!important;
+  padding:18px 20px!important;
+  border-radius:12px!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-layout{
+  display:grid!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  gap:14px!important;
+  background:transparent!important;
+  grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-card-head h2,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-card-head p,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-muted{
+  color:var(--pdlpl-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-card-head p,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-muted{
+  opacity:.68;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-card-head span{
+  color:var(--pdlpl-muted)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-form input,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-form textarea,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-form select,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list-tools input{
+  background:var(--pdlpl-surface)!important;
+  color:var(--pdlpl-text)!important;
+  border:1px solid var(--pdlpl-border)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-file-input,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-dropzone{
+  background:var(--pdlpl-surface-2)!important;
+  color:var(--pdlpl-text)!important;
+  border-color:var(--pdlpl-border)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-file-input span,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-dropzone span{
+  color:var(--pdlpl-muted)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list article,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-pages article{
+  background:var(--pdlpl-surface-2)!important;
+  color:var(--pdlpl-text)!important;
+  border:1px solid var(--pdlpl-border)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list article.active{
+  border-color:var(--pdlpl-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list article>div button,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list-tools button,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-header-actions button,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-page-actions label,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-page-actions button{
+  background:var(--pdlpl-surface)!important;
+  color:var(--pdlpl-text)!important;
+  border-color:var(--pdlpl-border)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list article>div button:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-list-tools button:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-header-actions button:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-page-actions label:hover,
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-page-actions button:hover:not(:disabled){
+  background:var(--pdlpl-text)!important;
+  color:var(--pdlpl-surface)!important;
+  border-color:var(--pdlpl-text)!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-primary{
+  background:var(--pdlpl-text)!important;
+  color:var(--pdlpl-surface)!important;
+  border:1px solid var(--pdlpl-text)!important;
+  box-shadow:none!important;
+}
+
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-page-preview{
+  background:var(--pdlpl-bg)!important;
+  border-color:var(--pdlpl-border)!important;
+}
+
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
+  --pdlpl-bg:#000;
+  --pdlpl-surface:#0b0b0c;
+  --pdlpl-surface-2:#111214;
+  --pdlpl-text:#fff;
+  --pdlpl-muted:#fff;
+  --pdlpl-border:#292a2e;
+}
+
+html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
+  --pdlpl-bg:#f6f6f4;
+  --pdlpl-surface:#fff;
+  --pdlpl-surface-2:#f1f1ee;
+  --pdlpl-text:#000;
+  --pdlpl-muted:#000;
+  --pdlpl-border:#deded9;
+}
+
+@media(max-width:900px){
+  main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-admin-layout{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media(max-width:640px){
+  main.admin-page.ar-admin-v3 .pdlpl-admin-embedded .pdlpl-embedded-heading{
+    padding:15px!important;
+  }
+}
