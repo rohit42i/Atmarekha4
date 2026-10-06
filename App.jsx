@@ -17,8 +17,8 @@ import ContinueReading from './ContinueReading.jsx';
 
 const STORY = { title: 'Atma Rekha', description: 'ATMA REKHA is an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.' };
 const SITE_URL = 'https://www.atmarekha.in';
-const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.';
+const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
+const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings shape an unfolding adventure.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
 
 function upsertMeta(attribute, key, content) {
@@ -279,7 +279,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       if (chapter) {
         const label = formatChapterLabel(chapter.chapterNumber, { title: chapter.title });
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
-        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.');
+        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy manga/comic about ancient traditions, mysterious powers and mythical beings.');
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'read-chapter') {
@@ -288,12 +288,12 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       if (chapter) {
         const label = formatChapterLabel(chapter.chapterNumber, { title: chapter.title });
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
-        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy adventure manga about ancient traditions, mysterious powers and mythical beings.');
+        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy manga/comic about ancient traditions, mysterious powers and mythical beings.');
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'chapters') {
       title = 'Atma Rekha | Chapters';
-      description = 'Read the published chapters of Atma Rekha, an Indian fantasy adventure manga.';
+      description = 'Read the published chapters of Atma Rekha, an Indian fantasy manga/comic.';
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
       const labels = { about: 'About Atma Rekha', contact: 'Contact Atma Rekha', report: 'Report Atma Rekha Content', privacy: 'Atma Rekha Privacy Policy', terms: 'Atma Rekha Terms and Conditions' };
@@ -313,11 +313,12 @@ export default function App() { const route = useHashRoute(); const [chapters, s
           : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
-    upsertMeta('name', 'robots', isPrivateRoute ? 'noindex,nofollow,noarchive' : 'index,follow');
+    upsertMeta('name', 'robots', isPrivateRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
 
     document.title = title;
     upsertMeta('name', 'description', description);
     upsertMeta('name', 'author', 'Arkesh');
+    upsertMeta('property', 'og:type', chapter ? 'article' : 'website');
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', canonicalUrl);
@@ -328,6 +329,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     upsertMeta('name', 'twitter:image', image);
     upsertMeta('name', 'twitter:image:alt', title);
     upsertCanonical(canonicalUrl);
+    if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
+    if (chapter) upsertMeta('property', 'article:author', 'Arkesh');
 
     const series = {
       '@type': 'CreativeWorkSeries',
@@ -336,7 +339,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       genre: ['Fantasy', 'Adventure', 'Manga'],
       alternateName: 'Atma Rekha Fantasy Adventure Manga',
       description: DEFAULT_SEO_DESCRIPTION,
-      keywords: 'Indian manga, fantasy adventure manga, Indian fantasy comic, mythology-inspired manga, Roman Hindi manga',
+      keywords: 'Indian fantasy manga, Indian comic, fantasy adventure manga, spiritual fantasy, mythical beings, ancient traditions, Roman Hindi manga',
       author,
       inLanguage: ['en-IN', 'hi-Latn-IN'],
       url: SITE_URL + '/',
@@ -352,7 +355,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         description: DEFAULT_SEO_DESCRIPTION,
         inLanguage: ['en-IN', 'hi-Latn-IN'],
         creator: author,
-        about: ['Indian mythology', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings']
+        about: ['Indian fantasy manga', 'Indian comic', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings']
       },
       series
     ];
