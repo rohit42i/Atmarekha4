@@ -1,0 +1,30 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "atma-rekha-analytics",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-05",
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS",
+      "dataset": "atma_rekha_views"
+    }
+  ],
+  "analytics": {
+    "binding": "ANALYTICS_SQL"
+  },
+  "r2_buckets": [
+    {
+      "binding": "ANALYTICS_BUCKET",
+      "bucket_name": "atma-rekha-manga"
+    }
+  ],
+  "vars": {
+    "SUPABASE_URL": "https://pbukwjokgkqacaphlqzm.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E"
+  },
+  "triggers": {
+    "crons": [
+      "15 * * * *"
+    ]
+  }
+}
