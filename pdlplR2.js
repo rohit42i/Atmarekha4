@@ -4,7 +4,7 @@ export const PDLPL_MEDIA_WORKER_URL =
   import.meta.env.VITE_PDLPL_MEDIA_WORKER_URL ||
   'https://pdlpl-media.rohitbaswaraj.workers.dev';
 
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
 
 const encodePath = path =>
   String(path || '').split('/').map(segment => encodeURIComponent(segment)).join('/');
@@ -75,7 +75,7 @@ export async function uploadPdlplFile(file, path) {
     throw new Error(`${file.name} is empty.`);
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    throw new Error(`${file.name} is larger than 20 MB.`);
+    throw new Error(`${file.name} is larger than 95 MB.`);
   }
 
   await request(path, {
