@@ -25,24 +25,51 @@ function formatLabel(chapter) {
   return chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
 }
 
-function openMembership() {
+const PDPKL_MEMBERSHIP_CONTEXT_KEY = 'pdlpl-membership-context';
+
+function openPdlplMembership(chapter) {
+  try {
+    window.sessionStorage.setItem(PDPKL_MEMBERSHIP_CONTEXT_KEY, JSON.stringify({
+      source: 'pdpkl',
+      chapterNumber: chapter?.chapterNumber ?? null,
+      title: chapter?.title || '',
+    }));
+  } catch {}
   window.location.hash = 'membership';
 }
 
-function LockedModal({ chapter, onClose }) {
+function LockedModal({ chapter, onClose, user, planId }) {
+  const hasUser = Boolean(user);
+  const isAtmaOnlyPlan = String(planId || '').trim().toLowerCase() === 'mini_member';
+  const title = isAtmaOnlyPlan
+    ? 'Upgrade to unlock this chapter.'
+    : hasUser
+      ? 'Unlock this chapter with membership.'
+      : 'Chapter 1 is for members.';
+  const copy = isAtmaOnlyPlan
+    ? 'Your current ₹19 Supporter plan is for Atma Rekha only. Upgrade to ₹29 Premium Supporter or ₹49 Super Supporter to read Pal Do Pal Ke Lamhe.'
+    : hasUser
+      ? 'Pal Do Pal Ke Lamhe starts with Chapter 1 as a members-only story. Choose ₹29 Premium Supporter or ₹49 Super Supporter for access.'
+      : 'Pal Do Pal Ke Lamhe Chapter 1 is members-only. Sign in, then choose ₹29 Premium Supporter or ₹49 Super Supporter.';
+  const cta = isAtmaOnlyPlan ? 'Upgrade membership' : hasUser ? 'Choose membership' : 'Sign in & choose membership';
+
   return (
-    <div className="chapter-access-overlay" role="dialog" aria-modal="true" aria-label="Membership required">
+    <div className="chapter-access-overlay" role="dialog" aria-modal="true" aria-label="PDPKL membership required">
       <button className="chapter-access-backdrop" aria-label="Close" onClick={onClose} />
       <section className="chapter-access-modal">
         <button className="chapter-access-close" type="button" onClick={onClose} aria-label="Close">×</button>
         <div className="chapter-access-icon" aria-hidden="true">🦚</div>
-        <p className="chapter-access-eyebrow">PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
-        <h2>{formatLabel(chapter)} is waiting for you.</h2>
-        <p className="chapter-access-copy">Pal Do Pal Ke Lamhe chapters are available with a Premium Supporter or Super Supporter membership.</p>
-        <div className="chapter-access-perks"><span>✦ Every PDPKL chapter</span><span>✦ UPI AutoPay membership</span><span>✦ Support the side story</span></div>
-        <button className="chapter-access-cta" type="button" onClick={() => { window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
+        <p className="chapter-access-eyebrow">PAL DO PAL KE LAMHE · CHAPTER 1</p>
+        <h2>{isAtmaOnlyPlan ? 'Your membership does not include PDPKL.' : title}</h2>
+        <p className="chapter-access-copy">{copy}</p>
+        <div className="chapter-access-perks">
+          <span>✦ Chapter 1 onward · PDPKL access</span>
+          <span>✦ ₹29 Premium Supporter</span>
+          <span>✦ ₹49 Super Supporter</span>
+        </div>
+        <button className="chapter-access-cta" type="button" onClick={() => openPdlplMembership(chapter)}>{cta} <span>→</span></button>
         <button className="chapter-access-secondary" type="button" onClick={onClose}>Maybe later</button>
-        <p className="chapter-access-note">Choose ₹29 or ₹49 per month for PDPKL access.</p>
+        <p className="chapter-access-note">₹19 Supporter does not include Pal Do Pal Ke Lamhe.</p>
       </section>
     </div>
   );
@@ -478,6 +505,8 @@ export default function PalDoPalKeLamhe() {
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [memberUser, setMemberUser] = useState(null);
+  const [memberPlanId, setMemberPlanId] = useState(null);
   const [language, setLanguage] = useState(() => window.localStorage.getItem('pdlpl-language') === 'en' ? 'en' : 'hi');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('chapter');
@@ -503,6 +532,8 @@ export default function PalDoPalKeLamhe() {
       setChapters(publishedChapters);
       setMember(access.member);
       setAdmin(access.admin);
+      setMemberUser(access.user || null);
+      setMemberPlanId(access.planId || null);
 
       const ids = publishedChapters.map(chapter => chapter.id);
       try {
@@ -612,7 +643,7 @@ export default function PalDoPalKeLamhe() {
         onSortChange={setSort}
       />
       {ratingChapter && <PdlplRatingSheet chapter={ratingChapter} summary={stats[ratingChapter.id]?.rating} open onClose={() => setRatingChapter(null)} onChanged={load} />}
-      {lockChapter && <LockedModal chapter={lockChapter} onClose={() => setLockChapter(null)} />}
+      {lockChapter && <LockedModal chapter={lockChapter} user={memberUser} planId={memberPlanId} onClose={() => setLockChapter(null)} />}
     </>
   );
 }
