@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAdminRole } from './adminAuth';
 import { supabase } from './supabase';
+import { normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES } from './palDoPalKeLamhe';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
@@ -9,6 +10,7 @@ const MAX_PAGE_SIZE = 20 * 1024 * 1024;
 
 const emptyForm = () => ({
   number: '',
+  language: 'hi',
   title: '',
   description: '',
   status: 'Draft',
@@ -298,8 +300,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!form.title.trim()) throw new Error('Chapter title is required.');
       if (!wasEditing && !form.pages.length) throw new Error('Select at least one page for a new chapter.');
 
+      const language = normalizeChapterLanguage(form.language);
+      const duplicate = chapters.find(chapter => chapter.id !== editing?.id && normalizeChapterLanguage(chapter.language) === language && ((chapter.chapterNumber == null && number == null) || Number(chapter.chapterNumber) === number));
+      if (duplicate) throw new Error((number == null ? 'Special / unnumbered entry' : 'Chapter ' + number) + ' already exists in ' + chapterLanguageLabel(language) + '. Edit that variant instead.');
+
       const payload = {
         chapter_number: number,
+        language,
         title: form.title.trim(),
         description: form.description.trim(),
         status: form.status,
@@ -339,7 +346,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
-          const path = pagePath(chapterId, revision, file, i);
+          const path = 'chapters/' + chapterId + '/pages/' + language + '-' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + safeExt(file);
           await uploadPdlplFile(file, path);
           uploaded.push(path);
           rows.push({ page_number: i + 1, image_path: path });
@@ -435,6 +442,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     setEditing(chapter);
     setForm({
       number: chapter.chapterNumber ?? '',
+      language: normalizeChapterLanguage(chapter.language),
       title: chapter.title,
       description: chapter.description,
       status: chapter.status || 'Draft',
@@ -739,6 +747,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
         <div className="pdlpl-form-grid">
           <label>Chapter number<input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} required /></label>
+          <label>Language<select value={form.language} disabled={Boolean(editing)} onChange={e => setForm({ ...form, language: e.target.value })}><option value="hi">Hindi</option><option value="en">English</option></select></label>
           <label>Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Draft</option><option>Published</option><option>Archived</option></select></label>
         </div>
 
