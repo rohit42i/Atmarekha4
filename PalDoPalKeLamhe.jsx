@@ -107,7 +107,8 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
       </div>
     </button>
     <div className="chapter-row-actions">
-      <button type="button" className={`chapter-favorite-action${favoriteSaved ? ' is-saved' : ''}`} onClick={toggleFavorite} disabled={favoriteBusy} aria-label={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'} title={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'}><span>{favoriteSaved ? '♥' : '♡'}</span><small>{favoriteSaved ? 'Saved' : 'Favourite'}</small></button>\n      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
+      <button type="button" className={`chapter-favorite-action${favoriteSaved ? ' is-saved' : ''}`} onClick={toggleFavorite} disabled={favoriteBusy} aria-label={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'} title={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'}><span>{favoriteSaved ? '♥' : '♡'}</span><small>{favoriteSaved ? 'Saved' : 'Favourite'}</small></button>
+      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
       <button type="button" className="engagement-icon" onClick={() => {}} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}><span>💬</span><small>{Number(item.comments) || 0}</small></button>
     </div>
   </article>;
