@@ -100,7 +100,7 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
 function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBack, onRating, language, onLanguageChange, query, onQueryChange, sort, onSortChange }) {
   const [sortOpen, setSortOpen] = useState(false);
   return <main className="site-shell chapter-list-page pdlpl-page-list">
-    <header className="subpage-header"><button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button><div><h1>Chapter List</h1></div></header>
+    <header className="subpage-header"><button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button><div><p className="header-kicker">PAL DO PAL KE LAMHE</p><h1>Chapter List</h1></div></header>
     <section className="chapter-list-section">
       <div className="chapter-discovery">
         <label>
