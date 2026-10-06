@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase, cloudflareR2 } from './supabase';
+import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { buildPdlplChapters } from './palDoPalKeLamhe.js';
@@ -42,8 +42,14 @@ function Artwork({ project, page, className = '', alt = '' }) {
     let alive = true;
     let objectUrl = '';
     setError('');
-    if (project === 'atma') { setSrc(page.image_url || ''); return undefined; }
     setSrc('');
+    if (project === 'atma') {
+      if (!page.image_url) return undefined;
+      fetchAuthenticatedMediaBlobUrl(page.image_url)
+        .then(url => { objectUrl = url; if (alive) setSrc(url); else URL.revokeObjectURL(url); })
+        .catch(err => { if (alive) setError(err?.message || 'Preview unavailable'); });
+      return () => { alive = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    }
     fetchPdlplMedia(page.image_path)
       .then(url => { objectUrl = url; if (alive) setSrc(url); else URL.revokeObjectURL(url); })
       .catch(err => { if (alive) setError(err?.message || 'Preview unavailable'); });
@@ -121,7 +127,7 @@ export default function AdminChapterPages({ chapters = [] }) {
     let committed = false;
     try {
       const user = await adminUser();
-      uploadedPath = page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
+      uploadedPath = (project === 'pdpkl' ? 'chapters/' : '') + page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
       if (project === 'pdpkl') {
         await uploadPdlplFile(file, uploadedPath);
         const { error } = await supabase.rpc('pdlpl_replace_chapter_page', { p_page_id: page.id, p_image_path: uploadedPath });

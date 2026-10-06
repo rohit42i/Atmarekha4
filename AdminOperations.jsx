@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase, cloudflareR2 } from './supabase';
+import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2 } from './supabase';
 import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
@@ -133,12 +133,30 @@ export default function AdminOperations() {
   };
 
   const preview = async chapter => {
+    for (const page of previewPages) if (page.previewUrl) URL.revokeObjectURL(page.previewUrl);
     setSelectedChapter(chapter); setPreviewPages([]); setPreviewLoading(true);
     try {
       const { data, error } = await supabase.from('chapter_pages').select('page_number,image_url').eq('chapter_id', chapter.id).order('page_number', { ascending: true });
-      if (error) throw error; setPreviewPages(data || []);
-    } catch (error) { setNotice(error.message || 'Preview could not be loaded.'); }
-    finally { setPreviewLoading(false); }
+      if (error) throw error;
+      const pagesWithUrls = [];
+      try {
+        for (const page of data || []) {
+          pagesWithUrls.push({ ...page, previewUrl: await fetchAuthenticatedMediaBlobUrl(page.image_url) });
+        }
+      } catch (mediaError) {
+        pagesWithUrls.forEach(page => { if (page.previewUrl) URL.revokeObjectURL(page.previewUrl); });
+        throw mediaError;
+      }
+      setPreviewPages(pagesWithUrls);
+    } catch (error) {
+      setNotice(error.message || 'Preview could not be loaded.');
+    } finally { setPreviewLoading(false); }
+  };
+
+  const closePreview = () => {
+    for (const page of previewPages) if (page.previewUrl) URL.revokeObjectURL(page.previewUrl);
+    setPreviewPages([]);
+    setSelectedChapter(null);
   };
 
   const archive = chapter => updateChapter(chapter, { deleted_at: new Date().toISOString(), deleted_previous_status: chapter.status || 'Draft', status: 'Archived' }, 'archive_chapter', `Archive ${chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : chapter.title || 'this chapter'}? Nothing will be permanently deleted. It will remain in Recovery.`);
@@ -192,6 +210,6 @@ export default function AdminOperations() {
       </div></div>
     </div>
   </section></div>}
-  {selectedChapter && <div className="ar-ops-preview" onMouseDown={e => e.target === e.currentTarget && setSelectedChapter(null)}><section className="ar-ops-preview-panel"><header className="ar-ops-preview-head"><div><h3>{selectedChapter.chapter_number ? `Chapter ${selectedChapter.chapter_number}` : 'Unnumbered'} — {selectedChapter.title || 'Untitled'}</h3><p>{selectedChapter.status || 'Draft'} · {previewPages.length} pages · preview only</p></div><button className="ar-ops-preview-close" onClick={() => setSelectedChapter(null)}>×</button></header>{previewLoading ? <div className="ar-ops-empty">Loading preview…</div> : <div className="ar-ops-preview-pages">{previewPages.map(page => <img key={page.page_number} src={page.image_url} alt={`Page ${page.page_number}`} loading="lazy"/>)}{!previewPages.length && <div className="ar-ops-empty">No readable pages available for preview.</div>}</div>}</section></div>}
+  {selectedChapter && <div className="ar-ops-preview" onMouseDown={e => e.target === e.currentTarget && closePreview()}><section className="ar-ops-preview-panel"><header className="ar-ops-preview-head"><div><h3>{selectedChapter.chapter_number ? `Chapter ${selectedChapter.chapter_number}` : 'Unnumbered'} — {selectedChapter.title || 'Untitled'}</h3><p>{selectedChapter.status || 'Draft'} · {previewPages.length} pages · preview only</p></div><button className="ar-ops-preview-close" onClick={closePreview}>×</button></header>{previewLoading ? <div className="ar-ops-empty">Loading preview…</div> : <div className="ar-ops-preview-pages">{previewPages.map(page => <img key={page.page_number} src={page.previewUrl} alt={`Page ${page.page_number}`} loading="lazy"/>)}{!previewPages.length && <div className="ar-ops-empty">No readable pages available for preview.</div>}</div>}</section></div>}
   </>;
 }

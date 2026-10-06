@@ -32,6 +32,44 @@ async function authHeaders() {
   return { Authorization: `Bearer ${data.session.access_token}` };
 }
 
+export async function fetchAuthenticatedMedia(url, options = {}, retried = false) {
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), ...(await authHeaders()) },
+    });
+  } catch (error) {
+    const failure = new Error(
+      `Authenticated media request failed: ${error?.message || error}. Check the media Worker CORS/network configuration.`,
+    );
+    failure.name = error?.name || 'NetworkError';
+    failure.url = url;
+    failure.cause = error;
+    throw failure;
+  }
+
+  if (response.status === 401 && !retried) {
+    const { error } = await client.auth.refreshSession();
+    if (error) throw error;
+    return fetchAuthenticatedMedia(url, options, true);
+  }
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    let message = '';
+    try { message = JSON.parse(body)?.error || ''; } catch (_) {}
+    throw new Error(message || `Authenticated media request failed (HTTP ${response.status}).`);
+  }
+
+  return response;
+}
+
+export async function fetchAuthenticatedMediaBlobUrl(url, options = {}) {
+  const response = await fetchAuthenticatedMedia(url, options);
+  return URL.createObjectURL(await response.blob());
+}
+
 const blobFromCanvas = (canvas, type, quality) => new Promise((resolve, reject) => {
   canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')), type, quality);
 });

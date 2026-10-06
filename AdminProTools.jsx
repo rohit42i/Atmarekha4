@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { supabase } from './supabase';
+import { fetchAuthenticatedMedia, supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 
@@ -103,7 +103,7 @@ export default function AdminProTools() {
       const samplePage = (pagesResult.data || []).find(page => page.image_url);
       if (samplePage?.image_url) {
         try {
-          const response = await fetch(samplePage.image_url, { method: 'HEAD', cache: 'no-store' });
+          const response = await fetchAuthenticatedMedia(samplePage.image_url, { method: 'HEAD', cache: 'no-store' });
           r2Status = response.status < 500 ? 'online' : 'error';
         } catch {
           r2Status = 'error';
