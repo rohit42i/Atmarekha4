@@ -8,12 +8,17 @@ const FREE_CHAPTER_LIMIT = 8;
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 const isMember = planId => MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase());
 
+function getChapterNumber(chapter) {
+  const raw = chapter?.chapter_number ?? chapter?.chapterNumber;
+  if (raw === null || raw === undefined || raw === '') return null;
+  const number = Number(raw);
+  return Number.isFinite(number) ? number : null;
+}
+
 function isLockedChapter(chapter, member) {
   if (!chapter || member) return false;
-  const raw = chapter.chapter_number ?? chapter.chapterNumber;
-  if (raw === null || raw === undefined || raw === '') return false; // NULL/special = free
-  const number = Number(raw);
-  return Number.isFinite(number) && number > FREE_CHAPTER_LIMIT;
+  const number = getChapterNumber(chapter);
+  return number !== null && number > FREE_CHAPTER_LIMIT;
 }
 
 export default function ChapterAccessGuard() {
@@ -69,6 +74,16 @@ export default function ChapterAccessGuard() {
     const onLocationChange = () => blockLockedChapter(getChapterFromLocation());
 
     const onClick = event => {
+      const chapterRow = event.target?.closest?.('.chapter-row[data-chapter-id]');
+      if (chapterRow) {
+        const chapter = chapters.find(item => String(item.id) === String(chapterRow.getAttribute('data-chapter-id')));
+        if (blockLockedChapter(chapter)) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+      }
+
       const anchor = event.target?.closest?.('a[href]');
       if (!anchor) return;
       const href = anchor.getAttribute('href') || '';
@@ -136,9 +151,9 @@ export default function ChapterAccessGuard() {
         <div className="chapter-access-icon" aria-hidden="true">🦚</div>
         <p className="chapter-access-eyebrow">ATMA REKHA · MEMBERS ONLY</p>
         <h2>{label} is waiting for you.</h2>
-        <p className="chapter-access-copy">Chapters 1–8 are free forever. From Chapter 9 onward, membership is required to continue reading.</p>
-        <div className="chapter-access-perks"><span>✦ Full Chapter 9+ access</span><span>✦ UPI AutoPay membership</span><span>✦ Support Atma Rekha</span></div>
-        <button className="chapter-access-cta" type="button" onClick={() => { setLockedChapter(null); window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
+        <p className="chapter-access-copy">Chapters 1–8 are free forever. From Chapter 9 onward, this chapter is available to members only.</p>
+        <div className="chapter-access-perks"><span>✦ Unlock this chapter and all later chapters</span><span>✦ UPI AutoPay membership</span><span>✦ Support Atma Rekha</span></div>
+        <button className="chapter-access-cta" type="button" onClick={() => { setLockedChapter(null); window.location.hash = 'membership'; }}>View membership plans <span>→</span></button>
         <button className="chapter-access-secondary" type="button" onClick={() => setLockedChapter(null)}>Maybe later</button>
         <p className="chapter-access-note">Choose ₹19, ₹29, or ₹49 per month.</p>
       </section>
