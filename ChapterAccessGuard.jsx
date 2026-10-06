@@ -49,6 +49,16 @@ export default function ChapterAccessGuard() {
 
   useEffect(() => {
     if (!ready) return undefined;
+    const handler = event => {
+      const chapter = event?.detail?.chapter;
+      if (isLockedChapter(chapter, member)) setLockedChapter(chapter);
+    };
+    window.addEventListener('atma:open-chapter-access', handler);
+    return () => window.removeEventListener('atma:open-chapter-access', handler);
+  }, [ready, member]);
+
+  useEffect(() => {
+    if (!ready) return undefined;
 
     const getChapterFromLocation = () => {
       const fromPath = findChapterForPath(window.location.pathname, chapters);
