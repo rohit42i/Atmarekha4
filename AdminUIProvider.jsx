@@ -43,6 +43,7 @@ export function AdminUIProvider({ children }) {
   return (
     <AdminUIContext.Provider value={value}>
       {children}
+      <div className="ar-admin ar-admin-global-ui">
       {confirmState && (
         <div className="ar-admin-modal-layer" role="presentation" onMouseDown={event => {
           if (event.target === event.currentTarget) closeConfirm(false);
@@ -74,6 +75,7 @@ export function AdminUIProvider({ children }) {
             <button type="button" onClick={() => dismissToast(item.id)} aria-label="Dismiss notification">×</button>
           </div>
         ))}
+      </div>
       </div>
     </AdminUIContext.Provider>
   );
