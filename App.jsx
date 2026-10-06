@@ -319,7 +319,8 @@ function AdminRoute({ onExit }) {
   }, []);
 
   if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>;
-  if (!session || !(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
+  if (!session) return <AdminLogin />;
+  if (!(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
   return <AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/>;
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
