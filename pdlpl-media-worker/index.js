@@ -13,10 +13,18 @@ const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}
 
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
-  const allowed = String(env.ALLOWED_ORIGINS || '')
+  const configured = String(env.ALLOWED_ORIGINS || '')
     .split(',')
     .map(value => value.trim())
     .filter(Boolean);
+  const allowed = [
+    'https://www.atmarekha.in',
+    'https://atmarekha.in',
+    'https://atmarekha4.rohitbaswaraj.workers.dev',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    ...configured,
+  ].filter((value, index, list) => list.indexOf(value) === index);
 
   const headers = {
     'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
@@ -25,7 +33,12 @@ function corsHeaders(request, env) {
     'Vary': 'Origin',
   };
 
-  if (allowed.includes(origin)) headers['Access-Control-Allow-Origin'] = origin;
+  const authorization = request.headers.get('Authorization') || '';
+  const hasBearer = /^Bearer\s+/i.test(authorization);
+  if (allowed.includes(origin) || hasBearer) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Expose-Headers'] = 'ETag, Content-Type, Cache-Control';
+  }
   return headers;
 }
 
@@ -185,16 +198,28 @@ export default {
       return json(request, env, { error: 'Invalid media path.' }, 400);
     }
 
-    const user = await getUser(request, env);
-    if (!user) {
-      return json(request, env, { error: 'Authentication required.' }, 401);
+    const isPublicCover =
+      request.method === 'GET' &&
+      /^covers\/chapters\//i.test(key);
+
+    let user = null;
+    let admin = false;
+
+    if (!isPublicCover) {
+      user = await getUser(request, env);
+      if (!user) {
+        return json(request, env, { error: 'Authentication required.' }, 401);
+      }
     }
 
     try {
-      const admin = await isAdmin(user, request, env);
-
       if (request.method === 'GET') {
-        if (!admin && !(await hasMembership(user, request, env))) {
+        if (!isPublicCover) {
+          admin = await isAdmin(user, request, env);
+          if (!admin && !(await hasMembership(user, request, env))) {
+            return json(request, env, { error: 'Active membership required.' }, 403);
+          }
+        }
           return json(request, env, { error: 'Active membership required.' }, 403);
         }
 
@@ -211,7 +236,12 @@ export default {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('ETag', object.httpEtag);
-        headers.set('Cache-Control', 'private, max-age=86400, stale-while-revalidate=604800');
+        headers.set(
+          'Cache-Control',
+          isPublicCover
+            ? 'public, max-age=86400, stale-while-revalidate=604800'
+            : 'private, max-age=86400, stale-while-revalidate=604800',
+        );
         headers.set('Content-Disposition', 'inline');
         headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
         headers.set('X-Content-Type-Options', 'nosniff');
