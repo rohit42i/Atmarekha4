@@ -12,8 +12,6 @@ import { fetchPdlplMedia } from './pdlplR2';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
-const PDLPL_START_DATE = 'April 25, 2027';
-
 function formatDate(value) {
   if (!value) return '—';
   const date = new Date(value);
@@ -47,91 +45,50 @@ function LockedModal({ chapter, onClose }) {
   );
 }
 
+function PdlplChapterThumbnail({ chapter }) {
+  const [url, setUrl] = useState('');
+  useEffect(() => {
+    let active = true;
+    let objectUrl = '';
+    if (!chapter?.coverPath) return undefined;
+    fetchPdlplMedia(chapter.coverPath).then(nextUrl => {
+      objectUrl = nextUrl;
+      if (active) setUrl(nextUrl); else URL.revokeObjectURL(nextUrl);
+    }).catch(() => {});
+    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [chapter?.coverPath]);
+  return <div className="pdlpl-chapter-thumb" aria-hidden="true">{url ? <img src={url} alt="" loading="lazy" decoding="async" /> : <span>{chapter?.chapterNumber ? String(chapter.chapterNumber).padStart(2, '0') : 'SP'}</span>}</div>;
+}
+
 function PdlplChapterRow({ chapter, member, onOpen, pageCount }) {
   const locked = !member;
-
-  return (
-    <article className="chapter-row">
-      <button
-        type="button"
-        className="chapter-row-main pdlpl-chapter-main"
-        onClick={() => onOpen(chapter)}
-        aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}
-      >
-        <div className="chapter-row-title">
-          <span>{formatLabel(chapter)}</span>
-          <h2>{chapter.title || 'Untitled chapter'}</h2>
-        </div>
-        <div className="chapter-row-meta">
-          <span>MEMBERS</span>
-          <span>•</span>
-          <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-        </div>
-        <div className="chapter-row-details">
-          <span>{pageCount || 0} pages</span>
-        </div>
-      </button>
-      <div className="chapter-row-actions">
-        <button
-          type="button"
-          className="pdlpl-chapter-action"
-          onClick={() => onOpen(chapter)}
-          aria-label={locked ? `${formatLabel(chapter)} is members only` : `Read ${formatLabel(chapter)}`}
-          title={locked ? 'Members only' : 'Read chapter'}
-        >
-          <span>{locked ? '🔒' : '→'}</span>
-          <small>{locked ? 'Members' : 'Read'}</small>
-        </button>
+  return <article className="chapter-row">
+    <button type="button" className="chapter-row-main pdlpl-chapter-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
+      <PdlplChapterThumbnail chapter={chapter} />
+      <div className="chapter-row-copy">
+        <div className="chapter-row-title"><span>{formatLabel(chapter)}</span><h2>{chapter.title || 'Untitled chapter'}</h2></div>
+        <div className="chapter-row-meta"><span>MEMBERS</span><span>•</span><span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span></div>
+        <div className="chapter-row-details"><span>{pageCount || 0} pages</span></div>
       </div>
-    </article>
-  );
+    </button>
+    <div className="chapter-row-actions"><button type="button" className="pdlpl-chapter-action" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} is members only` : `Read ${formatLabel(chapter)}`}><span>{locked ? '🔒' : '→'}</span><small>{locked ? 'Members' : 'Read'}</small></button></div>
+  </article>;
 }
 
-function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, language, onLanguageChange }) {
-  return (
-    <main className="site-shell chapter-list-page pdlpl-page-list">
-      <header className="subpage-header">
-        <button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button>
-        <div>
-          <p className="header-kicker">PAL DO PAL KE LAMHE</p>
-          <h1>Chapter List</h1>
-        </div>
-      </header>
-
-      <section className="chapter-list-section">
-        <div className="chapter-list-heading">
-          <div>
-            <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'} · Starts {PDLPL_START_DATE}</p>
-            <span className="chapter-list-subtitle">PAL DO PAL KE LAMHE</span>
-          </div>
-          <label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-        </div>
-
-        {chapters.length ? (
-          <div className="chapter-list">
-            {chapters.map(chapter => (
-              <PdlplChapterRow
-                key={chapter.id}
-                chapter={chapter}
-                member={member || admin}
-                onOpen={onOpen}
-                pageCount={pageCounts[chapter.id] || 0}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">
-            <h3>Nothing published yet</h3>
-            <p>This side story is still being prepared.</p>
-          </div>
-        )}
-      </section>
-
-      <Footer />
-    </main>
-  );
+function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, language, onLanguageChange, query, onQueryChange, sort, onSortChange }) {
+  return <main className="site-shell chapter-list-page pdlpl-page-list">
+    <header className="subpage-header"><button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button><div><h1>Chapter List</h1></div></header>
+    <section className="chapter-list-section">
+      <div className="chapter-list-toolbar">
+        <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" />
+        <label><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
+        <label><span>Sort</span><select value={sort} onChange={event => onSortChange(event.target.value)} aria-label="Sort chapters"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A–Z</option></select></label>
+      </div>
+      {chapters.length ? <div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member || admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} />)}</div> : <div className="empty-state"><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
+    </section>
+    <Footer />
+  </main>;
 }
-
 function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   const [pages, setPages] = useState([]);
   const [index, setIndex] = useState(0);
@@ -374,6 +331,8 @@ export default function PalDoPalKeLamhe() {
   const [member, setMember] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [language, setLanguage] = useState(() => window.localStorage.getItem('pdlpl-language') === 'en' ? 'en' : 'hi');
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('newest');
   const [lockChapter, setLockChapter] = useState(null);
   const [route, setRoute] = useState(() => window.location.hash.replace(/^#/, ''));
 
@@ -444,6 +403,19 @@ export default function PalDoPalKeLamhe() {
     window.location.hash = PDLPL_ROUTE;
   }, []);
 
+  const visibleChapters = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const filtered = chapters.filter(chapter => !needle || [chapter.title, chapter.description, chapter.chapterNumber].some(value => String(value ?? '').toLowerCase().includes(needle)));
+    return [...filtered].sort((a, b) => {
+      if (sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''), undefined, { sensitivity: 'base' });
+      const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
+      if (!Number.isFinite(an) && !Number.isFinite(bn)) return 0;
+      if (!Number.isFinite(an)) return 1;
+      if (!Number.isFinite(bn)) return -1;
+      return sort === 'oldest' ? an - bn : bn - an;
+    });
+  }, [chapters, query, sort]);
+
   if (currentReaderId && readerChapter && (member || admin)) {
     return (
       <Reader
@@ -465,12 +437,18 @@ export default function PalDoPalKeLamhe() {
 
   return (
     <ChapterList
-      chapters={chapters}
+      chapters={visibleChapters}
       member={member}
       admin={admin}
       pageCounts={pageCounts}
       onOpen={openChapter}
       onBack={() => { window.location.hash = 'home'; }}
+      language={language}
+      onLanguageChange={value => { setLanguage(value); window.localStorage.setItem('pdlpl-language', value); }}
+      query={query}
+      onQueryChange={setQuery}
+      sort={sort}
+      onSortChange={setSort}
     />
   );
 }
