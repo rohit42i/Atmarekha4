@@ -349,33 +349,24 @@ export default function PalDoPalAdmin({ embedded = false }) {
         ? new Date(form.releaseDate).toISOString()
         : null;
 
-      const payload = {
-        chapter_number: number,
-        language,
-        title: form.title.trim(),
-        description: form.description.trim(),
-        status: initialStatus,
-        release_date: requestedReleaseDate,
-      };
+      chapterId = chapterId || window.crypto?.randomUUID?.();
+      if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
-      if (wasEditing) {
-        const { data: savedDraft, error } = await supabase
-          .from(PDLPL_CHAPTERS)
-          .update(payload)
-          .eq('id', editing.id)
-          .select('id,status,release_date')
-          .single();
-        if (error) throw error;
-        if (!savedDraft?.id) throw new Error('PDPKL chapter update could not be verified.');
-      } else {
-        const { data, error } = await supabase
-          .from(PDLPL_CHAPTERS)
-          .insert(payload)
-          .select('id,status,release_date')
-          .single();
-        if (error) throw error;
-        if (!data?.id) throw new Error('PDPKL chapter creation could not be verified.');
-        chapterId = data.id;
+      setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
+      const { data: savedRows, error: metadataError } = await supabase.rpc('pdlpl_upsert_chapter', {
+        p_chapter_id: chapterId,
+        p_chapter_number: number,
+        p_language: language,
+        p_title: form.title.trim(),
+        p_description: form.description.trim(),
+        p_status: initialStatus,
+        p_release_date: requestedReleaseDate,
+      });
+      if (metadataError) throw metadataError;
+
+      const savedMetadata = Array.isArray(savedRows) ? savedRows[0] : savedRows;
+      if (!savedMetadata?.id || savedMetadata.id !== chapterId) {
+        throw new Error('PDPKL chapter metadata could not be verified.');
       }
 
       if (form.cover) {
