@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
@@ -38,7 +37,6 @@ function downloadCsv(rows, filename) {
 
 export default function AdminProTools() {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [nav, setNav] = useState(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
@@ -63,21 +61,6 @@ export default function AdminProTools() {
     return () => { alive = false; listener?.subscription?.unsubscribe(); };
   }, []);
 
-  useEffect(() => {
-    if (!isAdmin) return undefined;
-    const attach = () => {
-      const element = document.querySelector('.admin-tabs');
-      if (element) {
-        setNav(element);
-        return true;
-      }
-      return false;
-    };
-    if (attach()) return undefined;
-    const observer = new MutationObserver(attach);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [isAdmin]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -201,18 +184,10 @@ export default function AdminProTools() {
     downloadCsv(rows, `atma-rekha-admin-${new Date().toISOString().slice(0, 10)}.csv`);
   };
 
-  const button = nav && createPortal(
-    <button type="button" className="ar-pro-tab" onClick={() => setOpen(true)}>
-      <span>Studio</span>
-      <b>{data.openReports ? data.openReports : 'Pro'}</b>
-    </button>,
-    nav
-  );
 
   if (!isAdmin) return null;
 
   return <>
-    {button}
     <style>{`
       .ar-pro-tab{width:100%;min-height:44px;padding:0 13px;border:1px solid transparent;border-radius:10px;background:var(--card-bg);color:var(--text-color);display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:850;cursor:pointer}
       .ar-pro-tab:hover{background:var(--surface-2-color);border-color:var(--border-color)}
