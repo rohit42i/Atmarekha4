@@ -13,7 +13,7 @@ const PLANS = [
   },
   {
     id: 'mini_member',
-    label: 'SUPPORT',
+    label: 'SUPPORTER',
     name: 'Supporter',
     amount: 19,
     features: ['All released chapters', 'Supporter badge', 'Member updates', 'Reading progress'],
@@ -21,17 +21,17 @@ const PLANS = [
   {
     id: 'supporter',
     label: 'MOST POPULAR',
-    name: 'Premium Supporter',
+    name: 'Premium',
     amount: 29,
     popular: true,
-    features: ['All released chapters', 'Premium Supporter badge', 'Member recognition', 'Member updates', 'Reading progress'],
+    features: ['All released chapters', 'Premium badge', 'Member recognition', 'Member updates', 'Reading progress'],
   },
   {
     id: 'premium',
     label: 'TOP SUPPORTER',
-    name: 'Super Supporter',
+    name: 'Super',
     amount: 49,
-    features: ['All released chapters', 'Super Supporter badge', 'Super Supporter recognition', 'Member updates', 'Reading progress'],
+    features: ['All released chapters', 'Super badge', 'Top-tier recognition', 'Member updates', 'Reading progress'],
   },
 ];
 
@@ -290,7 +290,7 @@ export default function Membership() {
               <p className="membership-eyebrow">SUPPORT THE STORY</p>
               <h1>Membership</h1>
               <p className="membership-lead">
-                Keep reading. Support the manga. Become part of Atma Rekha.
+                Read Chapter 9+ and support the story.
               </p>
             </div>
             <button type="button" className="membership-close" onClick={close} aria-label="Close membership">
@@ -345,10 +345,10 @@ export default function Membership() {
 
         <section className="membership-support">
           <div>
-            <p className="membership-eyebrow">WHY MEMBERSHIP?</p>
-            <h2>Read more. Support more.</h2>
+            <p className="membership-eyebrow">MEMBERSHIP</p>
+            <h2>More chapters. More support.</h2>
             <p>
-              Chapters 1–8 stay free. From Chapter 9 onward, membership keeps the story going while giving you full access to every released chapter.
+              Chapters 1–8 are free. Membership gives you access from Chapter 9 onward and helps support future chapters.
             </p>
           </div>
           <div className="membership-support-points">
