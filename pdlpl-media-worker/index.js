@@ -1,4 +1,14 @@
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const IMAGE_MIME_BY_EXT = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
+
+function mimeFromKey(key) {
+  const ext = key.split('.').pop()?.toLowerCase() || '';
+  return IMAGE_MIME_BY_EXT[ext] || '';
+}
+
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
 function corsHeaders(request, env) {
@@ -220,10 +230,11 @@ export default {
       }
 
       if (request.method === 'PUT') {
-        const contentType = request.headers.get('Content-Type') || '';
+        const declaredType = String(request.headers.get('Content-Type') || '').toLowerCase();
+        const contentType = declaredType.startsWith('image/') ? declaredType : mimeFromKey(key);
 
-        if (!contentType.startsWith('image/')) {
-          return json(request, env, { error: 'Only image uploads are allowed.' }, 415);
+        if (!contentType) {
+          return json(request, env, { error: 'Only JPG, PNG, WEBP, GIF, BMP, and AVIF uploads are allowed.' }, 415);
         }
 
         const length = Number(request.headers.get('Content-Length') || 0);
