@@ -9,7 +9,7 @@ import { AdminButton, AdminCard, AdminEmptyState, AdminModal, AdminTable } from 
 const FILTER_KEY = 'atma-admin-studio:chapter-filters';
 const COLUMN_KEY = 'atma-admin-studio:chapter-columns';
 
-const DEFAULT_COLUMNS = { chapter: true, status: true, language: true, pages: true, release: true, signal: true, actions: true };
+const DEFAULT_COLUMNS = { chapter: true, status: true, language: true, pages: true, performance: true, release: true, signal: true, actions: true };
 
 function readStored(key, fallback) {
   try {
@@ -61,6 +61,7 @@ export default function AdminChapterManager({
   onEdit,
   onDelete,
   onReload,
+  chapterPerformance = {},
   onNewChapter,
 }) {
   const [search, setSearch] = useState('');
@@ -114,6 +115,7 @@ export default function AdminChapterManager({
       if (sortBy === 'status') { av = normalizedStatus(a.status); bv = normalizedStatus(b.status); }
       else if (sortBy === 'language') { av = normalizeChapterLanguage(a.language); bv = normalizeChapterLanguage(b.language); }
       else if (sortBy === 'pages') { av = Number(pageCounts[a.id] || 0); bv = Number(pageCounts[b.id] || 0); }
+      else if (sortBy === 'performance') { av = Number(chapterPerformance[a.id]?.views || 0); bv = Number(chapterPerformance[b.id]?.views || 0); }
       else if (sortBy === 'release') { av = new Date(a.releaseDate || a.createdAt || 0).getTime(); bv = new Date(b.releaseDate || b.createdAt || 0).getTime(); }
       else { av = Number(a.chapterNumber); bv = Number(b.chapterNumber); }
       const aMissing = Number.isFinite(av) ? false : true;
@@ -221,7 +223,7 @@ export default function AdminChapterManager({
         className="admin-studio-publisher-card"
         eyebrow="PUBLISHER"
         title={chapterPublishProject === 'pdpkl' ? 'Publish Pal Do Pal Ke Lamhe' : (editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter')}
-        description="Publishing controls stay on the existing chapters table and R2 paths. This layer adds safer controls and a faster operational view."
+        description="Publishing controls stay on the existing chapters table and R2 paths. This layer adds safer controls and a faster operational view. The 30-day performance column uses the existing admin analytics RPC and is intentionally omitted when that source is unavailable."
       >
         <div className="admin-form-grid">
           <label>
@@ -345,6 +347,7 @@ export default function AdminChapterManager({
               <option value="status">Status</option>
               <option value="language">Language</option>
               <option value="pages">Pages</option>
+              <option value="performance">30d views</option>
               <option value="release">Release</option>
             </select>
           </div>
@@ -398,6 +401,7 @@ export default function AdminChapterManager({
               {columns.status ? <th><button className="admin-th-button" type="button" onClick={() => toggleSort('status')}>Status {sortBy === 'status' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button></th> : null}
               {columns.language ? <th><button className="admin-th-button" type="button" onClick={() => toggleSort('language')}>Language {sortBy === 'language' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button></th> : null}
               {columns.pages ? <th><button className="admin-th-button" type="button" onClick={() => toggleSort('pages')}>Pages {sortBy === 'pages' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button></th> : null}
+              {columns.performance ? <th><button className="admin-th-button" type="button" onClick={() => toggleSort('performance')}>30d views {sortBy === 'performance' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button></th> : null}
               {columns.release ? <th><button className="admin-th-button" type="button" onClick={() => toggleSort('release')}>Release {sortBy === 'release' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button></th> : null}
               {columns.signal ? <th>Signal</th> : null}
               {columns.actions ? <th>Actions</th> : null}
@@ -415,6 +419,7 @@ export default function AdminChapterManager({
                   {columns.status ? <td><span className={`admin-status-badge ${statusClass(chapter.status)}`}>{chapter.status || 'Draft'}</span></td> : null}
                   {columns.language ? <td>{chapterLanguageLabel(chapter.language)}</td> : null}
                   {columns.pages ? <td className="admin-table-muted">{pageCount.toLocaleString('en-IN')}</td> : null}
+                  {columns.performance ? <td className="admin-table-muted">{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString('en-IN')}</td> : null}
                   {columns.release ? <td className="admin-table-muted">{formatDate(chapter.releaseDate)}</td> : null}
                   {columns.signal ? <td><span className={`admin-health-signal ${signal.className}`}><i />{signal.text}</span></td> : null}
                   {columns.actions ? (
