@@ -19,7 +19,7 @@ export default function ChapterFavorites() {
     let retryTimer = 0;
 
     const scan = () => {
-      const next = Array.from(document.querySelectorAll('.chapter-row-actions:not(.pdlpl-page-list .chapter-row-actions)'))
+      const next = Array.from(document.querySelectorAll('.chapter-row-actions')).filter(target => !target.closest('.pdlpl-page-list,.pdlpl-reader'))
         .map(target => ({ target, chapterId: chapterIdFromTarget(target) }))
         .filter(item => item.chapterId);
 
