@@ -225,10 +225,7 @@ export default {
 
       if (request.method === 'GET') {
         if (!publicCover && !admin) {
-          if (/^chapters\/[^/]+\/replacements\//i.test(key)) {
-            return json(request, env, { error: 'Admin access required.' }, 403);
-          }
-          const chapterMatch = key.match(new RegExp(`^chapters/(${UUID_PATTERN})/pages/`, 'i'));
+          const chapterMatch = key.match(new RegExp(`^chapters/(${UUID_PATTERN})/(?:pages|replacements)/`, 'i'));
           const chapterId = chapterMatch?.[1] || '';
           if (!chapterId) return json(request, env, { error: 'Invalid chapter path.' }, 400);
           const rows = await supabaseRows(env, getBearer(request), 'pal_do_pal_ke_lamhe_chapters', {
