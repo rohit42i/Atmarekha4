@@ -5,6 +5,13 @@ export const PDLPL_MEDIA_WORKER_URL = (
     .replace(/\/+$/, '')
 );
 
+export function getPdlplMediaUrl(path) {
+  const clean = String(path || '').trim().replace(/^\/+/, '');
+  if (!clean) return '';
+  const encoded = clean.split('/').map(segment => encodeURIComponent(segment)).join('/');
+  return `${PDLPL_MEDIA_WORKER_URL}/media/${encoded}`;
+}
+
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
 const IMAGE_MIME_BY_EXT = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
