@@ -61,12 +61,12 @@ function PdlplChapterRow({ chapter, member, onOpen, pageCount }) {
           <h2>{chapter.title || 'Untitled chapter'}</h2>
         </div>
         <div className="chapter-row-meta">
-          <span>MEMBERS ONLY</span>
+          <span>MEMBERS</span>
           <span>•</span>
           <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
         </div>
         <div className="chapter-row-details">
-          <span>📄 {pageCount || 0} pages</span>
+          <span>{pageCount || 0} pages</span>
         </div>
       </button>
       <div className="chapter-row-actions">
@@ -98,9 +98,11 @@ function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, lang
 
       <section className="chapter-list-section">
         <div className="chapter-list-heading">
-          <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
+          <div>
+            <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
+            <span className="chapter-list-subtitle">PAL DO PAL KE LAMHE</span>
+          </div>
           <label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-          <span>MEMBERS ONLY · DATE · PAGES</span>
         </div>
 
         {chapters.length ? (
@@ -316,7 +318,7 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
             <h1>{formatLabel(chapter)} · {chapter.title || 'Untitled chapter'}</h1>
           </div>
           <div className="reader-engagement">
-            <span className="reader-page-pill">MEMBERS</span>
+            <span className="reader-page-pill">MEMBER</span>
             <span className="reader-page-pill">{index + 1}/{pages.length}</span>
           </div>
         </div>
@@ -404,7 +406,7 @@ export default function PalDoPalKeLamhe() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     load();
