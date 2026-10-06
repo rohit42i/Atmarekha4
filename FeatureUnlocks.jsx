@@ -5,10 +5,10 @@ import { supabase } from './supabase';
 
 const DEFAULT_FLAGS = { membership_unlocked: false, group_chat_unlocked: false };
 
-// Public visibility is manually disabled until explicitly re-enabled.
+// Public visibility is manually enabled.
 const MANUAL_FEATURE_VISIBILITY = {
-  membership: false,
-  group_chat: false,
+  membership: true,
+  group_chat: true,
 };
 
 async function readFeatureFlags() {
@@ -115,8 +115,8 @@ export default function FeatureUnlocks() {
   }, []);
 
   return <>
-    {MANUAL_FEATURE_VISIBILITY.membership && flags.membership_unlocked && <Membership />}
-    {MANUAL_FEATURE_VISIBILITY.group_chat && flags.group_chat_unlocked && <GroupChatLauncherGate />}
-    {MANUAL_FEATURE_VISIBILITY.group_chat && flags.group_chat_unlocked && <GroupChat />}
+    {MANUAL_FEATURE_VISIBILITY.membership && <Membership />}
+    {MANUAL_FEATURE_VISIBILITY.group_chat && <GroupChatLauncherGate />}
+    {MANUAL_FEATURE_VISIBILITY.group_chat && <GroupChat />}
   </>;
 }
