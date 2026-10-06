@@ -173,7 +173,7 @@ export default function GroupChat(){
  load();subscribe();addEventListener('online',onOnline);document.addEventListener('visibilitychange',onVisibility);
  const poll=setInterval(()=>{if(alive)load(false)},5000);
  return()=>{alive=false;clearTimeout(press.current);clearReconnect();clearInterval(poll);removeEventListener('online',onOnline);document.removeEventListener('visibilitychange',onVisibility);if(channel)supabase.removeChannel(channel)}
-},[route]);
+},[route,user]);
  useEffect(()=>{const el=feed.current;if(!el)return;const onScroll=()=>{bottom.current=el.scrollHeight-el.scrollTop-el.clientHeight<110;if(bottom.current)setNewCount(0)};el.addEventListener('scroll',onScroll,{passive:true});onScroll();return()=>el.removeEventListener('scroll',onScroll)},[]);
  useEffect(()=>{const vv=window.visualViewport;if(!vv)return;const sync=()=>{if(document.activeElement===inputRef.current)requestAnimationFrame(()=>feed.current?.scrollTo({top:feed.current.scrollHeight,behavior:'smooth'}))};vv.addEventListener('resize',sync);vv.addEventListener('scroll',sync);return()=>{vv.removeEventListener('resize',sync);vv.removeEventListener('scroll',sync)}},[]);
  useEffect(()=>{if(bottom.current)requestAnimationFrame(()=>feed.current?.scrollTo({top:feed.current.scrollHeight,behavior:'smooth'}))},[messages.length]);
