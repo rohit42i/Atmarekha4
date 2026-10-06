@@ -69,19 +69,22 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
 
   return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
     <button type="button" className="chapter-row-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
-      <div className="chapter-row-title">
-        <span>{formatLabel(chapter)}</span>
-        <h2>{chapter.title || 'Untitled chapter'}</h2>
-      </div>
-      <div className="chapter-row-meta">
-        <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
-        <span>•</span>
-        <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-        <span>•</span>
-        <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
-      </div>
-      <div className="chapter-row-details">
-        <span>📄 {pageCount || '—'} pages</span>
+      <PdlplChapterThumbnail chapter={chapter} />
+      <div className="chapter-row-copy">
+        <div className="chapter-row-title">
+          <span>{formatLabel(chapter)}</span>
+          <h2>{chapter.title || 'Untitled chapter'}</h2>
+        </div>
+        <div className="chapter-row-meta">
+          <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
+          <span>•</span>
+          <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+          <span>•</span>
+          <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
+        </div>
+        <div className="chapter-row-details">
+          <span>📄 {pageCount || '—'} pages</span>
+        </div>
       </div>
     </button>
     <div className="chapter-row-actions">
