@@ -72,10 +72,18 @@ async function request(path, options = {}, retried = false) {
     ...(await authHeaders({ refresh: retried })),
   };
 
-  const response = await fetch(
-    `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`,
-    { ...options, headers },
-  );
+  const requestUrl = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
+  let response;
+  try {
+    response = await fetch(requestUrl, { ...options, headers });
+  } catch (error) {
+    const wrapped = new Error(error?.message || 'Network request to the PDPKL media worker failed.');
+    wrapped.name = error?.name || 'NetworkError';
+    wrapped.code = 'NETWORK';
+    wrapped.path = path;
+    wrapped.url = requestUrl;
+    throw wrapped;
+  }
 
   if (response.ok) return response;
 
