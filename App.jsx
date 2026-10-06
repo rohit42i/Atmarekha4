@@ -6,13 +6,33 @@ import Footer from './Footer';
 import InfoPage from './InfoPage';
 import HomeAnnouncement from './HomeAnnouncement';
 import PalDoPalKeLamhe from './PalDoPalKeLamhe';
-import { supabase } from './supabase';
+import { getCurrentMembership, supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './engagement';
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
+
+const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
+
+async function canReadAtmaChapter(chapter) {
+  const raw = chapter?.chapterNumber ?? chapter?.chapter_number;
+  const number = raw === null || raw === undefined || raw === '' ? null : Number(raw);
+  if (number === null || !Number.isFinite(number) || number <= 8) return true;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user) return false;
+    const [planId, role] = await Promise.all([
+      getCurrentMembership(user.id),
+      getAdminRole(user.id),
+    ]);
+    return MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase()) || role === 'owner' || role === 'admin';
+  } catch {
+    return false;
+  }
+}
 
 const STORY = { title: 'Atma Rekha', description: 'ATMA REKHA is an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.' };
 const SITE_URL = 'https://www.atmarekha.in';
@@ -179,7 +199,20 @@ function Reader({ chapterId, onBack, chapters }) {
   const onTouchStart = event => { if (event.touches.length !== 1) { setTouchStart(null); setTouchEnd(null); return; } setTouchEnd(null); setTouchStart(event.touches[0].clientX); };
   const onTouchMove = event => { if (event.touches.length !== 1) { setTouchStart(null); setTouchEnd(null); return; } setTouchEnd(event.touches[0].clientX); };
   const onTouchEnd = event => { if (event.touches?.length) return; if (touchStart === null || touchEnd === null) return; const distance = touchStart - touchEnd; if (Math.abs(distance) < minSwipeDistance) { setTouchStart(null); setTouchEnd(null); return; } if (distance > 0) setIndex(value => Math.min(value + 1, pages.length - 1)); else setIndex(value => Math.max(value - 1, 0)); setTouchStart(null); setTouchEnd(null); };
-  useEffect(() => { let cancelled = false; progressHydratedRef.current = false; const load = async () => { setLoading(true); setError(''); try { const all = chapters?.length ? chapters : await buildChapters(); const found = all.find(item => String(item.id) === String(chapterId)); if (!found || !published(found)) throw new Error('Chapter not found or not published.'); const livePages = await buildChapterPages(found.id); if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id).catch(viewError => { console.warn('View tracking skipped:', viewError); }); fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
+  useEffect(() => { let cancelled = false; progressHydratedRef.current = false; const load = async () => { setLoading(true); setError(''); try { const all = chapters?.length ? chapters : await buildChapters(); const found = all.find(item => String(item.id) === String(chapterId)); if (!found || !published(found)) throw new Error('Chapter not found or not published.'); const readable = await canReadAtmaChapter(found);
+      if (!readable) {
+        window.history.replaceState(null, '', '/#chapters');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        window.dispatchEvent(new CustomEvent('atma:open-chapter-access', { detail: { chapter: found } }));
+        if (!cancelled) {
+          setChapter(found);
+          setPages([]);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const livePages = await buildChapterPages(found.id); if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id).catch(viewError => { console.warn('View tracking skipped:', viewError); }); fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
   useEffect(() => { if (progressHydratedRef.current && chapter && pages.length) { window.localStorage.setItem(`atma-reading:${chapter.id}`, String(index)); window.localStorage.setItem('atma-reading-last', JSON.stringify({ chapterId: chapter.id, pageNumber: index + 1 })); } }, [chapter, pages.length, index]);
   useEffect(() => {
     if (!pages.length) return undefined;
@@ -193,7 +226,7 @@ function Reader({ chapterId, onBack, chapters }) {
   useEffect(() => { let cancelled = false; setFavoriteSaved(false); setFavoriteError(''); if (!favoriteUser || !chapter?.id) return undefined; supabase.from('bookmarks').select('id').eq('user_id', favoriteUser.id).eq('chapter_id', chapter.id).maybeSingle().then(({ data, error: bookmarkError }) => { if (cancelled) return; if (bookmarkError) setFavoriteError(bookmarkError.message || 'Unable to load favourite status.'); else setFavoriteSaved(Boolean(data)); }); return () => { cancelled = true; }; }, [favoriteUser?.id, chapter?.id]);
   const toggleFavorite = async () => { if (favoriteBusy || !chapter?.id) return; if (!favoriteUser) { window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login' } })); return; } setFavoriteBusy(true); setFavoriteError(''); try { if (favoriteSaved) { const { error: deleteError } = await supabase.from('bookmarks').delete().eq('user_id', favoriteUser.id).eq('chapter_id', chapter.id); if (deleteError) throw deleteError; setFavoriteSaved(false); } else { const { error: insertError } = await supabase.from('bookmarks').insert({ user_id: favoriteUser.id, chapter_id: chapter.id }); if (insertError) throw insertError; setFavoriteSaved(true); } } catch (err) { console.error('Favourite toggle failed:', err); setFavoriteError(err?.message || 'Unable to update favourite.'); } finally { setFavoriteBusy(false); } };
   if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;
-  if (error) return <main className="reader-page"><div className="reader-error"><div>⌁</div><h2>{error}</h2><button className="primary-button" onClick={onBack}>Back to chapters</button></div></main>; if (!chapter) return <main className="reader-page"><div className="reader-error"><div>⌁</div><h2>Chapter not found.</h2><button className="primary-button" onClick={onBack}>Back to chapters</button></div></main>; if (!pages.length) return <main className="reader-page"><div className="reader-error"><div>⌁</div><h2>This chapter has no readable pages yet.</h2><button className="primary-button" onClick={onBack}>Back to chapters</button></div></main>;
+  if (error) return <main className="reader-page"><div className="reader-error"><div>⌁</div><h2>{error}</h2><button className="primary-button" onClick={onBack}>Back to chapters</button></div></main>; if (!chapter) return <main className="reader-page"><div className="reader-error"><div>⌁</div><h2>Chapter not found.</h2><button className="primary-button" onClick={onBack}>Back to chapters</button></div></main>; if (!pages.length) return null;
   const progress = ((index + 1) / pages.length) * 100;
   const readerLanguage = normalizeChapterLanguage(chapter.language);
   const languageChapters = (chapters || []).filter(item => normalizeChapterLanguage(item.language) === readerLanguage);
