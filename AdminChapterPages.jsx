@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase, cloudflareR2 } from './supabase';
+import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { buildPdlplChapters } from './palDoPalKeLamhe.js';
@@ -42,8 +42,14 @@ function Artwork({ project, page, className = '', alt = '' }) {
     let alive = true;
     let objectUrl = '';
     setError('');
-    if (project === 'atma') { setSrc(page.image_url || ''); return undefined; }
     setSrc('');
+    if (project === 'atma') {
+      if (!page.image_url) return undefined;
+      fetchAuthenticatedMediaBlobUrl(page.image_url)
+        .then(url => { objectUrl = url; if (alive) setSrc(url); else URL.revokeObjectURL(url); })
+        .catch(err => { if (alive) setError(err?.message || 'Preview unavailable'); });
+      return () => { alive = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    }
     fetchPdlplMedia(page.image_path)
       .then(url => { objectUrl = url; if (alive) setSrc(url); else URL.revokeObjectURL(url); })
       .catch(err => { if (alive) setError(err?.message || 'Preview unavailable'); });
