@@ -5,6 +5,17 @@ export const PDLPL_MEDIA_WORKER_URL =
   'https://pdlpl-media.rohitbaswaraj.workers.dev';
 
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const IMAGE_MIME_BY_EXT = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
+
+function getImageMime(file) {
+  const declared = String(file?.type || '').toLowerCase();
+  if (declared.startsWith('image/')) return declared;
+  const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
+  return IMAGE_MIME_BY_EXT[ext] || '';
+}
 
 const encodePath = path =>
   String(path || '').split('/').map(segment => encodeURIComponent(segment)).join('/');
@@ -68,8 +79,12 @@ export async function fetchPdlplMedia(path, { signal } = {}) {
 }
 
 export async function uploadPdlplFile(file, path) {
-  if (!(file instanceof File) || !file.type.startsWith('image/')) {
+  if (!(file instanceof File)) {
     throw new Error('Please select an image file.');
+  }
+  const imageMime = getImageMime(file);
+  if (!imageMime) {
+    throw new Error('Please select JPG, PNG, WEBP, GIF, BMP, or AVIF image files.');
   }
   if (file.size === 0) {
     throw new Error(`${file.name} is empty.`);
@@ -81,7 +96,7 @@ export async function uploadPdlplFile(file, path) {
   await request(path, {
     method: 'PUT',
     headers: {
-      'Content-Type': file.type,
+      'Content-Type': imageMime,
       'Cache-Control': 'private, max-age=3600',
     },
     body: file,
