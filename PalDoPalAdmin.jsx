@@ -204,8 +204,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
       .eq('chapter_id', id)
       .order('page_number', { ascending: true });
 
-    if (error) setNotice(error.message);
-    else setSelectedPages(data || []);
+    if (error) {
+      setDiagnostic(diagnosticFromError('Loading chapter pages from Supabase', error, { chapterId: id }));
+      setNotice('PDPKL page load failed. See the exact diagnostic below.');
+    } else {
+      setDiagnostic(null);
+      setSelectedPages(data || []);
+    }
   };
 
   useEffect(() => { loadPages(selectedId); }, [selectedId]);
@@ -268,6 +273,12 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setNotice(files.length + ' page' + (files.length === 1 ? '' : 's') + ' added to ' + label(selectedChapter) + '.');
     } catch (error) {
       const cleanupErrors = [];
+      setDiagnostic(diagnosticFromError(stage, error, {
+        chapterId: selectedChapter?.id,
+        mode: 'Add pages',
+        pageCount: files.length,
+        uploadedPaths: uploaded,
+      }));
       if (!databaseCommitted) {
         for (const uploadedPath of uploaded) {
           try { await removePdlplFiles([uploadedPath]); }
@@ -844,7 +855,17 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const rootClass = embedded ? 'pdlpl-admin-embedded' : 'pdlpl-admin';
 
   if (loading) return <Root className={rootClass}><div className="pdlpl-loading">Checking side story admin…</div></Root>;
-  if (!role) return <Root className={rootClass}><div className="pdlpl-error"><h2>Access denied</h2><p>{notice || 'Admin access required.'}</p><button type="button" onClick={() => { window.location.hash = 'admin'; }}>Back to Admin</button></div></Root>;
+  if (!role) return <Root className={rootClass}>
+    <div className="pdlpl-error">
+      <h2>Access denied</h2>
+      <p>{notice || 'Admin access required.'}</p>
+      {diagnostic && <section className="pdlpl-diagnostic" role="alert">
+        <div className="pdlpl-diagnostic-head"><strong>Exact diagnostic</strong><button type="button" onClick={async () => { try { await navigator.clipboard?.writeText(diagnosticText(diagnostic)); setNotice('Diagnostic copied.'); } catch (_) {} }}>Copy</button></div>
+        <pre className="pdlpl-diagnostic-pre">{diagnosticText(diagnostic)}</pre>
+      </section>}
+      <button type="button" onClick={() => { window.location.hash = 'admin'; }}>Back to Admin</button>
+    </div>
+  </Root>;
 
   const selectedChapter = chapters.find(item => item.id === selectedId) || null;
 
