@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
-import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminButton, AdminCard, AdminEmptyState, AdminModal, AdminTable } from './admin-studio-ui.jsx';
 
 const severityRank = { high: 3, medium: 2, low: 1 };
