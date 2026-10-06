@@ -9,6 +9,7 @@ import {
   published,
 } from './palDoPalKeLamhe';
 import { fetchPdlplMedia } from './pdlplR2';
+import { fetchPdlplPublicEngagement, fetchPdlplChapterEngagement, getPdlplBookmark, togglePdlplBookmark, recordPdlplChapterView, recordPdlplChapterShare, submitPdlplRating, getPdlplReadingProgress, savePdlplReadingProgress } from './pdlplEngagement';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
@@ -30,16 +31,18 @@ function openMembership() {
 
 function LockedModal({ chapter, onClose }) {
   return (
-    <div className="pdlpl-lock-backdrop" role="dialog" aria-modal="true" aria-label="Membership required">
-      <button className="pdlpl-lock-bg" type="button" aria-label="Close" onClick={onClose} />
-      <section className="pdlpl-lock-modal">
-        <button className="pdlpl-close" type="button" onClick={onClose} aria-label="Close">×</button>
-        <span className="pdlpl-lock-icon" aria-hidden="true">🔒</span>
-        <p className="pdlpl-kicker">PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
-        <h2>{formatLabel(chapter)} is for members.</h2>
-        <p>Every chapter of this side story is available only with an active membership.</p>
-        <button className="pdlpl-primary" type="button" onClick={openMembership}>View Membership <span>→</span></button>
-        <button className="pdlpl-secondary" type="button" onClick={onClose}>Maybe later</button>
+    <div className="chapter-access-overlay" role="dialog" aria-modal="true" aria-label="Membership required">
+      <button className="chapter-access-backdrop" aria-label="Close" onClick={onClose} />
+      <section className="chapter-access-modal">
+        <button className="chapter-access-close" type="button" onClick={onClose} aria-label="Close">×</button>
+        <div className="chapter-access-icon" aria-hidden="true">🦚</div>
+        <p className="chapter-access-eyebrow">PAL DO PAL KE LAMHE · MEMBERS ONLY</p>
+        <h2>{formatLabel(chapter)} is waiting for you.</h2>
+        <p className="chapter-access-copy">Pal Do Pal Ke Lamhe chapters are available with a Premium Supporter or Super Supporter membership.</p>
+        <div className="chapter-access-perks"><span>✦ Every PDPKL chapter</span><span>✦ UPI AutoPay membership</span><span>✦ Support the side story</span></div>
+        <button className="chapter-access-cta" type="button" onClick={() => { setTimeout(() => {}, 0); window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
+        <button className="chapter-access-secondary" type="button" onClick={onClose}>Maybe later</button>
+        <p className="chapter-access-note">Choose ₹29 or ₹49 per month for PDPKL access.</p>
       </section>
     </div>
   );
@@ -60,31 +63,37 @@ function PdlplChapterThumbnail({ chapter }) {
   return <div className="pdlpl-chapter-thumb" aria-hidden="true">{url ? <img src={url} alt="" loading="lazy" decoding="async" /> : <span>{chapter?.chapterNumber ? String(chapter.chapterNumber).padStart(2, '0') : 'SP'}</span>}</div>;
 }
 
-function PdlplChapterRow({ chapter, member, onOpen, pageCount }) {
-  const locked = !member;
-  return <article className="chapter-row">
+function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating }) {
+  const locked = !member && !admin;
+  const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
+  return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
     <button type="button" className="chapter-row-main pdlpl-chapter-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <PdlplChapterThumbnail chapter={chapter} />
       <div className="chapter-row-copy">
         <div className="chapter-row-title"><span>{formatLabel(chapter)}</span><h2>{chapter.title || 'Untitled chapter'}</h2></div>
-        <div className="chapter-row-meta"><span>MEMBERS</span><span>•</span><span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span></div>
-        <div className="chapter-row-details"><span>{pageCount || 0} pages</span></div>
+        <div className="chapter-row-meta">
+          <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10 ★` : '— ★'}</span><span>•</span><span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span><span>•</span><span>👁 {Number(item.views) || 0}</span>
+        </div>
+        <div className="chapter-row-details"><span>📄 {pageCount || 0} pages</span></div>
       </div>
     </button>
-    <div className="chapter-row-actions"><button type="button" className="pdlpl-chapter-action" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} is members only` : `Read ${formatLabel(chapter)}`}><span>{locked ? '🔒' : '→'}</span><small>{locked ? 'Members' : 'Read'}</small></button></div>
+    <div className="chapter-row-actions">
+      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
+      <button type="button" className="engagement-icon" onClick={() => {}} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}><span>💬</span><small>{Number(item.comments) || 0}</small></button>
+    </div>
   </article>;
 }
 
-function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, language, onLanguageChange, query, onQueryChange, sort, onSortChange }) {
+function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBack, onRating, language, onLanguageChange, query, onQueryChange, sort, onSortChange }) {
   return <main className="site-shell chapter-list-page pdlpl-page-list">
     <header className="subpage-header"><button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button><div><h1>Chapter List</h1></div></header>
     <section className="chapter-list-section">
       <div className="chapter-list-toolbar">
         <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" />
         <label><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-        <label><span>Sort</span><select value={sort} onChange={event => onSortChange(event.target.value)} aria-label="Sort chapters"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A–Z</option></select></label>
+        <label><span>Sort</span><select value={sort} onChange={event => onSortChange(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option><option value="views">Most viewed</option></select></label>
       </div>
-      {chapters.length ? <div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member || admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} />)}</div> : <div className="empty-state"><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
+      {chapters.length ? <div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member} admin={admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} stats={stats} onRating={onRating} />)}</div> : <div className="empty-state"><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
     </section>
     <Footer />
   </main>;
