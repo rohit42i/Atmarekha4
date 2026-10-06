@@ -216,15 +216,19 @@ export default {
         return json(request, env, { error: 'Invalid media path.' }, 400);
       }
 
-      const user = await getUser(request, env);
-      if (!user) {
-        return json(request, env, { error: 'Authentication required.' }, 401);
+      const publicCover = request.method === 'GET' && /^covers\/chapters\//i.test(key);
+      let user = null;
+      let admin = false;
+      if (!publicCover) {
+        user = await getUser(request, env);
+        if (!user) {
+          return json(request, env, { error: 'Authentication required.' }, 401);
+        }
+        admin = await isAdmin(user, request, env);
       }
 
-      const admin = await isAdmin(user, request, env);
-
       if (request.method === 'GET') {
-        if (!admin && !(await hasMembership(user, request, env))) {
+        if (!publicCover && !admin && !(await hasMembership(user, request, env))) {
           return json(request, env, { error: 'Active membership required.' }, 403);
         }
 
@@ -241,7 +245,7 @@ export default {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('ETag', object.httpEtag);
-        headers.set('Cache-Control', 'private, max-age=86400, stale-while-revalidate=604800');
+        headers.set('Cache-Control', publicCover ? 'public, max-age=86400, stale-while-revalidate=604800' : 'private, max-age=86400, stale-while-revalidate=604800');
         headers.set('Content-Disposition', 'inline');
         headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
         headers.set('X-Content-Type-Options', 'nosniff');
