@@ -68,9 +68,9 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
   const locked = !member && !admin;
 
   return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
-    <button type="button" className="chapter-row-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
+    <button type="button" className="chapter-row-main pdlpl-chapter-row-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <PdlplChapterThumbnail chapter={chapter} />
-      <div className="chapter-row-copy">
+      <div className="chapter-row-copy pdlpl-chapter-row-copy">
         <div className="chapter-row-title">
           <span>{formatLabel(chapter)}</span>
           <h2>{chapter.title || 'Untitled chapter'}</h2>
