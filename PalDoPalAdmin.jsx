@@ -245,12 +245,14 @@ export default function PalDoPalAdmin({ embedded = false }) {
     if (!files.length || !selectedChapter || busy) return;
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) {
-      setNotice(diagnosticNotice('Validating selected pages', new Error(tooLarge.name + ' is larger than 95 MB.'), { File: tooLarge.name }));
+      setDiagnostic(diagnosticFromError('Validating selected pages', new Error(tooLarge.name + ' is larger than 95 MB.'), { file: tooLarge.name }));
+      setNotice('PDPKL page operation failed. See the Upload diagnostic panel for the exact error.');
       return;
     }
 
     setBusy(true);
     setNotice('');
+    setDiagnostic(null);
     const uploaded = [];
     let databaseCommitted = false;
     let stage = 'Preparing page upload';
@@ -310,7 +312,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     setNotice('');
     setDiagnostic(null);
     let adminUser = null;
-    let stage = 'Checking admin session';
+    let currentStage = 'Checking admin session';
     try {
       setDiagnostic(null);
       setProgress({ current: 0, total: 0, text: 'Checking admin session…' });
@@ -347,10 +349,10 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setDiagnostic(null);
       setNotice(label(chapter) + ' is now ' + String(saved.status).toLowerCase() + '.');
     } catch (error) {
-      setDiagnostic(diagnosticFromError(stage, error, { chapterId: chapter.id, requestedStatus: status }));
-      console.error('[PDPKL status]', { stage, chapterId: chapter.id, requestedStatus: status }, error);
+      setDiagnostic(diagnosticFromError(currentStage, error, { chapterId: chapter.id, requestedStatus: status }));
+      console.error('[PDPKL status]', { currentStage, chapterId: chapter.id, requestedStatus: status }, error);
       await logAdminAction(adminUser, 'change_pdlpl_status_failed', 'pdlpl_chapter', chapter.id, { status, error: error.message });
-      setNotice('PDPKL status update failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');
+      setNotice('PDPKL status update failed at ' + currentStage + '. See the Upload diagnostic panel for the exact error.');
     } finally {
       setSavingStatus(null);
     }
@@ -393,17 +395,17 @@ export default function PalDoPalAdmin({ embedded = false }) {
     let pagesCommitted = false;
     const wasEditing = Boolean(editing);
     let adminUser = null;
-    let stage = 'Starting upload';
+    let currentStage = 'Starting upload';
     let requestedStatus = String(form.status || '').trim();
 
     try {
-      stage = 'Checking admin session';
+      currentStage = 'Checking admin session';
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
-      stage = 'Validating chapter form';
-      stage = 'Validating chapter form';
+      currentStage = 'Validating chapter form';
+      currentStage = 'Validating chapter form';
       const rawNumber = String(form.number || '').trim();
       const number = rawNumber === '' ? null : Number(rawNumber);
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number.');
@@ -427,13 +429,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
         ? new Date(form.releaseDate).toISOString()
         : null;
 
-      stage = 'Generating chapter ID';
-      stage = 'Generating chapter ID';
+      currentStage = 'Generating chapter ID';
+      currentStage = 'Generating chapter ID';
       chapterId = chapterId || window.crypto?.randomUUID?.();
       if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
-      stage = 'Saving chapter metadata to Supabase';
-      stage = 'Saving chapter metadata to Supabase';
+      currentStage = 'Saving chapter metadata to Supabase';
+      currentStage = 'Saving chapter metadata to Supabase';
       setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
       const { data: savedRows, error: metadataError } = await supabase.rpc('pdlpl_upsert_chapter', {
         p_chapter_id: chapterId,
@@ -453,8 +455,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       setSelectedId(chapterId);
       if (form.cover) {
-        stage = 'Uploading cover to Cloudflare R2';
-        stage = 'Uploading cover to Cloudflare R2';
+        currentStage = 'Uploading cover to Cloudflare R2';
+        currentStage = 'Uploading cover to Cloudflare R2';
         setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
         pendingCoverPath = coverPath(chapterId, form.cover);
         await uploadPdlplFile(form.cover, pendingCoverPath);
@@ -462,7 +464,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (form.pages.length) {
-        stage = 'Uploading manga pages to Cloudflare R2';
+        currentStage = 'Uploading manga pages to Cloudflare R2';
         const revision = Date.now();
         const rows = [];
         setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
@@ -480,7 +482,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
           });
         }
 
-        stage = 'Saving page records to Supabase';
+        currentStage = 'Saving page records to Supabase';
         setProgress({ current: form.pages.length, total: form.pages.length, text: 'Saving manga page records…' });
         const { error: pageSaveError } = await supabase.rpc('pdlpl_replace_chapter_pages', {
           p_chapter_id: chapterId,
@@ -510,7 +512,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (pendingCoverPath) {
-        stage = 'Saving cover path in Supabase';
+        currentStage = 'Saving cover path in Supabase';
         setProgress({ current: 0, total: 0, text: 'Saving cover path in Supabase…' });
         const { error: coverSaveError } = await supabase
           .from(PDLPL_CHAPTERS)
@@ -533,7 +535,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (isPublishing) {
-        stage = 'Publishing chapter with Supabase';
+        currentStage = 'Publishing chapter with Supabase';
         setProgress({ current: 0, total: 0, text: 'Publishing chapter…' });
         const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
           p_chapter_id: chapterId,
@@ -548,7 +550,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
-      stage = 'Verifying final chapter state in Supabase';
+      currentStage = 'Verifying final chapter state in Supabase';
       setProgress({ current: 0, total: 0, text: 'Verifying saved chapter…' });
       const { data: verifiedChapter, error: verifyError } = await supabase
         .from(PDLPL_CHAPTERS)
