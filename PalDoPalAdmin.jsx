@@ -295,7 +295,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
         uploadedPaths: uploaded,
         cleanup: cleanupErrors.join(' | '),
       }));
-      setNotice('PDPKL page operation failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');    } finally {
+      setNotice('PDPKL page operation failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');
+    } finally {
       setBusy(false);
       setProgress({ current: 0, total: 0, text: '' });
     }
@@ -423,11 +424,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
         : null;
 
       currentStage = 'Generating chapter ID';
-      currentStage = 'Generating chapter ID';
       chapterId = chapterId || window.crypto?.randomUUID?.();
       if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
-      currentStage = 'Saving chapter metadata to Supabase';
       currentStage = 'Saving chapter metadata to Supabase';
       setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
       const { data: savedRows, error: metadataError } = await supabase.rpc('pdlpl_upsert_chapter', {
@@ -585,7 +584,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
         cleanup: cleanupErrors.join(' | '),
       }));
       setNotice('PDPKL upload failed at ' + currentStage + '. See the Upload diagnostic panel for the exact error.');
-      setProgress({ current: 0, total: 0, text: '' });    } finally {
+      setProgress({ current: 0, total: 0, text: '' });
+    } finally {
       setBusy(false);
     }
   };
