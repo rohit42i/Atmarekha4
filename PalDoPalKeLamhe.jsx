@@ -45,7 +45,7 @@ function LockedModal({ chapter, onClose, user, planId }) {
     ? 'Upgrade to unlock this chapter.'
     : hasUser
       ? 'Unlock this chapter with membership.'
-      : 'Chapter 1 is for members.';
+      : 'Chapter ' + (chapter?.chapterNumber || 1) + ' is for members.';
   const copy = isAtmaOnlyPlan
     ? 'Your current ₹19 Supporter plan is for Atma Rekha only. Upgrade to ₹29 Premium Supporter or ₹49 Super Supporter to read Pal Do Pal Ke Lamhe.'
     : hasUser
@@ -59,7 +59,7 @@ function LockedModal({ chapter, onClose, user, planId }) {
       <section className="chapter-access-modal">
         <button className="chapter-access-close" type="button" onClick={onClose} aria-label="Close">×</button>
         <div className="chapter-access-icon" aria-hidden="true">🦚</div>
-        <p className="chapter-access-eyebrow">PAL DO PAL KE LAMHE · CHAPTER 1</p>
+        <p className="chapter-access-eyebrow">PAL DO PAL KE LAMHE · CHAPTER {chapter?.chapterNumber || 1}</p>
         <h2>{isAtmaOnlyPlan ? 'Your membership does not include PDPKL.' : title}</h2>
         <p className="chapter-access-copy">{copy}</p>
         <div className="chapter-access-perks">
