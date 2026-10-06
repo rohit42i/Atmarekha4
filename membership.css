@@ -85,3 +85,20 @@
  .membership-plan-top h2{font-size:20px}
  .membership-plan ul{flex:1 1 auto}
 }
+
+/* Membership card finish + FAQ */
+.membership-plan{background:linear-gradient(145deg,#19191c 0%,#111113 58%,#0d0d0f 100%);border:1px solid rgba(255,255,255,.16);box-shadow:0 12px 30px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.045)}
+.membership-plan:hover{background:linear-gradient(145deg,#202023 0%,#131315 60%,#0d0d0f 100%);border-color:rgba(255,255,255,.3);box-shadow:0 17px 38px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)}
+.membership-plan.is-popular,.membership-plan.is-current{background:linear-gradient(145deg,#202023 0%,#141416 55%,#0d0d0f 100%);border-color:rgba(255,255,255,.32);box-shadow:0 14px 34px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.06)}
+.membership-plan-access{display:none!important}
+.membership-faq{width:min(760px,100%);margin:34px auto 0}
+.membership-faq h2{margin:0 0 12px;font-size:22px;line-height:1.1;font-weight:850;letter-spacing:-.035em}
+.membership-faq-list{display:grid;gap:8px}
+.membership-faq details{border:1px solid rgba(255,255,255,.12);border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));overflow:hidden}
+.membership-faq summary{padding:13px 15px;cursor:pointer;font-size:12px;font-weight:800;list-style:none}
+.membership-faq summary::-webkit-details-marker{display:none}
+.membership-faq summary::after{content:'+';float:right;font-size:16px;font-weight:500;color:#888}
+.membership-faq details[open] summary::after{content:'−'}
+.membership-faq details p{margin:0;padding:0 15px 14px;color:#999;font-size:11px;line-height:1.5}
+@media(max-width:620px){.membership-faq{margin-top:25px}.membership-faq h2{font-size:20px}.membership-faq summary{padding:12px;font-size:11px}.membership-faq details p{padding:0 12px 13px;font-size:10px}}
+@media(prefers-color-scheme:light){.membership-plan{background:linear-gradient(145deg,#fff 0%,#f7f7f8 100%);border-color:rgba(24,24,27,.15);box-shadow:0 12px 28px rgba(0,0,0,.09),inset 0 1px 0 rgba(255,255,255,.9)}.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:linear-gradient(145deg,#fff 0%,#f3f3f4 100%);border-color:rgba(24,24,27,.27);box-shadow:0 16px 34px rgba(0,0,0,.13)}.membership-faq details{border-color:rgba(24,24,27,.12);background:linear-gradient(145deg,#fff,#f5f5f6)}.membership-faq details p{color:#666}}
