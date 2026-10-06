@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyebrow, normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
+import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyebrow, normalizeChapterLanguage } from './chapters';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
 import Footer from './Footer';
