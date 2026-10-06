@@ -12,6 +12,8 @@ import { fetchPdlplMedia } from './pdlplR2';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
+const PDLPL_START_DATE = 'April 25, 2027';
+
 function formatDate(value) {
   if (!value) return '—';
   const date = new Date(value);
@@ -99,7 +101,7 @@ function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, lang
       <section className="chapter-list-section">
         <div className="chapter-list-heading">
           <div>
-            <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
+            <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'} · Starts {PDLPL_START_DATE}</p>
             <span className="chapter-list-subtitle">PAL DO PAL KE LAMHE</span>
           </div>
           <label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
