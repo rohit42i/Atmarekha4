@@ -104,7 +104,7 @@ async function main() {
   for (const chapter of chapters) {
     const key = chapter.chapter_number !== null && chapter.chapter_number !== undefined && chapter.chapter_number !== ''
       ? 'chapter:' + String(chapter.chapter_number).trim()
-      : 'special:' + shortId(chapter.id);
+      : 'special:' + slugify(chapter.title);
     if (!chapterGroups.has(key)) chapterGroups.set(key, []);
     chapterGroups.get(key).push(chapter);
   }
