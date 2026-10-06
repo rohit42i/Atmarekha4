@@ -882,3 +882,81 @@
 .ar-stat-card.accent-blue .ar-stat-icon,
 .ar-stat-card.accent-pink .ar-stat-icon,
 .ar-stat-card.accent-gold .ar-stat-icon { color:var(--admin-gold-bright); background:var(--admin-surface-3); }
+
+/* Command palette */
+.admin-command-palette-backdrop {
+  position: fixed; inset: 0; z-index: 100050; padding: 12vh 18px 18px;
+  background: var(--admin-overlay);
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.admin-command-palette {
+  width: min(720px,100%);
+  max-height: min(72vh,720px);
+  display:flex; flex-direction:column; overflow:hidden;
+  border:1px solid var(--admin-border-strong);
+  border-radius:var(--admin-radius-xl);
+  background:var(--admin-surface);
+  color:var(--admin-text);
+  box-shadow:var(--admin-shadow);
+}
+.admin-command-palette-search {
+  min-height:58px; display:flex; align-items:center; gap:9px; padding:0 15px;
+  border-bottom:1px solid var(--admin-border-soft);
+}
+.admin-command-palette-search svg { color:var(--admin-gold-bright); flex:0 0 auto; }
+.admin-command-palette-search input {
+  flex:1; min-width:0; border:0 !important; background:transparent !important; padding:0 !important;
+  box-shadow:none !important; outline:0 !important; font-size:15px !important;
+}
+.admin-command-palette-search kbd,
+.admin-command-palette-hints kbd {
+  padding:3px 5px; border:1px solid var(--admin-border); border-radius:5px;
+  background:var(--admin-surface-3); color:var(--admin-faint); font:700 8px/1 var(--admin-mono);
+}
+.admin-command-palette-hints {
+  display:flex; gap:12px; align-items:center; padding:8px 15px;
+  border-bottom:1px solid var(--admin-border-soft); color:var(--admin-faint); font-size:7px;
+}
+.admin-command-palette-hints span { display:inline-flex; align-items:center; gap:4px; }
+.admin-command-palette-results { min-height:0; overflow:auto; padding:7px; }
+.admin-command-palette-results > button {
+  width:100%; min-height:48px; display:flex; align-items:center; gap:9px; padding:7px 9px;
+  border:1px solid transparent; border-radius:9px; background:transparent; color:var(--admin-text);
+  text-align:left;
+}
+.admin-command-palette-results > button:hover,
+.admin-command-palette-results > button.is-active { background:var(--admin-surface-2); border-color:var(--admin-border); }
+.admin-command-result-icon {
+  width:30px; height:30px; flex:0 0 30px; display:grid; place-items:center;
+  border:1px solid var(--admin-border); border-radius:8px; background:var(--admin-surface-3); color:var(--admin-gold-bright);
+}
+.admin-command-result-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:3px; }
+.admin-command-result-copy strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; }
+.admin-command-result-copy small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--admin-muted); font-size:8px; }
+.admin-command-result-type { color:var(--admin-faint); font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+.admin-command-empty { min-height:190px; display:grid; place-items:center; align-content:center; gap:6px; color:var(--admin-faint); text-align:center; }
+.admin-command-empty svg { color:var(--admin-gold-bright); }
+.admin-command-empty strong { color:var(--admin-text); font-size:10px; }
+.admin-command-empty span { font-size:8px; color:var(--admin-muted); }
+
+.ar-admin-freshness {
+  display:inline-flex; align-items:center; gap:5px; color:var(--admin-faint);
+  white-space:nowrap; font-size:7px; font-weight:700;
+}
+.ar-admin-freshness i { width:6px; height:6px; border-radius:50%; background:var(--admin-success); }
+.ar-admin-freshness i.is-error { background:var(--admin-danger); }
+
+.admin-bottom-nav button { position:relative; }
+.admin-bottom-nav button b {
+  position:absolute; top:3px; right:8px; min-width:13px; height:13px; padding:0 3px;
+  display:grid; place-items:center; border-radius:99px; background:var(--admin-danger); color:#fff;
+  font-size:6px; font-weight:850;
+}
+
+@media (max-width: 720px) {
+  .admin-command-palette-backdrop { padding: 0; }
+  .admin-command-palette { width:100%; height:100dvh; max-height:none; border-radius:0; border-left:0; border-right:0; }
+  .admin-command-palette-search { min-height:64px; }
+  .admin-command-palette-hints { flex-wrap:wrap; gap:7px; }
+  .ar-admin-freshness { display:none; }
+}
