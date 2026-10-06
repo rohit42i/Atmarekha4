@@ -100,12 +100,34 @@ async function main() {
   for (const path of STATIC_PATHS.slice(1)) add(path);
   for (const chapter of chapters) add(chapterPath(chapter), validIsoDate(chapter.release_date || chapter.created_at));
 
+  const chapterGroups = new Map();
+  for (const chapter of chapters) {
+    const key = chapter.chapter_number !== null && chapter.chapter_number !== undefined && chapter.chapter_number !== ''
+      ? 'chapter:' + String(chapter.chapter_number).trim()
+      : 'special:' + shortId(chapter.id);
+    if (!chapterGroups.has(key)) chapterGroups.set(key, []);
+    chapterGroups.get(key).push(chapter);
+  }
+
+  const alternatesFor = loc => {
+    const match = chapters.find(chapter => SITE_URL + chapterPath(chapter) === loc);
+    if (!match) return [];
+    const key = match.chapter_number !== null && match.chapter_number !== undefined && match.chapter_number !== ''
+      ? 'chapter:' + String(match.chapter_number).trim()
+      : 'special:' + shortId(match.id);
+    return (chapterGroups.get(key) || []).map(chapter => {
+      const language = normalizeLanguage(chapter.language);
+      return '    <xhtml:link rel="alternate" hreflang="' + (language === 'en' ? 'en-IN' : 'hi-Latn-IN') + '" href="' + escapeXml(SITE_URL + chapterPath(chapter)) + '" />';
+    });
+  };
+
   const body = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...urls.map(({ loc, lastmod }) => [
       '  <url>',
       '    <loc>' + escapeXml(loc) + '</loc>',
+      ...alternatesFor(loc),
       lastmod ? '    <lastmod>' + lastmod + '</lastmod>' : null,
       '  </url>',
     ].filter(Boolean).join('\n')),
