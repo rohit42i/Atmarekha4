@@ -1,4 +1,3 @@
-import './admin-mobile.css';
 import { supabase } from './supabase';
 import { chapterPath } from './routes';
 
