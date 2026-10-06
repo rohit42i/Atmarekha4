@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAdminRole } from './adminAuth';
 import { supabase } from './supabase';
 import { normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
-import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES } from './palDoPalKeLamhe';
+import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES, PDLPL_ROUTE } from './palDoPalKeLamhe';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
 
@@ -200,10 +200,10 @@ export default function PalDoPalAdmin({ embedded = false }) {
     setBusy(true);
     setNotice('');
     const uploaded = [];
+    let databaseCommitted = false;
 
     try {
       const revision = Date.now();
-      let databaseCommitted = false;
 
       for (let i = 0; i < files.length; i += 1) {
         const path = pagePath(selectedChapter.id, revision, files[i], i);
@@ -300,10 +300,12 @@ export default function PalDoPalAdmin({ embedded = false }) {
     let coverCommitted = false;
     let pagesCommitted = false;
     const wasEditing = Boolean(editing);
+    let adminUser = null;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
+      adminUser = user;
 
       const rawNumber = String(form.number || '').trim();
       const number = rawNumber === '' ? null : Number(rawNumber);
@@ -459,7 +461,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       language: normalizeChapterLanguage(chapter.language),
       title: chapter.title,
       description: chapter.description,
-      status: chapter.status || 'Draft',
+      status: chapter.status || 'Published',
       releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '',
       cover: null,
       pages: [],
@@ -530,7 +532,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
   const replacePage = async (page, file) => {
     if (!file || busy) return;
-    if (!file.type.startsWith('image/')) { setNotice('Please select an image.'); return; }
+    if (!isImageFile(file)) { setNotice('Please select a JPG, PNG, WEBP, GIF, BMP, or AVIF image.'); return; }
     if (file.size > MAX_PAGE_SIZE) { setNotice(file.name + ' is larger than 95 MB.'); return; }
 
     setBusy(true);
@@ -738,8 +740,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       </div>
     </section>}
   </section>;
-
-  if (embedded) return pageManager;
 
   return <Root className={rootClass}>
     {!embedded && <header className="pdlpl-admin-header">
