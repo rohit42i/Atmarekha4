@@ -1,9 +1,9 @@
 .chapter-discovery {
   display: grid;
-  grid-template-columns: minmax(0, 30%) minmax(0, 40%) minmax(0, 30%);
+  grid-template-columns: minmax(0, 30%) minmax(0, 35%) minmax(0, 35%);
   gap: 8px;
-  align-items: center;
-  margin: 0 0 12px;
+  align-items: stretch;
+  margin: 0 0 14px;
 }
 .chapter-discovery > label {
   min-width: 0;
@@ -57,7 +57,7 @@
   background: #fff;
 }
 .chapter-language > span {
-  font: 700 9px/1 system-ui,sans-serif;
+  font: 750 10px/1 system-ui,sans-serif;
   opacity: .52;
   letter-spacing: .04em;
 }
@@ -72,7 +72,7 @@
   background: #fff;
   color: inherit;
   cursor: pointer;
-  font: 700 10px/1.1 system-ui,sans-serif;
+  font: 750 11px/1.1 system-ui,sans-serif;
 }
 .chapter-sort-menu {
   position: absolute;
@@ -96,7 +96,7 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-  font: 650 10px/1.1 system-ui,sans-serif;
+  font: 700 11px/1.1 system-ui,sans-serif;
 }
 .chapter-sort-menu button:hover,
 .chapter-sort-menu button.active {
@@ -222,7 +222,7 @@ html[data-theme="dark"] .chapter-discovery-reset {
     grid-template-columns: 1fr;
   }
   .chapter-discovery {
-    grid-template-columns: minmax(0, 30%) minmax(0, 40%) minmax(0, 30%);
+    grid-template-columns: minmax(0, 30%) minmax(0, 35%) minmax(0, 35%);
     gap: 6px;
   }
   .chapter-discovery > label,
