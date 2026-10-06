@@ -62,6 +62,31 @@ async function logAdminAction(user, action, entityType, entityId = null, details
   }
 }
 
+function diagnosticFromError(stage, error, extra = {}) {
+  const source = error || {};
+  return {
+    stage,
+    code: source.code || source.status || '',
+    message: source.message || String(source),
+    details: source.details || '',
+    hint: source.hint || '',
+    name: source.name || '',
+    ...extra,
+  };
+}
+
+function diagnosticText(diagnostic) {
+  if (!diagnostic) return '';
+  return [
+    `Stage: ${diagnostic.stage}`,
+    diagnostic.code ? `Code/HTTP: ${diagnostic.code}` : '',
+    diagnostic.message ? `Message: ${diagnostic.message}` : '',
+    diagnostic.details ? `Details: ${diagnostic.details}` : '',
+    diagnostic.hint ? `Hint: ${diagnostic.hint}` : '',
+    diagnostic.name ? `Name: ${diagnostic.name}` : '',
+    diagnostic.chapterId ? `Chapter ID: ${diagnostic.chapterId}` : '',
+  ].filter(Boolean).join('\\n');
+}
 
 function PagePreview({ path }) {
   const holder = useRef(null);
@@ -122,6 +147,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const [query, setQuery] = useState('');
   const [savingStatus, setSavingStatus] = useState(null);
   const [retryFiles, setRetryFiles] = useState({});
+  const [diagnostic, setDiagnostic] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -201,11 +227,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     setBusy(true);
     setNotice('');
+    setDiagnostic(null);
     const uploaded = [];
     let databaseCommitted = false;
 
     try {
       const revision = Date.now();
+      setProgress({ current: 0, total: files.length, text: 'Uploading selected pages…' });
 
       for (let i = 0; i < files.length; i += 1) {
         const path = pagePath(selectedChapter.id, revision, files[i], i);
@@ -232,6 +260,10 @@ export default function PalDoPalAdmin({ embedded = false }) {
       });
       setNotice(`${files.length} page${files.length === 1 ? '' : 's'} added to ${label(selectedChapter)}.`);
     } catch (error) {
+      setDiagnostic(diagnosticFromError('Add pages', error, {
+        chapterId: selectedChapter?.id || '',
+        uploadedPaths: uploaded,
+      }));
       if (!databaseCommitted) {
         for (const uploadedPath of uploaded) {
           try { await removePdlplFiles([uploadedPath]); } catch (_) {}
@@ -248,8 +280,10 @@ export default function PalDoPalAdmin({ embedded = false }) {
     if (!chapter || busy || savingStatus) return;
     setSavingStatus(chapter.id);
     setNotice('');
+    setDiagnostic(null);
     let adminUser = null;
     try {
+      setProgress({ current: 0, total: 0, text: 'Checking admin session…' });
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
@@ -310,6 +344,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     if (busy) return;
     setBusy(true);
     setNotice('');
+    setDiagnostic(null);
 
     let chapterId = editing?.id || null;
     const uploaded = [];
@@ -369,7 +404,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
         throw new Error('PDPKL chapter metadata could not be verified.');
       }
 
+      setSelectedId(chapterId);
       if (form.cover) {
+        setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
         pendingCoverPath = coverPath(chapterId, form.cover);
         await uploadPdlplFile(form.cover, pendingCoverPath);
         uploaded.push(pendingCoverPath);
@@ -393,6 +430,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
           });
         }
 
+        setProgress({ current: form.pages.length, total: form.pages.length, text: 'Saving manga page records…' });
         const { error: pageSaveError } = await supabase.rpc('pdlpl_replace_chapter_pages', {
           p_chapter_id: chapterId,
           p_pages: rows,
@@ -421,6 +459,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (pendingCoverPath) {
+        setProgress({ current: 0, total: 0, text: 'Saving cover path in Supabase…' });
         const { error: coverSaveError } = await supabase
           .from(PDLPL_CHAPTERS)
           .update({ cover_path: pendingCoverPath })
@@ -442,6 +481,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (isPublishing) {
+        setProgress({ current: 0, total: 0, text: 'Publishing chapter…' });
         const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
           p_chapter_id: chapterId,
           p_status: 'Published',
@@ -455,6 +495,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
+      setProgress({ current: 0, total: 0, text: 'Verifying saved chapter…' });
       const { data: verifiedChapter, error: verifyError } = await supabase
         .from(PDLPL_CHAPTERS)
         .select('id,status,release_date')
@@ -469,12 +510,21 @@ export default function PalDoPalAdmin({ embedded = false }) {
       await load();
       setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'}.`);
     } catch (error) {
-      if (!wasEditing && chapterId) {
-        try {
-          await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId);
-        } catch (_) {}
-      }
+      const failedDiagnostic = diagnosticFromError(
+        progress.text || 'Save chapter',
+        error,
+        {
+          chapterId: chapterId || '',
+          requestedStatus,
+          uploadedPaths: uploaded,
+          pagesSelected: form.pages.length,
+          coverSelected: Boolean(form.cover),
+        },
+      );
+      setDiagnostic(failedDiagnostic);
 
+      // Never delete a newly-created chapter during failure handling.
+      // Keeping the draft preserves the exact failing state for diagnosis and retry.
       for (const path of uploaded) {
         const shouldKeep = wasEditing && (
           (pagesCommitted && path.includes(`/pages/`)) ||
@@ -484,7 +534,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
         try { await removePdlplFiles([path]); } catch (_) {}
       }
 
-      setNotice(error?.message || 'Chapter save failed. Uploaded files that were not committed were cleaned up.');
+      setNotice(
+        `Upload failed during ${failedDiagnostic.stage}. The chapter was kept so the failure can be diagnosed and retried.`,
+      );
       setProgress({ current: 0, total: 0, text: '' });
 
       if (wasEditing && pendingCoverPath && !coverCommitted) {
@@ -856,6 +908,37 @@ export default function PalDoPalAdmin({ embedded = false }) {
         </>}
 
         <p className="pdlpl-muted">Images are stored in Cloudflare R2. Published chapters are available according to the side-story access rules.</p>
+
+        {diagnostic && (
+          <section className="pdlpl-diagnostic" role="alert" aria-live="polite">
+            <div className="pdlpl-diagnostic-head">
+              <strong>Upload diagnostic</strong>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard?.writeText(diagnosticText(diagnostic));
+                    setNotice('Diagnostic copied.');
+                  } catch (_) {
+                    setNotice('Diagnostic copy failed. The details are shown below.');
+                  }
+                }}
+              >
+                Copy
+              </button>
+            </div>
+            <div className="pdlpl-diagnostic-grid">
+              <div><span>Stage</span><strong>{diagnostic.stage}</strong></div>
+              {diagnostic.code && <div><span>Code / HTTP</span><strong>{diagnostic.code}</strong></div>}
+              <div className="wide"><span>Message</span><strong>{diagnostic.message}</strong></div>
+              {diagnostic.details && <div className="wide"><span>Details</span><strong>{diagnostic.details}</strong></div>}
+              {diagnostic.hint && <div className="wide"><span>Hint</span><strong>{diagnostic.hint}</strong></div>}
+              {diagnostic.name && <div><span>Error type</span><strong>{diagnostic.name}</strong></div>}
+              {diagnostic.chapterId && <div className="wide"><span>Chapter ID</span><strong>{diagnostic.chapterId}</strong></div>}
+              {diagnostic.uploadedPaths?.length > 0 && <div className="wide"><span>Uploaded paths before failure</span><strong>{diagnostic.uploadedPaths.join(' | ')}</strong></div>}
+            </div>
+          </section>
+        )}
         <button className="pdlpl-primary" disabled={busy}>{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
       </form>
 
