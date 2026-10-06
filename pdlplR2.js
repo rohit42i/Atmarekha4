@@ -92,13 +92,15 @@ async function request(path, options = {}, retried = false) {
   }
 
   const body = await response.text().catch(() => '');
-  const failure = new Error(`Cloudflare R2 ${method} request failed (HTTP ${response.status}) for "${path}": ${parseError(body, response.status)}`);
+  const parsed = parseError(body, response.status);
+  const failure = new Error(`Cloudflare R2 ${method} request failed (HTTP ${response.status}) for "${path}": ${parsed.message}`);
   failure.name = 'PdlplMediaHttpError';
   failure.status = response.status;
   failure.statusText = response.statusText;
   failure.path = path;
   failure.url = url;
   failure.responseBody = body;
+  failure.payload = parsed.payload;
   throw failure;
 }
 
