@@ -500,7 +500,7 @@ export default function PalDoPalKeLamhe() {
   const [admin, setAdmin] = useState(false);
   const [language, setLanguage] = useState(() => window.localStorage.getItem('pdlpl-language') === 'en' ? 'en' : 'hi');
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState('newest');
+  const [sort, setSort] = useState('chapter');
   const [lockChapter, setLockChapter] = useState(null);
   const [route, setRoute] = useState(() => window.location.hash.replace(/^#/, ''));
 
