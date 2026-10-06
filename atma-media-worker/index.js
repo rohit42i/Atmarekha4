@@ -1,6 +1,6 @@
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
 const IMAGE_MIME_BY_EXT = {
-  jpg: 'image/jpeg', jpeg: 'image/png', png: 'image/png', webp: 'image/webp',
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
   gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
 };
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
