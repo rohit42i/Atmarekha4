@@ -326,7 +326,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         ? (chapter.releaseDate || null)
         : null;
 
-      stage = 'Saving chapter status in Supabase';
+      currentStage = 'Saving chapter status in Supabase';
       const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
         p_chapter_id: chapter.id,
         p_status: requestedStatus,
@@ -581,7 +581,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         try { await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId); }
         catch (cleanupError) { cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError)); }
       }
-      setDiagnostic(diagnosticFromError(stage, error, {
+      setDiagnostic(diagnosticFromError(currentStage, error, {
         chapterId,
         mode: wasEditing ? 'Edit existing chapter' : 'Create new chapter',
         status: requestedStatus,
@@ -591,7 +591,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         uploadedPaths: uploaded,
         cleanup: cleanupErrors.join(' | '),
       }));
-      setNotice('PDPKL upload failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');
+      setNotice('PDPKL upload failed at ' + currentStage + '. See the Upload diagnostic panel for the exact error.');
       setProgress({ current: 0, total: 0, text: '' });    } finally {
       setBusy(false);
     }
