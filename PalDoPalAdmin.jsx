@@ -21,6 +21,7 @@ const emptyForm = () => ({
 
 const label = chapter => chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
 const PDLPL_STATUS_RPC = 'pdlpl_set_chapter_status';
+// Publish through the guarded RPC, then verify the exact persisted row before refreshing the admin list.
 
 function safeExt(file, fallback = 'webp') {
   const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || fallback;
