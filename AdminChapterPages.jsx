@@ -127,7 +127,7 @@ export default function AdminChapterPages({ chapters = [] }) {
     let committed = false;
     try {
       const user = await adminUser();
-      uploadedPath = page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
+      uploadedPath = (project === 'pdpkl' ? 'chapters/' : '') + page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
       if (project === 'pdpkl') {
         await uploadPdlplFile(file, uploadedPath);
         const { error } = await supabase.rpc('pdlpl_replace_chapter_page', { p_page_id: page.id, p_image_path: uploadedPath });
