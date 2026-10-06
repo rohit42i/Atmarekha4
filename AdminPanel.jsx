@@ -117,6 +117,7 @@ export default function AdminPanel({ onLogout }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
+  const [chapterPerformance, setChapterPerformance] = useState({});
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -133,15 +134,24 @@ export default function AdminPanel({ onLogout }) {
     try {
       const user = await requireAdmin();
       setEmail(user.email || '');
-      const [chapterData, pageResult, commentResult, reportResult, announcementResult, mediaResult] = await Promise.all([
+      const [chapterData, pageResult, commentResult, reportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
         buildChapters(),
         supabase.from(PAGES).select('id, chapter_id, page_number, image_url').order('page_number', { ascending: true }),
         supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100),
         supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
         supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
         supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200),
+        supabase.rpc('get_admin_analytics', { p_days: 30 }).catch(() => ({ data: null, error: null })),
       ]);
       for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
+      const performanceMap = {};
+      for (const row of performanceResult?.data?.chapter_stats || []) {
+        performanceMap[row.id] = {
+          views: Number(row.period_views ?? row.views ?? 0),
+          likes: Number(row.period_likes ?? row.likes ?? 0),
+          shares: Number(row.period_shares ?? row.shares ?? 0),
+        };
+      }
       const counts = {};
       for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
       setChapters(chapterData || []);
@@ -151,6 +161,7 @@ export default function AdminPanel({ onLogout }) {
       setReports(reportResult.data || []);
       setAnnouncements(announcementResult.data || []);
       setMedia(mediaResult.data || []);
+      setChapterPerformance(performanceMap);
       setLastRefreshedAt(new Date());
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
@@ -876,6 +887,7 @@ export default function AdminPanel({ onLogout }) {
       onEdit={editChapter}
       onDelete={deleteChapter}
       onReload={load}
+      chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
     /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
