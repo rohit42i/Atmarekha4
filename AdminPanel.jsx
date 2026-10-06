@@ -777,7 +777,7 @@ export default function AdminPanel({ onLogout }) {
           <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
         </header>
         <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button><button type="button" onClick={() => { setChapterPublishProject('pdpkl'); setTab('Chapters'); resetForm(); }} className="ar-admin-secondary-action">New side story</button></div></div>
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <section className="admin-stack">
       <section className="admin-card">
@@ -791,17 +791,26 @@ export default function AdminPanel({ onLogout }) {
       </section>
       <AdminChapterPages chapters={sorted} />
     </section> : tab === 'Chapters' ? <section className="admin-stack">
-      <section className="admin-card">
+      <section className="admin-card upload-card">
         <div className="admin-card-title">
           <div>
-            <span>PUBLISH TARGET</span>
-            <h2>Choose what you are publishing</h2>
-            <p>Use one publishing page for Atma Rekha and Pal Do Pal Ke Lamhe.</p>
+            <span>PUBLISHER</span>
+            <h2>{chapterPublishProject === 'pdpkl' ? 'Publish Pal Do Pal Ke Lamhe' : (editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter')}</h2>
+            <p>Select the story first, just like selecting the chapter language below. The publishing workspace changes to match it.</p>
           </div>
         </div>
-        <div className="ar-admin-project-switch" role="tablist" aria-label="Chapter publish project">
-          <button type="button" role="tab" aria-selected={chapterPublishProject === 'atma'} onClick={() => { setChapterPublishProject('atma'); resetForm(); }} className={chapterPublishProject === 'atma' ? 'active' : ''}>Atma Rekha</button>
-          <button type="button" role="tab" aria-selected={chapterPublishProject === 'pdpkl'} onClick={() => { setChapterPublishProject('pdpkl'); resetForm(); }} className={chapterPublishProject === 'pdpkl' ? 'active' : ''}>Pal Do Pal Ke Lamhe (PDPKL)</button>
+        <div className="admin-form-grid">
+          <label>
+            <span>Story</span>
+            <select
+              value={chapterPublishProject}
+              onChange={e => { setChapterPublishProject(e.target.value); resetForm(); }}
+              aria-label="Story"
+            >
+              <option value="atma">Atma Rekha</option>
+              <option value="pdpkl">Pal Do Pal Ke Lamhe (PDPKL)</option>
+            </select>
+          </label>
         </div>
       </section>
       {chapterPublishProject === 'pdpkl'
