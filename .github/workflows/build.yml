@@ -75,8 +75,15 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Deploy Atma Rekha analytics Worker
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        continue-on-error: true
         run: npx --yes wrangler@latest deploy --config analytics-worker/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy protected Atma media Worker
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: atma-media-worker
+        run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
