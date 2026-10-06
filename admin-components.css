@@ -40,8 +40,8 @@
 .ar-admin-status-card>div strong,.ar-admin-status-card>div small{display:block}
 .ar-admin-status-card strong{font-size:11px}
 .ar-admin-status-card small{font-size:10px;color:var(--ar-muted);margin-top:2px}
-.status-dot{width:7px;height:7px;border-radius:50%;background:var(--ar-success);box-shadow:0 0 0 4px rgba(47,186,123,.12)}
-.status-dot.danger{background:var(--ar-danger);box-shadow:0 0 0 4px rgba(226,72,72,.12)}
+.ar-admin .status-dot{width:7px;height:7px;border-radius:50%;background:var(--ar-success);box-shadow:0 0 0 4px rgba(47,186,123,.12)}
+.ar-admin .status-dot.danger{background:var(--ar-danger);box-shadow:0 0 0 4px rgba(226,72,72,.12)}
 .ar-admin-main{min-width:0;flex:1;background:var(--ar-bg)}
 .ar-admin-topbar{position:sticky;top:0;z-index:var(--ar-z-topbar);display:grid;grid-template-columns:minmax(180px,1fr) minmax(260px,520px) minmax(280px,1fr);align-items:center;gap:20px;padding:12px 24px;border-bottom:1px solid var(--ar-border);background:color-mix(in srgb,var(--ar-surface) 94%,transparent)}
 .ar-admin-topbar-left,.ar-admin-top-actions{display:flex;align-items:center;gap:10px}
@@ -102,7 +102,7 @@
 .ar-admin .admin-progress>i{display:block;height:5px;margin-top:7px;border-radius:999px;background:var(--ar-surface-3);overflow:hidden}
 .ar-admin .admin-progress>i>span{display:block;height:100%;border-radius:inherit;background:var(--ar-gold);transition:width .18s ease}
 .ar-admin .admin-chapter-list{display:none}
-.ar-admin-status-select{min-height:32px;padding:0 8px;border:1px solid var(--ar-border);border-radius:999px;background:var(--ar-surface-2);color:var(--ar-text);font-size:10px;font-weight:800;cursor:pointer}.ar-admin .ar-admin-status-pill{display:none}
+.ar-admin .ar-admin-status-select{min-height:32px;padding:0 8px;border:1px solid var(--ar-border);border-radius:999px;background:var(--ar-surface-2);color:var(--ar-text);font-size:10px;font-weight:800;cursor:pointer}.ar-admin .ar-admin-status-pill{display:none}
 .ar-admin .admin-row-actions{display:flex;align-items:center;gap:6px}
 .ar-admin .admin-row-actions button,.ar-admin .admin-card-title>button{min-height:36px;padding:0 10px;border:1px solid var(--ar-border);border-radius:9px;background:var(--ar-surface-2);color:var(--ar-text)}
 .ar-admin .danger{color:var(--ar-danger);border-color:rgba(226,72,72,.38)}
@@ -202,4 +202,4 @@
   .ar-admin-modal-actions button{width:100%}
 }
 
-.ar-admin-global-ui{position:relative;height:0;min-height:0;padding:0;margin:0;background:transparent;color:inherit;pointer-events:none}.ar-admin-global-ui .ar-admin-modal-layer,.ar-admin-global-ui .ar-admin-toast-stack{pointer-events:auto}
+.ar-admin.ar-admin-global-ui{position:relative;height:0;min-height:0;padding:0;margin:0;background:transparent;color:inherit;pointer-events:none}.ar-admin.ar-admin-global-ui .ar-admin-modal-layer,.ar-admin.ar-admin-global-ui .ar-admin-toast-stack{pointer-events:auto}
