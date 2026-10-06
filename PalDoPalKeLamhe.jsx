@@ -48,11 +48,21 @@ function LockedModal({ chapter, onClose }) {
   );
 }
 
+const PDPKL_FREE_CHAPTER_LIMIT = 0;
+
+function isPdlplChapterLocked(chapter, member, admin) {
+  if (!chapter || member || admin) return false;
+  const raw = chapter.chapterNumber;
+  if (raw === null || raw === undefined || raw === '') return false;
+  const number = Number(raw);
+  return Number.isFinite(number) && number > PDPKL_FREE_CHAPTER_LIMIT;
+}
+
 function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
-  const locked = !member && !admin;
+  const locked = isPdlplChapterLocked(chapter, member, admin);
 
-  return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
+  return <article className={`chapter-row${locked ? ' chapter-row-locked' : ''}`} data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
     <a className="chapter-row-main" href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`} onClick={event => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
@@ -60,7 +70,7 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
     }} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <div className="chapter-row-title">
         <span>{formatLabel(chapter)}</span>
-        <h2>{chapter.title || 'Untitled chapter'}</h2>
+        <h2>{chapter.title || 'Untitled chapter'}{locked && <span className="chapter-lock-badge"><span className="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span></span>}</h2>
       </div>
       <div className="chapter-row-meta">
         <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
