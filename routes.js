@@ -125,4 +125,9 @@ export function chapterCanonicalUrl(chapter) {
   return SITE_ORIGIN + chapterPath(chapter);
 }
 
+export function chapterLanguageUrl(chapter, language) {
+  if (!chapter?.id) return SITE_ORIGIN + '/chapters';
+  return SITE_ORIGIN + chapterPath({ ...chapter, language });
+}
+
 export { SITE_ORIGIN };
