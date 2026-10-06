@@ -1,5 +1,6 @@
 import { getAdminRole, isAdminRole } from './adminAuth';
 import { getCurrentMembership, supabase } from './supabase';
+import { getPdlplMediaUrl } from './pdlplR2';
 
 export const PDLPL_CHAPTERS = 'pal_do_pal_ke_lamhe_chapters';
 export const PDLPL_PAGES = 'pal_do_pal_ke_lamhe_chapter_pages';
@@ -16,6 +17,7 @@ export function mapChapter(row) {
     title: row.title || '',
     description: row.description || '',
     coverPath: row.cover_path || null,
+    cover: row.cover_path ? getPdlplMediaUrl(row.cover_path) : null,
     language: String(row.language || 'hi').toLowerCase() === 'en' ? 'en' : 'hi',
     status: row.status || '',
     releaseDate: row.release_date || null,
