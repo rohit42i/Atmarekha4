@@ -809,3 +809,17 @@ html[data-theme="dark"] {
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* Main home cards: neutral monochrome shadow — no violet/purple glow. */
+.home-page .hero-card,
+.home-page .hero-card:hover,
+.home-page .pdlpl-home-card,
+.home-page .pdlpl-home-card:hover{
+  box-shadow:0 18px 48px rgba(0,0,0,.18),0 2px 10px rgba(0,0,0,.08)!important;
+}
+html[data-theme="dark"] .home-page .hero-card,
+html[data-theme="dark"] .home-page .hero-card:hover,
+html[data-theme="dark"] .home-page .pdlpl-home-card,
+html[data-theme="dark"] .home-page .pdlpl-home-card:hover{
+  box-shadow:0 22px 58px rgba(0,0,0,.48),0 2px 12px rgba(0,0,0,.30)!important;
+}
