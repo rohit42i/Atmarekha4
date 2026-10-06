@@ -1,0 +1,14 @@
+{
+  "snapshot_utc": "2026-10-06",
+  "project": {
+    "ref": "pbukwjokgkqacaphlqzm",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY",
+    "postgres": "17.6.1.155"
+  },
+  "public_tables": 54,
+  "migration_count": 157,
+  "latest_migration": "20261006135920_pdlpl_engagement_fk_indexes",
+  "active_edge_functions": 10,
+  "note": "No secrets or production user rows are stored in this GitHub backup branch. A full pg_dump requires the production DB password."
+}
