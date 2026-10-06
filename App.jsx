@@ -11,7 +11,7 @@ import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './engagement';
-import { chapterCanonicalUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
+import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
 
@@ -41,6 +41,25 @@ function upsertCanonical(href) {
     document.head.appendChild(link);
   }
   link.setAttribute('href', href);
+}
+
+function clearAlternateLanguages() {
+  if (typeof document === 'undefined') return;
+  document.head.querySelectorAll('link[rel="alternate"][hreflang]').forEach(link => link.remove());
+}
+
+function upsertAlternateLanguage(hreflang, href) {
+  if (typeof document === 'undefined' || !href) return;
+  const link = document.createElement('link');
+  link.rel = 'alternate';
+  link.hreflang = hreflang;
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+function setDocumentLanguage(language) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = language === 'en' ? 'en-IN' : 'hi-Latn-IN';
 }
 
 function removeMeta(attribute, key) {
@@ -317,13 +336,33 @@ export default function App() { const route = useHashRoute(); const [chapters, s
           ? '/pal-do-pal-ke-lamhe'
           : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
+    const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
     const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
     upsertMeta('name', 'robots', isPrivateRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    setDocumentLanguage(chapterLanguage);
+    clearAlternateLanguages();
+    if (chapter && !isPrivateRoute) {
+      const sameNumber = chapters.filter(item => {
+        const a = item?.chapterNumber;
+        const b = chapter?.chapterNumber;
+        return a !== null && a !== undefined && a !== '' && b !== null && b !== undefined && b !== ''
+          && String(a).trim() === String(b).trim();
+      });
+      const english = sameNumber.find(item => normalizeChapterLanguage(item.language) === 'en');
+      const hindi = sameNumber.find(item => normalizeChapterLanguage(item.language) === 'hi');
+      if (english) upsertAlternateLanguage('en-IN', chapterLanguageUrl(english, 'en'));
+      if (hindi) upsertAlternateLanguage('hi-Latn-IN', chapterLanguageUrl(hindi, 'hi'));
+      const fallback = hindi || english || chapter;
+      upsertAlternateLanguage('x-default', chapterLanguageUrl(fallback, normalizeChapterLanguage(fallback.language)));
+    }
 
     document.title = title;
     upsertMeta('name', 'description', description);
     upsertMeta('name', 'author', 'Arkesh');
     upsertMeta('property', 'og:type', chapter ? 'article' : 'website');
+    upsertMeta('property', 'og:locale', chapterLanguage === 'en' ? 'en_IN' : 'hi_IN');
+    removeMeta('property', 'og:locale:alternate');
+    if (chapter && !isPrivateRoute) upsertMeta('property', 'og:locale:alternate', chapterLanguage === 'en' ? 'hi_IN' : 'en_IN');
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', canonicalUrl);
