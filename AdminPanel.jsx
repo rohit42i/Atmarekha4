@@ -176,6 +176,7 @@ function AdminPanelContent({ onLogout }) {
   const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [chapterFilters, setChapterFilters] = useState({ status: 'all', language: 'all', query: '', sort: 'number' });
   const [selectedChapters, setSelectedChapters] = useState(() => new Set());
+  const [lastLoadedAt, setLastLoadedAt] = useState(null);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -210,6 +211,8 @@ function AdminPanelContent({ onLogout }) {
       setReports(reportResult.data || []);
       setAnnouncements(announcementResult.data || []);
       setMedia(mediaResult.data || []);
+      setLastLoadedAt(new Date());
+      setSelectedChapters(current => new Set([...current].filter(id => (chapterData || []).some(chapter => chapter.id === id))));
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
     } finally { setLoading(false); }
@@ -952,8 +955,8 @@ function AdminPanelContent({ onLogout }) {
           <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
         </header>
         <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
-          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p>{lastLoadedAt && <small className="ar-admin-freshness">Updated {lastLoadedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</small>}</div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
+          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span>{notice.type === 'error' && <button type="button" className="ar-admin-button secondary" onClick={load} disabled={loading || busy}>Retry</button>}</div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <section className="admin-stack">
       <section className="admin-card">
         <div className="admin-card-title">
