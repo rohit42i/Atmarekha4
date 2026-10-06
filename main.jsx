@@ -85,14 +85,16 @@ import './typography-text-system.css';
 import './admin-studio-v4.css';
 import './admin-dashboard-v4.css';
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/><ExperienceEnhancements/></React.StrictMode>);
-
 import './admin-final-v5.css';
 import './admin-stable-v6.css';
 import './admin-clean-final.css';
 import './admin-pdlpl-final.css';
 import './admin-final-v6.css';
 import './admin-runtime-fixes.css';
+import './admin-tokens.css';
+import './admin-components.css';
+
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/><ExperienceEnhancements/></React.StrictMode>);
 
 import './experience-enhancements.css';
 import './membership-pro.css';
