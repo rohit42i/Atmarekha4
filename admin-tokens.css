@@ -1,0 +1,60 @@
+/* Atma Rekha Admin — Obsidian Studio tokens. Public reader styles are untouched. */
+.ar-admin{
+  --ar-bg:#0b0e14;
+  --ar-surface:#141824;
+  --ar-surface-2:#1c2234;
+  --ar-surface-3:#232a3b;
+  --ar-border:#2b3448;
+  --ar-border-strong:#3a465e;
+  --ar-text:#f7f8fb;
+  --ar-muted:#a4adbd;
+  --ar-faint:#707b8f;
+  --ar-gold:#e08a24;
+  --ar-gold-soft:#f0aa54;
+  --ar-danger:#e24848;
+  --ar-danger-soft:#ff8585;
+  --ar-success:#2fba7b;
+  --ar-warning:#e3a532;
+  --ar-shadow:0 18px 48px rgba(0,0,0,.28);
+  --ar-shadow-lg:0 28px 80px rgba(0,0,0,.42);
+  --ar-radius-sm:10px;
+  --ar-radius-md:14px;
+  --ar-radius-lg:20px;
+  --ar-space-1:4px;
+  --ar-space-2:8px;
+  --ar-space-3:12px;
+  --ar-space-4:16px;
+  --ar-space-5:20px;
+  --ar-space-6:24px;
+  --ar-space-8:32px;
+  --ar-space-10:40px;
+  --ar-font-ui:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Devanagari","Nirmala UI",Mangal,sans-serif;
+  --ar-font-display:Georgia,"Noto Serif Devanagari","Nirmala UI",serif;
+  --ar-z-topbar:50;
+  --ar-z-sidebar:60;
+  --ar-z-overlay:200;
+  --ar-z-toast:300;
+  color:var(--ar-text);
+  background:var(--ar-bg);
+  font-family:var(--ar-font-ui);
+  color-scheme:dark;
+}
+.ar-admin[data-density="compact"]{--ar-row-height:40px}
+.ar-admin[data-density="comfortable"]{--ar-row-height:48px}
+.ar-admin[data-density="compact"] .admin-card,.ar-admin[data-density="compact"] .ar-glass-card{padding:16px}
+.ar-admin[data-theme="light"]{
+  --ar-bg:#f6f7f9;
+  --ar-surface:#ffffff;
+  --ar-surface-2:#f0f2f5;
+  --ar-surface-3:#e7eaf0;
+  --ar-border:#d9dee7;
+  --ar-border-strong:#c5ccd8;
+  --ar-text:#10141d;
+  --ar-muted:#5f6979;
+  --ar-faint:#7f8999;
+  --ar-shadow:0 14px 36px rgba(16,24,40,.08);
+  --ar-shadow-lg:0 24px 70px rgba(16,24,40,.14);
+  color-scheme:light;
+}
+html.dark .ar-admin,html[data-theme="dark"] .ar-admin{color-scheme:dark}
+html[data-theme="light"] .ar-admin,body[data-theme="light"] .ar-admin{color-scheme:light}
