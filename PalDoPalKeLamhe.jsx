@@ -65,7 +65,36 @@ function PdlplChapterThumbnail({ chapter }) {
 
 function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating }) {
   const locked = !member && !admin;
+  const [favoriteUser, setFavoriteUser] = useState(null);
+  const [favoriteSaved, setFavoriteSaved] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      const user = data?.session?.user || null;
+      if (!active) return;
+      setFavoriteUser(user);
+      if (!user) return;
+      try { setFavoriteSaved(await getPdlplBookmark(chapter.id)); } catch {}
+    });
+    return () => { active = false; };
+  }, [chapter.id]);
+  const toggleFavorite = async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (favoriteBusy) return;
+    if (!favoriteUser) {
+      window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login' } }));
+      return;
+    }
+    setFavoriteBusy(true);
+    try {
+      await togglePdlplBookmark(chapter.id, favoriteSaved);
+      setFavoriteSaved(value => !value);
+    } catch {}
+    finally { setFavoriteBusy(false); }
+  };
   return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
     <button type="button" className="chapter-row-main pdlpl-chapter-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <PdlplChapterThumbnail chapter={chapter} />
@@ -78,7 +107,7 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
       </div>
     </button>
     <div className="chapter-row-actions">
-      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
+      <button type="button" className={`chapter-favorite-action${favoriteSaved ? ' is-saved' : ''}`} onClick={toggleFavorite} disabled={favoriteBusy} aria-label={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'} title={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'}><span>{favoriteSaved ? '♥' : '♡'}</span><small>{favoriteSaved ? 'Saved' : 'Favourite'}</small></button>\n      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
       <button type="button" className="engagement-icon" onClick={() => {}} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}><span>💬</span><small>{Number(item.comments) || 0}</small></button>
     </div>
   </article>;
