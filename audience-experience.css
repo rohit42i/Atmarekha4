@@ -401,6 +401,7 @@ body:has(.reader-page) .reader-performance-image {
 /* Final chapter discovery controls — single outer surface, full language button. */
 .chapter-discovery > label:not(.chapter-language){
   box-sizing:border-box!important;
+  color:#000!important;
 }
 .chapter-discovery > label:not(.chapter-language) input,
 .chapter-discovery > label:not(.chapter-language) input:focus,
@@ -410,12 +411,20 @@ body:has(.reader-page) .reader-performance-image {
   box-shadow:none!important;
   -webkit-appearance:none!important;
   appearance:none!important;
+  color:#000!important;
+  -webkit-text-fill-color:#000!important;
+}
+.chapter-discovery > label:not(.chapter-language) input::placeholder{
+  color:#000!important;
+  -webkit-text-fill-color:#000!important;
+  opacity:.55!important;
 }
 .chapter-discovery .chapter-language{
   position:relative!important;
   box-sizing:border-box!important;
   overflow:hidden!important;
   cursor:pointer!important;
+  color:#000!important;
 }
 .chapter-discovery .chapter-language select,
 .chapter-discovery .chapter-language select:focus,
@@ -434,16 +443,18 @@ body:has(.reader-page) .reader-performance-image {
   box-shadow:none!important;
   border-radius:0!important;
   background:transparent!important;
-  color:inherit!important;
+  color:#000!important;
+  -webkit-text-fill-color:#000!important;
   opacity:.01!important;
   cursor:pointer!important;
-  -webkit-appearance:auto!important;
-  appearance:auto!important;
+  -webkit-appearance:none!important;
+  appearance:none!important;
 }
 .chapter-discovery .chapter-language > span{
   position:relative!important;
   z-index:1!important;
   pointer-events:none!important;
+  color:#000!important;
 }
 .chapter-discovery .chapter-language:focus-within{
   outline:0!important;
@@ -454,8 +465,21 @@ html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language){
   background:#000!important;
   color:#fff!important;
 }
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input,
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input:focus,
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input:active{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input::placeholder{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language,
+html[data-theme="dark"] .chapter-discovery .chapter-language > span,
 html[data-theme="dark"] .chapter-discovery .chapter-language select{
   color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
 }
 html[data-theme="light"] .chapter-discovery .chapter-language,
 html[data-theme="light"] .chapter-discovery > label:not(.chapter-language){
