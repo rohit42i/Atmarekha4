@@ -85,13 +85,30 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
 }
 
 function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBack, onRating, language, onLanguageChange, query, onQueryChange, sort, onSortChange }) {
+  const [sortOpen, setSortOpen] = useState(false);
   return <main className="site-shell chapter-list-page pdlpl-page-list">
     <header className="subpage-header"><button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button><div><h1>Chapter List</h1></div></header>
     <section className="chapter-list-section">
-      <div className="chapter-list-toolbar">
-        <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" />
-        <label><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-        <label><span>Sort</span><select value={sort} onChange={event => onSortChange(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option><option value="views">Most viewed</option></select></label>
+      <div className="chapter-discovery">
+        <label>
+          <span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span>
+          <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" autoComplete="off" spellCheck="false" />
+          {query && <button type="button" onClick={() => onQueryChange('')} aria-label="Clear chapter search">×</button>}
+        </label>
+        <label className="chapter-language">
+          <span>Language</span>
+          <select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select>
+        </label>
+        <div className="chapter-sort">
+          <button type="button" className="chapter-sort-button" onClick={() => setSortOpen(value => !value)} aria-haspopup="listbox" aria-expanded={sortOpen}>
+            <span>Sort</span><b>{sort === 'chapter' ? 'Chapter' : sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : sort === 'rating' ? 'Rating' : 'Views'}</b><span aria-hidden="true">⌄</span>
+          </button>
+          {sortOpen && <div className="chapter-sort-menu" role="listbox" aria-label="Chapter sort">
+            {[['chapter','Chapter'],['newest','Newest first'],['oldest','Oldest first'],['rating','Top rated'],['views','Most viewed']].map(([value,label]) =>
+              <button key={value} type="button" role="option" aria-selected={sort === value} className={sort === value ? 'active' : ''} onClick={() => { onSortChange(value); setSortOpen(false); }}>{label}</button>
+            )}
+          </div>}
+        </div>
       </div>
       {chapters.length ? <div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member} admin={admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} stats={stats} onRating={onRating} />)}</div> : <div className="empty-state"><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
     </section>
