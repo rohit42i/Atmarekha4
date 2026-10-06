@@ -71,7 +71,7 @@ export default function AdminChapterManager({
   const [sortDir, setSortDir] = useState('asc');
   const [selected, setSelected] = useState(new Set());
   const [columns, setColumns] = useState(() => ({ ...DEFAULT_COLUMNS, ...readStored(COLUMN_KEY, {}) }));
-  const [savedFilters, setSavedFilters] = useState(() => readStored(FILTER_KEY, []));
+  const [savedFilters, setSavedFilters] = useState(() => { const value = readStored(FILTER_KEY, []); return Array.isArray(value) ? value : []; });
   const [filterName, setFilterName] = useState('');
   const [showColumns, setShowColumns] = useState(false);
   const [bulkAction, setBulkAction] = useState(null);
@@ -200,6 +200,20 @@ export default function AdminChapterManager({
   };
 
   const updateForm = (key, value) => setForm(current => ({ ...current, [key]: value }));
+  const choosePages = event => {
+    const files = Array.from(event.target.files || []).filter(file => {
+      if (String(file?.type || '').toLowerCase().startsWith('image/')) return true;
+      return /\.(jpg|jpeg|png|webp|gif|bmp|avif)$/i.test(String(file?.name || ''));
+    });
+    const tooLarge = files.find(file => file.size > 95 * 1024 * 1024);
+    event.target.value = '';
+    if (tooLarge) {
+      setNotice(tooLarge.name + ' is larger than 95 MB.');
+      return;
+    }
+    updateForm('pages', files);
+    setNotice(files.length ? `${files.length} pages ready · selected order preserved.` : '');
+  };
 
   return (
     <section className="admin-stack">
@@ -270,10 +284,7 @@ export default function AdminChapterManager({
             <label className="admin-dropzone">
               <strong>Manga pages</strong>
               <span>Select pages in the exact order you want them published. Existing upload validation and R2 paths are unchanged.</span>
-              <input type="file" multiple accept="image/*" onChange={event => {
-                const files = Array.from(event.target.files || []);
-                updateForm('pages', files);
-              }} />
+              <input type="file" multiple accept="image/*" onChange={choosePages} />
               {form.pages.length > 0 ? <em>{form.pages.length} pages ready · selected order preserved</em> : null}
             </label>
 
