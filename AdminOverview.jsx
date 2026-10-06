@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getPublicReaderTiers, supabase } from './supabase';
+import { supabase } from './supabase';
+import { fetchCloudflareAdminAnalytics, getPublicReaderTiers } from './engagement';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-ui.jsx';
 
@@ -98,10 +99,13 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     let active = true;
     const loadLast24 = async () => {
       try {
-        const { data, error } = await supabase.rpc('get_admin_analytics', { p_days: 1 });
+        const [{ data, error }, cloudflare] = await Promise.all([
+          supabase.rpc('get_admin_analytics', { p_days: 1 }),
+          fetchCloudflareAdminAnalytics(1).catch(() => null),
+        ]);
         if (error) throw error;
         if (active) setLast24({
-          views: Number(data?.current_views || 0),
+          views: Number(cloudflare?.current_views ?? data?.current_views ?? 0),
           ratings: Number(data?.current_ratings || 0),
           comments: Number(data?.current_comments || 0),
           loading: false,
@@ -124,9 +128,33 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     setAnalytics(null);
     const loadAnalytics = async () => {
       try {
-        const { data, error } = await supabase.rpc('get_admin_analytics', { p_days: Number(days) });
+        const [{ data, error }, cloudflare] = await Promise.all([
+          supabase.rpc('get_admin_analytics', { p_days: Number(days) }),
+          fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
+        ]);
         if (error) throw error;
-        if (active) setAnalytics(data || {});
+        if (active) {
+          const base = data || {};
+          const cloudChapterStats = new Map((cloudflare?.chapter_stats || []).map(row => [String(row.id), row]));
+          const chapterStats = (base.chapter_stats || []).map(row => {
+            const cloud = cloudChapterStats.get(String(row.id));
+            return cloud ? {
+              ...row,
+              views: Number(cloud.views || 0),
+              period_views: Number(cloud.period_views || 0),
+              periodViews: Number(cloud.period_views || 0),
+            } : row;
+          });
+          setAnalytics({
+            ...base,
+            total_views: cloudflare?.total_views ?? base.total_views,
+            current_views: cloudflare?.current_views ?? base.current_views,
+            previous_views: cloudflare?.previous_views ?? base.previous_views,
+            active_readers: cloudflare?.active_readers ?? base.active_readers,
+            returning_readers: cloudflare?.returning_readers ?? base.returning_readers,
+            chapter_stats: chapterStats,
+          });
+        }
       } catch (error) {
         console.warn('Admin analytics lookup failed:', error);
         if (active) setAnalytics(null);
