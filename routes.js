@@ -19,6 +19,12 @@ function slugify(value) {
     .slice(0, 80);
 }
 
+function normalizeLanguage(language) { return String(language || '').trim().toLowerCase() === 'en' ? 'en' : 'hi'; }
+
+function languageFromSearch(search = '') {
+  try { return normalizeLanguage(new URLSearchParams(search).get('lang')); } catch { return 'hi'; }
+}
+
 function shortChapterId(id) {
   return String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 8).toLowerCase();
 }
@@ -30,12 +36,14 @@ export function chapterPath(chapter) {
   const number = rawNumber === null || rawNumber === undefined || rawNumber === '' ? null : Number(rawNumber);
 
   if (number !== null && Number.isFinite(number)) {
-    return '/chapter/' + encodeURIComponent(String(rawNumber).trim());
+    const base = '/chapter/' + encodeURIComponent(String(rawNumber).trim());
+    return normalizeLanguage(chapter.language) === 'en' ? base + '?lang=en' : base;
   }
 
   const slug = slugify(chapter.title) || 'special';
   const idSuffix = shortChapterId(chapter.id);
-  return '/chapter/special/' + encodeURIComponent(idSuffix ? slug + '-' + idSuffix : slug);
+  const base = '/chapter/special/' + encodeURIComponent(idSuffix ? slug + '-' + idSuffix : slug);
+  return normalizeLanguage(chapter.language) === 'en' ? base + '?lang=en' : base;
 }
 
 export function isChapterPath(pathname) {
@@ -44,26 +52,36 @@ export function isChapterPath(pathname) {
 }
 
 export function findChapterForPath(pathname, chapters = []) {
-  const path = cleanPathname(pathname);
+  const rawLocation = String(pathname || '/');
+  const [pathnameOnly, inlineSearch = ''] = rawLocation.split('?');
+  const path = cleanPathname(pathnameOnly);
   if (!isChapterPath(path)) return null;
-
+  const wantedLanguage = languageFromSearch(inlineSearch ? '?' + inlineSearch : '');
   const parts = path.split('/').filter(Boolean);
   if (parts[1] === 'special') {
     const slug = safeDecode(parts[2] || '');
-    return (chapters || []).find(chapter => {
+    const matches = (chapters || []).filter(chapter => {
       const titleSlug = slugify(chapter?.title) || 'special';
       const suffix = shortChapterId(chapter?.id);
       return slug === (suffix ? titleSlug + '-' + suffix : titleSlug)
         || slug === String(chapter?.id || '');
-    }) || null;
+    });
+    return matches.find(chapter => normalizeLanguage(chapter?.language) === wantedLanguage)
+      || matches.find(chapter => normalizeLanguage(chapter?.language) === 'hi')
+      || matches[0]
+      || null;
   }
 
   const number = safeDecode(parts[1] || '');
-  return (chapters || []).find(chapter => {
+  const matches = (chapters || []).filter(chapter => {
     const raw = chapter?.chapterNumber;
     if (raw === null || raw === undefined || raw === '') return false;
     return String(raw).trim() === number || String(Number(raw)) === number;
-  }) || null;
+  });
+  return matches.find(chapter => normalizeLanguage(chapter?.language) === wantedLanguage)
+    || matches.find(chapter => normalizeLanguage(chapter?.language) === 'hi')
+    || matches[0]
+    || null;
 }
 
 export function legacyChapterIdFromHash(hash = '') {
@@ -85,7 +103,7 @@ export function getSiteRoute() {
   // URL has a hash such as /chapter/1#chapters, the hash must take priority
   // so Back/close controls can actually leave the reader.
   if (hashRoute) return hashRoute;
-  if (isChapterPath(pathname)) return pathname.slice(1);
+  if (isChapterPath(pathname)) return pathname.slice(1) + (window.location.search || '');
   const publicPath = /^\/(admin|chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe)$/.test(pathname);
   if (publicPath) return pathname.slice(1);
   return 'home';
