@@ -10,6 +10,7 @@ const PLANS = [
     name: 'Reader',
     amount: 0,
     description: 'Start reading and experience Atma Rekha at no cost.',
+    bestFor: 'For every reader',
     features: ['Chapters 1–8', 'Bookmarks & reading history', 'Ratings & comments', 'Reading progress', 'Notifications'],
   },
   {
@@ -18,6 +19,7 @@ const PLANS = [
     name: 'Supporter',
     amount: 19,
     description: 'The simplest way to support the manga and keep reading.',
+    bestFor: 'For readers who want to support the story',
     features: ['All released chapters', 'Supporter badge', 'Member updates', 'Reading progress'],
   },
   {
@@ -27,6 +29,7 @@ const PLANS = [
     amount: 29,
     popular: true,
     description: 'More support, more recognition, same full reading access.',
+    bestFor: 'The best balance of reading + support',
     features: ['All released chapters', 'Premium Supporter badge', 'Member recognition', 'Member updates', 'Reading progress'],
   },
   {
@@ -35,7 +38,8 @@ const PLANS = [
     name: 'Super Supporter',
     amount: 49,
     description: 'For readers who want to support Atma Rekha a little more.',
-    features: ['All released chapters', 'Super Supporter badge', 'Priority comments', 'Super Supporter recognition', 'Member updates'],
+    bestFor: 'For readers who want to give the most support',
+    features: ['All released chapters', 'Super Supporter badge', 'Super Supporter recognition', 'Member updates', 'Reading progress'],
   },
 ];
 
@@ -131,7 +135,8 @@ export default function Membership() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const current = session?.user || null;
       setUser(current);
-      loadSubscription(current);
+      // Supabase advises avoiding async Supabase calls directly inside the auth callback.
+      window.setTimeout(() => loadSubscription(current), 0);
     });
 
     return () => {
@@ -349,15 +354,15 @@ export default function Membership() {
         <section className="membership-support">
           <div>
             <p className="membership-eyebrow">WHY MEMBERSHIP?</p>
-            <h2>You’re not just unlocking chapters.</h2>
+            <h2>Read more. Support more.</h2>
             <p>
-              Membership helps keep Atma Rekha independent and gives readers a simple way to support its future.
+              Chapters 1–8 stay free. From Chapter 9 onward, membership keeps the story going while giving you full access to every released chapter.
             </p>
           </div>
           <div className="membership-support-points">
-            <div><strong>01</strong><span>Read every released chapter after Chapter 8</span></div>
-            <div><strong>02</strong><span>Get a membership badge and recognition</span></div>
-            <div><strong>03</strong><span>Help fund the time behind the next chapter</span></div>
+            <div><strong>01</strong><span>Chapter 9+ access while your membership is active</span></div>
+            <div><strong>02</strong><span>Supporter badge and recognition</span></div>
+            <div><strong>03</strong><span>Directly support the time behind future chapters</span></div>
           </div>
         </section>
 
@@ -404,10 +409,11 @@ function PlanCard({ plan, current, busy, onChoose }) {
           <p className="membership-plan-label">{plan.label}</p>
           <h2>{plan.name}</h2>
         </div>
-        {plan.popular && <span className="membership-popular">POPULAR</span>}
+        {plan.popular && <span className="membership-popular">MOST CHOSEN</span>}
       </div>
 
       <p className="membership-plan-description">{plan.description}</p>
+      <p className="membership-plan-best">{plan.bestFor}</p>
 
       <div className="membership-price-row">
         <strong>₹{plan.amount}</strong>
