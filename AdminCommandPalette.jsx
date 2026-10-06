@@ -45,6 +45,7 @@ export default function AdminCommandPalette({
   onOpenTool,
   onNewChapter,
   onRefresh,
+  pageCounts = {},
 }) {
   const inputRef = useRef(null);
   const [query, setQuery] = useState('');
@@ -101,7 +102,7 @@ export default function AdminCommandPalette({
         id: `chapter-${chapter.id}`,
         type: 'Chapter',
         title: chapter.chapterNumber ? `Chapter ${chapter.chapterNumber} · ${chapter.title || 'Untitled'}` : (chapter.title || 'Special chapter'),
-        hint: `${chapterLanguage(chapter.language)} · ${chapter.status || 'Draft'} · ${chapterPageCount(chapter)} pages`,
+        hint: `${chapterLanguage(chapter.language)} · ${chapter.status || 'Draft'} · ${Number(pageCounts[chapter.id] || 0)} pages`,
         run: () => {
           onSelectTab?.('Chapters');
           onClose?.();
@@ -260,6 +261,3 @@ function chapterLanguage(language) {
   return String(language || '').toLowerCase() === 'en' ? 'English' : 'Hindi';
 }
 
-function chapterPageCount(chapter) {
-  return Number(chapter.pages || 0);
-}
