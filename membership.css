@@ -404,3 +404,77 @@
   .membership-plan li{font-size:11px}
   .membership-button{min-height:34px;font-size:10px}
 }
+
+
+/* Unified membership surface system — keep cards, text areas and page background on one neutral scale */
+.membership-page{
+  --membership-page-bg:#090a0c;
+  --membership-card-bg:#17181b;
+  --membership-card-bg-hover:#1b1c20;
+  --membership-inset-bg:#222225;
+  --membership-text:#f4f4f5;
+  --membership-muted:#9a9aa1;
+  --membership-border:rgba(255,255,255,.15);
+  --membership-divider:rgba(255,255,255,.09);
+  background:var(--membership-page-bg)!important;
+}
+.membership-plan,
+.membership-plan:hover,
+.membership-plan.is-popular,
+.membership-plan.is-current{
+  background:var(--membership-card-bg)!important;
+  border:1px solid var(--membership-border)!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.22)!important;
+}
+.membership-plan:hover,
+.membership-plan.is-popular,
+.membership-plan.is-current{
+  background:var(--membership-card-bg-hover)!important;
+}
+.membership-plan-icon{
+  background:var(--membership-inset-bg)!important;
+  border:1px solid var(--membership-border)!important;
+  box-shadow:none!important;
+}
+.membership-plan-access{background:transparent!important;color:var(--membership-muted)!important}
+.membership-plan ul,.membership-plan li{color:var(--membership-text)!important}
+.membership-price small,.membership-plan-description,.membership-timing-note small{color:var(--membership-muted)!important}
+.membership-timing-note{
+  background:var(--membership-card-bg)!important;
+  border:1px solid var(--membership-border)!important;
+  box-shadow:none!important;
+}
+.membership-faq-list{
+  background:var(--membership-card-bg)!important;
+  border:1px solid var(--membership-border)!important;
+  box-shadow:none!important;
+}
+.membership-faq details{border-bottom-color:var(--membership-divider)!important}
+.membership-faq summary{background:transparent!important;color:var(--membership-text)!important}
+.membership-faq summary:hover,.membership-faq details[open] summary{background:var(--membership-card-bg-hover)!important}
+.membership-faq details p{color:var(--membership-muted)!important}
+@media(prefers-color-scheme:light){
+  .membership-page{
+    --membership-page-bg:#f5f5f7;
+    --membership-card-bg:#ffffff;
+    --membership-card-bg-hover:#fafafa;
+    --membership-inset-bg:#f1f1f2;
+    --membership-text:#18181b;
+    --membership-muted:#66666d;
+    --membership-border:rgba(24,24,27,.13);
+    --membership-divider:rgba(24,24,27,.09);
+    background:var(--membership-page-bg)!important;
+  }
+  .membership-plan,
+  .membership-plan:hover,
+  .membership-plan.is-popular,
+  .membership-plan.is-current,
+  .membership-timing-note,
+  .membership-faq-list{box-shadow:none!important}
+  .membership-plan,
+  .membership-plan:hover,
+  .membership-plan.is-popular,
+  .membership-plan.is-current{
+    border-color:var(--membership-border)!important;
+  }
+}
