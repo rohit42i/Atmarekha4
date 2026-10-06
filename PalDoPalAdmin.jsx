@@ -318,7 +318,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
-      statusStage = 'Preparing status change';
       const requestedStatus = String(status || '').trim();
       const releaseDate = String(requestedStatus).toLowerCase() === 'published'
         ? (chapter.releaseDate || null)
