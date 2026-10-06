@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
-import { buildPdlplChapters, PDLPL_PAGES } from './palDoPalKeLamhe.js';
+import { buildPdlplChapters } from './palDoPalKeLamhe.js';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 
 const ATMA_PAGES = 'chapter_pages';
+const PDLPL_PAGES = 'pal_do_pal_ke_lamhe_chapter_pages';
+// Compatibility alias: prevents legacy PDLKL_PAGES references from breaking the editor.
+const PDLKL_PAGES = PDLPL_PAGES;
 const ATMA_BUCKET = 'chapter-pages';
 const ATMA_MAX = 20 * 1024 * 1024;
 const PDPKL_MAX = 95 * 1024 * 1024;
