@@ -63,57 +63,37 @@ function PdlplChapterThumbnail({ chapter }) {
   return <div className="pdlpl-chapter-thumb" aria-hidden="true">{url ? <img src={url} alt="" loading="lazy" decoding="async" /> : <span>{chapter?.chapterNumber ? String(chapter.chapterNumber).padStart(2, '0') : 'SP'}</span>}</div>;
 }
 
-function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating }) {
-  const locked = !member && !admin;
-  const [favoriteUser, setFavoriteUser] = useState(null);
-  const [favoriteSaved, setFavoriteSaved] = useState(false);
-  const [favoriteBusy, setFavoriteBusy] = useState(false);
+function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
-  useEffect(() => {
-    let active = true;
-    supabase.auth.getSession().then(async ({ data }) => {
-      const user = data?.session?.user || null;
-      if (!active) return;
-      setFavoriteUser(user);
-      if (!user) return;
-      try { setFavoriteSaved(await getPdlplBookmark(chapter.id)); } catch {}
-    });
-    return () => { active = false; };
-  }, [chapter.id]);
-  const toggleFavorite = async event => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (favoriteBusy) return;
-    if (!favoriteUser) {
-      window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login' } }));
-      return;
-    }
-    setFavoriteBusy(true);
-    try {
-      await togglePdlplBookmark(chapter.id, favoriteSaved);
-      setFavoriteSaved(value => !value);
-    } catch {}
-    finally { setFavoriteBusy(false); }
-  };
+  const locked = !member && !admin;
+
   return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
-    <button type="button" className="chapter-row-main pdlpl-chapter-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
-      <PdlplChapterThumbnail chapter={chapter} />
-      <div className="chapter-row-copy">
-        <div className="chapter-row-title"><span>{formatLabel(chapter)}</span><h2>{chapter.title || 'Untitled chapter'}</h2></div>
-        <div className="chapter-row-meta">
-          <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10 ★` : '— ★'}</span><span>•</span><span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span><span>•</span><span>👁 {Number(item.views) || 0}</span>
-        </div>
-        <div className="chapter-row-details"><span>📄 {pageCount || 0} pages</span></div>
+    <button type="button" className="chapter-row-main" onClick={() => onOpen(chapter)} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
+      <div className="chapter-row-title">
+        <span>{formatLabel(chapter)}</span>
+        <h2>{chapter.title || 'Untitled chapter'}</h2>
+      </div>
+      <div className="chapter-row-meta">
+        <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
+        <span>•</span>
+        <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+        <span>•</span>
+        <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
+      </div>
+      <div className="chapter-row-details">
+        <span>📄 {pageCount || '—'} pages</span>
       </div>
     </button>
     <div className="chapter-row-actions">
-      <button type="button" className={`chapter-favorite-action${favoriteSaved ? ' is-saved' : ''}`} onClick={toggleFavorite} disabled={favoriteBusy} aria-label={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'} title={favoriteSaved ? 'Remove from favourites' : 'Add to favourites'}><span>{favoriteSaved ? '♥' : '♡'}</span><small>{favoriteSaved ? 'Saved' : 'Favourite'}</small></button>
-      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
-      <button type="button" className="engagement-icon" onClick={() => {}} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}><span>💬</span><small>{Number(item.comments) || 0}</small></button>
+      <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}>
+        <span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small>
+      </button>
+      <button type="button" className="engagement-icon" onClick={() => onComments?.(chapter)} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}>
+        <span>💬</span><small>{new Intl.NumberFormat('en-IN', { notation: Number(item.comments) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.comments) || 0)}</small>
+      </button>
     </div>
   </article>;
 }
-
 function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBack, onRating, language, onLanguageChange, query, onQueryChange, sort, onSortChange }) {
   const [sortOpen, setSortOpen] = useState(false);
   return <main className="site-shell chapter-list-page pdlpl-page-list">
