@@ -88,6 +88,10 @@ function diagnosticText(diagnostic) {
     diagnostic.details ? `Details: ${diagnostic.details}` : '',
     diagnostic.hint ? `Hint: ${diagnostic.hint}` : '',
     diagnostic.name ? `Name: ${diagnostic.name}` : '',
+    diagnostic.statusText ? `HTTP status: ${diagnostic.statusText}` : '',
+    diagnostic.path ? `Path: ${diagnostic.path}` : '',
+    diagnostic.url ? `URL: ${diagnostic.url}` : '',
+    diagnostic.responseBody ? `Response body: ${diagnostic.responseBody}` : '',
     diagnostic.chapterId ? `Chapter ID: ${diagnostic.chapterId}` : '',
   ].filter(Boolean).join('\n');
 }
