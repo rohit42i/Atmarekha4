@@ -20,30 +20,30 @@
 @media(prefers-color-scheme:light){.membership-access-note{background:rgba(217,70,239,.045);border-color:rgba(192,38,211,.15)}.membership-access-note p{color:#68686f}.membership-plan-kicker{color:#777}.membership-plan-description{color:#666}.membership-plan-access{background:rgba(24,24,27,.045);color:#3f3f46}.membership-plan.is-popular .membership-plan-access{background:#fff0ff;color:#86198f}.membership-trust-row{color:#707078}}
 @media(max-width:620px){.membership-access-note{margin-bottom:10px;padding:10px 11px}.membership-access-note p{font-size:9px}.membership-plan-description{font-size:9px;min-height:37px}.membership-plan-access{font-size:7.5px}.membership-plan-kicker{font-size:6.5px}.membership-trust-row{gap:8px;font-size:8px}}
 
-/* Premium compact card refinement */
-.membership-plan{min-height:205px;padding:13px;border-radius:16px}.membership-plan-top{align-items:flex-start}.membership-plan-top>div{min-width:0;flex:1}.membership-plan-icon{margin-left:auto;width:32px;height:32px;font-size:17px}.membership-plan h2{margin:0;font-size:21px}.membership-plan-access{margin:4px 0 0;padding:0;background:transparent;font-size:8px;color:#92929a}.membership-plan-description,.membership-plan-kicker{display:none}.membership-plan ul{margin:6px 0 7px;gap:3px}.membership-plan ul li{font-size:9.5px}.membership-free-note{margin-top:8px}.membership-access-note{display:none!important}
-@media(max-width:1050px){.membership-plan{min-height:205px}}
-@media(max-width:620px){.membership-plan{min-height:185px;padding:12px}.membership-plan-icon{width:30px;height:30px;font-size:15px}.membership-plan h2{font-size:19px}.membership-plan-access{font-size:7.5px}.membership-plan ul{font-size:9px;margin:5px 0 6px}.membership-plan ul li{font-size:9px}}
 
-/* Premium compact card refinement */
-.membership-plan{min-height:0;padding:14px 14px 12px;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));box-shadow:0 14px 34px rgba(0,0,0,.14)}
-.membership-plan-top{min-height:36px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.membership-plan-top h2{margin:0;max-width:calc(100% - 43px);font-size:20px;line-height:1.02}
+/* Final membership card polish */
+.membership-plan{min-height:0;padding:15px 15px 13px;border-radius:15px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));box-shadow:0 12px 28px rgba(0,0,0,.16)}
+.membership-plan-top{min-height:38px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.membership-plan-top>div{min-width:0;flex:1}
+.membership-plan-top h2{margin:0;max-width:calc(100% - 43px);font-size:21px;line-height:1.05;font-weight:850;letter-spacing:-.02em}
 .membership-plan-icon{order:2;width:32px;height:32px;border-radius:9px;font-size:16px}
 .membership-plan-kicker,.membership-plan-description{display:none}
-.membership-plan-access{margin:5px 0 0;padding:0;background:none!important;color:#8f8f98!important;font-size:8.5px;font-weight:650;line-height:1.2;min-height:0}
-.membership-price{margin:6px 0 0;font-size:29px}
-.membership-plan ul{margin:7px 0 8px;gap:3px;font-size:9.5px;line-height:1.08}
-.membership-button{min-height:34px;border-radius:9px}
-.membership-plan.is-popular{box-shadow:0 16px 38px rgba(217,70,239,.13)}
-@media(max-width:1050px){.membership-plan{min-height:0}}
+.membership-plan-access{margin:5px 0 0;padding:0;background:none!important;color:#a0a0a6!important;font-size:9px;font-weight:700;line-height:1.25}
+.membership-price{margin:7px 0 0;font-size:30px;font-weight:850;letter-spacing:-.03em}
+.membership-plan ul{margin:8px 0 9px;padding:0;gap:4px;font-size:11px;line-height:1.2}
+.membership-plan ul li{font-size:11px;font-weight:700}
+.membership-plan ul li::first-letter{font-weight:900}
+.membership-button{min-height:35px;border-radius:9px;font-size:10px;font-weight:800}
+.membership-plan.is-popular{box-shadow:0 12px 28px rgba(0,0,0,.16)}
+.membership-timing-note{width:min(1040px,100%);box-sizing:border-box;margin:0 auto 12px;padding:10px 13px;border:1px solid rgba(128,128,128,.22);border-radius:12px;display:flex;align-items:center;gap:10px;background:rgba(128,128,128,.055)}
+.membership-timing-icon{width:25px;height:25px;flex:0 0 25px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;background:rgba(128,128,128,.1);color:inherit;border:1px solid rgba(128,128,128,.2)}
+.membership-timing-note div{min-width:0}.membership-timing-note strong{display:block;font-size:11px;line-height:1.2;font-weight:850}.membership-timing-note small{display:block;margin-top:3px;color:#777;font-size:9px;line-height:1.25;font-weight:600}
+@media(prefers-color-scheme:light){.membership-plan{background:#fff;box-shadow:0 10px 25px rgba(0,0,0,.10)}.membership-plan.is-popular{box-shadow:0 10px 25px rgba(0,0,0,.10)}.membership-plan-access{color:#666!important}.membership-timing-note{background:#f7f7f7;border-color:#ddd}.membership-timing-note small{color:#666}}
 @media(max-width:620px){
- .membership-plan{flex-basis:205px;width:205px;min-height:0;padding:11px 11px 10px;border-radius:14px}
- .membership-plan-top{min-height:31px}
- .membership-plan-top h2{font-size:18px}
- .membership-plan-icon{width:29px;height:29px;font-size:14px}
- .membership-plan-access{font-size:7.5px;margin-top:4px}
- .membership-price{font-size:26px;margin-top:5px}
- .membership-plan ul{font-size:8.5px;margin:5px 0 6px;gap:2px}
- .membership-button{min-height:31px;font-size:9px}
+.membership-plan{width:205px;flex-basis:205px;padding:12px 12px 11px;border-radius:14px}
+.membership-plan-top{min-height:34px}.membership-plan-top h2{font-size:19px}.membership-plan-icon{width:29px;height:29px;font-size:14px}
+.membership-plan-access{font-size:8px}.membership-price{font-size:27px;margin-top:6px}
+.membership-plan ul{margin:7px 0 8px;gap:3px}.membership-plan ul li{font-size:10px}
+.membership-button{min-height:32px;font-size:9px}
+.membership-timing-note{margin-bottom:9px;padding:9px 10px;gap:8px}.membership-timing-icon{width:22px;height:22px;flex-basis:22px}.membership-timing-note strong{font-size:10px}.membership-timing-note small{font-size:8px}
 }
