@@ -747,7 +747,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       <div className="pdlpl-admin-header-actions"><button type="button" onClick={() => { window.location.hash = 'admin'; }}>Admin Dashboard</button><button type="button" className="pdlpl-admin-home" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>View Side Story</button></div>
     </header>}
 
-    {embedded && <div className="pdlpl-embedded-heading"><div><span>PAL DO PAL KE LAMHE</span><h2>Side Story Upload & Management</h2><p>Separate chapters, pages, and Cloudflare R2 media.</p></div><div className="pdlpl-admin-header-actions"><button type="button" onClick={load} disabled={loading || busy}>Refresh</button><button type="button" onClick={() => { window.location.hash = 'pal-do-pal-admin'; }}>Open full manager</button><button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>View public side story</button></div></div>}
+    {embedded && <div className="pdlpl-embedded-heading"><div><span>PAL DO PAL KE LAMHE</span><h2>Side Story Upload & Management</h2><p>Separate chapters, pages, and Cloudflare R2 media.</p></div><div className="pdlpl-admin-header-actions"><button type="button" onClick={load} disabled={loading || busy}>Refresh</button><button type="button" onClick={() => { window.location.hash = PDLPL_ROUTE; }}>View public side story</button></div></div>}
 
     <section className="pdlpl-admin-layout">
       <form id="pdlpl-upload-chapter" className="pdlpl-admin-card pdlpl-form" onSubmit={saveChapter}>
