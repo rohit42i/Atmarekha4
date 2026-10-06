@@ -31,8 +31,12 @@ function getAllowedOrigins(env) {
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
   const requestedHeaders = request.headers.get('Access-Control-Request-Headers') || '';
+  const allowedOrigins = getAllowedOrigins(env);
+  const allowOrigin = allowedOrigins.includes(normalizeOrigin(origin))
+    ? origin
+    : (allowedOrigins[0] || 'https://www.atmarekha.in');
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': requestedHeaders || 'Authorization, Accept, Content-Type, Cache-Control',
     'Access-Control-Max-Age': '86400',
@@ -140,7 +144,7 @@ async function hasMembership(user, request, env) {
   const now = Date.now();
 
   return (rows || []).some(row => {
-    if (!row?.plan_id || String(row.plan_id).toLowerCase() === 'free') return false;
+    if (!['supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
 
     const end = row.current_period_end
       ? new Date(row.current_period_end).getTime()
@@ -220,8 +224,24 @@ export default {
       }
 
       if (request.method === 'GET') {
-        if (!publicCover && !admin && !(await hasMembership(user, request, env))) {
-          return json(request, env, { error: 'Active membership required.' }, 403);
+        if (!publicCover && !admin) {
+          if (/^chapters\/[^/]+\/replacements\//i.test(key)) {
+            return json(request, env, { error: 'Admin access required.' }, 403);
+          }
+          const chapterMatch = key.match(new RegExp(`^chapters/(${UUID_PATTERN})/pages/`, 'i'));
+          const chapterId = chapterMatch?.[1] || '';
+          if (!chapterId) return json(request, env, { error: 'Invalid chapter path.' }, 400);
+          const rows = await supabaseRows(env, getBearer(request), 'pal_do_pal_ke_lamhe_chapters', {
+            select: 'id,status',
+            id: `eq.${chapterId}`,
+            limit: '1',
+          });
+          if (!Array.isArray(rows) || String(rows[0]?.status || '').toLowerCase() !== 'published') {
+            return json(request, env, { error: 'Media not available.' }, 404);
+          }
+          if (!(await hasMembership(user, request, env))) {
+            return json(request, env, { error: 'Active PDPKL membership required.' }, 403);
+          }
         }
 
         const cache = caches.default;
