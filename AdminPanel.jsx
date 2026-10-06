@@ -10,7 +10,11 @@ import { AdminIcon } from './admin-redesign-ui.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
-const MAX_PAGE_SIZE = 20 * 1024 * 1024;
+const MAX_PAGE_SIZE = 95 * 1024 * 1024;
+const IMAGE_MIME_BY_EXT = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
 const PAGE_BUCKET = 'chapter-pages';
 const COVER_BUCKET = 'covers';
 
@@ -104,7 +108,6 @@ export default function AdminPanel({ onLogout }) {
   const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false, pin_target: 'none', display_position: '' });
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
-  const [pageEditorProject, setPageEditorProject] = useState('atma');
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -166,14 +169,22 @@ export default function AdminPanel({ onLogout }) {
   useEffect(() => { load(); }, []);
 
   const choosePages = event => {
-    const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
+    const files = Array.from(event.target.files || []).filter(file => {
+      if (String(file?.type || '').toLowerCase().startsWith('image/')) return true;
+      const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
+      return Boolean(IMAGE_MIME_BY_EXT[ext]);
+    });
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
-    if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: `${tooLarge.name} is larger than 20 MB.` }); return; }
+    if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
     setForm(value => ({ ...value, pages: files }));
   };
 
   async function upload(bucket, file, path) {
-    const { error } = await cloudflareR2.from(bucket).upload(path, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
+    const declaredType = String(file?.type || '').toLowerCase();
+    const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
+    const contentType = declaredType.startsWith('image/') ? declaredType : (IMAGE_MIME_BY_EXT[ext] || undefined);
+    if (!contentType) throw new Error('Please select a supported image file.');
+    const { error } = await cloudflareR2.from(bucket).upload(path, file, { upsert: false, contentType, cacheControl: '31536000' });
     if (error) throw new Error(`Upload to ${bucket} failed: ${error.message}`);
     return publicUrl(bucket, path);
   }
@@ -773,64 +784,62 @@ export default function AdminPanel({ onLogout }) {
         <div className="admin-card-title">
           <div>
             <span>PAGE EDITOR</span>
-            <h2>Choose project</h2>
-            <p>Switch between Atma Rekha and Pal Do Pal Ke Lamhe without leaving the page editor.</p>
+            <h2>Manage Atma Rekha pages</h2>
+            <p>Replace, reorder, retry, or delete individual pages for the selected Atma Rekha chapter.</p>
           </div>
         </div>
-        <div className="ar-admin-project-switch" role="tablist" aria-label="Page editor project">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={pageEditorProject === 'atma'}
-            onClick={() => setPageEditorProject('atma')}
-            className={pageEditorProject === 'atma' ? 'active' : ''}
-          >
-            Atma Rekha
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={pageEditorProject === 'pdpkl'}
-            onClick={() => setPageEditorProject('pdpkl')}
-            className={pageEditorProject === 'pdpkl' ? 'active' : ''}
-          >
-            Pal Do Pal Ke Lamhe (PDPKL)
-          </button>
-        </div>
       </section>
-      {pageEditorProject === 'atma'
-        ? <AdminChapterPages chapters={sorted} />
-        : <PalDoPalAdmin embedded />}
-    </section> : tab === 'Chapters' ? <section className="admin-stack"><section className="admin-card">
+      <AdminChapterPages chapters={sorted} />
+    </section> : tab === 'Chapters' ? <section className="admin-stack">
+      <section className="admin-card">
         <div className="admin-card-title">
           <div>
             <span>PUBLISH TARGET</span>
             <h2>Choose what you are publishing</h2>
-            <p>Use one chapter publishing workspace for Atma Rekha or Pal Do Pal Ke Lamhe.</p>
+            <p>Use one publishing page for Atma Rekha and Pal Do Pal Ke Lamhe.</p>
           </div>
         </div>
         <div className="ar-admin-project-switch" role="tablist" aria-label="Chapter publish project">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={chapterPublishProject === 'atma'}
-            onClick={() => { setChapterPublishProject('atma'); resetForm(); }}
-            className={chapterPublishProject === 'atma' ? 'active' : ''}
-          >
-            Atma Rekha
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={chapterPublishProject === 'pdpkl'}
-            onClick={() => { setChapterPublishProject('pdpkl'); resetForm(); }}
-            className={chapterPublishProject === 'pdpkl' ? 'active' : ''}
-          >
-            Pal Do Pal Ke Lamhe (PDPKL)
-          </button>
+          <button type="button" role="tab" aria-selected={chapterPublishProject === 'atma'} onClick={() => { setChapterPublishProject('atma'); resetForm(); }} className={chapterPublishProject === 'atma' ? 'active' : ''}>Atma Rekha</button>
+          <button type="button" role="tab" aria-selected={chapterPublishProject === 'pdpkl'} onClick={() => { setChapterPublishProject('pdpkl'); resetForm(); }} className={chapterPublishProject === 'pdpkl' ? 'active' : ''}>Pal Do Pal Ke Lamhe (PDPKL)</button>
         </div>
       </section>
-      {chapterPublishProject === 'pdpkl' ? <PalDoPalAdmin embedded /> : <><section className="admin-card upload-card"><div className="admin-card-title"><div><span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span><h2>{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter'}</h2><p>Select the language for this chapter variant. English and Hindi variants use separate chapter records and isolated media paths.</p></div>{editing && <button type="button" onClick={resetForm}>Cancel</button>}</div><form onSubmit={saveChapter} className="admin-form"><div className="admin-form-grid"><input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/><label><span>Language</span><select value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/><label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label><label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label></div><label className="admin-dropzone"><strong>Manga pages</strong><span>Select pages in the exact order you want them published. Filename sorting is disabled.</span><input type="file" multiple accept="image/*" onChange={choosePages}/>{form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}</label>{progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}<button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button></form></section><section className="admin-card"><div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div><div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'} · {chapterLanguageLabel(chapter.language)}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div></section></section></> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
+      {chapterPublishProject === 'pdpkl'
+        ? <PalDoPalAdmin embedded />
+        : <section className="admin-card upload-card">
+            <div className="admin-card-title">
+              <div>
+                <span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span>
+                <h2>{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter'}</h2>
+                <p>Select the language for this chapter variant. English and Hindi variants use separate chapter records and isolated media paths.</p>
+              </div>
+              {editing && <button type="button" onClick={resetForm}>Cancel</button>}
+            </div>
+            <form onSubmit={saveChapter} className="admin-form">
+              <div className="admin-form-grid">
+                <input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/>
+                <label><span>Language</span><select value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
+                <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select>
+                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/>
+                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/>
+                <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label>
+                <label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label>
+              </div>
+              <label className="admin-dropzone">
+                <strong>Manga pages</strong>
+                <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
+                <input type="file" multiple accept="image/*" onChange={choosePages}/>
+                {form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}
+              </label>
+              {progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}
+              <button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
+            </form>
+          </section>}
+      {chapterPublishProject === 'atma' && <section className="admin-card">
+        <div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div>
+        <div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'} · {chapterLanguageLabel(chapter.language)}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div>
+      </section>}
+    </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
       <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
       <div className="admin-report-list">{reports.map(report => {
         const comment = commentById(report.comment_id);
