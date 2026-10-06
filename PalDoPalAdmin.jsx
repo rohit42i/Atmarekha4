@@ -318,7 +318,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
-      stage = 'Preparing status change';
+      statusStage = 'Preparing status change';
       const requestedStatus = String(status || '').trim();
       const releaseDate = String(requestedStatus).toLowerCase() === 'published'
         ? (chapter.releaseDate || null)
@@ -433,7 +433,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       chapterId = chapterId || window.crypto?.randomUUID?.();
       if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
-      stage = 'Saving chapter metadata';
       stage = 'Saving chapter metadata to Supabase';
       stage = 'Saving chapter metadata to Supabase';
       setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
@@ -456,7 +455,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setSelectedId(chapterId);
       if (form.cover) {
         stage = 'Uploading cover to Cloudflare R2';
-        stage = 'Uploading cover image to Cloudflare R2';
         stage = 'Uploading cover to Cloudflare R2';
         setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
         pendingCoverPath = coverPath(chapterId, form.cover);
@@ -465,7 +463,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (form.pages.length) {
-        stage = 'Uploading manga pages to Cloudflare R2';
         stage = 'Uploading manga pages to Cloudflare R2';
         const revision = Date.now();
         const rows = [];
@@ -484,9 +481,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
           });
         }
 
-        stage = 'Saving manga page records in Supabase';
-        setProgress({ current: form.pages.length, total: form.pages.length, text: 'Saving manga page records…' });
         stage = 'Saving page records to Supabase';
+        setProgress({ current: form.pages.length, total: form.pages.length, text: 'Saving manga page records…' });
         const { error: pageSaveError } = await supabase.rpc('pdlpl_replace_chapter_pages', {
           p_chapter_id: chapterId,
           p_pages: rows,
@@ -515,7 +511,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (pendingCoverPath) {
-        stage = 'Saving cover reference to Supabase';
         stage = 'Saving cover path in Supabase';
         setProgress({ current: 0, total: 0, text: 'Saving cover path in Supabase…' });
         const { error: coverSaveError } = await supabase
@@ -539,7 +534,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (isPublishing) {
-        stage = 'Publishing chapter through Supabase RPC';
         stage = 'Publishing chapter with Supabase';
         setProgress({ current: 0, total: 0, text: 'Publishing chapter…' });
         const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
@@ -555,9 +549,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
-      stage = 'Verifying saved chapter';
-      setProgress({ current: 0, total: 0, text: 'Verifying saved chapter…' });
       stage = 'Verifying final chapter state in Supabase';
+      setProgress({ current: 0, total: 0, text: 'Verifying saved chapter…' });
       const { data: verifiedChapter, error: verifyError } = await supabase
         .from(PDLPL_CHAPTERS)
         .select('id,status,release_date')
@@ -999,6 +992,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
               {diagnostic.hint && <div className="wide"><span>Hint</span><strong>{diagnostic.hint}</strong></div>}
               {diagnostic.name && <div><span>Error type</span><strong>{diagnostic.name}</strong></div>}
               {diagnostic.statusText && <div><span>HTTP status</span><strong>{diagnostic.statusText}</strong></div>}
+              {diagnostic.path && <div className="wide"><span>Media path</span><strong>{diagnostic.path}</strong></div>}
+              {diagnostic.url && <div className="wide"><span>Request URL</span><strong>{diagnostic.url}</strong></div>}
+              {diagnostic.responseBody && <div className="wide"><span>Server response</span><strong>{diagnostic.responseBody}</strong></div>}
               {diagnostic.chapterId && <div className="wide"><span>Chapter ID</span><strong>{diagnostic.chapterId}</strong></div>}
               {diagnostic.path && <div className="wide"><span>Path</span><strong>{diagnostic.path}</strong></div>}
               {diagnostic.url && <div className="wide"><span>URL</span><strong>{diagnostic.url}</strong></div>}
