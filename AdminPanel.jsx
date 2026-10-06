@@ -443,6 +443,7 @@ function AdminPanelContent({ onLogout }) {
     try {
       adminUser = await requireAdmin();
       const nextStatus = String(status || '').trim();
+      if (nextStatus.toLowerCase() === 'scheduled' && !chapter.releaseDate) throw new Error('Scheduled chapters need a release date before this status can be applied.');
       const patch = {
         status: nextStatus,
         release_date: nextStatus.toLowerCase() === 'published' ? (chapter.releaseDate || new Date().toISOString()) : null,
@@ -914,9 +915,14 @@ function AdminPanelContent({ onLogout }) {
     setBusy(true);
     try {
       const user = await requireAdmin();
-      const releaseDate = status.toLowerCase() === 'published' ? new Date().toISOString() : null;
-      const { error } = await supabase.from(CHAPTERS).update({ status, release_date: releaseDate }).in('id', ids);
-      if (error) throw error;
+      const rows = chapterRows.filter(chapter => selectedChapters.has(chapter.id));
+      for (const chapter of rows) {
+        const releaseDate = status.toLowerCase() === 'published'
+          ? (chapter.releaseDate || new Date().toISOString())
+          : null;
+        const { error } = await supabase.from(CHAPTERS).update({ status, release_date: releaseDate }).eq('id', chapter.id);
+        if (error) throw error;
+      }
       await logAdminAction(user, 'bulk_update_chapter_status', 'chapter', null, { ids, status });
       clearChapterSelection();
       await load();
@@ -941,8 +947,8 @@ function AdminPanelContent({ onLogout }) {
       {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation"/>}
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
-          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div></div>
-          <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>↵</kbd></div>
+          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-desktop-collapse" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}><AdminIcon name="menu" size={18}/></button><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div></div>
+          <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>Ctrl K</kbd></div>
           <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
         </header>
         <div className="ar-admin-content">
