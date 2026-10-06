@@ -977,11 +977,7 @@
  */
 .admin-page.ar-admin-v3 {
   letter-spacing: -0.008em;
-  background:
-    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
-    var(--admin-bg) !important;
-  background-size: 34px 34px, 34px 34px, auto;
+  background:var(--admin-bg) !important;
 }
 .admin-page.ar-admin-v3 .ar-admin-main { position: relative; }
 .admin-page.ar-admin-v3 .ar-admin-content { max-width: 1520px; padding-top: 28px; }
@@ -1026,7 +1022,7 @@
   font-size: 11px !important;
 }
 .admin-page.ar-admin-v3 .ar-admin-nav button.active {
-  background: linear-gradient(90deg, rgba(201,162,39,.16), rgba(201,162,39,.06)) !important;
+  background:var(--admin-gold-soft) !important;
   border-color: rgba(201,162,39,.28) !important;
 }
 .admin-page.ar-admin-v3 .ar-admin-nav button.active::before {
@@ -1038,7 +1034,7 @@
 .admin-page.ar-admin-v3 .ar-stat-card {
   min-height: 132px;
   padding: 16px;
-  background: linear-gradient(160deg, rgba(255,255,255,.025), transparent 58%), var(--admin-surface-2);
+  background:var(--admin-surface-2);
   box-shadow: 0 10px 28px rgba(0,0,0,.20);
 }
 .admin-page.ar-admin-v3 .ar-stat-card::after {
