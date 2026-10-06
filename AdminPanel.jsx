@@ -91,6 +91,60 @@ const ADMIN_NAV_GROUPS = [
   ]},
 ];
 
+function FileThumb({ file }) {
+  const [url, setUrl] = useState('');
+  useEffect(() => {
+    const next = URL.createObjectURL(file);
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [file]);
+  return url ? <img src={url} alt="" draggable="false"/> : <div aria-hidden="true"/>;
+}
+
+function PageDropzone({ files, onFiles, onNotice }) {
+  const [dragActive, setDragActive] = useState(false);
+  const [dragIndex, setDragIndex] = useState(null);
+  const acceptFiles = list => {
+    const next = Array.from(list || []).filter(file => {
+      const type = String(file?.type || '').toLowerCase();
+      const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
+      return type.startsWith('image/') || Boolean(IMAGE_MIME_BY_EXT[ext]);
+    });
+    const tooLarge = next.find(file => file.size > MAX_PAGE_SIZE);
+    if (tooLarge) { onNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
+    if (next.length) onFiles([...(files || []), ...next]);
+  };
+  const reorder = (from, to) => {
+    const next = [...files];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onFiles(next);
+  };
+  return <div className={'ar-admin-dropzone admin-dropzone' + (dragActive ? ' ar-admin-upload-drop-active' : '')}
+    onDragEnter={event => { event.preventDefault(); setDragActive(true); }}
+    onDragOver={event => event.preventDefault()}
+    onDragLeave={event => { if (event.currentTarget === event.target) setDragActive(false); }}
+    onDrop={event => { event.preventDefault(); setDragActive(false); acceptFiles(event.dataTransfer.files); }}>
+    <strong>Drop manga pages here</strong>
+    <span>Drag files in, then drag thumbnails to set the exact publishing order.</span>
+    <input type="file" multiple accept="image/*" onChange={event => { acceptFiles(event.target.files); event.target.value = ''; }} aria-label="Select manga pages"/>
+    {!!files.length && <div className="ar-admin-upload-grid">
+      {files.map((file,index) => <article key={file.name + '-' + index}
+        className={'ar-admin-upload-card' + (dragIndex === index ? ' is-dragging' : '')}
+        draggable
+        onDragStart={() => setDragIndex(index)}
+        onDragEnd={() => setDragIndex(null)}
+        onDragOver={event => event.preventDefault()}
+        onDrop={event => { event.preventDefault(); if (dragIndex != null && dragIndex !== index) reorder(dragIndex,index); setDragIndex(null); }}>
+        <FileThumb file={file}/>
+        <button type="button" className="ar-admin-upload-remove" onClick={() => onFiles(files.filter((_,i) => i !== index))} aria-label={'Remove page ' + (index + 1)}>×</button>
+        <div className="ar-admin-upload-meta"><span className="ar-admin-upload-index">{index + 1}</span><span className="ar-admin-upload-name">{file.name}</span></div>
+      </article>)}
+    </div>}
+    {!!files.length && <em>{files.length} pages ready · local order will be preserved during upload.</em>}
+  </div>;
+}
+
 function AdminPanelContent({ onLogout }) {
   const { requestConfirm, toast } = useAdminUI();
   const [tab, setTab] = useState('Overview');
@@ -337,7 +391,9 @@ function AdminPanelContent({ onLogout }) {
       const wasEditing = Boolean(editing);
       resetForm();
       await load();
+      setFormDirty(false);
       setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' });
+      toast(savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.', 'success');
     } catch (error) {
       console.error(error);
       for (const item of uploadedPaths) {
@@ -913,20 +969,15 @@ function AdminPanelContent({ onLogout }) {
             </div>
             <form onSubmit={saveChapter} className="admin-form">
               <div className="admin-form-grid">
-                <input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/>
-                <label><span>Language</span><select value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-                <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select>
-                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/>
-                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/>
-                <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label>
-                <label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label>
+                <input type="number" min="1" value={form.number} onChange={e => { setForm({ ...form, number: e.target.value }); setFormDirty(true); }} placeholder="Chapter number (optional)"/>
+                <label><span>Language</span><select value={form.language} onChange={e => { setForm({ ...form, language: e.target.value }); setFormDirty(true); }} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
+                <select value={form.status} onChange={e => { setForm({ ...form, status: e.target.value }); setFormDirty(true); }}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select>
+                <input value={form.title} onChange={e => { setForm({ ...form, title: e.target.value }); setFormDirty(true); }} placeholder="Chapter title" required className="wide"/>
+                <textarea value={form.description} onChange={e => { setForm({ ...form, description: e.target.value }); setFormDirty(true); }} placeholder="Description" rows="3" className="wide"/>
+                <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => { setForm({ ...form, releaseDate: e.target.value }); setFormDirty(true); }}/></label>
+                <label>Cover image<input type="file" accept="image/*" onChange={e => { setForm({ ...form, cover: e.target.files?.[0] || null }); setFormDirty(true); }}/></label>
               </div>
-              <label className="admin-dropzone">
-                <strong>Manga pages</strong>
-                <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
-                <input type="file" multiple accept="image/*" onChange={choosePages}/>
-                {form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}
-              </label>
+              <PageDropzone files={form.pages} onFiles={files => { setForm(value => ({ ...value, pages: files })); setFormDirty(true); }} onNotice={setNotice}/>
               {progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}
               <button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
             </form>
@@ -985,5 +1036,33 @@ function AdminPanelContent({ onLogout }) {
         </div>
       </div>
     </div>
+
+    {commandOpen && <div className="ar-admin-command-palette-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setCommandOpen(false); }}>
+      <section className="ar-admin-command-palette" role="dialog" aria-modal="true" aria-label="Admin command palette">
+        <div className="ar-admin-command-palette-head"><AdminIcon name="search" size={17}/><input autoFocus value={commandQuery} onChange={event => setCommandQuery(event.target.value)} placeholder="Search commands…" aria-label="Search commands"/></div>
+        <div className="ar-admin-command-list">
+          {[
+            ...tabs.map(item => ({ label: 'Open ' + navLabel(item), hint: 'Section', run: () => { setCommandOpen(false); activateTab(item); } })),
+            { label: 'New chapter', hint: 'Publish', run: () => { setCommandOpen(false); setChapterPublishProject('atma'); resetForm(); setTab('Chapters'); } },
+            { label: 'Refresh admin data', hint: 'Data', run: () => { setCommandOpen(false); load(); } },
+            { label: 'Open reports', hint: 'Moderation', run: () => { setCommandOpen(false); activateTab('Reports'); } }
+          ].filter(item => item.label.toLowerCase().includes(commandQuery.trim().toLowerCase())).map(item => <button key={item.label} type="button" className="ar-admin-command-item" onClick={item.run}><span>{item.label}</span><small>{item.hint}</small></button>)}
+        </div>
+        <div className="ar-admin-command-hint">Esc close · Enter selects from the list · ? keyboard help</div>
+      </section>
+    </div>}
+
+    {shortcutHelpOpen && <div className="ar-admin-command-palette-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShortcutHelpOpen(false); }}>
+      <section className="ar-admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="ar-admin-shortcuts-title">
+        <h2 id="ar-admin-shortcuts-title">Keyboard shortcuts</h2>
+        <div className="ar-admin-shortcut-help"><p><kbd>Ctrl / Cmd + K</kbd> Open command palette</p><p><kbd>?</kbd> Open this help</p><p><kbd>Esc</kbd> Close dialogs</p></div>
+        <div className="ar-admin-modal-actions"><button type="button" className="ar-admin-button secondary" onClick={() => setShortcutHelpOpen(false)}>Close</button></div>
+      </section>
+    </div>}
+
   </main>;
+}
+
+export default function AdminPanel({ onLogout }) {
+  return <AdminUIProvider><AdminPanelContent onLogout={onLogout}/></AdminUIProvider>;
 }
