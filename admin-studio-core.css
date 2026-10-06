@@ -1263,3 +1263,89 @@
   .studio-page-grid-item,.studio-chapter-strip > button,.admin-page.ar-admin-v3 .ar-admin-nav-icon { transition:none; }
   .studio-page-loading span,.studio-toast { animation:none; }
 }
+
+/* Shared visual language for secondary admin tools and membership surfaces */
+.admin-page.ar-admin-v3 .ar-membership,
+.admin-page.ar-admin-v3 .ar-ops-panel,
+.admin-page.ar-admin-v3 .ar-pro-panel,
+.admin-page.ar-admin-v3 .ar-health-panel,
+.admin-page.ar-admin-v3 .ar-gcm-modal,
+.admin-page.ar-admin-v3 .ar-mod-modal,
+.admin-page.ar-admin-v3 .ar-mgmt-panel {
+  color:var(--admin-text);
+}
+.admin-page.ar-admin-v3 .ar-membership-hero,
+.admin-page.ar-admin-v3 .ar-membership-live,
+.admin-page.ar-admin-v3 .ar-membership-revenue-card,
+.admin-page.ar-admin-v3 .ar-membership-processed-card,
+.admin-page.ar-admin-v3 .ar-membership-secondary-grid > *,
+.admin-page.ar-admin-v3 .ar-membership-note,
+.admin-page.ar-admin-v3 .ar-membership-plan,
+.admin-page.ar-admin-v3 .ar-membership-health-grid > div,
+.admin-page.ar-admin-v3 .ar-membership-activity-row,
+.admin-page.ar-admin-v3 .ar-membership-error {
+  background:var(--admin-surface) !important;
+  color:var(--admin-text) !important;
+  border-color:var(--admin-border) !important;
+  box-shadow:none !important;
+}
+.admin-page.ar-admin-v3 .ar-membership-hero {
+  position:relative; overflow:hidden; border:1px solid rgba(212,175,55,.16); border-radius:14px; padding:20px;
+}
+.admin-page.ar-admin-v3 .ar-membership-hero::before {
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--admin-gold);
+}
+.admin-page.ar-admin-v3 .ar-membership-hero h2 { color:var(--admin-text) !important; font-size:28px !important; letter-spacing:-.04em; }
+.admin-page.ar-admin-v3 .ar-membership-hero p { color:var(--admin-muted) !important; font-size:11px; }
+.admin-page.ar-admin-v3 .ar-membership-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-top:12px; }
+.admin-page.ar-admin-v3 .ar-membership-main-grid,
+.admin-page.ar-admin-v3 .ar-membership-secondary-grid { gap:12px; }
+.admin-page.ar-admin-v3 .ar-membership-card h3,
+.admin-page.ar-admin-v3 .ar-membership-card strong { color:var(--admin-text) !important; }
+.admin-page.ar-admin-v3 .ar-membership-status {
+  display:inline-flex; align-items:center; padding:3px 7px; border:1px solid var(--admin-border); border-radius:99px; background:var(--admin-surface-3); color:var(--admin-text); font-size:7px; font-weight:800;
+}
+.admin-page.ar-admin-v3 .ar-membership-status.status-active { color:var(--admin-success); border-color:rgba(117,201,149,.24); background:var(--admin-success-soft); }
+.admin-page.ar-admin-v3 .ar-membership-status.status-cancelled,
+.admin-page.ar-admin-v3 .ar-membership-status.status-failed { color:var(--admin-danger); border-color:rgba(209,61,75,.25); background:var(--admin-danger-soft); }
+.admin-page.ar-admin-v3 .ar-membership-status.status-pending { color:var(--admin-warning); border-color:rgba(225,184,90,.25); background:var(--admin-warning-soft); }
+.admin-page.ar-admin-v3 .ar-membership-live button,
+.admin-page.ar-admin-v3 .ar-membership-error button {
+  border:1px solid var(--admin-border); border-radius:8px; background:var(--admin-surface-2); color:var(--admin-text);
+}
+.admin-page.ar-admin-v3 .ar-membership-live button:hover,
+.admin-page.ar-admin-v3 .ar-membership-error button:hover { background:var(--admin-surface-3); }
+.admin-page.ar-admin-v3 .ar-ops-panel,
+.admin-page.ar-admin-v3 .ar-pro-panel,
+.admin-page.ar-admin-v3 .ar-health-panel,
+.admin-page.ar-admin-v3 .ar-gcm-modal,
+.admin-page.ar-admin-v3 .ar-mod-modal,
+.admin-page.ar-admin-v3 .ar-mgmt-panel {
+  background:var(--admin-surface) !important;
+  border:1px solid var(--admin-border-strong) !important;
+  border-radius:14px !important;
+}
+.admin-page.ar-admin-v3 .ar-ops-section,
+.admin-page.ar-admin-v3 .ar-pro-card,
+.admin-page.ar-admin-v3 .ar-health-row,
+.admin-page.ar-admin-v3 .ar-gcm-row,
+.admin-page.ar-admin-v3 .ar-mod-card,
+.admin-page.ar-admin-v3 .ar-mgmt-panel table {
+  border-color:var(--admin-border) !important;
+}
+.admin-page.ar-admin-v3 .ar-ops-section,
+.admin-page.ar-admin-v3 .ar-pro-card,
+.admin-page.ar-admin-v3 .ar-health-row,
+.admin-page.ar-admin-v3 .ar-gcm-row,
+.admin-page.ar-admin-v3 .ar-mod-card {
+  background:var(--admin-surface-2) !important;
+  color:var(--admin-text) !important;
+}
+.admin-page.ar-admin-v3 .ar-ops-section:hover,
+.admin-page.ar-admin-v3 .ar-pro-card:hover,
+.admin-page.ar-admin-v3 .ar-health-row:hover,
+.admin-page.ar-admin-v3 .ar-gcm-row:hover,
+.admin-page.ar-admin-v3 .ar-mod-card:hover {
+  background:var(--admin-surface-3) !important;
+  border-color:rgba(212,175,55,.18) !important;
+}
