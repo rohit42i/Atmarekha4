@@ -182,6 +182,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       for (const row of pagesResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
 
       setRole(adminRole);
+      setDiagnostic(null);
       setChapters(rows);
       setPageCounts(counts);
       const nextSelectedId = selectedId && rows.some(row => row.id === selectedId)
@@ -325,7 +326,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
         ? (chapter.releaseDate || null)
         : null;
 
-      stage = 'Publishing status through Supabase';
       stage = 'Saving chapter status in Supabase';
       const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
         p_chapter_id: chapter.id,
@@ -564,7 +564,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       reset();
       await load();
-      setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'}.`);
+      setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'} and ${requestedStatus.toLowerCase()} successfully.`);
     } catch (error) {
       const cleanupErrors = [];
       if (!wasEditing && chapterId) {
@@ -957,7 +957,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
           <strong>Manga pages</strong>
           <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
           <input type="file" multiple accept="image/*" onChange={choosePages} />
-          {form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}
+          {form.pages.length > 0 && <em>{form.pages.length} page{form.pages.length === 1 ? '' : 's'} selected · not uploaded yet · selected order preserved</em>}
         </label>
 
         {progress.total > 0 && <>
