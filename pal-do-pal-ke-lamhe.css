@@ -786,3 +786,92 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 @media(max-width:640px){
   .pdlpl-diagnostic-grid{grid-template-columns:1fr}
 }
+
+
+/* PDPKL chapter list controls + cover thumbnails */
+.pdlpl-page-list .chapter-list-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 170px;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.pdlpl-page-list .chapter-list-toolbar > input,
+.pdlpl-page-list .chapter-list-toolbar select {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  box-sizing: border-box;
+}
+.pdlpl-page-list .chapter-list-toolbar label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.pdlpl-page-list .chapter-list-toolbar label span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  opacity: .65;
+}
+.pdlpl-page-list .pdlpl-chapter-main {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+.pdlpl-page-list .pdlpl-chapter-thumb {
+  width: 76px;
+  height: 104px;
+  flex: 0 0 76px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #090909;
+  border: 1px solid rgba(255,255,255,.12);
+  display: grid;
+  place-items: center;
+}
+.pdlpl-page-list .pdlpl-chapter-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.pdlpl-page-list .pdlpl-chapter-thumb span {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+.pdlpl-page-list .chapter-row-copy {
+  min-width: 0;
+}
+.pdlpl-page-list .chapter-row-title h2,
+.pdlpl-page-list .chapter-row-title span {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .pdlpl-page-list .chapter-list-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pdlpl-page-list .chapter-list-toolbar > input {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 430px) {
+  .pdlpl-page-list .chapter-list-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .pdlpl-page-list .chapter-list-toolbar > input {
+    grid-column: auto;
+  }
+  .pdlpl-page-list .pdlpl-chapter-main {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .pdlpl-page-list .pdlpl-chapter-thumb {
+    width: 58px;
+    height: 82px;
+    flex-basis: 58px;
+  }
+}
