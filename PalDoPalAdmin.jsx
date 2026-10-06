@@ -13,7 +13,7 @@ const emptyForm = () => ({
   language: 'hi',
   title: '',
   description: '',
-  status: 'Draft',
+  status: 'Published',
   releaseDate: '',
   cover: null,
   pages: [],
@@ -310,6 +310,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number.');
       if (!form.title.trim()) throw new Error('Chapter title is required.');
       if (!wasEditing && !form.pages.length) throw new Error('Select at least one page for a new chapter.');
+      if (String(form.status).trim().toLowerCase() === 'scheduled' && !form.releaseDate) {
+        throw new Error('Scheduled chapters need a release date.');
+      }
 
       const language = normalizeChapterLanguage(form.language);
       const duplicate = chapters.find(chapter => chapter.id !== editing?.id && normalizeChapterLanguage(chapter.language) === language && ((chapter.chapterNumber == null && number == null) || Number(chapter.chapterNumber) === number));
@@ -757,25 +760,50 @@ export default function PalDoPalAdmin({ embedded = false }) {
         </div>
 
         <div className="pdlpl-form-grid">
-          <label>Chapter number<input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} required /></label>
-          <label>Language<select value={form.language} disabled={Boolean(editing)} onChange={e => setForm({ ...form, language: e.target.value })}><option value="hi">Hindi</option><option value="en">English</option></select></label>
-          <label>Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Draft</option><option>Published</option><option>Archived</option></select></label>
+          <label>
+            Chapter number
+            <input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)" />
+          </label>
+          <label>
+            Language
+            <select value={form.language} disabled={Boolean(editing)} onChange={e => setForm({ ...form, language: e.target.value })}>
+              <option value="hi">Hindi</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <label>
+            Status
+            <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <option>Published</option>
+              <option>Scheduled</option>
+              <option>Pre-uploaded</option>
+              <option>Draft</option>
+            </select>
+          </label>
+          <label>
+            Title
+            <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required />
+          </label>
+          <label className="pdlpl-field-wide">
+            Description
+            <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" />
+          </label>
+          <label>
+            Release date
+            <input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })} />
+          </label>
+          <label className="pdlpl-file-input">
+            Cover image
+            <input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })} />
+            {form.cover && <span>{form.cover.name}</span>}
+          </label>
         </div>
 
-        <label>Title<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required /></label>
-        <label>Description<textarea rows="4" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></label>
-        <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })} /></label>
-
-        <label className="pdlpl-file-input">
-          Chapter cover
-          <input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })} />
-          {form.cover && <span>{form.cover.name}</span>}
-        </label>
-
-        <label className="pdlpl-file-input">
-          Manga pages
-          <input type="file" accept="image/*" multiple onChange={choosePages} />
-          {form.pages.length > 0 && <span>{form.pages.length} page(s) selected · selected order preserved</span>}
+        <label className="pdlpl-dropzone">
+          <strong>Manga pages</strong>
+          <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
+          <input type="file" multiple accept="image/*" onChange={choosePages} />
+          {form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}
         </label>
 
         {progress.total > 0 && <>
@@ -783,8 +811,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
           <p className="pdlpl-muted">{progress.text}</p>
         </>}
 
-        <p className="pdlpl-muted">All published chapters are members-only. Images never use Supabase Storage.</p>
-        <button className="pdlpl-primary" disabled={busy}>{busy ? 'Saving…' : editing ? 'Save chapter' : 'Create chapter'}</button>
+        <p className="pdlpl-muted">Images are stored in Cloudflare R2. Published chapters are available according to the side-story access rules.</p>
+        <button className="pdlpl-primary" disabled={busy}>{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
       </form>
 
       <section className="pdlpl-admin-card">
