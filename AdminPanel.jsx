@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
-import { buildChapters } from './chapters';
+import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import AdminOverview from './AdminOverview';
 import AdminMembership from './AdminMembership.jsx';
 import AdminChapterPages from './AdminChapterPages';
@@ -56,7 +56,7 @@ async function logAdminAction(user, action, entityType, entityId = null, details
   }
 }
 
-const emptyForm = () => ({ number: '', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
+const emptyForm = () => ({ number: '', language: 'hi', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
 
 const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
@@ -195,14 +195,36 @@ export default function AdminPanel({ onLogout }) {
       adminUser = await requireAdmin();
       const rawNumber = String(form.number ?? '').trim();
       const number = rawNumber === '' ? null : Number(rawNumber);
+      const language = normalizeChapterLanguage(form.language);
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number or leave it blank.');
       if (!form.title.trim()) throw new Error('Chapter title is required.');
+
+      const existingMangaId = editing?.mangaId || chapters.find(chapter => chapter.mangaId)?.mangaId || null;
+      let mangaId = existingMangaId;
+      if (!mangaId) {
+        const { data: series, error: seriesError } = await supabase.from('manga_series').select('id').eq('slug', 'atma-rekha').single();
+        if (seriesError) throw new Error('Atma Rekha series could not be resolved: ' + seriesError.message);
+        mangaId = series.id;
+      }
+
+      const duplicate = chapters.find(chapter =>
+        chapter.id !== editing?.id &&
+        chapter.mangaId === mangaId &&
+        normalizeChapterLanguage(chapter.language) === language &&
+        ((chapter.chapterNumber == null && number == null) || Number(chapter.chapterNumber) === number)
+      );
+      if (duplicate) {
+        const chapterLabel = number == null ? 'Special / unnumbered entry' : 'Chapter ' + number;
+        throw new Error(chapterLabel + ' already exists in ' + chapterLanguageLabel(language) + '. Edit that variant instead.');
+      }
       if (!editing && !form.pages.length) throw new Error('Select at least one manga page.');
       if (String(form.status).trim().toLowerCase() === 'scheduled' && !form.releaseDate) {
         throw new Error('Scheduled chapters need a release date.');
       }
 
       const payload = {
+        manga_id: mangaId,
+        language,
         chapter_number: number,
         title: form.title.trim(),
         description: form.description.trim(),
@@ -227,7 +249,7 @@ export default function AdminPanel({ onLogout }) {
       let oldCoverPath = null;
       if (form.cover) {
         const ext = form.cover.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const path = 'chapters/' + chapterId + '/cover-' + Date.now() + '.' + ext;
+        const path = 'covers/chapters/' + chapterId + '/cover-' + language + '-' + Date.now() + '.' + ext;
         await upload(COVER_BUCKET, form.cover, path);
         uploadedPaths.push({ bucket: COVER_BUCKET, path, kind: 'cover' });
         oldCoverPath = pathFromUrl(editing?.cover, COVER_BUCKET);
@@ -256,7 +278,7 @@ export default function AdminPanel({ onLogout }) {
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
           const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-          const pagePath = chapterId + '/' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + ext;
+          const pagePath = 'chapters/' + chapterId + '/pages/' + language + '-' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + ext;
           const url = await upload(PAGE_BUCKET, file, pagePath);
           uploadedPaths.push({ bucket: PAGE_BUCKET, path: pagePath, kind: 'page' });
           rows.push({ chapter_id: chapterId, page_number: i + 1, image_url: url });
@@ -285,6 +307,7 @@ export default function AdminPanel({ onLogout }) {
         title: form.title.trim(),
         status: form.status,
         pages: form.pages.length || 0,
+        language,
         cover_changed: Boolean(form.cover),
       });
 
@@ -329,7 +352,7 @@ export default function AdminPanel({ onLogout }) {
 
   const editChapter = chapter => {
     setEditing(chapter);
-    setForm({ number: chapter.chapterNumber || '', title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] });
+    setForm({ number: chapter.chapterNumber || '', language: normalizeChapterLanguage(chapter.language), title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] });
     setTab('Chapters'); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -693,7 +716,7 @@ export default function AdminPanel({ onLogout }) {
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
   const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Membership & Earnings', 'Media', 'Pal Do Pal Ke Lamhe'];
-  const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber} — ${chapter.title}` : 'Unknown chapter'; };
+  const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
   const filteredNav = navSearch.trim()
@@ -778,7 +801,7 @@ export default function AdminPanel({ onLogout }) {
       {pageEditorProject === 'atma'
         ? <AdminChapterPages chapters={sorted} />
         : <PalDoPalAdmin embedded />}
-    </section> : tab === 'Chapters' ? <section className="admin-stack"><section className="admin-card upload-card"><div className="admin-card-title"><div><span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span><h2>{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter'}</h2><p>Select all manga pages at once. Their selected order will be preserved exactly during upload.</p></div>{editing && <button type="button" onClick={resetForm}>Cancel</button>}</div><form onSubmit={saveChapter} className="admin-form"><div className="admin-form-grid"><input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/><label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label><label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label></div><label className="admin-dropzone"><strong>Manga pages</strong><span>Select pages in the exact order you want them published. Filename sorting is disabled.</span><input type="file" multiple accept="image/*" onChange={choosePages}/>{form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}</label>{progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}<button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button></form></section><section className="admin-card"><div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div><div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div></section></section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
+    </section> : tab === 'Chapters' ? <section className="admin-stack"><section className="admin-card upload-card"><div className="admin-card-title"><div><span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span><h2>{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter'}</h2><p>Select all manga pages at once. Their selected order will be preserved exactly during upload.</p></div>{editing && <button type="button" onClick={resetForm}>Cancel</button>}</div><form onSubmit={saveChapter} className="admin-form"><div className="admin-form-grid"><input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/><select value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select><input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/><label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label><label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label></div><label className="admin-dropzone"><strong>Manga pages</strong><span>Select pages in the exact order you want them published. Filename sorting is disabled.</span><input type="file" multiple accept="image/*" onChange={choosePages}/>{form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}</label>{progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}<button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button></form></section><section className="admin-card"><div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div><div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'} · {chapterLanguageLabel(chapter.language)}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div></section></section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
       <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
       <div className="admin-report-list">{reports.map(report => {
         const comment = commentById(report.comment_id);
