@@ -91,6 +91,45 @@ const css=`
  .group-replying{margin-left:8px;margin-right:8px}
 }
 @media(min-width:1100px){.group-chat-feed{padding-left:32px;padding-right:32px}}
+
+/* Group chat v3 — refined messaging UI */
+.group-chat-page{background:#050505}
+.group-chat-shell{width:min(1040px,100%);background:#0b0c0f}
+.group-chat-header{height:72px;min-height:72px;padding:0 22px;gap:12px;background:#101114;border-bottom:1px solid rgba(255,255,255,.08)}
+.group-chat-back{width:42px;height:42px;border-radius:13px;background:#181a1e;font-size:25px;transition:background .15s,transform .15s}
+.group-chat-title{font-size:18px;font-weight:750;letter-spacing:-.03em}
+.group-chat-live{padding:6px 10px;font-size:10px;letter-spacing:.04em}
+.group-chat-feed{padding:28px 28px 34px;background:#090a0d}
+.group-message{max-width:86%;gap:10px;margin-bottom:20px}
+.group-message.same{margin-top:-9px;margin-bottom:10px}
+.group-avatar{width:40px;height:40px;min-width:40px;border-radius:13px}
+.group-main{max-width:calc(100% - 50px)}
+.group-meta{gap:8px;margin:0 8px 6px;font-size:11px;line-height:16px}
+.group-bubble{max-width:min(650px,72vw);padding:12px 15px;border-radius:18px 18px 18px 7px;background:#17191d;border:1px solid rgba(255,255,255,.07);font-size:15px;line-height:1.55;letter-spacing:0;box-shadow:0 3px 14px rgba(0,0,0,.16)}
+.group-message.mine .group-bubble{background:#25282d;border-radius:18px 18px 7px 18px;border-color:rgba(255,255,255,.13)}
+.group-read{font-size:9px;opacity:.8}.group-read b{font-size:9px}
+.group-reply-preview{padding:8px 10px;margin:0 0 7px 6px;border-left-width:3px;border-radius:9px;font-size:11px;line-height:1.4;max-width:360px}
+.group-reply-preview strong{font-size:10px}
+.group-reactions{gap:5px;margin:6px 6px 0}.group-reaction{padding:5px 8px;border-radius:999px;font-size:12px;min-height:28px}
+.group-composer{padding:13px 20px max(13px,env(safe-area-inset-bottom));background:#0e1013}
+.group-composer-inner{gap:9px;min-height:52px;padding:6px 7px 6px 12px;border-radius:20px;background:#17191c;border-color:rgba(255,255,255,.11)}
+.group-input{min-height:38px;max-height:132px;font-size:15px;line-height:1.5;padding:8px 2px}
+.group-send{width:38px;height:38px;min-width:38px;border-radius:12px;font-size:15px}
+.group-count{font-size:10px;padding-bottom:8px}
+.group-replying{padding:10px 12px;margin:0 14px 8px;border-radius:14px}
+.group-replying-label{font-size:11px}.group-replying-preview{font-size:10px}
+.group-action-sheet{width:min(500px,calc(100% - 24px));padding:14px;border-radius:24px;background:#15171a}
+.group-action-top button{min-height:44px;font-size:13px;border-radius:14px}.group-action-label{font-size:10px}
+.group-emoji-grid button{min-height:44px;font-size:22px}
+@media(max-width:700px){
+ .group-chat-header{height:62px;min-height:62px;padding:0 11px}.group-chat-title{font-size:16px}
+ .group-chat-feed{padding:17px 9px 22px}.group-message{max-width:96%;gap:8px;margin-bottom:16px}.group-message.same{margin-bottom:8px}
+ .group-avatar{width:36px;height:36px;min-width:36px;border-radius:11px}.group-main{max-width:calc(100% - 44px)}
+ .group-meta{font-size:10px;margin-bottom:5px}.group-bubble{max-width:79vw;padding:10px 13px;font-size:15px;line-height:1.5}
+ .group-reply-preview{max-width:73vw}.group-composer{padding:9px 8px max(9px,env(safe-area-inset-bottom))}
+ .group-composer-inner{min-height:50px;border-radius:19px}.group-input{font-size:15px}
+}
+@media(min-width:1200px){.group-chat-feed{padding-left:40px;padding-right:40px}}
 `;
 const nameOf=(p,id,user)=>p?.display_name||p?.username||(id===user?.id?'You':'Reader');
 const ago=v=>{const m=Math.floor(Math.max(0,Date.now()-new Date(v).getTime())/60000);if(m<1)return'now';if(m<60)return`${m}m`;const h=Math.floor(m/60);if(h<24)return`${h}h`;return`${Math.floor(h/24)}d`};
