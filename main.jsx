@@ -13,7 +13,6 @@ import FeatureUnlocks from './FeatureUnlocks.jsx';
 import AdminGroupChatTools from './AdminGroupChatTools.jsx';
 import AdminModerationTools from './AdminModerationTools.jsx';
 import AdminManagementTools from './AdminManagementTools.jsx';
-import AdminCommandCenter from './AdminCommandCenter.jsx';
 import AdminProTools from './AdminProTools.jsx';
 import AdminChapterHealth from './AdminChapterHealth.jsx';
 import AdminOperations from './AdminOperations.jsx';
@@ -59,7 +58,6 @@ import './micro-polish.css';
 import './ui-refinement.css';
 import './final-touch.css';
 import './content-moderation.js';
-import './admin-productivity.js';
 import './membership-fullscreen-fix.css';
 import './comments-mobile-header-fix.css';
 import './pal-do-pal-ke-lamhe.css';
@@ -69,7 +67,7 @@ import './light-mode-81225-restore.css';
 import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminCommandCenter/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/><ExperienceEnhancements/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/><ExperienceEnhancements/></React.StrictMode>);
 
 
 import './experience-enhancements.css';
