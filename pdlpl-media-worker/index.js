@@ -1,4 +1,4 @@
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
 function corsHeaders(request, env) {
@@ -228,7 +228,7 @@ export default {
 
         const length = Number(request.headers.get('Content-Length') || 0);
         if (length > MAX_UPLOAD_BYTES) {
-          return json(request, env, { error: 'Image is larger than 20 MB.' }, 413);
+          return json(request, env, { error: 'Image is larger than 95 MB.' }, 413);
         }
 
         await env.PDLPL_BUCKET.put(key, request.body, {
