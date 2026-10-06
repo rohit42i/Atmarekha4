@@ -11,22 +11,44 @@ function mimeFromKey(key) {
 
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
-function corsHeaders(request, env) {
-  const origin = request.headers.get('Origin') || '';
-  const allowed = String(env.ALLOWED_ORIGINS || '')
+function normalizeOrigin(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  try {
+    return new URL(input).origin;
+  } catch (_) {
+    return input.replace(/\/+$/, '');
+  }
+}
+
+function getAllowedOrigins(env) {
+  return String(env.ALLOWED_ORIGINS || '')
     .split(',')
-    .map(value => value.trim())
+    .map(normalizeOrigin)
     .filter(Boolean);
+}
+
+function corsHeaders(request, env) {
+  const origin = normalizeOrigin(request.headers.get('Origin') || '');
+  const allowed = getAllowedOrigins(env);
 
   const headers = {
     'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, Cache-Control',
+    'Access-Control-Allow-Headers': 'Authorization, Accept, Content-Type, Cache-Control',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
 
-  if (allowed.includes(origin)) headers['Access-Control-Allow-Origin'] = origin;
+  if (origin && allowed.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Expose-Headers'] = 'ETag, Content-Type, Cache-Control';
+  }
+
   return headers;
+}
+
+function getSupabaseApiKey(env) {
+  return String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
 }
 
 function json(request, env, body, status = 200) {
@@ -60,9 +82,14 @@ async function getUser(request, env) {
   const authorization = getBearer(request);
   if (!authorization) return null;
 
+  const apiKey = getSupabaseApiKey(env);
+  if (!env.SUPABASE_URL || !apiKey) {
+    throw new Error('PDPL media Worker is missing its Supabase API configuration.');
+  }
+
   const response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
     headers: {
-      apikey: env.SUPABASE_ANON_KEY,
+      apikey: apiKey,
       Authorization: authorization,
     },
   });
@@ -79,7 +106,7 @@ async function supabaseRows(env, authorization, table, query) {
 
   const response = await fetch(url, {
     headers: {
-      apikey: env.SUPABASE_ANON_KEY,
+      apikey: getSupabaseApiKey(env),
       Authorization: authorization,
       Accept: 'application/json',
     },
@@ -180,17 +207,17 @@ export default {
       });
     }
 
-    const key = objectKey(request);
-    if (!key) {
-      return json(request, env, { error: 'Invalid media path.' }, 400);
-    }
-
-    const user = await getUser(request, env);
-    if (!user) {
-      return json(request, env, { error: 'Authentication required.' }, 401);
-    }
-
     try {
+      const key = objectKey(request);
+      if (!key) {
+        return json(request, env, { error: 'Invalid media path.' }, 400);
+      }
+
+      const user = await getUser(request, env);
+      if (!user) {
+        return json(request, env, { error: 'Authentication required.' }, 401);
+      }
+
       const admin = await isAdmin(user, request, env);
 
       if (request.method === 'GET') {

@@ -150,10 +150,29 @@ export async function getCurrentMembership(userId) { if (!userId) return null; r
 export async function getCurrentlySubscribedUserIds(userIds = []) { return new Set((await getCurrentMemberships(userIds)).keys()); }
 export async function isCurrentlySubscribed(userId) { return Boolean(await getCurrentMembership(userId)); }
 
+function promiseCompatibleRpc(builder) {
+  if (!builder || typeof builder !== 'object') return builder;
+  return new Proxy(builder, {
+    get(target, property) {
+      if (property === 'catch') {
+        return onRejected => Promise.resolve(target).catch(onRejected);
+      }
+      if (property === 'finally') {
+        return onFinally => Promise.resolve(target).finally(onFinally);
+      }
+      const value = Reflect.get(target, property, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+}
+
 export const supabase = new Proxy(client, {
-  get(target, property, receiver) {
+  get(target, property) {
     if (property === 'storage') return cloudflareR2;
     if (property === 'from') return table => table === CHAPTER_PAGES_TABLE ? chapterPagesTable() : client.from(table);
-    return Reflect.get(target, property, receiver);
+    if (property === 'rpc') return (...args) => promiseCompatibleRpc(client.rpc(...args));
+
+    const value = Reflect.get(target, property, target);
+    return typeof value === 'function' ? value.bind(target) : value;
   },
 });
