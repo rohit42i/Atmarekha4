@@ -572,23 +572,3 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 @media (max-width:599px){
 }
 
-/* PDPKL cover only — all Chapter List presentation comes from Atma Rekha's shared Chapter List CSS. */
-.pdlpl-chapter-row-main{display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;align-items:center;min-width:0;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
-.pdlpl-chapter-row-copy{min-width:0}
-.pdlpl-chapter-thumb{width:76px;height:104px;overflow:hidden;border-radius:9px;background:#090909;border:1px solid rgba(255,255,255,.12);display:grid;place-items:center}
-.pdlpl-chapter-thumb img{width:100%;height:100%;display:block;object-fit:cover}
-.pdlpl-chapter-thumb span{color:#fff;font-size:16px;font-weight:850}
-@media(max-width:640px){
-.pdlpl-chapter-row-main{grid-template-columns:58px minmax(0,1fr);gap:10px}
-.pdlpl-chapter-thumb{width:58px;height:82px;border-radius:8px}
-}
-/* PDPKL-only cover column. The surrounding Chapter List is inherited from Atma Rekha. */
-.pdlpl-chapter-row-main{display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;align-items:center;min-width:0;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
-.pdlpl-chapter-row-copy{min-width:0}
-.pdlpl-chapter-thumb{width:76px;height:104px;overflow:hidden;border-radius:9px;background:#090909;border:1px solid rgba(255,255,255,.12);display:grid;place-items:center}
-.pdlpl-chapter-thumb img{width:100%;height:100%;display:block;object-fit:cover}
-.pdlpl-chapter-thumb span{color:#fff;font-size:16px;font-weight:850}
-@media(max-width:640px){
-.pdlpl-chapter-row-main{grid-template-columns:58px minmax(0,1fr);gap:10px}
-.pdlpl-chapter-thumb{width:58px;height:82px;border-radius:8px}
-}
