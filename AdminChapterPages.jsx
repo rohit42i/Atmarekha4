@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
-import { buildPdlplChapters, PDLPL_PAGES } from './palDoPalKeLamhe';
+import { buildPdlplChapters, PDLPL_PAGES } from './palDoPalKeLamhe.js';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 
