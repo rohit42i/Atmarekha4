@@ -1,6 +1,6 @@
 .chapter-discovery {
   display: grid;
-  grid-template-columns: 70% 30%;
+  grid-template-columns: minmax(0, 30%) minmax(0, 30%) minmax(0, 40%);
   gap: 8px;
   align-items: center;
   margin: 0 0 12px;
@@ -44,6 +44,27 @@
 }
 .chapter-sort-button > span:first-child {
   opacity: .5;
+}
+.chapter-language {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.chapter-language > span {
+  font: 700 9px/1 system-ui,sans-serif;
+  opacity: .52;
+  letter-spacing: .04em;
+}
+.chapter-language select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 11px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+  font: 700 10px/1.1 system-ui,sans-serif;
 }
 .chapter-sort-menu {
   position: absolute;
@@ -150,7 +171,8 @@ html[data-theme="dark"] .continue-reading-button {
   color: #050505;
 }
 html[data-theme="dark"] .chapter-sort-button,
-html[data-theme="dark"] .chapter-sort-menu {
+html[data-theme="dark"] .chapter-sort-menu,
+html[data-theme="dark"] .chapter-language select {
   border-color: #252525;
   background: #050505;
   color: #fff;
@@ -190,12 +212,8 @@ html[data-theme="dark"] .chapter-discovery-reset {
   .reader-shortcuts-grid {
     grid-template-columns: 1fr;
   }
-  .chapter-discovery {
-    justify-content: flex-end;
-  }
-  .chapter-sort {
-    width: min(180px, 100%);
-  }
+  .chapter-discovery { grid-template-columns: 1fr; }
+  .chapter-sort, .chapter-language { width: 100%; }
   .continue-reading-card {
     width: min(940px, calc(100% - 20px));
     grid-template-columns: 46px minmax(0,1fr) auto;
