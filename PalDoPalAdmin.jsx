@@ -6,7 +6,7 @@ import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES } from './palDoPalKeLam
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
 
-const MAX_PAGE_SIZE = 20 * 1024 * 1024;
+const MAX_PAGE_SIZE = 95 * 1024 * 1024;
 
 const emptyForm = () => ({
   number: '',
@@ -184,7 +184,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     const files = Array.from(filesInput || []).filter(file => file.type.startsWith('image/'));
     if (!files.length || !selectedChapter || busy) return;
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
-    if (tooLarge) { setNotice(`${tooLarge.name} is larger than 20 MB.`); return; }
+    if (tooLarge) { setNotice(`${tooLarge.name} is larger than 95 MB.`); return; }
 
     setBusy(true);
     setNotice('');
@@ -263,7 +263,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) {
       event.target.value = '';
-      setNotice(`${tooLarge.name} is larger than 20 MB.`);
+      setNotice(`${tooLarge.name} is larger than 95 MB.`);
       return;
     }
     setForm(value => ({ ...value, pages: files }));
@@ -517,7 +517,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const replacePage = async (page, file) => {
     if (!file || busy) return;
     if (!file.type.startsWith('image/')) { setNotice('Please select an image.'); return; }
-    if (file.size > MAX_PAGE_SIZE) { setNotice(file.name + ' is larger than 20 MB.'); return; }
+    if (file.size > MAX_PAGE_SIZE) { setNotice(file.name + ' is larger than 95 MB.'); return; }
 
     setBusy(true);
     setNotice('');
