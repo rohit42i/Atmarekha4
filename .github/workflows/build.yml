@@ -73,13 +73,6 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Deploy Atma Rekha analytics Worker
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npx --yes wrangler@latest deploy --config analytics-worker/wrangler.jsonc
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Deploy protected Atma media Worker
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: atma-media-worker
@@ -95,3 +88,17 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy Atma Rekha analytics Worker
+        id: deploy_analytics
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: npx --yes wrangler@latest deploy --config analytics-worker/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Report optional analytics deployment status
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.deploy_analytics.outcome == 'failure'
+        run: echo "::warning::Analytics Worker deployment failed; website, Atma media, and PDPKL media deployments completed independently."
+
