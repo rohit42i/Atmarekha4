@@ -41,8 +41,8 @@ begin
 
   if not exists (
     select 1
-    from public.pal_do_pal_ke_lamhe_chapters
-    where id = p_chapter_id
+    from public.pal_do_pal_ke_lamhe_chapters as existing_chapter
+    where existing_chapter.id = p_chapter_id
   ) then
     raise exception 'Chapter not found';
   end if;
@@ -50,8 +50,8 @@ begin
   if v_status = 'Published'
      and not exists (
        select 1
-       from public.pal_do_pal_ke_lamhe_chapter_pages
-       where chapter_id = p_chapter_id
+       from public.pal_do_pal_ke_lamhe_chapter_pages as page
+       where page.chapter_id = p_chapter_id
      )
   then
     raise exception 'Cannot publish a chapter without manga pages';
@@ -59,12 +59,12 @@ begin
 
   select coalesce(
     p_release_date,
-    case when v_status = 'Published' then release_date end,
+    case when v_status = 'Published' then chapter.release_date end,
     case when v_status = 'Published' then now() end
   )
   into v_release_date
-  from public.pal_do_pal_ke_lamhe_chapters
-  where id = p_chapter_id;
+  from public.pal_do_pal_ke_lamhe_chapters as chapter
+  where chapter.id = p_chapter_id;
 
   update public.pal_do_pal_ke_lamhe_chapters as chapter
   set
