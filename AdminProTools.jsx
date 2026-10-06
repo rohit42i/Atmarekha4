@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { fetchCloudflareAdminAnalytics } from './engagement';
 
 const since = days => new Date(Date.now() - days * 86400000).toISOString();
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -101,7 +102,7 @@ export default function AdminProTools() {
       await verifyAdmin();
       setHealth(current => ({ ...current, auth: 'online' }));
 
-      const [chaptersResult, pagesResult, commentsResult, reports, openReports, users, announcements, views] = await Promise.all([
+      const [chaptersResult, pagesResult, commentsResult, reports, openReports, users, announcements, viewsResult] = await Promise.all([
         supabase.from('chapters').select('id,chapter_number,title,status,release_date,cover_url,created_at').order('chapter_number', { ascending: true, nullsFirst: false }),
         supabase.from('chapter_pages').select('chapter_id,page_number,image_url').order('page_number', { ascending: true }),
         supabase.from('comments').select('id,author_name,content,chapter_id,created_at').order('created_at', { ascending: false }).limit(80),
@@ -109,7 +110,7 @@ export default function AdminProTools() {
         headCount('moderation_reports', q => q.eq('status', 'open')),
         headCount('profiles'),
         headCount('announcements'),
-        headCount('chapter_views', q => q.gte('created_at', since(range))),
+        fetchCloudflareAdminAnalytics(range).catch(() => null),
       ]);
 
       for (const result of [chaptersResult, pagesResult, commentsResult]) if (result.error) throw result.error;
@@ -137,7 +138,7 @@ export default function AdminProTools() {
         openReports,
         users,
         announcements,
-        views,
+        views: Number(viewsResult?.current_views || 0),
       });
     } catch (error) {
       setHealth(current => ({ ...current, database: 'error' }));
