@@ -299,6 +299,7 @@ async function bootstrapLegacy(env, today) {
     for (const row of chapterSummary || []) {
       if (validChapterId(row?.chapter_id)) summary.chapterViews[row.chapter_id] = Number(row.views_count || 0);
     }
+    summary.processedThrough = dayKey(addDays(today, -1));
     summary.updatedAt = new Date().toISOString();
     await writeJson(env, summaryKey(), summary);
     await writeJson(env, markerKey, { importedAt: new Date().toISOString(), rows: 0, fallback: true });
