@@ -7,6 +7,7 @@ import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
+import { AdminUIProvider, useAdminUI } from './AdminUIProvider.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -90,7 +91,8 @@ const ADMIN_NAV_GROUPS = [
   ]},
 ];
 
-export default function AdminPanel({ onLogout }) {
+function AdminPanelContent({ onLogout }) {
+  const { requestConfirm, toast } = useAdminUI();
   const [tab, setTab] = useState('Overview');
   const [chapters, setChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -112,6 +114,14 @@ export default function AdminPanel({ onLogout }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [navSearch, setNavSearch] = useState('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [density, setDensity] = useState('comfortable');
+  const [formDirty, setFormDirty] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
+  const [chapterFilters, setChapterFilters] = useState({ status: 'all', language: 'all', query: '', sort: 'number' });
+  const [selectedChapters, setSelectedChapters] = useState(() => new Set());
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -121,7 +131,7 @@ export default function AdminPanel({ onLogout }) {
     return an - bn;
   }), [chapters]);
 
-  const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); };
+  const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); setFormDirty(false); };
 
   const load = async () => {
     setLoading(true); setNotice({ type: '', text: '' });
@@ -177,6 +187,7 @@ export default function AdminPanel({ onLogout }) {
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
     setForm(value => ({ ...value, pages: files }));
+    setFormDirty(true);
   };
 
   async function upload(bucket, file, path) {
@@ -364,11 +375,13 @@ export default function AdminPanel({ onLogout }) {
   const editChapter = chapter => {
     setEditing(chapter);
     setForm({ number: chapter.chapterNumber || '', language: normalizeChapterLanguage(chapter.language), title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] });
+    setFormDirty(false);
     setTab('Chapters'); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   async function deleteChapter(chapter) {
-    if (!window.confirm('Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently?')) return;
+    const ok = await requestConfirm({ title: 'Delete chapter', message: 'Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently? This removes the chapter record and associated R2 media.', confirmLabel: 'Delete chapter', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -415,7 +428,8 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteComment(id) {
-    if (!window.confirm('Delete this comment and its replies?')) return;
+    const ok = await requestConfirm({ title: 'Delete comment', message: 'Delete this comment and its replies? This cannot be undone.', confirmLabel: 'Delete comment', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -668,7 +682,8 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteAnnouncement(item) {
-    if (!window.confirm('Delete this announcement permanently?')) return;
+    const ok = await requestConfirm({ title: 'Delete announcement', message: 'Delete this announcement permanently?', confirmLabel: 'Delete announcement', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -706,7 +721,8 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteMedia(id) {
-    if (!window.confirm('Delete this media item permanently?')) return;
+    const ok = await requestConfirm({ title: 'Delete media item', message: 'Delete this media item permanently?', confirmLabel: 'Delete media', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -734,7 +750,15 @@ export default function AdminPanel({ onLogout }) {
     ? ADMIN_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.label.toLowerCase().includes(navSearch.trim().toLowerCase())) })).filter(group => group.items.length)
     : ADMIN_NAV_GROUPS;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
-  const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
+  const activateTab = async item => {
+    if (item === tab) return;
+    if (formDirty && tab === 'Chapters') {
+      const ok = await requestConfirm({ title: 'Discard unsaved chapter changes?', message: 'Your chapter form has unsaved changes. Leave this section and discard them?', confirmLabel: 'Discard changes', danger: true });
+      if (!ok) return;
+      resetForm();
+    }
+    setTab(item); setMobileSidebarOpen(false); setProfileOpen(false);
+  };
   useEffect(() => {
     const handler = event => {
       const nextTab = event?.detail?.tab;
@@ -759,7 +783,70 @@ export default function AdminPanel({ onLogout }) {
     else activateTab(routeMatch.key);
   };
 
-  return <main className="admin-page ar-admin-v3" data-admin-root="true">
+  const chapterRows = useMemo(() => {
+    const query = chapterFilters.query.trim().toLowerCase();
+    return sorted.filter(chapter => {
+      const status = String(chapter.status || '').trim().toLowerCase();
+      const language = normalizeChapterLanguage(chapter.language);
+      if (chapterFilters.status !== 'all' && status !== chapterFilters.status) return false;
+      if (chapterFilters.language !== 'all' && language !== chapterFilters.language) return false;
+      if (query && ![chapter.chapterNumber, chapter.title, chapter.description, status, language].some(value => String(value ?? '').toLowerCase().includes(query))) return false;
+      return true;
+    }).sort((a,b) => {
+      if (chapterFilters.sort === 'release') return new Date(b.releaseDate || b.createdAt || 0) - new Date(a.releaseDate || a.createdAt || 0);
+      if (chapterFilters.sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''), 'en', { sensitivity: 'base' });
+      return (Number(a.chapterNumber) || Number.POSITIVE_INFINITY) - (Number(b.chapterNumber) || Number.POSITIVE_INFINITY);
+    });
+  }, [sorted, chapterFilters]);
+
+  useEffect(() => {
+    const onKeyDown = event => {
+      const target = event.target;
+      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(true); setShortcutHelpOpen(false); return; }
+      if (event.key === 'Escape') { setCommandOpen(false); setShortcutHelpOpen(false); return; }
+      if (!typing && event.key === '?') { event.preventDefault(); setShortcutHelpOpen(value => !value); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const onBeforeUnload = event => {
+      if (!formDirty) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [formDirty]);
+
+  const toggleChapter = id => setSelectedChapters(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const toggleAllChapters = () => setSelectedChapters(current => current.size === chapterRows.length ? new Set() : new Set(chapterRows.map(item => item.id)));
+  const clearChapterSelection = () => setSelectedChapters(new Set());
+  const bulkSetChapterStatus = async status => {
+    const ids = [...selectedChapters];
+    if (!ids.length || busy) return;
+    const ok = await requestConfirm({ title: 'Update selected chapters', message: 'Set ' + ids.length + ' selected chapter' + (ids.length === 1 ? '' : 's') + ' to ' + status + '?', confirmLabel: 'Update status' });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const user = await requireAdmin();
+      const releaseDate = status.toLowerCase() === 'published' ? new Date().toISOString() : null;
+      const { error } = await supabase.from(CHAPTERS).update({ status, release_date: releaseDate }).in('id', ids);
+      if (error) throw error;
+      await logAdminAction(user, 'bulk_update_chapter_status', 'chapter', null, { ids, status });
+      clearChapterSelection();
+      await load();
+      setNotice({ type: 'success', text: ids.length + ' chapter' + (ids.length === 1 ? '' : 's') + ' updated.' });
+      toast(ids.length + ' chapter' + (ids.length === 1 ? '' : 's') + ' updated.', 'success');
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Bulk chapter update failed.' });
+      toast(error.message || 'Bulk chapter update failed.', 'error');
+    } finally { setBusy(false); }
+  };
+
+  return <main className={'admin-page ar-admin ar-admin-v3' + (sidebarCollapsed ? ' sidebar-collapsed' : '')} data-admin-root="true" data-density={density}>
     <div className="ar-admin-app">
       <aside className={'ar-admin-sidebar' + (mobileSidebarOpen ? ' is-open' : '')} aria-label="Admin navigation">
         <div className="ar-admin-brand"><div className="ar-admin-brand-mark">AR</div><div><strong>Atma Rekha</strong><span>Admin workspace</span></div><button type="button" className="ar-admin-mobile-close" onClick={() => setMobileSidebarOpen(false)} aria-label="Close navigation"><AdminIcon name="close" size={20}/></button></div>
