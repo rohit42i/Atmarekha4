@@ -225,3 +225,296 @@ main:has(.admin-header-card) .pdlpl-admin-embedded .pdlpl-admin-card-head{
 .pdlpl-admin-list-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .pdlpl-admin-list-tools input{min-width:190px;padding:10px 12px;border:1px solid var(--legacy-292929-ce596263);border-radius:10px;background:var(--legacy-0b0b0c-9089d82e);color:inherit;font:inherit}
 @media(max-width:640px){.pdlpl-admin-header-actions,.pdlpl-admin-list-tools{width:100%}.pdlpl-admin-header-actions button,.pdlpl-inline-file{flex:1}.pdlpl-admin-list-tools input{width:100%;min-width:0}}
+
+
+/* 2026 polish: restrained editorial UI, faster scanning, no decorative noise. */
+.pdlpl-section,
+.chapter-list-page{
+  background:#fff!important;
+  color:#000!important;
+}
+.chapter-list-page .subpage-header{
+  border-bottom:1px solid #000!important;
+}
+.chapter-list-page .header-kicker,
+.chapter-list-page .chapter-list-subtitle{
+  color:#000!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.16em!important;
+}
+.chapter-list-page .subpage-header h1{
+  color:#000!important;
+  font-weight:900!important;
+  letter-spacing:-.05em!important;
+}
+.chapter-list-section{
+  width:min(980px,calc(100% - 28px))!important;
+  margin:0 auto!important;
+}
+.chapter-list-heading{
+  display:flex!important;
+  align-items:end!important;
+  justify-content:space-between!important;
+  gap:16px!important;
+  padding:24px 0 13px!important;
+  border-bottom:1px solid #000!important;
+}
+.chapter-list-heading>div:first-child{
+  display:grid!important;
+  gap:5px!important;
+}
+.chapter-list-heading p{
+  margin:0!important;
+  color:#000!important;
+  font-size:18px!important;
+  font-weight:900!important;
+  letter-spacing:-.025em!important;
+}
+.chapter-list-heading>span{display:none!important}
+.chapter-language{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:0!important;
+  border:0!important;
+  color:#000!important;
+}
+.chapter-language span{
+  color:#000!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+}
+.chapter-language select{
+  min-height:34px!important;
+  padding:0 10px!important;
+  border:1px solid #000!important;
+  border-radius:9px!important;
+  background:#fff!important;
+  color:#000!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  outline:none!important;
+}
+.chapter-list{
+  display:grid!important;
+  gap:8px!important;
+  margin-top:12px!important;
+}
+.chapter-list .chapter-row{
+  min-height:88px!important;
+  border:1px solid #000!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  color:#000!important;
+  box-shadow:none!important;
+  transition:transform .15s ease,background-color .15s ease,color .15s ease!important;
+}
+.chapter-list .chapter-row:hover{
+  transform:translateY(-1px)!important;
+  background:#000!important;
+  color:#fff!important;
+}
+.chapter-list .chapter-row-main{
+  padding:17px 18px!important;
+}
+.chapter-list .chapter-row-title span,
+.chapter-list .chapter-row-title h2,
+.chapter-list .chapter-row-meta,
+.chapter-list .chapter-row-details{
+  color:#000!important;
+}
+.chapter-list .chapter-row-title span{
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+}
+.chapter-list .chapter-row-title h2{
+  margin-top:5px!important;
+  font-size:18px!important;
+  line-height:1.12!important;
+  font-weight:900!important;
+  letter-spacing:-.025em!important;
+}
+.chapter-list .chapter-row-meta{
+  margin-top:8px!important;
+  font-size:8px!important;
+  font-weight:800!important;
+  letter-spacing:.04em!important;
+}
+.chapter-list .chapter-row-details{
+  margin-top:5px!important;
+  font-size:9px!important;
+  font-weight:700!important;
+}
+.chapter-list .chapter-row-actions{
+  padding-right:14px!important;
+}
+.chapter-list .pdlpl-chapter-action{
+  width:54px!important;
+  min-width:54px!important;
+  min-height:54px!important;
+  border:1px solid #000!important;
+  border-radius:50%!important;
+  background:#000!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.chapter-list .pdlpl-chapter-action span{
+  color:#fff!important;
+}
+.chapter-list .pdlpl-chapter-action small{
+  color:#fff!important;
+  font-size:7px!important;
+  font-weight:900!important;
+  letter-spacing:.06em!important;
+}
+.chapter-list .chapter-row:hover .chapter-row-title span,
+.chapter-list .chapter-row:hover .chapter-row-title h2,
+.chapter-list .chapter-row:hover .chapter-row-meta,
+.chapter-list .chapter-row:hover .chapter-row-details{
+  color:#fff!important;
+}
+.chapter-list .chapter-row:hover .pdlpl-chapter-action{
+  background:#fff!important;
+  color:#000!important;
+  border-color:#fff!important;
+}
+.chapter-list .chapter-row:hover .pdlpl-chapter-action span,
+.chapter-list .chapter-row:hover .pdlpl-chapter-action small{
+  color:#000!important;
+}
+.chapter-list-page .empty-state{
+  border:1px solid #000!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  color:#000!important;
+  box-shadow:none!important;
+}
+.pdlpl-lock-modal{
+  border:1px solid #000!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  color:#000!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.18)!important;
+}
+.pdlpl-lock-modal h2,
+.pdlpl-lock-modal p,
+.pdlpl-lock-modal .pdlpl-kicker{color:#000!important}
+.pdlpl-primary{
+  border:1px solid #000!important;
+  border-radius:11px!important;
+  background:#000!important;
+  color:#fff!important;
+}
+.pdlpl-secondary{
+  border:1px solid #000!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  color:#000!important;
+}
+
+/* Admin: make the side-story manager match the main monochrome workspace. */
+main.admin-page.ar-admin-v3 .pdlpl-admin-embedded,
+main.admin-page.ar-admin-v3 .pdlpl-admin-card,
+main.admin-page.ar-admin-v3 .pdlpl-page-manager,
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article,
+main.admin-page.ar-admin-v3 .pdlpl-admin-pages article{
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-embedded-heading{
+  border:1px solid var(--admin-border)!important;
+  background:var(--admin-surface)!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-embedded-heading span,
+main.admin-page.ar-admin-v3 .pdlpl-admin-card-head span{
+  color:var(--admin-text)!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article.active{
+  border-color:var(--admin-text)!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-primary{
+  background:var(--admin-text)!important;
+  color:var(--admin-surface)!important;
+  border-color:var(--admin-text)!important;
+  box-shadow:none!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-admin-header-actions button,
+main.admin-page.ar-admin-v3 .pdlpl-admin-list-tools button,
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button{
+  background:var(--admin-surface)!important;
+  color:var(--admin-text)!important;
+  border-color:var(--admin-border)!important;
+}
+main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button:hover{
+  background:var(--admin-text)!important;
+  color:var(--admin-surface)!important;
+  border-color:var(--admin-text)!important;
+}
+
+@media(max-width:640px){
+  .chapter-list-section{width:calc(100% - 20px)!important}
+  .chapter-list-heading{align-items:stretch!important;flex-direction:column!important;gap:11px!important}
+  .chapter-language{justify-content:space-between!important}
+  .chapter-language select{flex:1!important;max-width:180px!important}
+  .chapter-list .chapter-row{min-height:82px!important}
+  .chapter-list .chapter-row-main{padding:14px 13px!important}
+  .chapter-list .chapter-row-title h2{font-size:16px!important}
+  .chapter-list .chapter-row-actions{padding-right:9px!important}
+  .chapter-list .pdlpl-chapter-action{width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important}
+}
+
+@media(prefers-color-scheme:dark){
+  .chapter-list-page{background:#000!important;color:#fff!important}
+  .chapter-list-page .subpage-header,
+  .chapter-list-heading{border-color:#fff!important}
+  .chapter-list-page .header-kicker,
+  .chapter-list-page .chapter-list-subtitle,
+  .chapter-list-heading p,
+  .chapter-language,
+  .chapter-language span,
+  .chapter-language select{color:#fff!important}
+  .chapter-language select{
+    background:#000!important;
+    color:#fff!important;
+    border-color:#fff!important;
+  }
+  .chapter-list .chapter-row{
+    background:#000!important;
+    color:#fff!important;
+    border-color:#fff!important;
+  }
+  .chapter-list .chapter-row-title span,
+  .chapter-list .chapter-row-title h2,
+  .chapter-list .chapter-row-meta,
+  .chapter-list .chapter-row-details{color:#fff!important}
+  .chapter-list .pdlpl-chapter-action{
+    background:#fff!important;
+    color:#000!important;
+    border-color:#fff!important;
+  }
+  .chapter-list .pdlpl-chapter-action span,
+  .chapter-list .pdlpl-chapter-action small{color:#000!important}
+  .chapter-list .chapter-row:hover{
+    background:#fff!important;
+    color:#000!important;
+  }
+  .chapter-list .chapter-row:hover .chapter-row-title span,
+  .chapter-list .chapter-row:hover .chapter-row-title h2,
+  .chapter-list .chapter-row:hover .chapter-row-meta,
+  .chapter-list .chapter-row:hover .chapter-row-details{color:#000!important}
+  .chapter-list .chapter-row:hover .pdlpl-chapter-action{
+    background:#000!important;color:#fff!important;border-color:#000!important;
+  }
+  .chapter-list .chapter-row:hover .pdlpl-chapter-action span,
+  .chapter-list .chapter-row:hover .pdlpl-chapter-action small{color:#fff!important}
+  .chapter-list-page .empty-state,
+  .pdlpl-lock-modal{
+    background:#000!important;color:#fff!important;border-color:#fff!important;
+  }
+  .pdlpl-lock-modal h2,.pdlpl-lock-modal p,.pdlpl-lock-modal .pdlpl-kicker{color:#fff!important}
+  .pdlpl-primary{background:#fff!important;color:#000!important;border-color:#fff!important}
+  .pdlpl-secondary{background:#000!important;color:#fff!important;border-color:#fff!important}
+}
