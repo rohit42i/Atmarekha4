@@ -73,15 +73,13 @@ export async function buildPdlplPageCounts(chapterIds = []) {
   if (!ids.length) return {};
 
   const { data, error } = await supabase
-    .from(PDLPL_PAGES)
-    .select('chapter_id')
+    .from('pdlpl_chapter_engagement_summary')
+    .select('chapter_id,pages_count')
     .in('chapter_id', ids);
 
   if (error) throw error;
 
-  const counts = {};
-  for (const row of data || []) {
-    counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-  }
-  return counts;
+  return Object.fromEntries(
+    ids.map(id => [id, Number((data || []).find(row => String(row.chapter_id) === String(id))?.pages_count) || 0]),
+  );
 }
