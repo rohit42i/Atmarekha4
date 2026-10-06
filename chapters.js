@@ -7,6 +7,19 @@ const PAGES_TABLE = 'chapter_pages';
 const PAGE_FETCH_ATTEMPTS = 2;
 const PAGE_FETCH_DELAY_MS = 150;
 
+export const CHAPTER_LANGUAGES = [
+  { value: 'en', label: 'English', locale: 'en-IN' },
+  { value: 'hi', label: 'Hindi', locale: 'hi-Latn-IN' },
+];
+
+export function normalizeChapterLanguage(language) {
+  return String(language || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';
+}
+
+export function chapterLanguageLabel(language) {
+  return normalizeChapterLanguage(language) === 'en' ? 'English' : 'Hindi';
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function formatChapterLabel(chapterNumber, options = {}) {
@@ -61,13 +74,15 @@ function installChapterCoverStyles(chapters) {
 }
 
 export async function buildChapters() {
-  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,chapter_number,title,description,cover_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
+  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,manga_id,language,chapter_number,title,description,cover_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {
     console.error('Supabase chapters error:', error);
     throw error;
   }
   const chapters = (data || []).map((chapter) => ({
     id: chapter.id,
+    mangaId: chapter.manga_id || null,
+    language: normalizeChapterLanguage(chapter.language),
     chapterNumber: chapter.chapter_number,
     title: chapter.title || '',
     description: chapter.description || '',
