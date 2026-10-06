@@ -48,47 +48,29 @@ function LockedModal({ chapter, onClose }) {
   );
 }
 
-function PdlplChapterThumbnail({ chapter }) {
-  const [url, setUrl] = useState('');
-  useEffect(() => {
-    let active = true;
-    let objectUrl = '';
-    if (!chapter?.coverPath) return undefined;
-    fetchPdlplMedia(chapter.coverPath).then(nextUrl => {
-      objectUrl = nextUrl;
-      if (active) setUrl(nextUrl); else URL.revokeObjectURL(nextUrl);
-    }).catch(() => {});
-    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [chapter?.coverPath]);
-  return <div className="pdlpl-chapter-thumb" aria-hidden="true">{url ? <img src={url} alt="" loading="lazy" decoding="async" /> : <span>{chapter?.chapterNumber ? String(chapter.chapterNumber).padStart(2, '0') : 'SP'}</span>}</div>;
-}
-
 function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
   const locked = !member && !admin;
 
   return <article className="chapter-row" data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
-    <a className="chapter-row-main pdlpl-chapter-row-main" href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`} onClick={event => {
+    <a className="chapter-row-main" href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`} onClick={event => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
       onOpen(chapter);
     }} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
-      <PdlplChapterThumbnail chapter={chapter} />
-      <div className="chapter-row-copy pdlpl-chapter-row-copy">
-        <div className="chapter-row-title">
-          <span>{formatLabel(chapter)}</span>
-          <h2>{chapter.title || 'Untitled chapter'}</h2>
-        </div>
-        <div className="chapter-row-meta">
-          <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
-          <span>•</span>
-          <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-          <span>•</span>
-          <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
-        </div>
-        <div className="chapter-row-details">
-          <span>📄 {pageCount || '—'} pages</span>
-        </div>
+      <div className="chapter-row-title">
+        <span>{formatLabel(chapter)}</span>
+        <h2>{chapter.title || 'Untitled chapter'}</h2>
+      </div>
+      <div className="chapter-row-meta">
+        <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
+        <span>•</span>
+        <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+        <span>•</span>
+        <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
+      </div>
+      <div className="chapter-row-details">
+        <span>📄 {pageCount || '—'} pages</span>
       </div>
     </a>
     <div className="chapter-row-actions">
