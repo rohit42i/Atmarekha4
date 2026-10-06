@@ -721,3 +721,68 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
     padding:15px!important;
   }
 }
+
+
+.pdlpl-diagnostic{
+  margin-top:16px;
+  padding:16px;
+  border:1px solid #d33;
+  border-radius:16px;
+  background:rgba(190,0,0,.06);
+  color:inherit;
+  overflow:hidden;
+}
+.pdlpl-diagnostic-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.pdlpl-diagnostic-head strong{
+  font-size:15px;
+  letter-spacing:.04em;
+}
+.pdlpl-diagnostic-head button{
+  border:1px solid currentColor;
+  background:transparent;
+  color:inherit;
+  border-radius:10px;
+  padding:7px 11px;
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.pdlpl-diagnostic-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.pdlpl-diagnostic-grid>div{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:10px 11px;
+  border:1px solid currentColor;
+  border-color:color-mix(in srgb,currentColor 18%,transparent);
+  border-radius:11px;
+}
+.pdlpl-diagnostic-grid .wide{grid-column:1/-1}
+.pdlpl-diagnostic-grid span{
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  opacity:.62;
+}
+.pdlpl-diagnostic-grid strong{
+  font-size:13px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+@media(max-width:640px){
+  .pdlpl-diagnostic-grid{grid-template-columns:1fr}
+}
