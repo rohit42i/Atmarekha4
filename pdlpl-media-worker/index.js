@@ -30,7 +30,14 @@ function getAllowedOrigins(env) {
 
 function corsHeaders(request, env) {
   const origin = normalizeOrigin(request.headers.get('Origin') || '');
-  const allowed = getAllowedOrigins(env);
+  const allowed = [
+    'https://www.atmarekha.in',
+    'https://atmarekha.in',
+    'https://atmarekha4.rohitbaswaraj.workers.dev',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    ...getAllowedOrigins(env),
+  ].filter((value, index, list) => list.indexOf(value) === index);
 
   const headers = {
     'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
@@ -39,11 +46,12 @@ function corsHeaders(request, env) {
     'Vary': 'Origin',
   };
 
-  const hasBearerToken = /^Bearer\\s+/i.test(request.headers.get('Authorization') || '');
+  const hasBearerToken = /^Bearer\s+/i.test(request.headers.get('Authorization') || '');
   const corsAllowed = request.method === 'OPTIONS' || allowed.includes(origin) || hasBearerToken;
 
   if (origin && corsAllowed) {
     headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Expose-Headers'] = 'ETag, Content-Type, Cache-Control';
     headers['Access-Control-Expose-Headers'] = 'ETag, Content-Type, Cache-Control';
   }
 
