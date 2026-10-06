@@ -398,13 +398,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
     let requestedStatus = String(form.status || '').trim();
 
     try {
-      currentStage = 'Checking admin session';
+      stage = 'Checking admin session';
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
       stage = 'Validating chapter form';
-      currentStage = 'Validating chapter form';
+      stage = 'Validating chapter form';
       const rawNumber = String(form.number || '').trim();
       const number = rawNumber === '' ? null : Number(rawNumber);
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number.');
@@ -429,13 +429,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
         : null;
 
       stage = 'Generating chapter ID';
-      currentStage = 'Generating chapter ID';
+      stage = 'Generating chapter ID';
       chapterId = chapterId || window.crypto?.randomUUID?.();
       if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
       stage = 'Saving chapter metadata';
       stage = 'Saving chapter metadata to Supabase';
-      currentStage = 'Saving chapter metadata to Supabase';
+      stage = 'Saving chapter metadata to Supabase';
       setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
       const { data: savedRows, error: metadataError } = await supabase.rpc('pdlpl_upsert_chapter', {
         p_chapter_id: chapterId,
@@ -455,7 +455,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       setSelectedId(chapterId);
       if (form.cover) {
-        currentStage = 'Uploading cover to Cloudflare R2';
+        stage = 'Uploading cover to Cloudflare R2';
         stage = 'Uploading cover image to Cloudflare R2';
         stage = 'Uploading cover to Cloudflare R2';
         setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
@@ -587,7 +587,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         try { await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId); }
         catch (cleanupError) { cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError)); }
       }
-      setDiagnostic(diagnosticFromError(currentStage, error, {
+      setDiagnostic(diagnosticFromError(stage, error, {
         chapterId,
         mode: wasEditing ? 'Edit existing chapter' : 'Create new chapter',
         status: requestedStatus,
@@ -597,7 +597,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         uploadedPaths: uploaded,
         cleanup: cleanupErrors.join(' | '),
       }));
-      setNotice('PDPKL upload failed at ' + currentStage + '. See the Upload diagnostic panel for the exact error.');
+      setNotice('PDPKL upload failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');
       setProgress({ current: 0, total: 0, text: '' });    } finally {
       setBusy(false);
     }
