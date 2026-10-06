@@ -4,6 +4,7 @@ import { supabase, cloudflareR2 } from './supabase';
 import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
+import { useAdminUI } from './AdminUIProvider.jsx';
 
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const SITE_TIME_ZONE = 'Asia/Kolkata';
@@ -22,6 +23,7 @@ function Section({ label, title, text, children }) {
 }
 
 export default function AdminOperations() {
+  const { requestConfirm } = useAdminUI();
   const [isAdmin, setIsAdmin] = useState(false), [nav, setNav] = useState(null), [open, setOpen] = useState(false);
   const [chapters, setChapters] = useState([]), [deleted, setDeleted] = useState([]), [logs, setLogs] = useState([]), [notifications, setNotifications] = useState([]), [failures, setFailures] = useState([]), [users, setUsers] = useState([]);
   const [subscriberCount, setSubscriberCount] = useState(0), [today, setToday] = useState({ views: 0, readers: 0, likes: 0 });
@@ -74,7 +76,7 @@ export default function AdminOperations() {
 
   const updateChapter = async (chapter, patch, action, confirmation = null) => {
     if (busy) return;
-    if (confirmation && !window.confirm(confirmation)) return;
+    if (confirmation) { const ok = await requestConfirm({ title: 'Confirm chapter change', message: confirmation, confirmLabel: 'Continue', danger: /delete|remove|purge/i.test(confirmation) }); if (!ok) return; }
     setBusy(true); setNotice('');
     try {
       const user = await requireAdmin();

@@ -7,6 +7,7 @@ import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
+import { useAdminUI } from './AdminUIProvider.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -90,7 +91,62 @@ const ADMIN_NAV_GROUPS = [
   ]},
 ];
 
-export default function AdminPanel({ onLogout }) {
+function FileThumb({ file }) {
+  const [url, setUrl] = useState('');
+  useEffect(() => {
+    const next = URL.createObjectURL(file);
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [file]);
+  return url ? <img src={url} alt="" draggable="false"/> : <div aria-hidden="true"/>;
+}
+
+function PageDropzone({ files, onFiles, onNotice }) {
+  const [dragActive, setDragActive] = useState(false);
+  const [dragIndex, setDragIndex] = useState(null);
+  const acceptFiles = list => {
+    const next = Array.from(list || []).filter(file => {
+      const type = String(file?.type || '').toLowerCase();
+      const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
+      return type.startsWith('image/') || Boolean(IMAGE_MIME_BY_EXT[ext]);
+    });
+    const tooLarge = next.find(file => file.size > MAX_PAGE_SIZE);
+    if (tooLarge) { onNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
+    if (next.length) onFiles([...(files || []), ...next]);
+  };
+  const reorder = (from, to) => {
+    const next = [...files];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onFiles(next);
+  };
+  return <div className={'ar-admin-dropzone admin-dropzone' + (dragActive ? ' ar-admin-upload-drop-active' : '')}
+    onDragEnter={event => { event.preventDefault(); setDragActive(true); }}
+    onDragOver={event => event.preventDefault()}
+    onDragLeave={event => { if (event.currentTarget === event.target) setDragActive(false); }}
+    onDrop={event => { event.preventDefault(); setDragActive(false); acceptFiles(event.dataTransfer.files); }}>
+    <strong>Drop manga pages here</strong>
+    <span>Drag files in, then drag thumbnails to set the exact publishing order.</span>
+    <input type="file" multiple accept="image/*" onChange={event => { acceptFiles(event.target.files); event.target.value = ''; }} aria-label="Select manga pages"/>
+    {!!files.length && <div className="ar-admin-upload-grid">
+      {files.map((file,index) => <article key={file.name + '-' + index}
+        className={'ar-admin-upload-card' + (dragIndex === index ? ' is-dragging' : '')}
+        draggable
+        onDragStart={() => setDragIndex(index)}
+        onDragEnd={() => setDragIndex(null)}
+        onDragOver={event => event.preventDefault()}
+        onDrop={event => { event.preventDefault(); if (dragIndex != null && dragIndex !== index) reorder(dragIndex,index); setDragIndex(null); }}>
+        <FileThumb file={file}/>
+        <button type="button" className="ar-admin-upload-remove" onClick={() => onFiles(files.filter((_,i) => i !== index))} aria-label={'Remove page ' + (index + 1)}>×</button>
+        <div className="ar-admin-upload-meta"><span className="ar-admin-upload-index">{index + 1}</span><span className="ar-admin-upload-name">{file.name}</span></div>
+      </article>)}
+    </div>}
+    {!!files.length && <em>{files.length} pages ready · local order will be preserved during upload.</em>}
+  </div>;
+}
+
+function AdminPanelContent({ onLogout }) {
+  const { requestConfirm, toast } = useAdminUI();
   const [tab, setTab] = useState('Overview');
   const [chapters, setChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -112,6 +168,21 @@ export default function AdminPanel({ onLogout }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [navSearch, setNavSearch] = useState('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [density, setDensity] = useState('comfortable');
+  const [formDirty, setFormDirty] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
+  const [chapterFilters, setChapterFilters] = useState({ status: 'all', language: 'all', query: '', sort: 'number' });
+  const [selectedChapters, setSelectedChapters] = useState(() => new Set());
+  const [lastLoadedAt, setLastLoadedAt] = useState(null);
+  const [savedFilters, setSavedFilters] = useState([]);
+  const [savedFilterName, setSavedFilterName] = useState('');
+  const [showSaveFilter, setShowSaveFilter] = useState(false);
+  const [reportFilters, setReportFilters] = useState({ status: 'all', sort: 'newest' });
+  const [selectedReports, setSelectedReports] = useState(() => new Set());
+  const [reportDrawer, setReportDrawer] = useState(null);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -121,7 +192,7 @@ export default function AdminPanel({ onLogout }) {
     return an - bn;
   }), [chapters]);
 
-  const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); };
+  const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); setFormDirty(false); };
 
   const load = async () => {
     setLoading(true); setNotice({ type: '', text: '' });
@@ -146,6 +217,8 @@ export default function AdminPanel({ onLogout }) {
       setReports(reportResult.data || []);
       setAnnouncements(announcementResult.data || []);
       setMedia(mediaResult.data || []);
+      setLastLoadedAt(new Date());
+      setSelectedChapters(current => new Set([...current].filter(id => (chapterData || []).some(chapter => chapter.id === id))));
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
     } finally { setLoading(false); }
@@ -166,6 +239,8 @@ export default function AdminPanel({ onLogout }) {
     return [...(commentRows || []), ...(data || [])];
   };
 
+  useEffect(() => { try { const raw = window.localStorage.getItem('atma-admin-saved-chapter-filters'); setSavedFilters(raw ? JSON.parse(raw) : []); } catch (_) {} }, []);
+
   useEffect(() => { load(); }, []);
 
   const choosePages = event => {
@@ -177,6 +252,7 @@ export default function AdminPanel({ onLogout }) {
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
     setForm(value => ({ ...value, pages: files }));
+    setFormDirty(true);
   };
 
   async function upload(bucket, file, path) {
@@ -326,7 +402,9 @@ export default function AdminPanel({ onLogout }) {
       const wasEditing = Boolean(editing);
       resetForm();
       await load();
+      setFormDirty(false);
       setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' });
+      toast(savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.', 'success');
     } catch (error) {
       console.error(error);
       for (const item of uploadedPaths) {
@@ -364,11 +442,40 @@ export default function AdminPanel({ onLogout }) {
   const editChapter = chapter => {
     setEditing(chapter);
     setForm({ number: chapter.chapterNumber || '', language: normalizeChapterLanguage(chapter.language), title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] });
+    setFormDirty(false);
     setTab('Chapters'); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  async function updateChapterStatus(chapter, status) {
+    if (!chapter || busy) return;
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const nextStatus = String(status || '').trim();
+      if (nextStatus.toLowerCase() === 'scheduled' && !chapter.releaseDate) throw new Error('Scheduled chapters need a release date before this status can be applied.');
+      const patch = {
+        status: nextStatus,
+        release_date: nextStatus.toLowerCase() === 'published' ? (chapter.releaseDate || new Date().toISOString()) : null,
+      };
+      const { error } = await supabase.from(CHAPTERS).update(patch).eq('id', chapter.id);
+      if (error) throw new Error('Chapter status update failed: ' + error.message);
+      await logAdminAction(adminUser, 'update_chapter_status', 'chapter', chapter.id, { from: chapter.status, to: nextStatus, release_date: patch.release_date });
+      await load();
+      setNotice({ type: 'success', text: (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'Chapter') + ' is now ' + nextStatus.toLowerCase() + '.' });
+      toast('Chapter status updated.', 'success');
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Chapter status update failed.' });
+      toast(error.message || 'Chapter status update failed.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function deleteChapter(chapter) {
-    if (!window.confirm('Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently?')) return;
+    const ok = await requestConfirm({ title: 'Delete chapter', message: 'Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently? This removes the chapter record and associated R2 media.', confirmLabel: 'Delete chapter', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -415,7 +522,8 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteComment(id) {
-    if (!window.confirm('Delete this comment and its replies?')) return;
+    const ok = await requestConfirm({ title: 'Delete comment', message: 'Delete this comment and its replies? This cannot be undone.', confirmLabel: 'Delete comment', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -668,7 +776,8 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteAnnouncement(item) {
-    if (!window.confirm('Delete this announcement permanently?')) return;
+    const ok = await requestConfirm({ title: 'Delete announcement', message: 'Delete this announcement permanently?', confirmLabel: 'Delete announcement', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -706,7 +815,8 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteMedia(id) {
-    if (!window.confirm('Delete this media item permanently?')) return;
+    const ok = await requestConfirm({ title: 'Delete media item', message: 'Delete this media item permanently?', confirmLabel: 'Delete media', danger: true });
+    if (!ok) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -734,7 +844,15 @@ export default function AdminPanel({ onLogout }) {
     ? ADMIN_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.label.toLowerCase().includes(navSearch.trim().toLowerCase())) })).filter(group => group.items.length)
     : ADMIN_NAV_GROUPS;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
-  const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
+  const activateTab = async item => {
+    if (item === tab) return;
+    if (formDirty && tab === 'Chapters') {
+      const ok = await requestConfirm({ title: 'Discard unsaved chapter changes?', message: 'Your chapter form has unsaved changes. Leave this section and discard them?', confirmLabel: 'Discard changes', danger: true });
+      if (!ok) return;
+      resetForm();
+    }
+    setTab(item); setMobileSidebarOpen(false); setProfileOpen(false);
+  };
   useEffect(() => {
     const handler = event => {
       const nextTab = event?.detail?.tab;
@@ -759,7 +877,142 @@ export default function AdminPanel({ onLogout }) {
     else activateTab(routeMatch.key);
   };
 
-  return <main className="admin-page ar-admin-v3" data-admin-root="true">
+  const chapterRows = useMemo(() => {
+    const query = chapterFilters.query.trim().toLowerCase();
+    return sorted.filter(chapter => {
+      const status = String(chapter.status || '').trim().toLowerCase();
+      const language = normalizeChapterLanguage(chapter.language);
+      if (chapterFilters.status !== 'all' && status !== chapterFilters.status) return false;
+      if (chapterFilters.language !== 'all' && language !== chapterFilters.language) return false;
+      if (query && ![chapter.chapterNumber, chapter.title, chapter.description, status, language].some(value => String(value ?? '').toLowerCase().includes(query))) return false;
+      return true;
+    }).sort((a,b) => {
+      if (chapterFilters.sort === 'release') return new Date(b.releaseDate || b.createdAt || 0) - new Date(a.releaseDate || a.createdAt || 0);
+      if (chapterFilters.sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''), 'en', { sensitivity: 'base' });
+      return (Number(a.chapterNumber) || Number.POSITIVE_INFINITY) - (Number(b.chapterNumber) || Number.POSITIVE_INFINITY);
+    });
+  }, [sorted, chapterFilters]);
+
+  useEffect(() => {
+    const onKeyDown = event => {
+      const target = event.target;
+      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(true); setShortcutHelpOpen(false); return; }
+      if (event.key === 'Escape') { setCommandOpen(false); setShortcutHelpOpen(false); return; }
+      if (!typing && event.key === '?') { event.preventDefault(); setShortcutHelpOpen(value => !value); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const onBeforeUnload = event => {
+      if (!formDirty) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [formDirty]);
+
+  const toggleChapter = id => setSelectedChapters(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const saveChapterFilter = () => {
+    const name = savedFilterName.trim();
+    if (!name) return;
+    const next = [{ name, filters: chapterFilters }, ...savedFilters.filter(item => item.name !== name)].slice(0, 12);
+    setSavedFilters(next); setSavedFilterName(''); setShowSaveFilter(false);
+    try { window.localStorage.setItem('atma-admin-saved-chapter-filters', JSON.stringify(next)); } catch (_) {}
+  };
+  const applyChapterFilter = name => {
+    const saved = savedFilters.find(item => item.name === name);
+    if (saved?.filters) setChapterFilters(saved.filters);
+  };
+  const exportChaptersCsv = () => {
+    const escape = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const lines = [
+      ['Chapter','Title','Language','Status','Pages','Release date'].map(escape).join(','),
+      ...chapterRows.map(chapter => [
+        chapter.chapterNumber == null ? 'Unnumbered' : chapter.chapterNumber,
+        chapter.title || '',
+        chapterLanguageLabel(chapter.language),
+        chapter.status || 'Pre-uploaded',
+        pageCounts[chapter.id] || 0,
+        chapter.releaseDate || chapter.createdAt || '',
+      ].map(escape).join(',')),
+    ];
+    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'atma-rekha-chapters.csv'; link.click(); URL.revokeObjectURL(url);
+    toast(chapterRows.length + ' chapters exported.', 'success');
+  };
+  const publishingQueue = useMemo(() => [...chapters]
+    .filter(chapter => ['scheduled','pre-uploaded','draft'].includes(String(chapter.status || '').toLowerCase()))
+    .sort((a,b) => new Date(a.releaseDate || a.createdAt || 0) - new Date(b.releaseDate || b.createdAt || 0)), [chapters]);
+
+  const filteredReports = useMemo(() => [...reports]
+    .filter(report => reportFilters.status === 'all' || String(report.status || 'open') === reportFilters.status)
+    .sort((a,b) => reportFilters.sort === 'oldest'
+      ? new Date(a.created_at || 0) - new Date(b.created_at || 0)
+      : new Date(b.created_at || 0) - new Date(a.created_at || 0)), [reports, reportFilters]);
+
+  const toggleReport = id => setSelectedReports(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const clearReportSelection = () => setSelectedReports(new Set());
+  const bulkResolveReports = async () => {
+    const ids = [...selectedReports];
+    if (!ids.length || busy) return;
+    const ok = await requestConfirm({ title: 'Resolve reports', message: 'Mark ' + ids.length + ' selected report' + (ids.length === 1 ? '' : 's') + ' as resolved?', confirmLabel: 'Resolve reports' });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const user = await requireAdmin();
+      const patch = { status: 'resolved', reviewed_at: new Date().toISOString(), reviewed_by: user.id };
+      const { error } = await supabase.from('comment_reports').update(patch).in('id', ids);
+      if (error) throw error;
+      await logAdminAction(user, 'bulk_resolve_comment_reports', 'comment_report', null, { ids });
+      clearReportSelection();
+      await load();
+      setNotice({ type: 'success', text: ids.length + ' report' + (ids.length === 1 ? '' : 's') + ' resolved.' });
+      toast('Reports resolved.', 'success');
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Could not resolve reports.' });
+      toast(error.message || 'Could not resolve reports.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
+  const toggleAllChapters = () => setSelectedChapters(current => current.size === chapterRows.length ? new Set() : new Set(chapterRows.map(item => item.id)));
+  const clearChapterSelection = () => setSelectedChapters(new Set());
+  const bulkSetChapterStatus = async status => {
+    const ids = [...selectedChapters];
+    if (!ids.length || busy) return;
+    const ok = await requestConfirm({ title: 'Update selected chapters', message: 'Set ' + ids.length + ' selected chapter' + (ids.length === 1 ? '' : 's') + ' to ' + status + '?', confirmLabel: 'Update status' });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const user = await requireAdmin();
+      const rows = chapterRows.filter(chapter => selectedChapters.has(chapter.id));
+      for (const chapter of rows) {
+        const releaseDate = status.toLowerCase() === 'published'
+          ? (chapter.releaseDate || new Date().toISOString())
+          : null;
+        const { error } = await supabase.from(CHAPTERS).update({ status, release_date: releaseDate }).eq('id', chapter.id);
+        if (error) throw error;
+      }
+      await logAdminAction(user, 'bulk_update_chapter_status', 'chapter', null, { ids, status });
+      clearChapterSelection();
+      await load();
+      setNotice({ type: 'success', text: ids.length + ' chapter' + (ids.length === 1 ? '' : 's') + ' updated.' });
+      toast(ids.length + ' chapter' + (ids.length === 1 ? '' : 's') + ' updated.', 'success');
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Bulk chapter update failed.' });
+      toast(error.message || 'Bulk chapter update failed.', 'error');
+    } finally { setBusy(false); }
+  };
+
+  return <main className={'admin-page ar-admin ar-admin-v3' + (sidebarCollapsed ? ' sidebar-collapsed' : '')} data-admin-root="true" data-density={density}>
     <div className="ar-admin-app">
       <aside className={'ar-admin-sidebar' + (mobileSidebarOpen ? ' is-open' : '')} aria-label="Admin navigation">
         <div className="ar-admin-brand"><div className="ar-admin-brand-mark">AR</div><div><strong>Atma Rekha</strong><span>Admin workspace</span></div><button type="button" className="ar-admin-mobile-close" onClick={() => setMobileSidebarOpen(false)} aria-label="Close navigation"><AdminIcon name="close" size={20}/></button></div>
@@ -772,13 +1025,13 @@ export default function AdminPanel({ onLogout }) {
       {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation"/>}
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
-          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div></div>
-          <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>↵</kbd></div>
+          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-desktop-collapse" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}><AdminIcon name="menu" size={18}/></button><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div></div>
+          <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>Ctrl K</kbd></div>
           <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
         </header>
         <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
-          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p>{lastLoadedAt && <small className="ar-admin-freshness">Updated {lastLoadedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</small>}</div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
+          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span>{notice.type === 'error' && <button type="button" className="ar-admin-button secondary" onClick={load} disabled={loading || busy}>Retry</button>}</div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <section className="admin-stack">
       <section className="admin-card">
         <div className="admin-card-title">
@@ -826,48 +1079,90 @@ export default function AdminPanel({ onLogout }) {
             </div>
             <form onSubmit={saveChapter} className="admin-form">
               <div className="admin-form-grid">
-                <input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/>
-                <label><span>Language</span><select value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-                <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select>
-                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/>
-                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/>
-                <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label>
-                <label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label>
+                <input type="number" min="1" value={form.number} onChange={e => { setForm({ ...form, number: e.target.value }); setFormDirty(true); }} placeholder="Chapter number (optional)"/>
+                <label><span>Language</span><select value={form.language} onChange={e => { setForm({ ...form, language: e.target.value }); setFormDirty(true); }} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
+                <select value={form.status} onChange={e => { setForm({ ...form, status: e.target.value }); setFormDirty(true); }}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select>
+                <input value={form.title} onChange={e => { setForm({ ...form, title: e.target.value }); setFormDirty(true); }} placeholder="Chapter title" required className="wide"/>
+                <textarea value={form.description} onChange={e => { setForm({ ...form, description: e.target.value }); setFormDirty(true); }} placeholder="Description" rows="3" className="wide"/>
+                <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => { setForm({ ...form, releaseDate: e.target.value }); setFormDirty(true); }}/></label>
+                <label>Cover image<input type="file" accept="image/*" onChange={e => { setForm({ ...form, cover: e.target.files?.[0] || null }); setFormDirty(true); }}/></label>
               </div>
-              <label className="admin-dropzone">
-                <strong>Manga pages</strong>
-                <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
-                <input type="file" multiple accept="image/*" onChange={choosePages}/>
-                {form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}
-              </label>
+              <PageDropzone files={form.pages} onFiles={files => { setForm(value => ({ ...value, pages: files })); setFormDirty(true); }} onNotice={setNotice}/>
               {progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}
               <button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
             </form>
           </section>}
       {chapterPublishProject === 'atma' && <section className="admin-card">
         <div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div>
-        <div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'} · {chapterLanguageLabel(chapter.language)}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div>
-      </section>}
+        <div className="ar-admin-toolbar">
+          <div className="grow"><input value={chapterFilters.query} onChange={event => setChapterFilters(value => ({ ...value, query: event.target.value }))} placeholder="Search title, chapter, language…" aria-label="Search chapters"/></div>
+          <select className="ar-admin-filter" value={chapterFilters.status} onChange={event => setChapterFilters(value => ({ ...value, status: event.target.value }))} aria-label="Filter chapter status"><option value="all">All status</option><option value="published">Published</option><option value="scheduled">Scheduled</option><option value="pre-uploaded">Pre-uploaded</option><option value="draft">Draft</option></select>
+          <select className="ar-admin-filter" value={chapterFilters.language} onChange={event => setChapterFilters(value => ({ ...value, language: event.target.value }))} aria-label="Filter chapter language"><option value="all">All languages</option><option value="hi">Hindi</option><option value="en">English</option></select>
+          <select className="ar-admin-filter" value={chapterFilters.sort} onChange={event => setChapterFilters(value => ({ ...value, sort: event.target.value }))} aria-label="Sort chapters"><option value="number">Chapter number</option><option value="release">Release date</option><option value="title">Title</option></select>
+          {showSaveFilter ? <><input className="ar-admin-filter" value={savedFilterName} onChange={event => setSavedFilterName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') saveChapterFilter(); if (event.key === 'Escape') setShowSaveFilter(false); }} placeholder="Filter name" aria-label="Saved filter name"/><button type="button" className="ar-admin-filter" onClick={saveChapterFilter} disabled={!savedFilterName.trim()}>Save</button></> : <button type="button" className="ar-admin-filter" onClick={() => setShowSaveFilter(true)}>Save filter</button>}
+          {savedFilters.length > 0 && <select className="ar-admin-filter" defaultValue="" onChange={event => applyChapterFilter(event.target.value)} aria-label="Load saved filter"><option value="">Saved filters</option>{savedFilters.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}</select>}
+          <button type="button" className="ar-admin-filter" onClick={exportChaptersCsv} disabled={!chapterRows.length}>Export CSV</button>
+        </div>
+        {publishingQueue.length > 0 && <section className="ar-admin-queue"><div><span className="ar-kicker">PUBLISHING QUEUE</span><strong>{publishingQueue.length} staged chapters</strong></div><div className="ar-admin-queue-list">{publishingQueue.slice(0,6).map(chapter => <button type="button" key={chapter.id} className="ar-admin-queue-item" onClick={() => editChapter(chapter)}><span>{chapter.chapterNumber == null ? 'Unnumbered' : 'Ch. ' + chapter.chapterNumber}</span><strong>{chapter.title || 'Untitled'}</strong><em>{chapter.status || 'Draft'}{chapter.releaseDate ? ' · ' + new Date(chapter.releaseDate).toLocaleDateString('en-IN') : ''}</em></button>)}</div>{publishingQueue.length > 6 && <small>{publishingQueue.length - 6} more staged chapters</small>}</section>}
+        {selectedChapters.size > 0 && <div className="ar-admin-selection-bar"><strong>{selectedChapters.size} selected</strong><button type="button" onClick={() => bulkSetChapterStatus('Published')} disabled={busy}>Publish</button><button type="button" onClick={() => bulkSetChapterStatus('Draft')} disabled={busy}>Draft</button><button type="button" onClick={clearChapterSelection}>Clear</button></div>}
+        <div className="ar-admin-table-wrap">
+          <table className="ar-admin-table">
+            <thead><tr><th><input type="checkbox" checked={chapterRows.length > 0 && selectedChapters.size === chapterRows.length} onChange={toggleAllChapters} aria-label="Select all visible chapters"/></th><th>Chapter</th><th>Title</th><th>Language</th><th>Status</th><th>Pages</th><th>Release</th><th>Actions</th></tr></thead>
+            <tbody>
+              {chapterRows.map(chapter => {
+                const pageCount = pageCounts[chapter.id] || 0;
+                const status = String(chapter.status || 'Pre-uploaded').trim();
+                const statusKey = status.toLowerCase().replace(/[^a-z-]/g, '-');
+                return <tr key={chapter.id}>
+                  <td><input type="checkbox" checked={selectedChapters.has(chapter.id)} onChange={() => toggleChapter(chapter.id)} aria-label={'Select ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'unnumbered chapter')}/></td>
+                  <td className="primary-cell">{chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'Unnumbered'}</td>
+                  <td><strong>{chapter.title || 'Untitled chapter'}</strong>{!chapter.cover && <span className="ar-admin-warning"> · Missing cover</span>}{pageCount === 0 && <span className="ar-admin-warning"> · Missing pages</span>}</td>
+                  <td className="secondary-cell">{chapterLanguageLabel(chapter.language)}</td>
+                  <td><select className="ar-admin-status-select" value={status} onChange={event => updateChapterStatus(chapter, event.target.value)} disabled={busy} aria-label={'Change status for ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'chapter')}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select><span className={'ar-admin-status-pill ' + statusKey}>{status}</span></td>
+                  <td className="secondary-cell">{pageCount === 0 ? <span className="ar-admin-warning">0</span> : pageCount}</td>
+                  <td className="secondary-cell">{chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not available'}</td>
+                  <td><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></td>
+                </tr>;
+              })}
+              {!chapterRows.length && <tr><td colSpan="8"><div className="ar-admin-empty-state"><strong>No matching chapters</strong><span>Adjust the filters or create a new chapter.</span></div></td></tr>}
+            </tbody>
+          </table>
+        </div>      </section>}
     </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
-      <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
-      <div className="admin-report-list">{reports.map(report => {
+      <div className="admin-card-title"><div><span>MODERATION QUEUE</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
+      <div className="ar-admin-toolbar">
+        <select className="ar-admin-filter" value={reportFilters.status} onChange={event => setReportFilters(value => ({ ...value, status: event.target.value }))} aria-label="Filter reports by status"><option value="all">All reports</option><option value="open">Open</option><option value="reviewed">Reviewed</option><option value="resolved">Resolved</option></select>
+        <select className="ar-admin-filter" value={reportFilters.sort} onChange={event => setReportFilters(value => ({ ...value, sort: event.target.value }))} aria-label="Sort reports by age"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
+      </div>
+      {selectedReports.size > 0 && <div className="ar-admin-selection-bar"><strong>{selectedReports.size} selected</strong><button type="button" onClick={bulkResolveReports} disabled={busy}>Resolve selected</button><button type="button" onClick={clearReportSelection}>Clear</button></div>}
+      <div className="admin-report-list">{filteredReports.map(report => {
         const comment = commentById(report.comment_id);
         const status = report.status || 'open';
         return <article key={report.id}>
-          <div>
+          <div className="ar-report-main"><input type="checkbox" checked={selectedReports.has(report.id)} onChange={() => toggleReport(report.id)} aria-label="Select report"/><div>
             <span className="report-label">REPORT · {status}</span>
             <strong>{comment?.author_name || 'Reader'}</strong>
             <p>{comment?.content || 'Comment unavailable'}</p>
             <small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}{report.reviewed_at ? ' · reviewed ' + new Date(report.reviewed_at).toLocaleString('en-IN') : ''}</small>
-          </div>
+          </div></div>
           <div className="admin-row-actions">
+            {comment && <button type="button" onClick={() => setReportDrawer(report)} disabled={busy}>Context</button>}
             {comment && <button type="button" className="danger" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete comment</button>}
             {status === 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'reviewed')} disabled={busy}>Review</button>}
             {status !== 'resolved' && <button type="button" onClick={() => setReportStatus(report.id, 'resolved')} disabled={busy}>Resolve</button>}
             {status !== 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'open')} disabled={busy}>Reopen</button>}
           </div>
         </article>;
-      })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div>
+      })}{!filteredReports.length && <p className="muted center">No reports match these filters.</p>}</div>
+      {reportDrawer && <div className="ar-admin-command-palette-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setReportDrawer(null); }}>
+        <aside className="ar-admin-confirm-modal" role="dialog" aria-modal="true" aria-label="Report context">
+          <span className="ar-kicker">REPORT CONTEXT</span>
+          <h2>{commentById(reportDrawer.comment_id)?.author_name || 'Reader'}</h2>
+          <p>{commentById(reportDrawer.comment_id)?.content || 'Comment unavailable'}</p>
+          <p className="ar-admin-shortcut-help">{reportDrawer.reason || 'Reported by reader'} · {commentById(reportDrawer.comment_id)?.announcement_id ? 'Announcement' : chapterName(commentById(reportDrawer.comment_id)?.chapter_id)}</p>
+          <div className="ar-admin-modal-actions"><button type="button" className="ar-admin-button secondary" onClick={() => setReportDrawer(null)}>Close</button></div>
+        </aside>
+      </div>}
     </section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
@@ -898,5 +1193,33 @@ export default function AdminPanel({ onLogout }) {
         </div>
       </div>
     </div>
+
+    {commandOpen && <div className="ar-admin-command-palette-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setCommandOpen(false); }}>
+      <section className="ar-admin-command-palette" role="dialog" aria-modal="true" aria-label="Admin command palette">
+        <div className="ar-admin-command-palette-head"><AdminIcon name="search" size={17}/><input autoFocus value={commandQuery} onChange={event => setCommandQuery(event.target.value)} placeholder="Search commands…" aria-label="Search commands"/></div>
+        <div className="ar-admin-command-list">
+          {[
+            ...tabs.map(item => ({ label: 'Open ' + navLabel(item), hint: 'Section', run: () => { setCommandOpen(false); activateTab(item); } })),
+            { label: 'New chapter', hint: 'Publish', run: () => { setCommandOpen(false); setChapterPublishProject('atma'); resetForm(); setTab('Chapters'); } },
+            { label: 'Refresh admin data', hint: 'Data', run: () => { setCommandOpen(false); load(); } },
+            { label: 'Open reports', hint: 'Moderation', run: () => { setCommandOpen(false); activateTab('Reports'); } }
+          ].filter(item => item.label.toLowerCase().includes(commandQuery.trim().toLowerCase())).map(item => <button key={item.label} type="button" className="ar-admin-command-item" onClick={item.run}><span>{item.label}</span><small>{item.hint}</small></button>)}
+        </div>
+        <div className="ar-admin-command-hint">Tab to a command · Enter runs it · Esc closes</div>
+      </section>
+    </div>}
+
+    {shortcutHelpOpen && <div className="ar-admin-command-palette-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShortcutHelpOpen(false); }}>
+      <section className="ar-admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="ar-admin-shortcuts-title">
+        <h2 id="ar-admin-shortcuts-title">Keyboard shortcuts</h2>
+        <div className="ar-admin-shortcut-help"><p><kbd>Ctrl / Cmd + K</kbd> Open command palette</p><p><kbd>?</kbd> Open this help</p><p><kbd>Esc</kbd> Close dialogs</p></div>
+        <div className="ar-admin-modal-actions"><button type="button" className="ar-admin-button secondary" onClick={() => setShortcutHelpOpen(false)}>Close</button></div>
+      </section>
+    </div>}
+
   </main>;
+}
+
+export default function AdminPanel({ onLogout }) {
+  return <AdminPanelContent onLogout={onLogout}/>;
 }

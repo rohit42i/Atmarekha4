@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { useAdminUI } from './AdminUIProvider.jsx';
 
 const LIMIT = 250;
 const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_chat_reads'];
@@ -15,6 +16,7 @@ async function verifyAdmin() {
 }
 
 export default function AdminGroupChatTools() {
+  const { requestConfirm } = useAdminUI();
   const [user, setUser] = useState(null), [isAdmin, setIsAdmin] = useState(false), [open, setOpen] = useState(false), [nav, setNav] = useState(null);
   const [tab, setTab] = useState('messages'), [messages, setMessages] = useState([]), [profiles, setProfiles] = useState({});
   const [search, setSearch] = useState(''), [authorFilter, setAuthorFilter] = useState('all'), [sort, setSort] = useState('newest');
@@ -78,8 +80,8 @@ export default function AdminGroupChatTools() {
       setDeleting(false);
     }
   };
-  const deleteOne=async m=>{if(window.confirm('Delete this message permanently? This cannot be undone.'))await deleteIds([m.id]);};
-  const deleteSelected=async()=>{const ids=[...selected];if(ids.length&&window.confirm(`Delete ${ids.length} selected message${ids.length===1?'':'s'} permanently?`))await deleteIds(ids);};
+  const deleteOne=async m=>{const ok=await requestConfirm({title:'Delete message',message:'Delete this message permanently? This cannot be undone.',confirmLabel:'Delete message',danger:true});if(ok)await deleteIds([m.id]);};
+  const deleteSelected=async()=>{const ids=[...selected];if(!ids.length)return;const ok=await requestConfirm({title:'Delete selected messages',message:`Delete ${ids.length} selected message${ids.length===1?'':'s'} permanently?`,confirmLabel:'Delete messages',danger:true});if(ok)await deleteIds(ids);};
   if(!isAdmin)return null;
 
   const button = nav && createPortal(<button type="button" className="ar-gcm-nav-tab" onClick={()=>setOpen(true)} aria-label="Open group chat moderation">Group Chat</button>, nav);
