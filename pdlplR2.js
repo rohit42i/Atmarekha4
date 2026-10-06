@@ -67,22 +67,22 @@ function createMediaError(path, response, body) {
 }
 
 async function request(path, options = {}, retried = false) {
+  const method = String(options.method || 'GET').toUpperCase();
+  const url = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
   const headers = {
     ...(options.headers || {}),
     ...(await authHeaders({ refresh: retried })),
   };
 
-  const requestUrl = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
   let response;
   try {
-    response = await fetch(requestUrl, { ...options, headers });
+    response = await fetch(url, { ...options, headers });
   } catch (error) {
-    const wrapped = new Error(error?.message || 'Network request to the PDPKL media worker failed.');
-    wrapped.name = error?.name || 'NetworkError';
-    wrapped.code = 'NETWORK';
-    wrapped.path = path;
-    wrapped.url = requestUrl;
-    throw wrapped;
+    const networkError = new Error(`Cloudflare R2 ${method} request failed: ${error?.message || error}`);
+    networkError.name = error?.name || 'NetworkError';
+    networkError.path = path;
+    networkError.url = url;
+    throw networkError;
   }
 
   if (response.ok) return response;
@@ -92,7 +92,14 @@ async function request(path, options = {}, retried = false) {
   }
 
   const body = await response.text().catch(() => '');
-  throw createMediaError(path, response, body);
+  const failure = new Error(`Cloudflare R2 ${method} request failed (HTTP ${response.status}) for "${path}": ${parseError(body, response.status)}`);
+  failure.name = 'PdlplMediaHttpError';
+  failure.status = response.status;
+  failure.statusText = response.statusText;
+  failure.path = path;
+  failure.url = url;
+  failure.responseBody = body;
+  throw failure;
 }
 
 export async function fetchPdlplMedia(path, { signal } = {}) {
