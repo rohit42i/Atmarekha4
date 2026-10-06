@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
 import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
+import { fetchCloudflareAdminAnalytics } from './engagement';
 
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const SITE_TIME_ZONE = 'Asia/Kolkata';
@@ -33,20 +34,23 @@ export default function AdminOperations() {
   const load = async () => {
     try {
       await requireAdmin();
-      const [chapterResult, archivedResult, logResult, notificationResult, profileResult, statsResult, viewResult, likeResult] = await Promise.all([
+      const [chapterResult, archivedResult, logResult, notificationResult, profileResult, statsResult, cloudflareAnalytics, likeResult] = await Promise.all([
         supabase.from('chapters').select('id,chapter_number,title,description,status,release_date,cover_url,deleted_at,deleted_previous_status,created_at').order('chapter_number', { ascending: true, nullsFirst: false }),
         supabase.from('chapters').select('id,chapter_number,title,status,deleted_at,deleted_previous_status').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }),
         supabase.from('admin_activity_log').select('id,action,entity_type,entity_id,details,created_at').order('created_at', { ascending: false }).limit(50),
         supabase.from('admin_notification_log').select('id,title,body,target,target_count,sent_count,failed_count,removed_count,status,scheduled_for,sent_at,created_at,error').order('created_at', { ascending: false }).limit(50),
         supabase.from('profiles').select('id,username,display_name').order('display_name', { ascending: true, nullsFirst: false }).limit(250),
         supabase.functions.invoke('get-admin-user-stats'),
-        supabase.from('chapter_views').select('viewer_key,created_at').gte('created_at', todayStart()),
+        fetchCloudflareAdminAnalytics(1).catch(() => null),
         supabase.from('chapter_likes').select('id,created_at').gte('created_at', todayStart()),
       ]);
       for (const result of [chapterResult, archivedResult, logResult, notificationResult, profileResult, viewResult, likeResult]) if (result.error) throw result.error;
       if (statsResult.error) throw statsResult.error;
-      const viewRows = viewResult.data || [];
-      setToday({ views: viewRows.length, readers: new Set(viewRows.map(row => row.viewer_key).filter(Boolean)).size, likes: (likeResult.data || []).length });
+      setToday({
+        views: Number(cloudflareAnalytics?.current_views || 0),
+        readers: Number(cloudflareAnalytics?.active_readers || 0),
+        likes: (likeResult.data || []).length,
+      });
       setSubscriberCount(Number(statsResult.data?.notification_users || 0));
       setChapters(chapterResult.data || []); setDeleted(archivedResult.data || []); setLogs(logResult.data || []); setNotifications(notificationResult.data || []); setUsers(profileResult.data || []);
       setFailures((logResult.data || []).filter(row => /fail|error/i.test(String(row.action || '')) || row.details?.error));
