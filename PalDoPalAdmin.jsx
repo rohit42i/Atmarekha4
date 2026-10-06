@@ -71,6 +71,10 @@ function diagnosticFromError(stage, error, extra = {}) {
     details: source.details || '',
     hint: source.hint || '',
     name: source.name || '',
+    statusText: source.statusText || '',
+    path: source.path || '',
+    url: source.url || '',
+    responseBody: source.responseBody || '',
     ...extra,
   };
 }
@@ -292,12 +296,14 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
 
+      stage = 'Preparing status change';
       const requestedStatus = String(status || '').trim();
       const releaseDate = String(requestedStatus).toLowerCase() === 'published'
         ? (chapter.releaseDate || null)
         : null;
 
       statusStage = 'Publishing status through Supabase';
+      stage = 'Saving chapter status in Supabase';
       const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
         p_chapter_id: chapter.id,
         p_status: requestedStatus,
@@ -310,6 +316,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         throw new Error('PDPKL status verification failed. The chapter was not saved.');
       }
 
+      stage = 'Refreshing and verifying chapter status';
       await logAdminAction(user, 'change_pdlpl_status', 'pdlpl_chapter', chapter.id, {
         from: chapter.status,
         to: saved.status,
@@ -364,7 +371,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     let pagesCommitted = false;
     const wasEditing = Boolean(editing);
     let adminUser = null;
-    let currentStage = 'Starting upload';
+    let stage = 'Starting upload';
     let requestedStatus = String(form.status || '').trim();
 
     try {
@@ -400,7 +407,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       chapterId = chapterId || window.crypto?.randomUUID?.();
       if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
-      currentStage = 'Saving chapter metadata';
+      stage = 'Saving chapter metadata';
       stage = 'Saving chapter metadata to Supabase';
       setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
       const { data: savedRows, error: metadataError } = await supabase.rpc('pdlpl_upsert_chapter', {
@@ -422,7 +429,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setSelectedId(chapterId);
       if (form.cover) {
         stage = 'Uploading cover image to Cloudflare R2';
-        currentStage = 'Uploading cover to Cloudflare R2';
+        stage = 'Uploading cover to Cloudflare R2';
         setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
         pendingCoverPath = coverPath(chapterId, form.cover);
         await uploadPdlplFile(form.cover, pendingCoverPath);
@@ -431,7 +438,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       if (form.pages.length) {
         stage = 'Uploading manga pages to Cloudflare R2';
-        currentStage = 'Uploading manga pages to Cloudflare R2';
+        stage = 'Uploading manga pages to Cloudflare R2';
         const revision = Date.now();
         const rows = [];
         setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
@@ -449,7 +456,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
           });
         }
 
-        currentStage = 'Saving manga page records in Supabase';
+        stage = 'Saving manga page records in Supabase';
         setProgress({ current: form.pages.length, total: form.pages.length, text: 'Saving manga page records…' });
         stage = 'Saving page records to Supabase';
         const { error: pageSaveError } = await supabase.rpc('pdlpl_replace_chapter_pages', {
@@ -481,7 +488,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       if (pendingCoverPath) {
         stage = 'Saving cover reference to Supabase';
-        currentStage = 'Saving cover path in Supabase';
+        stage = 'Saving cover path in Supabase';
         setProgress({ current: 0, total: 0, text: 'Saving cover path in Supabase…' });
         const { error: coverSaveError } = await supabase
           .from(PDLPL_CHAPTERS)
@@ -505,7 +512,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       if (isPublishing) {
         stage = 'Publishing chapter through Supabase RPC';
-        currentStage = 'Publishing chapter with Supabase';
+        stage = 'Publishing chapter with Supabase';
         setProgress({ current: 0, total: 0, text: 'Publishing chapter…' });
         const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
           p_chapter_id: chapterId,
@@ -520,7 +527,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
-      currentStage = 'Verifying saved chapter';
+      stage = 'Verifying saved chapter';
       setProgress({ current: 0, total: 0, text: 'Verifying saved chapter…' });
       stage = 'Verifying final chapter state in Supabase';
       const { data: verifiedChapter, error: verifyError } = await supabase
@@ -965,7 +972,11 @@ export default function PalDoPalAdmin({ embedded = false }) {
               {diagnostic.details && <div className="wide"><span>Details</span><strong>{diagnostic.details}</strong></div>}
               {diagnostic.hint && <div className="wide"><span>Hint</span><strong>{diagnostic.hint}</strong></div>}
               {diagnostic.name && <div><span>Error type</span><strong>{diagnostic.name}</strong></div>}
+              {diagnostic.statusText && <div><span>HTTP status</span><strong>{diagnostic.statusText}</strong></div>}
               {diagnostic.chapterId && <div className="wide"><span>Chapter ID</span><strong>{diagnostic.chapterId}</strong></div>}
+              {diagnostic.path && <div className="wide"><span>Path</span><strong>{diagnostic.path}</strong></div>}
+              {diagnostic.url && <div className="wide"><span>URL</span><strong>{diagnostic.url}</strong></div>}
+              {diagnostic.responseBody && <div className="wide"><span>Raw response</span><strong>{diagnostic.responseBody}</strong></div>}
               {diagnostic.uploadedPaths?.length > 0 && <div className="wide"><span>Uploaded paths before failure</span><strong>{diagnostic.uploadedPaths.join(' | ')}</strong></div>}
             </div>
           </section>
