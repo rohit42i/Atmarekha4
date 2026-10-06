@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel } from './chapters';
+import { useAdminUI } from './AdminUIProvider.jsx';
 
 const PAGES = 'chapter_pages';
 const BUCKET = 'chapter-pages';
@@ -40,6 +41,7 @@ async function logAdminAction(user, action, entityType, entityId = null, details
 }
 
 export default function AdminChapterPages({ chapters }) {
+  const { requestConfirm } = useAdminUI();
   const [chapterId, setChapterId] = useState(chapters?.[0]?.id || '');
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -176,7 +178,9 @@ export default function AdminChapterPages({ chapters }) {
   };
 
   const deletePage = async page => {
-    if (busyId || !window.confirm('Delete page ' + page.page_number + '? This cannot be undone.')) return;
+    if (busyId) return;
+    const ok = await requestConfirm({ title: 'Delete page', message: 'Delete page ' + page.page_number + '? This cannot be undone.', confirmLabel: 'Delete page', danger: true });
+    if (!ok) return;
     setBusyId(page.id);
     setNotice('');
     let adminUser = null;
