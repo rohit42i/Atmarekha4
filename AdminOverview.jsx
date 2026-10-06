@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from './supabase';
-import { fetchCloudflareAdminAnalytics, getPublicReaderTiers } from './engagement';
+import { supabase, getPublicReaderTiers } from './supabase';
+import { fetchCloudflareAdminAnalytics } from './engagement';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-ui.jsx';
 
