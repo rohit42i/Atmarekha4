@@ -518,3 +518,49 @@ main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button:hover{
   .pdlpl-primary{background:#fff!important;color:#000!important;border-color:#fff!important}
   .pdlpl-secondary{background:#000!important;color:#fff!important;border-color:#fff!important}
 }
+/* PDPL embedded publisher parity with Atma Rekha upload controls. */
+main.admin-page.ar-admin-v3 .pdlpl-form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+main.admin-page.ar-admin-v3 .pdlpl-form-grid label{
+  display:grid;
+  gap:6px;
+}
+main.admin-page.ar-admin-v3 .pdlpl-form-grid .pdlpl-field-wide{
+  grid-column:1/-1;
+}
+main.admin-page.ar-admin-v3 .pdlpl-dropzone{
+  display:grid;
+  gap:6px;
+  position:relative;
+  padding:14px;
+  border:1px dashed var(--admin-border);
+  border-radius:12px;
+  background:var(--admin-surface);
+  color:var(--admin-text);
+  cursor:pointer;
+}
+main.admin-page.ar-admin-v3 .pdlpl-dropzone span{
+  color:var(--admin-muted);
+  font-size:11px;
+  line-height:1.45;
+}
+main.admin-page.ar-admin-v3 .pdlpl-dropzone em{
+  color:var(--admin-text);
+  font-size:11px;
+  font-style:normal;
+  font-weight:800;
+}
+main.admin-page.ar-admin-v3 .pdlpl-dropzone input{
+  cursor:pointer;
+}
+@media(max-width:640px){
+  main.admin-page.ar-admin-v3 .pdlpl-form-grid{
+    grid-template-columns:1fr;
+  }
+  main.admin-page.ar-admin-v3 .pdlpl-form-grid .pdlpl-field-wide{
+    grid-column:auto;
+  }
+}
