@@ -339,7 +339,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         throw new Error('PDPKL status verification failed. The chapter was not saved.');
       }
 
-      stage = 'Refreshing and verifying chapter status';
+      currentStage = 'Refreshing and verifying chapter status';
       await logAdminAction(user, 'change_pdlpl_status', 'pdlpl_chapter', chapter.id, {
         from: chapter.status,
         to: saved.status,
