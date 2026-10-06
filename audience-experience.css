@@ -396,3 +396,66 @@ body:has(.reader-page) .reader-performance-image {
     object-fit: contain !important;
   }
 }
+
+
+/* Final Search + Language controls: single outer border, full-area controls, theme-correct text. */
+.chapter-discovery > label:not(.chapter-language) {
+  color: #000 !important;
+  border: 1px solid #000 !important;
+  background: #fff !important;
+  cursor: text;
+}
+.chapter-discovery > label:not(.chapter-language) input,
+.chapter-discovery > label:not(.chapter-language) input:focus {
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+.chapter-discovery > label:not(.chapter-language) input::placeholder {
+  color: #000 !important;
+  opacity: .55 !important;
+}
+.chapter-discovery .chapter-language {
+  position: relative;
+  color: #000 !important;
+  border: 1px solid #000 !important;
+  background: #fff !important;
+  cursor: pointer;
+}
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-language select:focus,
+.chapter-discovery .chapter-language select:hover {
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  cursor: pointer;
+}
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) {
+  color: #fff !important;
+  border-color: #fff !important;
+  background: #050505 !important;
+}
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input,
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input:focus,
+html[data-theme="dark"] .chapter-discovery > label:not(.chapter-language) input::placeholder,
+html[data-theme="dark"] .chapter-discovery .chapter-language,
+html[data-theme="dark"] .chapter-discovery .chapter-language > span,
+html[data-theme="dark"] .chapter-discovery .chapter-language select,
+html[data-theme="dark"] .chapter-discovery .chapter-language select:focus,
+html[data-theme="dark"] .chapter-discovery .chapter-language select:hover {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language {
+  border-color: #fff !important;
+  background: #050505 !important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language select {
+  border: 0 !important;
+  background: transparent !important;
+}
