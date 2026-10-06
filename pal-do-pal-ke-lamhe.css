@@ -272,7 +272,7 @@ main:has(.admin-header-card) .pdlpl-admin-embedded .pdlpl-admin-card-head{
   letter-spacing:-.025em!important;
 }
 .chapter-list-heading>span{display:none!important}
-.chapter-language{
+.pdlpl-page-list .chapter-language{
   display:flex!important;
   align-items:center!important;
   gap:8px!important;
@@ -280,13 +280,13 @@ main:has(.admin-header-card) .pdlpl-admin-embedded .pdlpl-admin-card-head{
   border:0!important;
   color:#000!important;
 }
-.chapter-language span{
+.pdlpl-page-list .chapter-language span{
   color:#000!important;
   font-size:8px!important;
   font-weight:900!important;
   letter-spacing:.12em!important;
 }
-.chapter-language select{
+.pdlpl-page-list .chapter-language select{
   min-height:34px!important;
   padding:0 10px!important;
   border:1px solid #000!important;
@@ -457,8 +457,8 @@ main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button:hover{
 @media(max-width:640px){
   .chapter-list-section{width:calc(100% - 20px)!important}
   .chapter-list-heading{align-items:stretch!important;flex-direction:column!important;gap:11px!important}
-  .chapter-language{justify-content:space-between!important}
-  .chapter-language select{flex:1!important;max-width:180px!important}
+  .pdlpl-page-list .chapter-language{justify-content:space-between!important}
+  .pdlpl-page-list .chapter-language select{flex:1!important;max-width:180px!important}
   .chapter-list .chapter-row{min-height:82px!important}
   .chapter-list .chapter-row-main{padding:14px 13px!important}
   .chapter-list .chapter-row-title h2{font-size:16px!important}
@@ -473,10 +473,10 @@ main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button:hover{
   .chapter-list-page .header-kicker,
   .chapter-list-page .chapter-list-subtitle,
   .chapter-list-heading p,
-  .chapter-language,
-  .chapter-language span,
-  .chapter-language select{color:#fff!important}
-  .chapter-language select{
+  .pdlpl-page-list .chapter-language,
+  .pdlpl-page-list .chapter-language span,
+  .pdlpl-page-list .chapter-language select{color:#fff!important}
+  .pdlpl-page-list .chapter-language select{
     background:#000!important;
     color:#fff!important;
     border-color:#fff!important;
