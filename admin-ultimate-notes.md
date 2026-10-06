@@ -18,42 +18,35 @@ Implemented visual/UX goals:
 - Cleaner active navigation indicator
 - Responsive-safe visual rules
 
+## Studio v1 shipped in this pass
+
+The current main branch now has a single admin Studio token/core layer plus reusable React primitives. The following backlog items are implemented without new schema/RPC dependencies:
+- Global command palette (Ctrl/Cmd+K) with chapters, readers, comments, tools, and quick actions
+- Keyboard shortcuts with visible hints and lightweight feedback
+- Power-user chapter table: multi-select, bulk publish/unpublish, saved filters, column visibility, sticky header, recovery empty states
+- Chapter status/language filters, missing-page detection, and existing 30-day analytics performance signal
+- Moderation severity classification, severity/age sorting, context drawer, and existing user moderation profile summary
+- Mobile triage bottom navigation and responsive admin shell
+- Confirmation gate for new bulk destructive/reversible operations; existing destructive flows retain their prior confirmation gates
+- Data freshness indicator and existing error/diagnostic notice paths
+- Keyboard focus management, ARIA roles/labels, focus rings, and reduced-motion support
+- Existing command/event names remain compatible, including `atma-admin-open-command` and the other admin tool events
+
 Feature backlog for subsequent safe iterations:
-1. Global command palette
-2. Keyboard shortcuts
-3. Saved admin filters
-4. Reader drill-down drawer
-5. Chapter performance view
-6. Publishing queue
-7. Draft/published status filters
-8. Bulk chapter operations
-9. Asset health inspector
-10. Missing-page detection
-11. Community queue
-12. Comment triage queue
-13. Moderation severity filters
-14. Moderation age sorting
-15. Report context drawer
-16. User warning history
-17. Membership tier filter
-18. User activity timeline
-19. Group-chat health panel
-20. Storage usage view
-21. Bandwidth view when a verified provider metric exists
-22. Admin audit trail after schema verification
-23. Data freshness indicators
-24. Error-state diagnostics
-25. Export actions where supported
-26. Empty-state recovery actions
-27. Optimistic UI only for reversible local interactions
-28. Confirmation gates for destructive actions
-29. Accessibility checks
-30. Mobile triage mode
-31. Reader growth trend
-32. Chapter engagement trend
-33. Community activity trend
-34. Release calendar
-35. System health history
-36. Admin session/security status
+1. Reader drill-down drawer
+2. Full chapter performance analytics surface
+3. Publishing queue / release calendar
+4. Asset health inspector
+5. Membership tier and user activity filters
+6. Group-chat health panel
+7. Verified storage usage view
+8. Verified bandwidth view when a provider metric exists
+9. Expanded admin audit trail after schema/RLS review
+10. Export actions where supported
+11. Reader growth, chapter engagement, and community activity trend views
+12. System health history
+13. Admin session/security status
+14. Full warning-history timeline if an authoritative history source is added
+15. Stronger server-backed moderation severity taxonomy if moderation policy is formalized
 
 Do not implement unavailable metrics with placeholders presented as real data. Do not invent columns. Any new database table or RPC must be reviewed against the actual schema and protected with RLS/grants before use.
