@@ -24,3 +24,26 @@
 .membership-plan{min-height:205px;padding:13px;border-radius:16px}.membership-plan-top{align-items:flex-start}.membership-plan-top>div{min-width:0;flex:1}.membership-plan-icon{margin-left:auto;width:32px;height:32px;font-size:17px}.membership-plan h2{margin:0;font-size:21px}.membership-plan-access{margin:4px 0 0;padding:0;background:transparent;font-size:8px;color:#92929a}.membership-plan-description,.membership-plan-kicker{display:none}.membership-plan ul{margin:6px 0 7px;gap:3px}.membership-plan ul li{font-size:9.5px}.membership-free-note{margin-top:8px}.membership-access-note{display:none!important}
 @media(max-width:1050px){.membership-plan{min-height:205px}}
 @media(max-width:620px){.membership-plan{min-height:185px;padding:12px}.membership-plan-icon{width:30px;height:30px;font-size:15px}.membership-plan h2{font-size:19px}.membership-plan-access{font-size:7.5px}.membership-plan ul{font-size:9px;margin:5px 0 6px}.membership-plan ul li{font-size:9px}}
+
+/* Premium compact card refinement */
+.membership-plan{min-height:0;padding:14px 14px 12px;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));box-shadow:0 14px 34px rgba(0,0,0,.14)}
+.membership-plan-top{min-height:36px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.membership-plan-top h2{margin:0;max-width:calc(100% - 43px);font-size:20px;line-height:1.02}
+.membership-plan-icon{order:2;width:32px;height:32px;border-radius:9px;font-size:16px}
+.membership-plan-kicker,.membership-plan-description{display:none}
+.membership-plan-access{margin:5px 0 0;padding:0;background:none!important;color:#8f8f98!important;font-size:8.5px;font-weight:650;line-height:1.2;min-height:0}
+.membership-price{margin:6px 0 0;font-size:29px}
+.membership-plan ul{margin:7px 0 8px;gap:3px;font-size:9.5px;line-height:1.08}
+.membership-button{min-height:34px;border-radius:9px}
+.membership-plan.is-popular{box-shadow:0 16px 38px rgba(217,70,239,.13)}
+@media(max-width:1050px){.membership-plan{min-height:0}}
+@media(max-width:620px){
+ .membership-plan{flex-basis:205px;width:205px;min-height:0;padding:11px 11px 10px;border-radius:14px}
+ .membership-plan-top{min-height:31px}
+ .membership-plan-top h2{font-size:18px}
+ .membership-plan-icon{width:29px;height:29px;font-size:14px}
+ .membership-plan-access{font-size:7.5px;margin-top:4px}
+ .membership-price{font-size:26px;margin-top:5px}
+ .membership-plan ul{font-size:8.5px;margin:5px 0 6px;gap:2px}
+ .membership-button{min-height:31px;font-size:9px}
+}
