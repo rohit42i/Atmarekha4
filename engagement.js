@@ -1,6 +1,56 @@
 import { supabase } from './supabase';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
+const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
+const VIEW_RECORDED_STORAGE = 'atma-rekha-view-recorded-v2';
+
+function viewRecordKey(chapterId) {
+  return `${VIEW_RECORDED_STORAGE}:${String(chapterId || '')}`;
+}
+
+function wasViewRecorded(chapterId) {
+  if (typeof window === 'undefined') return false;
+  try { return window.localStorage.getItem(viewRecordKey(chapterId)) === '1'; } catch (_) { return false; }
+}
+
+function markViewRecorded(chapterId) {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(viewRecordKey(chapterId), '1'); } catch (_) {}
+}
+
+async function analyticsRequest(path, options = {}) {
+  const response = await fetch(`${ANALYTICS_WORKER_URL}${path}`, {
+    ...options,
+    headers: {
+      Accept: 'application/json',
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(body || `Analytics request failed (${response.status}).`);
+  }
+  return response.json();
+}
+
+export async function fetchCloudflareViews(chapterIds = []) {
+  const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
+  if (!ids.length) return {};
+  return analyticsRequest(`/v1/views?chapterIds=${encodeURIComponent(ids.join(','))}`);
+}
+
+export async function fetchCloudflareAdminAnalytics(days = 30) {
+  const value = Number(days);
+  if (![1, 7, 30, 90].includes(value)) throw new Error('Analytics period must be 1, 7, 30 or 90 days.');
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  const token = sessionData?.session?.access_token;
+  if (!token) throw new Error('Admin session required.');
+  return analyticsRequest(`/v1/admin/analytics?days=${value}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
 
 export function getViewerKey() {
   if (typeof window === 'undefined') return 'server-viewer-key';
@@ -21,10 +71,13 @@ const emptyChapterStats = () => ({ rating: { average: 0, count: 0 }, views: 0, l
 export async function fetchPublicEngagement(chapterIds) {
   const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
   if (!ids.length) return {};
-  const { data, error } = await supabase
-    .from('chapter_engagement_summary')
-    .select('chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count')
-    .in('chapter_id', ids);
+  const [{ data, error }, cloudflareViews] = await Promise.all([
+    supabase
+      .from('chapter_engagement_summary')
+      .select('chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count')
+      .in('chapter_id', ids),
+    fetchCloudflareViews(ids).catch(() => ({})),
+  ]);
   if (error) throw error;
   const rows = data || [];
   return Object.fromEntries(ids.map(id => {
@@ -33,7 +86,7 @@ export async function fetchPublicEngagement(chapterIds) {
     const sum = Number(row?.ratings_sum) || 0;
     return [id, {
       rating: { average: count ? sum / count : 0, count },
-      views: Number(row?.views_count) || 0,
+      views: Number(cloudflareViews?.[id] ?? row?.views_count ?? 0) || 0,
       likes: Number(row?.likes_count) || 0,
       comments: Number(row?.comments_count) || 0,
       pages: Number(row?.pages_count) || 0,
@@ -43,17 +96,20 @@ export async function fetchPublicEngagement(chapterIds) {
 
 export async function fetchChapterEngagement(chapterId) {
   if (!chapterId) return emptyChapterStats();
-  const { data, error } = await supabase
-    .from('chapter_engagement_summary')
-    .select('chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count')
-    .eq('chapter_id', chapterId)
-    .maybeSingle();
+  const [{ data, error }, cloudflareViews] = await Promise.all([
+    supabase
+      .from('chapter_engagement_summary')
+      .select('chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count')
+      .eq('chapter_id', chapterId)
+      .maybeSingle(),
+    fetchCloudflareViews([chapterId]).catch(() => ({})),
+  ]);
   if (error) throw error;
   const count = Number(data?.ratings_count) || 0;
   const sum = Number(data?.ratings_sum) || 0;
   return {
     rating: { average: count ? sum / count : 0, count },
-    views: Number(data?.views_count) || 0,
+    views: Number(cloudflareViews?.[chapterId] ?? data?.views_count ?? 0) || 0,
     likes: Number(data?.likes_count) || 0,
     comments: Number(data?.comments_count) || 0,
     pages: Number(data?.pages_count) || 0,
@@ -208,13 +264,27 @@ export async function recordChapterShare(chapterId) {
 
 export async function recordChapterView(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (wasViewRecorded(chapterId)) return { recorded: false, duplicate: true };
   const viewerKey = getViewerKey();
-  const { error } = await supabase.from('chapter_views').insert({
-    chapter_id: chapterId,
-    viewer_key: viewerKey,
-  });
-  if (error && error.code !== '23505') throw error;
-  return { recorded: !error };
+  try {
+    await analyticsRequest('/v1/view', {
+      method: 'POST',
+      body: JSON.stringify({ chapterId, viewerKey }),
+    });
+    markViewRecorded(chapterId);
+    return { recorded: true };
+  } catch (analyticsError) {
+    // Transitional fallback: retain the legacy Supabase write until the
+    // migration is completed. After the legacy insert policy is removed,
+    // this fails silently in the existing reader error handler.
+    const { error } = await supabase.from('chapter_views').insert({
+      chapter_id: chapterId,
+      viewer_key: viewerKey,
+    });
+    if (error && error.code !== '23505') throw analyticsError;
+    markViewRecorded(chapterId);
+    return { recorded: !error, fallback: true };
+  }
 }
 
 export async function likeChapter(chapterId) {
