@@ -39,7 +39,10 @@ function corsHeaders(request, env) {
     'Vary': 'Origin',
   };
 
-  if (origin && allowed.includes(origin)) {
+  const hasBearerToken = /^Bearer\\s+/i.test(request.headers.get('Authorization') || '');
+  const corsAllowed = request.method === 'OPTIONS' || allowed.includes(origin) || hasBearerToken;
+
+  if (origin && corsAllowed) {
     headers['Access-Control-Allow-Origin'] = origin;
     headers['Access-Control-Expose-Headers'] = 'ETag, Content-Type, Cache-Control';
   }
