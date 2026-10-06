@@ -3,7 +3,6 @@ import PalDoPalAdmin from './PalDoPalAdmin.jsx';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
-import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminButton, AdminCard, AdminEmptyState, AdminModal, AdminTable } from './admin-studio-ui.jsx';
 
 const FILTER_KEY = 'atma-admin-studio:chapter-filters';
