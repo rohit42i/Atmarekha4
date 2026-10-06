@@ -261,7 +261,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     try {
       const revision = Date.now();
       for (let i = 0; i < files.length; i += 1) {
-        stage = 'Uploading page ' + (i + 1) + ' of ' + files.length + ' to Cloudflare R2';
+        stage = 'Uploading page ' + (i + 1) + ' (' + files[i].name + ') of ' + files.length + ' to Cloudflare R2';
         const path = pagePath(selectedChapter.id, revision, files[i], i);
         await uploadPdlplFile(files[i], path);
         uploaded.push(path);
@@ -283,12 +283,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setNotice(files.length + ' page' + (files.length === 1 ? '' : 's') + ' added to ' + label(selectedChapter) + '.');
     } catch (error) {
       const cleanupErrors = [];
-      setDiagnostic(diagnosticFromError(stage, error, {
-        chapterId: selectedChapter?.id,
-        mode: 'Add pages',
-        pageCount: files.length,
-        uploadedPaths: uploaded,
-      }));
       if (!databaseCommitted) {
         for (const uploadedPath of uploaded) {
           try { await removePdlplFiles([uploadedPath]); }
@@ -405,7 +399,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       adminUser = user;
 
       currentStage = 'Validating chapter form';
-      currentStage = 'Validating chapter form';
       const rawNumber = String(form.number || '').trim();
       const number = rawNumber === '' ? null : Number(rawNumber);
       if (number !== null && (!Number.isInteger(number) || number < 1)) throw new Error('Enter a valid chapter number.');
@@ -456,7 +449,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setSelectedId(chapterId);
       if (form.cover) {
         currentStage = 'Uploading cover to Cloudflare R2';
-        currentStage = 'Uploading cover to Cloudflare R2';
         setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
         pendingCoverPath = coverPath(chapterId, form.cover);
         await uploadPdlplFile(form.cover, pendingCoverPath);
@@ -471,6 +463,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
+          currentStage = 'Uploading page ' + (i + 1) + ' (' + file.name + ') to Cloudflare R2';
           const path = 'chapters/' + chapterId + '/pages/' + language + '-' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + safeExt(file);
           await uploadPdlplFile(file, path);
           uploaded.push(path);
