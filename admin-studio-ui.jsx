@@ -75,6 +75,11 @@ export function AdminEmptyState({ icon = 'pulse', title, description, action }) 
 export function AdminModal({ open, onClose, title, description, children, footer, initialFocusRef, className = '' }) {
   const panelRef = useRef(null);
   const restoreRef = useRef(null);
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -84,7 +89,7 @@ export function AdminModal({ open, onClose, title, description, children, footer
     const onKeyDown = event => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onClose?.();
+        closeRef.current?.();
         return;
       }
       if (event.key !== 'Tab' || !panelRef.current) return;
@@ -107,7 +112,7 @@ export function AdminModal({ open, onClose, title, description, children, footer
       document.removeEventListener('keydown', onKeyDown);
       restoreRef.current?.focus?.();
     };
-  }, [open, onClose, initialFocusRef]);
+  }, [open, initialFocusRef]);
 
   if (!open) return null;
   return createPortal(
