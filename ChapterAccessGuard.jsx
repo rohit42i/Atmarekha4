@@ -126,8 +126,8 @@ export default function ChapterAccessGuard() {
         if (!row.querySelector('.chapter-lock-badge')) {
           const badge = document.createElement('span');
           badge.className = 'chapter-lock-badge';
-          badge.innerHTML = '<span aria-hidden="true">🔒</span> Members';
-          row.querySelector('.chapter-row-title')?.appendChild(badge);
+          badge.innerHTML = '<span class="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span>';
+          row.querySelector('.chapter-row-title h2')?.appendChild(badge);
         }
       });
     };
