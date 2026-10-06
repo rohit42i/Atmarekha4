@@ -79,6 +79,7 @@ export default function ChapterAccessGuard() {
     const onLocationChange = () => blockLockedChapter(getChapterFromLocation());
 
     const onClick = event => {
+      if (event.target?.closest?.('.pdlpl-page-list,.pdlpl-reader')) return;
       const anchor = event.target?.closest?.('a[href]');
       if (!anchor) return;
       const href = anchor.getAttribute('href') || '';
@@ -111,7 +112,7 @@ export default function ChapterAccessGuard() {
   useEffect(() => {
     if (!ready) return undefined;
     const markLocks = () => {
-      document.querySelectorAll('.chapter-row').forEach(row => {
+      document.querySelectorAll('.chapter-row:not(.pdlpl-page-list .chapter-row)').forEach(row => {
         const link = row.querySelector('a.chapter-row-main');
         const chapterId = row.getAttribute('data-chapter-id');
         if (!chapterId) return;
