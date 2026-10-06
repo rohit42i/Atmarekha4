@@ -20,6 +20,7 @@ const emptyForm = () => ({
 });
 
 const label = chapter => chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
+const PDLPL_STATUS_RPC = 'pdlpl_set_chapter_status';
 
 function safeExt(file, fallback = 'webp') {
   const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || fallback;
@@ -251,14 +252,31 @@ export default function PalDoPalAdmin({ embedded = false }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
       adminUser = user;
-      const { error } = await supabase.from(PDLPL_CHAPTERS).update({ status }).eq('id', chapter.id);
+
+      const requestedStatus = String(status || '').trim();
+      const releaseDate = String(requestedStatus).toLowerCase() === 'published'
+        ? (chapter.releaseDate || null)
+        : null;
+
+      const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
+        p_chapter_id: chapter.id,
+        p_status: requestedStatus,
+        p_release_date: releaseDate ? new Date(releaseDate).toISOString() : null,
+      });
       if (error) throw error;
+
+      const saved = Array.isArray(data) ? data[0] : data;
+      if (!saved || String(saved.status || '').toLowerCase() !== requestedStatus.toLowerCase()) {
+        throw new Error('PDPKL status verification failed. The chapter was not saved.');
+      }
+
       await logAdminAction(user, 'change_pdlpl_status', 'pdlpl_chapter', chapter.id, {
         from: chapter.status,
-        to: status,
+        to: saved.status,
+        release_date: saved.release_date,
       });
       await load();
-      setNotice(label(chapter) + ' is now ' + status.toLowerCase() + '.');
+      setNotice(label(chapter) + ' is now ' + String(saved.status).toLowerCase() + '.');
     } catch (error) {
       await logAdminAction(adminUser, 'change_pdlpl_status_failed', 'pdlpl_chapter', chapter.id, { status, error: error.message });
       setNotice(error?.message || 'Status update failed.');
@@ -320,32 +338,42 @@ export default function PalDoPalAdmin({ embedded = false }) {
       const duplicate = chapters.find(chapter => chapter.id !== editing?.id && normalizeChapterLanguage(chapter.language) === language && ((chapter.chapterNumber == null && number == null) || Number(chapter.chapterNumber) === number));
       if (duplicate) throw new Error((number == null ? 'Special / unnumbered entry' : 'Chapter ' + number) + ' already exists in ' + chapterLanguageLabel(language) + '. Edit that variant instead.');
 
+      const requestedStatus = String(form.status || '').trim();
+      const isPublishing = requestedStatus.toLowerCase() === 'published';
+      const currentStatus = wasEditing ? String(editing.status || 'Draft').trim() : 'Draft';
+      const initialStatus = isPublishing && currentStatus.toLowerCase() !== 'published'
+        ? (wasEditing ? currentStatus : 'Draft')
+        : requestedStatus;
+      const requestedReleaseDate = form.releaseDate
+        ? new Date(form.releaseDate).toISOString()
+        : null;
+
       const payload = {
         chapter_number: number,
         language,
         title: form.title.trim(),
         description: form.description.trim(),
-        status: form.status,
-        release_date: form.releaseDate ? new Date(form.releaseDate).toISOString() : null,
+        status: initialStatus,
+        release_date: requestedReleaseDate,
       };
 
       if (wasEditing) {
-        const { error } = await supabase.from(PDLPL_CHAPTERS).update(payload).eq('id', editing.id);
+        const { data: savedDraft, error } = await supabase
+          .from(PDLPL_CHAPTERS)
+          .update(payload)
+          .eq('id', editing.id)
+          .select('id,status,release_date')
+          .single();
         if (error) throw error;
-
-        const oldPagesResult = await supabase
-          .from(PDLPL_PAGES)
-          .select('image_path')
-          .eq('chapter_id', editing.id);
-        if (oldPagesResult.error) throw oldPagesResult.error;
-        oldPagePaths = (oldPagesResult.data || []).map(row => row.image_path).filter(Boolean);
+        if (!savedDraft?.id) throw new Error('PDPKL chapter update could not be verified.');
       } else {
         const { data, error } = await supabase
           .from(PDLPL_CHAPTERS)
           .insert(payload)
-          .select('id')
+          .select('id,status,release_date')
           .single();
         if (error) throw error;
+        if (!data?.id) throw new Error('PDPKL chapter creation could not be verified.');
         chapterId = data.id;
       }
 
@@ -419,6 +447,30 @@ export default function PalDoPalAdmin({ embedded = false }) {
             });
           }
         }
+      }
+
+      if (isPublishing) {
+        const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
+          p_chapter_id: chapterId,
+          p_status: 'Published',
+          p_release_date: requestedReleaseDate,
+        });
+        if (error) throw error;
+
+        const publishedRow = Array.isArray(data) ? data[0] : data;
+        if (!publishedRow?.id || String(publishedRow.status || '').toLowerCase() !== 'published') {
+          throw new Error('PDPKL publish verification failed. The chapter was not published.');
+        }
+      }
+
+      const { data: verifiedChapter, error: verifyError } = await supabase
+        .from(PDLPL_CHAPTERS)
+        .select('id,status,release_date')
+        .eq('id', chapterId)
+        .single();
+      if (verifyError) throw new Error('PDPKL publish verification failed: ' + verifyError.message);
+      if (!verifiedChapter?.id || String(verifiedChapter.status || '').toLowerCase() !== requestedStatus.toLowerCase()) {
+        throw new Error('PDPKL publish verification failed. Saved status does not match the selected status.');
       }
 
       reset();
