@@ -41,14 +41,29 @@ async function authHeaders(options = {}) {
 
 function parseError(body, status) {
   const fallback = `PDPL media request failed (${status}).`;
-  if (!body) return fallback;
+  if (!body) return { message: fallback, payload: null };
 
   try {
     const payload = JSON.parse(body);
-    return payload?.error || payload?.message || fallback;
+    return {
+      message: payload?.error || payload?.message || fallback,
+      payload,
+    };
   } catch (_) {
-    return body;
+    return { message: body, payload: null };
   }
+}
+
+function createMediaError(path, response, body) {
+  const parsed = parseError(body, response.status);
+  const error = new Error(parsed.message);
+  error.status = response.status;
+  error.statusText = response.statusText || '';
+  error.path = path;
+  error.url = response.url;
+  error.responseBody = body || '';
+  error.payload = parsed.payload;
+  return error;
 }
 
 async function request(path, options = {}, retried = false) {
@@ -69,7 +84,7 @@ async function request(path, options = {}, retried = false) {
   }
 
   const body = await response.text().catch(() => '');
-  throw new Error(parseError(body, response.status));
+  throw createMediaError(path, response, body);
 }
 
 export async function fetchPdlplMedia(path, { signal } = {}) {
