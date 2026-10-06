@@ -257,3 +257,5 @@ export default {
     }
   },
 };
+
+// Keep the PDPL media worker redeployed with the main application pipeline so its auth secret stays synchronized.
