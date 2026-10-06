@@ -788,88 +788,38 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 }
 
 
-/* PDPKL Chapter List — same page geometry and controls as Atma Rekha. */
-.pdlpl-page-list .chapter-list-section{width:min(900px,calc(100% - 40px));margin:0 auto;padding:38px 0 70px}
-.pdlpl-page-list .chapter-list{display:grid;gap:12px}
-.pdlpl-page-list .chapter-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;padding:20px 22px;border:1px solid var(--legacy-292929-ce596263);border-radius:20px;background:var(--legacy-151516-55d165a5);color:var(--legacy-fff-d14f9016);transition:border-color .18s ease,transform .18s ease,background .18s ease}
-.pdlpl-page-list .chapter-row:hover{transform:translateY(-1px);border-color:var(--legacy-3a3a40-812e485d);background:var(--legacy-18181a-261ee1c0)}
-.pdlpl-page-list .chapter-row-main{min-width:0;display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;align-items:center;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
-.pdlpl-page-list .pdlpl-chapter-thumb{width:76px;height:104px;overflow:hidden;border-radius:9px;background:#090909;border:1px solid rgba(255,255,255,.12);display:grid;place-items:center}
+
+/* PDPKL uses the Atma Rekha chapter-list system. Only the cover column is PDPKL-specific. */
+.pdlpl-page-list .chapter-row-main{
+  display:grid;
+  grid-template-columns:76px minmax(0,1fr);
+  gap:14px;
+  align-items:center;
+}
+.pdlpl-page-list .pdlpl-chapter-thumb{
+  width:76px;
+  height:104px;
+  overflow:hidden;
+  border-radius:9px;
+  background:#090909;
+  border:1px solid rgba(255,255,255,.12);
+  display:grid;
+  place-items:center;
+}
 .pdlpl-page-list .pdlpl-chapter-thumb img{width:100%;height:100%;display:block;object-fit:cover}
 .pdlpl-page-list .pdlpl-chapter-thumb span{color:#fff;font-size:16px;font-weight:850}
-.pdlpl-page-list .chapter-row-copy{min-width:0}
-.pdlpl-page-list .chapter-row-title span{color:var(--legacy-f3f3f4-451dbe23);font-size:12px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
-.pdlpl-page-list .chapter-row-title h2{margin:4px 0 0;font-size:22px;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pdlpl-page-list .chapter-row-meta,.pdlpl-page-list .chapter-row-details{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:8px;color:var(--legacy-777780-b9918778);font-size:13px;line-height:1.5}
-.pdlpl-page-list .chapter-row-meta b{color:var(--legacy-ffd43b-db198758)}
-.pdlpl-page-list .chapter-row-details{color:var(--legacy-92929a-d1ba2a67);margin-top:12px}
-.pdlpl-page-list .chapter-row-actions{display:flex;align-items:center;gap:8px}
-.pdlpl-page-list .chapter-row-actions .engagement-icon{width:58px;min-width:58px;min-height:52px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid var(--legacy-292929-ce596263);border-radius:14px;background:var(--legacy-111112-c769f022);color:var(--legacy-aaaab2-b08c52d1);cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
-.pdlpl-page-list .chapter-row-actions .engagement-icon span{font-size:19px;line-height:1}
-.pdlpl-page-list .chapter-row-actions .engagement-icon small{font-size:10px;font-weight:800}
-.pdlpl-page-list .chapter-row-actions .engagement-icon:hover{transform:translateY(-1px);background:var(--legacy-19191b-3e7d3aa8)}
-.pdlpl-page-list .chapter-discovery{margin-bottom:14px}
-html[data-theme="dark"] .pdlpl-page-list .chapter-row{background:var(--surface-color,#000);color:var(--text-color,#fff);border-color:var(--border-color,#fff)}
-html[data-theme="dark"] .pdlpl-page-list .chapter-row:hover{background:var(--surface-2-color,#111);border-color:var(--border-color,#fff)}
-@media(max-width:640px){
-.pdlpl-page-list .chapter-list-section{width:calc(100% - 24px);padding:24px 0 55px}
-.pdlpl-page-list .chapter-row{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:17px 15px;border-radius:18px}
-.pdlpl-page-list .chapter-row-main{grid-template-columns:58px minmax(0,1fr);gap:10px}
-.pdlpl-page-list .pdlpl-chapter-thumb{width:58px;height:82px;border-radius:8px}
-.pdlpl-page-list .chapter-row-title span{font-size:12px}
-.pdlpl-page-list .chapter-row-title h2{font-size:clamp(21px,6vw,27px);line-height:1.18}
-.pdlpl-page-list .chapter-row-meta,.pdlpl-page-list .chapter-row-details{font-size:12px}
-.pdlpl-page-list .chapter-row-actions{flex-direction:column;gap:6px}
-.pdlpl-page-list .chapter-row-actions .engagement-icon{width:58px;min-width:58px;min-height:48px;border-radius:13px}
-.pdlpl-page-list .chapter-row-actions .engagement-icon span{font-size:19px}
+@media (min-width:600px){
+  .pdlpl-page-list .chapter-list-section{width:min(980px,calc(100% - 64px));padding-top:42px}
+  .pdlpl-page-list .chapter-row{grid-template-columns:minmax(0,1fr) auto;align-items:center}
 }
-
-/* FINAL: PDPKL Chapter List mirrors Atma Rekha's actual Chapter List page. */
-.pdlpl-page-list.chapter-list-page{background:#fff!important;color:#000!important}
-.pdlpl-page-list .subpage-header{min-height:78px;padding:0 28px;background:#fff!important;border-bottom:1px solid #000!important;backdrop-filter:none!important}
-.pdlpl-page-list .subpage-header h1{color:#000!important;font-size:27px;font-weight:900;letter-spacing:-.05em}
-.pdlpl-page-list .chapter-list-section{width:min(980px,calc(100% - 28px))!important;margin:0 auto!important;padding:0 0 70px!important}
-.pdlpl-page-list .chapter-discovery{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;gap:10px!important;margin:24px 0 13px!important}
-.pdlpl-page-list .chapter-discovery>label:first-child{min-width:0!important}
-.pdlpl-page-list .chapter-language{display:flex!important;align-items:center!important;gap:8px!important;padding:0!important;border:0!important;color:#000!important}
-.pdlpl-page-list .chapter-language span{color:#000!important;font-size:8px!important;font-weight:900!important;letter-spacing:.12em!important}
-.pdlpl-page-list .chapter-language select{min-height:34px!important;padding:0 10px!important;border:1px solid #000!important;border-radius:9px!important;background:#fff!important;color:#000!important;font-size:10px!important;font-weight:800!important;outline:none!important}
-.pdlpl-page-list .chapter-sort-button{min-height:34px!important;padding:0 10px!important;border:1px solid #000!important;border-radius:9px!important;background:#fff!important;color:#000!important;font-size:10px!important;font-weight:800!important}
-.pdlpl-page-list .chapter-sort-menu{border:1px solid #000!important;border-radius:10px!important;background:#fff!important;color:#000!important;box-shadow:none!important}
-.pdlpl-page-list .chapter-sort-menu button{color:#000!important;background:#fff!important}
-.pdlpl-page-list .chapter-sort-menu button.active,.pdlpl-page-list .chapter-sort-menu button:hover{background:#000!important;color:#fff!important}
-.pdlpl-page-list .chapter-list{display:grid!important;gap:8px!important;margin-top:12px!important}
-.pdlpl-page-list .chapter-list .chapter-row{min-height:88px!important;border:1px solid #000!important;border-radius:14px!important;background:#fff!important;color:#000!important;box-shadow:none!important;transition:transform .15s ease,background-color .15s ease,color .15s ease!important}
-.pdlpl-page-list .chapter-list .chapter-row:hover{transform:translateY(-1px)!important;background:#000!important;color:#fff!important}
-.pdlpl-page-list .chapter-row-main{display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;align-items:center!important;gap:14px!important;padding:17px 18px!important;color:#000!important;text-decoration:none!important;background:transparent!important}
-.pdlpl-page-list .pdlpl-chapter-thumb{width:76px!important;height:104px!important;border:1px solid #000!important;border-radius:9px!important;background:#fff!important;overflow:hidden!important}
-.pdlpl-page-list .chapter-row-title span,.pdlpl-page-list .chapter-row-title h2,.pdlpl-page-list .chapter-row-meta,.pdlpl-page-list .chapter-row-details{color:#000!important}
-.pdlpl-page-list .chapter-row-title span{font-size:8px!important;font-weight:900!important;letter-spacing:.12em!important}
-.pdlpl-page-list .chapter-row-title h2{margin-top:5px!important;font-size:18px!important;line-height:1.12!important;font-weight:900!important;letter-spacing:-.025em!important}
-.pdlpl-page-list .chapter-row-meta{margin-top:8px!important;font-size:8px!important;font-weight:800!important;letter-spacing:.04em!important}
-.pdlpl-page-list .chapter-row-details{margin-top:5px!important;font-size:9px!important;font-weight:700!important}
-.pdlpl-page-list .chapter-row-actions{padding-right:14px!important;display:flex!important;align-items:center!important;gap:8px!important}
-.pdlpl-page-list .chapter-row-actions .engagement-icon{width:54px!important;min-width:54px!important;min-height:54px!important;border:1px solid #000!important;border-radius:50%!important;background:#000!important;color:#fff!important;box-shadow:none!important}
-.pdlpl-page-list .chapter-row-actions .engagement-icon span,.pdlpl-page-list .chapter-row-actions .engagement-icon small{color:#fff!important}
-.pdlpl-page-list .chapter-row-actions .engagement-icon small{font-size:7px!important;font-weight:900!important;letter-spacing:.06em!important}
-.pdlpl-page-list .chapter-row:hover .chapter-row-title span,.pdlpl-page-list .chapter-row:hover .chapter-row-title h2,.pdlpl-page-list .chapter-row:hover .chapter-row-meta,.pdlpl-page-list .chapter-row:hover .chapter-row-details{color:#fff!important}
-.pdlpl-page-list .chapter-row:hover .pdlpl-chapter-thumb{border-color:#fff!important}
-.pdlpl-page-list .chapter-row:hover .chapter-row-actions .engagement-icon{background:#fff!important;color:#000!important;border-color:#fff!important}
-.pdlpl-page-list .chapter-row:hover .chapter-row-actions .engagement-icon span,.pdlpl-page-list .chapter-row:hover .chapter-row-actions .engagement-icon small{color:#000!important}
-.pdlpl-page-list .chapter-discovery-empty{border:1px solid #000!important;border-radius:14px!important;background:#fff!important;color:#000!important;box-shadow:none!important}
-@media(max-width:640px){
-.pdlpl-page-list .subpage-header{min-height:70px;padding:0 14px;gap:10px}
-.pdlpl-page-list .subpage-header h1{font-size:24px}
-.pdlpl-page-list .chapter-list-section{width:calc(100% - 20px)!important;padding:0 0 55px!important}
-.pdlpl-page-list .chapter-discovery{grid-template-columns:1fr!important;align-items:stretch!important;gap:11px!important;margin:18px 0 12px!important}
-.pdlpl-page-list .chapter-language{justify-content:space-between!important}
-.pdlpl-page-list .chapter-language select{flex:1!important;max-width:180px!important}
-.pdlpl-page-list .chapter-row{grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;padding:0!important;border-radius:14px!important}
-.pdlpl-page-list .chapter-row-main{grid-template-columns:58px minmax(0,1fr)!important;gap:10px!important;padding:17px 15px!important}
-.pdlpl-page-list .pdlpl-chapter-thumb{width:58px!important;height:82px!important;border-radius:8px!important}
-.pdlpl-page-list .chapter-row-title span{font-size:8px!important}
-.pdlpl-page-list .chapter-row-title h2{font-size:clamp(18px,5vw,22px)!important;line-height:1.18!important}
-.pdlpl-page-list .chapter-row-meta,.pdlpl-page-list .chapter-row-details{font-size:9px!important}
-.pdlpl-page-list .chapter-row-actions{flex-direction:column!important;gap:6px!important;padding-right:10px!important}
-.pdlpl-page-list .chapter-row-actions .engagement-icon{width:48px!important;min-width:48px!important;min-height:48px!important}
+@media (min-width:900px){
+  .pdlpl-page-list .chapter-list-section{width:min(1080px,calc(100% - 96px));padding-top:48px}
+  .pdlpl-page-list .chapter-row{padding:22px 26px;gap:28px}
+}
+@media (min-width:1280px){
+  .pdlpl-page-list .chapter-list-section{width:min(1120px,calc(100% - 120px))}
+}
+@media (max-width:599px){
+  .pdlpl-page-list .chapter-row-main{grid-template-columns:58px minmax(0,1fr);gap:10px}
+  .pdlpl-page-list .pdlpl-chapter-thumb{width:58px;height:82px;border-radius:8px}
 }
