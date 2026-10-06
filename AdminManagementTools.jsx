@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
@@ -16,20 +15,12 @@ async function verifyAdmin(){
 }
 
 export default function AdminManagementTools(){
-  const [isAdmin,setIsAdmin]=useState(false),[nav,setNav]=useState(null),[open,setOpen]=useState(null);
+  const [isAdmin,setIsAdmin]=useState(false),[open,setOpen]=useState(null);
   const [query,setQuery]=useState(''),[status,setStatus]=useState('all'),[loading,setLoading]=useState(false),[error,setError]=useState('');
   const [users,setUsers]=useState([]),[memberships,setMemberships]=useState(new Map()),[notifications,setNotifications]=useState([]),[activity,setActivity]=useState([]);
   const [pushForm,setPushForm]=useState({title:'📖 Atma Rekha',body:'A new message is available.',url:'/',audience:'all'}),[pushSending,setPushSending]=useState(false),[pushResult,setPushResult]=useState('');
 
   useEffect(()=>{let active=true; const check=async()=>{try{await verifyAdmin();if(active)setIsAdmin(true)}catch{if(active)setIsAdmin(false)}}; check(); const {data:l}=supabase.auth.onAuthStateChange(()=>check()); return()=>{active=false;l?.subscription?.unsubscribe()}},[]);
-
-  useEffect(()=>{
-    if(!isAdmin)return;
-    let observer;
-    const attach=()=>{const el=document.querySelector('.admin-tabs');if(el){setNav(el);return true}return false};
-    if(!attach()){observer=new MutationObserver(attach);observer.observe(document.body,{childList:true,subtree:true})}
-    return()=>observer?.disconnect();
-  },[isAdmin]);
 
   useEffect(()=>{const handler=e=>{const view=e?.detail?.view;if(view==='users'||view==='notifications'||view==='activity')openView(view)};window.addEventListener('atma-admin-open-management',handler);return()=>window.removeEventListener('atma-admin-open-management',handler)},[isAdmin]);
   useEffect(()=>{const close=e=>{if(e.key==='Escape')setOpen(null)};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[]);
@@ -73,14 +64,8 @@ export default function AdminManagementTools(){
   const filteredUsers=useMemo(()=>{const q=query.trim().toLowerCase();return users.filter(u=>{const plan=planLabel(memberships.get(u.id));const text=`${u.username||''} ${u.display_name||''} ${u.id||''} ${plan}`.toLowerCase();return(!q||text.includes(q))&&(status==='all'||plan===status)})},[users,memberships,query,status]);
   if(!isAdmin)return null;
 
-  const button=nav&&createPortal(<>
-    <button type="button" className="ar-admin-extra-tab" onClick={()=>openView('users')}>Users & memberships</button>
-    <button type="button" className="ar-admin-extra-tab" onClick={()=>openView('notifications')}>Notifications</button>
-    <button type="button" className="ar-admin-extra-tab" onClick={()=>openView('activity')}>Recent activity</button>
-  </>,nav);
 
   return <>
-    {button}
     <style>{`
       .ar-admin-extra-tab{width:100%;min-height:42px;padding:0 13px;border:1px solid transparent;border-radius:10px;background:#fff;color:#777;text-align:left;font-size:11px;font-weight:800;cursor:pointer}
       .ar-admin-extra-tab:hover{background:#f5f5f5;color:#111}
