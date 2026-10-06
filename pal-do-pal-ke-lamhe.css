@@ -572,3 +572,91 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 @media (max-width:599px){
 }
 
+
+
+/* Final PDPKL discovery controls: one clean outer button surface, no inner field border. */
+.pdlpl-page-list .chapter-discovery{
+  gap:8px!important;
+}
+.pdlpl-page-list .chapter-discovery > label:not(.chapter-language){
+  position:relative!important;
+  min-height:42px!important;
+  box-sizing:border-box!important;
+  border:1px solid currentColor!important;
+  border-color:color-mix(in srgb,currentColor 18%,transparent)!important;
+  border-radius:11px!important;
+  background:var(--surface,#fff)!important;
+}
+.pdlpl-page-list .chapter-discovery > label:not(.chapter-language) input,
+.pdlpl-page-list .chapter-discovery > label:not(.chapter-language) input:focus{
+  min-width:0!important;
+  width:100%!important;
+  height:100%!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+.pdlpl-page-list .chapter-discovery .chapter-language{
+  position:relative!important;
+  min-height:42px!important;
+  box-sizing:border-box!important;
+  padding:0 11px!important;
+  border:1px solid currentColor!important;
+  border-color:color-mix(in srgb,currentColor 18%,transparent)!important;
+  border-radius:11px!important;
+  background:var(--surface,#fff)!important;
+  overflow:hidden!important;
+  cursor:pointer!important;
+}
+.pdlpl-page-list .chapter-discovery .chapter-language select{
+  position:absolute!important;
+  inset:0!important;
+  z-index:3!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 11px!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:inherit!important;
+  opacity:0.01!important;
+  cursor:pointer!important;
+  appearance:auto!important;
+}
+.pdlpl-page-list .chapter-discovery .chapter-language > span{
+  position:relative!important;
+  z-index:1!important;
+  pointer-events:none!important;
+}
+.pdlpl-page-list .chapter-discovery > label:not(.chapter-language):focus-within,
+.pdlpl-page-list .chapter-discovery .chapter-language:focus-within{
+  outline:none!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .pdlpl-page-list .chapter-discovery > label:not(.chapter-language),
+html[data-theme="dark"] .pdlpl-page-list .chapter-discovery .chapter-language{
+  background:#000!important;
+  color:#fff!important;
+  border-color:#333!important;
+}
+html[data-theme="dark"] .pdlpl-page-list .chapter-discovery .chapter-language select{
+  color:#fff!important;
+}
+html[data-theme="light"] .pdlpl-page-list .chapter-discovery > label:not(.chapter-language),
+html[data-theme="light"] .pdlpl-page-list .chapter-discovery .chapter-language{
+  background:#fff!important;
+  color:#000!important;
+  border-color:#deded9!important;
+}
+@media(max-width:700px){
+  .pdlpl-page-list .chapter-discovery > label:not(.chapter-language),
+  .pdlpl-page-list .chapter-discovery .chapter-language{
+    min-height:40px!important;
+    border-radius:10px!important;
+  }
+}
