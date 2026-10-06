@@ -1,8 +1,9 @@
 import { supabase } from './supabase';
 
-export const PDLPL_MEDIA_WORKER_URL =
-  import.meta.env.VITE_PDLPL_MEDIA_WORKER_URL ||
-  'https://pdlpl-media.rohitbaswaraj.workers.dev';
+export const PDLPL_MEDIA_WORKER_URL = (
+  String(import.meta.env.VITE_PDLPL_MEDIA_WORKER_URL || 'https://pdlpl-media.rohitbaswaraj.workers.dev').trim()
+    .replace(/\/+$/, '')
+);
 
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
 const IMAGE_MIME_BY_EXT = {
@@ -78,10 +79,16 @@ async function request(path, options = {}, retried = false) {
   try {
     response = await fetch(url, { ...options, headers });
   } catch (error) {
-    const networkError = new Error(`Cloudflare R2 ${method} request failed: ${error?.message || error}`);
+    const networkError = new Error(
+      `Cloudflare R2 ${method} request failed: ${error?.message || error}. `
+      + `This is usually a browser-to-Worker CORS/network failure; verify the deployed Worker allows origin "${window.location.origin}".`,
+    );
     networkError.name = error?.name || 'NetworkError';
     networkError.path = path;
     networkError.url = url;
+    networkError.origin = typeof window !== 'undefined' ? window.location.origin : '';
+    networkError.hint = 'Check the PDPKL media Worker CORS allow-list and deployment. The Worker must return CORS headers on both preflight and error responses.';
+    networkError.cause = error;
     throw networkError;
   }
 
