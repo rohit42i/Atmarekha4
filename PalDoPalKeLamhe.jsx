@@ -40,7 +40,7 @@ function LockedModal({ chapter, onClose }) {
         <h2>{formatLabel(chapter)} is waiting for you.</h2>
         <p className="chapter-access-copy">Pal Do Pal Ke Lamhe chapters are available with a Premium Supporter or Super Supporter membership.</p>
         <div className="chapter-access-perks"><span>✦ Every PDPKL chapter</span><span>✦ UPI AutoPay membership</span><span>✦ Support the side story</span></div>
-        <button className="chapter-access-cta" type="button" onClick={() => { setTimeout(() => {}, 0); window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
+        <button className="chapter-access-cta" type="button" onClick={() => { window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
         <button className="chapter-access-secondary" type="button" onClick={onClose}>Maybe later</button>
         <p className="chapter-access-note">Choose ₹29 or ₹49 per month for PDPKL access.</p>
       </section>
@@ -447,6 +447,8 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
 export default function PalDoPalKeLamhe() {
   const [chapters, setChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
+  const [stats, setStats] = useState({});
+  const [ratingChapter, setRatingChapter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState(false);
   const [admin, setAdmin] = useState(false);
@@ -476,11 +478,18 @@ export default function PalDoPalKeLamhe() {
       setMember(access.member);
       setAdmin(access.admin);
 
+      const ids = publishedChapters.map(chapter => chapter.id);
       try {
-        setPageCounts(await buildPdlplPageCounts(publishedChapters.map(chapter => chapter.id)));
-      } catch (pageError) {
-        console.warn('PDPL page counts:', pageError);
+        const [counts, engagement] = await Promise.all([
+          buildPdlplPageCounts(ids),
+          fetchPdlplPublicEngagement(ids),
+        ]);
+        setPageCounts(counts);
+        setStats(engagement);
+      } catch (dataError) {
+        console.warn('PDPL chapter metadata:', dataError);
         setPageCounts({});
+        setStats({});
       }
     } catch (error) {
       console.error('PDPL load:', error);
@@ -526,15 +535,18 @@ export default function PalDoPalKeLamhe() {
   const visibleChapters = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const filtered = chapters.filter(chapter => !needle || [chapter.title, chapter.description, chapter.chapterNumber].some(value => String(value ?? '').toLowerCase().includes(needle)));
+    const getNumber = chapter => {
+      const value = Number(chapter.chapterNumber);
+      return Number.isFinite(value) ? value : -Infinity;
+    };
     return [...filtered].sort((a, b) => {
       if (sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''), undefined, { sensitivity: 'base' });
-      const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
-      if (!Number.isFinite(an) && !Number.isFinite(bn)) return 0;
-      if (!Number.isFinite(an)) return 1;
-      if (!Number.isFinite(bn)) return -1;
-      return sort === 'oldest' ? an - bn : bn - an;
+      if (sort === 'rating') return Number(stats?.[b.id]?.rating?.average || 0) - Number(stats?.[a.id]?.rating?.average || 0);
+      if (sort === 'views') return Number(stats?.[b.id]?.views || 0) - Number(stats?.[a.id]?.views || 0);
+      if (sort === 'oldest') return getNumber(a) - getNumber(b);
+      return getNumber(b) - getNumber(a);
     });
-  }, [chapters, query, sort]);
+  }, [chapters, query, sort, stats]);
 
   if (currentReaderId && readerChapter && (member || admin)) {
     return (
@@ -556,19 +568,25 @@ export default function PalDoPalKeLamhe() {
   }
 
   return (
-    <ChapterList
-      chapters={visibleChapters}
-      member={member}
-      admin={admin}
-      pageCounts={pageCounts}
-      onOpen={openChapter}
-      onBack={() => { window.location.hash = 'home'; }}
-      language={language}
-      onLanguageChange={value => { setLanguage(value); window.localStorage.setItem('pdlpl-language', value); }}
-      query={query}
-      onQueryChange={setQuery}
-      sort={sort}
-      onSortChange={setSort}
-    />
+    <>
+      <ChapterList
+        chapters={visibleChapters}
+        member={member}
+        admin={admin}
+        pageCounts={pageCounts}
+        stats={stats}
+        onOpen={openChapter}
+        onRating={setRatingChapter}
+        onBack={() => { window.location.hash = 'home'; }}
+        language={language}
+        onLanguageChange={value => { setLanguage(value); window.localStorage.setItem('pdlpl-language', value); }}
+        query={query}
+        onQueryChange={setQuery}
+        sort={sort}
+        onSortChange={setSort}
+      />
+      {ratingChapter && <PdlplRatingSheet chapter={ratingChapter} summary={stats[ratingChapter.id]?.rating} open onClose={() => setRatingChapter(null)} onChanged={load} />}
+      {lockChapter && <LockedModal chapter={lockChapter} onClose={() => setLockChapter(null)} />}
+    </>
   );
 }
