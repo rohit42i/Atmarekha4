@@ -7,6 +7,10 @@ import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
+import { AdminSidebar } from './admin-studio-ui.jsx';
+import AdminCommandPalette from './AdminCommandPalette.jsx';
+import AdminChapterManager from './AdminChapterManager.jsx';
+import AdminModerationQueue from './AdminModerationQueue.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -111,7 +115,8 @@ export default function AdminPanel({ onLogout }) {
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [navSearch, setNavSearch] = useState('');
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -146,6 +151,7 @@ export default function AdminPanel({ onLogout }) {
       setReports(reportResult.data || []);
       setAnnouncements(announcementResult.data || []);
       setMedia(mediaResult.data || []);
+      setLastRefreshedAt(new Date());
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
     } finally { setLoading(false); }
@@ -167,6 +173,44 @@ export default function AdminPanel({ onLogout }) {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const refreshHandler = () => load();
+    window.addEventListener('atma-admin-refresh', refreshHandler);
+    return () => window.removeEventListener('atma-admin-refresh', refreshHandler);
+  }, []);
+
+  useEffect(() => {
+    const isTyping = event => {
+      const target = event.target;
+      return target instanceof HTMLElement && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      );
+    };
+    const onKeyDown = event => {
+      const key = event.key.toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && key === 'k') {
+        event.preventDefault();
+        setCommandOpen(true);
+        return;
+      }
+      if (isTyping(event) || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (key === 'n') {
+        event.preventDefault();
+        setChapterPublishProject('atma');
+        activateTab('Chapters');
+        resetForm();
+      } else if (key === 'r') {
+        event.preventDefault();
+        load();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  });
 
   const choosePages = event => {
     const files = Array.from(event.target.files || []).filter(file => {
@@ -730,9 +774,6 @@ export default function AdminPanel({ onLogout }) {
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
-  const filteredNav = navSearch.trim()
-    ? ADMIN_NAV_GROUPS.map(group => ({ ...group, items: group.items.filter(item => item.label.toLowerCase().includes(navSearch.trim().toLowerCase())) })).filter(group => group.items.length)
-    : ADMIN_NAV_GROUPS;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   useEffect(() => {
@@ -748,33 +789,57 @@ export default function AdminPanel({ onLogout }) {
     setProfileOpen(false);
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
-  const runSearch = event => {
-    if (event.key !== 'Enter') return;
-    const query = navSearch.trim().toLowerCase();
-    if (!query) return;
-    const routeMatch = ADMIN_NAV_GROUPS.flatMap(group => group.items)
-      .find(item => item.label.toLowerCase().includes(query) || item.key.toLowerCase().includes(query));
-    if (!routeMatch) return;
-    if (routeMatch.action) openAdminTool(routeMatch.action, routeMatch.detail);
-    else activateTab(routeMatch.key);
-  };
-
   return <main className="admin-page ar-admin-v3" data-admin-root="true">
     <div className="ar-admin-app">
-      <aside className={'ar-admin-sidebar' + (mobileSidebarOpen ? ' is-open' : '')} aria-label="Admin navigation">
-        <div className="ar-admin-brand"><div className="ar-admin-brand-mark">AR</div><div><strong>Atma Rekha</strong><span>Admin workspace</span></div><button type="button" className="ar-admin-mobile-close" onClick={() => setMobileSidebarOpen(false)} aria-label="Close navigation"><AdminIcon name="close" size={20}/></button></div>
-        <div className="ar-admin-workspace"><span className="ar-admin-avatar-mini">A</span><div><strong>Publisher</strong><small>{email || 'Protected admin'}</small></div></div>
-        <nav className="admin-tabs ar-admin-nav">
-          {filteredNav.map(group => <div className="ar-admin-nav-group" key={group.label}><span className="ar-admin-nav-label">{group.label}</span>{group.items.map(item => <button key={item.key} type="button" data-admin-tab={item.key} className={!item.action && tab === item.key ? 'active' : ''} onClick={() => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)} aria-current={!item.action && tab === item.key ? 'page' : undefined} title={item.label}><span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={17}/></span><span className="ar-admin-nav-text">{item.label}</span>{item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}</button>)}</div>)}
-        </nav>
-        <div className="ar-admin-status-card"><span className={'status-dot ' + (notice.type === 'error' ? 'danger' : '')}/><div><strong>Data connection</strong><small>{loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}</small></div></div>
-      </aside>
-      {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation"/>}
+      <AdminSidebar
+        groups={ADMIN_NAV_GROUPS}
+        activeKey={tab}
+        mobileOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+        onSelect={item => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)}
+        email={email}
+        reportCount={reportCount}
+        connectionState={loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}
+        connectionError={notice.type === 'error'}
+      />
+      {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation" />}
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
-          <div className="ar-admin-topbar-left"><button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation"><AdminIcon name="menu" size={21}/></button><div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div></div>
-          <div className="ar-admin-search"><AdminIcon name="search" size={17}/><input value={navSearch} onChange={event => setNavSearch(event.target.value)} onKeyDown={runSearch} placeholder="Search admin sections…" aria-label="Search admin sections"/><kbd>↵</kbd></div>
-          <div className="ar-admin-top-actions"><button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}><AdminIcon name="bell" size={18}/>{reportCount > 0 && <i>{reportCount}</i>}</button><button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}><AdminIcon name="refresh" size={17}/><span>Refresh</span></button><div className="ar-admin-profile-wrap"><button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="ar-admin-avatar">A</span><span><strong>Admin</strong><small>{email || 'Protected'}</small></span><AdminIcon name="chevron" size={14}/></button>{profileOpen && <div className="ar-admin-profile-menu" role="menu"><div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div><button type="button" onClick={logout}><AdminIcon name="logout" size={15}/>Sign out</button></div>}</div></div>
+          <div className="ar-admin-topbar-left">
+            <button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation">
+              <AdminIcon name="menu" size={19}/>
+            </button>
+            <div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div>
+          </div>
+          <div className="ar-admin-search">
+            <button type="button" className="ar-admin-command-trigger" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
+              <AdminIcon name="search" size={16}/>
+              <span>Search chapters, readers, comments, tools…</span>
+              <kbd>⌘K</kbd>
+            </button>
+          </div>
+          <div className="ar-admin-top-actions">
+            <span className="ar-admin-freshness" title={lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-IN') : 'Not loaded yet'}>
+              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + lastRefreshedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : 'Updating'}
+            </span>
+            <button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}>
+              <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
+            </button>
+            <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}>
+              <AdminIcon name="refresh" size={16}/><span>Refresh</span>
+            </button>
+            <div className="ar-admin-profile-wrap">
+              <button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu">
+                <span className="ar-admin-avatar">A</span>
+                <span><strong>Admin</strong><small>{email || 'Protected'}</small></span>
+                <AdminIcon name="chevron" size={13}/>
+              </button>
+              {profileOpen && <div className="ar-admin-profile-menu" role="menu">
+                <div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div>
+                <button type="button" onClick={logout}><AdminIcon name="logout" size={14}/>Sign out</button>
+              </div>}
+            </div>
+          </div>
         </header>
         <div className="ar-admin-content">
           <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
@@ -790,85 +855,29 @@ export default function AdminPanel({ onLogout }) {
         </div>
       </section>
       <AdminChapterPages chapters={sorted} />
-    </section> : tab === 'Chapters' ? <section className="admin-stack">
-      <section className="admin-card upload-card">
-        <div className="admin-card-title">
-          <div>
-            <span>PUBLISHER</span>
-            <h2>{chapterPublishProject === 'pdpkl' ? 'Publish Pal Do Pal Ke Lamhe' : (editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter')}</h2>
-            <p>Select the story first, just like selecting the chapter language below. The publishing workspace changes to match it.</p>
-          </div>
-        </div>
-        <div className="admin-form-grid">
-          <label>
-            <span>Story</span>
-            <select
-              value={chapterPublishProject}
-              onChange={e => { setChapterPublishProject(e.target.value); resetForm(); }}
-              aria-label="Story"
-            >
-              <option value="atma">Atma Rekha</option>
-              <option value="pdpkl">Pal Do Pal Ke Lamhe (PDPKL)</option>
-            </select>
-          </label>
-        </div>
-      </section>
-      {chapterPublishProject === 'pdpkl'
-        ? <PalDoPalAdmin embedded />
-        : <section className="admin-card upload-card">
-            <div className="admin-card-title">
-              <div>
-                <span>{editing ? 'EDIT CHAPTER' : 'PUBLISHER'}</span>
-                <h2>{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Upload a chapter'}</h2>
-                <p>Select the language for this chapter variant. English and Hindi variants use separate chapter records and isolated media paths.</p>
-              </div>
-              {editing && <button type="button" onClick={resetForm}>Cancel</button>}
-            </div>
-            <form onSubmit={saveChapter} className="admin-form">
-              <div className="admin-form-grid">
-                <input type="number" min="1" value={form.number} onChange={e => setForm({ ...form, number: e.target.value })} placeholder="Chapter number (optional)"/>
-                <label><span>Language</span><select value={form.language} onChange={e => setForm({ ...form, language: e.target.value })} disabled={Boolean(editing)} aria-label="Chapter language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
-                <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select>
-                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Chapter title" required className="wide"/>
-                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description" rows="3" className="wide"/>
-                <label>Release date<input type="datetime-local" value={form.releaseDate} onChange={e => setForm({ ...form, releaseDate: e.target.value })}/></label>
-                <label>Cover image<input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })}/></label>
-              </div>
-              <label className="admin-dropzone">
-                <strong>Manga pages</strong>
-                <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
-                <input type="file" multiple accept="image/*" onChange={choosePages}/>
-                {form.pages.length > 0 && <em>{form.pages.length} pages ready · selected order preserved</em>}
-              </label>
-              {progress.total > 0 && <div className="admin-progress"><div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div><i><span style={{ width: `${(progress.current / progress.total) * 100}%` }}/></i></div>}
-              <button disabled={busy} className="admin-submit">{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
-            </form>
-          </section>}
-      {chapterPublishProject === 'atma' && <section className="admin-card">
-        <div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div>
-        <div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'} · {chapterLanguageLabel(chapter.language)}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div>
-      </section>}
-    </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
-      <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
-      <div className="admin-report-list">{reports.map(report => {
-        const comment = commentById(report.comment_id);
-        const status = report.status || 'open';
-        return <article key={report.id}>
-          <div>
-            <span className="report-label">REPORT · {status}</span>
-            <strong>{comment?.author_name || 'Reader'}</strong>
-            <p>{comment?.content || 'Comment unavailable'}</p>
-            <small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}{report.reviewed_at ? ' · reviewed ' + new Date(report.reviewed_at).toLocaleString('en-IN') : ''}</small>
-          </div>
-          <div className="admin-row-actions">
-            {comment && <button type="button" className="danger" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete comment</button>}
-            {status === 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'reviewed')} disabled={busy}>Review</button>}
-            {status !== 'resolved' && <button type="button" onClick={() => setReportStatus(report.id, 'resolved')} disabled={busy}>Resolve</button>}
-            {status !== 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'open')} disabled={busy}>Reopen</button>}
-          </div>
-        </article>;
-      })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div>
-    </section> : tab === 'Announcements' ? <section className="admin-stack">
+    </section> : tab === 'Chapters' ? <AdminChapterManager
+      chapters={sorted}
+      pageCounts={pageCounts}
+      form={form}
+      setForm={setForm}
+      editing={editing}
+      progress={progress}
+      busy={busy}
+      chapterPublishProject={chapterPublishProject}
+      setChapterPublishProject={setChapterPublishProject}
+      onSubmit={saveChapter}
+      onReset={resetForm}
+      onEdit={editChapter}
+      onDelete={deleteChapter}
+      onReload={load}
+      onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <AdminModerationQueue
+      reports={reports}
+      comments={comments}
+      reportCount={reportCount}
+      onDeleteComment={deleteComment}
+      onSetReportStatus={setReportStatus}
+    />: tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
@@ -896,6 +905,23 @@ export default function AdminPanel({ onLogout }) {
     </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
 
         </div>
+        <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
+          <button type="button" className={tab === 'Overview' ? 'active' : ''} onClick={() => activateTab('Overview')}><AdminIcon name="grid" size={16}/><span>Home</span></button>
+          <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}><AdminIcon name="book" size={16}/><span>Chapters</span></button>
+          <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
+          <button type="button" onClick={() => setMobileSidebarOpen(true)}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
+        </nav>
+        <AdminCommandPalette
+          open={commandOpen}
+          onClose={() => setCommandOpen(false)}
+          chapters={sorted}
+          comments={comments}
+          pageCounts={pageCounts}
+          onSelectTab={activateTab}
+          onOpenTool={openAdminTool}
+          onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
+          onRefresh={load}
+        />
       </div>
     </div>
   </main>;
