@@ -21,27 +21,6 @@ const emptyForm = () => ({
 
 const label = chapter => chapter?.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special';
 const PDLPL_STATUS_RPC = 'pdlpl_set_chapter_status';
-const PDLPL_UPSERT_RPC = 'pdlpl_upsert_chapter';
-
-function errorDetails(error) {
-  if (!error) return 'Unknown error.';
-  return [
-    error.message,
-    error.code && 'code: ' + error.code,
-    error.status && 'status: ' + error.status,
-    error.statusCode && 'statusCode: ' + error.statusCode,
-    error.details && 'details: ' + error.details,
-    error.hint && 'hint: ' + error.hint,
-  ].filter(Boolean).join(' | ');
-}
-
-function diagnosticNotice(stage, error, context = {}) {
-  const lines = ['PDPKL operation failed', 'Stage: ' + stage, 'Reason: ' + errorDetails(error)];
-  Object.entries(context).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') lines.push(key + ': ' + value);
-  });
-  return lines.join('\n');
-}
 // Publish through the guarded RPC, then verify the exact persisted row before refreshing the admin list.
 
 function safeExt(file, fallback = 'webp') {
@@ -106,7 +85,7 @@ function diagnosticText(diagnostic) {
     diagnostic.hint ? `Hint: ${diagnostic.hint}` : '',
     diagnostic.name ? `Name: ${diagnostic.name}` : '',
     diagnostic.chapterId ? `Chapter ID: ${diagnostic.chapterId}` : '',
-  ].filter(Boolean).join('\\n');
+  ].filter(Boolean).join('\n');
 }
 
 function PagePreview({ path }) {
@@ -173,7 +152,6 @@ export default function PalDoPalAdmin({ embedded = false }) {
   const load = async () => {
     setLoading(true);
     try {
-      stage = 'Checking admin session';
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Sign in required.');
       const adminRole = await getAdminRole(user.id);
@@ -198,7 +176,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!nextSelectedId) setSelectedPages([]);
     } catch (error) {
       setRole(null);
-      setNotice(error?.message || 'Unable to load side story admin.');
+      setDiagnostic(diagnosticFromError('Loading PDPKL admin data', error));
+      setNotice('PDPKL admin load failed. See the exact diagnostic below.');
     } finally {
       setLoading(false);
     }
@@ -284,15 +263,16 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!databaseCommitted) {
         for (const uploadedPath of uploaded) {
           try { await removePdlplFiles([uploadedPath]); }
-          catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + uploadedPath + ': ' + errorDetails(cleanupError)); }
+          catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + uploadedPath + ': ' + (cleanupError?.message || cleanupError)); }
         }
       }
-      setNotice(diagnosticNotice(stage, error, {
-        Chapter: selectedChapter?.id,
-        Pages: files.length,
-        Cleanup: cleanupErrors.length ? cleanupErrors.join(' || ') : 'No cleanup errors.',
+      setDiagnostic(diagnosticFromError(stage, error, {
+        chapterId: selectedChapter?.id,
+        pageCount: files.length,
+        uploadedPaths: uploaded,
+        cleanup: cleanupErrors.join(' | '),
       }));
-    } finally {
+      setNotice('PDPKL page operation failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');    } finally {
       setBusy(false);
       setProgress({ current: 0, total: 0, text: '' });
     }
@@ -304,7 +284,9 @@ export default function PalDoPalAdmin({ embedded = false }) {
     setNotice('');
     setDiagnostic(null);
     let adminUser = null;
+    let statusStage = 'Checking admin session';
     try {
+      setDiagnostic(null);
       setProgress({ current: 0, total: 0, text: 'Checking admin session…' });
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !await getAdminRole(user.id)) throw new Error('Admin access required.');
@@ -315,6 +297,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         ? (chapter.releaseDate || null)
         : null;
 
+      statusStage = 'Publishing status through Supabase';
       const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
         p_chapter_id: chapter.id,
         p_status: requestedStatus,
@@ -333,10 +316,12 @@ export default function PalDoPalAdmin({ embedded = false }) {
         release_date: saved.release_date,
       });
       await load();
+      setDiagnostic(null);
       setNotice(label(chapter) + ' is now ' + String(saved.status).toLowerCase() + '.');
     } catch (error) {
+      setDiagnostic(diagnosticFromError(statusStage, error, { chapterId: chapter.id, requestedStatus: status }));
       await logAdminAction(adminUser, 'change_pdlpl_status_failed', 'pdlpl_chapter', chapter.id, { status, error: error.message });
-      setNotice(error?.message || 'Status update failed.');
+      setNotice('PDPKL status update failed at ' + statusStage + '. See the Upload diagnostic panel for the exact error.');
     } finally {
       setSavingStatus(null);
     }
@@ -345,6 +330,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
 
   const choosePages = event => {
+    setDiagnostic(null);
     const files = Array.from(event.target.files || []).filter(isImageFile);
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) {
@@ -356,6 +342,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
   const reset = () => {
+    setDiagnostic(null);
     setEditing(null);
     setForm(emptyForm());
     setProgress({ current: 0, total: 0, text: '' });
@@ -555,7 +542,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         try {
           await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId);
         } catch (cleanupError) {
-          cleanupErrors.push('Chapter rollback: ' + errorDetails(cleanupError));
+          cleanupErrors.push('Chapter rollback: ' + (cleanupError?.message || cleanupError));
         }
       }
 
@@ -566,25 +553,27 @@ export default function PalDoPalAdmin({ embedded = false }) {
         );
         if (shouldKeep) continue;
         try { await removePdlplFiles([path]); }
-        catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + path + ': ' + errorDetails(cleanupError)); }
+        catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + path + ': ' + (cleanupError?.message || cleanupError)); }
       }
 
-      setNotice(diagnosticNotice(stage, error, {
-        Chapter: chapterId,
-        Mode: wasEditing ? 'Edit existing chapter' : 'Create new chapter',
-        Status: requestedStatus,
-        Language: form.language,
-        Pages: form.pages.length,
-        'Selected files': form.pages.map(file => file.name).join(', ') || 'None',
-        Cleanup: cleanupErrors.length ? cleanupErrors.join(' || ') : 'No cleanup errors.',
+      setDiagnostic(diagnosticFromError(currentStage, error, {
+        chapterId,
+        mode: wasEditing ? 'Edit existing chapter' : 'Create new chapter',
+        status: requestedStatus,
+        language: form.language,
+        pageCount: form.pages.length,
+        selectedFiles: form.pages.map(file => file.name),
+        uploadedPaths: uploaded,
+        cleanup: cleanupErrors.join(' | '),
       }));
+      setNotice('PDPKL upload failed at ' + currentStage + '. See the Upload diagnostic panel for the exact error.');
       setProgress({ current: 0, total: 0, text: '' });
 
       if (wasEditing && pendingCoverPath && !coverCommitted) {
         try {
           await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId);
         } catch (cleanupError) {
-          cleanupErrors.push('Cover rollback: ' + errorDetails(cleanupError));
+          cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError));
         }
       }    } finally {
       setBusy(false);
