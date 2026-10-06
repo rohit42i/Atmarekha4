@@ -1,101 +1,537 @@
-:root{--membership-accent:#d946ef;--membership-accent-soft:rgba(217,70,239,.12)}
-.membership-plan-eyebrow,.membership-popular{display:none!important}
-.membership-page{position:fixed;inset:0;z-index:999999;width:100vw;height:100dvh;overflow:auto;box-sizing:border-box;background:var(--bg-color,#09090b);color:var(--text-color,#fff);padding:clamp(18px,4vw,48px) clamp(12px,5vw,64px) 30px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.membership-page:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 38% at 50% 0%,rgba(217,70,239,.12),transparent 72%)}.membership-page>*{position:relative}.membership-page-header,.membership-active,.membership-plans,.membership-free-note,.membership-success,.membership-error,.membership-legal{width:min(1040px,100%);margin-left:auto;margin-right:auto}.membership-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}.membership-page-header>div>span{display:none}.membership-page-header h1{margin:0;font-size:clamp(40px,5vw,60px);line-height:.94;letter-spacing:-.065em;font-weight:850}.membership-page-header p{margin:7px 0 0;font-size:14px;color:#94949c}.membership-close{width:50px;height:50px;flex:0 0 50px;border:1px solid rgba(255,255,255,.15);border-radius:15px;background:rgba(255,255,255,.06);color:inherit;font-size:34px;font-weight:300;line-height:1;display:grid;place-items:center;cursor:pointer;transition:.2s ease}.membership-close:hover{background:rgba(255,255,255,.1);transform:scale(1.04)}
-.membership-active{margin-bottom:13px;padding:9px 12px;border:1px solid rgba(74,222,128,.2);border-radius:11px;background:rgba(74,222,128,.05);display:flex;align-items:center;gap:8px}.membership-active-icon{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:rgba(74,222,128,.13);color:#4ade80}.membership-active div{display:grid;gap:1px;flex:1}.membership-active small{color:#92929a}.membership-active button{padding:5px 9px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:transparent;color:inherit}
-.membership-plans{display:flex;justify-content:center;align-items:stretch;gap:12px}.membership-plan{position:relative;width:calc((100% - 36px)/4);min-height:240px;height:auto;overflow:visible;min-width:0;padding:15px;box-sizing:border-box;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.11);border-radius:15px;background:rgba(255,255,255,.04);box-shadow:0 10px 26px rgba(0,0,0,.12);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;cursor:pointer}.membership-plan:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.22);box-shadow:0 16px 34px rgba(0,0,0,.18)}.membership-plan.is-popular{border-color:rgba(217,70,239,.62);background:linear-gradient(145deg,rgba(217,70,239,.12),rgba(255,255,255,.035))}.membership-plan.is-current{border-color:rgba(74,222,128,.4)}.membership-plan-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:rgba(255,255,255,.075);font-size:19px;flex:0 0 auto}.membership-plan h2{margin:8px 0 0;font-size:22px;line-height:1.05;letter-spacing:-.04em;font-weight:800}.membership-price{margin:5px 0 0;font-size:31px;line-height:1;font-weight:900;letter-spacing:-.05em;display:flex;align-items:baseline;gap:6px}.membership-price small{font-size:10px;font-weight:600;color:#777;letter-spacing:0;white-space:nowrap}.membership-plan ul{margin:8px 0 9px;padding:0;list-style:none;display:grid;gap:3px;color:#c9c9cf;font-size:10px;line-height:1.12;flex:1 1 auto}.membership-plan li{display:flex;gap:6px}.membership-button{width:100%;min-height:37px;margin-top:auto;flex:0 0 auto;border:1px solid rgba(255,255,255,.14);border-radius:9px;background:#f4f4f5;color:#111;font-size:11px;font-weight:850;cursor:pointer;transition:.18s ease;pointer-events:auto;position:relative;z-index:2}.membership-button:hover:not(:disabled){transform:translateY(-1px)}.membership-plan.is-popular .membership-button{background:var(--membership-accent);border-color:var(--membership-accent);color:#fff;box-shadow:0 6px 18px rgba(217,70,239,.2)}.membership-plan .membership-button.current{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22);color:#4ade80}.membership-plan .membership-button:disabled{opacity:.82}
-.membership-free-note{margin-top:12px;padding:9px 1px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#777}.membership-free-note strong{color:#ddd;font-size:11px}.membership-success,.membership-error,.membership-legal{margin-top:6px}.membership-success{color:#4ade80}.membership-error{color:#f87171}.membership-legal{font-size:8px;color:#555}
-.profile-membership-slot{margin:12px 0 14px}.profile-membership-launcher{width:100%;display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--border-color);border-radius:18px;background:var(--card-bg);color:var(--text-color);box-shadow:0 10px 28px var(--shadow-color);text-align:left;cursor:pointer}.profile-membership-launcher span:nth-child(2){display:grid;gap:3px;flex:1}.profile-membership-launcher small{font-size:10px;color:var(--muted-color)}.profile-membership-launcher-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:var(--text-color);color:var(--bg-color);font-size:20px}
-.membership-phone-overlay{position:fixed;inset:0;z-index:1000000;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.74);backdrop-filter:blur(16px)}.membership-phone-backdrop{position:absolute;inset:0}.membership-phone-modal{position:relative;z-index:1;width:min(390px,100%);padding:25px 21px;box-sizing:border-box;border:1px solid rgba(255,255,255,.13);border-radius:20px;background:#151518;color:#fff;box-shadow:0 28px 90px rgba(0,0,0,.55)}.membership-phone-close{position:absolute;right:11px;top:11px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.07);color:#fff;font-size:20px}.membership-phone-mark{font-size:30px}.membership-phone-kicker{margin:13px 0 6px;color:#999;font-size:9px;font-weight:800;letter-spacing:.12em}.membership-phone-modal h2{margin:0 0 7px;font-size:23px;letter-spacing:-.03em}.membership-phone-modal>p{font-size:12px;line-height:1.45;color:#999}.membership-upi-modal .membership-button{margin-top:12px;background:var(--membership-accent);border-color:var(--membership-accent);color:#fff}
-@media(max-width:1050px){.membership-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.membership-plan{width:auto;min-height:240px;height:auto}}
-@media(max-width:620px){.membership-page{padding:15px 10px 24px}.membership-page-header{margin-bottom:16px}.membership-page-header h1{font-size:37px}.membership-page-header p{font-size:12px;margin-top:5px}.membership-close{width:47px;height:47px;flex-basis:47px;font-size:31px}.membership-plans{display:flex;gap:9px;overflow-x:auto;justify-content:flex-start;padding:1px 18px 9px 1px;margin:0 -10px 0 -1px;scroll-snap-type:x mandatory;scroll-padding-left:1px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}.membership-plans::-webkit-scrollbar{display:none}.membership-plan{flex:0 0 221px;width:221px;min-height:210px;height:auto;overflow:visible;padding:13px;border-radius:15px;scroll-snap-align:start}.membership-plan-icon{width:32px;height:32px;font-size:16px}.membership-plan h2{margin-top:6px;font-size:19px}.membership-price{font-size:28px;margin-top:4px;gap:5px}.membership-price small{font-size:9px}.membership-plan ul{margin:6px 0 7px;gap:2px;font-size:9px;line-height:1.05}.membership-button{min-height:33px;font-size:9.5px}.membership-free-note{display:block;margin-top:7px;padding:9px 1px}.membership-free-note span{display:block;margin-top:2px}.membership-active{align-items:flex-start;flex-wrap:wrap}}
-@media(prefers-color-scheme:light){.membership-page{background:#f7f7f9;color:#18181b}.membership-page:before{background:radial-gradient(ellipse 60% 38% at 50% 0%,rgba(217,70,239,.07),transparent 72%)}.membership-page-header p{color:#68686f}.membership-plan{background:rgba(255,255,255,.94);border-color:rgba(24,24,27,.1);box-shadow:0 10px 26px rgba(24,24,27,.06)}.membership-plan:hover{background:#fff}.membership-plan.is-popular{background:linear-gradient(145deg,#fff7ff,#fff);border-color:rgba(192,38,211,.42)}.membership-plan ul{color:#52525b}.membership-price small,.membership-free-note,.membership-legal{color:#777}.membership-free-note strong{color:#18181b}.membership-close{background:rgba(24,24,27,.05);color:#18181b;border-color:rgba(24,24,27,.11)}.membership-phone-modal{background:#fff;color:#18181b}}
-@media(prefers-reduced-motion:reduce){.membership-page *{scroll-behavior:auto!important;transition:none!important}}
-/* Final membership presentation polish — visual only. */
-.membership-page{scroll-behavior:smooth}
-.membership-page-header>div>span{display:block;margin:0 0 8px;color:color-mix(in srgb,var(--membership-accent) 78%,var(--text-color,#fff));font-size:9px;font-weight:900;letter-spacing:.2em}
-.membership-page-header h1{font-weight:900}
-.membership-page-header p{max-width:520px}
-.membership-plans{align-items:stretch;gap:14px}
-.membership-plan{min-height:275px;padding:18px;border-radius:19px;background:linear-gradient(165deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border-color:rgba(255,255,255,.12);box-shadow:0 14px 36px rgba(0,0,0,.16)}
-.membership-plan::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 28%);opacity:.8}
-.membership-plan.is-popular{border-width:1.5px;box-shadow:0 18px 46px rgba(217,70,239,.14)}
-.membership-plan.is-popular::before{content:"MOST POPULAR";position:absolute;top:10px;right:10px;padding:5px 8px;border-radius:999px;background:var(--membership-accent);color:#fff;font-size:7px;font-weight:900;letter-spacing:.12em;z-index:2}
-.membership-plan-icon{width:42px;height:42px;border-radius:13px;font-size:21px}
-.membership-plan h2{font-size:20px;margin-top:11px}
-.membership-price{font-size:34px;margin-top:7px}
-.membership-plan ul{gap:6px;margin:12px 0 14px;font-size:10px;line-height:1.25}
-.membership-plan li{gap:7px}
-.membership-button{min-height:42px;border-radius:12px;font-size:11px}
-.membership-free-note{margin-top:18px;padding:13px 15px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);font-size:10px}
-.membership-success,.membership-error{padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.03);font-size:11px}
-.membership-legal{text-align:center}
-@media(max-width:1050px){.membership-plan{min-height:265px}}
-@media(max-width:620px){
-  .membership-page{padding-top:20px}
-  .membership-page-header>div>span{margin-bottom:6px}
-  .membership-page-header h1{font-size:38px}
-  .membership-plans{gap:10px;padding:2px 20px 12px 2px}
-  .membership-plan{flex-basis:235px;width:235px;min-height:245px;padding:15px;border-radius:17px}
-  .membership-plan.is-popular::before{top:8px;right:8px;font-size:6px}
-  .membership-plan-icon{width:38px;height:38px;font-size:18px}
-  .membership-plan h2{font-size:19px}
-  .membership-price{font-size:30px}
-  .membership-plan ul{font-size:9.5px;gap:4px}
-  .membership-free-note{margin-top:10px}
-}
-@media(prefers-color-scheme:light){
-  .membership-plan{background:linear-gradient(165deg,#fff,#fafafd);border-color:rgba(24,24,27,.1);box-shadow:0 14px 36px rgba(24,24,27,.07)}
-  .membership-plan.is-popular{box-shadow:0 18px 42px rgba(192,38,211,.1)}
-  .membership-free-note{background:#fff;border-color:rgba(24,24,27,.08)}
+:root{
+  --membership-accent:#111;
+  --membership-accent-contrast:#fff;
+  --membership-muted:#666;
+  --membership-border:#deded9;
+  --membership-card:#fff;
 }
 
-/* Membership UI refinement v2 — presentation only. */
-.membership-page{overscroll-behavior-y:contain}
-.membership-page:after{content:"";position:fixed;inset:auto 0 0;height:80px;pointer-events:none;background:linear-gradient(to top,var(--bg-color,#09090b),transparent);opacity:.55}
-.membership-page-header{padding-top:2px}
-.membership-page-header h1{font-size:clamp(38px,5.2vw,58px);letter-spacing:-.07em}
-.membership-page-header p{max-width:560px}
-.membership-plans{position:relative;z-index:1}
-.membership-plan{min-height:255px;padding:17px 16px 15px;border-radius:18px}
-.membership-plan:not(.is-current):hover{transform:translateY(-4px)}
-.membership-plan.is-popular{box-shadow:0 18px 42px rgba(217,70,239,.13)}
-.membership-plan.is-current{box-shadow:0 12px 34px rgba(74,222,128,.08)}
-.membership-plan-icon{box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
-.membership-price{font-size:34px}
-.membership-plan ul{font-size:10.5px;line-height:1.28;gap:5px;margin:11px 0 13px}
-.membership-plan li::first-letter{font-weight:900}
-.membership-button{min-height:41px;border-radius:11px}
-.membership-free-note{margin-top:18px;padding:13px 2px}
-.membership-free-note span{color:#85858d}
-.membership-success,.membership-error{padding:10px 13px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
-.membership-success{border-color:rgba(74,222,128,.14)}
-.membership-error{border-color:rgba(248,113,113,.14)}
-@media(max-width:1050px){.membership-plan{min-height:250px}}
-@media(max-width:620px){
- .membership-page{padding:14px 10px 28px}
- .membership-page-header{align-items:center;margin-bottom:14px}
- .membership-page-header h1{font-size:36px}
- .membership-page-header p{font-size:11px}
- .membership-plans{padding:3px 22px 13px 3px;gap:10px}
- .membership-plan{flex-basis:228px;width:228px;min-height:236px;padding:14px;border-radius:17px}
- .membership-plan h2{font-size:20px}
- .membership-price{font-size:30px}
- .membership-plan ul{font-size:9.5px;line-height:1.18;gap:4px}
- .membership-button{min-height:37px}
- .membership-free-note{margin-top:10px;padding:10px 2px}
+.membership-page{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  width:100vw;
+  height:100dvh;
+  overflow:auto;
+  box-sizing:border-box;
+  background:var(--bg-color,#f7f7f5)!important;
+  color:var(--text-color,#181818)!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* Membership UI refinement v3 — visual/interaction only. */
-.membership-plan{will-change:transform;transform:translateZ(0);animation:membership-card-in .55s cubic-bezier(.22,1,.36,1) both}
-.membership-plan:nth-child(1){animation-delay:.02s}.membership-plan:nth-child(2){animation-delay:.08s}.membership-plan:nth-child(3){animation-delay:.14s}.membership-plan:nth-child(4){animation-delay:.20s}
-.membership-plan::before{display:none!important}
-.membership-plan::after{opacity:.55;transition:opacity .35s ease}.membership-plan:hover::after{opacity:1}
-.membership-plan:hover{transform:translate3d(0,-6px,0) scale(1.012)}
-.membership-plan:active{transform:translate3d(0,-1px,0) scale(.992);transition-duration:.08s}
-.membership-plan-icon{transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .25s ease}.membership-plan:hover .membership-plan-icon{transform:translateY(-2px) rotate(-3deg) scale(1.05)}
-.membership-button{transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease,background-color .25s ease,border-color .25s ease}.membership-button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.16)}
-.membership-plan.is-popular .membership-button:hover:not(:disabled){box-shadow:0 9px 26px rgba(217,70,239,.28)}
-.membership-plans{scroll-behavior:smooth;scrollbar-width:none}.membership-plans::-webkit-scrollbar{display:none}
-@media(max-width:620px){.membership-plans{touch-action:pan-x pan-y;scroll-snap-type:x mandatory;scroll-padding-inline:12px;overscroll-behavior-x:contain;padding-left:12px;padding-right:28px;gap:12px}.membership-plan{scroll-snap-align:start;scroll-snap-stop:always;animation-duration:.45s}.membership-plan:hover{transform:translate3d(0,-3px,0) scale(1.006)}.membership-plan:active{transform:scale(.992)}}
-@keyframes membership-card-in{from{opacity:0;transform:translate3d(0,18px,0) scale(.97)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
-@media(prefers-reduced-motion:reduce){.membership-plan{animation:none!important}.membership-plan,.membership-plan:hover,.membership-plan:active,.membership-plan-icon,.membership-button{transform:none!important;transition:none!important}}
+.membership-page *{box-sizing:border-box}
+.membership-shell{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto;
+  padding:30px 0 44px;
+}
+
+.membership-header{margin-bottom:26px}
+.membership-brand{
+  font-size:10px;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.18em;
+  margin-bottom:32px;
+  opacity:.62;
+}
+.membership-header-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:28px;
+}
+.membership-eyebrow{
+  margin:0 0 9px;
+  font-size:10px!important;
+  line-height:1.1;
+  font-weight:850;
+  letter-spacing:.16em;
+  opacity:.55;
+}
+.membership-header h1{
+  margin:0;
+  font-size:clamp(42px,6vw,72px)!important;
+  line-height:.92;
+  letter-spacing:-.075em;
+  font-weight:900;
+}
+.membership-lead{
+  max-width:560px;
+  margin:12px 0 0;
+  font-size:15px!important;
+  line-height:1.45;
+  color:var(--muted-color,#666)!important;
+}
+.membership-close{
+  width:48px!important;
+  height:48px!important;
+  flex:0 0 48px;
+  display:grid!important;
+  place-items:center;
+  padding:0!important;
+  border:1px solid var(--border-color,#deded9)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  color:var(--text-color,#181818)!important;
+  font-size:28px!important;
+  font-weight:300!important;
+  line-height:1!important;
+  cursor:pointer;
+  box-shadow:none!important;
+}
+.membership-close:hover{
+  background:var(--surface-2-color,#f1f1ee)!important;
+  transform:none!important;
+}
+
+.membership-access-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:14px;
+  padding:14px 16px;
+  border:1px solid var(--border-color,#deded9)!important;
+  border-radius:16px;
+  background:var(--card-bg,#fff)!important;
+}
+.membership-access-main{display:flex;align-items:center;gap:12px;min-width:0}
+.membership-access-icon{
+  width:36px;height:36px;flex:0 0 36px;
+  display:grid;place-items:center;
+  border-radius:10px;
+  background:var(--text-color,#181818)!important;
+  color:var(--bg-color,#fff)!important;
+  font-size:9px;font-weight:900;letter-spacing:.03em;
+}
+.membership-access-main div{display:grid;gap:3px}
+.membership-access-main strong{font-size:13px!important}
+.membership-access-main span{font-size:11px!important;color:var(--muted-color,#666)!important}
+.membership-billing{
+  display:grid;
+  gap:2px;
+  text-align:right;
+  flex:0 0 auto;
+}
+.membership-billing strong{font-size:12px!important}
+.membership-billing span{
+  font-size:9px!important;
+  color:var(--muted-color,#666)!important;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.membership-current{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:14px;
+  padding:11px 14px;
+  border:1px solid #b8ddc9!important;
+  border-radius:14px;
+  background:#f4fbf7!important;
+  color:#173c29!important;
+}
+.membership-current-mark{
+  width:28px;height:28px;flex:0 0 28px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:#173c29!important;
+  color:#fff!important;
+  font-weight:900;
+}
+.membership-current div{display:grid;gap:2px;flex:1}
+.membership-current-label{
+  margin:0;
+  font-size:8px!important;
+  font-weight:900;
+  letter-spacing:.13em;
+  color:#397355!important;
+}
+.membership-current strong{font-size:13px!important;color:#173c29!important}
+.membership-current span{font-size:10px!important;color:#527564!important}
+.membership-current-status{
+  padding:5px 8px;
+  border-radius:999px;
+  background:#dff2e7!important;
+  color:#23633f!important;
+  font-size:8px!important;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+
+.membership-plans{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.membership-plan{
+  min-width:0;
+  min-height:360px;
+  display:flex;
+  flex-direction:column;
+  padding:19px;
+  border:1px solid var(--border-color,#deded9)!important;
+  border-radius:18px;
+  background:var(--card-bg,#fff)!important;
+  color:var(--text-color,#181818)!important;
+  box-shadow:0 8px 26px rgb(0 0 0/.055)!important;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.membership-plan:hover{
+  transform:translateY(-3px);
+  border-color:color-mix(in srgb,var(--text-color) 24%,var(--border-color))!important;
+  box-shadow:0 14px 34px rgb(0 0 0/.09)!important;
+}
+.membership-plan.is-popular{
+  border:2px solid var(--text-color,#181818)!important;
+  padding:18px;
+  box-shadow:0 16px 38px rgb(0 0 0/.10)!important;
+}
+.membership-plan.is-current{
+  border-color:#6caf89!important;
+}
+.membership-plan-head{
+  min-height:64px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:8px;
+}
+.membership-plan-label{
+  margin:0 0 6px;
+  font-size:8px!important;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.13em;
+  color:var(--muted-color,#666)!important;
+}
+.membership-plan h2{
+  margin:0;
+  font-size:20px!important;
+  line-height:1.05;
+  letter-spacing:-.045em;
+  font-weight:850;
+}
+.membership-popular{
+  display:inline-flex!important;
+  padding:5px 7px;
+  border-radius:999px;
+  background:var(--text-color,#181818)!important;
+  color:var(--bg-color,#fff)!important;
+  font-size:7px!important;
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.09em;
+  white-space:nowrap;
+}
+.membership-plan-description{
+  min-height:48px;
+  margin:13px 0 0;
+  font-size:11px!important;
+  line-height:1.45;
+  color:var(--muted-color,#666)!important;
+}
+.membership-price-row{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  margin-top:16px;
+}
+.membership-price-row strong{
+  font-size:36px!important;
+  line-height:1;
+  letter-spacing:-.06em;
+  font-weight:900;
+}
+.membership-price-row span{
+  font-size:10px!important;
+  color:var(--muted-color,#666)!important;
+}
+.membership-plan-divider{
+  height:1px;
+  margin:17px 0 13px;
+  background:var(--border-soft-color,#e9e9e5)!important;
+}
+.membership-plan ul{
+  display:grid;
+  gap:8px;
+  margin:0 0 18px;
+  padding:0;
+  list-style:none;
+  flex:1;
+}
+.membership-plan li{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  font-size:10px!important;
+  line-height:1.3;
+  color:var(--text-color,#181818)!important;
+}
+.membership-plan li span{
+  flex:0 0 auto;
+  font-size:10px!important;
+  font-weight:900;
+}
+.membership-button{
+  width:100%;
+  min-height:43px!important;
+  margin-top:auto;
+  padding:0 12px!important;
+  border:1px solid var(--text-color,#181818)!important;
+  border-radius:11px!important;
+  background:var(--text-color,#181818)!important;
+  color:var(--bg-color,#fff)!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  cursor:pointer;
+  box-shadow:none!important;
+}
+.membership-button:hover:not(:disabled){
+  background:var(--accent-hover,#000)!important;
+  color:var(--accent-contrast,#fff)!important;
+  transform:none!important;
+}
+.membership-plan:not(.is-popular) .membership-button{
+  background:transparent!important;
+  color:var(--text-color,#181818)!important;
+}
+.membership-plan:not(.is-popular) .membership-button:hover:not(:disabled){
+  background:var(--text-color,#181818)!important;
+  color:var(--bg-color,#fff)!important;
+}
+.membership-button.current{
+  border-color:#6caf89!important;
+  background:#edf8f1!important;
+  color:#23633f!important;
+}
+.membership-button:disabled{opacity:1!important;cursor:default}
+
+.membership-support{
+  display:grid;
+  grid-template-columns:1fr 1.2fr;
+  gap:48px;
+  margin-top:34px;
+  padding:26px 2px 30px;
+  border-top:1px solid var(--border-color,#deded9);
+  border-bottom:1px solid var(--border-color,#deded9);
+}
+.membership-support h2{
+  margin:0;
+  max-width:390px;
+  font-size:25px!important;
+  line-height:1.05;
+  letter-spacing:-.045em;
+}
+.membership-support>div>p:last-child{
+  max-width:430px;
+  margin:10px 0 0;
+  font-size:11px!important;
+  line-height:1.5;
+  color:var(--muted-color,#666)!important;
+}
+.membership-support-points{display:grid;gap:0}
+.membership-support-points div{
+  display:grid;
+  grid-template-columns:34px 1fr;
+  gap:12px;
+  padding:11px 0;
+  border-bottom:1px solid var(--border-soft-color,#e9e9e5);
+}
+.membership-support-points div:last-child{border-bottom:0}
+.membership-support-points strong{
+  font-size:9px!important;
+  color:var(--muted-color,#666)!important;
+}
+.membership-support-points span{font-size:11px!important;line-height:1.4}
+
+.membership-faq{
+  width:100%;
+  margin-top:28px;
+  border-top:1px solid var(--border-color,#deded9);
+}
+.membership-faq details{border-bottom:1px solid var(--border-soft-color,#e9e9e5)}
+.membership-faq summary{
+  list-style:none;
+  cursor:pointer;
+  padding:15px 2px;
+  font-size:12px!important;
+  font-weight:750;
+}
+.membership-faq summary::-webkit-details-marker{display:none}
+.membership-faq summary::after{
+  content:"+";
+  float:right;
+  font-size:18px;
+  font-weight:300;
+  line-height:12px;
+}
+.membership-faq details[open] summary::after{content:"−"}
+.membership-faq p{
+  max-width:780px;
+  margin:0 28px 15px 2px;
+  font-size:10.5px!important;
+  line-height:1.55;
+  color:var(--muted-color,#666)!important;
+}
+
+.membership-feedback{
+  margin:14px 0 0;
+  padding:11px 13px;
+  border-radius:11px;
+  font-size:11px!important;
+}
+.membership-success{
+  border:1px solid #b8ddc9!important;
+  background:#f4fbf7!important;
+  color:#23633f!important;
+}
+.membership-error{
+  border:1px solid #edc2be!important;
+  background:#fff6f5!important;
+  color:#9b2c25!important;
+}
+.membership-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  margin-top:25px;
+  font-size:8px;
+  line-height:1.4;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:var(--muted-color,#666)!important;
+}
+.membership-footer span:first-child{font-weight:900;color:var(--text-color,#181818)!important}
+
+.profile-membership-slot{margin:12px 0 14px}
+.profile-membership-launcher{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:15px;
+  border:1px solid var(--border-color)!important;
+  border-radius:16px!important;
+  background:var(--card-bg)!important;
+  color:var(--text-color)!important;
+  box-shadow:0 8px 24px var(--shadow-color)!important;
+  text-align:left;
+  cursor:pointer;
+}
+.profile-membership-launcher-icon{
+  width:42px;height:42px;flex:0 0 42px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  background:var(--text-color)!important;
+  color:var(--bg-color)!important;
+  font-size:20px;
+}
+.profile-membership-launcher span:nth-child(2){display:grid;gap:3px;flex:1}
+.profile-membership-launcher strong{font-size:13px!important}
+.profile-membership-launcher small{font-size:10px!important;color:var(--muted-color)!important}
+.profile-membership-launcher b{font-size:20px}
+
+@media(max-width:980px){
+  .membership-shell{width:min(760px,calc(100% - 32px))}
+  .membership-plans{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .membership-plan{min-height:340px}
+  .membership-support{grid-template-columns:1fr;gap:22px}
+}
+
+@media(max-width:620px){
+  .membership-shell{width:calc(100% - 22px);padding:20px 0 34px}
+  .membership-brand{margin-bottom:25px}
+  .membership-header{margin-bottom:18px}
+  .membership-header-row{gap:15px}
+  .membership-header h1{font-size:40px!important}
+  .membership-lead{font-size:12px!important;margin-top:9px}
+  .membership-close{width:43px!important;height:43px!important;flex-basis:43px;font-size:25px!important}
+  .membership-access-bar{align-items:flex-start;padding:12px;gap:14px}
+  .membership-access-main{gap:9px}
+  .membership-access-icon{width:32px;height:32px;flex-basis:32px}
+  .membership-access-main strong{font-size:11px!important}
+  .membership-access-main span{font-size:9px!important}
+  .membership-billing strong{font-size:10px!important}
+  .membership-billing span{font-size:7px!important}
+  .membership-plans{
+    display:flex;
+    gap:9px;
+    overflow-x:auto;
+    margin:0 -11px;
+    padding:3px 20px 12px 11px;
+    scroll-snap-type:x mandatory;
+    scroll-padding-left:11px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .membership-plans::-webkit-scrollbar{display:none}
+  .membership-plan{
+    flex:0 0 272px;
+    width:272px;
+    min-height:342px;
+    padding:17px;
+    scroll-snap-align:start;
+    border-radius:17px;
+  }
+  .membership-plan.is-popular{padding:16px}
+  .membership-plan-description{font-size:10px!important}
+  .membership-support{margin-top:24px;padding:22px 1px 24px}
+  .membership-support h2{font-size:21px!important}
+  .membership-footer{display:grid;gap:5px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .membership-plan,.membership-close{transition:none!important}
+}
+
+@media(prefers-color-scheme:dark){
+  .membership-page{
+    --membership-card:#000;
+    --membership-border:#333;
+  }
+  .membership-page{
+    background:#000!important;
+    color:#fff!important;
+  }
+  .membership-access-bar,.membership-plan{background:#050505!important}
+  .membership-access-icon{background:#fff!important;color:#000!important}
+  .membership-billing span,.membership-plan-description,.membership-price-row span,.membership-plan-label,
+  .membership-support>div>p:last-child,.membership-faq p,.membership-footer,.membership-access-main span{
+    color:#aaa!important;
+  }
+  .membership-plan-divider,.membership-faq,.membership-faq details,.membership-support,.membership-support-points div{
+    border-color:#262626!important;
+  }
+  .membership-plan{border-color:#303030!important;box-shadow:0 10px 28px rgb(0 0 0/.45)!important}
+  .membership-plan.is-popular{border-color:#fff!important}
+  .membership-plan:not(.is-popular) .membership-button{
+    border-color:#fff!important;
+    color:#fff!important;
+  }
+  .membership-plan:not(.is-popular) .membership-button:hover:not(:disabled){
+    background:#fff!important;color:#000!important;
+  }
+  .membership-current{background:#08160e!important;border-color:#245b3d!important;color:#d7f4e2!important}
+  .membership-current-label,.membership-current strong,.membership-current span{color:#b8dfc9!important}
+  .membership-current-mark{background:#d7f4e2!important;color:#08160e!important}
+  .membership-current-status{background:#143723!important;color:#b8dfc9!important}
+  .membership-success{background:#08160e!important;border-color:#245b3d!important;color:#b8dfc9!important}
+  .membership-error{background:#1b0a09!important;border-color:#65251f!important;color:#ffb4ac!important}
+}
+
+:root[data-theme="dark"] .membership-page{
+  background:#000!important;
+  color:#fff!important;
+}
+:root[data-theme="dark"] .membership-access-bar,
+:root[data-theme="dark"] .membership-plan{background:#050505!important}
+:root[data-theme="dark"] .membership-plan:not(.is-popular) .membership-button{
+  border-color:#fff!important;color:#fff!important;background:transparent!important;
+}
+:root[data-theme="dark"] .membership-plan:not(.is-popular) .membership-button:hover:not(:disabled){
+  background:#fff!important;color:#000!important;
+}
