@@ -85,7 +85,7 @@ function PdlplChapterRow({ chapter, member, onOpen, pageCount }) {
   );
 }
 
-function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack }) {
+function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, language, onLanguageChange }) {
   return (
     <main className="site-shell chapter-list-page">
       <header className="subpage-header">
@@ -99,6 +99,7 @@ function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack }) {
       <section className="chapter-list-section">
         <div className="chapter-list-heading">
           <p>{chapters.length} published {chapters.length === 1 ? 'chapter' : 'chapters'}</p>
+          <label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="hi">Hindi</option><option value="en">English</option></select></label>
           <span>MEMBERS ONLY · DATE · PAGES</span>
         </div>
 
@@ -368,6 +369,7 @@ export default function PalDoPalKeLamhe() {
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [language, setLanguage] = useState(() => window.localStorage.getItem('pdlpl-language') === 'en' ? 'en' : 'hi');
   const [lockChapter, setLockChapter] = useState(null);
   const [route, setRoute] = useState(() => window.location.hash.replace(/^#/, ''));
 
@@ -386,7 +388,7 @@ export default function PalDoPalKeLamhe() {
         getPdlplMemberAccess(),
       ]);
 
-      const publishedChapters = rows.filter(published);
+      const publishedChapters = rows.filter(chapter => published(chapter) && String(chapter.language || 'hi') === language);
       setChapters(publishedChapters);
       setMember(access.member);
       setAdmin(access.admin);
@@ -414,7 +416,7 @@ export default function PalDoPalKeLamhe() {
     const prefix = `${PDLPL_ROUTE}/read/`;
     if (!route.startsWith(prefix)) return null;
     return decodeURIComponent(route.slice(prefix.length));
-  }, [route]);
+  }, [route, language]);
 
   const readerChapter = currentReaderId
     ? chapters.find(item => item.id === currentReaderId) || null
