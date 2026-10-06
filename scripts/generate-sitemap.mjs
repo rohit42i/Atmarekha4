@@ -28,12 +28,18 @@ const slugify = value => String(value || '')
 
 const shortId = id => String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 8).toLowerCase();
 
+const normalizeLanguage = language => String(language || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';
+
 const chapterPath = chapter => {
   const number = chapter.chapter_number;
-  if (number !== null && number !== undefined && number !== '') return '/chapter/' + encodeURIComponent(String(number).trim());
-  const slug = slugify(chapter.title) || 'special';
-  const suffix = shortId(chapter.id);
-  return '/chapter/special/' + encodeURIComponent(suffix ? slug + '-' + suffix : slug);
+  const base = number !== null && number !== undefined && number !== ''
+    ? '/chapter/' + encodeURIComponent(String(number).trim())
+    : '/chapter/special/' + encodeURIComponent((() => {
+        const slug = slugify(chapter.title) || 'special';
+        const suffix = shortId(chapter.id);
+        return suffix ? slug + '-' + suffix : slug;
+      })());
+  return normalizeLanguage(chapter.language) === 'en' ? base + '?lang=en' : base;
 };
 
 async function readExisting() {
@@ -45,7 +51,7 @@ async function loadPublishedChapters() {
   const key = env('VITE_SUPABASE_PUBLISHABLE_KEY') || env('VITE_SUPABASE_ANON_KEY');
   if (!base || !key) return null;
   const url = new URL(base.replace(/\/$/, '') + '/rest/v1/chapters');
-  url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status');
+  url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language');
   url.searchParams.set('status', 'eq.published');
   url.searchParams.set('order', 'chapter_number.asc.nullsfirst,created_at.asc');
   const controller = new AbortController();
