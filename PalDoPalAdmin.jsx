@@ -26,6 +26,17 @@ function safeExt(file, fallback = 'webp') {
   return /^[a-z0-9]+$/.test(ext) ? ext : fallback;
 }
 
+const IMAGE_MIME_BY_EXT = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
+
+function isImageFile(file) {
+  if (!(file instanceof File)) return false;
+  if (String(file.type || '').toLowerCase().startsWith('image/')) return true;
+  return Boolean(IMAGE_MIME_BY_EXT[safeExt(file, '').toLowerCase()]);
+}
+
 function pagePath(chapterId, revision, file, index) {
   return `chapters/${chapterId}/pages/${revision}/${String(index + 1).padStart(4, '0')}.${safeExt(file)}`;
 }
@@ -181,7 +192,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
   );
 
   const appendPages = async filesInput => {
-    const files = Array.from(filesInput || []).filter(file => file.type.startsWith('image/'));
+    const files = Array.from(filesInput || []).filter(isImageFile);
     if (!files.length || !selectedChapter || busy) return;
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) { setNotice(`${tooLarge.name} is larger than 95 MB.`); return; }
@@ -259,7 +270,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
 
   const choosePages = event => {
-    const files = Array.from(event.target.files || []).filter(file => file.type.startsWith('image/'));
+    const files = Array.from(event.target.files || []).filter(isImageFile);
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) {
       event.target.value = '';
