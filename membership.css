@@ -405,3 +405,10 @@
   .membership-button{min-height:34px;font-size:10px}
 }
 
+
+/* True black membership cards — no gradients */
+.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#000!important;background-image:none!important;border-color:rgba(255,255,255,.16)!important;box-shadow:0 12px 28px rgba(0,0,0,.32)!important}
+.membership-plan::before,.membership-plan::after{display:none!important;background:none!important}
+.membership-plan-icon{background:#0a0a0a!important;background-image:none!important;border-color:rgba(255,255,255,.10)!important;box-shadow:none!important}
+@media(max-width:620px){.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#000!important;background-image:none!important}}
+@media(prefers-color-scheme:light){.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#000!important;background-image:none!important;border-color:rgba(255,255,255,.16)!important;color:#fff}.membership-plan li,.membership-plan h2,.membership-price{color:#fff}.membership-plan-icon{background:#0a0a0a!important;color:#fff;border-color:rgba(255,255,255,.12)!important}.membership-plan .membership-price small,.membership-plan ul{color:#b8b8bd}.membership-button{background:#fff!important;color:#000!important}}
