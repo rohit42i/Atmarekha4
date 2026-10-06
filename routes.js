@@ -112,7 +112,7 @@ export function getSiteRoute() {
 export function getChapterIdFromLocation(chapters = []) {
   if (typeof window === 'undefined') return null;
 
-  const pathChapter = findChapterForPath(window.location.pathname, chapters);
+  const pathChapter = findChapterForPath(window.location.pathname + (window.location.search || ''), chapters);
   if (pathChapter?.id) return String(pathChapter.id);
 
   const rendered = getRenderedChapterId();
