@@ -435,6 +435,32 @@ function AdminPanelContent({ onLogout }) {
     setTab('Chapters'); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  async function updateChapterStatus(chapter, status) {
+    if (!chapter || busy) return;
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const nextStatus = String(status || '').trim();
+      const patch = {
+        status: nextStatus,
+        release_date: nextStatus.toLowerCase() === 'published' ? (chapter.releaseDate || new Date().toISOString()) : null,
+      };
+      const { error } = await supabase.from(CHAPTERS).update(patch).eq('id', chapter.id);
+      if (error) throw new Error('Chapter status update failed: ' + error.message);
+      await logAdminAction(adminUser, 'update_chapter_status', 'chapter', chapter.id, { from: chapter.status, to: nextStatus, release_date: patch.release_date });
+      await load();
+      setNotice({ type: 'success', text: (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'Chapter') + ' is now ' + nextStatus.toLowerCase() + '.' });
+      toast('Chapter status updated.', 'success');
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Chapter status update failed.' });
+      toast(error.message || 'Chapter status update failed.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function deleteChapter(chapter) {
     const ok = await requestConfirm({ title: 'Delete chapter', message: 'Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently? This removes the chapter record and associated R2 media.', confirmLabel: 'Delete chapter', danger: true });
     if (!ok) return;
@@ -984,8 +1010,36 @@ function AdminPanelContent({ onLogout }) {
           </section>}
       {chapterPublishProject === 'atma' && <section className="admin-card">
         <div className="admin-card-title"><div><span>LIBRARY</span><h2>All chapters</h2></div><button type="button" onClick={resetForm}>+ New chapter</button></div>
-        <div className="admin-chapter-list">{sorted.map(chapter => <article key={chapter.id}><div><div className="admin-status-line"><strong>{chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Unnumbered'}</strong><span>{chapter.status || 'Pre-uploaded'} · {chapterLanguageLabel(chapter.language)}</span></div><h3>{chapter.title || 'Untitled chapter'}</h3><p>{pageCounts[chapter.id] || 0} pages · {chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleDateString('en-IN') : 'No release date'}</p></div><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></article>)}{!sorted.length && <p className="muted center">No chapters yet.</p>}</div>
-      </section>}
+        <div className="ar-admin-toolbar">
+          <div className="grow"><input value={chapterFilters.query} onChange={event => setChapterFilters(value => ({ ...value, query: event.target.value }))} placeholder="Search title, chapter, language…" aria-label="Search chapters"/></div>
+          <select className="ar-admin-filter" value={chapterFilters.status} onChange={event => setChapterFilters(value => ({ ...value, status: event.target.value }))} aria-label="Filter chapter status"><option value="all">All status</option><option value="published">Published</option><option value="scheduled">Scheduled</option><option value="pre-uploaded">Pre-uploaded</option><option value="draft">Draft</option></select>
+          <select className="ar-admin-filter" value={chapterFilters.language} onChange={event => setChapterFilters(value => ({ ...value, language: event.target.value }))} aria-label="Filter chapter language"><option value="all">All languages</option><option value="hi">Hindi</option><option value="en">English</option></select>
+          <select className="ar-admin-filter" value={chapterFilters.sort} onChange={event => setChapterFilters(value => ({ ...value, sort: event.target.value }))} aria-label="Sort chapters"><option value="number">Chapter number</option><option value="release">Release date</option><option value="title">Title</option></select>
+        </div>
+        {selectedChapters.size > 0 && <div className="ar-admin-selection-bar"><strong>{selectedChapters.size} selected</strong><button type="button" onClick={() => bulkSetChapterStatus('Published')} disabled={busy}>Publish</button><button type="button" onClick={() => bulkSetChapterStatus('Draft')} disabled={busy}>Draft</button><button type="button" onClick={clearChapterSelection}>Clear</button></div>}
+        <div className="ar-admin-table-wrap">
+          <table className="ar-admin-table">
+            <thead><tr><th><input type="checkbox" checked={chapterRows.length > 0 && selectedChapters.size === chapterRows.length} onChange={toggleAllChapters} aria-label="Select all visible chapters"/></th><th>Chapter</th><th>Title</th><th>Language</th><th>Status</th><th>Pages</th><th>Release</th><th>Actions</th></tr></thead>
+            <tbody>
+              {chapterRows.map(chapter => {
+                const pageCount = pageCounts[chapter.id] || 0;
+                const status = String(chapter.status || 'Pre-uploaded').trim();
+                const statusKey = status.toLowerCase().replace(/[^a-z-]/g, '-');
+                return <tr key={chapter.id}>
+                  <td><input type="checkbox" checked={selectedChapters.has(chapter.id)} onChange={() => toggleChapter(chapter.id)} aria-label={'Select ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'unnumbered chapter')}/></td>
+                  <td className="primary-cell">{chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'Unnumbered'}</td>
+                  <td><strong>{chapter.title || 'Untitled chapter'}</strong>{!chapter.cover && <span className="ar-admin-warning"> · Missing cover</span>}{pageCount === 0 && <span className="ar-admin-warning"> · Missing pages</span>}</td>
+                  <td className="secondary-cell">{chapterLanguageLabel(chapter.language)}</td>
+                  <td><select className="ar-admin-status-select" value={status} onChange={event => updateChapterStatus(chapter, event.target.value)} disabled={busy} aria-label={'Change status for ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'chapter')}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select><span className={'ar-admin-status-pill ' + statusKey}>{status}</span></td>
+                  <td className="secondary-cell">{pageCount === 0 ? <span className="ar-admin-warning">0</span> : pageCount}</td>
+                  <td className="secondary-cell">{chapter.releaseDate || chapter.createdAt ? new Date(chapter.releaseDate || chapter.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not available'}</td>
+                  <td><div className="admin-row-actions"><button type="button" onClick={() => editChapter(chapter)}>Edit</button><button type="button" className="danger" onClick={() => deleteChapter(chapter)} disabled={busy}>Delete</button></div></td>
+                </tr>;
+              })}
+              {!chapterRows.length && <tr><td colSpan="8"><div className="ar-admin-empty-state"><strong>No matching chapters</strong><span>Adjust the filters or create a new chapter.</span></div></td></tr>}
+            </tbody>
+          </table>
+        </div>      </section>}
     </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
       <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
       <div className="admin-report-list">{reports.map(report => {
