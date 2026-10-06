@@ -50,6 +50,7 @@ export async function getPdlplMemberAccess() {
 
   const result = {
     user,
+    planId: String(planId || '').trim().toLowerCase() || null,
     member: ['supporter', 'premium'].includes(String(planId || '').trim().toLowerCase()),
     admin: isAdminRole(role),
   };
