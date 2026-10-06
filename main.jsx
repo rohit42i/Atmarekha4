@@ -23,8 +23,6 @@ import ThemeToggle from './ThemeToggle.jsx';
 import ExperienceEnhancements from './ExperienceEnhancements.jsx';
 import './index.css';
 import './ui-polish.css';
-import './admin-studio-tokens.css';
-import './admin-studio-core.css';
 import './interaction-polish.css';
 import './mihon-reader-polish.css';
 import './notification-fix.js';
@@ -77,3 +75,5 @@ createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader
 import './experience-enhancements.css';
 import './membership-pro.css';
 import './audience-experience.css';
+import './admin-studio-tokens.css';
+import './admin-studio-core.css';
