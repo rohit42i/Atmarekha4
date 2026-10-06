@@ -2,7 +2,6 @@
  * Dark-first, mythic-gold, additive. No database/API assumptions.
  */
 :root {
-  color-scheme: dark;
   --admin-bg: #08090a;
   --admin-surface: #0f1011;
   --admin-surface-2: #151619;
@@ -91,11 +90,22 @@
   --a-overlay: var(--admin-overlay);
   --a-input: var(--admin-surface-2);
   --a-modal: var(--admin-surface);
-}
 
-html,
-body {
-  background: var(--admin-bg);
+  /* Compatibility aliases used by the existing PDPKL/admin event surfaces. */
+  --ar-admin-bg: var(--admin-bg);
+  --ar-admin-surface: var(--admin-surface);
+  --ar-admin-surface-2: var(--admin-surface-2);
+  --ar-admin-border: var(--admin-border);
+  --ar-admin-text: var(--admin-text);
+  --ar-admin-muted: var(--admin-muted);
+  --ar-admin-gold: var(--admin-gold);
+  --ar-admin-shadow: var(--admin-shadow-soft);
+  --admin-v2-surface: var(--admin-surface);
+  --admin-v2-border: var(--admin-border);
+  --admin-v2-text: var(--admin-text);
+  --admin-v2-muted: var(--admin-muted);
+  --admin-v2-accent: var(--admin-gold);
+  --admin-v2-shadow: var(--admin-shadow-soft);
 }
 
 @media (prefers-reduced-motion: reduce) {
