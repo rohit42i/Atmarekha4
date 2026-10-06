@@ -181,6 +181,12 @@ export default function AdminPanel({ onLogout }) {
   }, []);
 
   useEffect(() => {
+    const openCommand = () => setCommandOpen(true);
+    window.addEventListener('atma-admin-open-command', openCommand);
+    return () => window.removeEventListener('atma-admin-open-command', openCommand);
+  }, []);
+
+  useEffect(() => {
     const isTyping = event => {
       const target = event.target;
       return target instanceof HTMLElement && (
