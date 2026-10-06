@@ -292,7 +292,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
     setNotice('');
     setDiagnostic(null);
     let adminUser = null;
-    let statusStage = 'Checking admin session';
+    let stage = 'Checking admin session';
     try {
       setDiagnostic(null);
       setProgress({ current: 0, total: 0, text: 'Checking admin session…' });
@@ -330,9 +330,10 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setDiagnostic(null);
       setNotice(label(chapter) + ' is now ' + String(saved.status).toLowerCase() + '.');
     } catch (error) {
-      setDiagnostic(diagnosticFromError(statusStage, error, { chapterId: chapter.id, requestedStatus: status }));
+      setDiagnostic(diagnosticFromError(stage, error, { chapterId: chapter.id, requestedStatus: status }));
+      console.error('[PDPKL status]', { stage, chapterId: chapter.id, requestedStatus: status }, error);
       await logAdminAction(adminUser, 'change_pdlpl_status_failed', 'pdlpl_chapter', chapter.id, { status, error: error.message });
-      setNotice('PDPKL status update failed at ' + statusStage + '. See the Upload diagnostic panel for the exact error.');
+      setNotice('PDPKL status update failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');
     } finally {
       setSavingStatus(null);
     }
@@ -567,7 +568,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + path + ': ' + (cleanupError?.message || cleanupError)); }
       }
 
-      setDiagnostic(diagnosticFromError(currentStage, error, {
+      setDiagnostic(diagnosticFromError(stage, error, {
         chapterId,
         mode: wasEditing ? 'Edit existing chapter' : 'Create new chapter',
         status: requestedStatus,
@@ -577,7 +578,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
         uploadedPaths: uploaded,
         cleanup: cleanupErrors.join(' | '),
       }));
-      setNotice('PDPKL upload failed at ' + currentStage + '. See the Upload diagnostic panel for the exact error.');
+      console.error('[PDPKL upload]', { stage, chapterId, requestedStatus }, error);
+      setNotice('PDPKL upload failed at ' + stage + '. See the Upload diagnostic panel for the exact error.');
       setProgress({ current: 0, total: 0, text: '' });
 
       if (wasEditing && pendingCoverPath && !coverCommitted) {
