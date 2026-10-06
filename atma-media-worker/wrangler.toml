@@ -1,0 +1,12 @@
+name = "tiny-pond-c959"
+main = "index.js"
+compatibility_date = "2026-10-06"
+workers_dev = true
+
+[vars]
+SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co"
+ALLOWED_ORIGINS = "https://www.atmarekha.in,https://atmarekha.in,http://localhost:5173,http://127.0.0.1:5173"
+
+[[r2_buckets]]
+binding = "MANGA_BUCKET"
+bucket_name = "atma-rekha-manga"
