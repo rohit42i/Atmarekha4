@@ -70,10 +70,9 @@ function createMediaError(path, response, body) {
 async function request(path, options = {}, retried = false) {
   const method = String(options.method || 'GET').toUpperCase();
   const url = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
-  const headers = {
-    ...(options.headers || {}),
-    ...(await authHeaders({ refresh: retried })),
-  };
+  const publicCover = method === 'GET' && /^covers\/chapters\//i.test(String(path || ''));
+  const headers = { ...(options.headers || {}) };
+  if (!publicCover) Object.assign(headers, await authHeaders({ refresh: retried }));
 
   let response;
   try {
