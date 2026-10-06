@@ -472,3 +472,14 @@
   .membership-plan.is-popular .membership-button{background:#fff!important;color:#000!important;border-color:#fff!important}
   .membership-plan .membership-button.current{background:#111!important;color:#fff!important;border-color:#333!important}
 }
+
+/* Final membership card + CTA refinement */
+.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#050505!important;background-image:none!important;border-color:rgba(255,255,255,.14)!important;box-shadow:0 14px 30px rgba(0,0,0,.38)!important}
+.membership-plan:hover{background:#070707!important;border-color:rgba(255,255,255,.24)!important;box-shadow:0 18px 36px rgba(0,0,0,.44)!important}
+.membership-plan-icon{background:#0b0b0b!important;background-image:none!important;border:1px solid rgba(255,255,255,.10)!important;box-shadow:none!important}
+.membership-button{width:100%;min-height:42px;padding:0 14px;margin-top:auto;border:1px solid #fff!important;border-radius:10px;background:#fff!important;background-image:none!important;color:#050505!important;font-size:12px;font-weight:800;letter-spacing:-.01em;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.22)!important;transition:transform .16s ease,background-color .16s ease,box-shadow .16s ease}
+.membership-button:hover:not(:disabled){transform:translateY(-1px);background:#f2f2f2!important;color:#000!important;box-shadow:0 7px 16px rgba(0,0,0,.30)!important}
+.membership-button:active:not(:disabled){transform:translateY(0);box-shadow:0 3px 8px rgba(0,0,0,.22)!important}
+.membership-button.current,.membership-button:disabled{background:#111!important;color:#777!important;border-color:rgba(255,255,255,.10)!important;box-shadow:none!important}
+@media(max-width:620px){.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#050505!important}.membership-button{min-height:40px;border-radius:10px;font-size:11px}}
+@media(prefers-color-scheme:light){.membership-plan,.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:#050505!important;color:#fff!important}.membership-plan h2,.membership-plan .membership-price,.membership-plan li{color:#fff!important}.membership-plan ul,.membership-plan .membership-price small{color:#b8b8bd!important}.membership-button{background:#fff!important;color:#050505!important;border-color:#fff!important}}
