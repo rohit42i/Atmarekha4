@@ -177,6 +177,9 @@ function AdminPanelContent({ onLogout }) {
   const [chapterFilters, setChapterFilters] = useState({ status: 'all', language: 'all', query: '', sort: 'number' });
   const [selectedChapters, setSelectedChapters] = useState(() => new Set());
   const [lastLoadedAt, setLastLoadedAt] = useState(null);
+  const [reportFilters, setReportFilters] = useState({ status: 'all', sort: 'newest' });
+  const [selectedReports, setSelectedReports] = useState(() => new Set());
+  const [reportDrawer, setReportDrawer] = useState(null);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -908,6 +911,39 @@ function AdminPanelContent({ onLogout }) {
   }, [formDirty]);
 
   const toggleChapter = id => setSelectedChapters(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const filteredReports = useMemo(() => [...reports]
+    .filter(report => reportFilters.status === 'all' || String(report.status || 'open') === reportFilters.status)
+    .sort((a,b) => reportFilters.sort === 'oldest'
+      ? new Date(a.created_at || 0) - new Date(b.created_at || 0)
+      : new Date(b.created_at || 0) - new Date(a.created_at || 0)), [reports, reportFilters]);
+
+  const toggleReport = id => setSelectedReports(current => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const clearReportSelection = () => setSelectedReports(new Set());
+  const bulkResolveReports = async () => {
+    const ids = [...selectedReports];
+    if (!ids.length || busy) return;
+    const ok = await requestConfirm({ title: 'Resolve reports', message: 'Mark ' + ids.length + ' selected report' + (ids.length === 1 ? '' : 's') + ' as resolved?', confirmLabel: 'Resolve reports' });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      const user = await requireAdmin();
+      const patch = { status: 'resolved', reviewed_at: new Date().toISOString(), reviewed_by: user.id };
+      const { error } = await supabase.from('comment_reports').update(patch).in('id', ids);
+      if (error) throw error;
+      await logAdminAction(user, 'bulk_resolve_comment_reports', 'comment_report', null, { ids });
+      clearReportSelection();
+      await load();
+      setNotice({ type: 'success', text: ids.length + ' report' + (ids.length === 1 ? '' : 's') + ' resolved.' });
+      toast('Reports resolved.', 'success');
+    } catch (error) {
+      setNotice({ type: 'error', text: error.message || 'Could not resolve reports.' });
+      toast(error.message || 'Could not resolve reports.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+
   const toggleAllChapters = () => setSelectedChapters(current => current.size === chapterRows.length ? new Set() : new Set(chapterRows.map(item => item.id)));
   const clearChapterSelection = () => setSelectedChapters(new Set());
   const bulkSetChapterStatus = async status => {
@@ -1049,26 +1085,41 @@ function AdminPanelContent({ onLogout }) {
             </tbody>
           </table>
         </div>      </section>}
-    </section> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <section className="admin-card">
-      <div className="admin-card-title"><div><span>MODERATION</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
-      <div className="admin-report-list">{reports.map(report => {
+    </section> : tab === 'Comments' ? tab === 'Reports' ? <section className="admin-card">
+      <div className="admin-card-title"><div><span>MODERATION QUEUE</span><h2>Reported comments</h2><p>{reportCount} open report{reportCount === 1 ? '' : 's'} · {reports.length} recent report{reports.length === 1 ? '' : 's'} shown.</p></div></div>
+      <div className="ar-admin-toolbar">
+        <select className="ar-admin-filter" value={reportFilters.status} onChange={event => setReportFilters(value => ({ ...value, status: event.target.value }))} aria-label="Filter reports by status"><option value="all">All reports</option><option value="open">Open</option><option value="reviewed">Reviewed</option><option value="resolved">Resolved</option></select>
+        <select className="ar-admin-filter" value={reportFilters.sort} onChange={event => setReportFilters(value => ({ ...value, sort: event.target.value }))} aria-label="Sort reports by age"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
+      </div>
+      {selectedReports.size > 0 && <div className="ar-admin-selection-bar"><strong>{selectedReports.size} selected</strong><button type="button" onClick={bulkResolveReports} disabled={busy}>Resolve selected</button><button type="button" onClick={clearReportSelection}>Clear</button></div>}
+      <div className="admin-report-list">{filteredReports.map(report => {
         const comment = commentById(report.comment_id);
         const status = report.status || 'open';
         return <article key={report.id}>
-          <div>
+          <div className="ar-report-main"><input type="checkbox" checked={selectedReports.has(report.id)} onChange={() => toggleReport(report.id)} aria-label="Select report"/><div>
             <span className="report-label">REPORT · {status}</span>
             <strong>{comment?.author_name || 'Reader'}</strong>
             <p>{comment?.content || 'Comment unavailable'}</p>
             <small>{report.reason || 'Reported by reader'} · {new Date(report.created_at).toLocaleString('en-IN')}{report.reviewed_at ? ' · reviewed ' + new Date(report.reviewed_at).toLocaleString('en-IN') : ''}</small>
-          </div>
+          </div></div>
           <div className="admin-row-actions">
+            {comment && <button type="button" onClick={() => setReportDrawer(report)} disabled={busy}>Context</button>}
             {comment && <button type="button" className="danger" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete comment</button>}
             {status === 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'reviewed')} disabled={busy}>Review</button>}
             {status !== 'resolved' && <button type="button" onClick={() => setReportStatus(report.id, 'resolved')} disabled={busy}>Resolve</button>}
             {status !== 'open' && <button type="button" onClick={() => setReportStatus(report.id, 'open')} disabled={busy}>Reopen</button>}
           </div>
         </article>;
-      })}{!reports.length && <p className="muted center">No reports. Everything is clean.</p>}</div>
+      })}{!filteredReports.length && <p className="muted center">No reports match these filters.</p>}</div>
+      {reportDrawer && <div className="ar-admin-command-palette-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setReportDrawer(null); }}>
+        <aside className="ar-admin-confirm-modal" role="dialog" aria-modal="true" aria-label="Report context">
+          <span className="ar-kicker">REPORT CONTEXT</span>
+          <h2>{commentById(reportDrawer.comment_id)?.author_name || 'Reader'}</h2>
+          <p>{commentById(reportDrawer.comment_id)?.content || 'Comment unavailable'}</p>
+          <p className="ar-admin-shortcut-help">{reportDrawer.reason || 'Reported by reader'} · {commentById(reportDrawer.comment_id)?.announcement_id ? 'Announcement' : chapterName(commentById(reportDrawer.comment_id)?.chapter_id)}</p>
+          <div className="ar-admin-modal-actions"><button type="button" className="ar-admin-button secondary" onClick={() => setReportDrawer(null)}>Close</button></div>
+        </aside>
+      </div>}
     </section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
