@@ -78,9 +78,10 @@
  .membership-plan{width:100%;min-width:0}
 }
 @media(max-width:620px){
- .membership-plans{display:grid;grid-template-columns:1fr;gap:10px;width:100%;overflow:visible}
- .membership-plan{width:100%;min-width:0;min-height:0;padding:13px}
+ .membership-plans{display:flex;flex-direction:row;flex-wrap:nowrap;justify-content:flex-start;align-items:stretch;gap:12px;width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 18px 12px 2px;margin:0 -10px;box-sizing:content-box;scroll-snap-type:x mandatory;scroll-snap-stop:always;scroll-padding-left:2px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+ .membership-plans::-webkit-scrollbar{display:none}
+ .membership-plan{flex:0 0 min(82vw,360px);width:min(82vw,360px);min-width:min(82vw,360px);min-height:250px;padding:15px;scroll-snap-align:start}
  .membership-plan-top{min-height:35px}
  .membership-plan-top h2{font-size:20px}
- .membership-plan ul{flex:0 0 auto}
+ .membership-plan ul{flex:1 1 auto}
 }
