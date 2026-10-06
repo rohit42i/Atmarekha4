@@ -87,7 +87,7 @@ function PdlplChapterRow({ chapter, member, onOpen, pageCount }) {
 
 function ChapterList({ chapters, member, admin, pageCounts, onOpen, onBack, language, onLanguageChange }) {
   return (
-    <main className="site-shell chapter-list-page">
+    <main className="site-shell chapter-list-page pdlpl-page-list">
       <header className="subpage-header">
         <button className="back-button" type="button" onClick={onBack} aria-label="Back to home">←</button>
         <div>
