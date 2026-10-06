@@ -18,7 +18,7 @@
   const isTyping = el => ['INPUT','TEXTAREA','SELECT'].includes(el?.tagName);
   const openCommandSearch = () => {
     dispatch('atma-admin-open-command');
-    window.setTimeout(() => document.querySelector('.ar-command-panel input')?.focus(), 40);
+    window.setTimeout(() => document.querySelector('.admin-command-palette input,.ar-command-panel input')?.focus(), 40);
   };
   document.addEventListener('keydown', event => {
     if (!isAdmin()) return;
