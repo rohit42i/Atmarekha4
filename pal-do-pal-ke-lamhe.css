@@ -272,31 +272,6 @@ main:has(.admin-header-card) .pdlpl-admin-embedded .pdlpl-admin-card-head{
   letter-spacing:-.025em!important;
 }
 .chapter-list-heading>span{display:none!important}
-.pdlpl-page-list .chapter-language{
-  display:flex!important;
-  align-items:center!important;
-  gap:8px!important;
-  padding:0!important;
-  border:0!important;
-  color:#000!important;
-}
-.pdlpl-page-list .chapter-language span{
-  color:#000!important;
-  font-size:8px!important;
-  font-weight:900!important;
-  letter-spacing:.12em!important;
-}
-.pdlpl-page-list .chapter-language select{
-  min-height:34px!important;
-  padding:0 10px!important;
-  border:1px solid #000!important;
-  border-radius:9px!important;
-  background:#fff!important;
-  color:#000!important;
-  font-size:10px!important;
-  font-weight:800!important;
-  outline:none!important;
-}
 .chapter-list{
   display:grid!important;
   gap:8px!important;
@@ -457,8 +432,6 @@ main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button:hover{
 @media(max-width:640px){
   .chapter-list-section{width:calc(100% - 20px)!important}
   .chapter-list-heading{align-items:stretch!important;flex-direction:column!important;gap:11px!important}
-  .pdlpl-page-list .chapter-language{justify-content:space-between!important}
-  .pdlpl-page-list .chapter-language select{flex:1!important;max-width:180px!important}
   .chapter-list .chapter-row{min-height:82px!important}
   .chapter-list .chapter-row-main{padding:14px 13px!important}
   .chapter-list .chapter-row-title h2{font-size:16px!important}
@@ -470,17 +443,6 @@ main.admin-page.ar-admin-v3 .pdlpl-admin-list article>div button:hover{
   .chapter-list-page{background:#000!important;color:#fff!important}
   .chapter-list-page .subpage-header,
   .chapter-list-heading{border-color:#fff!important}
-  .chapter-list-page .header-kicker,
-  .chapter-list-page .chapter-list-subtitle,
-  .chapter-list-heading p,
-  .pdlpl-page-list .chapter-language,
-  .pdlpl-page-list .chapter-language span,
-  .pdlpl-page-list .chapter-language select{color:#fff!important}
-  .pdlpl-page-list .chapter-language select{
-    background:#000!important;
-    color:#fff!important;
-    border-color:#fff!important;
-  }
   .chapter-list .chapter-row{
     background:#000!important;
     color:#fff!important;
@@ -786,40 +748,22 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 @media(max-width:640px){
   .pdlpl-diagnostic-grid{grid-template-columns:1fr}
 }
-
-
-
-/* PDPKL uses the Atma Rekha chapter-list system. Only the cover column is PDPKL-specific. */
-.pdlpl-page-list .chapter-row-main{
-  display:grid;
-  grid-template-columns:76px minmax(0,1fr);
-  gap:14px;
-  align-items:center;
-}
-.pdlpl-page-list .pdlpl-chapter-thumb{
-  width:76px;
-  height:104px;
-  overflow:hidden;
-  border-radius:9px;
-  background:#090909;
-  border:1px solid rgba(255,255,255,.12);
-  display:grid;
-  place-items:center;
-}
-.pdlpl-page-list .pdlpl-chapter-thumb img{width:100%;height:100%;display:block;object-fit:cover}
-.pdlpl-page-list .pdlpl-chapter-thumb span{color:#fff;font-size:16px;font-weight:850}
 @media (min-width:600px){
-  .pdlpl-page-list .chapter-list-section{width:min(980px,calc(100% - 64px));padding-top:42px}
-  .pdlpl-page-list .chapter-row{grid-template-columns:minmax(0,1fr) auto;align-items:center}
 }
 @media (min-width:900px){
-  .pdlpl-page-list .chapter-list-section{width:min(1080px,calc(100% - 96px));padding-top:48px}
-  .pdlpl-page-list .chapter-row{padding:22px 26px;gap:28px}
 }
 @media (min-width:1280px){
-  .pdlpl-page-list .chapter-list-section{width:min(1120px,calc(100% - 120px))}
 }
 @media (max-width:599px){
-  .pdlpl-page-list .chapter-row-main{grid-template-columns:58px minmax(0,1fr);gap:10px}
-  .pdlpl-page-list .pdlpl-chapter-thumb{width:58px;height:82px;border-radius:8px}
+}
+
+/* PDPKL cover only — all Chapter List presentation comes from Atma Rekha's shared Chapter List CSS. */
+.pdlpl-chapter-row-main{display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;align-items:center;min-width:0;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.pdlpl-chapter-row-copy{min-width:0}
+.pdlpl-chapter-thumb{width:76px;height:104px;overflow:hidden;border-radius:9px;background:#090909;border:1px solid rgba(255,255,255,.12);display:grid;place-items:center}
+.pdlpl-chapter-thumb img{width:100%;height:100%;display:block;object-fit:cover}
+.pdlpl-chapter-thumb span{color:#fff;font-size:16px;font-weight:850}
+@media(max-width:640px){
+.pdlpl-chapter-row-main{grid-template-columns:58px minmax(0,1fr);gap:10px}
+.pdlpl-chapter-thumb{width:58px;height:82px;border-radius:8px}
 }
