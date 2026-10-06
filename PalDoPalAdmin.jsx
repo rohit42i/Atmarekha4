@@ -355,6 +355,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
     let pagesCommitted = false;
     const wasEditing = Boolean(editing);
     let adminUser = null;
+    let currentStage = 'Starting upload';
+    let requestedStatus = String(form.status || '').trim();
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -374,7 +376,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       const duplicate = chapters.find(chapter => chapter.id !== editing?.id && normalizeChapterLanguage(chapter.language) === language && ((chapter.chapterNumber == null && number == null) || Number(chapter.chapterNumber) === number));
       if (duplicate) throw new Error((number == null ? 'Special / unnumbered entry' : 'Chapter ' + number) + ' already exists in ' + chapterLanguageLabel(language) + '. Edit that variant instead.');
 
-      const requestedStatus = String(form.status || '').trim();
+      requestedStatus = String(form.status || '').trim();
       const isPublishing = requestedStatus.toLowerCase() === 'published';
       const currentStatus = wasEditing ? String(editing.status || 'Draft').trim() : 'Draft';
       const initialStatus = isPublishing && currentStatus.toLowerCase() !== 'published'
@@ -387,6 +389,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       chapterId = chapterId || window.crypto?.randomUUID?.();
       if (!chapterId) throw new Error('Could not generate a chapter ID. Please reload the page.');
 
+      currentStage = 'Saving chapter metadata';
       setProgress({ current: 0, total: 0, text: 'Saving chapter metadata…' });
       const { data: savedRows, error: metadataError } = await supabase.rpc('pdlpl_upsert_chapter', {
         p_chapter_id: chapterId,
@@ -406,6 +409,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
       setSelectedId(chapterId);
       if (form.cover) {
+        currentStage = 'Uploading cover to Cloudflare R2';
         setProgress({ current: 0, total: 0, text: 'Uploading cover to Cloudflare R2…' });
         pendingCoverPath = coverPath(chapterId, form.cover);
         await uploadPdlplFile(form.cover, pendingCoverPath);
@@ -413,6 +417,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (form.pages.length) {
+        currentStage = 'Uploading manga pages to Cloudflare R2';
         const revision = Date.now();
         const rows = [];
         setProgress({ current: 0, total: form.pages.length, text: 'Uploading manga pages…' });
@@ -430,6 +435,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
           });
         }
 
+        currentStage = 'Saving manga page records in Supabase';
         setProgress({ current: form.pages.length, total: form.pages.length, text: 'Saving manga page records…' });
         const { error: pageSaveError } = await supabase.rpc('pdlpl_replace_chapter_pages', {
           p_chapter_id: chapterId,
@@ -459,6 +465,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (pendingCoverPath) {
+        currentStage = 'Saving cover path in Supabase';
         setProgress({ current: 0, total: 0, text: 'Saving cover path in Supabase…' });
         const { error: coverSaveError } = await supabase
           .from(PDLPL_CHAPTERS)
@@ -481,6 +488,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
 
       if (isPublishing) {
+        currentStage = 'Publishing chapter with Supabase';
         setProgress({ current: 0, total: 0, text: 'Publishing chapter…' });
         const { data, error } = await supabase.rpc(PDLPL_STATUS_RPC, {
           p_chapter_id: chapterId,
@@ -495,6 +503,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         }
       }
 
+      currentStage = 'Verifying saved chapter';
       setProgress({ current: 0, total: 0, text: 'Verifying saved chapter…' });
       const { data: verifiedChapter, error: verifyError } = await supabase
         .from(PDLPL_CHAPTERS)
@@ -511,7 +520,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'}.`);
     } catch (error) {
       const failedDiagnostic = diagnosticFromError(
-        progress.text || 'Save chapter',
+        currentStage || 'Save chapter',
         error,
         {
           chapterId: chapterId || '',
