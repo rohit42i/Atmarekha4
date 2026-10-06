@@ -47,3 +47,31 @@
 .membership-button{min-height:32px;font-size:9px}
 .membership-timing-note{margin-bottom:9px;padding:9px 10px;gap:8px}.membership-timing-icon{width:22px;height:22px;flex-basis:22px}.membership-timing-note strong{font-size:10px}.membership-timing-note small{font-size:8px}
 }
+
+/* Monochrome premium membership cards */
+.membership-plan,.membership-plan.is-popular,.membership-plan.is-current{border-color:rgba(255,255,255,.12);background:#121214;box-shadow:0 12px 28px rgba(0,0,0,.18)}
+.membership-plan:hover{border-color:rgba(255,255,255,.24);box-shadow:0 16px 34px rgba(0,0,0,.24)}
+.membership-plan.is-popular{background:#151517}
+.membership-plan.is-current{border-color:rgba(255,255,255,.24)}
+.membership-plan h2{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:22px;font-weight:850;letter-spacing:-.045em}
+.membership-plan-access{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:10px;font-weight:700;color:#a8a8ad!important}
+.membership-price{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:32px;font-weight:900;letter-spacing:-.055em}
+.membership-price small{font-size:10px;font-weight:700;color:#8b8b90}
+.membership-plan ul{margin:9px 0 10px;gap:5px;color:#dedee2;font-size:12px;line-height:1.22}
+.membership-plan ul li{font-size:12px;font-weight:750;letter-spacing:-.01em}
+.membership-button,.membership-plan.is-popular .membership-button,.membership-plan .membership-button.current{background:#f4f4f5;border-color:#f4f4f5;color:#111;box-shadow:none}
+.membership-button:hover:not(:disabled){background:#fff;box-shadow:none}
+.membership-timing-note{background:#151517;border-color:rgba(255,255,255,.14);box-shadow:none}
+.membership-timing-icon{background:#222225;color:#fff;border-color:#3a3a3e}
+@media(prefers-color-scheme:light){
+ .membership-plan,.membership-plan.is-popular,.membership-plan.is-current{background:#fff;border-color:rgba(24,24,27,.13);box-shadow:0 10px 24px rgba(24,24,27,.09)}
+ .membership-plan:hover{border-color:rgba(24,24,27,.25);box-shadow:0 14px 30px rgba(24,24,27,.13)}
+ .membership-plan.is-popular,.membership-plan.is-current{border-color:rgba(24,24,27,.18)}
+ .membership-plan-access{color:#5f6066!important}.membership-plan ul{color:#27272a}.membership-price small{color:#666}
+ .membership-button,.membership-plan.is-popular .membership-button,.membership-plan .membership-button.current{background:#111827;border-color:#111827;color:#fff}
+ .membership-timing-note{background:#fff;border-color:#d7d7da}.membership-timing-icon{background:#f1f1f2;color:#111;border-color:#d2d2d5}
+}
+@media(max-width:620px){
+ .membership-plan h2{font-size:20px}.membership-plan-access{font-size:8.5px}.membership-price{font-size:29px}
+ .membership-plan ul,.membership-plan ul li{font-size:11px;line-height:1.18}.membership-plan ul{gap:4px}
+}
