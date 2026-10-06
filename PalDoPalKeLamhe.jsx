@@ -560,7 +560,7 @@ export default function PalDoPalKeLamhe() {
       if (sort === 'rating') return Number(stats?.[b.id]?.rating?.average || 0) - Number(stats?.[a.id]?.rating?.average || 0);
       if (sort === 'views') return Number(stats?.[b.id]?.views || 0) - Number(stats?.[a.id]?.views || 0);
       if (sort === 'oldest') return getNumber(a) - getNumber(b);
-      return getNumber(b) - getNumber(a);
+      return getNumber(a) - getNumber(b);
     });
   }, [chapters, query, sort, stats]);
 
