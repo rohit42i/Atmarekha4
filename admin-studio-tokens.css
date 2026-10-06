@@ -69,6 +69,28 @@
   --warning-color: var(--admin-warning);
   --overlay-color: var(--admin-overlay);
   --shadow-color: rgba(0,0,0,.34);
+
+  /* Compatibility aliases for existing event-driven admin tools. */
+  --a-bg: var(--admin-bg);
+  --a-surface: var(--admin-surface);
+  --a-surface-2: var(--admin-surface-2);
+  --a-surface-3: var(--admin-surface-3);
+  --a-border: var(--admin-border);
+  --a-border-strong: var(--admin-border-strong);
+  --a-text: var(--admin-text);
+  --a-muted: var(--admin-muted);
+  --a-faint: var(--admin-faint);
+  --a-accent: var(--admin-gold);
+  --a-accent-contrast: #090a0b;
+  --a-danger: var(--admin-danger);
+  --a-danger-bg: var(--admin-danger-soft);
+  --a-success: var(--admin-success);
+  --a-success-bg: var(--admin-success-soft);
+  --a-warning: var(--admin-warning);
+  --a-warning-bg: var(--admin-warning-soft);
+  --a-overlay: var(--admin-overlay);
+  --a-input: var(--admin-surface-2);
+  --a-modal: var(--admin-surface);
 }
 
 html,
