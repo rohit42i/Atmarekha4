@@ -27,26 +27,16 @@ export default function PrivacyCenter() {
   const [exported, setExported] = useState(null);
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
-  const [nomination, setNomination] = useState(null);
-  const [nomineeName, setNomineeName] = useState('');
-  const [nomineeEmail, setNomineeEmail] = useState('');
-  const [nomineePhone, setNomineePhone] = useState('');
 
   const load = async currentUser => {
     setUser(currentUser);
     if (!currentUser) { setLoading(false); return; }
-    const [{ data: consentRows }, { data: deletionRows }, { data: nominationRow }] = await Promise.all([
+    const [{ data: consentRows }, { data: deletionRows }] = await Promise.all([
       supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
       supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
-      supabase.from('dpdp_nominations').select('nominee_name,nominee_email,nominee_phone,created_at,updated_at').eq('user_id', currentUser.id).maybeSingle(),
     ]);
-    const nominationValue = nominationRow || null;
     setConsent(consentRows?.[0] || null);
     setDeletion(deletionRows?.[0] || null);
-    setNomination(nominationValue);
-    setNomineeName(nominationValue?.nominee_name || '');
-    setNomineeEmail(nominationValue?.nominee_email || '');
-    setNomineePhone(nominationValue?.nominee_phone || '');
     setLoading(false);
   };
 
@@ -90,21 +80,6 @@ export default function PrivacyCenter() {
     } finally { setBusy(false); }
   };
 
-  const saveNomination = async () => {
-    if (!user || busy) return;
-    setBusy(true); setError(''); setMessage('');
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('dpdp-data-rights', {
-        body: { action: 'nomination', nominee_name: nomineeName, nominee_email: nomineeEmail, nominee_phone: nomineePhone }
-      });
-      if (fnError) throw fnError;
-      setNomination(data?.nomination || null);
-      setMessage('Your nomination details were saved.');
-    } catch (err) {
-      setError(err?.message || 'Unable to save your nomination.');
-    } finally { setBusy(false); }
-  };
-
   const requestDeletion = async () => {
     if (!user || busy) return;
     if (!window.confirm('Request erasure of your Atma Rekha personal data? Data that must be retained by law, for security, fraud prevention, payment records or other lawful obligations may be retained for the permitted period.')) return;
@@ -140,7 +115,7 @@ export default function PrivacyCenter() {
       <PolicySection heading="Security">We use access controls, row-level database security, protected server-side functions for privileged operations, HTTPS/security controls, controlled media delivery, logging and backups appropriate to the service. Secret server credentials are not placed in browser code.</PolicySection>
       <PolicySection heading="Children">Account creation is restricted to readers aged 18 or older. We do not intentionally create accounts for children. Public reading may be available without an account where permitted by the service.</PolicySection>
       <PolicySection heading="Personal data breaches">If a qualifying personal data breach occurs, we will assess and contain it, investigate and document it, and make notifications required by applicable law and the notified Rules.</PolicySection>
-      <PolicySection heading="Your rights">Your controls below provide access/export, consent withdrawal, nomination and erasure. Profile information can be corrected from Profile. For any other correction or request, contact {CONTACT_EMAIL}; we may verify account ownership before changing or disclosing personal data.</PolicySection>
+      <PolicySection heading="Your rights">Your controls below provide access/export, consent withdrawal and erasure. Profile information can be corrected from Profile. For any other correction or request, contact {CONTACT_EMAIL}; we may verify account ownership before changing or disclosing personal data.</PolicySection>
       <PolicySection heading="Grievance redressal">Email {CONTACT_EMAIL} with “DPDP Request” in the subject. This is a readily available grievance/request channel. We will acknowledge and handle the request within the applicable legal and operational period; the notified Rules provide a grievance-response period of up to 90 days.</PolicySection>
     </section>
 
@@ -150,9 +125,8 @@ export default function PrivacyCenter() {
         <section className="privacy-action"><h2>Access & portability</h2><p>Download a machine-readable copy of personal data associated with your account, including the records we hold in the listed service tables and your consent/deletion records.</p><div className="button-row"><button className="primary-button" type="button" disabled={busy} onClick={exportData}>{busy ? 'Preparing…' : 'Export my data'}</button></div></section>
         <section className="privacy-action"><h2>Consent</h2><p>Notice version: <strong>{consent?.policy_version || 'Not recorded'}</strong>. {consent?.withdrawn_at ? 'Withdrawal recorded.' : 'Your signup consent is recorded with its purposes.'}</p><div className="button-row"><button className="secondary-button" type="button" disabled={busy || !consent || Boolean(consent.withdrawn_at)} onClick={withdrawConsent}>Withdraw consent</button></div></section>
         <section className="privacy-action"><h2>Correction</h2><p>Update your display name, username, bio, avatar and email from Profile. For any other inaccurate personal data, send a correction request to support.</p><div className="button-row"><button className="secondary-button" type="button" onClick={()=>{window.location.hash='profile'}}>Open profile</button><button className="secondary-button" type="button" onClick={()=>requestByEmail('DPDP Correction Request','Please describe the personal data that is inaccurate and the correction you are requesting.')}>Request correction</button></div></section>
-        <section className="privacy-action"><h2>Nomination</h2><p>Nominate another individual to exercise your Data Principal rights in the event of your death or incapacity, as provided by the applicable framework.</p><label>Nominee name<input value={nomineeName} onChange={e=>setNomineeName(e.target.value)} maxLength={120} required/></label><label>Nominee email<input type="email" value={nomineeEmail} onChange={e=>setNomineeEmail(e.target.value)} maxLength={254}/></label><label>Nominee phone<input value={nomineePhone} onChange={e=>setNomineePhone(e.target.value)} maxLength={30}/></label><div className="button-row"><button className="secondary-button" type="button" disabled={busy || !nomineeName.trim()} onClick={saveNomination}>{nomination ? 'Update nomination' : 'Save nomination'}</button></div></section>
         <section className="privacy-action"><h2>Erasure</h2><p>Submit an account deletion request. Eligible personal data will be removed through the deletion workflow; data required by law or for other lawful retention purposes may remain for the permitted period.</p><div className="button-row"><button className="secondary-button" type="button" disabled={busy || ['pending','processing'].includes(deletion?.status)} onClick={requestDeletion}>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'Erasure requested' : 'Request erasure'}</button></div></section>
-        <section className="privacy-action"><h2>Grievance & support</h2><p>For privacy requests, grievances, correction issues or questions about processing, contact {CONTACT_EMAIL}. We may verify your identity/account before acting.</p><div className="button-row"><button className="secondary-button" type="button" onClick={()=>requestByEmail('DPDP Request')}>Email privacy support</button></div></section>
+        <section className="privacy-action"><h2>Grievance & support</h2><p>For privacy requests, grievances, correction issues or questions about processing, contact {CONTACT_EMAIL}. We may verify your identity/account before acting.<div className="button-row"><button className="secondary-button" type="button" onClick={()=>requestByEmail('DPDP Request')}>Email privacy support</button></div></section>
       </div>
     </section>
 
