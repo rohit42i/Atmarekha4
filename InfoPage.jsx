@@ -10,7 +10,7 @@ const PAGES = {
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
       ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
-      ['Free', 'Chapters 1–8'], ['Content Rating', '16+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
+      ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
       'Atma Rekha is an Indian fantasy adventure manga about ancient traditions, spiritual concepts, mysterious powers and mythical beings.',
@@ -69,14 +69,21 @@ export default function InfoPage({ type, onBack }) {
       <button className="back-button" onClick={onBack} aria-label="Back">←</button>
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
     </header>
-    <section className={`info-card ${isAbout ? 'about-card' : 'legal-card'}`}>
-      <p className="section-eyebrow">ATMA REKHA</p><h2>{page.title}</h2>
-      {isAbout ? <>
-        <div className="about-details" aria-label="Atma Rekha details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
-        <div className="about-story" aria-label="About the story">
-          {page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-        </div>
-      </> : <><div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>{type==='report' && <FeedbackForm/>}</>}
+    <section className="info-card info-hero">
+      <p className="section-eyebrow">ATMA REKHA</p>
+      <h2>{page.title}</h2>
+      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions, feedback and collaboration enquiries are welcome.' : 'Use this page to send feedback, report content or raise a grievance.'}</p>
     </section>
+    {isAbout ? <>
+      <section className="info-card info-content-card" aria-label="Atma Rekha details">
+        <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
+        <div className="about-story" aria-label="About the story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+      </section>
+    </> : <>
+      <section className="info-card info-content-card">
+        <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
+      </section>
+      {type === 'report' && <section className="info-card info-feedback-card"><FeedbackForm/></section>}
+    </>}
   </main>;
 }
