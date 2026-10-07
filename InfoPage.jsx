@@ -14,7 +14,7 @@ const PAGES = {
     ],
     story: [
       'Atma Rekha is an Indian fantasy adventure manga about ancient traditions, spiritual concepts, mysterious powers and mythical beings.',
-      'It is a Roman Hindi adventure manga made for Indian readers. New chapters are released on the 14th of each month. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
+      'It is originally published in Roman Hindi, with additional language versions available as published. New chapters are released on the 14th of each month. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
     ],
   },
   contact: {
