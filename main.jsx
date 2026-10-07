@@ -71,6 +71,8 @@ import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
 import './error-feedback.css';
 
+installGlobalErrorLogging();
+
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
@@ -108,5 +110,3 @@ import './audience-experience.css';
 import './admin-studio-tokens.css';
 import './admin-studio-core.css';
 import './ui-layout-audit.css';
-
-installGlobalErrorLogging();
