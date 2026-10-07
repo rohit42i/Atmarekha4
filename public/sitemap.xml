@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://www.atmarekha.in/</loc>
-    <lastmod>2026-10-01</lastmod>
   </url>
   <url>
     <loc>https://www.atmarekha.in/chapters</loc>
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://www.atmarekha.in/chapters?lang=en" />
+    <xhtml:link rel="alternate" hreflang="hi-Latn-IN" href="https://www.atmarekha.in/chapters" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmarekha.in/chapters" />
+  </url>
+  <url>
+    <loc>https://www.atmarekha.in/chapters?lang=en</loc>
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://www.atmarekha.in/chapters?lang=en" />
+    <xhtml:link rel="alternate" hreflang="hi-Latn-IN" href="https://www.atmarekha.in/chapters" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmarekha.in/chapters" />
   </url>
   <url>
     <loc>https://www.atmarekha.in/info/about</loc>
@@ -27,10 +35,20 @@
   </url>
   <url>
     <loc>https://www.atmarekha.in/chapter/1</loc>
+    <xhtml:link rel="alternate" hreflang="hi-Latn-IN" href="https://www.atmarekha.in/chapter/1" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmarekha.in/chapter/1" />
+    <image:image>
+      <image:loc>https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/cover-1789677679658.png</image:loc>
+    </image:image>
     <lastmod>2026-09-14</lastmod>
   </url>
   <url>
     <loc>https://www.atmarekha.in/chapter/special/intro-282d54fd</loc>
+    <xhtml:link rel="alternate" hreflang="hi-Latn-IN" href="https://www.atmarekha.in/chapter/special/intro-282d54fd" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.atmarekha.in/chapter/special/intro-282d54fd" />
+    <image:image>
+      <image:loc>https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/282d54fd-c4c1-4bb6-976c-156921e16071/cover-1788802609015.png</image:loc>
+    </image:image>
     <lastmod>2026-09-07</lastmod>
   </url>
 </urlset>
