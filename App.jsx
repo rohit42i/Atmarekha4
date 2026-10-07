@@ -494,6 +494,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       const labels = { about: 'About Atma Rekha', contact: 'Contact Atma Rekha', report: 'Report Atma Rekha Content', privacy: 'Atma Rekha Privacy Policy', terms: 'Atma Rekha Terms and Conditions' };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       description = infoType === 'about' ? 'Learn about Atma Rekha, its creator Arkesh, its Indian fantasy adventure setting and how to read the manga.' : (labels[infoType] || 'Atma Rekha') + ' information from the official website.';
+    } else if (type === 'privacy-center') {
+      title = 'Atma Rekha | Privacy';
+      description = 'Atma Rekha privacy notice, data controls and privacy requests.';
     } else if (type === 'pal-do-pal-ke-lamhe') {
       title = 'Atma Rekha | Pal Do Pal Ke Lamhe';
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
@@ -514,7 +517,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         : type === 'pal-do-pal-ke-lamhe'
           ? '/pal-do-pal-ke-lamhe'
           : type === 'privacy-center'
-            ? '/privacy-center'
+            ? '/info/privacy'
             : type === 'maintenance'
               ? '/maintenance'
               : type === '403'
@@ -524,7 +527,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
                   : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
-    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', 'info/privacy', 'privacy-center', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
+    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
     const isNotFound = type === 'not-found';
     const isErrorRoute = type === '430';
     upsertMeta('name', 'robots', isPrivateRoute || isNotFound || isErrorRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
