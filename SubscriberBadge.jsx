@@ -5,33 +5,25 @@ const BATCHES = {
 };
 
 export default function SubscriberBadge({ planId, show = true, size = 'inline' }) {
-  const normalizedPlanId = String(planId || '').trim().toLowerCase();
-  const batch = BATCHES[normalizedPlanId];
+  const planKey = String(planId || '').trim().toLowerCase();
+  const batch = BATCHES[planKey];
   if (!batch || show === false) return null;
 
-  const scale = size === 'compact' ? 0.8 : size === 'large' ? 1.05 : 0.88;
+  const sizeClass = size === 'compact'
+    ? 'subscriber-badge--compact'
+    : size === 'large'
+      ? 'subscriber-badge--large'
+      : 'subscriber-badge--inline';
+
   return (
     <span
-      className={'subscriber-badge subscriber-badge--' + size}
-      data-plan={normalizedPlanId}
+      className={'subscriber-badge ' + sizeClass}
+      data-membership-plan={planKey}
       aria-label={'Active ' + batch.label}
       title={'Active ' + batch.label}
       role="img"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginLeft: '0.28em',
-        fontSize: 'calc(1em * ' + scale + ')',
-        lineHeight: 1,
-        width: '1.18em',
-        height: '1.18em',
-        verticalAlign: 'middle',
-        whiteSpace: 'nowrap',
-        flex: '0 0 auto',
-      }}
     >
-      {batch.emoji}
+      <span className="subscriber-badge-mark" aria-hidden="true">{batch.emoji}</span>
     </span>
   );
 }
