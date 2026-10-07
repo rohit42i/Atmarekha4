@@ -14,10 +14,8 @@ import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentL
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
-import { NotFoundPage, ServiceUnavailablePage, MaintenancePage, ForbiddenPage } from './ErrorPages.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
-import { Error430Page } from './ErrorPages.jsx';
 import MorePage from './MorePage.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
@@ -475,17 +473,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     } else if (type === 'pal-do-pal-ke-lamhe') {
       title = 'Atma Rekha | Pal Do Pal Ke Lamhe';
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
-    } else if (type === '430') {
-      title = '430 | Atma Rekha';
-      description = 'Atma Rekha site error page.';
-    } else if (type === 'not-found') {
-      title = 'Page Not Found | Atma Rekha';
-      description = 'The Atma Rekha page you requested could not be found.';
     }
 
-    const publicRoute = type === '430'
-      ? '/430'
-      : type === 'chapters'
+    const publicRoute = type === 'chapters'
       ? '/chapters'
       : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
         ? '/info/' + routeParts[1]
@@ -502,10 +492,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
                   : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
-    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
-    const isNotFound = type === 'not-found';
-    const isErrorRoute = type === '430';
-    upsertMeta('name', 'robots', isPrivateRoute || isNotFound || isErrorRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
+    upsertMeta('name', 'robots', isPrivateRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
     setDocumentLanguage(chapterLanguage);
     clearAlternateLanguages();
     if (chapter && !isPrivateRoute) {
@@ -618,13 +606,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
  useEffect(() => {
     captureMarketingAttribution();
   }, [route]);
- useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]); if (route === 'not-found') return <NotFoundPage/>;
-  if (route === '430') return <Error430Page/>;
-  if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
+ useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);   if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
   if (route === 'more') return <MorePage/>;
-  if (route === '403') return <ForbiddenPage onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>;
-  if (route === '503') return <ServiceUnavailablePage/>;
-  if (route === 'maintenance') return <MaintenancePage/>;
   if (route.startsWith('chapter/')) {
     const chapter = findChapterForPath('/' + route, chapters);
     if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;
