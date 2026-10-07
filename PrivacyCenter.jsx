@@ -4,26 +4,6 @@ import { supabase } from './supabase';
 const PRIVACY_VERSION = '2026-10-07';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
-const DATA_TABLE = [
-  ['Account', 'Email, account ID, verification and account timestamps', 'Account access, security, support and service delivery'],
-  ['Profile', 'Name, username, avatar and bio when provided', 'Your public/private profile features and community identity'],
-  ['Reading', 'Reading progress, history and bookmarks', 'Continue reading, favourites and reader features'],
-  ['Community', 'Comments, reactions, reports and related activity', 'Community operation, moderation and safety'],
-  ['Membership', 'Membership status and related account records', 'Provide membership features and access'],
-  ['Payments', 'Payment and billing records supplied through the payment provider', 'Payments, refunds, accounting and support'],
-  ['Security', 'Technical information needed to protect the service', 'Fraud prevention, abuse prevention, troubleshooting and security'],
-  ['Privacy requests', 'Requests, verification details and response records', 'Handle privacy, deletion, correction and grievance requests'],
-];
-
-const RETENTION_TABLE = [
-  ['Account data', 'While your account is active, then deleted or de-identified when no longer needed, subject to lawful retention'],
-  ['Reading and profile data', 'While needed to provide the feature or until you delete it, subject to lawful exceptions'],
-  ['Community content', 'While needed for the service, moderation, safety or dispute handling, subject to removal rules'],
-  ['Payment records', 'For as long as needed for payment support, accounting, tax, fraud prevention or other lawful duties'],
-  ['Security records', 'For the period reasonably needed for security, abuse prevention, incident investigation and legal protection'],
-  ['Privacy requests', 'Long enough to verify, process and document the request and meet applicable obligations'],
-];
-
 function backHome() {
   window.history.pushState({}, '', '/');
   window.dispatchEvent(new PopStateEvent('popstate'));
@@ -40,10 +20,6 @@ function requestByEmail(subject, body = '') {
 
 function PolicySection({ heading, children }) {
   return <article className="privacy-policy-section"><h2>{heading}</h2><p>{children}</p></article>;
-}
-
-function DataTable({ rows, headers }) {
-  return <div className="privacy-table-wrap"><table className="privacy-table"><thead><tr>{headers.map(header => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody></table></div>;
 }
 
 export default function PrivacyCenter() {
@@ -159,6 +135,33 @@ export default function PrivacyCenter() {
       <PolicySection heading="Your privacy rights">Depending on where you live, you may have rights to access, correct, delete, receive, restrict or object to certain uses of your information, or withdraw consent where applicable. Contact us if you want to make a request.</PolicySection>
       <PolicySection heading="Contact">For privacy questions or requests, contact {CONTACT_EMAIL}. We may verify your identity before completing a request.</PolicySection>
     </section>
+
+    {user && <section className="privacy-controls-card" aria-labelledby="privacy-controls-title">
+      <header className="privacy-section-heading">
+        <p className="section-eyebrow">YOUR CONTROLS</p>
+        <h2 id="privacy-controls-title">Manage your privacy</h2>
+      </header>
+      <div className="privacy-controls-grid">
+        <button type="button" className="privacy-control-button" onClick={exportData} disabled={busy}>
+          <strong>Export data</strong><span>Download available account data</span>
+        </button>
+        <button type="button" className="privacy-control-button" onClick={openProfile}>
+          <strong>Correct profile</strong><span>Review and update profile details</span>
+        </button>
+        <button type="button" className="privacy-control-button" onClick={withdrawConsent} disabled={busy || !consent || Boolean(consent.withdrawn_at)}>
+          <strong>{consent?.withdrawn_at ? 'Consent withdrawn' : 'Withdraw consent'}</strong>
+          <span>{consent ? (consent.withdrawn_at ? 'This consent record is already withdrawn' : 'Use where consent is the basis for processing') : 'No consent record is available'}</span>
+        </button>
+        <button type="button" className="privacy-control-button privacy-control-destructive" onClick={requestDeletion} disabled={busy}>
+          <strong>Request deletion</strong><span>Submit a request for eligible personal data</span>
+        </button>
+      </div>
+      <p className="privacy-small-note">Some requests may require identity verification and may be subject to applicable retention requirements.</p>
+      {consent && <div className="privacy-control-status">Consent record: <strong>{consent.withdrawn_at ? 'withdrawn' : 'recorded'}</strong>{consent.consented_at ? <> · {new Date(consent.consented_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</div>}
+      <div className="privacy-email-actions">
+        <button type="button" className="secondary-button" onClick={() => requestByEmail('Atma Rekha Privacy Request')}>Email a privacy request</button>
+      </div>
+    </section>}
 
     {(message || error) && <div className={`privacy-status ${error ? 'privacy-status-error' : 'privacy-status-success'}`} role={error ? 'alert' : 'status'} aria-live="polite">{error || message}</div>}
 
