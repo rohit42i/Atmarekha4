@@ -281,31 +281,42 @@ export async function secureSignInWithPassword(email, password) {
     throw new Error('Sign-in service is temporarily unavailable.');
   }
 
-  const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/secure-password-login`, {
-    method: 'POST',
-    headers: {
-      apikey: supabaseKey,
-      'Content-Type': 'application/json',
-    },
-    credentials: 'omit',
-    body: JSON.stringify({ email: normalizedEmail, password: value }),
+  const { data, error } = await client.functions.invoke('secure-password-login', {
+    body: { email: normalizedEmail, password: value },
   });
 
-  let payload = null;
-  try { payload = await response.json(); } catch (_) {}
+  if (error) {
+    let payload = null;
+    try {
+      if (error.context?.clone) {
+        const clone = error.context.clone();
+        payload = await clone.json();
+      } else if (typeof error.context?.json === 'function') {
+        payload = await error.context.json();
+      }
+    } catch (_) {}
 
-  if (!response.ok || !payload?.ok || !payload?.session) {
-    const error = new Error(payload?.error || 'Invalid email or password.');
-    error.code = payload?.code || (response.status === 429 ? 'ACCOUNT_LOCKED' : 'INVALID_LOGIN');
-    error.status = response.status;
-    error.lockedUntil = payload?.locked_until || null;
-    throw error;
+    const message = payload?.error || (error.message === 'Failed to send a request to the Edge Function' ? 'Sign-in service is temporarily unavailable.' : error.message);
+    const authError = new Error(message || 'Invalid email or password.');
+    authError.code = payload?.code || 'INVALID_LOGIN';
+    authError.status = payload?.code === 'ACCOUNT_LOCKED' ? 429 : (error.status || 401);
+    authError.lockedUntil = payload?.locked_until || null;
+    throw authError;
   }
 
-  const { data, error } = await client.auth.setSession({
-    access_token: payload.session.access_token,
-    refresh_token: payload.session.refresh_token,
+  if (!data?.ok || !data?.session?.access_token || !data?.session?.refresh_token) {
+    const authError = new Error(data?.error || 'Invalid email or password.');
+    authError.code = data?.code || 'INVALID_LOGIN';
+    authError.status = data?.code === 'ACCOUNT_LOCKED' ? 429 : 401;
+    authError.lockedUntil = data?.locked_until || null;
+    throw authError;
+  }
+
+  const { data: sessionData, error: sessionError } = await client.auth.setSession({
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
   });
-  if (error) throw error;
-  return { data, error: null };
+  if (sessionError) throw sessionError;
+  return { data: sessionData, error: null };
 }
+
