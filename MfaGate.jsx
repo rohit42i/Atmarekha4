@@ -10,11 +10,11 @@ const getVerifiedTotpFactors = async () => {
 export async function verifyMfaCode(factorId, code) {
   const cleanCode = String(code || '').replace(/\D/g, '').slice(0, 10);
   if (cleanCode.length < 6) throw new Error('Enter the 6-digit code from your authenticator app.');
-  const { data, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
+  const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
   if (challengeError) throw challengeError;
   const { error } = await supabase.auth.mfa.verify({
     factorId,
-    challengeId: challengeError ? '' : data.id,
+    challengeId: challengeData.id,
     code: cleanCode,
   });
   if (error) throw error;
