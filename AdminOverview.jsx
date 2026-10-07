@@ -18,30 +18,74 @@ const safeDate = value => { const d = new Date(value || 0); return Number.isFini
 const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : 'Chapter ' + chapter.chapterNumber;
 
 function LibraryChart({ chapters }) {
-  const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
-  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
+  const rows = [...chapters]
+    .sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0))
+    .slice(-10);
 
-  const maxViews = Math.max(...rows.map(row => row.periodViews), 1);
-  const maxEngagement = Math.max(...rows.map(row => row.periodLikes + row.periodShares + row.periodRatingCount), 1);
-  return <div className="ar-chart-wrap">
-    <div className="ar-chart-legend">
-      <span><i className="dot violet"/>Views</span>
-      <span><i className="dot pink"/>Engagement</span>
-      <small>Real chapter totals · last 10 published</small>
+  if (!rows.length) {
+    return (
+      <div className="ar-empty-chart">
+        <AdminIcon name="chart" size={28}/>
+        <strong>Not enough chapter data yet</strong>
+        <span>Publish chapters to unlock the reach view.</span>
+      </div>
+    );
+  }
+
+  const maxViews = Math.max(...rows.map(row => Number(row.periodViews || 0)), 1);
+  const maxEngagement = Math.max(
+    ...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)),
+    1,
+  );
+
+  const linePoints = rows.map((row, index) => {
+    const x = rows.length === 1 ? 50 : (index / (rows.length - 1)) * 100;
+    const value = Number(row.periodViews || 0);
+    const y = 90 - (value / maxViews) * 72;
+    return x + ',' + y;
+  }).join(' ');
+
+  return (
+    <div className="ar-chart-wrap">
+      <div className="ar-chart-legend">
+        <span><i className="dot"/>Views</span>
+        <span><i className="dot pink"/>Engagement</span>
+        <small>Real chapter totals · last 10 published</small>
+      </div>
+
+      <div
+        className="ar-chart-bars"
+        role="img"
+        aria-label="Chapter views and engagement for the last ten published chapters"
+      >
+        <div className="ar-chart-grid-lines" aria-hidden="true">
+          <span/><span/><span/><span/>
+        </div>
+
+        <svg className="ar-chart-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points={linePoints} fill="none" stroke="currentColor" strokeWidth="2.2" vectorEffect="non-scaling-stroke"/>
+        </svg>
+
+        {rows.map(row => {
+          const views = Number(row.periodViews || 0);
+          const engagement = Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0);
+          const viewH = Math.max(8, views / maxViews * 100);
+          const engagementH = Math.max(5, engagement / maxEngagement * 100);
+
+          return (
+            <div className="ar-chart-column" key={row.id}>
+              <div className="ar-chart-track">
+                <i style={{ height: viewH + '%' }}/>
+                <b style={{ height: engagementH + '%' }}/>
+              </div>
+              <span>{row.chapterNumber == null ? '—' : 'Ch ' + row.chapterNumber}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
-    <div className="ar-chart-bars" role="img" aria-label="Chapter views and engagement">
-      {rows.map(row => {
-        const viewH = Math.max(8, row.periodViews / maxViews * 100);
-        const engagementH = Math.max(5, (row.periodLikes + row.periodShares + row.periodRatingCount) / maxEngagement * 100);
-        return <div className="ar-chart-column" key={row.id}>
-          <div className="ar-chart-track"><i style={{ height: viewH + '%' }}/><b style={{ height: engagementH + '%' }}/></div>
-          <span>{row.chapterNumber == null ? '—' : 'Ch ' + row.chapterNumber}</span>
-        </div>;
-      })}
-    </div>
-  </div>;
+  );
 }
-
 function RatingDonut({ counts, total }) {
   const positive = counts.reduce((sum, row) => sum + (row.rating >= 8 ? row.count : 0), 0);
   const percentage = total ? Math.round(positive / total * 100) : 0;

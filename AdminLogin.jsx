@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { AdminIcon } from './admin-redesign-ui.jsx';
 
 export default function AdminLogin({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -10,15 +11,24 @@ export default function AdminLogin({ onLoginSuccess }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setBusy(true); setError('');
+    setBusy(true);
+    setError('');
+
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
       if (authError) throw authError;
+
       const role = await getAdminRole(data.user?.id);
+
       if (!role) {
         await supabase.auth.signOut();
         throw new Error('This account is not authorized as an Atma Rekha admin.');
       }
+
       onLoginSuccess?.();
     } catch (loginError) {
       setError(loginError?.message || 'Login failed.');
@@ -28,16 +38,61 @@ export default function AdminLogin({ onLoginSuccess }) {
   }
 
   return (
-    <main className="admin-login-page min-h-screen px-5 py-12 text-[var(--text-color)]">
-      <div className="admin-login-card mx-auto max-w-md rounded-3xl p-7 sm:p-9">
-        <div className="mb-8"><p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-400">Atma Rekha</p><h1 className="mt-2 text-3xl font-black">Admin access</h1><p className="mt-2 text-sm text-zinc-400">Sign in with the Supabase admin account.</p></div>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <label className="block text-sm font-medium text-zinc-300">Email<input value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="username" required className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-blue-500" /></label>
-          <label className="block text-sm font-medium text-zinc-300">Password<input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-blue-500" /></label>
-          {error && <div className="rounded-xl border border-rose-900 bg-rose-950/40 p-3 text-sm text-rose-300">{error}</div>}
-          <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold hover:bg-blue-500 disabled:opacity-50">{busy ? 'Signing in…' : 'Sign in'}</button>
+    <main className="admin-login-page">
+      <section className="admin-login-card" aria-labelledby="admin-login-title">
+        <div className="admin-login-brand">
+          <span className="admin-login-mark" aria-hidden="true">AR</span>
+          <div>
+            <p className="admin-login-kicker">ATMA REKHA · PRIVATE STUDIO</p>
+            <span className="admin-login-brand-note">Publisher workspace</span>
+          </div>
+        </div>
+
+        <h1 id="admin-login-title">Admin access</h1>
+        <p>Sign in with the Supabase account authorized to manage Atma Rekha.</p>
+
+        <form onSubmit={handleSubmit} className="admin-login-form">
+          <label>
+            Email
+            <input
+              value={email}
+              onChange={event => setEmail(event.target.value)}
+              type="email"
+              autoComplete="username"
+              required
+              inputMode="email"
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              value={password}
+              onChange={event => setPassword(event.target.value)}
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </label>
+
+          {error ? (
+            <div className="admin-login-error" role="alert">
+              <AdminIcon name="flag" size={16} />
+              <span>{error}</span>
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="admin-login-submit"
+            aria-busy={busy || undefined}
+          >
+            {busy ? <span className="admin-studio-button-loading-icon" aria-hidden="true" /> : null}
+            <span>{busy ? 'Signing in…' : 'Enter admin studio'}</span>
+          </button>
         </form>
-      </div>
+      </section>
     </main>
   );
 }

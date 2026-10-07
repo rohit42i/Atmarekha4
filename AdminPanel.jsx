@@ -7,7 +7,8 @@ import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
-import { AdminSidebar } from './admin-studio-ui.jsx';
+import { AdminButton, AdminCard, AdminEmptyState, AdminSidebar, AdminTable } from './admin-studio-ui.jsx';
+import EmailCampaigns from './EmailCampaigns.jsx';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
@@ -832,105 +833,558 @@ export default function AdminPanel({ onLogout }) {
         connectionState={loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}
         connectionError={notice.type === 'error'}
       />
-      {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation" />}
+
+      {mobileSidebarOpen && (
+        <button
+          type="button"
+          className="ar-admin-drawer-backdrop"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-label="Close admin navigation"
+        />
+      )}
+
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
           <div className="ar-admin-topbar-left">
-            <button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation">
-              <AdminIcon name="menu" size={19}/>
+            <button
+              type="button"
+              className="ar-admin-menu-button"
+              onClick={() => setMobileSidebarOpen(true)}
+              aria-label="Open navigation"
+            >
+              <AdminIcon name="menu" size={19} />
             </button>
-            <div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div>
+
+            <div className="ar-admin-page-context">
+              <span>ATMA REKHA</span>
+              <strong>{navLabel(tab)}</strong>
+            </div>
           </div>
+
           <div className="ar-admin-search">
-            <button type="button" className="ar-admin-command-trigger" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
-              <AdminIcon name="search" size={16}/>
+            <button
+              type="button"
+              className="ar-admin-command-trigger"
+              onClick={() => setCommandOpen(true)}
+              aria-label="Open command palette"
+            >
+              <AdminIcon name="search" size={16} />
               <span>Search chapters, readers, comments, tools…</span>
               <kbd>⌘K</kbd>
             </button>
           </div>
+
           <div className="ar-admin-top-actions">
-            <span className="ar-admin-freshness" title={lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-IN') : 'Not loaded yet'}>
-              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + lastRefreshedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : 'Updating'}
+            <span
+              className="ar-admin-freshness"
+              title={lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-IN') : 'Not loaded yet'}
+            >
+              <i className={notice.type === 'error' ? 'is-error' : ''} />
+              {lastRefreshedAt
+                ? 'Updated ' + lastRefreshedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })
+                : 'Updating'}
             </span>
-            <button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}>
-              <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
+
+            <button
+              type="button"
+              className="ar-admin-icon-button"
+              onClick={() => activateTab('Reports')}
+              aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}
+            >
+              <AdminIcon name="bell" size={17} />
+              {reportCount > 0 && <i>{reportCount}</i>}
             </button>
-            <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}>
-              <AdminIcon name="refresh" size={16}/><span>Refresh</span>
+
+            <button
+              type="button"
+              className="ar-admin-refresh"
+              onClick={load}
+              disabled={busy}
+            >
+              <AdminIcon name="refresh" size={16} />
+              <span>Refresh</span>
             </button>
+
             <div className="ar-admin-profile-wrap">
-              <button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu">
+              <button
+                type="button"
+                className="ar-admin-profile"
+                onClick={() => setProfileOpen(value => !value)}
+                aria-expanded={profileOpen}
+                aria-haspopup="menu"
+              >
                 <span className="ar-admin-avatar">A</span>
-                <span><strong>Admin</strong><small>{email || 'Protected'}</small></span>
-                <AdminIcon name="chevron" size={13}/>
+                <span>
+                  <strong>Admin</strong>
+                  <small>{email || 'Protected'}</small>
+                </span>
+                <AdminIcon name="chevron" size={13} />
               </button>
-              {profileOpen && <div className="ar-admin-profile-menu" role="menu">
-                <div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div>
-                <button type="button" onClick={logout}><AdminIcon name="logout" size={14}/>Sign out</button>
-              </div>}
+
+              {profileOpen && (
+                <div className="ar-admin-profile-menu" role="menu">
+                  <div>
+                    <strong>Admin account</strong>
+                    <span>{email || 'Protected by Supabase'}</span>
+                  </div>
+
+                  <button type="button" onClick={logout}>
+                    <AdminIcon name="logout" size={14} />
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
-        <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
-          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
-      chapters={sorted}
-      pageCounts={pageCounts}
-      form={form}
-      setForm={setForm}
-      editing={editing}
-      progress={progress}
-      busy={busy}
-      chapterPublishProject={chapterPublishProject}
-      setChapterPublishProject={setChapterPublishProject}
-      onSubmit={saveChapter}
-      onReset={resetForm}
-      onEdit={editChapter}
-      onDelete={deleteChapter}
-      onReload={load}
-      chapterPerformance={chapterPerformance}
-      onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <AdminModerationQueue
-      reports={reports}
-      comments={comments}
-      reportCount={reportCount}
-      onDeleteComment={deleteComment}
-      onSetReportStatus={setReportStatus}
-    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Announcements' ? <section className="admin-stack">
-      <form onSubmit={saveAnnouncement} className="admin-card admin-form">
-        <div className="admin-card-title">
-          <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
-          {editingAnnouncementId && <button type="button" onClick={cancelAnnouncementEdit}>Cancel edit</button>}
-        </div>
-        <input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)"/>
-        <textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="7"/>
-        <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept="image/*" onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
-        <div className="admin-form-grid">
-          <label><span>Placement</span><select value={announcement.display_position} onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}><option value="">Automatic · normal order</option>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card</option>)}</select></label>
-          <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked, pin_target: e.target.checked ? (announcement.pin_target === 'none' ? 'atma' : announcement.pin_target) : 'none' })}/> Pin to top</label>
-          {announcement.is_pinned && <label><span>Pin on</span><select value={announcement.pin_target} onChange={e => setAnnouncement({ ...announcement, pin_target: e.target.value })}><option value="atma">Atma Rekha</option><option value="pdpkl">PDPKL</option></select></label>}
-        </div>
-        <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
-        <button className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
-      </form>
-      <div className="admin-card">
-        <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
-        <div className="admin-mini-list">{announcements.map(item => <div key={item.id}>
-          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div>
-          <div className="admin-row-actions"><button type="button" onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button type="button" className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
-        </div>)}</div>
-        {!announcements.length && <p className="muted center">No announcements yet.</p>}
-      </div>
-    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
 
+        <div className="ar-admin-content">
+          <div className="ar-admin-command-row">
+            <div>
+              <span className="ar-kicker">PUBLISHER · CONTROL CENTER</span>
+              <h1>Atma Rekha Admin</h1>
+              <p>Publish, maintain and monitor Atma Rekha from one workspace.</p>
+            </div>
+
+            <div className="ar-admin-quick-actions">
+              <AdminButton
+                type="button"
+                variant="primary"
+                icon="book"
+                onClick={() => {
+                  setChapterPublishProject('atma');
+                  setTab('Chapters');
+                  resetForm();
+                }}
+              >
+                New chapter
+              </AdminButton>
+            </div>
+          </div>
+
+          {notice.text && (
+            <div
+              className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`}
+              role="status"
+            >
+              <AdminIcon
+                name={notice.type === 'error' ? 'flag' : 'sparkle'}
+                size={16}
+              />
+              <span>{notice.text}</span>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="admin-loading" role="status">Loading dashboard…</div>
+          ) : tab === 'Overview' ? (
+            <AdminOverview
+              chapters={sorted}
+              comments={comments}
+              reports={reports}
+              pageCounts={pageCounts}
+              onTab={activateTab}
+              chapterName={chapterName}
+            />
+          ) : tab === 'Membership & Earnings' ? (
+            <AdminMembership />
+          ) : tab === 'Pages' ? (
+            <AdminChapterPages chapters={sorted} />
+          ) : tab === 'Chapters' ? (
+            <AdminChapterManager
+              chapters={sorted}
+              pageCounts={pageCounts}
+              form={form}
+              setForm={setForm}
+              editing={editing}
+              progress={progress}
+              busy={busy}
+              chapterPublishProject={chapterPublishProject}
+              setChapterPublishProject={setChapterPublishProject}
+              onSubmit={saveChapter}
+              onReset={resetForm}
+              onEdit={editChapter}
+              onDelete={deleteChapter}
+              onReload={load}
+              chapterPerformance={chapterPerformance}
+              onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
+            />
+          ) : tab === 'Comments' ? (
+            <AdminCard
+              eyebrow="MODERATION"
+              title="Comments"
+              description={comments.length + ' total comments · replies included.'}
+            >
+              {comments.length ? (
+                <AdminTable density="compact" aria-label="Admin comments">
+                  <thead>
+                    <tr>
+                      <th aria-label="Reader" />
+                      <th>Reader</th>
+                      <th>Comment</th>
+                      <th>Context</th>
+                      <th>Posted</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comments.map(comment => (
+                      <tr key={comment.id} data-admin-comment-id={comment.id}>
+                        <td>
+                          <div className="admin-comment-avatar" aria-hidden="true">
+                            {(comment.author_name || 'R').slice(0, 1).toUpperCase()}
+                          </div>
+                        </td>
+                        <td>
+                          <strong>{comment.author_name || 'Reader'}</strong>
+                        </td>
+                        <td>
+                          <p className="admin-table-comment-text">{comment.content}</p>
+                        </td>
+                        <td>
+                          <span className="admin-table-muted">
+                            {comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}
+                            {comment.parent_comment_id ? ' · Reply' : ''}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="admin-table-muted">
+                            {new Date(comment.created_at).toLocaleString('en-IN')}
+                          </span>
+                        </td>
+                        <td>
+                          <AdminButton
+                            size="sm"
+                            variant="danger"
+                            type="button"
+                            onClick={() => deleteComment(comment.id)}
+                            disabled={busy}
+                          >
+                            Delete
+                          </AdminButton>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </AdminTable>
+              ) : (
+                <AdminEmptyState
+                  icon="message"
+                  title="No comments yet"
+                  description="Reader comments will appear here when the community starts a conversation."
+                />
+              )}
+            </AdminCard>
+          ) : tab === 'Reports' ? (
+            <AdminModerationQueue
+              reports={reports}
+              comments={comments}
+              reportCount={reportCount}
+              onDeleteComment={deleteComment}
+              onSetReportStatus={setReportStatus}
+            />
+          ) : tab === 'Email Campaigns' ? (
+            <EmailCampaigns adminEmail={email} />
+          ) : tab === 'Announcements' ? (
+            <section className="admin-stack">
+              <AdminCard
+                as="form"
+                onSubmit={saveAnnouncement}
+                eyebrow="CONTENT"
+                title="Announcements"
+                description={
+                  editingAnnouncementId
+                    ? 'Edit an existing announcement without losing its record.'
+                    : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'
+                }
+                actions={editingAnnouncementId ? (
+                  <AdminButton type="button" variant="ghost" onClick={cancelAnnouncementEdit}>
+                    Cancel edit
+                  </AdminButton>
+                ) : null}
+              >
+                <div className="admin-form">
+                  <label>
+                    <span>Title</span>
+                    <input
+                      value={announcement.title}
+                      onChange={e => setAnnouncement({ ...announcement, title: e.target.value })}
+                      placeholder="Optional for an image-only update"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Text</span>
+                    <textarea
+                      value={announcement.content}
+                      onChange={e => setAnnouncement({ ...announcement, content: e.target.value })}
+                      placeholder="Optional for an image-only update"
+                      rows="7"
+                    />
+                  </label>
+
+                  <label className="admin-file-field">
+                    <span>Thumbnail / image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}
+                    />
+                    {announcement.thumbnail ? <em>{announcement.thumbnail.name}</em> : null}
+                  </label>
+
+                  <div className="admin-form-grid">
+                    <label>
+                      <span>Placement</span>
+                      <select
+                        value={announcement.display_position}
+                        onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}
+                      >
+                        <option value="">Automatic · normal order</option>
+                        {Array.from({ length: 10 }, (_, i) => (
+                          <option key={i + 1} value={String(i + 1)}>
+                            {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="check-row">
+                      <input
+                        type="checkbox"
+                        checked={announcement.is_pinned}
+                        onChange={e => setAnnouncement({
+                          ...announcement,
+                          is_pinned: e.target.checked,
+                          pin_target: e.target.checked
+                            ? (announcement.pin_target === 'none' ? 'atma' : announcement.pin_target)
+                            : 'none',
+                        })}
+                      />
+                      <span>Pin to top</span>
+                    </label>
+
+                    {announcement.is_pinned && (
+                      <label>
+                        <span>Pin on</span>
+                        <select
+                          value={announcement.pin_target}
+                          onChange={e => setAnnouncement({ ...announcement, pin_target: e.target.value })}
+                        >
+                          <option value="atma">Atma Rekha</option>
+                          <option value="pdpkl">PDPKL</option>
+                        </select>
+                      </label>
+                    )}
+                  </div>
+
+                  <p className="admin-form-hint">
+                    Announcement text is shown in full. Pinning always puts this announcement above the others.
+                    Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.
+                  </p>
+
+                  <div className="admin-form-actions">
+                    <AdminButton
+                      type="submit"
+                      variant="primary"
+                      loading={busy}
+                    >
+                      {editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement'}
+                    </AdminButton>
+                  </div>
+                </div>
+              </AdminCard>
+
+              <AdminCard
+                eyebrow="PUBLISHED"
+                title="Announcement archive"
+                description="The public announcement rail keeps at most 10 records."
+              >
+                {announcements.length ? (
+                  <AdminTable density="compact" aria-label="Published announcements">
+                    <thead>
+                      <tr>
+                        <th>Preview</th>
+                        <th>Announcement</th>
+                        <th>Placement</th>
+                        <th>Published</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {announcements.map(item => (
+                        <tr key={item.id}>
+                          <td>
+                            {item.image_url ? (
+                              <img className="admin-announcement-thumb" src={item.image_url} alt="" loading="lazy" />
+                            ) : (
+                              <span className="admin-announcement-thumb admin-announcement-thumb-empty">
+                                <AdminIcon name="bell" size={15} />
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong>
+                            <p className="admin-table-comment-text">
+                              {item.content || (item.image_url ? 'Image-only announcement' : '')}
+                            </p>
+                          </td>
+                          <td>
+                            <span className={`admin-status-badge ${item.is_pinned ? 'admin-status-published' : ''}`}>
+                              {item.is_pinned ? 'Pinned' : item.display_position ? 'Position ' + item.display_position : 'Automatic'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="admin-table-muted">
+                              {new Date(item.published_at || item.created_at).toLocaleString('en-IN')}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="admin-row-actions">
+                              <AdminButton type="button" size="sm" onClick={() => editAnnouncement(item)} disabled={busy}>
+                                Edit
+                              </AdminButton>
+                              <AdminButton type="button" size="sm" variant="danger" onClick={() => deleteAnnouncement(item)} disabled={busy}>
+                                Delete
+                              </AdminButton>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </AdminTable>
+                ) : (
+                  <AdminEmptyState
+                    icon="bell"
+                    title="No announcements yet"
+                    description="Published announcements will appear here."
+                  />
+                )}
+              </AdminCard>
+            </section>
+          ) : (
+            <section className="admin-stack">
+              <AdminCard
+                as="form"
+                onSubmit={saveMedia}
+                eyebrow="LIBRARY"
+                title="Media library"
+                description="Register image assets that can be referenced by the site."
+              >
+                <div className="admin-form-grid">
+                  <label>
+                    <span>Title</span>
+                    <input
+                      value={mediaForm.title}
+                      onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })}
+                      placeholder="Media title"
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    <span>Category</span>
+                    <input
+                      value={mediaForm.category}
+                      onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })}
+                      placeholder="Category"
+                      required
+                    />
+                  </label>
+
+                  <label className="wide">
+                    <span>Image URL</span>
+                    <input
+                      value={mediaForm.image_url}
+                      onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })}
+                      placeholder="https://…"
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div className="admin-form-actions">
+                  <AdminButton type="submit" variant="primary" loading={busy}>
+                    Add media
+                  </AdminButton>
+                </div>
+              </AdminCard>
+
+              <AdminCard
+                eyebrow="ASSETS"
+                title="Media inventory"
+                description={media.length ? `${media.length} registered media item${media.length === 1 ? '' : 's'}.` : 'No media records are currently available.'}
+              >
+                {media.length ? (
+                  <AdminTable density="compact" aria-label="Media inventory">
+                    <thead>
+                      <tr>
+                        <th>Preview</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Added</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {media.map(item => (
+                        <tr key={item.id}>
+                          <td>
+                            {item.image_url ? (
+                              <img className="admin-media-thumb" src={item.image_url} alt="" loading="lazy" />
+                            ) : (
+                              <span className="admin-media-thumb admin-media-thumb-empty">
+                                <AdminIcon name="image" size={15} />
+                              </span>
+                            )}
+                          </td>
+                          <td><strong>{item.title}</strong></td>
+                          <td><span className="admin-table-muted">{item.category}</span></td>
+                          <td><span className="admin-table-muted">{new Date(item.created_at).toLocaleString('en-IN')}</span></td>
+                          <td>
+                            <AdminButton type="button" size="sm" variant="danger" onClick={() => deleteMedia(item.id)} disabled={busy}>
+                              Delete
+                            </AdminButton>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </AdminTable>
+                ) : (
+                  <AdminEmptyState
+                    icon="image"
+                    title="Media library is empty"
+                    description="Register reusable media assets here when the site needs them."
+                  />
+                )}
+              </AdminCard>
+            </section>
+          )}
         </div>
+
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
-          <button type="button" className={tab === 'Overview' ? 'active' : ''} onClick={() => activateTab('Overview')}><AdminIcon name="grid" size={16}/><span>Home</span></button>
-          <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}><AdminIcon name="book" size={16}/><span>Chapters</span></button>
-          <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
-          <button type="button" onClick={() => setMobileSidebarOpen(true)}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
+          <button type="button" className={tab === 'Overview' ? 'active' : ''} onClick={() => activateTab('Overview')}>
+            <AdminIcon name="grid" size={16} />
+            <span>Home</span>
+          </button>
+
+          <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}>
+            <AdminIcon name="book" size={16} />
+            <span>Chapters</span>
+          </button>
+
+          <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}>
+            <AdminIcon name="flag" size={16} />
+            <span>Reports</span>
+            {reportCount > 0 ? <b>{reportCount}</b> : null}
+          </button>
+
+          <button type="button" onClick={() => setMobileSidebarOpen(true)}>
+            <AdminIcon name="menu" size={16} />
+            <span>Menu</span>
+          </button>
         </nav>
+
         <AdminCommandPalette
           open={commandOpen}
           onClose={() => setCommandOpen(false)}

@@ -67,11 +67,36 @@ import './light-mode-81225-restore.css';
 import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/><ExperienceEnhancements/></React.StrictMode>);
-
-
 import './experience-enhancements.css';
 import './membership-pro.css';
 import './audience-experience.css';
+
+/* Admin font loading is visual-only and does not change public-site typography. */
+import './admin-fonts.js';
 import './admin-studio-tokens.css';
 import './admin-studio-core.css';
+
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <AtmaLoader/>
+    <App/>
+    <UserAuth/>
+    <ReadingHistoryTracker/>
+    <AuthGate/>
+    <ChapterCompletionPrompt/>
+    <CommunityPage/>
+    <CommunityAdmin/>
+    <EnhancedComments/>
+    <PublicProfile/>
+    <FeatureUnlocks/>
+    <AdminProTools/>
+    <AdminChapterHealth/>
+    <AdminGroupChatTools/>
+    <AdminManagementTools/>
+    <AdminModerationTools/>
+    <AdminOperations/>
+    <ChapterAccessGuard/>
+    <ThemeToggle/>
+    <ExperienceEnhancements/>
+  </React.StrictMode>
+);
