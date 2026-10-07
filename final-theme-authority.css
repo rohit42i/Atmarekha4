@@ -1099,3 +1099,67 @@ html[data-theme="dark"] .profile-v2-card .profile-group-chat-card>span:nth-child
 html[data-theme="dark"] .profile-v2-card .profile-group-chat-card strong{color:#fff!important;font-size:13px!important;font-weight:800!important}
 html[data-theme="dark"] .profile-v2-card .profile-group-chat-card small{color:#aaa!important;font-size:10px!important;line-height:1.35!important}
 html[data-theme="dark"] .profile-v2-card .profile-group-chat-card>b{color:#fff!important;font-size:18px!important;font-weight:600!important}
+
+
+/* 500 error screen — stable, readable and responsive. */
+.error-page{
+  min-height:100dvh!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:24px!important;
+  overflow:auto!important;
+}
+.error-card{
+  width:min(620px,100%)!important;
+  box-sizing:border-box!important;
+  margin:auto!important;
+  padding:clamp(28px,5vw,52px)!important;
+  border-radius:20px!important;
+  text-align:center!important;
+}
+.error-code{
+  display:block!important;
+  margin:8px 0 10px!important;
+  font-size:clamp(58px,12vw,96px)!important;
+  line-height:.9!important;
+  letter-spacing:-.06em!important;
+}
+.error-card h1{
+  margin:0!important;
+  font-size:clamp(24px,5vw,34px)!important;
+  line-height:1.15!important;
+}
+.error-card p{
+  max-width:500px!important;
+  margin:12px auto 0!important;
+  line-height:1.6!important;
+  overflow-wrap:anywhere!important;
+}
+.error-actions{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:10px!important;
+  margin-top:24px!important;
+}
+.error-actions button{
+  min-width:120px!important;
+  min-height:44px!important;
+  box-sizing:border-box!important;
+}
+@media(max-width:560px){
+  .error-page{padding:16px!important}
+  .error-card{
+    padding:28px 18px!important;
+    border-radius:16px!important;
+  }
+  .error-actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    width:100%!important;
+  }
+  .error-actions button{width:100%!important}
+}
