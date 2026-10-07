@@ -1102,6 +1102,33 @@ html[data-theme="dark"] .chapter-access-secondary{
   font-weight:800!important;
 }
 
+/* Auth feedback — clean professional states */
+.auth-panel .form-field-success{
+  color:#15803d!important;
+  font-size:12px!important;
+  font-weight:650!important;
+  line-height:1.45!important;
+}
+html[data-theme="light"] .auth-panel .form-field-success{color:#15803d!important}
+html[data-theme="dark"] .auth-panel .form-field-success{color:#4ade80!important}
+
+.auth-panel .auth-panel-error.form-field-error{
+  width:auto!important;
+  margin:12px 0 0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#dc2626!important;
+  font-size:12px!important;
+  font-weight:650!important;
+  line-height:1.45!important;
+  box-shadow:none!important;
+}
+.auth-panel .auth-panel-error.form-field-error::before{display:none!important}
+html[data-theme="light"] .auth-panel .auth-panel-error.form-field-error{background:transparent!important;border:0!important;color:#dc2626!important}
+html[data-theme="dark"] .auth-panel .auth-panel-error.form-field-error{background:transparent!important;border:0!important;color:#f87171!important}
+
 /* Password visibility control — final */
 .auth-panel .input-with-action{position:relative!important;width:100%!important}
 .auth-panel .input-with-action .input-action-button{
