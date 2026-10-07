@@ -22,7 +22,7 @@ const recipients = [...new Set(
     .filter(Boolean)
 )];
 
-const validEmail = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const invalid = recipients.filter(email => !validEmail.test(email));
 if (invalid.length) {
   throw new Error(`Invalid recipient email(s): ${invalid.join(', ')}`);
