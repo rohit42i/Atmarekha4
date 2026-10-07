@@ -552,3 +552,23 @@ button {
   .more-page-content{width:min(100%,calc(100% - 24px));padding-top:22px}
   .more-page-button{min-height:76px;padding:14px}
 }
+
+/* Admin mobile bottom navigation reserves the bottom safe area for global floating controls. */
+@media (max-width: 720px) {
+  :root:has(.admin-page) .theme-toggle {
+    bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+  }
+  :root:has(.admin-page) .back-to-top,
+  :root:has(.admin-page) .session-warning {
+    bottom: calc(132px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Avoid clipped media while preserving deliberate reader sizing. */
+.admin-media-grid img,
+.home-announcement-image img,
+.profile-v2-list-item img,
+.profile-v2-avatar-wrap > img {
+  background-color: var(--surface-2-color);
+  object-position: center;
+}
