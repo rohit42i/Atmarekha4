@@ -855,3 +855,10 @@ html[data-theme="dark"] .home-page .pdlpl-home-card:hover{
   .more-page-button { min-height:74px; grid-template-columns:minmax(0,1fr) 40px; gap:12px; padding:14px 14px 14px 16px; border-radius:16px; }
   .more-page-button > b { width:40px; height:40px; }
 }
+
+
+/* Membership comment priority */
+.ec-comment--priority{padding:18px 12px;margin:0 -12px;border-left:2px solid currentColor;border-radius:10px;background:color-mix(in srgb,currentColor 5%,transparent)}
+.ec-priority-badge{display:inline-flex;align-items:center;margin-left:6px;padding:2px 6px;border:1px solid currentColor;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;opacity:.8}
+html[data-theme="light"] .ec-comment--priority{background:#fafafa}
+html[data-theme="dark"] .ec-comment--priority{background:#080808}
