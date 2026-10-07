@@ -80,13 +80,15 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
       {renderChapter(visible, recentChapterIds, navigateToChapter)}
 
       {!visible.length && (
-        <div className="chapter-discovery-empty">
+        <div className="chapter-discovery-empty" role="status" aria-live="polite">
           <strong>No chapters found</strong>
           <span>Try a chapter number or title.</span>
         </div>
       )}
 
-
+      {visible.length > 0 && visible.length === chapters.length && (
+        <div className="chapter-discovery-end" role="status" aria-label="End of chapter list">You’ve reached the end.</div>
+      )}
     </>
   );
 }
