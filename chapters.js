@@ -103,7 +103,7 @@ function normalizeReaderPageUrl(url) {
     const index = parsed.pathname.indexOf(prefix);
     if (index >= 0) {
       let key = decodeURIComponent(parsed.pathname.slice(index + prefix.length));
-      const legacy = key.match(/^chapter-pages\\/chapters\\/([0-9a-f-]{36})\\/pages\\/[^/]+-(\\d+)\\/(.+)$/i);
+      const legacy = key.match(/^chapter-pages\/chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
       if (legacy) key = 'chapter-pages/' + legacy[1] + '/' + legacy[2] + '/' + legacy[3];
       parsed.pathname = prefix + key.split('/').map(encodeURIComponent).join('/');
       return parsed.toString();
