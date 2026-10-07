@@ -473,9 +473,9 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
         <div className="reader-info-row"><span>Page {index + 1} of {pages.length}</span></div>
 
         <div className="reader-controls">
-          <button className="reader-control secondary" type="button" disabled={index === 0} onClick={() => setIndex(value => Math.max(value - 1, 0))}>← <span>Previous</span></button>
+          <button className="reader-control secondary" type="button" disabled={index === 0} onClick={() => setIndex(value => Math.max(value - 1, 0))} aria-label="Previous page">←</button>
           <div className="reader-counter"><strong>{index + 1} / {pages.length}</strong><span>PAGE</span></div>
-          <button className="reader-control primary" type="button" disabled={index === pages.length - 1} onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))}><span>Next</span> →</button>
+          <button className="reader-control primary" type="button" disabled={index === pages.length - 1} onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))} aria-label="Next page">→</button>
         </div>
 
         <nav className="reader-chapter-nav" aria-label="Chapter navigation">
