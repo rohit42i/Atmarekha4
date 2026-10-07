@@ -1101,3 +1101,26 @@ html[data-theme="dark"] .chapter-access-secondary{
   border-radius:11px!important;
   font-weight:800!important;
 }
+
+/* Password visibility control — final */
+.auth-panel .input-with-action{position:relative!important;width:100%!important}
+.auth-panel .input-with-action .input-action-button{
+ position:absolute!important;right:6px!important;top:50%!important;
+ transform:translateY(-50%)!important;width:36px!important;height:36px!important;
+ min-width:36px!important;min-height:36px!important;margin:0!important;padding:0!important;
+ display:grid!important;place-items:center!important;border:0!important;
+ outline:0!important;box-shadow:none!important;border-radius:8px!important;
+ background:transparent!important;color:inherit!important;z-index:3!important;
+ -webkit-appearance:none!important;appearance:none!important;
+}
+.auth-panel .input-with-action .input-action-button:hover{background:rgba(127,127,127,.09)!important}
+.auth-panel .input-with-action .input-action-button:active{transform:translateY(-50%) scale(.94)!important}
+.auth-panel .input-with-action .input-action-button:focus-visible{outline:2px solid currentColor!important;outline-offset:1px!important}
+.auth-panel .input-with-action .input-action-button svg{
+ width:18px!important;height:18px!important;display:block!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+ pointer-events:none!important;
+}
+html[data-theme="light"] .auth-panel .input-with-action .input-action-button{color:#111!important}
+html[data-theme="dark"] .auth-panel .input-with-action .input-action-button{color:#fff!important}
