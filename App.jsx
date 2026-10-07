@@ -244,7 +244,9 @@ function ChapterList({ chapters, onBack }) {
 }
 
 function Reader({ chapterId, onBack, chapters }) {
-  const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null); const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState('');   const progressHydratedRef = useRef(false);
+  const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null);
+  useEffect(() => { const protectedPage = Number(chapter?.chapterNumber) > 8; const url = protectedPage ? protectedUrls[index] : pages[index]; setPageImageLoading(Boolean(url)); }, [chapter, pages, index, protectedUrls]);
+ const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState('');   const progressHydratedRef = useRef(false);
   const minSwipeDistance = 80;
   const onTouchStart = event => { if (event.touches.length !== 1) { setTouchStart(null); setTouchEnd(null); return; } setTouchEnd(null); setTouchStart(event.touches[0].clientX); };
   const onTouchMove = event => { if (event.touches.length !== 1) { setTouchStart(null); setTouchEnd(null); return; } setTouchEnd(event.touches[0].clientX); };
@@ -332,7 +334,6 @@ function Reader({ chapterId, onBack, chapters }) {
   const progress = ((index + 1) / pages.length) * 100;
   const protectedChapter = Number(chapter?.chapterNumber) > 8;
   const currentPageUrl = protectedChapter ? protectedUrls[index] : pages[index];
-  useEffect(() => { setPageImageLoading(Boolean(currentPageUrl)); }, [currentPageUrl]);
   const readerLanguage = normalizeChapterLanguage(chapter.language);
   const languageChapters = (chapters || []).filter(item => normalizeChapterLanguage(item.language) === readerLanguage);
   const chapterIndex = languageChapters.findIndex(item => String(item.id) === String(chapter.id));
