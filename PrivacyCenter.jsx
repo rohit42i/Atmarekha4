@@ -133,7 +133,7 @@ export default function PrivacyCenter() {
       <PolicySection heading="Cookies and storage">We use necessary browser storage and similar technologies for site preferences and features. We do not currently use advertising cookies.</PolicySection>
       <PolicySection heading="Security and retention">We use reasonable security measures and keep information only for as long as needed for the purposes described here or where retention is otherwise required.</PolicySection>
       <PolicySection heading="Your privacy rights">Depending on where you live, you may have rights to access, correct, delete, receive, restrict or object to certain uses of your information, or withdraw consent where applicable. Contact us if you want to make a request.</PolicySection>
-      <PolicySection heading="Contact">For privacy questions or requests, contact {CONTACT_EMAIL}. We may verify your identity before completing a request.</PolicySection>
+      <PolicySection heading="Contact">For privacy questions or requests, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may verify your identity before completing a request.</PolicySection>
     </section>
 
     {user && <section className="privacy-controls-card" aria-labelledby="privacy-controls-title">
