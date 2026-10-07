@@ -13,8 +13,10 @@ const PAGES = {
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
-      'Atma Rekha is an Indian fantasy adventure manga about ancient traditions, spiritual concepts, mysterious powers and mythical beings.',
-      'It is originally published in Roman Hindi, with additional language versions available as published. New chapters are released on the 14th of each month. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
+      'Atma Rekha is an adventure manga/comic where traditions and powers become a part of an unfolding story.',
+      'The series follows an original story built around its characters, their experiences, and the mysteries they encounter as the world gradually unfolds.',
+      'Atma Rekha is originally published in Roman Hindi, with additional language versions available as they are published. New chapters are planned for release on the 14th of each month.',
+      'The project is independently created by Arkesh as a solo creator. AI-assisted tools are used only for selected parts of the creative process, while the story, characters, direction, and final creative decisions remain original to the project.',
     ],
   },
   contact: {
