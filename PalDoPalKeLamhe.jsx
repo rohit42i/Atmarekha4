@@ -104,7 +104,7 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
         <span>•</span>
         <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
         <span>•</span>
-        <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
+        
       </div>
       <div className="chapter-row-details">
         <span>📄 {pageCount || '—'} pages</span>
@@ -466,7 +466,7 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
           <button className="reader-side-button right" type="button" onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))} disabled={index === pages.length - 1} aria-label="Next page">›</button>
         </div>
 
-        <div className="reader-info-row"><span>Page {index + 1} of {pages.length}</span><span>👁 {formatCount(stats.views)}</span></div>
+        <div className="reader-info-row"><span>Page {index + 1} of {pages.length}</span></div>
 
         <div className="reader-controls">
           <button className="reader-control secondary" type="button" disabled={index === 0} onClick={() => setIndex(value => Math.max(value - 1, 0))}>← <span>Previous</span></button>
