@@ -17,7 +17,6 @@ import ContinueReading from './ContinueReading.jsx';
 import { NotFoundPage, ServiceUnavailablePage, MaintenancePage, ForbiddenPage } from './ErrorPages.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
-import { saveOfflineChapter, getOfflineChapter, removeOfflineChapter } from './offlineReading';
 import { Error430Page } from './ErrorPages.jsx';
 import InstallPage from './InstallPage.jsx';
 import MorePage from './MorePage.jsx';
