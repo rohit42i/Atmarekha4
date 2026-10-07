@@ -245,9 +245,9 @@ textarea:focus-visible {
 
 /* ---------- Light theme: clear page/surface hierarchy ---------- */
 :root[data-theme="light"] {
-  --bg-color: #f5f5f2 !important;
+  --bg-color: #ffffff !important;
   --surface-color: #ffffff !important;
-  --surface-2-color: #f0f0ed !important;
+  --surface-2-color: #f3f3f3 !important;
   --card-bg: #ffffff !important;
   --input-bg: #ffffff !important;
   --text-color: #000000 !important;
