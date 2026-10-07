@@ -1030,3 +1030,72 @@ html[data-theme="light"] .membership-page .membership-button:not(:disabled):hove
   border-color:#000!important;
   box-shadow:0 6px 16px rgb(0 0 0 / .16)!important;
 }
+
+
+/* Group Chat profile entry — match the site-wide monochrome system. */
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card{
+  width:100%!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin:12px 0 0!important;
+  padding:14px 15px!important;
+  border:1px solid #dedede!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  color:#111!important;
+  box-shadow:0 6px 18px rgb(0 0 0 / .055)!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease,box-shadow .15s ease!important;
+}
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card:hover{
+  background:#fafafa!important;
+  border-color:#cfcfcf!important;
+  transform:translateY(-1px)!important;
+  box-shadow:0 9px 22px rgb(0 0 0 / .08)!important;
+}
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card .group-chat-launch-icon{
+  width:40px!important;
+  height:40px!important;
+  flex:0 0 40px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:12px!important;
+  background:#111!important;
+  color:#fff!important;
+  font-size:17px!important;
+}
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card>span:nth-child(2){
+  min-width:0!important;
+  flex:1!important;
+  display:grid!important;
+  gap:3px!important;
+}
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card strong{color:#111!important;font-size:13px!important;font-weight:800!important}
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card small{color:#666!important;font-size:10px!important;line-height:1.35!important}
+html[data-theme="light"] .profile-v2-card .profile-group-chat-card>b{color:#111!important;font-size:18px!important;font-weight:600!important}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card{
+  width:100%!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin:12px 0 0!important;
+  padding:14px 15px!important;
+  border:1px solid #292929!important;
+  border-radius:16px!important;
+  background:#030303!important;
+  color:#fff!important;
+  box-shadow:none!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease!important;
+}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card:hover{background:#080808!important;border-color:#3a3a3a!important;transform:translateY(-1px)!important}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card .group-chat-launch-icon{width:40px!important;height:40px!important;flex:0 0 40px!important;display:grid!important;place-items:center!important;border-radius:12px!important;background:#fff!important;color:#000!important;font-size:17px!important}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card>span:nth-child(2){min-width:0!important;flex:1!important;display:grid!important;gap:3px!important}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card strong{color:#fff!important;font-size:13px!important;font-weight:800!important}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card small{color:#aaa!important;font-size:10px!important;line-height:1.35!important}
+html[data-theme="dark"] .profile-v2-card .profile-group-chat-card>b{color:#fff!important;font-size:18px!important;font-weight:600!important}
