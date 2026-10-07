@@ -145,7 +145,7 @@ function ToolbarButton({label,title,onClick}) {
 export default function EmailCampaigns({adminEmail=''}) {
   const editorRef = useRef(null);
   const selectionRef = useRef(null);
-  const [subject,setSubject] = useState('Thank You for Supporting ATMA REKHA ❤️');
+  const [subject,setSubject] = useState('ATMA REKHA Chapter 2 is out!');
   const [editorHtml,setEditorHtml] = useState(THANK_YOU_HTML);
   const [insertMode,setInsertMode] = useState('');
   const [insertData,setInsertData] = useState({label:'',url:'',alt:''});
