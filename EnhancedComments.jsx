@@ -14,7 +14,39 @@ function getAnnouncementId(button) { return button?.closest?.('.home-announcemen
 export default function EnhancedComments() {
   const [open,setOpen]=useState(false),[chapterId,setChapterId]=useState(null),[announcementId,setAnnouncementId]=useState(null),[source,setSource]=useState('atma'),[comments,setComments]=useState([]),[profiles,setProfiles]=useState({}),[membershipPlans,setMembershipPlans]=useState(new Map()),[likes,setLikes]=useState({counts:{},liked:{}}),[user,setUser]=useState(null),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[text,setText]=useState(''),[replyTo,setReplyTo]=useState(null),[preview,setPreview]=useState(null),[copied,setCopied]=useState(null),[reporting,setReporting]=useState(null);
   useEffect(()=>{let active=true;supabase.auth.getSession().then(({data})=>{if(active)setUser(data?.session?.user||null)});const {data:listener}=supabase.auth.onAuthStateChange((_e,session)=>setUser(session?.user||null));return()=>{active=false;listener.subscription.unsubscribe()}},[]);
-  useEffect(()=>{const openPdlplEvent=event=>{const id=event.detail?.chapterId;if(!id)return;setSource('pdlpl');setAnnouncementId(null);setChapterId(String(id));setOpen(true)};window.addEventListener('atma-open-pdlpl-comments',openPdlplEvent);const handler=event=>{const button=event.target?.closest?.('button');if(!button)return;const label=`${button.getAttribute('aria-label')||''} ${button.getAttribute('title')||''} ${button.textContent||''}`.toLowerCase();if(!label.includes('comments'))return;const isPdlpl=Boolean(button.closest('.pdlpl-page-list,.pdlpl-reader'));const announcementIdValue=getAnnouncementId(button);const id=announcementIdValue?null:getChapterId(button);if(!announcementIdValue&&!id)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation?.();setSource(isPdlpl?'pdlpl':'atma');setAnnouncementId(announcementIdValue);setChapterId(id);setOpen(true)};document.addEventListener('click',handler,true);window.removeEventListener('atma-open-pdlpl-comments',openPdlplEvent);document.removeEventListener('click',handler,true)},[]);
+  useEffect(()=>{
+    const openPdlplEvent=event=>{
+      const id=event.detail?.chapterId;
+      if(!id)return;
+      setSource('pdlpl');
+      setAnnouncementId(null);
+      setChapterId(String(id));
+      setOpen(true);
+    };
+    window.addEventListener('atma-open-pdlpl-comments',openPdlplEvent);
+    const handler=event=>{
+      const button=event.target?.closest?.('button');
+      if(!button)return;
+      const label=`${button.getAttribute('aria-label')||''} ${button.getAttribute('title')||''} ${button.textContent||''}`.toLowerCase();
+      if(!label.includes('comments'))return;
+      const isPdlpl=Boolean(button.closest('.pdlpl-page-list,.pdlpl-reader'));
+      const announcementIdValue=getAnnouncementId(button);
+      const id=announcementIdValue?null:getChapterId(button);
+      if(!announcementIdValue&&!id)return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      setSource(isPdlpl?'pdlpl':'atma');
+      setAnnouncementId(announcementIdValue);
+      setChapterId(id);
+      setOpen(true);
+    };
+    document.addEventListener('click',handler,true);
+    return()=>{
+      window.removeEventListener('atma-open-pdlpl-comments',openPdlplEvent);
+      document.removeEventListener('click',handler,true);
+    };
+  },[]);
   const load=async()=>{if(!chapterId&&!announcementId)return;setLoading(true);setError('');try{const rows=announcementId?await fetchAnnouncementComments(announcementId):source==='pdlpl'?await fetchPdlplChapterComments(chapterId):await fetchChapterComments(chapterId);setComments(rows);setLikes(announcementId?await fetchCommentLikes(rows.map(r=>r.id)):source==='pdlpl'?await fetchPdlplCommentLikes(rows.map(r=>r.id)):await fetchCommentLikes(rows.map(r=>r.id)));const ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];if(user?.id)ids.push(user.id);if(ids.length){const uniqueIds=[...new Set(ids)];const {data,error:e}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,created_at').in('id',uniqueIds);if(e)throw e;setProfiles(Object.fromEntries((data||[]).map(p=>[p.id,p])));try{setMembershipPlans(await getPublicReaderTiers(uniqueIds))}catch(subscriptionError){console.warn('Public membership tier lookup failed:',subscriptionError);setMembershipPlans(new Map())}}else{setProfiles({});setMembershipPlans(new Map())}}catch(e){setError(friendlyError(e,'We couldn’t load the comments right now. Please try again.'))}finally{setLoading(false)}};
   useEffect(()=>{if(!open||source!=='pdlpl'||!chapterId)return;const channel=supabase.channel(`pdlpl-comments-${chapterId}`).on('postgres_changes',{event:'*',schema:'public',table:'pdlpl_comments',filter:`chapter_id=eq.${chapterId}`},async payload=>{if(payload.eventType==='INSERT'){setComments(prev=>prev.some(c=>c.id===payload.new.id)?prev:[...prev,payload.new])}else if(payload.eventType==='UPDATE'){setComments(prev=>prev.map(c=>c.id===payload.new.id?payload.new:c))}else if(payload.eventType==='DELETE'){setComments(prev=>prev.filter(c=>c.id!==payload.old.id))}}).subscribe();return()=>{supabase.removeChannel(channel)}},[open,source,chapterId]);
   useEffect(()=>{if(open&&(chapterId||announcementId))load()},[open,chapterId,announcementId,source,user?.id]);
