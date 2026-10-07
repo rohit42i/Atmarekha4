@@ -105,6 +105,13 @@ function normalizeReaderPageUrl(url) {
       let key = decodeURIComponent(parsed.pathname.slice(index + prefix.length));
       const legacy = key.match(/^chapter-pages\/chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
       if (legacy) key = 'chapter-pages/' + legacy[1] + '/' + legacy[2] + '/' + legacy[3];
+      // Chapter artwork is served from the Cloudflare R2 media worker. Keep
+      // old Supabase storage URLs readable so existing chapter rows do not break.
+      if (key.startsWith('chapter-pages/')) {
+        parsed.origin = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
+        parsed.pathname = prefix + key.split('/').map(encodeURIComponent).join('/');
+        return parsed.toString();
+      }
       parsed.pathname = prefix + key.split('/').map(encodeURIComponent).join('/');
       return parsed.toString();
     }
