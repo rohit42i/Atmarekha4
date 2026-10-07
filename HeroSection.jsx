@@ -13,7 +13,7 @@ export default function HeroSection({ isDark }) {
     if (!apiBaseUrl) return undefined;
     const fetchHeroImages = async () => {
       try {
-        const res = await axios.get(`${apiBaseUrl}/api/hero-images`);
+        const res = await axios.get(`${apiBaseUrl}/api/hero-images`, { timeout: 12000 });
         if (Array.isArray(res.data) && res.data.length > 0) {
           setHeroImages(res.data.map(img => img.imageUrl).filter(Boolean));
         }
