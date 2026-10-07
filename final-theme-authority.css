@@ -754,3 +754,62 @@ html[data-theme="dark"] .auth-panel .auth-consent-check.is-invalid .auth-checkbo
     padding-right:16px!important;
   }
 }
+
+
+/* Chapter discovery final correction — Search 70%, Language 15%, Sort 15%.
+   Show only the selected values: Search | Hindi/English | Chapter/other sort. */
+.chapter-discovery{
+  display:grid!important;
+  grid-template-columns:minmax(0,7fr) minmax(0,1.5fr) minmax(0,1.5fr)!important;
+  gap:8px!important;
+  width:100%!important;
+  align-items:center!important;
+}
+.chapter-discovery>label{
+  width:100%!important;
+  min-width:0!important;
+  height:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:0 10px!important;
+  display:flex!important;
+  align-items:center!important;
+  box-sizing:border-box!important;
+  border:1px solid var(--control-border-color,#dedede)!important;
+  border-radius:10px!important;
+  background:var(--input-bg,#fff)!important;
+  color:var(--text-color,#111)!important;
+  box-shadow:none!important;
+}
+.chapter-discovery>label:first-child{gap:7px!important}
+.chapter-discovery>label:first-child input{
+  flex:1 1 auto!important;width:100%!important;min-width:0!important;height:100%!important;
+  padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;
+  background:transparent!important;color:var(--text-color,#111)!important;font:500 13px/1 inherit!important;
+}
+.chapter-discovery>label:first-child .chapter-search-icon{flex:0 0 16px!important;width:16px!important;height:16px!important;color:var(--muted-color,#666)!important}
+.chapter-discovery>label:first-child>button{flex:0 0 24px!important;width:24px!important;height:24px!important;padding:0!important;border:0!important;background:transparent!important;color:var(--text-color,#111)!important}
+.chapter-discovery .chapter-language,.chapter-discovery .chapter-sort{padding:0 9px!important;gap:0!important}
+.chapter-discovery .chapter-language>span,.chapter-discovery .chapter-sort>span{display:none!important}
+.chapter-discovery .chapter-language select,.chapter-discovery .chapter-sort select{
+  flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:none!important;height:100%!important;
+  padding:0!important;margin:0!important;border:0!important;outline:0!important;box-shadow:none!important;
+  background:transparent!important;color:var(--text-color,#111)!important;font:600 12px/1 inherit!important;
+  cursor:pointer!important;appearance:auto!important;-webkit-appearance:auto!important;
+}
+html[data-theme="light"] .chapter-discovery>label{background:#fff!important;color:#000!important;border-color:#dedede!important}
+html[data-theme="dark"] .chapter-discovery>label{background:#030303!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="light"] .chapter-discovery input,html[data-theme="light"] .chapter-discovery select,html[data-theme="light"] .chapter-discovery>label:first-child>button{color:#000!important}
+html[data-theme="dark"] .chapter-discovery input,html[data-theme="dark"] .chapter-discovery select,html[data-theme="dark"] .chapter-discovery>label:first-child>button{color:#fff!important}
+.chapter-discovery .chapter-language option,.chapter-discovery .chapter-sort option{background:#fff!important;color:#000!important}
+html[data-theme="dark"] .chapter-discovery .chapter-language option,html[data-theme="dark"] .chapter-discovery .chapter-sort option{background:#030303!important;color:#fff!important}
+@media(max-width:600px){
+  .chapter-discovery{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important}
+  .chapter-discovery>label:first-child{grid-column:1 / -1!important}
+  .chapter-discovery .chapter-language,.chapter-discovery .chapter-sort{padding:0 8px!important}
+  .chapter-discovery .chapter-language select,.chapter-discovery .chapter-sort select{font-size:11px!important}
+}
+@media(max-width:360px){
+  .chapter-discovery{gap:5px!important}
+  .chapter-discovery>label{padding-inline:8px!important}
+}
