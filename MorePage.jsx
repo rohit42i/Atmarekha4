@@ -48,15 +48,6 @@ export default function MorePage() {
           <span><strong>Community</strong><small>Creator updates and messages from the Atma Rekha community.</small></span>
           <b>→</b>
         </button>
-        <button type="button" className="more-page-button" onClick={() => { window.location.hash='info/contact'; }}>
-          <span><strong>Contact</strong><small>Questions, feedback and publishing enquiries.</small></span><b>→</b>
-        </button>
-        <button type="button" className="more-page-button" onClick={() => { window.location.hash='info/report'; }}>
-          <span><strong>Report</strong><small>Report content or a site issue.</small></span><b>→</b>
-        </button>
-        <button type="button" className="more-page-button" onClick={() => { window.location.hash='info/terms'; }}>
-          <span><strong>Terms</strong><small>Read the current terms and conditions.</small></span><b>→</b>
-        </button>
       </div>
     </section>
   </main>;
