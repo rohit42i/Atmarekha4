@@ -8,12 +8,17 @@ const required = [
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
   ['scripts/generate-sitemap.mjs', "'special:' + slugify(match.title)"],
+  ['UserAuth.jsx', "from './formUX.js'"],
+  ['ChapterDiscovery.jsx', '<div className=\"chapter-discovery\">'],
 ];
 
 const forbidden = [
   ['UserAuth.jsx', 'nominate a person'],
   ['membership.css', '#d946ef'],
   ['PrivacyCenter.jsx', 'nominate a person'],
+  ['App.jsx', 'getOfflineChapter'],
+  ['App.jsx', 'offline-save-button'],
+  ['ChapterDiscovery.jsx', 'Most viewed'],
 ];
 
 let failed = false;
