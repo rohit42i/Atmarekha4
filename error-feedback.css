@@ -153,3 +153,165 @@ body :where(.hero-card,.project-card,.home-section,.info-card,.legal-card,.profi
 :root[data-theme="light"] .error-actions .secondary-button { color:#000 !important; border-color:#deded9 !important; background:#fff !important; }
 :root[data-theme="light"] .error-links button:hover,
 :root[data-theme="light"] .error-actions .secondary-button:hover { background:#f1f1ee !important; }
+
+
+/* Final light-mode authority — loaded last so legacy dark styles cannot override it. */
+html[data-theme="light"] .user-auth-fixed,
+html[data-theme="light"] .user-auth-menu,
+html[data-theme="light"] .user-auth-avatar-button,
+html[data-theme="light"] .email-signin-button{
+  background:#fff!important;
+  background-image:none!important;
+  color:#000!important;
+  border-color:#deded9!important;
+  box-shadow:0 6px 20px rgb(0 0 0/.06)!important;
+}
+html[data-theme="light"] .user-auth-avatar-button:hover,
+html[data-theme="light"] .email-signin-button:hover{
+  background:#f7f7f5!important;color:#000!important;border-color:#cfcfc9!important;
+}
+html[data-theme="light"] .user-auth-avatar{
+  width:32px!important;height:32px!important;border:1px solid #deded9!important;box-shadow:none!important;
+}
+html[data-theme="light"] .user-auth-avatar-fallback{
+  width:32px!important;height:32px!important;background:#f1f1ee!important;color:#000!important;
+}
+html[data-theme="light"] .user-auth-name{font-size:12px!important;color:#000!important}
+html[data-theme="light"] .user-auth-chevron{color:#555!important}
+html[data-theme="light"] .user-auth-dropdown{
+  background:#fff!important;color:#000!important;border-color:#deded9!important;box-shadow:0 18px 50px rgb(0 0 0/.12)!important;
+}
+html[data-theme="light"] .user-auth-dropdown-head{
+  background:#fff!important;color:#000!important;border-color:#e7e7e3!important;
+}
+html[data-theme="light"] .user-auth-dropdown-head strong,
+html[data-theme="light"] .user-auth-dropdown button{color:#000!important}
+html[data-theme="light"] .user-auth-dropdown-head span{color:#555!important}
+html[data-theme="light"] .user-auth-dropdown button:hover{background:#f1f1ee!important;color:#000!important}
+html[data-theme="light"] .user-auth-dropdown .user-auth-signout{color:#a11!important}
+
+html[data-theme="light"] .profile-v2-overlay,
+html[data-theme="light"] .profile-v2-card,
+html[data-theme="light"] .profile-community-card,
+html[data-theme="light"] .profile-app-button,
+html[data-theme="light"] .profile-more-button{
+  background:#fff!important;background-image:none!important;color:#000!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .profile-v2-heading h1,
+html[data-theme="light"] .profile-v2-heading p,
+html[data-theme="light"] .profile-community-card strong,
+html[data-theme="light"] .profile-app-button strong,
+html[data-theme="light"] .profile-v2-tabs button{color:#000!important}
+html[data-theme="light"] .profile-community-card small,
+html[data-theme="light"] .profile-app-button small,
+html[data-theme="light"] .profile-v2-empty p{color:#555!important}
+
+html[data-theme="light"] .group-chat-page,
+html[data-theme="light"] .group-chat-shell,
+html[data-theme="light"] .group-chat-header,
+html[data-theme="light"] .group-chat-feed,
+html[data-theme="light"] .group-composer,
+html[data-theme="light"] .group-composer-inner,
+html[data-theme="light"] .group-action-sheet,
+html[data-theme="light"] .group-action-top button,
+html[data-theme="light"] .group-reaction-picker,
+html[data-theme="light"] .group-message-bubble,
+html[data-theme="light"] .group-bubble{
+  background:#fff!important;background-image:none!important;color:#000!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .group-message-bubble,
+html[data-theme="light"] .group-bubble{
+  background:#f7f7f5!important;color:#000!important;
+}
+html[data-theme="light"] .group-message.mine .group-message-bubble,
+html[data-theme="light"] .group-message.mine .group-bubble{background:#eeeeeb!important;color:#000!important}
+html[data-theme="light"] .group-chat-header,
+html[data-theme="light"] .group-composer{border-color:#e1e1e1!important}
+html[data-theme="light"] .group-avatar{
+  width:34px!important;height:34px!important;min-width:34px!important;
+  background:#f1f1ee!important;color:#000!important;border-color:#deded9!important;box-shadow:none!important;
+}
+html[data-theme="light"] .group-meta,
+html[data-theme="light"] .group-chat-live,
+html[data-theme="light"] .group-read,
+html[data-theme="light"] .group-reply-preview,
+html[data-theme="light"] .group-count{color:#555!important}
+html[data-theme="light"] .group-meta button,
+html[data-theme="light"] .group-reply-preview strong{color:#000!important}
+html[data-theme="light"] .group-input,
+html[data-theme="light"] .group-composer textarea{color:#000!important}
+html[data-theme="light"] .group-composer-inner{background:#fafaf8!important}
+html[data-theme="light"] .group-chat-error{background:#fff4f2!important;color:#8b2118!important}
+
+.group-chat-title{font-size:13px!important}
+.group-avatar{width:34px!important;height:34px!important;min-width:34px!important}
+.group-bubble,.group-message-bubble{font-size:13px!important;line-height:1.45!important}
+.group-meta{font-size:9.5px!important}
+
+html[data-theme="light"] .membership-page{
+  background:#fff!important;background-image:none!important;color:#000!important;
+}
+html[data-theme="light"] .membership-faq,
+html[data-theme="light"] .membership-faq-list,
+html[data-theme="light"] .membership-faq-list details,
+html[data-theme="light"] .membership-faq-list details summary,
+html[data-theme="light"] .membership-faq-list details p{
+  background:#fff!important;background-image:none!important;color:#000!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .membership-faq-heading h2{color:#000!important;font-size:20px!important}
+html[data-theme="light"] .membership-faq-heading p,
+html[data-theme="light"] .membership-faq-list details p{color:#444!important}
+.membership-faq-list details summary{font-size:12.5px!important}
+.membership-faq-list details p{font-size:11px!important;line-height:1.52!important}
+
+html[data-theme="light"] .loading-state,
+html[data-theme="light"] .loading-skeleton,
+html[data-theme="light"] .reader-error,
+html[data-theme="light"] .empty-state,
+html[data-theme="light"] .chapter-discovery-empty,
+html[data-theme="light"] .chapter-discovery-end{
+  background:#fff!important;background-image:none!important;color:#000!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .loading-state p,
+html[data-theme="light"] .reader-error p,
+html[data-theme="light"] .empty-state p{color:#444!important}
+html[data-theme="light"] .loading-skeleton i{background:#e7e7e3!important}
+html[data-theme="light"] .loading-spinner{border-color:#d8d8d4!important;border-top-color:#111!important}
+
+/* Refresh loader: keep the existing animation but make its light-mode surface readable. */
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"]{
+  background:#fff!important;
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .aura{
+  background:radial-gradient(circle,rgba(0,0,0,.05),transparent 65%);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .outer-ring{
+  border-color:rgba(0,0,0,.16);box-shadow:0 0 8px rgba(0,0,0,.05);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .outer-ring:after{
+  background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(0,0,0,.4) 325deg,rgba(0,0,0,.08) 340deg,transparent 360deg);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .mark{
+  stroke:rgba(0,0,0,.72);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .thread{
+  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.35),transparent);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .fragment{
+  background:rgba(0,0,0,.75);box-shadow:0 0 4px rgba(0,0,0,.25);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .burst span{
+  background:linear-gradient(to top,rgba(0,0,0,.85),transparent);
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .node{
+  background:#111;box-shadow:0 0 10px rgba(0,0,0,.25);
+}
+
+@media(max-width:700px){
+  html[data-theme="light"] .user-auth-avatar-button{padding:5px 7px!important;gap:6px!important}
+  html[data-theme="light"] .user-auth-avatar,
+  html[data-theme="light"] .user-auth-avatar-fallback{width:30px!important;height:30px!important}
+  .group-avatar{width:32px!important;height:32px!important;min-width:32px!important}
+  .group-bubble,.group-message-bubble{font-size:12.5px!important;padding:8px 10px!important}
+  .group-meta{font-size:9px!important}
+}
