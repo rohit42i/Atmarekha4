@@ -1265,3 +1265,104 @@ html[data-theme="light"] .auth-panel .auth-consent-check .auth-checkbox-box{bord
 html[data-theme="dark"] .auth-panel .auth-consent-check .auth-checkbox-box{border-color:#777!important}
 html[data-theme="light"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box{background:#111!important;border-color:#111!important;color:#fff!important}
 html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box{background:#fff!important;border-color:#fff!important;color:#000!important}
+
+
+/* Chapter discovery — text-only, uniform controls. */
+.chapter-discovery{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:nowrap!important;
+  font-family:inherit!important;
+}
+.chapter-discovery>label,
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{
+  height:40px!important;
+  min-height:40px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  margin:0!important;
+  border-radius:10px!important;
+  font-family:inherit!important;
+  font-size:12px!important;
+  font-weight:600!important;
+  line-height:1!important;
+}
+.chapter-discovery>label:first-child{
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+.chapter-discovery .chapter-search-icon,
+.chapter-discovery>label:first-child>button{
+  display:none!important;
+}
+.chapter-discovery>label:first-child{
+  padding:0 12px!important;
+}
+.chapter-discovery input[type="search"]{
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  font:inherit!important;
+  color:inherit!important;
+  -webkit-appearance:none!important;
+  appearance:none!important;
+}
+.chapter-discovery input[type="search"]::-webkit-search-decoration,
+.chapter-discovery input[type="search"]::-webkit-search-cancel-button{
+  display:none!important;
+  -webkit-appearance:none!important;
+}
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{
+  flex:0 0 auto!important;
+  width:auto!important;
+  padding:0 12px!important;
+  gap:0!important;
+}
+.chapter-discovery .chapter-language>span,
+.chapter-discovery .chapter-sort>span{
+  display:inline!important;
+  margin:0 6px 0 0!important;
+  font:inherit!important;
+}
+.chapter-discovery select{
+  width:auto!important;
+  height:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:inherit!important;
+  font:inherit!important;
+  font-size:12px!important;
+  font-weight:600!important;
+  line-height:1!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  background-image:none!important;
+}
+@media(max-width:560px){
+  .chapter-discovery{gap:6px!important}
+  .chapter-discovery>label:first-child{flex:1 1 auto!important}
+  .chapter-discovery .chapter-language,
+  .chapter-discovery .chapter-sort{
+    width:auto!important;
+    padding:0 9px!important;
+  }
+  .chapter-discovery .chapter-language>span,
+  .chapter-discovery .chapter-sort>span,
+  .chapter-discovery select{
+    font-size:11px!important;
+  }
+}
