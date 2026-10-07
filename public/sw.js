@@ -24,7 +24,7 @@ self.addEventListener('activate', event => {
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    if (response.ok && new URL(request.url).origin === self.location.origin) {
+    if (response.ok) {
       const cache = await caches.open(RUNTIME_CACHE);
       cache.put(request, response.clone()).catch(()=>{});
     }
