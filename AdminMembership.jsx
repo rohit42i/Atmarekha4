@@ -43,14 +43,15 @@ export default function AdminMembership() {
 
   const load = async () => {
     try {
-      const [{ data: membershipPayload, error: analyticsError }] = await Promise.all([
-        supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } }),
-      ]);
-      const data = membershipPayload?.data || {};
-      const userData = membershipPayload?.registered_users != null ? { logged_in_users: membershipPayload.registered_users } : null;
-      const userError = membershipPayload?.error || null;
+      const { data: membershipPayload, error: analyticsError } = await supabase.functions.invoke(
+        'get-admin-console-data',
+        { body: { action: 'membership' } },
+      );
       if (analyticsError) throw analyticsError;
-      if (userError) throw userError;
+      const data = membershipPayload?.data || {};
+      const userData = membershipPayload?.registered_users != null
+        ? { logged_in_users: membershipPayload.registered_users }
+        : null;
       setAnalytics(data || {});
       setRegisteredUsers(Number(userData?.logged_in_users || 0));
       setError('');
