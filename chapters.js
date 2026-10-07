@@ -153,11 +153,31 @@ export async function buildChapterPages(chapterId) {
       .order('page_number', { ascending: true });
 
     if (!error) {
-      // Keep the database as the source of truth for page order, but normalize
-      // every legacy Supabase/R2 path before the reader tries to fetch it.
       const rows = Array.isArray(data) ? [...data] : [];
       rows.sort((a, b) => Number(a?.page_number) - Number(b?.page_number));
-      const pages = rows.map((page) => normalizeReaderPageUrl(page?.image_url)).filter(Boolean);
+      let pages = rows.map((page) => normalizeReaderPageUrl(page?.image_url)).filter(Boolean);
+
+      // Page rows may be absent after the media migration. In that case ask
+      // the R2 media worker for the chapter's objects and rebuild the reader
+      // list without changing chapter access rules.
+      if (!pages.length) {
+        try {
+          const workerUrl = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
+          const response = await fetch(workerUrl + '/storage/v1/object/list/chapter-pages/' + encodeURIComponent(chapterId), {
+            headers: { Accept: 'application/json' },
+            credentials: 'omit',
+          });
+          if (response.ok) {
+            const payload = await response.json();
+            pages = (Array.isArray(payload?.keys) ? payload.keys : [])
+              .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }))
+              .map((key) => workerUrl + '/storage/v1/object/public/' + String(key).split('/').map(encodeURIComponent).join('/'));
+          }
+        } catch (fallbackError) {
+          console.warn('R2 chapter page fallback skipped:', fallbackError);
+        }
+      }
+
       if (pages.length || attempt === PAGE_FETCH_ATTEMPTS) return pages;
     } else {
       lastError = error;
