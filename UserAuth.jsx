@@ -30,7 +30,7 @@ function AuthPanel({mode,setMode,onClose,onSignedIn}){
       if(password.length<MIN_PASSWORD_LENGTH)nextErrors.password=`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
       if(password!==confirmPassword)nextErrors.confirmPassword='Passwords do not match.';
       if(!consent)nextErrors.consent='Please accept the privacy notice to create an account.';
-      if(!ageConfirmed)nextErrors.age='Account creation is limited to readers aged 18 and over.';
+      if(!ageConfirmed)nextErrors.age='Account creation is limited to readers aged 15 and over.';
     }
     if(mode!=='forgot'&&mode!=='signup'&&!password)nextErrors.password='Password is required.';
     if(Object.keys(nextErrors).length){setFieldErrors(nextErrors);setShake(Object.fromEntries(Object.keys(nextErrors).map(key=>[key,true])));setError('Please correct the highlighted fields.');return}
