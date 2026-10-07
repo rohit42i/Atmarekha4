@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
     }
 
     if (authError) {
-      if (state?.user_id && state?.email_confirmed && state?.has_password && !state?.mfa_enabled) {
+      if (state?.user_id && state?.email_confirmed && state?.has_password) {
         const { data: failureRows, error: failureError } = await admin.rpc(
           "record_password_login_failure",
           { p_user_id: state.user_id },
