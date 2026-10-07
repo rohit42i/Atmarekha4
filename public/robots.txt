@@ -1,17 +1,4 @@
 User-agent: *
 Allow: /
 
-# Private/account/admin areas
-Disallow: /admin
-Disallow: /profile
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
-
-# Temporary/error pages
-Disallow: /maintenance
-Disallow: /403
-Disallow: /430
-Disallow: /503
-
 Sitemap: https://www.atmarekha.in/sitemap.xml
