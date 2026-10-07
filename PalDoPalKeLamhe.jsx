@@ -95,6 +95,10 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
       event.preventDefault();
       onOpen(chapter);
     }} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
+      <div className="chapter-row-cover" aria-hidden="true">
+        {chapter.cover ? <img src={chapter.cover} alt="" loading="lazy" decoding="async" /> : <span>PDPKL</span>}
+        {locked && <span className="chapter-row-cover-lock">🔒</span>}
+      </div>
       <div className="chapter-row-title">
         <span>{formatLabel(chapter)}</span>
         <h2>{chapter.title || 'Untitled chapter'}{locked && <span className="chapter-lock-badge"><span className="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span></span>}</h2>
