@@ -744,3 +744,31 @@ html[data-theme="dark"] .chapter-discovery .chapter-sort option{
     color:#fff;
   }
 }
+
+
+/* Public PDPKL thumbnail final sizing — preserve full cover artwork without changing list behavior. */
+.pdlpl-page-list .chapter-row-cover{
+  width:72px!important;
+  height:96px!important;
+  flex:0 0 72px!important;
+  overflow:hidden!important;
+  display:block!important;
+  position:relative!important;
+  box-sizing:border-box!important;
+}
+.pdlpl-page-list .chapter-row-cover img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+@media(max-width:640px){
+  .pdlpl-page-list .chapter-row-cover{
+    width:56px!important;
+    height:76px!important;
+    flex-basis:56px!important;
+  }
+}
