@@ -638,3 +638,22 @@ html[data-theme="dark"] .group-reply-preview{background:#0b0b0b!important;color:
 }
 html[data-theme="light"] .reader-page .loading-state{background:#fff!important;color:#111!important}
 html[data-theme="dark"] .reader-page .loading-state{background:#000!important;color:#fff!important}
+
+
+/* Final route layering and utility-button cleanup. */
+.community-page{z-index:5000!important}
+.pp-page{z-index:5100!important}
+.group-chat-page{z-index:5200!important}
+html[data-theme="light"] .more-page-button{
+  background:#fff!important;color:#111!important;border:1px solid #dedede!important;
+  box-shadow:0 5px 18px rgb(0 0 0 / .05)!important;
+}
+html[data-theme="light"] .more-page-button:hover:not(:disabled){background:#f5f5f3!important;color:#111!important;border-color:#cfcfca!important}
+html[data-theme="light"] .more-page-button small{color:#555!important}
+html[data-theme="light"] .more-page-button>b{color:#111!important}
+html[data-theme="dark"] .more-page-button{
+  background:#030303!important;color:#fff!important;border:1px solid #292929!important;box-shadow:none!important;
+}
+html[data-theme="dark"] .more-page-button:hover:not(:disabled){background:#0b0b0b!important;color:#fff!important;border-color:#444!important}
+html[data-theme="dark"] .more-page-button small{color:#aaa!important}
+html[data-theme="dark"] .more-page-button>b{color:#fff!important}
