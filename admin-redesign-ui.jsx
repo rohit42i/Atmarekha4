@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function AdminIcon({name,size=18,strokeWidth=1.8,className=''}) {
+export function AdminIcon({ name, size = 18, strokeWidth = 1.8, className = '' }) {
   const paths = {
     grid:<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
     book:<><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v12H7a2 2 0 0 1-2-2z"/><path d="M7 4.5v14.5M9 8h7M9 11h7"/></>,
@@ -23,36 +23,121 @@ export function AdminIcon({name,size=18,strokeWidth=1.8,className=''}) {
     calendar:<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></>,
     bookmark:<path d="M6 4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V21l-6-3.5L6 21V4.5Z"/>,
   };
-  return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]||paths.grid}</svg>;
+
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {paths[name] || paths.grid}
+    </svg>
+  );
 }
 
-export function GlassCard({children,className='',interactive=false}) {
-  return <section className={'ar-glass-card'+(interactive?' ar-glass-interactive':'')+' '+className}>{children}</section>;
+export function GlassCard({ children, className = '', interactive = false, ...props }) {
+  return (
+    <section
+      className={`ar-glass-card${interactive ? ' ar-glass-interactive' : ''} ${className}`.trim()}
+      {...props}
+    >
+      {children}
+    </section>
+  );
 }
 
-export function SectionHeader({eyebrow,title,description,action}) {
-  return <div className="ar-section-header"><div><span>{eyebrow}</span><h3>{title}</h3>{description?<p>{description}</p>:null}</div>{action}</div>;
+export function SectionHeader({ eyebrow, title, description, action }) {
+  return (
+    <div className="ar-section-header">
+      <div>
+        {eyebrow ? <span>{eyebrow}</span> : null}
+        <h3>{title}</h3>
+        {description ? <p>{description}</p> : null}
+      </div>
+      {action}
+    </div>
+  );
 }
 
-export function StatCard({label,value,delta,note,icon,accent='violet',loading=false}) {
-  return <article className={'ar-stat-card accent-'+accent}>
-    <div className="ar-stat-top"><span>{label}</span><span className="ar-stat-icon"><AdminIcon name={icon||'chart'} size={16}/></span></div>
-    {loading?<div className="ar-skeleton ar-stat-number"/>:<strong>{value}</strong>}
-    {delta!==undefined && delta!==null ? <span className={'ar-delta '+(delta>=0?'positive':'negative')}>{delta>=0?'↑':'↓'} {Math.abs(delta).toFixed(1)}%</span> : <small>{note||'All time'}</small>}
-    <i className="ar-stat-accent-line"/>
-  </article>;
+export function StatCard({
+  label,
+  value,
+  delta,
+  note,
+  icon,
+  accent = 'gold',
+  loading = false,
+}) {
+  const safeAccent = ['gold', 'blue', 'pink', 'violet'].includes(accent) ? accent : 'gold';
+
+  return (
+    <article className={`ar-stat-card accent-${safeAccent}`}>
+      <div className="ar-stat-top">
+        <span>{label}</span>
+        <span className="ar-stat-icon">
+          <AdminIcon name={icon || 'chart'} size={16} />
+        </span>
+      </div>
+
+      {loading ? (
+        <div className="ar-skeleton ar-stat-number" aria-hidden="true" />
+      ) : (
+        <strong>{value}</strong>
+      )}
+
+      {delta !== undefined && delta !== null ? (
+        <span className={`ar-delta ${Number(delta) >= 0 ? 'positive' : 'negative'}`}>
+          {Number(delta) >= 0 ? '↑' : '↓'} {Math.abs(Number(delta)).toFixed(1)}%
+        </span>
+      ) : (
+        <small>{note || 'All time'}</small>
+      )}
+
+      <i className="ar-stat-accent-line" />
+    </article>
+  );
 }
 
-export function Sparkline({values=[],label=''}) {
-  const clean=values.map(Number).filter(Number.isFinite);
-  if(clean.length<2) return <div className="ar-spark-empty">{label||'No trend data'}</div>;
-  const min=Math.min(...clean), max=Math.max(...clean), span=max-min||1;
-  const points=clean.map((v,i)=>{
-    const x=(i/(clean.length-1))*100;
-    const y=92-((v-min)/span)*70;
-    return (x+','+y);
+export function Sparkline({ values = [], label = '' }) {
+  const clean = values.map(Number).filter(Number.isFinite);
+
+  if (clean.length < 2) {
+    return <div className="ar-spark-empty">{label || 'No trend data'}</div>;
+  }
+
+  const min = Math.min(...clean);
+  const max = Math.max(...clean);
+  const span = max - min || 1;
+
+  const points = clean.map((value, index) => {
+    const x = (index / (clean.length - 1)) * 100;
+    const y = 92 - ((value - min) / span) * 70;
+    return x + ',' + y;
   }).join(' ');
-  return <svg className="ar-sparkline" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}>
-    <polyline points={points} fill="none" stroke="currentColor" strokeWidth="3" vectorEffect="non-scaling-stroke"/>
-  </svg>;
+
+  return (
+    <svg
+      className="ar-sparkline"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={label}
+    >
+      <polyline
+        points={points}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
 }
