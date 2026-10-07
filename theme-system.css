@@ -121,3 +121,6 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
 .back-to-top:hover{transform:translateY(-1px)}
 @media(max-width:640px){.back-to-top{right:14px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 54px);width:42px;height:42px}}
 
+
+
+/* Theme authority note: component surfaces should use the semantic theme tokens above. */
