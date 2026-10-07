@@ -5,7 +5,7 @@ import './email-campaign.css';
 
 const SITE_URL = 'https://www.atmarekha.in/';
 const CHAPTER_RELEASE_TEMPLATE_ID = '566311c5-dbe6-4341-b459-d1d4fdc4e032';
-const DRAFT_KEY = 'atma-rekha-email-campaign-draft-v1';
+const DRAFT_KEY = 'atma-rekha-email-campaign-draft-v2';
 const EMOJIS = ['❤️','🎁','✨','🔥','🙏','⭐','🌟','📖','🖤','😊','🥹','🎉','👀','💫','⚡','🫶'];
 
 const THANK_YOU_HTML =
@@ -100,7 +100,9 @@ function sanitizeHtml(html) {
     UL:'margin:0 0 16px;padding-left:24px;font-size:16px;line-height:1.65;color:#111111;font-family:Arial,Helvetica,sans-serif;',
     OL:'margin:0 0 16px;padding-left:24px;font-size:16px;line-height:1.65;color:#111111;font-family:Arial,Helvetica,sans-serif;'
   };
-  doc.querySelectorAll('p,h2,h3,ul,ol').forEach(node => node.setAttribute('style', blockStyles[node.tagName] || ''));
+  doc.querySelectorAll('p,h2,h3,ul,ol').forEach(node => {
+    if (!node.getAttribute('style')?.trim()) node.setAttribute('style', blockStyles[node.tagName] || '');
+  });
   return doc.body.innerHTML.trim();
 }
 
@@ -121,7 +123,9 @@ function buildEmailHtml(editorHtml) {
       '<a href="' + href.replace(/"/g,'&quot;') + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:15px 36px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:6px;letter-spacing:0.3px;">' +
       label.replace(/&/g,'&amp;').replace(/"/g,'&quot;') +
       '</a></td></tr>';
-    anchor.replaceWith(table);
+    const parent = anchor.parentElement;
+    if (parent?.tagName === 'P' && parent.childNodes.length === 1) parent.replaceWith(table);
+    else anchor.replaceWith(table);
   });
 
   const bodyContent = doc.body.innerHTML.trim();
@@ -291,7 +295,7 @@ export default function EmailCampaigns({adminEmail=''}) {
     setStatus({type:'',text:isTest ? 'Sending test email…' : hasSelectedRecipients ? 'Sending to selected recipients…' : 'Sending to confirmed users…'});
     try {
       const result = await supabase.functions.invoke('send-email-to-users', {
-        body: {subject:subject.trim(),html:emailHtml,text:plainText,templateId:CHAPTER_RELEASE_TEMPLATE_ID,...(isTest ? {testEmail:testEmail.trim()} : hasSelectedRecipients ? {recipients:selectedRecipients.map(item => item.email)} : {})}
+        body: {subject:subject.trim(),html:emailHtml,text:plainText,...(isTest ? {testEmail:testEmail.trim()} : hasSelectedRecipients ? {recipients:selectedRecipients.map(item => item.email)} : {})}
       });
       if (result.error) { const detail = result.data?.error || result.error.message || 'Email request failed.'; const failures = Array.isArray(result.data?.failures) && result.data.failures.length ? ' ' + result.data.failures[0] : ''; throw new Error(detail + failures); }
       if (!result.data?.ok) { const detail = result.data?.error || 'Email request failed.'; const failures = Array.isArray(result.data?.failures) && result.data.failures.length ? ' ' + result.data.failures[0] : ''; throw new Error(detail + failures); }
