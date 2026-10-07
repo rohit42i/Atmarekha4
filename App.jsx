@@ -437,7 +437,7 @@ function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute(
 export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
   useEffect(() => {
     const routeUrl = new URL(route === 'home' ? '/' : '/' + route, SITE_URL);
-    const pathname = routeUrl.pathname.replace(/^\\/+|\\/+$/g, '');
+    const pathname = routeUrl.pathname.replace(/^\/+|\/+$/g, '');
     const routeParts = pathname ? pathname.split('/') : [];
     const type = routeParts[0] || 'home';
     const requestedLanguage = type === 'chapters'
@@ -694,8 +694,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     }
 
     upsertJsonLd({ '@context': 'https://schema.org', '@graph': graph });
-  }
- useEffect(() => {
+  	}, [route, chapters]);
+  useEffect(() => {
     const onChapterLinkClick = event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.target?.closest?.('a[href]');
