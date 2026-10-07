@@ -30,7 +30,7 @@ export default function PrivacyCenter() {
       supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
       supabase.from('dpdp_nominations').select('nominee_name,nominee_email,nominee_phone,created_at,updated_at').eq('user_id', currentUser.id).maybeSingle(),
     ]);
-    const nominationValue = nominationRow?.data || nominationRow;
+    const nominationValue = nominationRow || null;
     setConsent(consentRows?.[0] || null);
     setDeletion(deletionRows?.[0] || null);
     setNomination(nominationValue || null);
@@ -148,7 +148,7 @@ export default function PrivacyCenter() {
         <div className="button-row"><button className="secondary-button" type="button" disabled={busy || ['pending','processing'].includes(deletion?.status)} onClick={requestDeletion}>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'Deletion requested' : 'Request deletion'}</button></div>
       </section>
     </div>
-    <div className="privacy-note"><strong>Grievance & support:</strong> Email atmarekhasupport@gmail.com with “DPDP Request” in the subject. We will use the request to verify your account, process the request, and respond within the applicable period. Your rights include access, correction, erasure, consent withdrawal where applicable, grievance redressal and nomination. citeturn172131search24</div>
+    <div className="privacy-note"><strong>Grievance & support:</strong> Email atmarekhasupport@gmail.com with “DPDP Request” in the subject. We will use the request to verify your account, process the request, and respond within the applicable period. Your rights include access, correction, erasure, consent withdrawal where applicable, grievance redressal and nomination.</div>
     {message && <p className="form-field-success" role="status" aria-live="polite">{message}</p>}
     {error && <p className="form-field-error" role="alert">{error}</p>}
     {exported && <section className="data-export"><h2>Export preview</h2><pre>{JSON.stringify(exported, null, 2)}</pre></section>}
