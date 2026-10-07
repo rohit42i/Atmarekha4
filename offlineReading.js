@@ -18,7 +18,13 @@ export async function saveOfflineChapter({ id, title, pageUrls = [] }) {
   const cleanUrls = [...new Set(pageUrls.filter(Boolean))];
   const cache = await caches.open(CACHE);
   await Promise.all(cleanUrls.map(async url => {
-    try { const response = await fetch(url, { mode: 'cors', credentials: 'omit' }); if (response.ok) await cache.put(url, response.clone()); } catch {}
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      const response = await fetch(url, { mode: 'cors', credentials: 'omit', signal: controller.signal });
+      clearTimeout(timer);
+      if (response.ok) await cache.put(url, response.clone());
+    } catch {}
   }));
   const index = await readIndex();
   index[id] = { id, title, pageUrls: cleanUrls, savedAt: new Date().toISOString() };
