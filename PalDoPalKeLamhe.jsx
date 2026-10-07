@@ -118,7 +118,7 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
       <button type="button" className="engagement-icon" onClick={() => onRating(chapter)} aria-label={`Rate ${formatLabel(chapter)}`} title={`Rate ${formatLabel(chapter)}`}>
         <span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small>
       </button>
-      <button type="button" className="engagement-icon" onClick={() => onComments?.(chapter)} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}>
+      <button type="button" className="engagement-icon" onClick={() => window.dispatchEvent(new CustomEvent('atma-open-pdlpl-comments',{detail:{chapterId:chapter.id}}))} aria-label={`Comments for ${formatLabel(chapter)}`} title={`Comments for ${formatLabel(chapter)}`}>
         <span>💬</span><small>{new Intl.NumberFormat('en-IN', { notation: Number(item.comments) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.comments) || 0)}</small>
       </button>
     </div>
@@ -430,7 +430,7 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
             </button>
             <button type="button" className="reader-engagement-button reader-rating-button" onClick={() => setRatingOpen(true)} aria-label="Rate chapter"><span>★</span>{stats.rating.count ? stats.rating.average.toFixed(1) : '—'}</button>
-            <button type="button" className="reader-engagement-button reader-comments-button" onClick={() => {}} aria-label="Open comments"><span>💬</span>{formatCount(stats.comments || 0)}</button>
+            <button type="button" className="reader-engagement-button reader-comments-button" onClick={() => window.dispatchEvent(new CustomEvent('atma-open-pdlpl-comments',{detail:{chapterId:chapter.id}}))} aria-label="Open comments"><span>💬</span>{formatCount(stats.comments || 0)}</button>
             <button type="button" className="reader-share-button" onClick={async () => {
               const shareUrl = `${window.location.origin}/pal-do-pal-ke-lamhe#${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`;
               const shareText = chapter.chapterNumber ? `Read Pal Do Pal Ke Lamhe Chapter ${chapter.chapterNumber}.` : 'Read Pal Do Pal Ke Lamhe.';
