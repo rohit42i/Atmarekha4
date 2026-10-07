@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { OfflinePage } from './ErrorPages.jsx';
 
 function announce(message) {
   window.dispatchEvent(new CustomEvent('atma-toast', { detail: { message } }));
