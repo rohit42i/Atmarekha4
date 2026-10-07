@@ -54,7 +54,9 @@ const client = createClient(
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
 function normalizeAtmaR2Path(bucket, path) {
-  const clean = String(path || '').replace(/^\/+/, '');
+  let clean = String(path || '').replace(/^\/+/, '');
+  const bucketPrefix = `${bucket}/`;
+  if (clean.toLowerCase().startsWith(bucketPrefix.toLowerCase())) clean = clean.slice(bucketPrefix.length);
   if (bucket !== 'chapter-pages') return clean;
   const match = clean.match(/^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
   if (!match) return clean;
