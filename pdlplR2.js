@@ -13,6 +13,7 @@ export function getPdlplMediaUrl(path) {
 }
 
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const PDLPL_REQUEST_TIMEOUT_MS = 15000;
 const IMAGE_MIME_BY_EXT = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
   gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
@@ -82,20 +83,36 @@ async function request(path, options = {}, retried = false) {
   if (!publicCover) Object.assign(headers, await authHeaders({ refresh: retried }));
 
   let response;
+  let timedOut = false;
+  let timer;
+  const controller = new AbortController();
+  const parentSignal = options.signal;
+  const forwardAbort = () => controller.abort(parentSignal.reason);
+  if (parentSignal) {
+    if (parentSignal.aborted) controller.abort(parentSignal.reason);
+    else parentSignal.addEventListener('abort', forwardAbort, { once: true });
+  }
+  if (method === 'GET' || method === 'HEAD') {
+    timer = setTimeout(() => { timedOut = true; controller.abort(); }, PDLPL_REQUEST_TIMEOUT_MS);
+  }
   try {
-    response = await fetch(url, { ...options, headers });
+    response = await fetch(url, { ...options, signal: controller.signal, headers });
   } catch (error) {
     const networkError = new Error(
       `Cloudflare R2 ${method} request failed: ${error?.message || error}. `
       + `This is usually a browser-to-Worker CORS/network failure; verify the deployed Worker allows origin "${window.location.origin}".`,
     );
-    networkError.name = error?.name || 'NetworkError';
+    networkError.name = timedOut ? 'TimeoutError' : (error?.name || 'NetworkError');
+    if (timedOut) networkError.message = 'Cloudflare R2 request timed out. Please check your connection and try again.';
     networkError.path = path;
     networkError.url = url;
     networkError.origin = typeof window !== 'undefined' ? window.location.origin : '';
     networkError.hint = 'Check the PDPKL media Worker CORS allow-list and deployment. The Worker must return CORS headers on both preflight and error responses.';
     networkError.cause = error;
     throw networkError;
+  } finally {
+    if (timer) clearTimeout(timer);
+    parentSignal?.removeEventListener?.('abort', forwardAbort);
   }
 
   if (response.ok) return response;
