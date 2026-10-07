@@ -82,10 +82,6 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
 
-      - name: One-time migrate Atma community media to R2
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: curl --fail --retry 3 --retry-delay 2 --max-time 60 https://tiny-pond-c959.rohitbaswaraj.workers.dev/__admin/finish-community-migration
-      - name: Deploy PDPL media Worker
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: pdlpl-media-worker
         run: npx wrangler deploy
