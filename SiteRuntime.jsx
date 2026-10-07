@@ -95,6 +95,13 @@ function ServiceWorkerManager() {
 }
 
 export default function SiteRuntime() {
-  const [online] = useState(() => navigator.onLine);
+  const [online, setOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const onOffline = () => setOnline(false);
+    const onOnline = () => setOnline(true);
+    window.addEventListener('offline', onOffline);
+    window.addEventListener('online', onOnline);
+    return () => { window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); };
+  }, []);
   return <><NetworkStatus/><PageProgress/><ToastHost/><BackToTop/><InstallPrompt/><ServiceWorkerManager/>{!online && <div className="offline-runtime-shell"><OfflinePage onRetry={()=>window.location.reload()}/></div>}</>;
 }
