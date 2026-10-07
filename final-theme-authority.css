@@ -813,3 +813,27 @@ html[data-theme="dark"] .chapter-discovery .chapter-language option,html[data-th
   .chapter-discovery{gap:5px!important}
   .chapter-discovery>label{padding-inline:8px!important}
 }
+
+
+/* Chapter discovery — final readable labels. */
+.chapter-discovery>label:first-child input{
+  font-family:inherit!important;
+  font-size:14px!important;
+  font-weight:500!important;
+  line-height:1!important;
+}
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-sort select{
+  font-family:inherit!important;
+  font-size:13px!important;
+  font-weight:600!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+}
+.chapter-discovery .chapter-language>span,
+.chapter-discovery .chapter-sort>span{display:none!important}
+@media(max-width:600px){
+  .chapter-discovery>label:first-child input{font-size:13px!important}
+  .chapter-discovery .chapter-language select,
+  .chapter-discovery .chapter-sort select{font-size:12px!important}
+}
