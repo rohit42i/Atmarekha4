@@ -106,7 +106,7 @@ export function getSiteRoute() {
   if (isChapterPath(pathname)) return pathname.slice(1) + (window.location.search || '');
   const publicPath = /^\/(admin|chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe)$/.test(pathname);
   if (publicPath) return pathname.slice(1);
-  return 'home';
+  return 'not-found';
 }
 
 export function getChapterIdFromLocation(chapters = []) {
