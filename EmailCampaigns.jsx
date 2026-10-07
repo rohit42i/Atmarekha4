@@ -9,13 +9,15 @@ const DRAFT_KEY = 'atma-rekha-email-campaign-draft-v1';
 const EMOJIS = ['❤️','🎁','✨','🔥','🙏','⭐','🌟','📖','🖤','😊','🥹','🎉','👀','💫','⚡','🫶'];
 
 const THANK_YOU_HTML =
-  '<p>Hey,</p>' +
-  '<p>Thank you for supporting <strong>ATMA REKHA</strong> and being part of this journey. It truly means a lot to me. ❤️</p>' +
-  '<p>As a small thank you, I’ve gifted you <strong>2 years of Premium Membership</strong>. 🎁</p>' +
-  '<p>I hope you enjoy what’s coming next. There are many more chapters, mysteries and moments waiting for you.</p>' +
-  '<p><a href="' + SITE_URL + '" data-email-button="true">Enter the world of ATMA REKHA →</a></p>' +
-  '<p>Thank you for being here. ❤️</p>' +
-  '<p>Arkesh<br />Creator of ATMA REKHA</p>';
+  '<p style="margin:0 0 28px 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:18px;line-height:1.5;color:#1a1a1a;">Hey, what’s up?</p>' +
+  '<h1 style="margin:0 0 28px 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:28px;line-height:1.3;color:#000000;font-weight:700;letter-spacing:-0.4px;">ATMA REKHA Chapter 2 is out!</h1>' +
+  '<p style="margin:0 0 20px 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.65;color:#222222;">Whenever you get a little free time, check it out and let me know what you think. I’d really love to hear your thoughts.</p>' +
+  '<p style="margin:0 0 20px 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.65;color:#222222;">And when you finish, don’t forget to leave a review or comment. It helps a lot and honestly means a lot to me.</p>' +
+  '<p style="margin:0 0 36px 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.65;color:#222222;">If you like the chapter, share it with your friends too.</p>' +
+  '<p><a href="' + SITE_URL + '" data-email-button="true">READ CHAPTER</a></p>' +
+  '<p style="margin:40px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.5;color:#222222;">See you in the next chapter!</p>' +
+  '<p style="margin:32px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.4;color:#111111;font-weight:700;">Arkesh</p>' +
+  '<p style="margin:4px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.4;color:#666666;">Creator of ATMA REKHA</p>';
 
 const validEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 
