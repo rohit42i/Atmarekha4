@@ -25,6 +25,14 @@ const client = createClient(
 );
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
+function normalizeAtmaR2Path(bucket, path) {
+  const clean = String(path || '').replace(/^\/+/, '');
+  if (bucket !== 'chapter-pages') return clean;
+  const match = clean.match(/^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
+  if (!match) return clean;
+  return `chapter-pages/${match[1]}/${match[2]}/${match[3]}`;
+}
+
 async function authHeaders() {
   const { data, error } = await client.auth.getSession();
   if (error) throw error;
@@ -116,9 +124,9 @@ async function compressImage(file) {
 export const cloudflareR2 = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
-    const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
+    const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(normalizeAtmaR2Path(bucket, path))}`;
     return {
-      async upload(path, file, options = {}) { try { const processedFile = await compressImage(file); const response = await fetch(publicPath(path), { method: 'PUT', headers: { ...(await authHeaders()), 'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream', 'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}` }, body: processedFile }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) }; } return { data: { path }, error: null }; } catch (error) { return { data: null, error }; } },
+      async upload(path, file, options = {}) { try { const storagePath = normalizeAtmaR2Path(bucket, path); const processedFile = await compressImage(file); const response = await fetch(publicPath(storagePath), { method: 'PUT', headers: { ...(await authHeaders()), 'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream', 'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}` }, body: processedFile }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) }; } return { data: { path }, error: null }; } catch (error) { return { data: null, error }; } },
       getPublicUrl(path) { return { data: { publicUrl: publicPath(path) } }; },
       async remove(paths) { const clean = (paths || []).filter(Boolean); try { const headers = await authHeaders(); for (const path of clean) { const response = await fetch(publicPath(path), { method: 'DELETE', headers }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) }; } } return { data: clean.map(path => ({ name: path })), error: null }; } catch (error) { return { data: null, error }; } },
     };
