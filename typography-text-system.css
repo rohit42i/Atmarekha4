@@ -22,36 +22,36 @@ body {
 body :where(
   h1,h2,h3,h4,h5,h6,
   strong,b,th
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-family: inherit !important;
   font-weight: 800 !important;
   letter-spacing: -0.025em !important;
   line-height: 1.15 !important;
 }
 
-body :where(h1):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(h1):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: clamp(2rem, 5vw, 3.6rem) !important;
   font-weight: 850 !important;
   letter-spacing: -0.045em !important;
 }
 
-body :where(h2):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(h2):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: clamp(1.55rem, 3.5vw, 2.35rem) !important;
   font-weight: 850 !important;
 }
 
-body :where(h3):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(h3):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: clamp(1.2rem, 2.5vw, 1.55rem) !important;
   font-weight: 800 !important;
 }
 
-body :where(h4,h5,h6):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(h4,h5,h6):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 1rem !important;
 }
 
 body :where(
   p,li,dt,dd,blockquote,figcaption,caption
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-family: inherit !important;
   font-weight: 550 !important;
   line-height: 1.65 !important;
@@ -71,7 +71,7 @@ body :where(
   .comment-body > p,
   .ec-content,
   .enhanced-comments .comment-text
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 16px !important;
   font-weight: 550 !important;
   line-height: 1.68 !important;
@@ -91,7 +91,7 @@ body :where(
   .footer-nav a,
   .footer-legal a,
   .section-link
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-family: inherit !important;
   font-size: 14px !important;
   font-weight: 750 !important;
@@ -101,7 +101,7 @@ body :where(
 
 body :where(
   .hero-button,.primary-button,.reader-comment-button,.like-button,.community-join,.admin-submit,.membership-button
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 15px !important;
   font-weight: 800 !important;
 }
@@ -132,7 +132,7 @@ body :where(
   .admin-card-title p,
   .admin-mini-list p,
   .admin-performance p
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-family: inherit !important;
   font-size: 13px !important;
   font-weight: 600 !important;
@@ -153,47 +153,47 @@ body :where(
   .admin-card-title > span,
   .admin-form label,
   .report-label
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 11px !important;
   font-weight: 850 !important;
   letter-spacing: .12em !important;
   line-height: 1.3 !important;
 }
 
-body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-family: inherit !important;
   font-size: 15px !important;
   font-weight: 600 !important;
   line-height: 1.45 !important;
 }
 
-body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *)::placeholder {
+body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *)::placeholder {
   font-weight: 550 !important;
 }
 
-body :where(.reader-title h1):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.reader-title h1):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: clamp(17px, 3vw, 22px) !important;
   font-weight: 850 !important;
   letter-spacing: -0.025em !important;
 }
 
-body :where(.reader-page-pill):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.reader-page-pill):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 13px !important;
   font-weight: 800 !important;
 }
 
-body :where(.reader-counter strong):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.reader-counter strong):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 15px !important;
   font-weight: 800 !important;
 }
 
-body :where(.chapter-row-title h2):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.chapter-row-title h2):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: clamp(16px, 2vw, 22px) !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
 }
 
-body :where(.latest-item h3):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.latest-item h3):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   font-size: 18px !important;
   font-weight: 800 !important;
 }
@@ -205,7 +205,7 @@ html[data-theme="light"] body :where(
   h1,h2,h3,h4,h5,h6,p,span,strong,b,em,i,label,small,time,
   a,li,dt,dd,blockquote,figcaption,caption,th,td,
   button,[role="button"],input,textarea,select,option
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #000000 !important;
 }
 
@@ -214,7 +214,7 @@ html[data-theme="light"] body :where(
   .reader-comment-button,.like-button,.community-join,
   .admin-submit,.membership-button,.ec-compose-row > button,
   .ec-join button
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #ffffff !important;
 }
 
@@ -223,7 +223,7 @@ html[data-theme="light"] body :where(
   .reader-comment-button *,.like-button *,.community-join *,
   .admin-submit *,.membership-button *,.ec-compose-row > button *,
   .ec-join button *
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #ffffff !important;
 }
 
@@ -231,7 +231,7 @@ html[data-theme="dark"] body :where(
   h1,h2,h3,h4,h5,h6,p,span,strong,b,em,i,label,small,time,
   a,li,dt,dd,blockquote,figcaption,caption,th,td,
   button,[role="button"],input,textarea,select,option
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #ffffff !important;
 }
 
@@ -240,7 +240,7 @@ html[data-theme="dark"] body :where(
   .reader-comment-button,.like-button,.community-join,
   .admin-submit,.membership-button,.ec-compose-row > button,
   .ec-join button
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #000000 !important;
 }
 
@@ -249,12 +249,12 @@ html[data-theme="dark"] body :where(
   .reader-comment-button *,.like-button *,.community-join *,
   .admin-submit *,.membership-button *,.ec-compose-row > button *,
   .ec-join button *
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #000000 !important;
 }
 
-html[data-theme="light"] body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *),
-html[data-theme="dark"] body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+html[data-theme="light"] body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *),
+html[data-theme="dark"] body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: currentColor !important;
   stroke: currentColor !important;
 }
@@ -264,11 +264,11 @@ html[data-theme="dark"] body :where(button,a,[role="button"]) svg:not(.admin-pag
     font-size: 15px !important;
   }
 
-  body :where(h1):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  body :where(h1):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
     font-size: clamp(1.8rem, 8vw, 2.75rem) !important;
   }
 
-  body :where(h2):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  body :where(h2):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
     font-size: clamp(1.4rem, 6vw, 2rem) !important;
   }
 
@@ -285,21 +285,21 @@ html[data-theme="dark"] body :where(button,a,[role="button"]) svg:not(.admin-pag
     .comment-body > p,
     .ec-content,
     .enhanced-comments .comment-text
-  ):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  ):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
     font-size: 15px !important;
     line-height: 1.62 !important;
   }
 
-  body :where(button,[role="button"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  body :where(button,[role="button"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
     font-size: 13px !important;
   }
 }
 
-html[data-theme="light"] body :not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+html[data-theme="light"] body :not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #000000 !important;
 }
 
-html[data-theme="light"] body :not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *)::placeholder {
+html[data-theme="light"] body :not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *)::placeholder {
   color: #000000 !important;
   opacity: .65 !important;
 }
@@ -308,7 +308,7 @@ html[data-theme="light"] body :where(
   svg, svg *, button, button *, a, a *, [role="button"], [role="button"] *,
   input, textarea, select, option, label, p, span, strong, b, em, i,
   h1, h2, h3, h4, h5, h6, small, time, li, td, th
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
 }
@@ -316,11 +316,11 @@ html[data-theme="light"] body :where(
 html[data-theme="light"] body :where(
   .hero-button,.primary-button,.reader-control.primary,.reader-comment-button,.like-button,.community-join,
   .admin-submit,.membership-button,.ec-compose-row > button,.ec-join button
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *),
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *),
 html[data-theme="light"] body :where(
   .hero-button *,.primary-button *,.reader-control.primary *,.reader-comment-button *,.like-button *,.community-join *,
   .admin-submit *,.membership-button *,.ec-compose-row > button *,.ec-join button *
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
