@@ -112,3 +112,26 @@ html[data-theme="light"] .privacy-center select,
 html[data-theme="light"] .privacy-export pre{
   background:#fff!important;color:#181818!important;border-color:#deded9!important;
 }
+
+/* Global Privacy page */
+.privacy-applicability{margin-top:14px!important;padding:12px 14px;border:1px solid var(--border-color);border-radius:12px;background:var(--input-bg);line-height:1.55!important}
+.privacy-center-card{box-sizing:border-box;border:1px solid var(--border-color);border-radius:18px;background:var(--card-bg);color:var(--text-color);padding:24px;margin-top:18px}
+.privacy-center-card h2{margin:0 0 8px}.privacy-center-card p{margin:0 0 16px;line-height:1.65}
+.privacy-small-note{margin:12px 0 0;color:var(--text-secondary,var(--text-color));line-height:1.6;font-size:.9rem}
+.privacy-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 12px}
+.privacy-form-grid label{display:grid;gap:6px;font-size:.88rem}
+.privacy-form-grid input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border-color);border-radius:10px;background:var(--input-bg);color:var(--text-color)}
+.privacy-table-wrap{width:100%;overflow-x:auto;margin-top:16px;border:1px solid var(--border-color);border-radius:14px}
+.privacy-table{width:100%;border-collapse:collapse;min-width:680px}
+.privacy-table th,.privacy-table td{padding:12px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border-color);line-height:1.55}
+.privacy-table th{font-size:.82rem;letter-spacing:.02em;text-transform:uppercase}.privacy-table tr:last-child td{border-bottom:0}
+html[data-theme="dark"] .privacy-applicability,
+html[data-theme="dark"] .privacy-center-card,
+html[data-theme="dark"] .privacy-form-grid input{background:#000!important;color:#fff!important;border-color:#333!important}
+html[data-theme="dark"] .privacy-small-note{color:#ddd!important}
+html[data-theme="dark"] .privacy-table-wrap{border-color:#333!important}.privacy-table th,.privacy-table td{border-color:var(--border-color)}
+html[data-theme="light"] .privacy-applicability,
+html[data-theme="light"] .privacy-center-card,
+html[data-theme="light"] .privacy-form-grid input{background:#fff!important;color:#181818!important;border-color:#deded9!important}
+html[data-theme="light"] .privacy-small-note{color:#444!important}
+@media(max-width:700px){.privacy-form-grid{grid-template-columns:1fr}.privacy-center-card{padding:18px}}
