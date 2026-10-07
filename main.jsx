@@ -112,4 +112,3 @@ import './admin-studio-core.css';
 import './ui-layout-audit.css';
 
 import './final-theme-authority.css';
-import './dialog-accessibility.js';
