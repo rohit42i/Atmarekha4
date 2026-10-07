@@ -107,31 +107,33 @@ function buildEmailHtml(editorHtml) {
   doc.querySelectorAll('a[data-email-button="true"]').forEach(anchor => {
     const href = safeUrl(anchor.getAttribute('href') || '', false);
     if (!href) { anchor.replaceWith(...anchor.childNodes); return; }
-    const label = (anchor.textContent || 'Open ATMA REKHA').trim().replace(/[<>]/g, '');
+    const label = (anchor.textContent || 'READ CHAPTER').trim().replace(/[<>]/g, '');
     const table = doc.createElement('table');
     table.setAttribute('role','presentation');
-    table.setAttribute('width','100%');
     table.setAttribute('cellspacing','0');
     table.setAttribute('cellpadding','0');
     table.setAttribute('border','0');
-    table.setAttribute('style','width:100%;margin:4px 0 20px;');
+    table.setAttribute('class','btn-mobile');
     table.innerHTML =
-      '<tr><td align="center" style="padding:0;">' +
-      '<a href="' + href.replace(/"/g,'&quot;') + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#111111;color:#ffffff;text-decoration:none;border-radius:8px;padding:13px 24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:800;line-height:1.2;">' +
+      '<tr><td align="center" bgcolor="#000000" style="border-radius:6px;background-color:#000000;">' +
+      '<a href="' + href.replace(/"/g,'&quot;') + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:15px 36px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:6px;letter-spacing:0.3px;">' +
       label.replace(/&/g,'&amp;').replace(/"/g,'&quot;') +
       '</a></td></tr>';
     anchor.replaceWith(table);
   });
 
-  return '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f5f5f5;">' +
-    '<div style="display:none!important;max-height:0;overflow:hidden;opacity:0;color:transparent;">Thank you for supporting ATMA REKHA.</div>' +
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f5f5f5;"><tr><td align="center" style="padding:28px 14px;">' +
-    '<table role="presentation" width="620" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:620px;background:#ffffff;border:1px solid #e6e6e6;border-radius:14px;">' +
-    '<tr><td style="padding:34px 30px;">' + doc.body.innerHTML.trim() + '</td></tr>' +
-    '<tr><td style="padding:16px 30px 24px;border-top:1px solid #eeeeee;font:12px/1.5 Arial,Helvetica,sans-serif;color:#777;text-align:center;">You’re receiving this because you have an ATMA REKHA account.</td></tr>' +
-    '</table></td></tr></table></body></html>';
+  const bodyContent = doc.body.innerHTML.trim();
+  return '<!DOCTYPE html><html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">' +
+    '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="x-apple-disable-message-reformatting"><meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">' +
+    '<title>ATMA REKHA Chapter 2</title><!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]>' +
+    '<style type="text/css">body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}table,td{mso-table-lspace:0pt;mso-table-rspace:0pt;}body{margin:0!important;padding:0!important;width:100%!important;height:100%!important;}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important;font-size:inherit!important;font-family:inherit!important;font-weight:inherit!important;line-height:inherit!important;}@media only screen and (max-width:620px){.email-container{width:100%!important;max-width:100%!important;}.mobile-padding{padding-left:28px!important;padding-right:28px!important;}.btn-mobile{width:100%!important;}}</style></head>' +
+    '<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">' +
+    '<div style="display:none;font-size:1px;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-hide:all;">Chapter 2 of ATMA REKHA is live. Would love to hear what you think.</div>' +
+    '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f4f4f4;"><tr><td align="center" style="padding:48px 16px;">' +
+    '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" class="email-container" style="max-width:560px;width:100%;background-color:#ffffff;">' +
+    '<tr><td class="mobile-padding" style="padding:52px 44px 48px 44px;">' + bodyContent +
+    '</td></tr></table></td></tr></table></body></html>';
 }
-
 function htmlToText(html) {
   const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
   doc.querySelectorAll('script,style').forEach(node => node.remove());
