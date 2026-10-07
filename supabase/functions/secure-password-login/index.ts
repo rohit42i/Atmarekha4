@@ -141,10 +141,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    const authClient = createClient(supabaseUrl, publishableKey, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
-
     const authResponse = await fetch(
       `${supabaseUrl}/auth/v1/token?grant_type=password`,
       {
@@ -161,7 +157,7 @@ Deno.serve(async (req) => {
     let authError: any = null;
     if (authResponse.ok) {
       authData = await authResponse.json().catch(() => null);
-      if (!authData?.access_token || !authData?.refresh_token) {
+      if (!authData?.access_token || !authData?.refresh_token || !authData?.user) {
         authError = { message: "Authentication returned an invalid session." };
       }
     } else {
@@ -172,7 +168,7 @@ Deno.serve(async (req) => {
       };
     }
 
-    if (authError || !authData?.session) {
+    if (authError) {
       if (state?.user_id && state?.email_confirmed && state?.has_password && !state?.mfa_enabled) {
         const { data: failureRows, error: failureError } = await admin.rpc(
           "record_password_login_failure",
@@ -224,10 +220,11 @@ Deno.serve(async (req) => {
       if (resetError) console.error("Password protection reset failed:", resetError);
     }
 
+    const { access_token, refresh_token, expires_in, expires_at, token_type, user } = authData;
     return response(req, {
       ok: true,
-      user: authData.user,
-      session: authData.session,
+      user,
+      session: { access_token, refresh_token, expires_in, expires_at, token_type, user },
     });
   } catch (error) {
     console.error("Secure login failed:", error);
