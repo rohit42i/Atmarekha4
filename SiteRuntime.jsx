@@ -52,5 +52,5 @@ function ServiceWorkerManager() {
 }
 
 export default function SiteRuntime() {
-  return <><NetworkStatus/><ToastHost/><BackToTop/><ServiceWorkerManager/></>;
+  return <><ToastHost/><BackToTop/><ServiceWorkerManager/></>;
 }
