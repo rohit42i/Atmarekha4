@@ -135,3 +135,21 @@ body :where(.hero-card,.project-card,.home-section,.info-card,.legal-card,.profi
   html { scroll-behavior: auto !important; }
   *,*::before,*::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Light mode for refresh/loading/error surfaces. */
+:root[data-theme="light"] .error-page,
+:root[data-theme="light"] .error-card,
+:root[data-theme="light"] .update-banner,
+:root[data-theme="light"] .install-prompt,
+:root[data-theme="light"] .toast,
+:root[data-theme="light"] .back-to-top {
+  background:#fff !important; background-image:none !important; color:#000 !important; border-color:#deded9 !important;
+}
+:root[data-theme="light"] .error-card>p,
+:root[data-theme="light"] .install-prompt span { color:#444 !important; }
+:root[data-theme="light"] .error-search input { background:#fff !important; color:#000 !important; border-color:#deded9 !important; }
+:root[data-theme="light"] .error-links button,
+:root[data-theme="light"] .error-actions .secondary-button { color:#000 !important; border-color:#deded9 !important; background:#fff !important; }
+:root[data-theme="light"] .error-links button:hover,
+:root[data-theme="light"] .error-actions .secondary-button:hover { background:#f1f1ee !important; }
