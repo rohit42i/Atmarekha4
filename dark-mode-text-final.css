@@ -12,7 +12,6 @@ html[data-theme="dark"] {
   body,
   body * {
     color: #fff !important;
-    opacity: 1 !important;
   }
 
   /* Preserve transparent containers and image/media behaviour. */
@@ -33,7 +32,6 @@ html[data-theme="dark"] {
   button,
   [contenteditable="true"] {
     color: #fff !important;
-    opacity: 1 !important;
   }
 
   input::placeholder,
@@ -76,7 +74,6 @@ html[data-theme="dark"] {
   /* Keep semantic status indicators visually meaningful without changing text colour. */
   .status-dot,
   .ar-admin-status-card .status-dot {
-    opacity: 1 !important;
   }
 
   /* Disabled controls remain visually disabled through background/border rules,
