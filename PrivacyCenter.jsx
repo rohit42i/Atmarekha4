@@ -156,7 +156,7 @@ export default function PrivacyCenter() {
         </article>
         <article className="privacy-action">
           <h3>Withdraw consent</h3>
-          <p>${consent ? (consent.withdrawn_at ? 'This consent record is already withdrawn.' : 'Use this where consent is the basis for processing.') : 'No consent record is available.'}</p>
+          <p>{consent ? (consent.withdrawn_at ? 'This consent record is already withdrawn.' : 'Use this where consent is the basis for processing.') : 'No consent record is available.'}</p>
           <div className="button-row"><button type="button" className="secondary-button" onClick={withdrawConsent} disabled={busy || !consent || Boolean(consent.withdrawn_at)}>{consent?.withdrawn_at ? 'Withdrawn' : 'Withdraw consent'}</button></div>
         </article>
         <article className="privacy-action">
