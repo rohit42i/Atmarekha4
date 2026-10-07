@@ -146,7 +146,7 @@ function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBac
           </div>}
         </div>
       </div>
-      {chapters.length ? <div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member} admin={admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} stats={stats} onRating={onRating} />)}</div> : <div className="empty-state"><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
+      {chapters.length ? <><div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member} admin={admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} stats={stats} onRating={onRating} />)}</div><div className="chapter-discovery-end" role="status" aria-label="End of chapter list">You’ve reached the end.</div></> : <div className="empty-state" role="status" aria-live="polite"><span className="empty-state-mark" aria-hidden="true">—</span><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
     </section>
     <Footer />
   </main>;
