@@ -15,3 +15,31 @@
 
 .more-page{min-height:100vh;background:var(--bg-color);color:var(--text-color)}.more-page-content{width:min(700px,calc(100% - 32px));margin:0 auto;padding:42px 0 80px}.more-page-content h2{margin:8px 0 0;font-size:clamp(30px,6vw,44px);letter-spacing:-.045em}.more-page-intro{margin:10px 0 0;color:var(--muted-color);line-height:1.6}.more-page-list{display:grid;gap:10px;margin-top:28px}.more-page-button{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:17px;border:1px solid var(--border-color);border-radius:14px;background:var(--surface-color);color:var(--text-color);text-align:left;cursor:pointer}.more-page-button:hover:not(:disabled){background:var(--surface-2-color);border-color:var(--accent-color)}.more-page-button:disabled{cursor:default;opacity:.8}.more-page-button strong,.more-page-button small{display:block}.more-page-button small{margin-top:4px;color:var(--muted-color);line-height:1.45}.more-page-button b{color:var(--accent-color);font-size:18px;flex:0 0 auto}
 @media(max-width:700px){.more-page-content{padding:30px 0 60px}}
+
+
+/* Final light-mode profile surface + compact profile controls. */
+:root[data-theme="light"] .profile-v2-overlay,
+:root[data-theme="light"] .profile-v2-card,
+:root[data-theme="light"] .profile-v2-list-item,
+:root[data-theme="light"] .profile-v2-comment-item,
+:root[data-theme="light"] .profile-v2-avatar-picker,
+:root[data-theme="light"] .profile-app-button,
+:root[data-theme="light"] .profile-membership-launcher {
+  background:#fff !important; background-image:none !important; color:#000 !important; border-color:#deded9 !important;
+}
+:root[data-theme="light"] .profile-v2-edit-button,
+:root[data-theme="light"] .profile-v2-top button,
+:root[data-theme="light"] .profile-v2-edit-actions>button:first-child {
+  background:#fff !important; color:#000 !important; border-color:#deded9 !important;
+}
+:root[data-theme="light"] .profile-v2-edit-button:hover { background:#f1f1ee !important; }
+:root[data-theme="light"] .profile-v2-heading p,
+:root[data-theme="light"] .profile-v2-heading small,
+:root[data-theme="light"] .profile-v2-list-item small,
+:root[data-theme="light"] .profile-v2-comment-item small { color:#444 !important; }
+.profile-v2-edit-button { font-size:12px !important; padding:8px 12px !important; }
+@media(max-width:620px){
+  .profile-v2-heading h1{font-size:22px}
+  .profile-v2-avatar-wrap>img{width:78px;height:78px}
+  .profile-v2-edit-button{font-size:12px;padding:8px 10px}
+}
