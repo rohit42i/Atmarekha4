@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Membership from './Membership.jsx';
-import GroupChat, { GroupChatLauncher } from './GroupChat.jsx';
+import GroupChat from './GroupChat.jsx';
 import { supabase } from './supabase';
 
 const DEFAULT_FLAGS = { membership_unlocked: false, group_chat_unlocked: false };
@@ -44,30 +44,7 @@ async function recordLoginOncePerUser() {
     group_chat_unlocked: data.group_chat_unlocked === true,
   };
 }
-
-function GroupChatLauncherGate() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (active) setUser(data?.session?.user || null);
-    };
-    load();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setUser(session?.user || null);
-    });
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  return <GroupChatLauncher user={user} />;
-}
-
-export default function FeatureUnlocks() {
+\nexport default function FeatureUnlocks() {
   const [flags, setFlags] = useState(DEFAULT_FLAGS);
 
   useEffect(() => {
@@ -116,7 +93,6 @@ export default function FeatureUnlocks() {
 
   return <>
     {MANUAL_FEATURE_VISIBILITY.membership && <Membership />}
-    {MANUAL_FEATURE_VISIBILITY.group_chat && <GroupChatLauncherGate />}
     {MANUAL_FEATURE_VISIBILITY.group_chat && <GroupChat />}
   </>;
 }
