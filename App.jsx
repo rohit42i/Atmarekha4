@@ -406,7 +406,12 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     let description = DEFAULT_SEO_DESCRIPTION;
     let image = DEFAULT_SEO_IMAGE;
     let chapter = null;
-    const author = { '@type': 'Person', name: 'Arkesh' };
+    const author = {
+      '@type': 'Person',
+      name: 'Arkesh',
+      url: SITE_URL + '/info/about',
+      sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
+    };
 
     if (type === 'chapter') {
       chapter = findChapterForPath('/' + route, chapters);
