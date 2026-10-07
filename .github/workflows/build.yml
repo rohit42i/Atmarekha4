@@ -82,6 +82,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
 
+      - name: Deploy PDPL media Worker
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: pdlpl-media-worker
         run: npx wrangler deploy
