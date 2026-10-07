@@ -23,19 +23,27 @@ function injectStyles() {
   const style = document.createElement('style');
   style.id = 'atma-notification-prompt-style';
   style.textContent = `
-    #atma-notification-prompt{position:fixed;right:20px;bottom:20px;z-index:100000;display:none;width:min(380px,calc(100vw - 32px));padding:20px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:var(--background,#151515);color:var(--foreground,#fff);box-shadow:0 18px 55px rgba(0,0,0,.38);font-family:inherit;animation:atmaNotifIn .25s ease}
+    #atma-notification-prompt{position:fixed;right:24px;bottom:24px;z-index:100000;display:none;width:min(392px,calc(100vw - 32px));padding:24px;border:1px solid #2b2b2f;border-radius:22px;background:#111214;color:#f7f7f8;box-shadow:0 20px 60px rgba(0,0,0,.42);font-family:inherit;animation:atmaNotifIn .24s ease;box-sizing:border-box}
     #atma-notification-prompt.atma-show{display:block}
-    #atma-notification-prompt .atma-notif-close{position:absolute;top:9px;right:11px;border:0;background:transparent;color:inherit;opacity:.55;font-size:20px;cursor:pointer;padding:4px}
-    #atma-notification-prompt .atma-notif-icon{font-size:28px;margin-bottom:8px}
-    #atma-notification-prompt h3{margin:0 28px 6px 0;font-size:18px;line-height:1.25}
-    #atma-notification-prompt p{margin:0 0 16px;opacity:.72;font-size:14px;line-height:1.5}
-    #atma-notification-prompt .atma-notif-actions{display:flex;gap:9px}
-    #atma-notification-prompt button[data-action]{flex:1;border:0;border-radius:11px;padding:10px 13px;font:inherit;font-weight:600;cursor:pointer}
-    #atma-notification-prompt .atma-enable{background:var(--accent,#e879f9);color:#fff}
-    #atma-notification-prompt .atma-later{background:rgba(255,255,255,.08);color:inherit}
-    @keyframes atmaNotifIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    #atma-notification-prompt .atma-notif-close{position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;border-radius:50%;background:#1c1d20;color:#f7f7f8;opacity:.78;font-size:21px;line-height:1;cursor:pointer;padding:0}
+    #atma-notification-prompt .atma-notif-icon{width:44px;height:44px;display:grid;place-items:center;margin-bottom:16px;border:1px solid #2d3035;border-radius:14px;background:#191b1f;font-size:21px}
+    #atma-notification-prompt h3{margin:0 44px 8px 0;font-size:20px;font-weight:650;line-height:1.2;letter-spacing:-.025em}
+    #atma-notification-prompt p{margin:0 0 20px;max-width:330px;color:#aeb1b8;font-size:14px;line-height:1.55}
+    #atma-notification-prompt .atma-notif-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}
+    #atma-notification-prompt button[data-action]{min-height:46px;border:1px solid #303238;border-radius:12px;padding:0 14px;font:inherit;font-size:13px;font-weight:650;line-height:1.2;cursor:pointer}
+    #atma-notification-prompt .atma-enable{background:#f5f5f5;color:#111214}
+    #atma-notification-prompt .atma-later{background:#1a1c20;color:#f1f2f4}
+    #atma-notification-prompt button[data-action]:hover{border-color:#484b53}
+    #atma-notification-prompt button[data-action]:active{transform:scale(.98)}
+    @keyframes atmaNotifIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   `;
   document.head.appendChild(style);
+  if (!document.getElementById('atma-notification-prompt-mobile-style')) {
+    const mobile = document.createElement('style');
+    mobile.id = 'atma-notification-prompt-mobile-style';
+    mobile.textContent = `@media(max-width:480px){#atma-notification-prompt{right:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:calc(100vw - 24px);padding:20px;border-radius:20px}#atma-notification-prompt .atma-notif-actions{grid-template-columns:1fr;gap:8px}#atma-notification-prompt button[data-action]{min-height:48px}}`;
+    document.head.appendChild(mobile);
+  }
 }
 
 function buildPrompt() {
