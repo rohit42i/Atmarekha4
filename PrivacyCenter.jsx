@@ -17,16 +17,26 @@ export default function PrivacyCenter() {
   const [exported, setExported] = useState(null);
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
+  const [nomination, setNomination] = useState(null);
+  const [nomineeName, setNomineeName] = useState('');
+  const [nomineeEmail, setNomineeEmail] = useState('');
+  const [nomineePhone, setNomineePhone] = useState('');
 
   const load = async currentUser => {
     setUser(currentUser);
     if (!currentUser) { setLoading(false); return; }
-    const [{ data: consentRows }, { data: deletionRows }] = await Promise.all([
+    const [{ data: consentRows }, { data: deletionRows }, { data: nominationRow }] = await Promise.all([
       supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
       supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
+      supabase.from('dpdp_nominations').select('nominee_name,nominee_email,nominee_phone,created_at,updated_at').eq('user_id', currentUser.id).maybeSingle(),
     ]);
+    const nominationValue = nominationRow?.data || nominationRow;
     setConsent(consentRows?.[0] || null);
     setDeletion(deletionRows?.[0] || null);
+    setNomination(nominationValue || null);
+    setNomineeName(nominationValue?.nominee_name || '');
+    setNomineeEmail(nominationValue?.nominee_email || '');
+    setNomineePhone(nominationValue?.nominee_phone || '');
     setLoading(false);
   };
 
@@ -72,6 +82,20 @@ export default function PrivacyCenter() {
     finally { setBusy(false); }
   };
 
+  const saveNomination = async () => {
+    if (!user || busy) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('dpdp-data-rights', {
+        body: { action: 'nomination', nominee_name: nomineeName, nominee_email: nomineeEmail, nominee_phone: nomineePhone }
+      });
+      if (fnError) throw fnError;
+      setNomination(data?.nomination || null);
+      setMessage('Your nomination details were saved.');
+    } catch (err) { setError(err?.message || 'Unable to save your nomination.'); }
+    finally { setBusy(false); }
+  };
+
   const requestDeletion = async () => {
     if (!user || busy) return;
     if (!window.confirm('Request deletion of your Atma Rekha account data? Active payment/legal records may need to be retained where required by law.')) return;
@@ -111,12 +135,20 @@ export default function PrivacyCenter() {
         <div className="button-row"><button className="secondary-button" type="button" onClick={()=>{window.location.hash='profile'}}>Open profile</button></div>
       </section>
       <section className="privacy-action">
+        <h2>Nomination</h2>
+        <p>Nominate another individual to exercise your Data Principal rights in the event of your death or incapacity, as provided by the applicable DPDP framework.</p>
+        <label>Nominee name<input value={nomineeName} onChange={e=>setNomineeName(e.target.value)} maxLength={120} required/></label>
+        <label>Nominee email<input type="email" value={nomineeEmail} onChange={e=>setNomineeEmail(e.target.value)} maxLength={254}/></label>
+        <label>Nominee phone<input value={nomineePhone} onChange={e=>setNomineePhone(e.target.value)} maxLength={30}/></label>
+        <div className="button-row"><button className="secondary-button" type="button" disabled={busy || !nomineeName.trim()} onClick={saveNomination}>{nomination ? 'Update nomination' : 'Save nomination'}</button></div>
+      </section>
+      <section className="privacy-action">
         <h2>Erasure</h2>
         <p>Submit an account deletion request. We will review it and remove eligible personal data. Records required for legal, security or payment obligations may be retained for the permitted period.</p>
         <div className="button-row"><button className="secondary-button" type="button" disabled={busy || ['pending','processing'].includes(deletion?.status)} onClick={requestDeletion}>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'Deletion requested' : 'Request deletion'}</button></div>
       </section>
     </div>
-    <div className="privacy-note"><strong>Grievance & support:</strong> Email atmarekhasupport@gmail.com with “DPDP Request” in the subject. We will use the request to verify your account, process the request, and respond within the applicable period.</div>
+    <div className="privacy-note"><strong>Grievance & support:</strong> Email atmarekhasupport@gmail.com with “DPDP Request” in the subject. We will use the request to verify your account, process the request, and respond within the applicable period. Your rights include access, correction, erasure, consent withdrawal where applicable, grievance redressal and nomination. citeturn172131search24</div>
     {message && <p className="form-field-success" role="status" aria-live="polite">{message}</p>}
     {error && <p className="form-field-error" role="alert">{error}</p>}
     {exported && <section className="data-export"><h2>Export preview</h2><pre>{JSON.stringify(exported, null, 2)}</pre></section>}
