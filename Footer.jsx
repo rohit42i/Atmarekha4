@@ -57,7 +57,7 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="footer-bottom" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', textAlign: 'center' }}>
+        <div className="footer-bottom">
           <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span>
         </div>
       </div>
