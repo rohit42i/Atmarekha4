@@ -187,3 +187,67 @@ html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbo
   align-items:center!important;
   gap:9px!important;
 }
+
+
+/* Privacy data tables — readable sizing and stable table layout. */
+.privacy-table-wrap{
+  width:100%!important;
+  overflow-x:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+.privacy-table{
+  width:100%!important;
+  min-width:640px!important;
+  border-collapse:collapse!important;
+  table-layout:fixed!important;
+  font-size:13px!important;
+  line-height:1.55!important;
+}
+.privacy-table th,
+.privacy-table td{
+  padding:13px 14px!important;
+  text-align:left!important;
+  vertical-align:top!important;
+  font-size:13px!important;
+  line-height:1.55!important;
+  word-break:normal!important;
+  overflow-wrap:anywhere!important;
+}
+.privacy-table th{
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:.02em!important;
+}
+.privacy-table th:first-child,
+.privacy-table td:first-child{width:22%!important}
+.privacy-table th:nth-child(2),
+.privacy-table td:nth-child(2){width:38%!important}
+.privacy-table th:nth-child(3),
+.privacy-table td:nth-child(3){width:40%!important}
+.privacy-small-note{
+  font-size:12px!important;
+  line-height:1.55!important;
+}
+@media(max-width:700px){
+  .privacy-table{
+    min-width:0!important;
+    table-layout:auto!important;
+    font-size:12px!important;
+  }
+  .privacy-table th,
+  .privacy-table td{
+    padding:11px 10px!important;
+    font-size:12px!important;
+    line-height:1.5!important;
+  }
+  .privacy-table th:first-child,
+  .privacy-table td:first-child{width:27%!important}
+  .privacy-table th:nth-child(2),
+  .privacy-table td:nth-child(2){width:36%!important}
+  .privacy-table th:nth-child(3),
+  .privacy-table td:nth-child(3){width:37%!important}
+  .privacy-policy-card .privacy-section-heading h2{
+    font-size:20px!important;
+    line-height:1.25!important;
+  }
+}
