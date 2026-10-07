@@ -2,6 +2,10 @@ const CACHE_VERSION = 'atma-rekha-sw-v3';
 const SHELL_CACHE = `atma-rekha-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = 'atma-rekha-runtime-v1';
 const OFFLINE_URL = '/offline.html';
+const MEDIA_ORIGINS = new Set([
+  'https://tiny-pond-c959.rohitbaswaraj.workers.dev',
+  'https://pdlpl-media.rohitbaswaraj.workers.dev',
+]);
 
 const PRECACHE = ['/', '/offline.html', '/ishani.png', '/site.webmanifest'];
 
@@ -50,8 +54,10 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/rest/')) return;
+  const sameOrigin = url.origin === self.location.origin;
+  const mediaOrigin = MEDIA_ORIGINS.has(url.origin);
+  if (!sameOrigin && !mediaOrigin) return;
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request));
     return;
