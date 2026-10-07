@@ -5,31 +5,20 @@ const BATCHES = {
 };
 
 export default function SubscriberBadge({ planId, show = true, size = 'inline' }) {
-  const batch = BATCHES[planId];
+  const key = String(planId || '').trim().toLowerCase();
+  const batch = BATCHES[key];
   if (!batch || show === false) return null;
 
-  const scale = size === 'compact' ? 0.8 : size === 'large' ? 1.05 : 0.88;
+  const profileSize = size === 'large';
   return (
     <span
       className={`subscriber-badge subscriber-badge--${size}`}
       aria-label={`Active ${batch.label}`}
       title={`Active ${batch.label}`}
       role="img"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginLeft: '0.28em',
-        fontSize: `calc(1em * ${scale})`,
-        lineHeight: 1,
-        width: '1em',
-        height: '1em',
-        verticalAlign: 'middle',
-        whiteSpace: 'nowrap',
-        flex: '0 0 auto',
-      }}
     >
-      {batch.emoji}
+      <span className="subscriber-badge-icon" aria-hidden="true">{batch.emoji}</span>
+      {profileSize && <span className="subscriber-badge-label">{batch.label}</span>}
     </span>
   );
 }
