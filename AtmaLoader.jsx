@@ -10,7 +10,7 @@ const PARTICLES = [
 ];
 
 const CSS = `
-.atma-loader-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#07070a;z-index:2147483647;opacity:1;visibility:visible;pointer-events:auto;overflow:hidden;transition:opacity .5s ease,visibility 0s linear 0s}
+.atma-loader-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:2147483647;opacity:1;visibility:visible;pointer-events:auto;overflow:hidden;transition:opacity .5s ease,visibility 0s linear 0s}
 .atma-loader-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .5s ease,visibility 0s linear .5s}
 .atma-loader-overlay[data-variant="refresh"]{background:transparent;align-items:flex-start;padding-top:32vh;z-index:2147483646;pointer-events:none}
 .atma-loader{position:relative;width:220px;height:220px;flex:none}
@@ -36,7 +36,7 @@ const CSS = `
 @keyframes atma-aura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}@keyframes atma-ringMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes atma-ringPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes atma-ringLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @media(max-width:360px){.atma-loader-overlay[data-variant="main"] .atma-loader{width:170px;height:170px}.atma-loader-overlay[data-variant="refresh"] .atma-loader{width:95px;height:95px}}@media(prefers-reduced-motion:reduce){.atma-loader *,.atma-loader *:before,.atma-loader *:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
 
-/* Theme-aware loader surfaces. Keep the loader artwork, switch only the surface/ink in Light Mode. */
+/* Theme-aware loader surfaces. Light mode is white; dark mode explicitly switches to black. */\nhtml[data-theme="dark"] .atma-loader-overlay[data-variant="main"],\nhtml[data-theme="dark"] .atma-loader-overlay[data-variant="refresh"]{background:#000!important}\nhtml[data-theme="dark"] .atma-loader .aura{background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%)}\nhtml[data-theme="dark"] .atma-loader .outer-ring{border-color:rgba(255,255,255,.13);box-shadow:0 0 8px rgba(255,255,255,.025)}\nhtml[data-theme="dark"] .atma-loader .outer-ring:after{background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(255,255,255,.4) 325deg,rgba(255,255,255,.08) 340deg,transparent 360deg)}\nhtml[data-theme="dark"] .atma-loader .mark{stroke:rgba(255,255,255,.7)}\nhtml[data-theme="dark"] .atma-loader .thread{background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,.45),transparent)}\nhtml[data-theme="dark"] .atma-loader .fragment{background:rgba(255,255,255,.9);box-shadow:0 0 4px rgba(255,255,255,.45)}\nhtml[data-theme="dark"] .atma-loader .burst span{background:linear-gradient(to top,rgba(255,255,255,.95),transparent)}\nhtml[data-theme="dark"] .atma-loader .node{background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7)}\n\n/* Theme-aware loader surfaces. Keep the loader artwork, switch only the surface/ink in Light Mode. */
 html[data-theme="light"] .atma-loader-overlay[data-variant="main"],
 html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"]{
   background:#fff!important;
