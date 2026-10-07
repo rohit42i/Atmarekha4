@@ -287,7 +287,7 @@ export default function EmailCampaigns({adminEmail=''}) {
   const send = async isTest => {
     if (!canSend) return;
     if (isTest && !validEmail(testEmail)) return setStatus({type:'error',text:'Enter a valid test email address.'});
-    if (!isTest && !testSent) return setStatus({type:'error',text:'Send a test email first.'});
+    if (!isTest && !hasSelectedRecipients && !testSent) return setStatus({type:'error',text:'Send a test email first.'});
     if (!isTest && !hasSelectedRecipients && !window.confirm('Send this email to every confirmed ATMA REKHA user now?')) return;
     if (!isTest && hasSelectedRecipients && !window.confirm('Send this email to the selected recipients now?')) return;
 
@@ -405,7 +405,7 @@ export default function EmailCampaigns({adminEmail=''}) {
       </div> : null}
       {selectedRecipients.length ? <div className="email-selected-list">
         {selectedRecipients.map(user => <button key={user.email} type="button" onClick={() => toggleRecipient(user)}>{user.email} ×</button>)}
-        <button type="button" className="email-selected-send-button" onClick={() => send(false)} disabled={!canSend || busy || !testSent}>
+        <button type="button" className="email-selected-send-button" onClick={() => send(false)} disabled={!canSend || busy}>
           <AdminIcon name="message" size={15}/>{busy ? 'Sending…' : 'Send Email'}
         </button>
       </div> : null}
