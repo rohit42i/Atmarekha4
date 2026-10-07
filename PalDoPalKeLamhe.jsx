@@ -130,7 +130,7 @@ function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBac
       <div className="chapter-discovery">
         <label>
           <span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span>
-          <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" autoComplete="off" spellCheck="false" />
+          <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Search" aria-label="Search chapters" autoComplete="off" spellCheck="false" />
           {query && <button type="button" onClick={() => onQueryChange('')} aria-label="Clear chapter search">×</button>}
         </label>
         <label className="chapter-language">
