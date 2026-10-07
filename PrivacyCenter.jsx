@@ -87,7 +87,7 @@ export default function PrivacyCenter() {
   };
 
   const exportData = async () => {
-    const data = await runAction('export', 'Your data export is ready.');
+    const data = await runAction('export', 'Your export has been prepared.');
     if (!data) return;
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -107,7 +107,7 @@ export default function PrivacyCenter() {
 
   const requestDeletion = async () => {
     if (busy) return;
-    if (!window.confirm('Request deletion of your eligible Atma Rekha personal data? Some information may need to be retained for security, payment, accounting, dispute or other lawful reasons.')) return;
+    if (!window.confirm('Request deletion of your eligible Atma Rekha personal data? Some information may be retained where required for security, payment, accounting, dispute or other applicable requirements.')) return;
     const data = await runAction('delete-request', 'Your deletion request has been submitted.');
     if (data?.request) setDeletion(data.request);
   };
