@@ -1,3 +1,4 @@
+import { loadRazorpay } from './razorpayLoader';
 import { useState } from 'react';
 import { supabase } from './supabase';
 
@@ -21,7 +22,6 @@ export default function RazorpayCheckoutButton({ amount, label = 'Pay with Razor
     setError('');
     const rupees = Number(amount);
     if (!Number.isFinite(rupees) || rupees < 1) return setError('Payment amount must be at least ₹1.');
-    if (!window.Razorpay) return setError('Razorpay Checkout could not be loaded. Please refresh and try again.');
     setLoading(true);
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -33,7 +33,8 @@ export default function RazorpayCheckoutButton({ amount, label = 'Pay with Razor
       if (!data?.order_id || !data?.amount || !data?.currency) throw new Error(data?.error || 'Razorpay did not return a valid order.');
       const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!key) throw new Error('Razorpay public key is not configured.');
-      const checkout = new window.Razorpay({
+      const Razorpay = await loadRazorpay();
+      const checkout = new Razorpay({
         key, amount: data.amount, currency: data.currency, order_id: data.order_id, name: 'Atma Rekha', description, image: `${window.location.origin}/ishani.png`, theme: { color: '#111111' },
         modal: { confirm_close: true, escape: true, backdropclose: false, ondismiss: () => setLoading(false) },
         handler: async response => {
