@@ -17,6 +17,7 @@ import ContinueReading from './ContinueReading.jsx';
 import { NotFoundPage, ServiceUnavailablePage, MaintenancePage, ForbiddenPage } from './ErrorPages.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
+import { Error430Page } from './ErrorPages.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 
@@ -443,12 +444,17 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     } else if (type === 'pal-do-pal-ke-lamhe') {
       title = 'Atma Rekha | Pal Do Pal Ke Lamhe';
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
+    } else if (type === '430') {
+      title = '430 | Atma Rekha';
+      description = 'Atma Rekha site error page.';
     } else if (type === 'not-found') {
       title = 'Page Not Found | Atma Rekha';
       description = 'The Atma Rekha page you requested could not be found.';
     }
 
-    const publicRoute = type === 'chapters'
+    const publicRoute = type === '430'
+      ? '/430'
+      : type === 'chapters'
       ? '/chapters'
       : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
         ? '/info/' + routeParts[1]
@@ -467,7 +473,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
     const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', 'privacy-center', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
     const isNotFound = type === 'not-found';
-    upsertMeta('name', 'robots', isPrivateRoute || isNotFound ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    const isErrorRoute = type === '430';
+    upsertMeta('name', 'robots', isPrivateRoute || isNotFound || isErrorRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
     setDocumentLanguage(chapterLanguage);
     clearAlternateLanguages();
     if (chapter && !isPrivateRoute) {
