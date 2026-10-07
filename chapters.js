@@ -94,13 +94,31 @@ export async function buildChapters() {
   return sortChapters(chapters);
 }
 
+function normalizeReaderPageUrl(url) {
+  const value = String(url || '').trim();
+  if (!value) return '';
+  try {
+    const parsed = new URL(value, window.location.origin);
+    const prefix = '/storage/v1/object/public/';
+    const index = parsed.pathname.indexOf(prefix);
+    if (index >= 0) {
+      let key = decodeURIComponent(parsed.pathname.slice(index + prefix.length));
+      const legacy = key.match(/^chapter-pages\\/chapters\\/([0-9a-f-]{36})\\/pages\\/[^/]+-(\\d+)\\/(.+)$/i);
+      if (legacy) key = 'chapter-pages/' + legacy[1] + '/' + legacy[2] + '/' + legacy[3];
+      parsed.pathname = prefix + key.split('/').map(encodeURIComponent).join('/');
+      return parsed.toString();
+    }
+  } catch (_) {}
+  return value;
+}
+
 export async function buildChapterPages(chapterId) {
   if (!chapterId) return [];
   let lastError = null;
   for (let attempt = 1; attempt <= PAGE_FETCH_ATTEMPTS; attempt += 1) {
     const { data, error } = await supabase.from(PAGES_TABLE).select('page_number,image_url').eq('chapter_id', chapterId).order('page_number', { ascending: true });
     if (!error) {
-      const pages = (data || []).map((page) => page.image_url).filter((url) => typeof url === 'string' && url.trim().length > 0);
+      const pages = (data || []).map((page) => normalizeReaderPageUrl(page.image_url)).filter(Boolean);
       if (pages.length || attempt === PAGE_FETCH_ATTEMPTS) return pages;
     } else {
       lastError = error;
