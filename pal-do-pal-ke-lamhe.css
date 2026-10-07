@@ -556,3 +556,14 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 @media (max-width:599px){
 }
 
+
+
+/* Public PDPKL chapter thumbnails: visible to everyone, while chapter pages remain membership-gated. */
+.chapter-row{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:14px;}
+.chapter-row-cover{position:relative;width:72px;height:96px;overflow:hidden;border:1px solid var(--border-color,#d6d6d6);border-radius:8px;background:var(--card-bg,#fff);display:grid;place-items:center;flex:0 0 72px;}
+.chapter-row-cover img{width:100%;height:100%;display:block;object-fit:cover;}
+.chapter-row-cover>span:first-child:not(.chapter-row-cover-lock){font-size:9px;font-weight:800;letter-spacing:.08em;opacity:.55;}
+.chapter-row-cover-lock{position:absolute!important;right:5px;bottom:5px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#000;color:#fff;font-size:11px;box-shadow:none;}
+@media(max-width:640px){.chapter-row{grid-template-columns:56px minmax(0,1fr) auto;gap:10px}.chapter-row-cover{width:56px;height:76px;flex-basis:56px}.chapter-row-cover-lock{width:20px;height:20px;font-size:10px;right:4px;bottom:4px}}
+html[data-theme="dark"] .chapter-row-cover{border-color:#2b2e34;background:#111;color:#fff}
+html[data-theme="light"] .chapter-row-cover{border-color:#d7d7d2;background:#fff;color:#000}
