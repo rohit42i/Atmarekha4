@@ -175,7 +175,7 @@ function PdlplRatingSheet({ chapter, summary, open, onClose, onChanged }) {
         <div><p className="section-eyebrow">{formatLabel(chapter)}</p><h2>Rate {chapter.title || 'this chapter'}</h2></div>
         <button className="icon-button" type="button" onClick={onClose} aria-label="Close">×</button>
       </div>
-      <div className="rating-big"><strong>{summary?.count ? summary.average.toFixed(1) : '—'}</strong><span>/10 · {summary?.count || 0} ratings</span></div>
+      <div className="rating-big"><strong>{summary?.count ? summary.average.toFixed(1) : '—'}</strong><span>/10</span></div>
       <div className="rating-scale" aria-label="Choose rating from 1 to 10">
         {Array.from({ length: 10 }, (_, index) => {
           const value = index + 1;
