@@ -230,3 +230,202 @@ html[data-theme] :where(button,a,input,textarea,select,[role="button"]):focus-vi
     transition-duration:.01ms !important;
   }
 }
+
+
+/* Final Light Mode authority — profile, group chat, membership FAQ and loading/refresh. */
+html[data-theme="light"] .user-auth-fixed,
+html[data-theme="light"] .user-auth-menu,
+html[data-theme="light"] .user-auth-avatar-button,
+html[data-theme="light"] .user-auth-avatar-fallback{
+  background:#fff!important;
+  background-image:none!important;
+  color:#111!important;
+  border-color:#dedede!important;
+  box-shadow:0 5px 16px rgb(0 0 0 / .06)!important;
+}
+html[data-theme="light"] .user-auth-avatar-button{
+  padding:6px 8px!important;
+}
+html[data-theme="light"] .user-auth-avatar-button:hover{
+  background:#f1f1ef!important;
+  color:#111!important;
+}
+html[data-theme="light"] .user-auth-avatar{
+  border-color:#dedede!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .user-auth-name{
+  color:#111!important;
+  font-size:12px!important;
+}
+html[data-theme="light"] .user-auth-dropdown,
+html[data-theme="light"] .user-auth-dropdown-head,
+html[data-theme="light"] .user-auth-dropdown button{
+  background:#fff!important;
+  background-image:none!important;
+  color:#111!important;
+  border-color:#dedede!important;
+}
+html[data-theme="light"] .user-auth-dropdown button:hover{
+  background:#f1f1ef!important;
+  color:#111!important;
+}
+html[data-theme="light"] .user-auth-dropdown-head span{
+  color:#555!important;
+}
+
+html[data-theme="light"] .group-chat-page,
+html[data-theme="light"] .group-chat-shell,
+html[data-theme="light"] .group-chat-header,
+html[data-theme="light"] .group-chat-feed,
+html[data-theme="light"] .group-composer,
+html[data-theme="light"] .group-chat-loading,
+html[data-theme="light"] .group-chat-empty{
+  background:#fff!important;
+  background-image:none!important;
+  color:#111!important;
+}
+html[data-theme="light"] .group-chat-header{
+  border-color:#e2e2df!important;
+}
+html[data-theme="light"] .group-chat-title,
+html[data-theme="light"] .group-chat-header h1{
+  color:#111!important;
+}
+html[data-theme="light"] .group-chat-header p,
+html[data-theme="light"] .group-chat-header span,
+html[data-theme="light"] .group-chat-status,
+html[data-theme="light"] .group-message-meta,
+html[data-theme="light"] .group-read,
+html[data-theme="light"] .group-chat-empty p{
+  color:#555!important;
+}
+html[data-theme="light"] .group-avatar{
+  width:32px!important;
+  height:32px!important;
+  flex-basis:32px!important;
+  background:#f1f1ef!important;
+  color:#111!important;
+  border-color:#d9d9d6!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .group-message-main{
+  max-width:min(650px,calc(100% - 40px))!important;
+}
+html[data-theme="light"] .group-message-bubble{
+  background:#f5f5f3!important;
+  color:#111!important;
+  border-color:#dededb!important;
+  box-shadow:none!important;
+  font-size:12.5px!important;
+  line-height:1.45!important;
+}
+html[data-theme="light"] .group-message.mine .group-message-bubble{
+  background:#ececea!important;
+  color:#111!important;
+}
+html[data-theme="light"] .group-message-meta{
+  font-size:9px!important;
+}
+html[data-theme="light"] .group-message-meta strong{
+  font-size:9.5px!important;
+  color:#111!important;
+}
+html[data-theme="light"] .group-message-meta span{
+  font-size:8px!important;
+}
+html[data-theme="light"] .group-reactions button,
+html[data-theme="light"] .group-reaction-picker,
+html[data-theme="light"] .group-reaction-picker-head button,
+html[data-theme="light"] .group-chat-notice,
+html[data-theme="light"] .group-chat-error{
+  background:#f7f7f5!important;
+  color:#111!important;
+  border-color:#dededb!important;
+}
+html[data-theme="light"] .group-composer-inner{
+  background:#f7f7f5!important;
+  border-color:#dededb!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .group-composer textarea{
+  color:#111!important;
+  font-size:12.5px!important;
+}
+html[data-theme="light"] .group-composer textarea::placeholder{
+  color:#666!important;
+}
+html[data-theme="light"] .group-composer button{
+  background:#111!important;
+  color:#fff!important;
+}
+
+html[data-theme="light"] .membership-faq,
+html[data-theme="light"] .membership-faq-heading,
+html[data-theme="light"] .membership-faq-list,
+html[data-theme="light"] .membership-faq-list details{
+  background:#fff!important;
+  background-image:none!important;
+  color:#111!important;
+}
+html[data-theme="light"] .membership-faq-list details{
+  border-color:#dedede!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .membership-faq-heading span,
+html[data-theme="light"] .membership-faq-heading h2{
+  color:#111!important;
+}
+html[data-theme="light"] .membership-faq-heading p,
+html[data-theme="light"] .membership-faq-list details p{
+  color:#555!important;
+}
+html[data-theme="light"] .membership-faq-list details summary{
+  color:#111!important;
+  font-size:13px!important;
+}
+html[data-theme="light"] .membership-faq-list details p{
+  font-size:11px!important;
+  line-height:1.55!important;
+}
+
+html[data-theme="light"] .loading-state,
+html[data-theme="light"] .empty-state,
+html[data-theme="light"] .reader-error,
+html[data-theme="light"] .error-page,
+html[data-theme="light"] .error-card,
+html[data-theme="light"] .offline-runtime-shell{
+  background:#fff!important;
+  background-image:none!important;
+  color:#111!important;
+  border-color:#dedede!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .loading-state p,
+html[data-theme="light"] .reader-error p,
+html[data-theme="light"] .error-card p{
+  color:#555!important;
+}
+html[data-theme="light"] .loading-skeleton i{
+  background:#e7e7e4!important;
+}
+html[data-theme="light"] .loading-spinner{
+  border-color:#d6d6d2!important;
+  border-top-color:#111!important;
+}
+html[data-theme="light"] .error-card h1,
+html[data-theme="light"] .error-card h2,
+html[data-theme="light"] .reader-error h1,
+html[data-theme="light"] .reader-error h2{
+  color:#111!important;
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="main"]{
+  background:#fff!important;
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="main"] .atma-loader,
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .atma-loader{
+  filter:invert(1)!important;
+}
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"]{
+  background:transparent!important;
+}
