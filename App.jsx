@@ -41,7 +41,7 @@ async function canReadAtmaChapter(chapter) {
 const STORY = { title: 'Atma Rekha', description: 'ATMA REKHA is an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings shape an unfolding adventure.';
+const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, mysterious powers, ancient traditions, and published chapters.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
 
 function upsertMeta(attribute, key, content) {
@@ -173,7 +173,11 @@ function ChapterList({ chapters, onBack }) {
   const [loading, setLoading] = useState(true);
   const [dataError, setDataError] = useState('');
   const [language, setLanguage] = useState(() => {
-    try { return normalizeChapterLanguage(window.localStorage.getItem('atma-language')); } catch { return 'hi'; }
+    try {
+      const urlLanguage = new URLSearchParams(window.location.search).get('lang');
+      if (urlLanguage === 'en' || urlLanguage === 'hi') return normalizeChapterLanguage(urlLanguage);
+      return normalizeChapterLanguage(window.localStorage.getItem('atma-language'));
+    } catch { return 'hi'; }
   });
   const languageChapters = useMemo(
     () => chapters.filter(chapter => normalizeChapterLanguage(chapter.language) === language),
@@ -184,6 +188,9 @@ function ChapterList({ chapters, onBack }) {
     const next = normalizeChapterLanguage(nextLanguage);
     setLanguage(next);
     try { window.localStorage.setItem('atma-language', next); } catch {}
+    const nextUrl = next === 'en' ? '/chapters?lang=en' : '/chapters';
+    window.history.replaceState({}, '', nextUrl);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   const refresh = async () => {
@@ -429,12 +436,19 @@ function AdminRoute({ onExit }) {
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
 export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
   useEffect(() => {
-    const routeParts = route.split('/');
-    const type = routeParts[0];
+    const routeUrl = new URL(route === 'home' ? '/' : '/' + route, SITE_URL);
+    const pathname = routeUrl.pathname.replace(/^\\/+|\\/+$/g, '');
+    const routeParts = pathname ? pathname.split('/') : [];
+    const type = routeParts[0] || 'home';
+    const requestedLanguage = type === 'chapters'
+      ? normalizeChapterLanguage(routeUrl.searchParams.get('lang') || 'hi')
+      : 'en';
+
     let title = DEFAULT_SEO_TITLE;
     let description = DEFAULT_SEO_DESCRIPTION;
     let image = DEFAULT_SEO_IMAGE;
     let chapter = null;
+
     const author = {
       '@type': 'Person',
       name: 'Arkesh',
@@ -443,11 +457,14 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     };
 
     if (type === 'chapter') {
-      chapter = findChapterForPath('/' + route, chapters);
+      chapter = findChapterForPath(routeUrl.pathname + routeUrl.search, chapters);
       if (chapter) {
         const label = formatChapterLabel(chapter.chapterNumber, { title: chapter.title });
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
-        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy manga/comic exploring ancient traditions, spiritual concepts, mysterious powers and mythical beings.');
+        description = shortSeoDescription(
+          chapter.description,
+          'Read ' + label + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.',
+        );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'read-chapter') {
@@ -456,17 +473,38 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       if (chapter) {
         const label = formatChapterLabel(chapter.chapterNumber, { title: chapter.title });
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
-        description = shortSeoDescription(chapter.description, 'Read ' + label + ' of Atma Rekha, an Indian fantasy manga/comic exploring ancient traditions, spiritual concepts, mysterious powers and mythical beings.');
+        description = shortSeoDescription(
+          chapter.description,
+          'Read ' + label + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.',
+        );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'chapters') {
-      title = 'Atma Rekha | Chapters';
-      description = 'Read the published chapters of Atma Rekha, an Indian fantasy manga/comic.';
+      if (requestedLanguage === 'en') {
+        title = 'Atma Rekha | English Chapters';
+        description = 'Read the published English chapters of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.';
+      } else {
+        title = 'Atma Rekha | Chapters';
+        description = 'Read the published Hindi chapters of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.';
+      }
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
-      const labels = { about: 'About Atma Rekha', contact: 'Contact Atma Rekha', report: 'Report Atma Rekha Content', privacy: 'Atma Rekha Privacy Policy', terms: 'Atma Rekha Terms and Conditions' };
+      const labels = {
+        about: 'About Atma Rekha',
+        contact: 'Contact Atma Rekha',
+        report: 'Report Atma Rekha Content',
+        privacy: 'Atma Rekha Privacy Policy',
+        terms: 'Atma Rekha Terms and Conditions',
+      };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
-      description = infoType === 'about' ? 'Learn about Atma Rekha, its creator Arkesh, its Indian fantasy adventure setting and how to read the manga.' : (labels[infoType] || 'Atma Rekha') + ' information from the official website.';
+      const infoDescriptions = {
+        about: 'Learn about Atma Rekha, its creator Arkesh, the original Indian fantasy adventure manga, and how to read its published chapters.',
+        contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
+        report: 'Report an issue with Atma Rekha website content or community activity.',
+        privacy: 'Read the Atma Rekha privacy policy and understand how account and website data is handled.',
+        terms: 'Read the Atma Rekha terms and conditions for using the website and its reader features.',
+      };
+      description = infoDescriptions[infoType] || infoDescriptions.about;
     } else if (type === 'privacy-center') {
       title = 'Atma Rekha | Privacy';
       description = 'Atma Rekha privacy notice, data controls and privacy requests.';
@@ -476,7 +514,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     }
 
     const publicRoute = type === 'chapters'
-      ? '/chapters'
+      ? requestedLanguage === 'en' ? '/chapters?lang=en' : '/chapters'
       : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
         ? '/info/' + routeParts[1]
         : type === 'pal-do-pal-ke-lamhe'
@@ -484,21 +522,60 @@ export default function App() { const route = useHashRoute(); const [chapters, s
           : type === 'privacy-center'
             ? '/info/privacy'
             : '/';
-    const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
-    const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
-    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
-    upsertMeta('name', 'robots', isPrivateRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+
+    const canonicalUrl = chapter
+      ? chapterCanonicalUrl(chapter)
+      : SITE_URL + publicRoute;
+
+    const chapterLanguage = chapter
+      ? normalizeChapterLanguage(chapter.language)
+      : requestedLanguage;
+
+    const isPrivateRoute = [
+      'admin',
+      'profile',
+      'membership',
+      'group-chat',
+      'community',
+      'not-found',
+      'maintenance',
+      '403',
+      '430',
+      '503',
+    ].includes(type) || type.endsWith('-admin');
+
+    const robots = isPrivateRoute
+      ? 'noindex,nofollow,noarchive'
+      : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+
+    upsertMeta('name', 'robots', robots);
     setDocumentLanguage(chapterLanguage);
     clearAlternateLanguages();
+
+    if (!isPrivateRoute && type === 'home') {
+      upsertAlternateLanguage('en-IN', SITE_URL + '/');
+      upsertAlternateLanguage('x-default', SITE_URL + '/');
+    }
+
+    if (!isPrivateRoute && type === 'chapters') {
+      upsertAlternateLanguage('en-IN', SITE_URL + '/chapters?lang=en');
+      upsertAlternateLanguage('hi-Latn-IN', SITE_URL + '/chapters');
+      upsertAlternateLanguage('x-default', SITE_URL + '/chapters');
+    }
+
     if (chapter && !isPrivateRoute) {
-      const sameNumber = chapters.filter(item => {
-        const a = item?.chapterNumber;
-        const b = chapter?.chapterNumber;
-        return a !== null && a !== undefined && a !== '' && b !== null && b !== undefined && b !== ''
-          && String(a).trim() === String(b).trim();
+      const chapterNumber = chapter?.chapterNumber;
+      const hasNumber = chapterNumber !== null && chapterNumber !== undefined && String(chapterNumber).trim() !== '';
+      const sameGroup = chapters.filter(item => {
+        const itemNumber = item?.chapterNumber;
+        const itemHasNumber = itemNumber !== null && itemNumber !== undefined && String(itemNumber).trim() !== '';
+        if (hasNumber || itemHasNumber) {
+          return hasNumber && itemHasNumber && String(itemNumber).trim() === String(chapterNumber).trim();
+        }
+        return String(item?.title || '').trim().toLowerCase() === String(chapter?.title || '').trim().toLowerCase();
       });
-      const english = sameNumber.find(item => normalizeChapterLanguage(item.language) === 'en');
-      const hindi = sameNumber.find(item => normalizeChapterLanguage(item.language) === 'hi');
+      const english = sameGroup.find(item => normalizeChapterLanguage(item.language) === 'en');
+      const hindi = sameGroup.find(item => normalizeChapterLanguage(item.language) === 'hi');
       if (english) upsertAlternateLanguage('en-IN', chapterLanguageUrl(english, 'en'));
       if (hindi) upsertAlternateLanguage('hi-Latn-IN', chapterLanguageUrl(hindi, 'hi'));
       const fallback = hindi || english || chapter;
@@ -509,37 +586,57 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     upsertMeta('name', 'description', description);
     upsertMeta('name', 'author', 'Arkesh');
     upsertMeta('property', 'og:type', chapter ? 'article' : 'website');
+    upsertMeta('property', 'og:site_name', 'Atma Rekha');
     upsertMeta('property', 'og:locale', chapterLanguage === 'en' ? 'en_IN' : 'hi_IN');
     removeMeta('property', 'og:locale:alternate');
-    if (chapter && !isPrivateRoute) upsertMeta('property', 'og:locale:alternate', chapterLanguage === 'en' ? 'hi_IN' : 'en_IN');
+    if (chapter && !isPrivateRoute) {
+      upsertMeta('property', 'og:locale:alternate', chapterLanguage === 'en' ? 'hi_IN' : 'en_IN');
+    }
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', canonicalUrl);
     upsertMeta('property', 'og:image', image);
     upsertMeta('property', 'og:image:alt', title);
+    upsertMeta('name', 'twitter:card', 'summary_large_image');
     upsertMeta('name', 'twitter:title', title);
     upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
     upsertMeta('name', 'twitter:image:alt', title);
     upsertCanonical(canonicalUrl);
+
     removeMeta('property', 'article:published_time');
     removeMeta('property', 'article:author');
+    removeMeta('property', 'article:section');
     if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
-    if (chapter) upsertMeta('property', 'article:author', 'Arkesh');
+    if (chapter) {
+      upsertMeta('property', 'article:author', 'Arkesh');
+      upsertMeta('property', 'article:section', 'Manga');
+    }
 
     const series = {
-      '@type': 'CreativeWorkSeries',
+      '@type': 'ComicSeries',
       '@id': SITE_URL + '/#atma-rekha',
       name: 'Atma Rekha',
       genre: ['Fantasy', 'Adventure', 'Manga'],
       alternateName: 'Atma Rekha Fantasy Adventure Manga',
       description: DEFAULT_SEO_DESCRIPTION,
-      keywords: 'Indian fantasy manga, Indian comic, fantasy adventure manga, spiritual fantasy, mythical beings, ancient traditions, Roman Hindi manga',
+      keywords: 'Indian fantasy manga, Indian comic, fantasy adventure manga, spiritual fantasy, ancient traditions, Roman Hindi manga',
       author,
       inLanguage: ['en-IN', 'hi-Latn-IN'],
       url: SITE_URL + '/',
-      image: DEFAULT_SEO_IMAGE
+      image: DEFAULT_SEO_IMAGE,
     };
+
+    const pageNode = {
+      '@type': 'WebPage',
+      '@id': canonicalUrl + '#webpage',
+      url: canonicalUrl,
+      name: title,
+      description,
+      inLanguage: chapterLanguage === 'en' ? 'en-IN' : 'hi-Latn-IN',
+      isPartOf: { '@id': SITE_URL + '/#website' },
+    };
+
     const graph = [
       {
         '@type': 'WebSite',
@@ -550,15 +647,23 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         description: DEFAULT_SEO_DESCRIPTION,
         inLanguage: ['en-IN', 'hi-Latn-IN'],
         creator: author,
-        about: ['Indian fantasy manga', 'Indian comic', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings']
+        about: ['Indian fantasy manga', 'Indian comic', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings'],
       },
-      series
+      series,
+      pageNode,
     ];
+
     const breadcrumb = buildBreadcrumbList(type, routeParts, chapter, title, canonicalUrl);
     if (breadcrumb) graph.push(breadcrumb);
+
     if (chapter) {
+      const chapterNumber = chapter.chapterNumber;
+      const parsedNumber = chapterNumber === null || chapterNumber === undefined || chapterNumber === ''
+        ? null
+        : Number(chapterNumber);
+
       graph.push({
-        '@type': 'CreativeWork',
+        '@type': 'ComicStory',
         '@id': canonicalUrl,
         name: title,
         headline: title,
@@ -566,13 +671,30 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         author,
         image,
         url: canonicalUrl,
+        mainEntityOfPage: canonicalUrl,
         isPartOf: { '@id': series['@id'] },
         datePublished: chapter.releaseDate || chapter.createdAt || undefined,
-        inLanguage: normalizeChapterLanguage(chapter.language) === 'en' ? 'en-IN' : 'hi-Latn-IN'
+        inLanguage: normalizeChapterLanguage(chapter.language) === 'en' ? 'en-IN' : 'hi-Latn-IN',
+        isAccessibleForFree: parsedNumber === null ? true : parsedNumber <= 8,
+        ...(parsedNumber !== null ? { position: parsedNumber } : {}),
       });
     }
+
+    if (type === 'pal-do-pal-ke-lamhe') {
+      graph.push({
+        '@type': 'ComicSeries',
+        '@id': SITE_URL + '/pal-do-pal-ke-lamhe#series',
+        name: 'Pal Do Pal Ke Lamhe',
+        description,
+        genre: ['School Life', 'Fantasy'],
+        author,
+        inLanguage: ['hi-Latn-IN', 'en-IN'],
+        url: SITE_URL + '/pal-do-pal-ke-lamhe',
+      });
+    }
+
     upsertJsonLd({ '@context': 'https://schema.org', '@graph': graph });
-  }, [route, chapters]);
+  }
  useEffect(() => {
     const onChapterLinkClick = event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
