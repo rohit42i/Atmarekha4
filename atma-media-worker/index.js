@@ -10,11 +10,6 @@ const COMMUNITY_MIME_BY_EXT = {
   xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 };
-const COMMUNITY_MIGRATION_KEYS = [
-  'community/a171e716-4d86-4e58-ba7b-98225db5b5be-color-wheel-1.jpg',
-  'community/9503a70a-6cf2-4ccf-a196-1dd844b97ba4-IMG_20260202_163920_910.jpg',
-  'community/1baae3f6-b254-4e40-abe0-15389ebc0e59-Untitled171_20260826191044.png',
-];
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
 function normalizeOrigin(value) {
@@ -110,21 +105,6 @@ function objectKey(request) {
   const community = /^community\/[^/]+$/i;
   return cover.test(key) || page.test(key) || community.test(key) ? key : null;
 }
-function encodeStoragePath(path) {
-  return String(path).split('/').map(part => encodeURIComponent(part)).join('/');
-}
-function publicStorageUrl(env, bucket, key) {
-  return `${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${encodeStoragePath(key)}`;
-}
-async function migrateStorageItem(env, bucket, key, destinationKey) {
-  const source = await fetch(publicStorageUrl(env, bucket, key));
-  if (!source.ok) throw new Error(`${bucket}/${key}: source returned HTTP ${source.status}.`);
-  const contentType = source.headers.get('Content-Type') || 'application/octet-stream';
-  const contentLength = Number(source.headers.get('Content-Length') || 0);
-  if (contentLength > MAX_UPLOAD_BYTES) throw new Error(`${bucket}/${key}: source is larger than 95 MB.`);
-  await env.MANGA_BUCKET.put(destinationKey, source.body, { httpMetadata: { contentType, cacheControl: 'public, max-age=86400' } });
-  return { bucket, key, destinationKey, bytes: contentLength, contentType };
-}
 function chapterIdFromKey(key) {
   const normal = key.match(new RegExp(`^chapter-pages/(${UUID_PATTERN})/`, 'i'));
   if (normal?.[1]) return normal[1];
@@ -159,13 +139,6 @@ export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     try {
-      const url = new URL(request.url);
-      if (url.pathname === '/__admin/finish-community-migration') {
-        if (request.method !== 'GET') return json(request, env, { error: 'Method not allowed.' }, 405);
-        const results = [];
-        for (const key of COMMUNITY_MIGRATION_KEYS) results.push(await migrateStorageItem(env, 'community', key, key));
-        return json(request, env, { ok: true, count: results.length, results });
-      }
       const key = objectKey(request);
       if (!key) return json(request, env, { error: 'Invalid media path.' }, 400);
       const publicCover = /^covers\/chapters\//i.test(key);
