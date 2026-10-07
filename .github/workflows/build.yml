@@ -36,6 +36,9 @@ jobs:
       - name: Production dependency security audit
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Static production regression checks
+        run: npm run check
+
       - name: Build production bundle
         run: npm run build
         env:
