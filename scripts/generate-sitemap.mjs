@@ -114,7 +114,7 @@ async function main() {
     if (!match) return [];
     const key = match.chapter_number !== null && match.chapter_number !== undefined && match.chapter_number !== ''
       ? 'chapter:' + String(match.chapter_number).trim()
-      : 'special:' + shortId(match.id);
+      : 'special:' + slugify(match.title);
     return (chapterGroups.get(key) || []).map(chapter => {
       const language = normalizeLanguage(chapter.language);
       return '    <xhtml:link rel="alternate" hreflang="' + (language === 'en' ? 'en-IN' : 'hi-Latn-IN') + '" href="' + escapeXml(SITE_URL + chapterPath(chapter)) + '" />';
