@@ -4,16 +4,55 @@ import { validateEmail, rememberDraft, loadDraft, clearDraft } from './formUX.js
 
 const DRAFT_KEY = 'atma-feedback-draft-v1';
 const QUEUE_KEY = 'atma-feedback-queue-v1';
+const DB_NAME = 'atma-feedback-sync-v1';
+const STORE_NAME = 'queue';
 
-function readQueue() {
-  try {
-    const value = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
-    return Array.isArray(value) ? value : [];
-  } catch { return []; }
+function openQueueDb() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) return reject(new Error('IndexedDB unavailable'));
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME, { keyPath: 'id' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB unavailable'));
+  });
 }
 
-function writeQueue(value) {
-  try { localStorage.setItem(QUEUE_KEY, JSON.stringify(value.slice(-5))); } catch {}
+async function queueFeedback(payload) {
+  try {
+    const db = await openQueueDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put({ ...payload, id: crypto.randomUUID?.() || String(Date.now() + Math.random()) });
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+    return true;
+  } catch {
+    const queue=readQueue();
+    writeQueue([...queue,payload]);
+    return false;
+  }
+}
+
+async function flushIndexedDbQueue(submitPayload) {
+  try {
+    const db = await openQueueDb();
+    const items = await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const request = tx.objectStore(STORE_NAME).getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+    for (const item of items) {
+      try {
+        await submitPayload(item);
+        await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).delete(item.id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+      } catch {}
+    }
+    db.close();
+    return items.length;
+  } catch { return 0; }
 }
 
 export default function FeedbackForm() {
@@ -32,14 +71,13 @@ export default function FeedbackForm() {
 
   const flushQueue = async () => {
     if (!navigator.onLine) return;
+    const indexedCount = await flushIndexedDbQueue(submitPayload);
     const queue=readQueue();
-    if(!queue.length)return;
+    if(!queue.length){if(indexedCount)window.dispatchEvent(new CustomEvent('atma-toast',{detail:{message:'Saved feedback was sent.'}}));return;}
     const remaining=[];
-    for(const payload of queue){
-      try{await submitPayload(payload)}catch{remaining.push(payload)}
-    }
+    for(const payload of queue){try{await submitPayload(payload)}catch{remaining.push(payload)}}
     writeQueue(remaining);
-    if(queue.length&&!remaining.length)window.dispatchEvent(new CustomEvent('atma-toast',{detail:{message:'Saved feedback was sent.'}}));
+    if((queue.length||indexedCount)&&!remaining.length)window.dispatchEvent(new CustomEvent('atma-toast',{detail:{message:'Saved feedback was sent.'}}));
   };
 
   useEffect(()=>{
@@ -63,8 +101,10 @@ export default function FeedbackForm() {
     setBusy(true);
     try{
       if(!navigator.onLine){
-        const queue=readQueue();
-        writeQueue([...queue,payload]);
+        const queued = await queueFeedback(payload);
+        if (queued && 'serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(reg => reg.sync?.register('atma-feedback-sync')).catch(()=>{});
+        }
         setSuccess('You are offline. Your feedback was saved on this device and will be sent when you reconnect.');
         clearDraft(DRAFT_KEY);
         return;
