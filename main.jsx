@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import { ErrorBoundary } from './ErrorBoundary.jsx';
 import SiteRuntime from './SiteRuntime.jsx';
 import { installGlobalErrorLogging } from './errorLogger.js';
 import UserAuth from './UserAuth.jsx';
@@ -74,6 +75,7 @@ installGlobalErrorLogging();
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <ErrorBoundary>
       <AtmaLoader/>
     <App/>
     <UserAuth/>
@@ -97,6 +99,7 @@ createRoot(document.getElementById('root')).render(
       <AdminOperations/>
       </Suspense>
       <SiteRuntime/>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 
