@@ -4,6 +4,11 @@ const IMAGE_MIME_BY_EXT = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
   gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
 };
+const COMMUNITY_MIGRATION_KEYS = [
+  "community/a171e716-4d86-4e58-ba7b-98225db5b5be-color-wheel-1.jpg",
+  "community/9503a70a-6cf2-4ccf-a196-1dd844b97ba4-IMG_20260202_163920_910.jpg",
+  "community/1baae3f6-b254-4e40-abe0-15389ebc0e59-Untitled171_20260826191044.png",
+];
 const COMMUNITY_MIME_BY_EXT = {
   pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
   doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -362,20 +367,11 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     try {
       const url = new URL(request.url);
-      if (url.pathname === '/__admin/migrate-storage') {
-        if (request.method !== 'POST') return json(request, env, { error: 'Method not allowed.' }, 405);
-        const token = String(env.ATMA_MIGRATION_TOKEN || '');
-        if (!token || request.headers.get('X-Atma-Migration-Token') !== token) return json(request, env, { error: 'Migration authorization failed.' }, 403);
-        const body = await request.json().catch(() => null);
-        const items = Array.isArray(body?.items) ? body.items : [];
-        if (!items.length || items.length > 100) return json(request, env, { error: 'Provide 1-100 migration items.' }, 400);
+      if (url.pathname === '/__admin/finish-community-migration') {
+        if (request.method !== 'GET') return json(request, env, { error: 'Method not allowed.' }, 405);
         const results = [];
-        for (const item of items) {
-          const bucket = String(item?.bucket || '');
-          const key = migrationPath(bucket, item?.key);
-          const destinationKey = safePath(item?.destinationKey || item?.key);
-          if (!key || !destinationKey) return json(request, env, { error: `Invalid migration path for ${bucket}.` }, 400);
-          results.push(await migrateStorageItem(env, bucket, key, destinationKey));
+        for (const key of COMMUNITY_MIGRATION_KEYS) {
+          results.push(await migrateStorageItem(env, 'community', key, key));
         }
         return json(request, env, { ok: true, count: results.length, results });
       }
