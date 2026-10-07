@@ -20,6 +20,7 @@ import { captureMarketingAttribution } from './attribution';
 import { saveOfflineChapter, getOfflineChapter, removeOfflineChapter } from './offlineReading';
 import { Error430Page } from './ErrorPages.jsx';
 import InstallPage from './InstallPage.jsx';
+import MorePage from './MorePage.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 
@@ -622,6 +623,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
   if (route === '430') return <Error430Page/>;
   if (route === 'privacy-center') return <PrivacyCenter/>;
    if (route === 'install') return <InstallPage/>;
+  if (route === 'more') return <MorePage/>;
   if (route === '403') return <ForbiddenPage onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>;
   if (route === '503') return <ServiceUnavailablePage/>;
   if (route === 'maintenance') return <MaintenancePage/>;
