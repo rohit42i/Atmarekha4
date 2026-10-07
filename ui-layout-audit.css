@@ -689,3 +689,100 @@ html[data-theme="light"] .reader-error h3{color:#000!important}
   .user-auth-avatar,.user-auth-avatar-fallback{width:30px!important;height:30px!important}
   .user-auth-name{font-size:12px!important}
 }
+
+
+/* Final Light Mode authority — account profile, chat, FAQ and app loading states. */
+html[data-theme="light"] .user-auth-fixed .user-auth-avatar-button{
+  background:#fff!important;color:#000!important;border:1px solid #deded9!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .user-auth-fixed .user-auth-avatar-button:hover,
+html[data-theme="light"] .user-auth-fixed .user-auth-avatar-button:focus-visible{
+  background:#f1f1ee!important;color:#000!important;
+}
+html[data-theme="light"] .user-auth-fixed .user-auth-avatar,
+html[data-theme="light"] .user-auth-fixed .user-auth-avatar-fallback{
+  width:30px!important;height:30px!important;border-color:#deded9!important;box-shadow:none!important;
+}
+html[data-theme="light"] .user-auth-fixed .user-auth-name{color:#000!important;font-size:12px!important}
+html[data-theme="light"] .user-auth-fixed .user-auth-chevron{color:#555!important}
+html[data-theme="light"] .user-auth-dropdown{
+  background:#fff!important;color:#000!important;border-color:#deded9!important;box-shadow:0 18px 50px rgb(0 0 0/.12)!important;
+}
+html[data-theme="light"] .user-auth-dropdown-head strong,
+html[data-theme="light"] .user-auth-dropdown button{color:#000!important}
+html[data-theme="light"] .user-auth-dropdown-head span{color:#555!important}
+html[data-theme="light"] .user-auth-dropdown button:hover{background:#f1f1ee!important;color:#000!important}
+
+html[data-theme="light"] .group-chat-page,
+html[data-theme="light"] .group-chat-shell,
+html[data-theme="light"] .group-chat-header,
+html[data-theme="light"] .group-chat-feed,
+html[data-theme="light"] .group-composer,
+html[data-theme="light"] .group-action-sheet{
+  background:#fff!important;color:#000!important;background-image:none!important;
+}
+html[data-theme="light"] .group-chat-header{border-color:#e1e1e1!important}
+html[data-theme="light"] .group-chat-back,
+html[data-theme="light"] .group-composer-inner,
+html[data-theme="light"] .group-replying,
+html[data-theme="light"] .group-bubble,
+html[data-theme="light"] .group-message-bubble,
+html[data-theme="light"] .group-reaction,
+html[data-theme="light"] .group-reaction-picker,
+html[data-theme="light"] .group-action-top button{
+  background:#f7f7f5!important;color:#000!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .group-message.mine .group-bubble,
+html[data-theme="light"] .group-message.mine .group-message-bubble{
+  background:#eeeeeb!important;color:#000!important;
+}
+html[data-theme="light"] .group-meta,
+html[data-theme="light"] .group-read,
+html[data-theme="light"] .group-reply-preview,
+html[data-theme="light"] .group-count,
+html[data-theme="light"] .group-chat-live{
+  color:#555!important;
+}
+html[data-theme="light"] .group-meta button,
+html[data-theme="light"] .group-reply-preview strong{color:#000!important}
+html[data-theme="light"] .group-input,
+html[data-theme="light"] .group-composer textarea{color:#000!important}
+.group-chat-title{font-size:13px!important}
+.group-avatar{width:33px!important;height:33px!important;min-width:33px!important}
+.group-message-bubble,.group-bubble{font-size:13px!important;line-height:1.44!important}
+.group-meta{font-size:9.5px!important}
+@media(max-width:600px){
+  .group-avatar{width:31px!important;height:31px!important;min-width:31px!important}
+  .group-message-bubble,.group-bubble{font-size:12.5px!important;line-height:1.42!important;padding:8px 10px!important}
+}
+
+html[data-theme="light"] .membership-faq,
+html[data-theme="light"] .membership-faq-list,
+html[data-theme="light"] .membership-faq-list details,
+html[data-theme="light"] .membership-faq-list details summary,
+html[data-theme="light"] .membership-faq-list details p{
+  background:#fff!important;color:#000!important;background-image:none!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .membership-faq-heading h2,
+html[data-theme="light"] .membership-faq-list details summary{color:#000!important}
+html[data-theme="light"] .membership-faq-heading p,
+html[data-theme="light"] .membership-faq-list details p{color:#444!important}
+.membership-faq-heading h2{font-size:20px!important}
+.membership-faq-list details summary{font-size:12.5px!important}
+.membership-faq-list details p{font-size:11px!important;line-height:1.52!important}
+
+html[data-theme="light"] .loading-state,
+html[data-theme="light"] .loading-skeleton,
+html[data-theme="light"] .reader-error,
+html[data-theme="light"] .empty-state{
+  background:#fff!important;color:#000!important;background-image:none!important;border-color:#deded9!important;
+}
+html[data-theme="light"] .loading-state p,
+html[data-theme="light"] .reader-error p,
+html[data-theme="light"] .empty-state p{color:#444!important}
+html[data-theme="light"] .loading-skeleton i{background:#e7e7e3!important}
+html[data-theme="light"] .loading-spinner{border-color:#d8d8d4!important;border-top-color:#111!important}
+html[data-theme="light"] .reader-error h1,
+html[data-theme="light"] .reader-error h2,
+html[data-theme="light"] .reader-error h3{color:#000!important}
