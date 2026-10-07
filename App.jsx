@@ -148,8 +148,20 @@ function navigateChapter(chapter) {
 }
 function formatDate(value) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
 function formatCount(value) { const n = Number(value) || 0; return new Intl.NumberFormat('en-IN', { notation: n > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(n); }
-function LoadingState({ label = 'Loading…' }) { return <div className="loading-state"><span className="loading-spinner"/><p>{label}</p></div>; }
-function EmptyState({ title, text }) { return <div className="empty-state"><h3>{title}</h3>{text && <p>{text}</p>}</div>; }
+function LoadingState({ label = 'Loading…' }) {
+  return <div className="loading-state" role="status" aria-busy="true" aria-live="polite">
+    <div className="loading-skeleton" aria-hidden="true"><i/><i/><i/></div>
+    <span className="loading-spinner" aria-hidden="true"/>
+    <p>{label}</p>
+  </div>;
+}
+function EmptyState({ title, text }) {
+  return <div className="empty-state" role="status" aria-live="polite">
+    <span className="empty-state-mark" aria-hidden="true">—</span>
+    <h3>{title}</h3>
+    {text && <p>{text}</p>}
+  </div>;
+}
 function IconButton({ label, children, onClick }) { return <button type="button" className="engagement-icon" onClick={onClick} aria-label={label} title={label}>{children}</button>; }
 
 function RatingSheet({ chapter, summary, open, onClose, onChanged }) { const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); if (!open || !chapter) return null; const rate = async value => { if (busy) return; setBusy(true); setMessage(''); try { const result = await submitRating(chapter.id, value); setMessage(result.alreadyRated ? 'You already rated this chapter on this device.' : `Rated ${value}/10. Thank you.`); if (!result.alreadyRated) onChanged?.(); } catch (error) { setMessage(error?.message || 'Unable to save rating.'); } finally { setBusy(false); } }; return <div className="overlay-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section className="rating-sheet" role="dialog" aria-modal="true" aria-label="Rate chapter"><div className="sheet-head"><div><p className="section-eyebrow">{formatChapterEyebrow(chapter.chapterNumber, chapter.title)}</p><h2>Rate {chapter.title || 'this chapter'}</h2></div><button className="icon-button" onClick={onClose} aria-label="Close">×</button></div><div className="rating-big"><strong>{summary?.count ? summary.average.toFixed(1) : '—'}</strong><span>/10 · {summary?.count || 0} ratings</span></div><div className="rating-scale" aria-label="Choose rating from 1 to 10">{Array.from({ length: 10 }, (_, index) => { const value = index + 1; return <button key={value} type="button" disabled={busy} onClick={() => rate(value)}><span>★</span><small>{value}</small></button>; })}</div>{message && <p className="sheet-message">{message}</p>}</section></div>; }
