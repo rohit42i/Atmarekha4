@@ -1,0 +1,511 @@
+/* Atma Rekha — UI/UX layout audit authority.
+   Visual/layout/accessibility fixes only. Existing product logic and routes stay intact. */
+
+/* ---------- Global geometry / overflow ---------- */
+html,
+body {
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+#root,
+.home-page,
+.site-shell,
+.reader-page,
+.info-page,
+.chapter-list-page,
+.community-page,
+.profile-v2-overlay,
+.membership-overlay,
+.admin-page {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+.home-header,
+.subpage-header,
+.reader-header-inner,
+.section-heading,
+.reader-info-row,
+.footer-bottom,
+.site-footer,
+.admin-card-title,
+.profile-v2-header,
+.profile-v2-edit-actions,
+.chapter-row,
+.project-card,
+.hero-card,
+.home-section {
+  min-width: 0;
+}
+
+.home-header,
+.subpage-header,
+.reader-header-inner {
+  width: 100%;
+}
+
+.home-header {
+  flex-wrap: wrap;
+}
+
+.home-header > *,
+.subpage-header > *,
+.reader-header-inner > * {
+  min-width: 0;
+}
+
+.brand-wordmark,
+.admin-link,
+.subpage-header h1,
+.reader-title h1 {
+  overflow-wrap: anywhere;
+}
+
+.subpage-header > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.subpage-header h1 {
+  text-wrap: balance;
+}
+
+/* ---------- Reader header: prevent control collisions ---------- */
+.reader-header-inner {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.reader-title {
+  min-width: 120px;
+  flex: 1 1 120px;
+}
+
+.reader-engagement {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reader-engagement-button,
+.reader-favorite-button,
+.reader-share-button,
+.reader-page-pill {
+  flex: 0 0 auto;
+}
+
+.reader-favorite-status {
+  min-width: 0;
+  max-width: min(100%, 260px);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.reader-favorite-button,
+.reader-share-button {
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+}
+
+/* Four controls exist in the reader: previous / counter / next / offline. */
+.reader-controls {
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr)
+    minmax(92px, auto) !important;
+  min-width: 0;
+}
+
+.reader-controls > * {
+  min-width: 0;
+}
+
+.reader-control {
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.reader-controls .offline-save-button {
+  min-width: 92px;
+}
+
+/* ---------- Interactive controls / accessible targets ---------- */
+.comment-actions {
+  align-items: center;
+}
+
+.comment-actions button {
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 10px;
+}
+
+.star-button {
+  width: auto;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 8px;
+}
+
+button,
+a[role="button"],
+[role="button"] {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid currentColor !important;
+  outline-offset: 3px;
+}
+
+/* ---------- Cards / long content ---------- */
+.hero-copy,
+.project-card,
+.home-section,
+.chapter-list-section,
+.site-footer,
+.info-card,
+.about-card,
+.legal-card,
+.privacy-center,
+.privacy-center-card,
+.privacy-action,
+.profile-v2-card {
+  overflow-wrap: anywhere;
+}
+
+.chapter-row-title h2,
+.chapter-row-main,
+.admin-card-title,
+.profile-v2-heading,
+.profile-v2-bio {
+  min-width: 0;
+}
+
+/* ---------- Fixed UI separation ---------- */
+.toast-host {
+  bottom: calc(112px + env(safe-area-inset-bottom)) !important;
+  right: 18px;
+}
+
+.network-status {
+  max-width: calc(100vw - 28px);
+}
+
+.offline-runtime-shell {
+  display: none !important;
+}
+
+/* ---------- Light theme: clear page/surface hierarchy ---------- */
+:root[data-theme="light"] {
+  --bg-color: #f5f5f2 !important;
+  --surface-color: #ffffff !important;
+  --surface-2-color: #f0f0ed !important;
+  --card-bg: #ffffff !important;
+  --input-bg: #ffffff !important;
+  --text-color: #000000 !important;
+  --text-secondary: #222222 !important;
+  --muted-color: #555555 !important;
+  --faint-color: #666666 !important;
+  --border-color: #d9d9d4 !important;
+  --border-soft-color: #e9e9e5 !important;
+  --control-border-color: #d6d6d1 !important;
+}
+
+:root[data-theme="light"] body,
+:root[data-theme="light"] #root,
+:root[data-theme="light"] .home-page,
+:root[data-theme="light"] .site-shell,
+:root[data-theme="light"] .info-page,
+:root[data-theme="light"] .chapter-list-page,
+:root[data-theme="light"] .community-page {
+  background-color: var(--bg-color) !important;
+  background-image: none !important;
+  color: var(--text-color) !important;
+}
+
+:root[data-theme="light"] .home-header,
+:root[data-theme="light"] .subpage-header,
+:root[data-theme="light"] .community-header,
+:root[data-theme="light"] .site-footer {
+  background-color: rgba(255,255,255,.96) !important;
+  background-image: none !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-soft-color) !important;
+}
+
+:root[data-theme="light"]
+  :where(
+    .hero-card,
+    .home-section,
+    .project-card,
+    .chapter-row,
+    .latest-item,
+    .info-card,
+    .about-card,
+    .legal-card,
+    .community-post,
+    .profile-v2-card,
+    .profile-community-card,
+    .membership-plan,
+    .reader-rating-card
+  ) {
+  background-color: var(--card-bg) !important;
+  background-image: none !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 12px 32px rgb(0 0 0 / .08) !important;
+}
+
+:root[data-theme="light"]
+  :where(
+    input,
+    textarea,
+    select,
+    button:not(.hero-button):not(.primary-button):not(.reader-comment-button):not(.like-button):not(.reader-control.primary):not(.community-join):not(.membership-button):not(.admin-submit)
+  ) {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: var(--control-border-color) !important;
+}
+
+:root[data-theme="light"] .reader-stage {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #222222 !important;
+}
+
+:root[data-theme="light"] .toast,
+:root[data-theme="light"] .network-status {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #d9d9d4 !important;
+}
+
+/* ---------- Dark theme: controlled monochrome hierarchy ---------- */
+:root[data-theme="dark"] {
+  --bg-color: #000000 !important;
+  --surface-color: #000000 !important;
+  --surface-2-color: #101010 !important;
+  --card-bg: #030303 !important;
+  --input-bg: #080808 !important;
+  --text-color: #ffffff !important;
+  --text-secondary: #eeeeee !important;
+  --muted-color: #b8b8b8 !important;
+  --faint-color: #929292 !important;
+  --border-color: #2f2f2f !important;
+  --border-soft-color: #202020 !important;
+  --control-border-color: #333333 !important;
+}
+
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root,
+:root[data-theme="dark"] .home-page,
+:root[data-theme="dark"] .site-shell,
+:root[data-theme="dark"] .info-page,
+:root[data-theme="dark"] .chapter-list-page,
+:root[data-theme="dark"] .community-page {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+:root[data-theme="dark"] .home-header,
+:root[data-theme="dark"] .subpage-header,
+:root[data-theme="dark"] .community-header,
+:root[data-theme="dark"] .site-footer {
+  background-color: rgba(0,0,0,.96) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-soft-color) !important;
+}
+
+:root[data-theme="dark"]
+  :where(
+    .hero-card,
+    .home-section,
+    .project-card,
+    .chapter-row,
+    .latest-item,
+    .info-card,
+    .about-card,
+    .legal-card,
+    .community-post,
+    .profile-v2-card,
+    .profile-community-card,
+    .membership-plan,
+    .reader-rating-card
+  ) {
+  background-color: var(--card-bg) !important;
+  background-image: none !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+:root[data-theme="dark"] .reader-stage {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #202020 !important;
+}
+
+/* ---------- Responsive fit ---------- */
+@media (max-width: 700px) {
+  .home-header {
+    padding-inline: 14px;
+  }
+
+  .subpage-header {
+    min-height: 68px;
+    padding-inline: 12px;
+  }
+
+  .reader-header-inner {
+    padding-inline: 10px;
+    column-gap: 7px;
+  }
+
+  .reader-engagement {
+    gap: 4px;
+    justify-content: flex-end;
+  }
+
+  .reader-controls {
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr)
+      minmax(0, 76px) !important;
+    gap: 6px;
+    padding-inline: 12px;
+  }
+
+  .reader-controls .offline-save-button {
+    min-width: 76px;
+    padding-inline: 8px;
+  }
+
+  .site-footer {
+    width: calc(100% - 24px) !important;
+  }
+
+  .footer-nav,
+  .footer-socials {
+    gap: 10px 14px;
+  }
+
+  .footer-bottom {
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .reader-header-inner {
+    padding-inline: 8px;
+  }
+
+  .reader-engagement {
+    gap: 3px;
+  }
+
+  .reader-engagement-button {
+    min-height: 40px;
+    padding-inline: 6px;
+  }
+
+  .reader-page-pill {
+    padding-inline: 8px;
+  }
+
+  .reader-controls {
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr)
+      72px !important;
+  }
+
+  .reader-controls .offline-save-button {
+    min-width: 72px;
+  }
+}
+
+/* Keep theme changes smooth without animating layout or transforms. */
+html,
+body,
+.home-header,
+.subpage-header,
+.site-footer,
+.hero-card,
+.home-section,
+.project-card,
+.chapter-row,
+.info-card,
+.about-card,
+.legal-card,
+.profile-v2-card,
+input,
+textarea,
+select,
+button {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: .18s;
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  .home-header,
+  .subpage-header,
+  .site-footer,
+  .hero-card,
+  .home-section,
+  .project-card,
+  .chapter-row,
+  .info-card,
+  .about-card,
+  .legal-card,
+  .profile-v2-card,
+  input,
+  textarea,
+  select,
+  button {
+    transition: none !important;
+  }
+}
