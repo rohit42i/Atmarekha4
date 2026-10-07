@@ -515,7 +515,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
                   : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
-    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', 'privacy-center', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
+    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', 'info/privacy', 'privacy-center', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
     const isNotFound = type === 'not-found';
     const isErrorRoute = type === '430';
     upsertMeta('name', 'robots', isPrivateRoute || isNotFound || isErrorRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
@@ -633,7 +633,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
   }, [route]);
  useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]); if (route === 'not-found') return <NotFoundPage/>;
   if (route === '430') return <Error430Page/>;
-  if (route === 'privacy-center') return <PrivacyCenter/>;
+  if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
    if (route === 'install') return <InstallPage/>;
   if (route === 'more') return <MorePage/>;
   if (route === '403') return <ForbiddenPage onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>;
