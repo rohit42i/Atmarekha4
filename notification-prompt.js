@@ -37,6 +37,7 @@ function injectStyles() {
     #atma-notification-prompt button[data-action]:active{transform:scale(.98)}
     @keyframes atmaNotifIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   `;
+
   document.head.appendChild(style);
   if (!document.getElementById('atma-notification-prompt-mobile-style')) {
     const mobile = document.createElement('style');
