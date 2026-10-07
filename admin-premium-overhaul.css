@@ -19,7 +19,7 @@
   --ar-text-2:#475467!important;
   --ar-muted:#667085!important;
   --ar-subtle:#98a2b3!important;
-  --ar-accent:#5b5bd6!important;
+  --ar-accent:#333333!important;
   --ar-accent-hover:#4f46c7!important;
   --ar-accent-soft:#eef0ff!important;
   --ar-success:#16803c!important;
@@ -108,7 +108,7 @@
 }
 .ar-admin-v3 .ar-admin-content{padding:32px 34px 72px!important}
 .ar-admin-v3 .ar-admin-command-row{margin-bottom:28px!important}
-.ar-admin-v3 .ar-admin-command-row .ar-kicker{color:#5b5bd6!important;font-size:10px!important;font-weight:750!important;letter-spacing:.13em!important}
+.ar-admin-v3 .ar-admin-command-row .ar-kicker{color:#333333!important;font-size:10px!important;font-weight:750!important;letter-spacing:.13em!important}
 .ar-admin-v3 .ar-admin-command-row h1{
   color:#101828!important;
   font-size:32px!important;
@@ -126,9 +126,9 @@
   box-shadow:none!important;
 }
 .ar-admin-v3 .ar-admin-primary-action{
-  background:#5b5bd6!important;
+  background:#333333!important;
   color:#fff!important;
-  border-color:#5b5bd6!important;
+  border-color:#333333!important;
 }
 .ar-admin-v3 .ar-admin-primary-action:hover{
   background:#4f46c7!important;
@@ -176,7 +176,7 @@
   box-shadow:0 10px 28px rgba(16,24,40,.07)!important;
 }
 .ar-admin-v3 .ar-stat-top>span:first-child{color:#667085!important;font-size:11px!important;font-weight:650!important}
-.ar-admin-v3 .ar-stat-icon{background:#f2f4ff!important;color:#5b5bd6!important}
+.ar-admin-v3 .ar-stat-icon{background:#f2f4ff!important;color:#333333!important}
 .ar-admin-v3 .ar-stat-card.accent-blue .ar-stat-icon{background:#eff8ff!important;color:#1570ef!important}
 .ar-admin-v3 .ar-stat-card.accent-pink .ar-stat-icon{background:#fdf2fa!important;color:#c11574!important}
 .ar-admin-v3 .ar-stat-card.accent-gold .ar-stat-icon{background:#fffaeb!important;color:#b54708!important}
@@ -198,7 +198,7 @@
 .ar-admin-v3 .ar-overview .admin-overview-card{border-radius:14px!important;padding:18px!important}
 .ar-admin-v3 .ar-chart-track{border-color:#eaecf0!important}
 .ar-admin-v3 .ar-chart-track:before{background:repeating-linear-gradient(to bottom,transparent 0,transparent 54px,#f2f4f7 55px)!important}
-.ar-admin-v3 .ar-chart-track i{background:#5b5bd6!important;box-shadow:none!important}
+.ar-admin-v3 .ar-chart-track i{background:#333333!important;box-shadow:none!important}
 .ar-admin-v3 .ar-chart-track b{background:#98a2b3!important;box-shadow:none!important}
 
 /* Legacy/admin operation cards */
@@ -273,16 +273,16 @@
 .ar-admin-v3 .admin-progress{background:#f8fafc!important;border-color:#e4e7ec!important}
 .ar-admin-v3 .admin-progress>div{color:#475467!important;font-size:11px!important}
 .ar-admin-v3 .admin-progress i{background:#e4e7ec!important}
-.ar-admin-v3 .admin-progress i span{background:#5b5bd6!important}
+.ar-admin-v3 .admin-progress i span{background:#333333!important}
 .ar-admin-v3 .admin-submit,
 .ar-admin-v3 .admin-page .primary-button,
 .ar-admin-v3 .admin-panel .primary-button,
 .ar-admin-v3 .admin-dashboard .primary-button{
   min-height:44px!important;
   padding:0 16px!important;
-  border:1px solid #5b5bd6!important;
+  border:1px solid #333333!important;
   border-radius:9px!important;
-  background:#5b5bd6!important;
+  background:#333333!important;
   color:#fff!important;
   font-size:12px!important;
   font-weight:750!important;
@@ -356,9 +356,9 @@
 }
 .ar-admin-v3 button[class*="bg-blue"],
 .ar-admin-v3 button[class*="bg-indigo"]{
-  background:#5b5bd6!important;
+  background:#333333!important;
   color:#fff!important;
-  border-color:#5b5bd6!important;
+  border-color:#333333!important;
 }
 .ar-admin-v3 button[class*="border-zinc"],
 .ar-admin-v3 button[class*="border-gray"]{
