@@ -2,7 +2,7 @@
 
 Effective date: 7 October 2026
 
-This document records the product and engineering controls implemented for readiness against the Digital Personal Data Protection Act, 2023 and the notified Digital Personal Data Protection Rules, 2025.
+This document records product and engineering controls implemented for readiness against the Digital Personal Data Protection Act, 2023 and the notified Digital Personal Data Protection Rules, 2025. The Act and Rules have phased commencement: most substantive provisions are scheduled to take effect eighteen months after 13 November 2025 (13 May 2027), with limited provisions effective earlier. This is an engineering-readiness document, not a claim of present statutory compliance.
 
 ## Data Fiduciary contact
 
@@ -53,7 +53,7 @@ Implemented:
 
 ## Breach readiness
 
-A private breach-incident record is available for discovery, containment, affected-data tracking, mitigation, notification timestamps and resolution. The privacy policy describes prompt affected-person communication and Board reporting as required by applicable law/rules.
+A private breach-incident record is available for discovery, containment, affected-data tracking, mitigation, notification timestamps and resolution. The privacy policy describes breach assessment, containment and notification steps. The exact statutory notification duties and timelines will be applied according to the provisions in force at the time of the incident.
 
 ## Retention
 
@@ -67,6 +67,10 @@ Current infrastructure may involve Supabase, Cloudflare and Razorpay. Their use 
 
 Account creation is limited to readers who confirm they are 18 or older. Public reading access is separate from account creation.
 
+## India consumer / platform compliance readiness
+
+The website also publishes a grievance mechanism for community/platform complaints and consumer complaints. The current Terms and Report pages disclose membership pricing, recurring billing, cancellation, refund handling, contact details and content-reporting routes. The Consumer Protection (E-Commerce) (Amendment) Rules, 2026 were notified on 9 September 2026 and take effect from 1 January 2027; the product should be re-audited before that date for the new requirements covering legal/operator details, sponsored listings, price-reduction disclosures, dark-pattern self-audits and other applicable e-commerce duties.
+
 ## Operational items requiring account/legal administration
 
 Some controls cannot be completed purely in application code:
@@ -76,7 +80,8 @@ Some controls cannot be completed purely in application code:
 - Cloudflare Analytics Engine must be enabled for the custom analytics Worker.
 - Optional Sentry production logging requires a VITE_SENTRY_DSN.
 - CAPTCHA/Turnstile requires a site key and server secret.
-- Processor contracts, retention schedules, breach procedures and any required DPO/SDF determinations should be reviewed against the actual business/legal structure before claiming formal legal compliance.
+- The legal operator's exact legal name, principal geographic/business address, customer-care contact details, tax registration status (GSTIN/MSME if applicable), processor contracts, retention schedules, breach procedures and any required DPO/SDF determinations must be reviewed against the actual business/legal structure before claiming formal legal compliance.
+- If Atma Rekha is treated as an e-commerce entity, the public site must show the legally correct operator name and principal address; these details must not be invented in application code.
 
 ## Official sources
 
