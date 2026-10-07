@@ -44,6 +44,7 @@ export default function Footer() {
           <a href="/info/contact">Contact</a>
           <a href="/info/report">Report</a>
           <a href="/info/privacy">Privacy</a>
+          <a href="/privacy-center">Privacy &amp; Data</a>
           <a href="/info/terms">Terms</a>
           {isAdmin && <a href="/admin" className="footer-admin-link">Admin Login</a>}
         </nav>
