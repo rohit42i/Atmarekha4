@@ -46,9 +46,12 @@ export function ForbiddenPage({ onBack }) {
   </Shell>;
 }
 
-export function ServerErrorPage({ onRetry }) {
-  return <Shell code="500" eyebrow="ATMA REKHA" title="Something went wrong" copy="The page hit an unexpected error. Your reading progress is safe. Try again, or return home.">
-    <div className="error-actions"><button className="primary-button" type="button" onClick={onRetry || (()=>window.location.reload())}>Try again</button><button className="secondary-button" type="button" onClick={()=>go('/')}>Home</button></div>
+export function ServerErrorPage({ onRetry, onHome }) {
+  return <Shell code="500" eyebrow="ATMA REKHA" title="Something went wrong" copy="An unexpected site error occurred. Your reading progress is safe. Try again, or return home.">
+    <div className="error-actions">
+      <button className="primary-button" type="button" onClick={onRetry || (()=>window.location.reload())}>Try again</button>
+      <button className="secondary-button" type="button" onClick={onHome || (()=>window.location.assign('/'))}>Home</button>
+    </div>
   </Shell>;
 }
 
