@@ -325,3 +325,79 @@
 .membership-phone-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;z-index:2147483001!important}
 .membership-phone-backdrop{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
 @media(max-width:700px){.membership-sheet{padding-bottom:max(24px,env(safe-area-inset-bottom))!important}.membership-head{padding-top:max(20px,env(safe-area-inset-top))!important}}
+
+/* Accessible focus and true not-found fallback. */
+:where(a,button,input,textarea,select):focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+.not-found-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 32px 18px;
+  background: var(--legacy-080808-74a9726a);
+  color: var(--legacy-f7f7f7-e50e19e1);
+}
+.not-found-card {
+  width: min(620px, 100%);
+  box-sizing: border-box;
+  padding: 46px 34px;
+  border: 1px solid var(--legacy-292929-ce596263);
+  border-radius: 28px;
+  background: var(--legacy-151516-55d165a5);
+  text-align: center;
+}
+.not-found-card > span {
+  display: block;
+  color: var(--legacy-5f8fff-fec60ba0);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .2em;
+}
+.not-found-card > strong {
+  display: block;
+  margin-top: 12px;
+  font-size: clamp(70px, 16vw, 120px);
+  line-height: .9;
+  letter-spacing: -.07em;
+}
+.not-found-card h1 {
+  margin: 16px 0 0;
+  font-size: clamp(28px, 6vw, 42px);
+  letter-spacing: -.045em;
+}
+.not-found-card p {
+  max-width: 440px;
+  margin: 13px auto 0;
+  color: var(--legacy-a1a1aa-0030ed12);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.not-found-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+.not-found-actions .secondary-button {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid var(--legacy-292929-ce596263);
+  border-radius: 16px;
+  background: transparent;
+  color: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.not-found-actions .secondary-button:hover {
+  background: var(--legacy-18181a-261ee1c0);
+}
+@media (max-width: 520px) {
+  .not-found-card { padding: 38px 22px; border-radius: 22px; }
+  .not-found-actions { flex-direction: column; }
+  .not-found-actions .primary-button,
+  .not-found-actions .secondary-button { width: 100%; }
+}
