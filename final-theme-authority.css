@@ -1226,3 +1226,17 @@ html[data-theme="light"] .subscriber-badge--large{background:#fff!important}
   .subscriber-badge--large{font-size:10px!important;padding:3px 7px!important;min-height:23px!important}
   .profile-v2-heading h1{gap:6px!important}
 }
+
+
+/* Professional auth checkbox finish: native input remains accessible; visual tick is drawn cleanly. */
+.auth-panel .auth-checkbox{display:flex!important;align-items:flex-start!important;gap:10px!important;min-width:0!important}
+.auth-panel .auth-checkbox input[type="checkbox"]{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;pointer-events:none!important}
+.auth-panel .auth-checkbox-box{width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;margin:1px 0 0!important;border:1.5px solid currentColor!important;border-radius:4px!important;background:transparent!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;font-size:0!important;color:transparent!important}
+.auth-panel .auth-checkbox-box::before,.auth-panel .auth-checkbox-box::after{content:none!important;display:none!important}
+.auth-panel .auth-checkbox.is-checked .auth-checkbox-box,.auth-panel .auth-consent-check.is-checked .auth-checkbox-box{background:#111!important;border-color:#111!important}
+.auth-panel .auth-checkbox.is-checked .auth-checkbox-box::after,.auth-panel .auth-consent-check.is-checked .auth-checkbox-box::after{content:""!important;display:block!important;width:8px!important;height:4px!important;border-left:2px solid #fff!important;border-bottom:2px solid #fff!important;border-radius:1px!important;transform:rotate(-45deg) translate(1px,-1px)!important}
+html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box,html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box{background:#fff!important;border-color:#fff!important}
+html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box::after,html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box::after{border-color:#000!important}
+.auth-panel .auth-checkbox input[type="checkbox"]:focus-visible + .auth-checkbox-box{outline:2px solid currentColor!important;outline-offset:3px!important}
+html[data-theme="light"] .auth-panel .auth-checkbox-box{background:#fff!important;border-color:#111!important}
+html[data-theme="dark"] .auth-panel .auth-checkbox-box{background:#000!important;border-color:#fff!important}
