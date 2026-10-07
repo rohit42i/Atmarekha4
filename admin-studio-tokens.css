@@ -1,42 +1,87 @@
-/* Atma Rekha Admin Studio — design tokens
- * Dark-first, mythic-gold, additive. No database/API assumptions.
+/* Atma Rekha Admin Studio — v3 design tokens
+ * Identity: ink + brass editorial studio.
+ *
+ * This is the single source of truth for admin visual tokens.
+ * Legacy aliases intentionally remain available for existing event-driven tools.
  */
+
 :root {
-  --admin-bg: #08090a;
-  --admin-surface: #0f1011;
-  --admin-surface-2: #151619;
-  --admin-surface-3: #191b1e;
-  --admin-surface-4: #1d2024;
-  --admin-border: rgba(255,255,255,.09);
-  --admin-border-strong: rgba(255,255,255,.16);
-  --admin-border-soft: rgba(255,255,255,.055);
-  --admin-text: #f4f2ec;
-  --admin-text-2: #d7d6d0;
-  --admin-muted: #9a9b9f;
-  --admin-faint: #696b70;
-  --admin-gold: #c9a227;
-  --admin-gold-bright: #d4af37;
-  --admin-gold-soft: rgba(201,162,39,.14);
-  --admin-gold-focus: rgba(212,175,55,.24);
-  --admin-success: #75c995;
-  --admin-success-soft: rgba(117,201,149,.12);
-  --admin-warning: #e1b85a;
-  --admin-warning-soft: rgba(225,184,90,.12);
-  --admin-danger: #d13d4b;
-  --admin-danger-soft: rgba(209,61,75,.12);
-  --admin-overlay: rgba(3,4,5,.78);
-  --admin-shadow: 0 18px 60px rgba(0,0,0,.34);
-  --admin-shadow-soft: 0 8px 28px rgba(0,0,0,.24);
+  /* ------------------------------------------------------------------ */
+  /* Color roles                                                        */
+  /* ------------------------------------------------------------------ */
+  --admin-bg: #090806;
+  --admin-bg-elevated: #0c0b09;
+  --admin-surface: #12100d;
+  --admin-surface-2: #171511;
+  --admin-surface-3: #1d1a15;
+  --admin-surface-4: #252119;
 
-  --admin-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --admin-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --admin-text: #f5f0e7;
+  --admin-text-2: #d8d0c3;
+  --admin-muted: #aaa197;
+  --admin-faint: #766e65;
+  --admin-disabled: #5b554e;
 
-  --admin-radius-sm: 6px;
-  --admin-radius-md: 8px;
-  --admin-radius-lg: 12px;
-  --admin-radius-xl: 16px;
-  --admin-radius-pill: 999px;
+  --admin-border: #302b24;
+  --admin-border-soft: #24201b;
+  --admin-border-strong: #494238;
+  --admin-border-focus: #b8954a;
 
+  --admin-gold: #caa65a;
+  --admin-gold-bright: #e1bd68;
+  --admin-gold-pale: #f0d89b;
+  --admin-gold-soft: rgba(202, 166, 90, .12);
+  --admin-gold-hover: rgba(202, 166, 90, .18);
+  --admin-gold-focus: rgba(225, 189, 104, .22);
+  --admin-gold-ink: #171108;
+
+  --admin-copper: #b86e58;
+  --admin-copper-soft: rgba(184, 110, 88, .12);
+
+  --admin-success: #79b38e;
+  --admin-success-soft: rgba(121, 179, 142, .12);
+  --admin-warning: #d5ad56;
+  --admin-warning-soft: rgba(213, 173, 86, .12);
+  --admin-danger: #df756a;
+  --admin-danger-soft: rgba(223, 117, 106, .12);
+  --admin-info: #86aabd;
+  --admin-info-soft: rgba(134, 170, 189, .12);
+
+  --admin-overlay: rgba(4, 3, 2, .78);
+
+  /* ------------------------------------------------------------------ */
+  /* Typography                                                         */
+  /* ------------------------------------------------------------------ */
+  --admin-font: "AR Admin UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --admin-font-display: "AR Admin Display", "AR Admin UI", ui-sans-serif, system-ui, sans-serif;
+  --admin-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  --admin-font-weight-regular: 400;
+  --admin-font-weight-medium: 500;
+  --admin-font-weight-semibold: 600;
+  --admin-font-weight-bold: 700;
+
+  --admin-type-page-title: clamp(2rem, 4vw, 3rem);
+  --admin-type-section-title: clamp(1.25rem, 2.2vw, 1.55rem);
+  --admin-type-card-title: 1rem;
+  --admin-type-body: .9375rem;
+  --admin-type-secondary: .8125rem;
+  --admin-type-caption: .75rem;
+  --admin-type-micro: .6875rem;
+  --admin-type-kpi: clamp(1.85rem, 3vw, 2.6rem);
+  --admin-type-number: .875rem;
+  --admin-line-title: 1.08;
+  --admin-line-heading: 1.2;
+  --admin-line-body: 1.55;
+  --admin-line-tight: 1.3;
+  --admin-letter-display: -.035em;
+  --admin-letter-heading: -.02em;
+  --admin-letter-body: 0;
+  --admin-letter-micro: .11em;
+
+  /* ------------------------------------------------------------------ */
+  /* Spacing                                                            */
+  /* ------------------------------------------------------------------ */
   --admin-space-1: 4px;
   --admin-space-2: 8px;
   --admin-space-3: 12px;
@@ -44,13 +89,66 @@
   --admin-space-5: 20px;
   --admin-space-6: 24px;
   --admin-space-7: 32px;
+  --admin-space-8: 40px;
+  --admin-space-9: 48px;
+  --admin-space-10: 64px;
+  --admin-space-11: 80px;
 
-  --admin-sidebar-width: 248px;
-  --admin-topbar-height: 64px;
-  --admin-content-max: 1440px;
-  --admin-ease: cubic-bezier(.22,1,.36,1);
+  /* ------------------------------------------------------------------ */
+  /* Shape                                                              */
+  /* ------------------------------------------------------------------ */
+  --admin-radius-xs: 6px;
+  --admin-radius-sm: 8px;
+  --admin-radius-md: 10px;
+  --admin-radius-lg: 14px;
+  --admin-radius-xl: 18px;
+  --admin-radius-2xl: 24px;
+  --admin-radius-pill: 999px;
 
-  /* Compatibility aliases used by event-driven legacy admin tools. */
+  /* ------------------------------------------------------------------ */
+  /* Borders / elevations                                               */
+  /* ------------------------------------------------------------------ */
+  --admin-border-width: 1px;
+  --admin-shadow-xs: 0 2px 8px rgba(0, 0, 0, .20);
+  --admin-shadow-soft: 0 8px 28px rgba(0, 0, 0, .24);
+  --admin-shadow: 0 16px 44px rgba(0, 0, 0, .32);
+  --admin-shadow-heavy: 0 28px 80px rgba(0, 0, 0, .42);
+  --admin-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, .025);
+
+  /* ------------------------------------------------------------------ */
+  /* Motion                                                             */
+  /* ------------------------------------------------------------------ */
+  --admin-duration-instant: 90ms;
+  --admin-duration-fast: 140ms;
+  --admin-duration-base: 180ms;
+  --admin-duration-slow: 260ms;
+  --admin-duration-slower: 360ms;
+  --admin-ease: cubic-bezier(.22, 1, .36, 1);
+  --admin-ease-standard: cubic-bezier(.2, .8, .2, 1);
+  --admin-ease-linear: linear;
+
+  /* ------------------------------------------------------------------ */
+  /* Layout / interaction                                               */
+  /* ------------------------------------------------------------------ */
+  --admin-sidebar-width: 260px;
+  --admin-sidebar-rail: 84px;
+  --admin-topbar-height: 68px;
+  --admin-content-max: 1480px;
+  --admin-touch-target: 44px;
+  --admin-control-height: 40px;
+  --admin-control-height-touch: 44px;
+
+  --admin-z-base: 1;
+  --admin-z-sticky: 40;
+  --admin-z-topbar: 80;
+  --admin-z-drawer: 110;
+  --admin-z-sidebar: 120;
+  --admin-z-modal: 1000;
+  --admin-z-toast: 1200;
+
+  /* ------------------------------------------------------------------ */
+  /* Legacy/base aliases                                                */
+  /* ------------------------------------------------------------------ */
   --card-bg: var(--admin-surface);
   --surface-color: var(--admin-surface);
   --surface-2-color: var(--admin-surface-2);
@@ -62,14 +160,16 @@
   --border-color: var(--admin-border);
   --border-soft-color: var(--admin-border-soft);
   --accent-color: var(--admin-gold-bright);
-  --accent-contrast: #0a0a0b;
+  --accent-contrast: var(--admin-gold-ink);
   --danger-color: var(--admin-danger);
   --success-color: var(--admin-success);
   --warning-color: var(--admin-warning);
   --overlay-color: var(--admin-overlay);
-  --shadow-color: rgba(0,0,0,.34);
+  --shadow-color: rgba(0, 0, 0, .32);
 
-  /* Compatibility aliases for existing event-driven admin tools. */
+  /* ------------------------------------------------------------------ */
+  /* --a-* compatibility aliases                                       */
+  /* ------------------------------------------------------------------ */
   --a-bg: var(--admin-bg);
   --a-surface: var(--admin-surface);
   --a-surface-2: var(--admin-surface-2);
@@ -80,7 +180,7 @@
   --a-muted: var(--admin-muted);
   --a-faint: var(--admin-faint);
   --a-accent: var(--admin-gold);
-  --a-accent-contrast: #090a0b;
+  --a-accent-contrast: var(--admin-gold-ink);
   --a-danger: var(--admin-danger);
   --a-danger-bg: var(--admin-danger-soft);
   --a-success: var(--admin-success);
@@ -91,7 +191,9 @@
   --a-input: var(--admin-surface-2);
   --a-modal: var(--admin-surface);
 
-  /* Compatibility aliases used by the existing PDPKL/admin event surfaces. */
+  /* ------------------------------------------------------------------ */
+  /* --ar-admin-* compatibility aliases                                */
+  /* ------------------------------------------------------------------ */
   --ar-admin-bg: var(--admin-bg);
   --ar-admin-surface: var(--admin-surface);
   --ar-admin-surface-2: var(--admin-surface-2);
@@ -100,6 +202,10 @@
   --ar-admin-muted: var(--admin-muted);
   --ar-admin-gold: var(--admin-gold);
   --ar-admin-shadow: var(--admin-shadow-soft);
+
+  /* ------------------------------------------------------------------ */
+  /* --admin-v2-* compatibility aliases                                */
+  /* ------------------------------------------------------------------ */
   --admin-v2-surface: var(--admin-surface);
   --admin-v2-border: var(--admin-border);
   --admin-v2-text: var(--admin-text);
@@ -111,6 +217,12 @@
 @media (prefers-reduced-motion: reduce) {
   :root {
     --admin-ease: linear;
+    --admin-ease-standard: linear;
+    --admin-duration-instant: 0ms;
+    --admin-duration-fast: 0ms;
+    --admin-duration-base: 0ms;
+    --admin-duration-slow: 0ms;
+    --admin-duration-slower: 0ms;
   }
 }
 
@@ -121,7 +233,7 @@
   padding: 0 !important;
   margin: -1px !important;
   overflow: hidden !important;
-  clip: rect(0,0,0,0) !important;
+  clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap !important;
   border: 0 !important;
 }
