@@ -4,6 +4,8 @@ import App from './App.jsx';
 import SiteRuntime from './SiteRuntime.jsx';
 import { installGlobalErrorLogging } from './errorLogger.js';
 import UserAuth from './UserAuth.jsx';
+import MfaGate from './MfaGate.jsx';
+import SecuritySettings from './SecuritySettings.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
@@ -69,6 +71,7 @@ import './light-mode-81225-restore.css';
 import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
 import './error-feedback.css';
+import './mfa-security.css';
 
 installGlobalErrorLogging();
 
@@ -77,6 +80,8 @@ createRoot(document.getElementById('root')).render(
       <AtmaLoader/>
     <App/>
     <UserAuth/>
+    <MfaGate/>
+    <SecuritySettings/>
     <ReadingHistoryTracker/>
     <AuthGate/>
     <ChapterCompletionPrompt/>
