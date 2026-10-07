@@ -176,3 +176,28 @@ html[data-theme="light"] .info-section p,html[data-theme="light"] .about-detail 
   .about-detail:last-child{border-bottom:0}
   .info-links a{min-height:40px}
 }
+
+
+/* Privacy-style information pages: separate hero/content cards with the same visual hierarchy. */
+.info-hero{margin-bottom:16px;padding:24px 28px!important}
+.info-hero h2{margin-bottom:8px!important}
+.info-hero-copy{margin:0;line-height:1.6;color:var(--text-secondary,var(--text-color))}
+.info-content-card{margin-bottom:16px}
+.info-feedback-card{margin-top:0}
+html[data-theme="dark"] .info-hero,
+html[data-theme="dark"] .info-content-card,
+html[data-theme="dark"] .info-feedback-card{
+  background:#000!important;color:#fff!important;border-color:#333!important;box-shadow:none!important;
+}
+html[data-theme="dark"] .info-hero-copy{color:#eee!important}
+html[data-theme="light"] .info-hero,
+html[data-theme="light"] .info-content-card,
+html[data-theme="light"] .info-feedback-card{
+  background:#fff!important;color:#181818!important;border-color:#deded9!important;box-shadow:0 8px 24px rgb(0 0 0/.06)!important;
+}
+html[data-theme="light"] .info-hero-copy{color:#333!important}
+@media(max-width:700px){
+  .info-hero{padding:20px 17px!important;margin-bottom:12px}
+  .info-content-card{margin-bottom:12px}
+  .info-hero-copy{font-size:.92rem}
+}
