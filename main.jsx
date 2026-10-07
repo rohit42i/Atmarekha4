@@ -1,21 +1,21 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import UserAuth from './UserAuth.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
-import CommunityPage from './CommunityPage.jsx';
-import CommunityAdmin from './CommunityAdmin.jsx';
-import EnhancedComments from './EnhancedComments.jsx';
-import PublicProfile from './PublicProfile.jsx';
+const CommunityPage = lazy(() => import('./CommunityPage.jsx'));
+const CommunityAdmin = lazy(() => import('./CommunityAdmin.jsx'));
+const EnhancedComments = lazy(() => import('./EnhancedComments.jsx'));
+const PublicProfile = lazy(() => import('./PublicProfile.jsx'));
 import FeatureUnlocks from './FeatureUnlocks.jsx';
-import AdminGroupChatTools from './AdminGroupChatTools.jsx';
-import AdminModerationTools from './AdminModerationTools.jsx';
-import AdminManagementTools from './AdminManagementTools.jsx';
-import AdminProTools from './AdminProTools.jsx';
-import AdminChapterHealth from './AdminChapterHealth.jsx';
-import AdminOperations from './AdminOperations.jsx';
+const AdminGroupChatTools = lazy(() => import('./AdminGroupChatTools.jsx'));
+const AdminModerationTools = lazy(() => import('./AdminModerationTools.jsx'));
+const AdminManagementTools = lazy(() => import('./AdminManagementTools.jsx'));
+const AdminProTools = lazy(() => import('./AdminProTools.jsx'));
+const AdminChapterHealth = lazy(() => import('./AdminChapterHealth.jsx'));
+const AdminOperations = lazy(() => import('./AdminOperations.jsx'));
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -67,7 +67,32 @@ import './light-mode-81225-restore.css';
 import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
 
-createRoot(document.getElementById('root')).render(<React.StrictMode><AtmaLoader/><App/><UserAuth/><ReadingHistoryTracker/><AuthGate/><ChapterCompletionPrompt/><CommunityPage/><CommunityAdmin/><EnhancedComments/><PublicProfile/><FeatureUnlocks/><AdminProTools/><AdminChapterHealth/><AdminGroupChatTools/><AdminManagementTools/><AdminModerationTools/><AdminOperations/><ChapterAccessGuard/><ThemeToggle/><ExperienceEnhancements/></React.StrictMode>);
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <AtmaLoader/>
+    <App/>
+    <UserAuth/>
+    <ReadingHistoryTracker/>
+    <AuthGate/>
+    <ChapterCompletionPrompt/>
+    <FeatureUnlocks/>
+    <ChapterAccessGuard/>
+    <ThemeToggle/>
+    <ExperienceEnhancements/>
+    <Suspense fallback={null}>
+      <CommunityPage/>
+      <CommunityAdmin/>
+      <EnhancedComments/>
+      <PublicProfile/>
+      <AdminProTools/>
+      <AdminChapterHealth/>
+      <AdminGroupChatTools/>
+      <AdminManagementTools/>
+      <AdminModerationTools/>
+      <AdminOperations/>
+    </Suspense>
+  </React.StrictMode>
+);
 
 
 import './experience-enhancements.css';
