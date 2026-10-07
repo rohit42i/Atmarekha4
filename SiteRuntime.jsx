@@ -50,27 +50,40 @@ function ModalAccessibility() {
 }
 
 function SessionMonitor() {
-  const [warning, setWarning] = useState('');
+  const [warning, setWarning] = useState(null);
   useEffect(() => {
-    let timer = 0;
+    let interval = 0;
     const parseExp = token => {
       try {
-        const payload = JSON.parse(atob(String(token).split('.')[1].replace(/-/g,'+').replace(/_/g,'/').padEnd(4*Math.ceil(String(token).split('.')[1].length/4),'=')));
-        return Number(payload.exp || 0) * 1000;
+        const part = String(token).split('.')[1];
+        const normalized = part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=');
+        return Number(JSON.parse(atob(normalized)).exp || 0) * 1000;
       } catch { return 0; }
     };
     const arm = session => {
-      window.clearTimeout(timer);
+      window.clearInterval(interval);
+      setWarning(null);
       const exp = parseExp(session?.access_token);
       if (!exp) return;
-      const delay = Math.max(5000, exp - Date.now() - 120000);
-      timer = window.setTimeout(() => setWarning('Your session is close to refreshing. Please keep this tab open while we secure your session.'), delay);
+      const tick = () => {
+        const seconds = Math.max(0, Math.ceil((exp - Date.now()) / 1000));
+        if (seconds <= 120 && seconds > 0) setWarning(seconds);
+        else setWarning(null);
+      };
+      tick();
+      interval = window.setInterval(tick, 1000);
     };
     supabase.auth.getSession().then(({data})=>arm(data?.session));
-    const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{if(session) {setWarning('');arm(session)} else {setWarning('') }});
-    return()=>{window.clearTimeout(timer);listener.subscription.unsubscribe()};
+    const {data:listener}=supabase.auth.onAuthStateChange((event,session)=>{
+      if(event==='SIGNED_OUT'){setWarning(null);window.dispatchEvent(new CustomEvent('atma-toast',{detail:{message:'You have been logged out.'}}));}
+      if(session) arm(session); else setWarning(null);
+    });
+    return()=>{window.clearInterval(interval);listener.subscription.unsubscribe()};
   },[]);
-  return warning ? <div className="session-warning" role="status" aria-live="polite"><span>{warning}</span><button type="button" onClick={()=>setWarning('')} aria-label="Dismiss session warning">×</button></div> : null;
+  if (!warning) return null;
+  const minutes = Math.floor(warning / 60);
+  const seconds = String(warning % 60).padStart(2,'0');
+  return <div className="session-warning" role="status" aria-live="polite"><span>Your session refreshes in {minutes}:{seconds}. Keep this tab open.</span><button type="button" onClick={()=>setWarning(null)} aria-label="Dismiss session warning">×</button></div>;
 }
 
 function ToastHost() {
