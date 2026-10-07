@@ -79,13 +79,11 @@ export default function PrivacyCenter() {
     if (!window.confirm('Withdraw this consent record? Processing that depends on this consent will stop where applicable; processing based on another lawful ground may continue.')) return;
     setBusy(true); setError(''); setMessage('');
     try {
-      const withdrawnAt = new Date().toISOString();
-      const { error: updateError } = await supabase.from('dpdp_consent_records')
-        .update({ withdrawn_at: withdrawnAt })
-        .eq('user_id', user.id)
-        .eq('policy_version', consent.policy_version);
-      if (updateError) throw updateError;
-      setConsent({ ...consent, withdrawn_at: withdrawnAt });
+      const { data, error: fnError } = await supabase.functions.invoke('dpdp-data-rights', {
+        body: { action: 'withdraw-consent', policy_version: consent.policy_version }
+      });
+      if (fnError) throw fnError;
+      setConsent(data?.consent || { ...consent, withdrawn_at: new Date().toISOString() });
       setMessage('Consent withdrawal recorded.');
     } catch (err) {
       setError(err?.message || 'Unable to withdraw consent.');
