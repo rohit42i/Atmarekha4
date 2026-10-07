@@ -1,0 +1,48 @@
+name: Send ATMA REKHA Chapter Email
+
+on:
+  workflow_dispatch:
+    inputs:
+      chapter_number:
+        description: 'Chapter number'
+        required: true
+        default: '2'
+      chapter_url:
+        description: 'Chapter URL'
+        required: true
+        default: 'https://www.atmarekha.in/'
+      recipients:
+        description: 'Recipient emails, separated by commas'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install mail dependency
+        run: npm install --no-save --package-lock=false nodemailer
+
+      - name: Send chapter email
+        env:
+          GMAIL_SMTP_USER: atmarekhaoffical@gmail.com
+          GMAIL_SMTP_APP_PASSWORD: ${{ secrets.GMAIL_SMTP_APP_PASSWORD }}
+          FROM_EMAIL: atmarekhaoffical@gmail.com
+          REPLY_TO: atmarekhasupport@gmail.com
+          EMAIL_TO: ${{ inputs.recipients }}
+          CHAPTER_NUMBER: ${{ inputs.chapter_number }}
+          CHAPTER_URL: ${{ inputs.chapter_url }}
+        run: node scripts/send-chapter-email.mjs
