@@ -1,6 +1,6 @@
 const CACHE_VERSION = 'atma-rekha-sw-v3';
 const SHELL_CACHE = `atma-rekha-shell-${CACHE_VERSION}`;
-const RUNTIME_CACHE = 'atma-rekha-runtime-v1';
+const RUNTIME_CACHE = 'atma-rekha-runtime-v2';
 const OFFLINE_URL = '/offline.html';
 const MEDIA_ORIGINS = new Set([
   'https://tiny-pond-c959.rohitbaswaraj.workers.dev',
@@ -31,7 +31,7 @@ async function networkFirst(request) {
     return response;
   } catch {
     const cached = await caches.match(request);
-    return cached || caches.match(OFFLINE_URL);
+    return cached || new Response('', { status: 503, statusText: 'Offline' });
   }
 }
 
@@ -46,7 +46,7 @@ async function cacheFirst(request) {
     }
     return response;
   } catch {
-    return caches.match(OFFLINE_URL);
+    return new Response('', { status: 503, statusText: 'Offline' });
   }
 }
 
