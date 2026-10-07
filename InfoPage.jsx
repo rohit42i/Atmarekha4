@@ -31,7 +31,7 @@ const PAGES = {
       { heading: 'Grievance handling', body: 'Complaints are handled according to the nature of the issue and applicable requirements. Where a specific process or timeframe applies, it is determined by the relevant requirements.' },
       { heading: 'Content & community reports', body: 'For incorrect, inappropriate, unlawful, infringing or broken content, tell us the chapter/page, post and what happened. Reports are reviewed according to the nature of the issue and applicable requirements.', links: [{ label: 'Report an Issue', href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Report` }] },
       { heading: 'Consumer support', body: 'For membership billing, cancellation or refund issues, include your account email and Razorpay payment/subscription reference. Never send passwords, UPI PINs, CVV or full card details.' },
-      { heading: 'National Consumer Helpline', body: 'If a consumer issue is not resolved through our grievance mechanism, you may also use the Government of India National Consumer Helpline.', links: [{ label: 'National Consumer Helpline', href: 'https://consumerhelpline.gov.in/' }] },
+      { heading: 'External support', body: 'Depending on your location and the nature of the issue, you may also contact the relevant consumer-protection authority or payment provider.' },
     ],
   },
   terms: {

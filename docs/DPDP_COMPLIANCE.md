@@ -65,7 +65,7 @@ Current infrastructure may involve Supabase, Cloudflare and Razorpay. Their use 
 
 ## Children
 
-Account creation is limited to readers who confirm they are 18 or older. Public reading access is separate from account creation.
+Account creation is limited to readers who confirm they are 15 or older. Public reading access is separate from account creation.
 
 ## India consumer / platform compliance readiness
 

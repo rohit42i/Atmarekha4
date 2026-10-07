@@ -110,6 +110,8 @@ import './audience-experience.css';
 import './admin-studio-tokens.css';
 import './admin-studio-core.css';
 import './ui-layout-audit.css';
+import './production-theme-authority.css';
+import './dialog-focus-manager.js';
 
 import './final-theme-authority.css';
 import './dialog-accessibility.js';

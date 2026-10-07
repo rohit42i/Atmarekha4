@@ -1,46 +1,9 @@
-/* Atma Rekha — dark-mode text authority.
-   Keeps the monochrome dark palette without flattening disabled/secondary opacity. */
-
-html[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-html[data-theme="dark"] body,
-html[data-theme="dark"] #root {
-  color: #fff !important;
-}
-
-html[data-theme="dark"] body :where(
-  h1,h2,h3,h4,h5,h6,strong,b,em,i,label,time,
-  a,li,dt,dd,legend,figcaption,summary,th,td,caption
-) {
-  color: #fff !important;
-}
-
-html[data-theme="dark"] body :where(input,textarea,select,option,button,[contenteditable="true"]) {
-  color: #fff !important;
-}
-
-html[data-theme="dark"] body :where(input,textarea,select)::placeholder {
-  color: #fff !important;
-  opacity: .72;
-}
-
-html[data-theme="dark"] body :where(.hero-button,.primary-button,.reader-control.primary,.ec-compose-row > button,.ec-join button,.community-join,.community-admin-send,.admin-submit,.ar-admin-primary-action,.ar-admin-nav button.active,.ar-admin-tabs button.active,.admin-tabs button.active) {
-  color: #000 !important;
-}
-
-html[data-theme="dark"] body :where(.hero-button,.primary-button,.reader-control.primary,.ec-compose-row > button,.ec-join button,.community-join,.community-admin-send,.admin-submit,.ar-admin-primary-action,.ar-admin-nav button.active,.ar-admin-tabs button.active,.admin-tabs button.active) * {
-  color: #000 !important;
-}
-
-html[data-theme="dark"] body :where(button:disabled,input:disabled,textarea:disabled,select:disabled) {
-  color: #fff !important;
-}
-
-html[data-theme="dark"] img,
-html[data-theme="dark"] video,
-html[data-theme="dark"] canvas,
-html[data-theme="dark"] iframe {
-  color: inherit;
-}
+/* Atma Rekha — semantic dark-mode text hierarchy. */
+html[data-theme="dark"] body{color:#fff!important;background:#000!important}
+html[data-theme="dark"] body :where(h1,h2,h3,h4,h5,h6,strong,b,legend,summary,th){color:#fff!important;opacity:1!important}
+html[data-theme="dark"] body :where(.muted,.secondary-text,.faint,.hint,.description,.subtitle,.meta,.helper,.chapter-row-meta,.chapter-row-details){color:#c8c8c8!important;opacity:1!important}
+html[data-theme="dark"] body :where(input,textarea,select,button,[contenteditable="true"]){color:#fff;opacity:1}
+html[data-theme="dark"] body :where(input,textarea,select)::placeholder{color:#aaa;opacity:1}
+html[data-theme="dark"] body :where(.primary-button,.hero-button,.primary,.admin-submit,.reader-control.primary,.community-join,.ec-join,.membership-button){color:#000!important}
+html[data-theme="dark"] body :where(.primary-button,.hero-button,.primary,.admin-submit,.reader-control.primary,.community-join,.ec-join,.membership-button)>*{color:#000!important}
+html[data-theme="dark"] body :where(button:disabled,input:disabled,textarea:disabled,select:disabled){opacity:.65}
