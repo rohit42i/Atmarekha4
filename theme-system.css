@@ -105,16 +105,17 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
 :root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]) { color:var(--danger-color)!important; background-color:var(--danger-bg)!important; }
 :root[data-theme="light"] body :where(.success,[data-status="success"]) { color:var(--success-color)!important; }
 :root[data-theme="light"] body :where(.warning,[data-status="warning"]) { color:var(--warning-color)!important; background-color:var(--warning-bg)!important; }
-.theme-toggle{position:fixed;right:18px;bottom:18px;z-index:9999;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border-color);border-radius:999px;background:var(--card-bg);color:var(--text-color);box-shadow:0 8px 24px var(--shadow-color);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease}
+.theme-toggle{position:fixed;right:18px;bottom:max(18px,env(safe-area-inset-bottom));z-index:9999;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border-color);border-radius:999px;background:var(--card-bg);color:var(--text-color);box-shadow:0 8px 24px var(--shadow-color);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease}
 .theme-toggle:hover{transform:translateY(-1px)} .theme-toggle:active{transform:translateY(0)} .theme-toggle svg{width:20px;height:20px;display:block} .theme-toggle:focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
-@media (max-width:640px){.theme-toggle{right:14px;bottom:14px;width:42px;height:42px}}
+@media (max-width:640px){.theme-toggle{right:14px;bottom:max(14px,env(safe-area-inset-bottom));width:42px;height:42px}}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
 /* Keep floating controls separated: Back to top sits above the theme toggle. */
 .back-to-top{
   position:fixed;
   right:18px;
-  bottom:74px;
+  bottom:calc(max(18px,env(safe-area-inset-bottom)) + 56px);
   z-index:9998;
   width:44px;
   height:44px;
@@ -130,4 +131,5 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
   cursor:pointer;
 }
 .back-to-top:hover{transform:translateY(-1px)}
-@media(max-width:640px){.back-to-top{right:14px;bottom:68px;width:42px;height:42px}}
+@media(max-width:640px){.back-to-top{right:14px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 54px);width:42px;height:42px}}
+
