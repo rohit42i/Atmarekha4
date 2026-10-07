@@ -288,8 +288,8 @@ export default function EmailCampaigns({adminEmail=''}) {
       const result = await supabase.functions.invoke('send-email-to-users', {
         body: {subject:subject.trim(),html:emailHtml,text:plainText,...(isTest ? {testEmail:testEmail.trim()} : hasSelectedRecipients ? {recipients:selectedRecipients.map(item => item.email)} : {})}
       });
-      if (result.error) throw new Error(result.data?.error || result.error.message || 'Email request failed.');
-      if (!result.data?.ok) throw new Error(result.data?.error || 'Email request failed.');
+      if (result.error) { const detail = result.data?.error || result.error.message || 'Email request failed.'; const failures = Array.isArray(result.data?.failures) && result.data.failures.length ? ' ' + result.data.failures[0] : ''; throw new Error(detail + failures); }
+      if (!result.data?.ok) { const detail = result.data?.error || 'Email request failed.'; const failures = Array.isArray(result.data?.failures) && result.data.failures.length ? ' ' + result.data.failures[0] : ''; throw new Error(detail + failures); }
       if (isTest) {
         setTestSent(true);
         setStatus({type:'success',text:'Test sent. Check Gmail and click the button.'});
@@ -371,7 +371,7 @@ export default function EmailCampaigns({adminEmail=''}) {
 
       <aside className="email-preview-card">
         <div className="email-preview-head"><div><span>PREVIEW</span><strong>Same HTML used for sending</strong></div></div>
-        <div className="email-preview-meta"><div><span>From</span><strong>Atma Rekha</strong></div><div><span>To</span><strong>Confirmed users</strong></div><div><span>Subject</span><strong>{subject || 'No subject'}</strong></div></div>
+        <div className="email-preview-meta"><div><span>From</span><strong>Atma Rekha</strong></div><div><span>To</span><strong>{selectedRecipients.length ? selectedRecipients.length + ' selected' : 'All confirmed users'}</strong></div><div><span>Subject</span><strong>{subject || 'No subject'}</strong></div></div>
         <iframe title="Email preview" className="email-preview-frame" srcDoc={emailHtml} sandbox="" />
       </aside>
     </div>
@@ -379,7 +379,7 @@ export default function EmailCampaigns({adminEmail=''}) {
     <section className="email-recipient-card">
       <div className="email-recipient-head">
         <div><span>RECIPIENTS</span><h3>Choose who receives it</h3><p>Search for a reader, select people, or leave this empty to send to all confirmed users.</p></div>
-        <strong>{selectedRecipients.length} selected</strong>
+        <strong>{selectedRecipients.length ? selectedRecipients.length + ' selected' : 'All confirmed users'}</strong>
       </div>
       <div className="email-recipient-search">
         <input value={recipientQuery} onChange={event => setRecipientQuery(event.target.value)} onKeyDown={event => {if(event.key === 'Enter'){event.preventDefault();searchRecipients();}}} placeholder="Search by email or name" />
@@ -405,7 +405,7 @@ export default function EmailCampaigns({adminEmail=''}) {
         <label className="email-test-field"><span>Test email</span><input value={testEmail} onChange={event => {setTestEmail(event.target.value);setTestSent(false);}} placeholder="your@email.com" /></label>
         <div className="email-send-buttons">
           <button type="button" className="email-test-button" onClick={() => send(true)} disabled={!canSend || busy}><AdminIcon name="message" size={15}/>{busy ? 'Working…' : 'Send test'}</button>
-          <button type="button" className={'email-bulk-button' + (testSent ? ' is-ready' : '')} onClick={() => send(false)} disabled={!canSend || busy || !testSent}><AdminIcon name="sparkle" size={15}/>{busy ? 'Working…' : 'Send to all users'}</button>
+          <button type="button" className={'email-bulk-button' + (testSent ? ' is-ready' : '')} onClick={() => send(false)} disabled={!canSend || busy || !testSent}><AdminIcon name="sparkle" size={15}/>{busy ? 'Working…' : hasSelectedRecipients ? 'Send to selected' : 'Send to all users'}</button>
         </div>
       </div>
     </section>
