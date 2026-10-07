@@ -219,7 +219,7 @@ function chapterPagesTable() {
 export async function getPublicReaderTiers(userIds = []) {
   const ids = [...new Set((userIds || []).filter(Boolean))].slice(0, 50); if (!ids.length) return new Map();
   const { data, error } = await client.from('profiles').select('id,public_badge').in('id', ids); if (error) throw error;
-  return new Map((data || []).filter(row => row?.id && (row.public_badge === 'premium' || row.public_badge === 'supporter')).map(row => [row.id, row.public_badge]));
+  return new Map((data || []).filter(row => row?.id && ['mini_member','supporter','premium'].includes(row.public_badge)).map(row => [row.id, row.public_badge]));
 }
 
 /** Reads only rows allowed by user_subscriptions RLS; no privileged RPC is used. */
