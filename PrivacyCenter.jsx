@@ -52,7 +52,6 @@ export default function PrivacyCenter() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [exported, setExported] = useState(null);
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
 
@@ -114,7 +113,6 @@ export default function PrivacyCenter() {
   const exportData = async () => {
     const data = await runAction('export', 'Your data export is ready.');
     if (!data) return;
-    setExported(data);
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -175,11 +173,7 @@ export default function PrivacyCenter() {
       <p className="privacy-small-note">Requests sent by email are handled through support and may require additional identity verification before action.</p>
     </section>}
 
-    {exported && <section className="privacy-export">
-      <h2>Export preview</h2>
-      <p className="privacy-small-note">This is the data returned to your signed-in account session. The downloaded JSON file is generated locally in your browser.</p>
-      <pre>{JSON.stringify(exported, null, 2)}</pre>
-    </section>}
+}
 
     <section className="privacy-policy-card">
       <PolicySection heading="Changes to this notice">We may update this notice when Atma Rekha, its data practices or applicable requirements change. The current version and effective date are shown at the top of this page.</PolicySection>
