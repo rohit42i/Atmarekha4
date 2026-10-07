@@ -1014,3 +1014,19 @@ html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box
 html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box::after{
   color:#000!important;
 }
+
+
+/* Membership Choose Plan button — light mode only. */
+html[data-theme="light"] .membership-page .membership-button:not(:disabled){
+  background:#111!important;
+  background-image:none!important;
+  color:#fff!important;
+  border:1px solid #111!important;
+  box-shadow:0 4px 12px rgb(0 0 0 / .12)!important;
+}
+html[data-theme="light"] .membership-page .membership-button:not(:disabled):hover{
+  background:#000!important;
+  color:#fff!important;
+  border-color:#000!important;
+  box-shadow:0 6px 16px rgb(0 0 0 / .16)!important;
+}
