@@ -143,39 +143,65 @@ const css=`
 .group-reply-preview.jumpable:active{transform:scale(.985);background:#1b1d21}
 @media(max-width:700px){.group-chat-title{font-size:14px!important}.group-chat-header{height:58px;min-height:58px}.group-new-messages{right:12px;bottom:82px;padding:8px 11px}.group-input{scroll-margin-bottom:12px}}
 
-/* Explicit theme contract: this component is rendered with an inline stylesheet, so theme overrides live here. */
+/* Explicit theme contract: keep Light Mode white, with the feed as the page-level neutral surface. */
 html[data-theme="light"] .group-chat-page,
 html[data-theme="light"] .group-chat-shell,
 html[data-theme="light"] .group-chat-header,
-html[data-theme="light"] .group-chat-feed,
-html[data-theme="light"] .group-composer { background:#fff!important;color:#111!important; }
-html[data-theme="light"] .group-chat-header { border-bottom-color:#dedede!important; }
+html[data-theme="light"] .group-composer{
+  background:#fff!important;color:#111!important;background-image:none!important;
+}
+html[data-theme="light"] .group-chat-feed{
+  background:#f7f7f5!important;color:#111!important;background-image:none!important;
+}
+html[data-theme="light"] .group-chat-header{border-bottom-color:#dedede!important}
 html[data-theme="light"] .group-chat-back,
 html[data-theme="light"] .group-action-sheet,
 html[data-theme="light"] .group-action-top button,
 html[data-theme="light"] .group-composer-inner,
-html[data-theme="light"] .group-replying { background:#fff!important;color:#111!important;border-color:#dedede!important;box-shadow:none!important; }
-html[data-theme="light"] .group-message .group-bubble { background:#f5f5f5!important;color:#111!important;border-color:#dedede!important;box-shadow:none!important; }
-html[data-theme="light"] .group-message.mine .group-bubble { background:#111!important;color:#fff!important;border-color:#111!important; }
-html[data-theme="light"] .group-meta,
-html[data-theme="light"] .group-meta button,
-html[data-theme="light"] .group-read,
+html[data-theme="light"] .group-replying,
+html[data-theme="light"] .group-reaction,
+html[data-theme="light"] .group-reply-preview,
+html[data-theme="light"] .group-reaction-picker{
+  background:#fff!important;
+  color:#111!important;
+  border-color:#dedede!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .group-message .group-bubble,
+html[data-theme="light"] .group-message.mine .group-bubble{
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #dedede!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .group-avatar{
+  width:34px!important;height:34px!important;min-width:34px!important;
+  background:#f1f1ee!important;color:#111!important;border-color:#d9d9d6!important;box-shadow:none!important;
+}
+html[data-theme="light"] .group-message .group-meta,
+html[data-theme="light"] .group-message .group-meta button,
+html[data-theme="light"] .group-message .group-read,
 html[data-theme="light"] .group-count,
 html[data-theme="light"] .group-empty,
-html[data-theme="light"] .group-action-label { color:#666!important; }
-html[data-theme="light"] .group-input { color:#111!important; }
-html[data-theme="light"] .group-input::placeholder { color:#666!important;opacity:1!important; }
-html[data-theme="light"] .group-send { background:#111!important;color:#fff!important; }
-html[data-theme="light"] .group-reaction,
-html[data-theme="light"] .group-reply-preview { background:#fff!important;color:#111!important;border-color:#dedede!important; }
-html[data-theme="light"] .group-reply-preview strong { color:#111!important; }
-html[data-theme="light"] .group-new-messages { background:#111!important;color:#fff!important;border-color:#111!important; }
+html[data-theme="light"] .group-action-label{
+  color:#666!important;
+}
+html[data-theme="light"] .group-message .group-meta button{font-size:9px!important}
+html[data-theme="light"] .group-input{color:#111!important;font-size:13.5px!important}
+html[data-theme="light"] .group-input::placeholder{color:#666!important;opacity:1!important}
+html[data-theme="light"] .group-send{background:#111!important;color:#fff!important}
+html[data-theme="light"] .group-reply-preview strong{color:#111!important}
+html[data-theme="light"] .group-new-messages{background:#111!important;color:#fff!important;border-color:#111!important}
+html[data-theme="light"] .group-chat-title{font-size:14.5px!important}
+html[data-theme="light"] .group-bubble{font-size:13.5px!important;line-height:1.48!important}
 html[data-theme="dark"] .group-chat-page,
 html[data-theme="dark"] .group-chat-shell,
 html[data-theme="dark"] .group-chat-header,
 html[data-theme="dark"] .group-chat-feed,
-html[data-theme="dark"] .group-composer { background:#000!important;color:#fff!important; }
-html[data-theme="dark"] .group-input { color:#fff!important; }
+html[data-theme="dark"] .group-composer{
+  background:#000!important;color:#fff!important;
+}
+html[data-theme="dark"] .group-input{color:#fff!important;}
 .group-chat-feed,.group-message { user-select:auto;-webkit-user-select:auto; }
 `;
 const nameOf=(p,id,user)=>p?.display_name||p?.username||(id===user?.id?'You':'Reader');
