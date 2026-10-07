@@ -11,3 +11,27 @@ html[data-theme="dark"] .chapter-completion-modal h2{color:#fff}
 html[data-theme="dark"] .chapter-completion-modal>p:not(.section-eyebrow){color:#aaa}
 html[data-theme="dark"] .chapter-completion-secondary{border-color:#fff;background:#000;color:#fff}
 @media(max-width:520px){.chapter-completion-modal{padding:25px 19px;border-radius:18px}.chapter-completion-actions{display:grid;grid-template-columns:1fr}.chapter-completion-actions button{width:100%;min-width:0}}
+/* Completion notification popup — explicit selected-theme styling and stable mobile dimensions. */
+html[data-theme="light"] .chapter-completion-backdrop{background:rgba(0,0,0,.48)!important}
+html[data-theme="light"] .chapter-completion-modal{background:#fff!important;color:#111!important;border:1px solid #dfdfdb!important;box-shadow:0 24px 72px rgba(0,0,0,.2)!important}
+html[data-theme="light"] .chapter-completion-modal h2{color:#111!important}
+html[data-theme="light"] .chapter-completion-modal>p:not(.section-eyebrow){color:#4a4a4a!important;opacity:1!important}
+html[data-theme="light"] .chapter-completion-secondary{background:#fff!important;color:#111!important;border-color:#111!important}
+html[data-theme="light"] .chapter-completion-actions .primary-button{background:#111!important;color:#fff!important;border-color:#111!important}
+html[data-theme="dark"] .chapter-completion-backdrop{background:rgba(0,0,0,.78)!important}
+html[data-theme="dark"] .chapter-completion-modal{background:#050505!important;color:#fff!important;border-color:#2a2a2a!important;box-shadow:0 24px 72px rgba(0,0,0,.62)!important}
+html[data-theme="dark"] .chapter-completion-modal h2{color:#fff!important}
+html[data-theme="dark"] .chapter-completion-modal>p:not(.section-eyebrow){color:#d0d0d0!important;opacity:1!important}
+html[data-theme="dark"] .chapter-completion-secondary{background:#050505!important;color:#fff!important;border-color:#fff!important}
+html[data-theme="dark"] .chapter-completion-actions .primary-button{background:#fff!important;color:#000!important;border-color:#fff!important}
+.chapter-completion-modal{width:min(440px,calc(100vw - 28px))!important;box-sizing:border-box!important}
+.chapter-completion-icon{width:48px!important;height:48px!important;margin:0 auto 12px!important;display:grid!important;place-items:center!important;border:1px solid currentColor!important;border-radius:14px!important}
+.chapter-completion-actions button{min-height:44px!important;box-sizing:border-box!important}
+@media(max-width:520px){
+  .chapter-completion-backdrop{padding:14px!important}
+  .chapter-completion-modal{width:100%!important;max-width:390px!important;padding:24px 18px 20px!important}
+  .chapter-completion-modal h2{font-size:21px!important;line-height:1.2!important}
+  .chapter-completion-modal>p:not(.section-eyebrow){font-size:13px!important;line-height:1.55!important}
+  .chapter-completion-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .chapter-completion-actions button{width:100%!important}
+}
