@@ -302,14 +302,14 @@ function objectKey(request) {
   let key = '';
   try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
 , 'i');
-  const community = /^community/[^/]+$/i;
+  const community = /^community\/[^/]+$/i;
   return cover.test(key) || page.test(key) || community.test(key) ? key : null;
 }
 function migrationPath(bucket, key) {
   if (!['chapter-pages', 'covers', 'community'].includes(bucket)) return null;
   const safe = safePath(key);
   if (!safe) return null;
-  if (bucket === 'community' && !/^community/[^/]+$/i.test(safe)) return null;
+  if (bucket === 'community' && !/^community\/[^/]+$/i.test(safe)) return null;
   return safe;
 }
 function encodeStoragePath(path) {
