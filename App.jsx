@@ -19,6 +19,7 @@ import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
 import { saveOfflineChapter, getOfflineChapter, removeOfflineChapter } from './offlineReading';
 import { Error430Page } from './ErrorPages.jsx';
+import InstallPage from './InstallPage.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 
@@ -620,6 +621,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
  useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]); if (route === 'not-found') return <NotFoundPage/>;
   if (route === '430') return <Error430Page/>;
   if (route === 'privacy-center') return <PrivacyCenter/>;
+   if (route === 'install') return <InstallPage/>;
   if (route === '403') return <ForbiddenPage onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>;
   if (route === '503') return <ServiceUnavailablePage/>;
   if (route === 'maintenance') return <MaintenancePage/>;
