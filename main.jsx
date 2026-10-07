@@ -1,6 +1,11 @@
+installGlobalErrorLogging();
+
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import { ErrorBoundary } from './ErrorBoundary.jsx';
+import SiteRuntime from './SiteRuntime.jsx';
+import { installGlobalErrorLogging } from './errorLogger.js';
 import UserAuth from './UserAuth.jsx';
 import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
@@ -66,10 +71,12 @@ import './dark-mode-text-final.css';
 import './light-mode-81225-restore.css';
 import './light-mode-shadow-cleanup.css';
 import './typography-text-system.css';
+import './error-feedback.css';
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AtmaLoader/>
+    <ErrorBoundary>
+      <AtmaLoader/>
     <App/>
     <UserAuth/>
     <ReadingHistoryTracker/>
@@ -79,7 +86,7 @@ createRoot(document.getElementById('root')).render(
     <ChapterAccessGuard/>
     <ThemeToggle/>
     <ExperienceEnhancements/>
-    <Suspense fallback={null}>
+      <Suspense fallback={null}>
       <CommunityPage/>
       <CommunityAdmin/>
       <EnhancedComments/>
@@ -90,7 +97,9 @@ createRoot(document.getElementById('root')).render(
       <AdminManagementTools/>
       <AdminModerationTools/>
       <AdminOperations/>
-    </Suspense>
+      </Suspense>
+      <SiteRuntime/>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 
