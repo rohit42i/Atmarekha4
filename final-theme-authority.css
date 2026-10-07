@@ -443,3 +443,192 @@ html[data-theme="dark"] .chapter-discovery .chapter-sort option{
     padding:0!important;
   }
 }
+
+
+/* Final chapter controls authority.
+   Search stays dominant; Language and Sort remain separate, clickable controls.
+   No nested borders and no icon/text hiding that makes native selects unusable. */
+.chapter-discovery{
+  display:grid!important;
+  grid-template-columns:minmax(0,7fr) minmax(86px,1.5fr) minmax(86px,1.5fr)!important;
+  gap:8px!important;
+  width:100%!important;
+  align-items:stretch!important;
+  flex-wrap:nowrap!important;
+}
+.chapter-discovery>label{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  width:auto!important;
+  height:42px!important;
+  min-height:42px!important;
+  margin:0!important;
+  border:1px solid var(--control-border-color,#dedede)!important;
+  border-radius:11px!important;
+  background:var(--input-bg,#fff)!important;
+  color:var(--text-color,#111)!important;
+  box-shadow:none!important;
+}
+.chapter-discovery>label:first-child{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:0 11px!important;
+}
+.chapter-discovery>label:first-child input{
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  height:100%!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:var(--text-color,#111)!important;
+  font-size:12px!important;
+}
+.chapter-discovery>label:first-child input:focus{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+.chapter-discovery>label:first-child .chapter-search-icon{
+  flex:0 0 auto!important;
+  width:17px!important;
+  height:17px!important;
+  color:var(--muted-color,#666)!important;
+}
+.chapter-discovery>label:first-child>button{
+  flex:0 0 auto!important;
+  width:24px!important;
+  height:24px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:var(--text-color,#111)!important;
+  box-shadow:none!important;
+}
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  padding:0 8px!important;
+}
+.chapter-discovery .chapter-language>span,
+.chapter-discovery .chapter-sort>span{
+  display:block!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  white-space:nowrap!important;
+  color:var(--muted-color,#666)!important;
+  font-size:10px!important;
+  font-weight:700!important;
+}
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-sort select{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0 2px!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:var(--text-color,#111)!important;
+  font:600 11px/1 system-ui,sans-serif!important;
+  cursor:pointer!important;
+}
+.chapter-discovery .chapter-language select:focus,
+.chapter-discovery .chapter-sort select:focus{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .chapter-discovery>label{
+  background:#fff!important;
+  color:#000!important;
+  border-color:#dedede!important;
+}
+html[data-theme="light"] .chapter-discovery input,
+html[data-theme="light"] .chapter-discovery select,
+html[data-theme="light"] .chapter-discovery>label:first-child>button{
+  color:#000!important;
+}
+html[data-theme="light"] .chapter-discovery .chapter-language>span,
+html[data-theme="light"] .chapter-discovery .chapter-sort>span{
+  color:#555!important;
+}
+html[data-theme="dark"] .chapter-discovery>label{
+  background:#030303!important;
+  color:#fff!important;
+  border-color:#292929!important;
+}
+html[data-theme="dark"] .chapter-discovery input,
+html[data-theme="dark"] .chapter-discovery select,
+html[data-theme="dark"] .chapter-discovery>label:first-child>button{
+  color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language>span,
+html[data-theme="dark"] .chapter-discovery .chapter-sort>span{
+  color:#aaa!important;
+}
+.chapter-discovery .chapter-language option,
+.chapter-discovery .chapter-sort option{
+  background:#fff!important;
+  color:#000!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language option,
+html[data-theme="dark"] .chapter-discovery .chapter-sort option{
+  background:#030303!important;
+  color:#fff!important;
+}
+@media(max-width:600px){
+  .chapter-discovery{
+    grid-template-columns:minmax(0,7fr) minmax(74px,1.5fr) minmax(74px,1.5fr)!important;
+    gap:6px!important;
+  }
+  .chapter-discovery>label{
+    height:40px!important;
+    min-height:40px!important;
+  }
+  .chapter-discovery .chapter-language,
+  .chapter-discovery .chapter-sort{
+    padding:0 6px!important;
+    gap:4px!important;
+  }
+  .chapter-discovery .chapter-language>span,
+  .chapter-discovery .chapter-sort>span{
+    font-size:9px!important;
+  }
+  .chapter-discovery .chapter-language select,
+  .chapter-discovery .chapter-sort select{
+    font-size:10px!important;
+  }
+}
+@media(max-width:420px){
+  .chapter-discovery{
+    grid-template-columns:minmax(0,1fr) 42px 42px!important;
+    gap:5px!important;
+  }
+  .chapter-discovery .chapter-language,
+  .chapter-discovery .chapter-sort{
+    justify-content:center!important;
+    padding:0!important;
+  }
+  .chapter-discovery .chapter-language>span,
+  .chapter-discovery .chapter-sort>span{
+    display:none!important;
+  }
+  .chapter-discovery .chapter-language select,
+  .chapter-discovery .chapter-sort select{
+    width:42px!important;
+    flex:0 0 42px!important;
+    font-size:10px!important;
+    text-align:center!important;
+  }
+}
