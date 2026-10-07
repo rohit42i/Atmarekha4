@@ -164,7 +164,6 @@ export default function PrivacyCenter() {
       <div className="privacy-table-wrap"><table className="privacy-table"><thead><tr><th>Data</th><th>Retention approach</th></tr></thead><tbody>{RETENTION_TABLE.map(([category, retention]) => <tr key={category}><td><strong>{category}</strong></td><td>{retention}</td></tr>)}</tbody></table></div>
       <p className="privacy-small-note">Exact retention periods may differ by record and applicable legal, security, accounting or dispute requirements.</p>
     </section>
-    </section>
 
     {user && <section className="privacy-controls-card" aria-labelledby="privacy-controls-title">
       <header className="privacy-section-heading">
