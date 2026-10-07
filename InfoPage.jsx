@@ -34,6 +34,7 @@ const PAGES = {
   privacy: {
     eyebrow: 'LEGAL', title: 'Privacy Policy',
     sections: [
+      { heading: 'Effective date', body: '7 October 2026. This policy is designed for the current Atma Rekha service and will be updated when the service, processing purposes or applicable law changes.' },
       { heading: 'What personal data we process', body: 'Depending on the feature you use, Atma Rekha may process your email address, name, username, avatar, bio, account timestamps, reading history, bookmarks, ratings, comments, community activity, notification subscriptions, membership and payment-related records, and technical identifiers used for security and abuse prevention.' },
       { heading: 'Why we process it', body: 'We use personal data to create and secure accounts, provide reading and profile features, save progress and favourites, operate community features, provide memberships and payments, prevent abuse, troubleshoot faults, communicate important service information, and meet applicable legal obligations.' },
       { heading: 'Standalone notice & consent', body: 'Our signup notice is intended to explain the data collected and the purposes of processing in clear language before account creation. Your signup records the privacy notice version and purposes you accepted. Where processing depends on consent, you can withdraw consent through Privacy Center.' },
