@@ -508,3 +508,27 @@ html[data-theme="light"] .membership-pdlpl-context-note strong,html[data-theme="
 html[data-theme="light"] .membership-plan.is-pdlpl-plan{border-color:#222!important}
 html[data-theme="light"] .membership-plan-context-badge{border-color:#222;color:#000}
 html[data-theme="dark"] .membership-plan-context-badge{border-color:#333;color:#fff}
+
+
+/* Final light-mode membership surfaces + compact FAQ text. */
+:root[data-theme="light"] .membership-page {
+  background:#fff !important; color:#000 !important; background-image:none !important;
+}
+:root[data-theme="light"] .membership-plan,
+:root[data-theme="light"] .membership-active,
+:root[data-theme="light"] .membership-timing-note,
+:root[data-theme="light"] .membership-faq,
+:root[data-theme="light"] .membership-faq-list details,
+:root[data-theme="light"] .membership-phone-modal {
+  background:#fff !important; background-image:none !important; color:#000 !important; border-color:#deded9 !important;
+}
+:root[data-theme="light"] .membership-page-header p,
+:root[data-theme="light"] .membership-plan ul,
+:root[data-theme="light"] .membership-free-note,
+:root[data-theme="light"] .membership-faq-heading p,
+:root[data-theme="light"] .membership-faq-list details p,
+:root[data-theme="light"] .membership-legal { color:#444 !important; }
+:root[data-theme="light"] .membership-plan-icon { background:#f1f1ee !important; }
+:root[data-theme="light"] .membership-phone-modal { box-shadow:0 20px 60px rgb(0 0 0/.16) !important; }
+.membership-faq-list details summary{font-size:13px !important}
+.membership-faq-list details p{font-size:11px !important;line-height:1.55 !important}
