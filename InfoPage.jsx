@@ -10,7 +10,7 @@ const PAGES = {
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
       ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
-      ['Free', 'Chapters 1–8'], ['Content Rating', '16+'], ['Accounts', '18+'], ['Team', 'Solo Creator'],
+      ['Free', 'Chapters 1–8'], ['Content Rating', '16+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
       'Atma Rekha is an Indian fantasy adventure manga about ancient traditions, spiritual concepts, mysterious powers and mythical beings.',
