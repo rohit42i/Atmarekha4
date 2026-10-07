@@ -76,6 +76,7 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
+    { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
   ]},
   { label: 'Monetization', items: [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
@@ -897,7 +898,7 @@ export default function AdminPanel({ onLogout }) {
       reportCount={reportCount}
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
-    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Announcements' ? <section className="admin-stack">
+    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
