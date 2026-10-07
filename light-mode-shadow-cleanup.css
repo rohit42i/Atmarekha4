@@ -1,1 +1,5 @@
-/* Atma Rekha — light-mode shadow policy.\n   Keep deliberate component shadows; never flatten every descendant. */\n:root[data-theme="light"] body { text-shadow: none; }\n
+/* Atma Rekha — light-mode shadow policy.
+   Keep deliberate component shadows; never flatten every descendant. */
+:root[data-theme="light"] body {
+  text-shadow: none;
+}
