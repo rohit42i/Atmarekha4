@@ -723,3 +723,34 @@ html[data-theme="dark"] .auth-panel .auth-consent-check.is-invalid .auth-checkbo
   align-items:center!important;
   gap:9px!important;
 }
+
+/* Info-page text — keep content comfortably inside the card edges. */
+.info-page .info-hero,
+.info-page .info-content,
+.info-page .info-section,
+.info-page .info-card,
+.info-page .legal-card,
+.info-page .report-card{
+  box-sizing:border-box!important;
+  max-width:100%!important;
+  overflow:visible!important;
+}
+.info-page .info-content{
+  padding-left:clamp(16px,3vw,28px)!important;
+  padding-right:clamp(16px,3vw,28px)!important;
+}
+.info-page p,
+.info-page li,
+.info-page h1,
+.info-page h2,
+.info-page h3{
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+}
+@media(max-width:700px){
+  .info-page .info-content{
+    padding-left:16px!important;
+    padding-right:16px!important;
+  }
+}
