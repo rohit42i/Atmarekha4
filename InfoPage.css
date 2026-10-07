@@ -217,3 +217,8 @@ html[data-theme="dark"] .privacy-control-button span,html[data-theme="dark"] .pr
 html[data-theme="light"] .privacy-control-button{background:#fff!important;color:#181818!important;border-color:#deded9!important}
 html[data-theme="light"] .privacy-control-button span,html[data-theme="light"] .privacy-control-status{color:#444!important}
 @media(max-width:700px){.privacy-controls-grid{grid-template-columns:1fr}}
+
+.info-page .info-card,.info-page .info-section,.info-page .contact-card{box-sizing:border-box;overflow:hidden}
+html[data-theme="light"] .info-page .info-card,html[data-theme="light"] .info-page .info-section,html[data-theme="light"] .contact-card{background:#fff!important;color:#111!important;border-color:#e2e2e2!important}
+html[data-theme="light"] .info-page a,.info-page .privacy-control-button{color:#111!important}
+html[data-theme="dark"] .info-page .info-card,html[data-theme="dark"] .info-page .info-section,html[data-theme="dark"] .contact-card{background:#050505!important;color:#fff!important;border-color:#222!important}
