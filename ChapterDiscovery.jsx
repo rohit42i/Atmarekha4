@@ -17,7 +17,9 @@ function navigateToChapter(chapter) {
 }
 
 export default function ChapterDiscovery({ chapters, stats, renderChapter, language = 'hi', onLanguageChange }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('search') || ''; } catch { return ''; }
+  });
   const [sort, setSort] = useState('chapter');
   const [sortOpen, setSortOpen] = useState(false);
   const [recentChapterIds, setRecentChapterIds] = useState({});
