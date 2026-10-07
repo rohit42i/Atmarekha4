@@ -10,6 +10,8 @@
     "prebuild": "node scripts/generate-sitemap.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
     "@supabase/supabase-js": "^2.112.4",
     "axios": "^1.20.0",
     "gsap": "^3.12.5",
