@@ -141,7 +141,7 @@ export default function AdminPanel({ onLogout }) {
         supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
         supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
         supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200),
-        supabase.rpc('get_admin_analytics', { p_days: 30 }).catch(() => ({ data: null, error: null })),
+        supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error })).catch(error => ({ data: null, error })),
       ]);
       for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
       const performanceMap = {};
