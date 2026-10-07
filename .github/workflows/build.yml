@@ -53,6 +53,19 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      - name: Harden Cloudflare zone transport security
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '[{"id":"always_use_https","value":"on"},{"id":"min_tls_version","value":"1.2"},{"id":"automatic_https_rewrites","value":"on"},{"id":"security_header","value":{"strict_transport_security":{"enabled":true,"max_age":31536000,"include_subdomains":true,"preload":false,"nosniff":true}}}]'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE_ID: 8dbd4ce15e5916a6c1d95dbb5f1581d0
+
       - name: Ensure PDPL R2 bucket exists
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: pdlpl-media-worker
@@ -102,4 +115,3 @@ jobs:
       - name: Report optional analytics deployment status
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.deploy_analytics.outcome == 'failure'
         run: echo "::warning::Analytics Worker deployment failed; website, Atma media, and PDPKL media deployments completed independently."
-
