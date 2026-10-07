@@ -266,3 +266,46 @@ export const supabase = new Proxy(client, {
     return typeof value === 'function' ? value.bind(target) : value;
   },
 });
+
+export async function secureSignInWithPassword(email, password) {
+  const normalizedEmail = String(email || '').trim();
+  const value = String(password || '');
+
+  if (!normalizedEmail || !value) {
+    throw Object.assign(new Error('Invalid email or password.'), {
+      code: 'INVALID_LOGIN',
+      status: 401,
+    });
+  }
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Sign-in service is temporarily unavailable.');
+  }
+
+  const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/secure-password-login`, {
+    method: 'POST',
+    headers: {
+      apikey: supabaseKey,
+      'Content-Type': 'application/json',
+    },
+    credentials: 'omit',
+    body: JSON.stringify({ email: normalizedEmail, password: value }),
+  });
+
+  let payload = null;
+  try { payload = await response.json(); } catch (_) {}
+
+  if (!response.ok || !payload?.ok || !payload?.session) {
+    const error = new Error(payload?.error || 'Invalid email or password.');
+    error.code = payload?.code || (response.status === 429 ? 'ACCOUNT_LOCKED' : 'INVALID_LOGIN');
+    error.status = response.status;
+    error.lockedUntil = payload?.locked_until || null;
+    throw error;
+  }
+
+  const { data, error } = await client.auth.setSession({
+    access_token: payload.session.access_token,
+    refresh_token: payload.session.refresh_token,
+  });
+  if (error) throw error;
+  return { data, error: null };
+}
