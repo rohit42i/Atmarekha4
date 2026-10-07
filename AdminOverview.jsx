@@ -100,7 +100,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     const loadLast24 = async () => {
       try {
         const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.rpc('get_admin_analytics', { p_days: 1 }),
+          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } }).then(result => ({ data: result.data?.data || null, error: result.error })),
           fetchCloudflareAdminAnalytics(1).catch(() => null),
         ]);
         if (error) throw error;
@@ -129,7 +129,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     const loadAnalytics = async () => {
       try {
         const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.rpc('get_admin_analytics', { p_days: Number(days) }),
+          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }).then(result => ({ data: result.data?.data || null, error: result.error })),
           fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
         ]);
         if (error) throw error;
