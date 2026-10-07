@@ -1,3 +1,5 @@
+import FeedbackForm from './FeedbackForm.jsx';
+
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
@@ -84,7 +86,7 @@ export default function InfoPage({ type, onBack }) {
         <div className="about-story" aria-label="About the story">
           {page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </div>
-      </> : <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>}
+      </> : <><div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>{type==='report' && <FeedbackForm/>}</>}
     </section>
   </main>;
 }
