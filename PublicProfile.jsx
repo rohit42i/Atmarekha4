@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabase';
+import { supabase, getPublicReaderTiers } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
 
 const ago=value=>{const d=Math.max(0,Date.now()-new Date(value).getTime()),m=Math.floor(d/60000);if(m<1)return'just now';if(m<60)return`${m}m ago`;const h=Math.floor(m/60);if(h<24)return`${h}h ago`;const days=Math.floor(h/24);if(days<30)return`${days}d ago`;return new Date(value).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})};
