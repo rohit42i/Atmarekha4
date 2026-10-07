@@ -58,6 +58,12 @@ export function ServiceUnavailablePage({ retryAt=null }) {
   </Shell>;
 }
 
+export function Error430Page() {
+  return <Shell code="430" eyebrow="ATMA REKHA • SITE ERROR" title="Something went wrong" copy="This is a dedicated error page. The Atma Rekha home page remains available separately.">
+    <div className="error-actions"><button className="primary-button" type="button" onClick={()=>go('/')}>Back home</button><button className="secondary-button" type="button" onClick={()=>window.location.reload()}>Try again</button></div>
+  </Shell>;
+}
+
 export function OfflinePage({ onRetry }) {
   return <Shell code="OFFLINE" eyebrow="NO INTERNET" title="You’re offline" copy="Your connection is unavailable. Saved pages remain available, and we’ll retry automatically when you’re back online.">
     <div className="error-actions"><button className="primary-button" type="button" onClick={onRetry || (()=>window.location.reload())}>Retry connection</button><button className="secondary-button" type="button" onClick={()=>go('/chapters')}>Browse chapters</button></div>
