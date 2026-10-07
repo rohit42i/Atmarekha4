@@ -82,9 +82,12 @@ async function main() {
   }
 
   if (chapters === null) {
-    if (!existing) throw new Error('No existing sitemap and Supabase metadata is unavailable.');
-    console.warn('Keeping the existing sitemap.');
-    return;
+    if (existing) {
+      console.warn('Keeping the existing sitemap.');
+      return;
+    }
+    chapters = [];
+    console.warn('Supabase metadata unavailable; generating static-route sitemap only.');
   }
 
   const urls = [];
