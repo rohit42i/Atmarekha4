@@ -433,3 +433,150 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     } else if (type === 'chapters') {
       title = 'Atma Rekha | Chapters';
       description = 'Read the published chapters of Atma Rekha, an Indian fantasy manga/comic.';
+    } else if (type === 'info') {
+      const infoType = routeParts[1] || 'about';
+      const labels = { about: 'About Atma Rekha', contact: 'Contact Atma Rekha', report: 'Report Atma Rekha Content', privacy: 'Atma Rekha Privacy Policy', terms: 'Atma Rekha Terms and Conditions' };
+      title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
+      description = infoType === 'about' ? 'Learn about Atma Rekha, its creator Arkesh, its Indian fantasy adventure setting and how to read the manga.' : (labels[infoType] || 'Atma Rekha') + ' information from the official website.';
+    } else if (type === 'pal-do-pal-ke-lamhe') {
+      title = 'Atma Rekha | Pal Do Pal Ke Lamhe';
+      description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
+    } else if (type === 'not-found') {
+      title = 'Page Not Found | Atma Rekha';
+      description = 'The Atma Rekha page you requested could not be found.';
+    }
+
+    const publicRoute = type === 'chapters'
+      ? '/chapters'
+      : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
+        ? '/info/' + routeParts[1]
+        : type === 'pal-do-pal-ke-lamhe'
+          ? '/pal-do-pal-ke-lamhe'
+          : '/';
+    const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
+    const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
+    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
+    const isNotFound = type === 'not-found';
+    upsertMeta('name', 'robots', isPrivateRoute || isNotFound ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    setDocumentLanguage(chapterLanguage);
+    clearAlternateLanguages();
+    if (chapter && !isPrivateRoute) {
+      const sameNumber = chapters.filter(item => {
+        const a = item?.chapterNumber;
+        const b = chapter?.chapterNumber;
+        return a !== null && a !== undefined && a !== '' && b !== null && b !== undefined && b !== ''
+          && String(a).trim() === String(b).trim();
+      });
+      const english = sameNumber.find(item => normalizeChapterLanguage(item.language) === 'en');
+      const hindi = sameNumber.find(item => normalizeChapterLanguage(item.language) === 'hi');
+      if (english) upsertAlternateLanguage('en-IN', chapterLanguageUrl(english, 'en'));
+      if (hindi) upsertAlternateLanguage('hi-Latn-IN', chapterLanguageUrl(hindi, 'hi'));
+      const fallback = hindi || english || chapter;
+      upsertAlternateLanguage('x-default', chapterLanguageUrl(fallback, normalizeChapterLanguage(fallback.language)));
+    }
+
+    document.title = title;
+    upsertMeta('name', 'description', description);
+    upsertMeta('name', 'author', 'Arkesh');
+    upsertMeta('property', 'og:type', chapter ? 'article' : 'website');
+    upsertMeta('property', 'og:locale', chapterLanguage === 'en' ? 'en_IN' : 'hi_IN');
+    removeMeta('property', 'og:locale:alternate');
+    if (chapter && !isPrivateRoute) upsertMeta('property', 'og:locale:alternate', chapterLanguage === 'en' ? 'hi_IN' : 'en_IN');
+    upsertMeta('property', 'og:title', title);
+    upsertMeta('property', 'og:description', description);
+    upsertMeta('property', 'og:url', canonicalUrl);
+    upsertMeta('property', 'og:image', image);
+    upsertMeta('property', 'og:image:alt', title);
+    upsertMeta('name', 'twitter:title', title);
+    upsertMeta('name', 'twitter:description', description);
+    upsertMeta('name', 'twitter:image', image);
+    upsertMeta('name', 'twitter:image:alt', title);
+    upsertCanonical(canonicalUrl);
+    removeMeta('property', 'article:published_time');
+    removeMeta('property', 'article:author');
+    if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
+    if (chapter) upsertMeta('property', 'article:author', 'Arkesh');
+
+    const series = {
+      '@type': 'CreativeWorkSeries',
+      '@id': SITE_URL + '/#atma-rekha',
+      name: 'Atma Rekha',
+      genre: ['Fantasy', 'Adventure', 'Manga'],
+      alternateName: 'Atma Rekha Fantasy Adventure Manga',
+      description: DEFAULT_SEO_DESCRIPTION,
+      keywords: 'Indian fantasy manga, Indian comic, fantasy adventure manga, spiritual fantasy, mythical beings, ancient traditions, Roman Hindi manga',
+      author,
+      inLanguage: ['en-IN', 'hi-Latn-IN'],
+      url: SITE_URL + '/',
+      image: DEFAULT_SEO_IMAGE
+    };
+    const graph = [
+      {
+        '@type': 'WebSite',
+        '@id': SITE_URL + '/#website',
+        sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
+        name: 'Atma Rekha',
+        url: SITE_URL + '/',
+        description: DEFAULT_SEO_DESCRIPTION,
+        inLanguage: ['en-IN', 'hi-Latn-IN'],
+        creator: author,
+        about: ['Indian fantasy manga', 'Indian comic', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings']
+      },
+      series
+    ];
+    const breadcrumb = buildBreadcrumbList(type, routeParts, chapter, title, canonicalUrl);
+    if (breadcrumb) graph.push(breadcrumb);
+    if (chapter) {
+      graph.push({
+        '@type': 'CreativeWork',
+        '@id': canonicalUrl,
+        name: title,
+        headline: title,
+        description,
+        author,
+        image,
+        url: canonicalUrl,
+        isPartOf: { '@id': series['@id'] },
+        datePublished: chapter.releaseDate || chapter.createdAt || undefined,
+        inLanguage: normalizeChapterLanguage(chapter.language) === 'en' ? 'en-IN' : 'hi-Latn-IN'
+      });
+    }
+    upsertJsonLd({ '@context': 'https://schema.org', '@graph': graph });
+  }, [route, chapters]);
+ useEffect(() => {
+    const onChapterLinkClick = event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = event.target?.closest?.('a[href]');
+      if (!anchor || anchor.target === '_blank') return;
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin || !isChapterPath(url.pathname)) return;
+      event.preventDefault();
+      window.history.pushState({}, '', url.pathname + url.search);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    };
+    document.addEventListener('click', onChapterLinkClick);
+    return () => document.removeEventListener('click', onChapterLinkClick);
+  }, []); useEffect(() => {
+    if (!route.startsWith('read-chapter/') || !chapters.length) return;
+    const legacyId = legacyChapterIdFromHash('#' + route);
+    const chapter = chapters.find(item => String(item.id) === String(legacyId));
+    if (!chapter) return;
+    const nextPath = chapterPath(chapter);
+    const nextUrl = new URL(nextPath, window.location.origin);
+    if (window.location.pathname === nextUrl.pathname && window.location.search === nextUrl.search && !window.location.hash) return;
+    window.history.replaceState({}, '', nextUrl.pathname + nextUrl.search);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, [route, chapters]);
+ useEffect(() => {
+    captureMarketingAttribution();
+  }, [route]);
+ useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]); if (route === 'not-found') return <main className="not-found-page"><div className="not-found-card"><span>ATMA REKHA</span><strong>404</strong><h1>Page not found</h1><p>The page you were looking for doesn’t exist or may have moved.</p><div className="not-found-actions"><button className="primary-button" type="button" onClick={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Back home</button><button className="secondary-button" type="button" onClick={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Browse chapters</button></div></div></main>;
+  if (route.startsWith('chapter/')) {
+    const chapter = findChapterForPath('/' + route, chapters);
+    if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;
+    if (!chapter) return <main className="reader-page"><div className="reader-error"><div>⌁</div><h2>Chapter not found.</h2><button className="primary-button" onClick={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Back to chapters</button></div></main>;
+    return <Reader chapterId={chapter.id} onBack={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }} chapters={chapters}/>;
+  }
+  const returnToAdmin = route === 'membership' && window.location.pathname.replace(/\/+$/, '') === '/admin';
+  if (returnToAdmin || route === 'admin') return <AdminRoute onExit={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>
+  if (route === 'pal-do-pal-ke-lamhe' || route.startsWith('pal-do-pal-ke-lamhe/')) return <PalDoPalKeLamhe/>; if (route.startsWith('info/')) return <InfoPage type={route.split('/')[1]} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route === 'chapters') return <ChapterList chapters={chapters} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route.startsWith('read-chapter/')) return <Reader chapterId={decodeURIComponent(route.slice('read-chapter/'.length))} onBack={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }} chapters={chapters}/>; if (loading) return <main className="home-page"><LoadingState label="Loading Atma Rekha…"/></main>; if (error) return <main className="home-page"><div className="reader-error"><h2>{error}</h2><button className="primary-button" onClick={() => window.location.reload()}>Retry</button></div></main>; return <Home chapters={chapters}/>; }
