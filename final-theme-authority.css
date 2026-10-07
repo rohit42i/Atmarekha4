@@ -1366,3 +1366,18 @@ html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbo
     font-size:11px!important;
   }
 }
+
+
+/* Final sign-in panel correction */
+.auth-panel-backdrop{position:fixed!important;inset:0!important;z-index:10000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;box-sizing:border-box!important}
+.auth-panel{width:min(440px,100%)!important;margin:0!important;padding:28px!important;border:1px solid!important;border-radius:16px!important;box-sizing:border-box!important}
+.auth-panel-form{display:grid!important;gap:14px!important;margin-top:20px!important}
+.auth-panel-form label{display:grid!important;gap:7px!important;font-size:13px!important;font-weight:650!important}
+.auth-panel-form input{width:100%!important;min-height:46px!important;padding:0 13px!important;border:1px solid!important;border-radius:9px!important;box-sizing:border-box!important;font:inherit!important}
+.auth-panel-form .primary-button{width:100%!important;min-height:46px!important;margin-top:2px!important;border-radius:9px!important}
+.auth-panel-error{margin:14px 0 0!important;padding:10px 12px!important;border:1px solid #d33!important;border-radius:9px!important;background:transparent!important;color:#c22!important;line-height:1.45!important}
+html[data-theme="dark"] .auth-panel-error{color:#ff8d8d!important;border-color:#733!important}
+.auth-panel-switch{text-align:center!important;margin:18px 0 0!important}
+.auth-panel-link{display:block!important;margin:12px auto 0!important;background:transparent!important;border:0!important;padding:6px!important}
+.auth-panel-close{position:absolute!important;top:12px!important;right:12px!important}
+.auth-panel{position:relative!important}
