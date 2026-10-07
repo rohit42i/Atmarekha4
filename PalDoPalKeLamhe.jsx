@@ -515,17 +515,27 @@ export default function PalDoPalKeLamhe() {
     setLoading(true);
 
     try {
-      const [rows, access] = await Promise.all([
-        buildPdlplChapters(),
-        getPdlplMemberAccess(),
-      ]);
+      const rows = await buildPdlplChapters();
+      const publishedRows = rows.filter(chapter => published(chapter));
+      const publishedChapters = publishedRows.filter(chapter => String(chapter.language || 'hi') === language);
 
-      const publishedChapters = rows.filter(chapter => published(chapter) && String(chapter.language || 'hi') === language);
+      // Keep the chapter list independent from membership/session lookup.
+      // A membership lookup failure must never make published chapters disappear.
       setChapters(publishedChapters);
-      setMember(access.member);
-      setAdmin(access.admin);
-      setMemberUser(access.user || null);
-      setMemberPlanId(access.planId || null);
+
+      try {
+        const access = await getPdlplMemberAccess();
+        setMember(access.member);
+        setAdmin(access.admin);
+        setMemberUser(access.user || null);
+        setMemberPlanId(access.planId || null);
+      } catch (accessError) {
+        console.warn('PDPL membership lookup:', accessError);
+        setMember(false);
+        setAdmin(false);
+        setMemberUser(null);
+        setMemberPlanId(null);
+      }
 
       const ids = publishedChapters.map(chapter => chapter.id);
       try {
