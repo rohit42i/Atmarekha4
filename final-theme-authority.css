@@ -422,12 +422,13 @@ html[data-theme="light"] .reader-error h2{
 html[data-theme="light"] .atma-loader-overlay[data-variant="main"]{
   background:#fff!important;
 }
-html[data-theme="light"] .atma-loader-overlay[data-variant="main"] .atma-loader,
-html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .atma-loader{
-  filter:invert(1)!important;
-}
+/* Loader is already recolored by AtmaLoader.jsx in Light Mode; never invert it again. */
+html[data-theme="light"] .atma-loader-overlay[data-variant="main"],
 html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"]{
-  background:transparent!important;
+  background:#fff!important;
+}
+html[data-theme="dark"] .atma-loader-overlay[data-variant="refresh"]{
+  background:#000!important;
 }
 
 
@@ -657,3 +658,48 @@ html[data-theme="dark"] .more-page-button{
 html[data-theme="dark"] .more-page-button:hover:not(:disabled){background:#0b0b0b!important;color:#fff!important;border-color:#444!important}
 html[data-theme="dark"] .more-page-button small{color:#aaa!important}
 html[data-theme="dark"] .more-page-button>b{color:#fff!important}
+
+
+/* Final sizing for the four affected Light Mode areas — reduced only slightly. */
+html[data-theme="light"] .user-auth-avatar,
+html[data-theme="light"] .user-auth-avatar-fallback{
+  width:32px!important;
+  height:32px!important;
+}
+html[data-theme="light"] .user-auth-name{
+  font-size:12px!important;
+}
+html[data-theme="light"] .profile-v2-avatar-wrap>img{
+  width:96px!important;
+  height:96px!important;
+}
+html[data-theme="light"] .profile-v2-heading h1{
+  font-size:28px!important;
+}
+html[data-theme="light"] .membership-faq-heading h2{
+  font-size:26px!important;
+}
+html[data-theme="light"] .membership-faq-list details summary{
+  font-size:12.5px!important;
+}
+html[data-theme="light"] .membership-faq-list details p{
+  font-size:11px!important;
+}
+@media(max-width:620px){
+  html[data-theme="light"] .profile-v2-avatar-wrap>img{
+    width:78px!important;
+    height:78px!important;
+  }
+  html[data-theme="light"] .profile-v2-heading h1{
+    font-size:22px!important;
+  }
+  html[data-theme="light"] .membership-faq-heading h2{
+    font-size:23px!important;
+  }
+  html[data-theme="light"] .membership-faq-list details summary{
+    font-size:12px!important;
+  }
+  html[data-theme="light"] .membership-faq-list details p{
+    font-size:10.5px!important;
+  }
+}
