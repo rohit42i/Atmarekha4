@@ -72,10 +72,6 @@ html[data-theme="dark"] {
   }
 
   /* Keep semantic status indicators visually meaningful without changing text colour. */
-  .status-dot,
-  .ar-admin-status-card .status-dot {
-  }
-
   /* Disabled controls remain visually disabled through background/border rules,
      while their text itself stays pure white. */
   button:disabled,
@@ -91,6 +87,5 @@ html[data-theme="dark"] {
   a, li, dt, dd, legend, figcaption, summary,
   th, td, caption {
     color: #fff !important;
-    opacity: 1 !important;
   }
 }
