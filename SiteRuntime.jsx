@@ -19,6 +19,60 @@ function NetworkStatus() {
   return <div className="network-status network-status-offline" role="status" aria-live="assertive">You are offline. Saved pages remain available.</div>;
 }
 
+function ModalAccessibility() {
+  useEffect(() => {
+    const onKeyDown = event => {
+      const modal = [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')].at(-1);
+      if (!modal) return;
+      if (event.key === 'Escape') {
+        const close = modal.querySelector('[aria-label*="close" i], [aria-label*="cancel" i], .auth-panel-close, .membership-close, .ec-close');
+        if (close instanceof HTMLElement) close.click();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = [...modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter(node => node instanceof HTMLElement && node.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, []);
+  return null;
+}
+
+function SessionMonitor() {
+  const [warning, setWarning] = useState('');
+  useEffect(() => {
+    let timer = 0;
+    const parseExp = token => {
+      try {
+        const payload = JSON.parse(atob(String(token).split('.')[1].replace(/-/g,'+').replace(/_/g,'/').padEnd(4*Math.ceil(String(token).split('.')[1].length/4),'=')));
+        return Number(payload.exp || 0) * 1000;
+      } catch { return 0; }
+    };
+    const arm = session => {
+      window.clearTimeout(timer);
+      const exp = parseExp(session?.access_token);
+      if (!exp) return;
+      const delay = Math.max(5000, exp - Date.now() - 120000);
+      timer = window.setTimeout(() => setWarning('Your session is close to refreshing. Please keep this tab open while we secure your session.'), delay);
+    };
+    supabase.auth.getSession().then(({data})=>arm(data?.session));
+    const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{if(session) {setWarning('');arm(session)} else {setWarning('') }});
+    return()=>{window.clearTimeout(timer);listener.subscription.unsubscribe()};
+  },[]);
+  return warning ? <div className="session-warning" role="status" aria-live="polite"><span>{warning}</span><button type="button" onClick={()=>setWarning('')} aria-label="Dismiss session warning">×</button></div> : null;
+}
+
 function ToastHost() {
   const [items, setItems] = useState([]);
   useEffect(() => {
@@ -103,5 +157,5 @@ export default function SiteRuntime() {
     window.addEventListener('online', onOnline);
     return () => { window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); };
   }, []);
-  return <><NetworkStatus/><PageProgress/><ToastHost/><BackToTop/><InstallPrompt/><ServiceWorkerManager/>{!online && <div className="offline-runtime-shell"><OfflinePage onRetry={()=>window.location.reload()}/></div>}</>;
+  return <><NetworkStatus/><SessionMonitor/><ModalAccessibility/><PageProgress/><ToastHost/><BackToTop/><InstallPrompt/><ServiceWorkerManager/>{!online && <div className="offline-runtime-shell"><OfflinePage onRetry={()=>window.location.reload()}/></div>}</>;
 }
