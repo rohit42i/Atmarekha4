@@ -11,6 +11,7 @@ import { AdminSidebar } from './admin-studio-ui.jsx';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
+import EmailCampaigns from './EmailCampaigns.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -76,6 +77,7 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
+    { key: 'Email Campaigns', icon: 'message', label: 'Email Campaigns' },
   ]},
   { label: 'Monetization', items: [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
@@ -787,7 +789,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Membership & Earnings', 'Media'];
+  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -897,7 +899,7 @@ export default function AdminPanel({ onLogout }) {
       reportCount={reportCount}
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
-    />: tab === 'Announcements' ? <section className="admin-stack">
+    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
