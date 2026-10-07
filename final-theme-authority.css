@@ -703,3 +703,62 @@ html[data-theme="light"] .membership-faq-list details p{
     font-size:10.5px!important;
   }
 }
+
+
+/* Stable backup geometry restored for reader navigation and discovery controls. */
+.reader-stage{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;min-height:min(78vh,900px)!important;overflow:auto!important}
+.reader-side-button{position:absolute!important;top:50%!important;transform:translateY(-50%)!important;width:52px!important;height:52px!important;border:1px solid currentColor!important;border-radius:50%!important;background:rgb(0 0 0 / .70)!important;color:#fff!important;font-size:34px!important;line-height:1!important;cursor:pointer!important;z-index:4!important}
+.reader-side-button.left{left:16px!important}.reader-side-button.right{right:16px!important}
+.reader-controls{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;align-items:center!important;gap:14px!important;margin-top:16px!important}
+.reader-control{min-height:54px!important;border-radius:16px!important;font-weight:850!important}
+html[data-theme="light"] .reader-control.secondary{background:#fff!important;color:#111!important;border:1px solid #dedede!important}
+html[data-theme="light"] .reader-control.primary{background:#111!important;color:#fff!important;border:1px solid #111!important}
+html[data-theme="dark"] .reader-control.secondary{background:#101010!important;color:#fff!important;border:1px solid #292929!important}
+html[data-theme="dark"] .reader-control.primary{background:#fff!important;color:#000!important;border:1px solid #fff!important}
+.reader-control:disabled{opacity:.25!important}
+.reader-counter{min-width:80px!important;text-align:center!important}
+
+/* The discovery controls stay in one compact row, using the stable backup control structure. */
+.chapter-discovery{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important;width:min(700px,calc(100% - 24px))!important;margin:0 auto 16px!important}
+.chapter-discovery>label{width:auto!important;min-width:0!important;display:flex!important;align-items:center!important;gap:6px!important}
+.chapter-discovery>label:first-child{flex:1 1 auto!important;min-width:0!important}
+.chapter-discovery input{width:100%!important;min-width:0!important}
+.chapter-discovery .chapter-language,.chapter-discovery .chapter-sort{flex:0 0 auto!important}
+.chapter-discovery select{width:auto!important;min-width:92px!important;max-width:125px!important}
+html[data-theme="light"] .chapter-discovery>label{background:#fff!important;color:#111!important;border-color:#dedede!important}
+html[data-theme="dark"] .chapter-discovery>label{background:#030303!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="light"] .chapter-discovery input,html[data-theme="light"] .chapter-discovery select{background:transparent!important;color:#111!important}
+html[data-theme="dark"] .chapter-discovery input,html[data-theme="dark"] .chapter-discovery select{background:transparent!important;color:#fff!important}
+html[data-theme="light"] .chapter-discovery select option{background:#fff!important;color:#111!important}
+html[data-theme="dark"] .chapter-discovery select option{background:#111!important;color:#fff!important}
+
+/* Auth panel — explicit surfaces prevent the sign-in screen from inheriting broken legacy colours. */
+html[data-theme="light"] .auth-panel-backdrop{background:rgb(0 0 0 / .48)!important}
+html[data-theme="light"] .auth-panel{background:#fff!important;color:#111!important;border-color:#dedede!important;box-shadow:0 24px 80px rgb(0 0 0 / .18)!important}
+html[data-theme="light"] .auth-panel h2,html[data-theme="light"] .auth-panel label,html[data-theme="light"] .auth-panel-subtitle,html[data-theme="light"] .auth-panel-switch{color:#111!important}
+html[data-theme="light"] .auth-panel-form input{background:#fff!important;color:#111!important;border-color:#d8d8d8!important}
+html[data-theme="light"] .auth-panel-form input:focus{border-color:#111!important;box-shadow:0 0 0 3px rgb(0 0 0 / .08)!important}
+html[data-theme="light"] .auth-panel .primary-button{background:#111!important;color:#fff!important;border-color:#111!important}
+html[data-theme="light"] .auth-panel-link,html[data-theme="light"] .auth-panel-switch button{color:#111!important}
+html[data-theme="light"] .auth-panel-close{color:#111!important}
+html[data-theme="light"] .auth-privacy-notice{color:#555!important}
+html[data-theme="dark"] .auth-panel-backdrop{background:rgb(0 0 0 / .72)!important}
+html[data-theme="dark"] .auth-panel{background:#050505!important;color:#fff!important;border-color:#292929!important;box-shadow:none!important}
+html[data-theme="dark"] .auth-panel h2,html[data-theme="dark"] .auth-panel label,html[data-theme="dark"] .auth-panel-subtitle,html[data-theme="dark"] .auth-panel-switch{color:#fff!important}
+html[data-theme="dark"] .auth-panel-form input{background:#030303!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="dark"] .auth-panel .primary-button{background:#fff!important;color:#000!important;border-color:#fff!important}
+html[data-theme="dark"] .auth-panel-link,html[data-theme="dark"] .auth-panel-switch button{color:#fff!important}
+html[data-theme="dark"] .auth-panel-close{color:#fff!important}
+html[data-theme="dark"] .auth-privacy-notice{color:#aaa!important}
+
+@media(max-width:560px){
+  .chapter-discovery{gap:5px!important}
+  .chapter-discovery>label:first-child{flex:1 1 auto!important;min-width:0!important}
+  .chapter-discovery .chapter-language,.chapter-discovery .chapter-sort{flex:0 0 auto!important}
+  .chapter-discovery select{min-width:76px!important;max-width:92px!important;padding-inline:7px!important}
+}
+@media(max-width:420px){
+  .chapter-discovery select{min-width:64px!important;max-width:78px!important;font-size:11px!important}
+  .reader-side-button{width:44px!important;height:44px!important;font-size:28px!important}
+  .reader-side-button.left{left:8px!important}.reader-side-button.right{right:8px!important}
+}
