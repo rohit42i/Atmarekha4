@@ -18,6 +18,8 @@ const required = [
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
   ['scripts/generate-sitemap.mjs', 'xmlns:image'],
+  ['public/_headers', '/profile*'],
+  ['public/_headers', 'X-Robots-Tag: noindex, nofollow, noarchive'],
 ];
 
 const forbidden = [
@@ -27,6 +29,10 @@ const forbidden = [
   ['App.jsx', 'getOfflineChapter'],
   ['App.jsx', 'offline-save-button'],
   ['ChapterDiscovery.jsx', 'Most viewed'],
+  ['public/robots.txt', 'Disallow: /profile'],
+  ['public/robots.txt', 'Disallow: /membership'],
+  ['public/robots.txt', 'Disallow: /group-chat'],
+  ['public/robots.txt', 'Disallow: /community'],
 ];
 
 let failed = false;
