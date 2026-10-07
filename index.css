@@ -401,3 +401,21 @@
   .not-found-actions .primary-button,
   .not-found-actions .secondary-button { width: 100%; }
 }
+.skip-to-content {
+  position: fixed;
+  left: 14px;
+  top: 14px;
+  z-index: 2147483647;
+  transform: translateY(-180%);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--legacy-f7f7f7-e50e19e1);
+  color: var(--legacy-080808-74a9726a);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform .16s ease;
+}
+.skip-to-content:focus {
+  transform: translateY(0);
+}
