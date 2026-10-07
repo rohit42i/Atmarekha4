@@ -14,6 +14,8 @@ import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentL
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
+import { NotFoundPage, ServiceUnavailablePage, MaintenancePage, ForbiddenPage } from './ErrorPages.jsx';
+import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
@@ -452,10 +454,18 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         ? '/info/' + routeParts[1]
         : type === 'pal-do-pal-ke-lamhe'
           ? '/pal-do-pal-ke-lamhe'
-          : '/';
+          : type === 'privacy-center'
+            ? '/privacy-center'
+            : type === 'maintenance'
+              ? '/maintenance'
+              : type === '403'
+                ? '/403'
+                : type === '503'
+                  ? '/503'
+                  : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
-    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
+    const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community', 'privacy-center', '403', '503', 'maintenance'].includes(type) || type.endsWith('-admin');
     const isNotFound = type === 'not-found';
     upsertMeta('name', 'robots', isPrivateRoute || isNotFound ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
     setDocumentLanguage(chapterLanguage);
@@ -570,7 +580,11 @@ export default function App() { const route = useHashRoute(); const [chapters, s
  useEffect(() => {
     captureMarketingAttribution();
   }, [route]);
- useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]); if (route === 'not-found') return <main className="not-found-page"><div className="not-found-card"><span>ATMA REKHA</span><strong>404</strong><h1>Page not found</h1><p>The page you were looking for doesn’t exist or may have moved.</p><div className="not-found-actions"><button className="primary-button" type="button" onClick={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Back home</button><button className="secondary-button" type="button" onClick={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Browse chapters</button></div></div></main>;
+ useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]); if (route === 'not-found') return <NotFoundPage/>;
+  if (route === 'privacy-center') return <PrivacyCenter/>;
+  if (route === '403') return <ForbiddenPage onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>;
+  if (route === '503') return <ServiceUnavailablePage/>;
+  if (route === 'maintenance') return <MaintenancePage/>;
   if (route.startsWith('chapter/')) {
     const chapter = findChapterForPath('/' + route, chapters);
     if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;
