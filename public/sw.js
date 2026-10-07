@@ -1,7 +1,6 @@
 const CACHE_VERSION = 'atma-rekha-sw-v3';
 const SHELL_CACHE = `atma-rekha-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = 'atma-rekha-runtime-v2';
-const OFFLINE_URL = '/offline.html';
 const MEDIA_ORIGINS = new Set([
   'https://tiny-pond-c959.rohitbaswaraj.workers.dev',
   'https://pdlpl-media.rohitbaswaraj.workers.dev',
@@ -48,7 +47,7 @@ async function flushFeedbackQueue() {
   db.close();
 }
 
-const PRECACHE = ['/', '/offline.html', '/ishani.png', '/site.webmanifest'];
+const PRECACHE = ['/', '/ishani.png', '/site.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(PRECACHE)).catch(()=>{}));
