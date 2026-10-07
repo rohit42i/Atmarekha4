@@ -35,6 +35,39 @@ const CSS = `
 @keyframes atma-nodeTwo{0%{transform:translate(-50%,-50%) rotate(50deg) translateY(50px);opacity:.2}45%{transform:translate(-50%,-50%) rotate(210deg) translateY(80px);opacity:1}80%{transform:translate(-50%,-50%) rotate(345deg) translateY(45px);opacity:.25}100%{opacity:.2}}
 @keyframes atma-aura{0%,100%{transform:scale(.8);opacity:.25}50%{transform:scale(1.15);opacity:.8}}@keyframes atma-ringMove{0%{transform:translate(-50%,-50%) rotate(0deg) scale(.98)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.015)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(.98)}}@keyframes atma-ringPulse{0%,100%{opacity:.25}50%{opacity:.55}}@keyframes atma-ringLight{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @media(max-width:360px){.atma-loader-overlay[data-variant="main"] .atma-loader{width:170px;height:170px}.atma-loader-overlay[data-variant="refresh"] .atma-loader{width:95px;height:95px}}@media(prefers-reduced-motion:reduce){.atma-loader *,.atma-loader *:before,.atma-loader *:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+/* Theme-aware loader surfaces. Keep the loader artwork, switch only the surface/ink in Light Mode. */
+html[data-theme="light"] .atma-loader-overlay[data-variant="main"],
+html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"]{
+  background:#fff!important;
+}
+html[data-theme="light"] .atma-loader .aura{
+  background:radial-gradient(circle,rgba(0,0,0,.045),transparent 65%);
+}
+html[data-theme="light"] .atma-loader .outer-ring{
+  border-color:rgba(0,0,0,.16);
+  box-shadow:0 0 8px rgba(0,0,0,.05);
+}
+html[data-theme="light"] .atma-loader .outer-ring:after{
+  background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(0,0,0,.40) 325deg,rgba(0,0,0,.08) 340deg,transparent 360deg);
+}
+html[data-theme="light"] .atma-loader .mark{
+  stroke:rgba(0,0,0,.72);
+}
+html[data-theme="light"] .atma-loader .thread{
+  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.35),transparent);
+}
+html[data-theme="light"] .atma-loader .fragment{
+  background:rgba(0,0,0,.75);
+  box-shadow:0 0 4px rgba(0,0,0,.20);
+}
+html[data-theme="light"] .atma-loader .burst span{
+  background:linear-gradient(to top,rgba(0,0,0,.85),transparent);
+}
+html[data-theme="light"] .atma-loader .node{
+  background:#111;
+  box-shadow:0 0 10px rgba(0,0,0,.25);
+}
 `;
 
 function Artwork(){
