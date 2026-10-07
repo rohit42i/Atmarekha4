@@ -70,19 +70,33 @@ async function authHeaders() {
 
 export async function fetchAuthenticatedMedia(url, options = {}, retried = false) {
   let response;
+  const controller = new AbortController();
+  const parentSignal = options.signal;
+  let timedOut = false;
+  const forwardAbort = () => controller.abort(parentSignal.reason);
+  if (parentSignal) {
+    if (parentSignal.aborted) controller.abort(parentSignal.reason);
+    else parentSignal.addEventListener('abort', forwardAbort, { once: true });
+  }
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, 15000);
   try {
     response = await fetch(url, {
       ...options,
+      signal: controller.signal,
       headers: { ...(options.headers || {}), ...(await authHeaders()) },
     });
   } catch (error) {
     const failure = new Error(
       `Authenticated media request failed: ${error?.message || error}. Check the media Worker CORS/network configuration.`,
     );
-    failure.name = error?.name || 'NetworkError';
+    failure.name = timedOut ? 'TimeoutError' : (error?.name || 'NetworkError');
+    if (timedOut) failure.message = 'Authenticated media request timed out. Please try again.';
     failure.url = url;
     failure.cause = error;
     throw failure;
+  } finally {
+    clearTimeout(timer);
+    parentSignal?.removeEventListener?.('abort', forwardAbort);
   }
 
   if (response.status === 401 && !retried) {
