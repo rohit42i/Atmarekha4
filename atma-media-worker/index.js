@@ -110,9 +110,13 @@ async function getChapter(env, chapterId, authorization = null) {
   return Array.isArray(rows) ? rows[0] || null : null;
 }
 function isPublishedFreeChapter(chapter) {
-  if (!chapter || String(chapter.status || '').toLowerCase() !== 'published') return false;
+  if (!chapter || String(chapter.status || '').trim().toLowerCase() !== 'published') return false;
+
+  // Published unnumbered entries are special/Intro chapters and are public.
   const raw = chapter.chapter_number;
-  if (raw === null || raw === undefined || String(raw).trim() === '') return true;
+  const hasChapterNumber = raw !== null && raw !== undefined && String(raw).trim() !== '';
+  if (!hasChapterNumber) return true;
+
   const value = Number(raw);
   return Number.isFinite(value) && value >= 1 && value <= 8;
 }
