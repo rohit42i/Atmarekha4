@@ -111,7 +111,6 @@ async function getChapter(env, chapterId, authorization = null) {
 }
 function isPublishedFreeChapter(chapter) {
   if (!chapter || String(chapter.status || '').toLowerCase() !== 'published') return false;
-  const value = chapter.chapter_number;
   const value = Number(chapter.chapter_number);
   return Number.isFinite(value) && value >= 1 && value <= 8;
 }
