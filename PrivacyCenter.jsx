@@ -55,33 +55,23 @@ export default function PrivacyCenter() {
   const [exported, setExported] = useState(null);
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
-  const [nomination, setNomination] = useState(null);
-  const [nomineeName, setNomineeName] = useState('');
-  const [nomineeEmail, setNomineeEmail] = useState('');
-  const [nomineePhone, setNomineePhone] = useState('');
 
   const load = async currentUser => {
     setUser(currentUser);
     if (!currentUser) {
       setConsent(null);
       setDeletion(null);
-      setNomination(null);
       setLoading(false);
       return;
     }
 
     try {
-      const [{ data: consentRows }, { data: deletionRows }, { data: nominationRow }] = await Promise.all([
+      const [{ data: consentRows }, { data: deletionRows }] = await Promise.all([
         supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
         supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
-        supabase.from('dpdp_nominations').select('nominee_name,nominee_email,nominee_phone,created_at,updated_at').eq('user_id', currentUser.id).maybeSingle(),
       ]);
       setConsent(consentRows?.[0] || null);
       setDeletion(deletionRows?.[0] || null);
-      setNomination(nominationRow || null);
-      setNomineeName(nominationRow?.nominee_name || '');
-      setNomineeEmail(nominationRow?.nominee_email || '');
-      setNomineePhone(nominationRow?.nominee_phone || '');
     } catch (err) {
       setError(err?.message || 'Unable to load privacy controls.');
     } finally {
@@ -146,19 +136,6 @@ export default function PrivacyCenter() {
     if (!window.confirm('Request deletion of your eligible Atma Rekha personal data? Some information may need to be retained for security, payment, accounting, dispute or other lawful reasons.')) return;
     const data = await runAction('delete-request', 'Your deletion request has been submitted.');
     if (data?.request) setDeletion(data.request);
-  };
-
-  const saveNomination = async () => {
-    if (!nomineeName.trim() || busy) {
-      setError('Enter a nominee name.');
-      return;
-    }
-    const data = await runAction('nomination', 'Your nomination details were saved.', {
-      nominee_name: nomineeName.trim(),
-      nominee_email: nomineeEmail.trim(),
-      nominee_phone: nomineePhone.trim(),
-    });
-    if (data?.nomination) setNomination(data.nomination);
   };
 
   if (loading) {
