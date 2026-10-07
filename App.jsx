@@ -38,7 +38,7 @@ async function canReadAtmaChapter(chapter) {
   }
 }
 
-const STORY = { title: 'Atma Rekha', description: 'ATMA REKHA is an Indian fantasy manga/comic where ancient traditions, spiritual concepts, mysterious powers and mythical beings become part of an unfolding adventure.' };
+const STORY = { title: 'Atma Rekha', description: 'is an adventure manga/comic where traditions and powers become a part of an unfolding story.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, ancient traditions, and mysterious powers.';
