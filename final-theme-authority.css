@@ -429,3 +429,134 @@ html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .atma-load
 html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"]{
   background:transparent!important;
 }
+
+
+/* Final interaction cleanup: compact discovery controls, reliable public profiles,
+   and theme-correct Community surfaces. */
+.chapter-discovery{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+}
+.chapter-discovery>label{
+  width:auto!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+}
+.chapter-discovery>label:first-child{
+  flex:1 1 220px!important;
+  min-width:180px!important;
+}
+.chapter-discovery input{
+  width:min(100%,280px)!important;
+  min-width:0!important;
+}
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{
+  width:auto!important;
+  min-width:0!important;
+}
+.chapter-discovery .chapter-language span,
+.chapter-discovery .chapter-sort span{
+  white-space:nowrap!important;
+}
+.chapter-discovery select{
+  width:auto!important;
+  min-width:92px!important;
+  max-width:125px!important;
+  padding-inline:10px!important;
+}
+@media(max-width:560px){
+  .chapter-discovery>label:first-child{flex:1 1 100%!important}
+  .chapter-discovery input{width:100%!important}
+  .chapter-discovery .chapter-language,
+  .chapter-discovery .chapter-sort{flex:0 0 auto!important}
+}
+
+/* Public profile: no purple/gradient remnants; clear hierarchy in both themes. */
+.pp-page{
+  background:#fff!important;
+  color:#111!important;
+  padding:18px!important;
+}
+.pp-card{
+  background:#fff!important;
+  color:#111!important;
+  border:1px solid #dedede!important;
+  box-shadow:0 10px 35px rgb(0 0 0 / .08)!important;
+}
+.pp-head{border-color:#e2e2e2!important;color:#555!important}
+.pp-back{
+  background:#fff!important;color:#111!important;border-color:#d8d8d8!important;
+}
+.pp-avatar{
+  background:#f2f2f0!important;color:#111!important;
+}
+.pp-hero h1,.pp-hero p,.pp-bio,.pp-section h2,.pp-comments p{color:#111!important}
+.pp-hero p{color:#555!important}.pp-bio,.pp-hero small,.pp-muted,.pp-loading{color:#666!important}
+.pp-stats{border-color:#dedede!important;background:#fff!important}
+.pp-stats div{border-color:#dedede!important}.pp-stats span,.pp-comments time{color:#666!important}
+.pp-comments article{border-color:#e4e4e4!important}
+.pp-loading button{background:#111!important;color:#fff!important}
+html[data-theme="dark"] .pp-page{background:#000!important;color:#fff!important}
+html[data-theme="dark"] .pp-card{background:#030303!important;color:#fff!important;border-color:#292929!important;box-shadow:none!important}
+html[data-theme="dark"] .pp-head{border-color:#292929!important;color:#aaa!important}
+html[data-theme="dark"] .pp-back{background:#030303!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="dark"] .pp-avatar{background:#111!important;color:#fff!important}
+html[data-theme="dark"] .pp-hero h1,
+html[data-theme="dark"] .pp-hero p,
+html[data-theme="dark"] .pp-bio,
+html[data-theme="dark"] .pp-section h2,
+html[data-theme="dark"] .pp-comments p{color:#fff!important}
+html[data-theme="dark"] .pp-hero p,
+html[data-theme="dark"] .pp-bio,
+html[data-theme="dark"] .pp-hero small,
+html[data-theme="dark"] .pp-muted,
+html[data-theme="dark"] .pp-loading,
+html[data-theme="dark"] .pp-stats span,
+html[data-theme="dark"] .pp-comments time{color:#aaa!important}
+html[data-theme="dark"] .pp-stats{border-color:#292929!important;background:#030303!important}
+html[data-theme="dark"] .pp-stats div,.pp-comments article{border-color:#292929!important}
+html[data-theme="dark"] .pp-loading button{background:#fff!important;color:#000!important}
+
+/* Community: make the page a real readable surface instead of relying on legacy
+   theme aliases. */
+html[data-theme="light"] .community-page{background:#fff!important;color:#111!important}
+html[data-theme="light"] .community-header{background:#fff!important;color:#111!important;border-color:#dedede!important}
+html[data-theme="light"] .community-header h1,
+html[data-theme="light"] .community-header p{color:#111!important}
+html[data-theme="light"] .community-feed{background:#fff!important}
+html[data-theme="light"] .community-welcome,
+html[data-theme="light"] .community-post,
+html[data-theme="light"] .community-attachment,
+html[data-theme="light"] .community-membership-card{background:#fff!important;color:#111!important;border-color:#dedede!important;box-shadow:0 6px 22px rgb(0 0 0 / .06)!important}
+html[data-theme="light"] .community-welcome p,
+html[data-theme="light"] .community-post p,
+html[data-theme="light"] .community-post-meta,
+html[data-theme="light"] .community-post-footer,
+html[data-theme="light"] .community-attachment small{color:#555!important}
+html[data-theme="light"] .community-post h3,
+html[data-theme="light"] .community-welcome h2{color:#111!important}
+html[data-theme="light"] .community-post-actions button,
+html[data-theme="light"] .community-reaction-summary button{color:#111!important;background:#fff!important;border-color:#dedede!important}
+html[data-theme="dark"] .community-page{background:#000!important;color:#fff!important}
+html[data-theme="dark"] .community-header{background:#000!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="dark"] .community-header h1,
+html[data-theme="dark"] .community-header p{color:#fff!important}
+html[data-theme="dark"] .community-feed{background:#000!important}
+html[data-theme="dark"] .community-welcome,
+html[data-theme="dark"] .community-post,
+html[data-theme="dark"] .community-attachment,
+html[data-theme="dark"] .community-membership-card{background:#030303!important;color:#fff!important;border-color:#292929!important;box-shadow:none!important}
+html[data-theme="dark"] .community-welcome p,
+html[data-theme="dark"] .community-post p,
+html[data-theme="dark"] .community-post-meta,
+html[data-theme="dark"] .community-post-footer,
+html[data-theme="dark"] .community-attachment small{color:#aaa!important}
+html[data-theme="dark"] .community-post h3,
+html[data-theme="dark"] .community-welcome h2{color:#fff!important}
+html[data-theme="dark"] .community-post-actions button,
+html[data-theme="dark"] .community-reaction-summary button{color:#fff!important;background:#030303!important;border-color:#292929!important}
