@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from './supabase';
+import { supabase, secureSignInWithPassword } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { validateEmail } from './formUX.js';
 
@@ -19,8 +19,7 @@ export default function AdminLogin({ onLoginSuccess }) {
     if(!password){setFieldError('Password is required.');setError('Please enter your password.');return}
     setFieldError('');setError('');setBusy(true);
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      if (authError) throw authError;
+      const { data } = await secureSignInWithPassword(email.trim(), password);
       const role = await getAdminRole(data.user?.id);
       if (!role) {
         await supabase.auth.signOut();
