@@ -49,7 +49,6 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
       if (sort === 'newest') return new Date(b.releaseDate || b.createdAt || 0) - new Date(a.releaseDate || a.createdAt || 0);
       if (sort === 'oldest') return new Date(a.releaseDate || a.createdAt || 0) - new Date(b.releaseDate || b.createdAt || 0);
       if (sort === 'rating') return Number(stats?.[b.id]?.rating?.average || 0) - Number(stats?.[a.id]?.rating?.average || 0);
-      if (sort === 'views') return Number(stats?.[b.id]?.views || 0) - Number(stats?.[a.id]?.views || 0);
       return getNumber(a) - getNumber(b);
     });
 
@@ -58,7 +57,7 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
 
   return (
     <>
-      <div className="chapter-discovery"><label><span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" autoComplete="off" spellCheck="false" />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear chapter search">×</button>}</label><label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange?.(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></label><label className="chapter-sort"><span>Sort</span><select value={sort} onChange={event => setSort(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option><option value="views">Most viewed</option></select></label></div>
+      <div className="chapter-discovery"><label><span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" autoComplete="off" spellCheck="false" />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear chapter search">×</button>}</label><label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange?.(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></label><label className="chapter-sort"><span>Sort</span><select value={sort} onChange={event => setSort(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option></select></label></div>
 
       {renderChapter(visible, recentChapterIds, navigateToChapter)}
 
@@ -94,8 +93,6 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
             <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
             <span>•</span>
             <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-            <span>•</span>
-            <span>👁 {new Intl.NumberFormat('en-IN', { notation: Number(item.views) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.views) || 0)}</span>
           </div>
           <div className="chapter-row-details">
             <span>📄 {item.pages || '—'} pages</span>
