@@ -697,3 +697,5 @@ html[data-theme="dark"] .chapter-discovery .chapter-language option {
   background: #030303;
   color: #fff;
 }
+
+html[data-theme="light"] .user-profile-page{background:#fff!important;color:#111!important}html[data-theme="light"] .user-profile-top{background:#fff!important;border-color:#e5e5e5!important;color:#111!important}html[data-theme="light"] .user-profile-card{background:#fff!important;color:#111!important;border-color:#e2e2e2!important;box-shadow:0 10px 30px rgba(0,0,0,.06)!important}html[data-theme="dark"] .user-profile-page{background:#000!important;color:#fff!important}html[data-theme="dark"] .user-profile-card{background:#050505!important;color:#fff!important;border-color:#222!important;box-shadow:none!important}html[data-theme="light"] .rating-modal,html[data-theme="light"] .rating-sheet{background:#fff!important;color:#111!important}html[data-theme="dark"] .rating-modal,html[data-theme="dark"] .rating-sheet{background:#000!important;color:#fff!important}
