@@ -3,3 +3,135 @@
 .feedback-form{margin-top:26px;padding:22px;border:1px solid var(--legacy-292929-ce596263);border-radius:18px;background:var(--legacy-0b0b0c-9089d82e)}.feedback-form h2{margin:0 0 7px}.feedback-form>p{margin:0 0 18px;color:var(--legacy-a1a1aa-0030ed12);font-size:12px;line-height:1.6}.feedback-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.feedback-form label{display:grid;gap:7px;margin-top:12px;font-size:12px;font-weight:800}.feedback-form input,.feedback-form select,.feedback-form textarea{width:100%;box-sizing:border-box;min-height:46px;padding:11px 12px;border:1px solid var(--legacy-292929-ce596263);border-radius:12px;background:var(--legacy-151516-55d165a5);color:inherit;font:inherit}.feedback-form textarea{min-height:130px;resize:vertical}.feedback-form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}.feedback-secure-note{color:var(--legacy-a1a1aa-0030ed12);font-size:11px}.feedback-honeypot{position:absolute!important;left:-10000px!important;opacity:0!important;height:1px!important;width:1px!important;overflow:hidden!important}.session-warning{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483007;display:flex;align-items:center;gap:10px;width:min(620px,calc(100vw - 28px));box-sizing:border-box;padding:12px 15px;border:1px solid #a66a00;border-radius:14px;background:#3d2a00;color:#ffd166;box-shadow:0 18px 55px rgba(0,0,0,.3);font-size:12px;font-weight:750}.session-warning span{flex:1}.session-warning button{border:0;background:transparent;color:inherit;font-size:20px;cursor:pointer}@media(max-width:700px){.feedback-field-grid{grid-template-columns:1fr}.feedback-form{padding:18px}.feedback-form-actions{align-items:stretch;flex-direction:column}.feedback-form-actions .primary-button{width:100%}}
 @media print{body{background:#fff!important;color:#000!important}.site-progress,.network-status,.toast-host,.back-to-top,.install-prompt,.update-banner,.session-warning,.reader-header,.reader-controls,.reader-side-button,.reader-chapter-nav,.reader-engagement,.profile-signout,.profile-v2-edit-button,.membership-close{display:none!important}.reader-page,.site-shell,.info-page{min-height:auto!important;background:#fff!important;color:#000!important}.reader-content{padding:0!important}.reader-stage{box-shadow:none!important}.reader-stage img{max-width:100%!important}.info-card,.privacy-center-card,.privacy-action{border:1px solid #ccc!important;background:#fff!important;color:#000!important;box-shadow:none!important}}
 html{scroll-behavior:smooth}
+
+
+/* ================================================================
+   Atma Rekha — final semantic theme layer
+   Loaded last so legacy component styles cannot create a second theme.
+   WCAG AA targets: 4.5:1 text, 3:1 controls/non-text UI.
+   ================================================================ */
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+  --color-background: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f1f2f3;
+  --color-surface-hover: #e9ebee;
+  --color-text-primary: #16181d;
+  --color-text-secondary: #3d4148;
+  --color-text-muted: #5f636b;
+  --color-text-faint: #6b7078;
+  --color-border: #d5d8de;
+  --color-border-strong: #b8bdc6;
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1e40af;
+  --color-accent-contrast: #ffffff;
+  --color-focus: #1d4ed8;
+  --color-success: #126b45;
+  --color-success-bg: #edf8f2;
+  --color-danger: #b42318;
+  --color-danger-bg: #fff1ef;
+  --color-warning: #805b00;
+  --color-warning-bg: #fff7df;
+  --color-overlay: rgb(0 0 0 / .48);
+  --color-shadow: rgb(15 23 42 / .10);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-background: #070809;
+  --color-surface: #101214;
+  --color-surface-raised: #171a1e;
+  --color-surface-hover: #20242a;
+  --color-text-primary: #f5f7fa;
+  --color-text-secondary: #d2d6dc;
+  --color-text-muted: #aeb4bd;
+  --color-text-faint: #969da7;
+  --color-border: #343941;
+  --color-border-strong: #4b525c;
+  --color-accent: #9db8ff;
+  --color-accent-hover: #bdd0ff;
+  --color-accent-contrast: #08111f;
+  --color-focus: #b8ccff;
+  --color-success: #7ee2b2;
+  --color-success-bg: #10251c;
+  --color-danger: #ff9b91;
+  --color-danger-bg: #2b1412;
+  --color-warning: #ffd27a;
+  --color-warning-bg: #2a2110;
+  --color-overlay: rgb(0 0 0 / .72);
+  --color-shadow: rgb(0 0 0 / .48);
+}
+
+html, body, #root { background: var(--color-background) !important; color: var(--color-text-primary) !important; }
+body { min-height: 100dvh; }
+
+/* Surfaces: no washed-out cards in light mode and no flat black-on-black in dark mode. */
+body :where(.home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,.info-page,.chapter-list-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell) {
+  background: var(--color-background) !important;
+  color: var(--color-text-primary) !important;
+}
+body :where(.hero-card,.project-card,.home-section,.chapter-row,.latest-item,.info-card,.about-card,.legal-card,.privacy-center-card,.privacy-policy-card,.privacy-controls-card,.profile-v2-card,.profile-community-card,.profile-v2-list-item,.community-post,.rating-card,.reader-rating-card,.auth-panel,.rating-sheet,.comment-sheet,.ec-sheet,.ec-preview,.membership-plan) {
+  background: var(--color-surface) !important;
+  background-image: none !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
+}
+body :where(.hero-card:hover,.project-card:hover,.home-section:hover,.chapter-row:hover,.latest-item:hover,.info-card:hover,.about-card:hover,.legal-card:hover,.privacy-center-card:hover,.profile-v2-card:hover,.profile-community-card:hover,.community-post:hover,.rating-card:hover,.membership-plan:hover) {
+  background: var(--color-surface-hover) !important;
+  border-color: var(--color-border-strong) !important;
+}
+
+/* Typography: use inheritance so icons/badges can intentionally opt out. */
+body :where(h1,h2,h3,h4,h5,h6,strong,b,blockquote,dt,dd,legend,caption,summary) { color: var(--color-text-primary); }
+body :where(p,li,label,figcaption,.description,.subtitle) { color: var(--color-text-secondary); }
+body :where(small,time,.muted,.secondary-text,.faint,.hint) { color: var(--color-text-muted); }
+body :where(a) { color: var(--color-accent); }
+body :where(a:hover) { color: var(--color-accent-hover); }
+
+/* Controls and form fields. */
+body :where(input,textarea,select) {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
+  caret-color: var(--color-text-primary);
+}
+body :where(input,textarea,select)::placeholder { color: var(--color-text-muted) !important; opacity: 1; }
+body :where(input:hover,textarea:hover,select:hover) { border-color: var(--color-border-strong) !important; }
+body :where(input:disabled,textarea:disabled,select:disabled,button:disabled) { opacity: .58; cursor: not-allowed; }
+
+body :where(button,[role="button"]) { color: var(--color-text-primary); border-color: var(--color-border); }
+body :where(button:not(.primary-button):not(.hero-button):not(.primary):hover,[role="button"]:hover) { background: var(--color-surface-hover); }
+body :where(.primary-button,.hero-button,.primary,.admin-submit,.reader-control.primary,.community-join,.ec-join) {
+  background: var(--color-accent) !important;
+  color: var(--color-accent-contrast) !important;
+  border-color: var(--color-accent) !important;
+}
+body :where(.primary-button,.hero-button,.primary,.admin-submit,.reader-control.primary,.community-join,.ec-join):hover {
+  background: var(--color-accent-hover) !important;
+  border-color: var(--color-accent-hover) !important;
+}
+
+/* Focus is visible in both themes and never depends on a purple glow. */
+body :where(a,button,input,textarea,select,[role="button"]):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-focus) 72%, transparent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* Semantic feedback. */
+body :where(.inline-error,.form-error,.error,[aria-invalid="true"]) { color: var(--color-danger) !important; background: var(--color-danger-bg) !important; border-color: color-mix(in srgb,var(--color-danger) 45%,var(--color-border)) !important; }
+body :where(.success,[data-status="success"]) { color: var(--color-success) !important; }
+body :where(.warning,[data-status="warning"]) { color: var(--color-warning) !important; background: var(--color-warning-bg) !important; }
+
+/* Dividers and SVG/icon inheritance. */
+body :where(hr,fieldset,[class*="divider"],[class*="separator"]) { border-color: var(--color-border) !important; }
+body :where(button,a,[role="button"]) svg { color: currentColor; stroke: currentColor; }
+
+/* Shadows stay restrained and theme-aware. */
+body :where(.hero-card,.project-card,.home-section,.info-card,.legal-card,.profile-v2-card,.membership-plan,.rating-card,.auth-panel,.ec-sheet) { box-shadow: 0 14px 36px var(--color-shadow) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *,*::before,*::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
