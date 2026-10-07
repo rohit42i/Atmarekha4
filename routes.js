@@ -63,8 +63,11 @@ export function findChapterForPath(pathname, chapters = []) {
     const matches = (chapters || []).filter(chapter => {
       const titleSlug = slugify(chapter?.title) || 'special';
       const suffix = shortChapterId(chapter?.id);
-      return slug === (suffix ? titleSlug + '-' + suffix : titleSlug)
-        || slug === String(chapter?.id || '');
+      const expected = suffix ? titleSlug + '-' + suffix : titleSlug;
+      const suffixMatch = suffix ? slug.endsWith('-' + suffix) : false;
+      return slug === expected
+        || slug === String(chapter?.id || '')
+        || suffixMatch;
     });
     return matches.find(chapter => normalizeLanguage(chapter?.language) === wantedLanguage)
       || matches.find(chapter => normalizeLanguage(chapter?.language) === 'hi')
