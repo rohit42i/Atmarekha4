@@ -18,6 +18,24 @@ function requestByEmail(subject, body = '') {
   window.location.href = url;
 }
 
+const DATA_TABLE = [
+  ['Account', 'Email, account ID and account-security timestamps', 'Account access, security and support'],
+  ['Profile', 'Username, display name, avatar and bio when provided', 'Your public profile and personalisation'],
+  ['Reading', 'Progress, bookmarks, ratings and reading history', 'Save your place and operate reader features'],
+  ['Community', 'Comments, reactions, reports and related moderation records', 'Community features, safety and moderation'],
+  ['Membership', 'Plan, status and membership period', 'Provide paid chapter access and manage membership'],
+  ['Payments', 'Payment/subscription references and transaction status', 'Billing support, reconciliation and refunds'],
+  ['Technical', 'Device/browser, network and limited diagnostic information', 'Security, reliability and troubleshooting'],
+  ['Privacy requests', 'Consent, access and deletion request records', 'Handle your privacy choices and requests'],
+];
+
+const RETENTION_TABLE = [
+  ['Account data', 'While your account is active and for a limited period afterward where needed for security, support or legal obligations.'],
+  ['Reading and community data', 'While needed to provide the feature, preserve your choices, resolve disputes or meet applicable requirements.'],
+  ['Membership and payment records', 'For as long as needed for billing, accounting, fraud prevention, disputes and applicable legal/tax requirements.'],
+  ['Privacy requests and consent records', 'For as long as needed to evidence and handle the request, consent or withdrawal and meet applicable requirements.'],
+];
+
 function PolicySection({ heading, children }) {
   return <article className="privacy-policy-section"><h2>{heading}</h2><p>{children}</p></article>;
 }
@@ -134,6 +152,18 @@ export default function PrivacyCenter() {
       <PolicySection heading="Security and retention">We use reasonable security measures and keep information only for as long as needed for the purposes described here or where retention is otherwise required.</PolicySection>
       <PolicySection heading="Your privacy rights">Depending on where you live, you may have rights to access, correct, delete, receive, restrict or object to certain uses of your information, or withdraw consent where applicable. Contact us if you want to make a request.</PolicySection>
       <PolicySection heading="Contact">For privacy questions or requests, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may verify your identity before completing a request.</PolicySection>
+    </section>
+
+    <section className="privacy-policy-card">
+      <header className="privacy-section-heading"><p className="section-eyebrow">DATA GUIDE</p><h2>What data we handle</h2></header>
+      <div className="privacy-table-wrap"><table className="privacy-table"><thead><tr><th>Category</th><th>Examples</th><th>Why we use it</th></tr></thead><tbody>{DATA_TABLE.map(([category, examples, purpose]) => <tr key={category}><td><strong>{category}</strong></td><td>{examples}</td><td>{purpose}</td></tr>)}</tbody></table></div>
+    </section>
+
+    <section className="privacy-policy-card">
+      <header className="privacy-section-heading"><p className="section-eyebrow">RETENTION</p><h2>How long information is kept</h2></header>
+      <div className="privacy-table-wrap"><table className="privacy-table"><thead><tr><th>Data</th><th>Retention approach</th></tr></thead><tbody>{RETENTION_TABLE.map(([category, retention]) => <tr key={category}><td><strong>{category}</strong></td><td>{retention}</td></tr>)}</tbody></table></div>
+      <p className="privacy-small-note">Exact retention periods may differ by record and applicable legal, security, accounting or dispute requirements.</p>
+    </section>
     </section>
 
     {user && <section className="privacy-controls-card" aria-labelledby="privacy-controls-title">
