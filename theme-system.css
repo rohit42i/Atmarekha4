@@ -36,18 +36,18 @@ html,body,#root{min-height:100%;background:var(--bg-color)!important;color:var(-
 html{color-scheme:light!important}
 body{background:var(--bg-color)!important;color:var(--text-color)!important}
 
-body :where(h1,h2,h3,h4,h5,h6,strong,b,em,blockquote,dt,dd,legend,caption,summary,p,li,label,small,time,figcaption,.muted,.secondary-text,.faint,.hint,.description,.subtitle):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(h1,h2,h3,h4,h5,h6,strong,b,em,blockquote,dt,dd,legend,caption,summary,p,li,label,small,time,figcaption,.muted,.secondary-text,.faint,.hint,.description,.subtitle):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--text-color)!important
 }
 
-body :where(a,a:hover,a:focus-visible):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(a,a:hover,a:focus-visible):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--text-color)!important
 }
 
 body :where(
   .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,.info-page,
   .chapter-list-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--bg-color)!important;
   color:var(--text-color)!important
 }
@@ -56,7 +56,7 @@ body :where(
   [class*="card"],[class*="panel"],[class*="sheet"],[class*="modal"],[class*="dialog"],
   [class*="chapter-row"],[class*="latest-item"],[class*="community-post"],[class*="rating-card"],
   [class*="comment-sheet"],[class*="auth-panel"]
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--card-bg)!important;
   color:var(--text-color)!important;
   border-color:var(--border-color)!important
@@ -65,31 +65,31 @@ body :where(
 body :where(
   header,nav,footer,.home-header,.subpage-header,.reader-header,.community-header,.profile-header,
   .admin-header,.site-footer
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--bg-color)!important;
   color:var(--text-color)!important;
   border-color:var(--border-soft-color)!important
 }
 
-body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--input-bg)!important;
   color:var(--text-color)!important;
   border-color:var(--border-color)!important;
   caret-color:var(--text-color)
 }
 
-body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *)::placeholder {
+body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *)::placeholder {
   color:var(--faint-color)!important;
   opacity:1
 }
 
-body :where(button,[role="button"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(button,[role="button"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--card-bg)!important;
   color:var(--text-color)!important;
   border-color:var(--border-color)!important
 }
 
-body :where(button:hover,[role="button"]:hover):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(button:hover,[role="button"]:hover):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--surface-2-color)!important;
   color:var(--text-color)!important
 }
@@ -97,52 +97,52 @@ body :where(button:hover,[role="button"]:hover):not(.admin-page.ar-admin-v3, .ad
 body :where(
   button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,
   .like-button,.reader-control.primary,.community-join,.ec-join
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background:var(--accent-color)!important;
   color:var(--accent-contrast)!important;
   border-color:var(--accent-color)!important
 }
 
-body :where(.bg-white,.bg-white\/50,.bg-white\/80,.bg-white\/20,.bg-white\/30):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.bg-white,.bg-white\/50,.bg-white\/80,.bg-white\/20,.bg-white\/30):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--card-bg)!important
 }
 
-body :where(.bg-black,.bg-black\/50):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.bg-black,.bg-black\/50):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--bg-color)!important
 }
 
 body :where(
   .text-black,.text-white,.text-zinc-900,.text-zinc-800,.text-zinc-700,.text-zinc-600,.text-zinc-500,
   .text-zinc-400,.text-zinc-300,.text-zinc-200,.text-zinc-100,.text-zinc-50
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--text-color)!important
 }
 
-body :where(.bg-zinc-50,.bg-zinc-100):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.bg-zinc-50,.bg-zinc-100):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--surface-color)!important
 }
 
 body :where(
   .bg-zinc-200,.bg-zinc-300,.bg-zinc-400,.bg-zinc-500,.bg-zinc-600,.bg-zinc-700,.bg-zinc-800,.bg-zinc-900,.bg-zinc-950
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--surface-2-color)!important
 }
 
-body :where([class*="border"],[class*="separator"],[class*="divider"],hr,fieldset):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where([class*="border"],[class*="separator"],[class*="divider"],hr,fieldset):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   border-color:var(--control-border-color)!important
 }
 
-body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--arrow-color);
   stroke:currentColor
 }
 
-body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:currentColor;
   stroke:currentColor
 }
 
-body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *):focus-visible {
+body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *):focus-visible {
   outline:2px solid var(--text-color);
   outline-offset:2px
 }
@@ -151,14 +151,14 @@ body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-
 :root[data-theme="light"] body :where(
   .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,
   .info-page,.chapter-list-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--bg-color)!important
 }
 
 :root[data-theme="light"] body :where(
   .hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,
   .legal-card,.profile-v2-card,.profile-community-card,.membership-plan,.rating-card,.reader-rating-card
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--card-bg)!important;
   background-image:none!important;
   border-color:var(--border-color)!important;
@@ -169,13 +169,13 @@ body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-
   .hero-card:hover,.home-section:hover,.project-card:hover,.chapter-row:hover,.latest-item:hover,
   .community-post:hover,.info-card:hover,.about-card:hover,.legal-card:hover,.profile-v2-card:hover,
   .profile-community-card:hover,.membership-plan:hover,.rating-card:hover,.reader-rating-card:hover
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:#fff!important;
   border-color:color-mix(in srgb,var(--accent-color) 18%,var(--border-color))!important;
   box-shadow:0 12px 28px rgb(0 0 0/.10)!important
 }
 
-:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--card-bg)!important;
   color:var(--text-color)!important;
   border:1px solid var(--control-border-color)!important
@@ -184,7 +184,7 @@ body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-
 :root[data-theme="light"] body :where(
   button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,
   .like-button,.reader-control.primary,.community-join,.ec-join
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--accent-color)!important;
   color:var(--accent-contrast)!important;
   border-color:var(--accent-color)!important
@@ -193,7 +193,7 @@ body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-
 :root[data-theme="light"] body :where(
   .hero-button,.primary-button,.reader-control.primary,.reader-comment-button,.like-button,.community-join,
   .admin-submit,.membership-button
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--accent-color)!important;
   color:var(--accent-contrast)!important;
   border-color:var(--accent-color)!important;
@@ -203,28 +203,28 @@ body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-
 :root[data-theme="light"] body :where(
   .hero-button:hover,.primary-button:hover,.reader-control.primary:hover,.reader-comment-button:hover,
   .like-button:hover,.community-join:hover,.admin-submit:hover,.membership-button:hover
-):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--accent-hover)!important;
   border-color:var(--accent-hover)!important;
   box-shadow:0 9px 22px rgb(0 0 0/.16)!important
 }
 
-:root[data-theme="light"] body :where(.reader-control.secondary,.engagement-icon,.reader-engagement-button,.reader-page-pill,.reader-chapter-nav a):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+:root[data-theme="light"] body :where(.reader-control.secondary,.engagement-icon,.reader-engagement-button,.reader-page-pill,.reader-chapter-nav a):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   background-color:var(--surface-2-color)!important;
   color:var(--text-secondary)!important;
   border-color:var(--border-color)!important
 }
 
-:root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+:root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--danger-color)!important;
   background-color:var(--danger-bg)!important
 }
 
-:root[data-theme="light"] body :where(.success,[data-status="success"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+:root[data-theme="light"] body :where(.success,[data-status="success"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--success-color)!important
 }
 
-:root[data-theme="light"] body :where(.warning,[data-status="warning"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+:root[data-theme="light"] body :where(.warning,[data-status="warning"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *, .admin-login-page, .admin-login-page *) {
   color:var(--warning-color)!important;
   background-color:var(--warning-bg)!important
 }
