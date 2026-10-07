@@ -14,7 +14,7 @@
 .privacy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.privacy-action{padding:20px;min-width:0;background:var(--card-bg)}.privacy-action h3{margin:0 0 8px;font-size:1rem}.privacy-action p{margin:0 0 15px;line-height:1.6;color:var(--text-secondary,var(--text-color))}.privacy-action .button-row{display:flex;flex-wrap:wrap;gap:9px}.privacy-action button{max-width:100%}
 .privacy-status{margin:14px 0 0;padding:14px 16px;line-height:1.5}.privacy-status-success{border-color:rgba(70,180,110,.35)}.privacy-status-error{border-color:rgba(220,70,70,.4)}
 .privacy-export{margin-top:14px;padding:20px}.privacy-export h3{margin:0}.privacy-export pre{max-width:100%;max-height:420px;margin:14px 0 0;padding:15px;box-sizing:border-box;overflow:auto;border:1px solid var(--border-color);border-radius:12px;background:var(--input-bg);color:var(--text-color);white-space:pre-wrap;overflow-wrap:anywhere}
-:root[data-theme="light"] .privacy-center{background:#f5f5f2!important;color:#000!important}
+:root[data-theme="light"] .privacy-center{background:#fff!important;color:#000!important}
 :root[data-theme="light"] .privacy-hero,:root[data-theme="light"] .privacy-policy-card,:root[data-theme="light"] .privacy-controls-card,:root[data-theme="light"] .privacy-export,:root[data-theme="light"] .privacy-action,:root[data-theme="light"] .privacy-status{background:#fff!important;background-image:none!important;color:#000!important;border-color:#dededb!important}
 :root[data-theme="light"] .privacy-policy-section p,:root[data-theme="light"] .privacy-action p{color:#333!important}:root[data-theme="light"] .privacy-policy-section{border-color:#e5e5e2}
 @media(max-width:700px){.privacy-center{width:min(100%,calc(100% - 28px));padding:22px 0 calc(110px + env(safe-area-inset-bottom))}.privacy-hero{padding:22px 18px}.privacy-policy-card{padding:4px 18px}.privacy-policy-section{padding:17px 0}.privacy-controls-card{padding:18px}.privacy-grid{grid-template-columns:1fr;gap:12px;margin-top:15px}.privacy-action{padding:17px}.privacy-export{padding:16px}}
@@ -67,7 +67,7 @@ html[data-theme="dark"] .privacy-export pre{
   background:#000!important;color:#fff!important;border-color:#333!important;
 }
 html[data-theme="light"] .privacy-center{
-  background:#f7f7f5!important;color:#181818!important;
+  background:#fff!important;color:#181818!important;
 }
 html[data-theme="light"] .privacy-hero,
 html[data-theme="light"] .privacy-policy-card,
@@ -201,3 +201,19 @@ html[data-theme="light"] .info-hero-copy{color:#333!important}
   .info-content-card{margin-bottom:12px}
   .info-hero-copy{font-size:.92rem}
 }
+
+
+/* Current Privacy controls */
+.privacy-controls-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.privacy-control-button{min-height:70px;padding:14px;text-align:left;border:1px solid var(--border-color);border-radius:12px;background:var(--card-bg);color:var(--text-color);cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.privacy-control-button strong{font-size:.9rem}.privacy-control-button span{font-size:.78rem;line-height:1.45;color:var(--text-secondary)}
+.privacy-control-button:hover:not(:disabled){border-color:var(--text-color)}
+.privacy-control-button:disabled{opacity:.55;cursor:not-allowed}
+.privacy-control-destructive{border-color:var(--border-color)}
+.privacy-control-status{margin-top:12px;padding:10px 12px;border-top:1px solid var(--border-color);font-size:.8rem;color:var(--text-secondary)}
+.privacy-email-actions{margin-top:10px}
+html[data-theme="dark"] .privacy-control-button{background:#000!important;color:#fff!important;border-color:#333!important}
+html[data-theme="dark"] .privacy-control-button span,html[data-theme="dark"] .privacy-control-status{color:#ddd!important}
+html[data-theme="light"] .privacy-control-button{background:#fff!important;color:#181818!important;border-color:#deded9!important}
+html[data-theme="light"] .privacy-control-button span,html[data-theme="light"] .privacy-control-status{color:#444!important}
+@media(max-width:700px){.privacy-controls-grid{grid-template-columns:1fr}}
