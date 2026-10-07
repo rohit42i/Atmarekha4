@@ -218,3 +218,35 @@ html[data-theme="dark"] .profile-v2-overlay {
   background: #000000 !important;
   background-color: #000000 !important;
 }
+
+/* Profile editor + details: consistent theme, spacing and hierarchy */
+.profile-v2-edit-form{display:grid;gap:16px;margin-top:24px;padding-top:22px;border-top:1px solid var(--border-color)}
+.profile-v2-edit-form>label{display:grid;gap:7px;position:relative;font-size:.88rem;font-weight:600;color:var(--text-color)}
+.profile-v2-edit-form input,.profile-v2-edit-form textarea{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid var(--border-color);border-radius:11px;background:var(--input-bg);color:var(--text-color);outline:none;line-height:1.45}
+.profile-v2-edit-form textarea{resize:vertical;min-height:92px}
+.profile-v2-edit-form input:focus,.profile-v2-edit-form textarea:focus{border-color:var(--text-color)}
+.profile-v2-edit-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:4px}
+.profile-v2-edit-actions button{min-height:40px;padding:0 15px;border:1px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-color)}
+.profile-v2-edit-actions .primary-button{background:var(--text-color);color:var(--page-bg);border-color:var(--text-color)}
+.profile-v2-error,.profile-v2-message{margin:0}
+.profile-v2-card .profile-v2-bio{margin:20px 0 0;padding:16px 0;border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color)}
+.profile-v2-card .profile-v2-bio p{margin:0;line-height:1.65}
+.profile-v2-card .profile-profile-actions{display:grid;gap:10px;margin-top:18px}
+.profile-v2-card .profile-community-card,.profile-v2-card .profile-app-button{box-sizing:border-box;width:100%;min-height:58px;padding:12px 14px;border:1px solid var(--border-color);border-radius:12px;background:var(--card-bg);color:var(--text-color)}
+.profile-v2-card .profile-community-card{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:11px;text-align:left}
+.profile-v2-card .profile-community-card span:nth-child(2){display:grid;gap:2px}
+.profile-v2-card .profile-community-card small{color:var(--text-secondary,var(--text-color));line-height:1.35}
+.profile-v2-card .profile-more-button{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.profile-v2-card .profile-v2-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:20px;border:1px solid var(--border-color);border-radius:12px;overflow:hidden}
+.profile-v2-card .profile-v2-stats>div{display:grid;gap:3px;padding:13px 8px;text-align:center;border-right:1px solid var(--border-color)}
+.profile-v2-card .profile-v2-stats>div:last-child{border-right:0}
+.profile-v2-card .profile-v2-stats span{font-size:.75rem;color:var(--text-secondary,var(--text-color))}
+html[data-theme="dark"] .profile-v2-edit-form input,html[data-theme="dark"] .profile-v2-edit-form textarea{background:#000!important;color:#fff!important;border-color:#333!important}
+html[data-theme="dark"] .profile-v2-edit-actions button,html[data-theme="dark"] .profile-v2-card .profile-community-card,html[data-theme="dark"] .profile-v2-card .profile-app-button{background:#000!important;color:#fff!important;border-color:#333!important}
+html[data-theme="dark"] .profile-v2-edit-actions .primary-button{background:#fff!important;color:#000!important;border-color:#fff!important}
+html[data-theme="dark"] .profile-v2-card .profile-v2-bio,html[data-theme="dark"] .profile-v2-card .profile-v2-stats{border-color:#222!important}
+html[data-theme="light"] .profile-v2-edit-form input,html[data-theme="light"] .profile-v2-edit-form textarea{background:#fff!important;color:#181818!important;border-color:#deded9!important}
+html[data-theme="light"] .profile-v2-edit-actions button,html[data-theme="light"] .profile-v2-card .profile-community-card,html[data-theme="light"] .profile-v2-card .profile-app-button{background:#fff!important;color:#181818!important;border-color:#deded9!important}
+html[data-theme="light"] .profile-v2-edit-actions .primary-button{background:#181818!important;color:#fff!important;border-color:#181818!important}
+html[data-theme="light"] .profile-v2-card .profile-v2-bio,html[data-theme="light"] .profile-v2-card .profile-v2-stats{border-color:#e7e7e3!important}
+@media(max-width:600px){.profile-v2-edit-form{gap:14px;margin-top:20px;padding-top:18px}.profile-v2-edit-actions{position:sticky;bottom:0;margin:2px -2px -2px;padding:10px 2px;background:var(--page-bg);z-index:3}.profile-v2-card .profile-v2-stats{margin-top:16px}}
