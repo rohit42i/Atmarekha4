@@ -1,4 +1,8 @@
-/* Atma Rekha — monochrome system theme. */
+/* Atma Rekha — public monochrome theme system
+ * Public behaviour is preserved. Every descendant selector explicitly
+ * excludes .admin-page.ar-admin-v3 and its entire subtree.
+ */
+
 :root {
   color-scheme: light dark;
   --bg-color:#fff; --surface-color:#fff; --surface-2-color:#f5f5f5; --card-bg:#fff; --input-bg:#fff;
@@ -8,6 +12,7 @@
   --warning-color:#111; --warning-bg:#f3f3f3; --overlay-color:rgb(0 0 0/.58); --shadow-color:rgb(0 0 0/.12);
   --icon-color:var(--text-color); --arrow-color:var(--text-color); --control-border-color:var(--border-color);
 }
+
 :root[data-theme="light"] {
   color-scheme:light;
   --bg-color:#f7f7f5; --surface-color:#ffffff; --surface-2-color:#f1f1ee; --card-bg:#ffffff; --input-bg:#ffffff;
@@ -17,6 +22,7 @@
   --warning-color:#976300; --warning-bg:#fff8e7; --overlay-color:rgb(0 0 0/.45); --shadow-color:rgb(0 0 0/.10);
   --icon-color:#17191f; --arrow-color:#17191f; --control-border-color:#dfe3e8;
 }
+
 :root[data-theme="dark"] {
   color-scheme:dark;
   --bg-color:#000; --surface-color:#000; --surface-2-color:#111; --card-bg:#000; --input-bg:#000;
@@ -25,87 +31,222 @@
   --warning-color:#fff; --warning-bg:#181818; --overlay-color:rgb(0 0 0/.72); --shadow-color:rgb(0 0 0/.55);
   --icon-color:#fff; --arrow-color:#fff; --control-border-color:#333;
 }
-@media (prefers-color-scheme: light){:root{color-scheme:light}}
+
 html,body,#root{min-height:100%;background:var(--bg-color)!important;color:var(--text-color)!important}
-html{color-scheme:light!important} body{background:var(--bg-color)!important;color:var(--text-color)!important}
-body :where(h1,h2,h3,h4,h5,h6,strong,b,em,blockquote,dt,dd,legend,caption,summary,p,li,label,small,time,figcaption,.muted,.secondary-text,.faint,.hint,.description,.subtitle){color:var(--text-color)!important}
-body :where(a,a:hover,a:focus-visible){color:var(--text-color)!important}
-body :where(.home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,.info-page,.chapter-list-page,.admin-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell){background:var(--bg-color)!important;color:var(--text-color)!important}
-body :where([class*="card"],[class*="panel"],[class*="sheet"],[class*="modal"],[class*="dialog"],[class*="chapter-row"],[class*="latest-item"],[class*="community-post"],[class*="admin-stat"],[class*="admin-card"],[class*="admin-performance"],[class*="membership-plan"],[class*="membership-phone"],[class*="rating-card"],[class*="comment-sheet"],[class*="auth-panel"]){background:var(--card-bg)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
-body :where(header,nav,footer,.home-header,.subpage-header,.reader-header,.community-header,.profile-header,.admin-header,.site-footer){background:var(--bg-color)!important;color:var(--text-color)!important;border-color:var(--border-soft-color)!important}
-body :where(input,textarea,select){background:var(--input-bg)!important;color:var(--text-color)!important;border-color:var(--border-color)!important;caret-color:var(--text-color)}
-body :where(input,textarea,select)::placeholder{color:var(--faint-color)!important;opacity:1}
-body :where(button,[role="button"]){background:var(--card-bg)!important;color:var(--text-color)!important;border-color:var(--border-color)!important}
-body :where(button:hover,[role="button"]:hover){background:var(--surface-2-color)!important;color:var(--text-color)!important}
-body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join){background:var(--accent-color)!important;color:var(--accent-contrast)!important;border-color:var(--accent-color)!important}
-body :where(.bg-white,.bg-white\/50,.bg-white\/80,.bg-white\/20,.bg-white\/30){background-color:var(--card-bg)!important}
-body :where(.bg-black,.bg-black\/50){background-color:var(--bg-color)!important}
-body :where(.text-black,.text-white,.text-zinc-900,.text-zinc-800,.text-zinc-700,.text-zinc-600,.text-zinc-500,.text-zinc-400,.text-zinc-300,.text-zinc-200,.text-zinc-100,.text-zinc-50){color:var(--text-color)!important}
-body :where(.bg-zinc-50,.bg-zinc-100){background-color:var(--surface-color)!important}
-body :where(.bg-zinc-200,.bg-zinc-300,.bg-zinc-400,.bg-zinc-500,.bg-zinc-600,.bg-zinc-700,.bg-zinc-800,.bg-zinc-900,.bg-zinc-950){background-color:var(--surface-2-color)!important}
-body :where([class*="border"],[class*="separator"],[class*="divider"],hr,fieldset){border-color:var(--control-border-color)!important}
-body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg){color:var(--arrow-color);stroke:currentColor}
-body :where(button,a,[role="button"]) svg{color:currentColor;stroke:currentColor}
-body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
-/* Light mode surface hierarchy: keep the page background distinct from content surfaces. */
-:root[data-theme="light"] body :where(html,body,#root) {
-  background-color:var(--bg-color)!important;
+html{color-scheme:light!important}
+body{background:var(--bg-color)!important;color:var(--text-color)!important}
+
+body :where(h1,h2,h3,h4,h5,h6,strong,b,em,blockquote,dt,dd,legend,caption,summary,p,li,label,small,time,figcaption,.muted,.secondary-text,.faint,.hint,.description,.subtitle):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--text-color)!important
 }
+
+body :where(a,a:hover,a:focus-visible):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--text-color)!important
+}
+
+body :where(
+  .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,.info-page,
+  .chapter-list-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--bg-color)!important;
+  color:var(--text-color)!important
+}
+
+body :where(
+  [class*="card"],[class*="panel"],[class*="sheet"],[class*="modal"],[class*="dialog"],
+  [class*="chapter-row"],[class*="latest-item"],[class*="community-post"],[class*="rating-card"],
+  [class*="comment-sheet"],[class*="auth-panel"]
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--card-bg)!important;
+  color:var(--text-color)!important;
+  border-color:var(--border-color)!important
+}
+
+body :where(
+  header,nav,footer,.home-header,.subpage-header,.reader-header,.community-header,.profile-header,
+  .admin-header,.site-footer
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--bg-color)!important;
+  color:var(--text-color)!important;
+  border-color:var(--border-soft-color)!important
+}
+
+body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--input-bg)!important;
+  color:var(--text-color)!important;
+  border-color:var(--border-color)!important;
+  caret-color:var(--text-color)
+}
+
+body :where(input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *)::placeholder {
+  color:var(--faint-color)!important;
+  opacity:1
+}
+
+body :where(button,[role="button"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--card-bg)!important;
+  color:var(--text-color)!important;
+  border-color:var(--border-color)!important
+}
+
+body :where(button:hover,[role="button"]:hover):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--surface-2-color)!important;
+  color:var(--text-color)!important
+}
+
+body :where(
+  button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,
+  .like-button,.reader-control.primary,.community-join,.ec-join
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background:var(--accent-color)!important;
+  color:var(--accent-contrast)!important;
+  border-color:var(--accent-color)!important
+}
+
+body :where(.bg-white,.bg-white\/50,.bg-white\/80,.bg-white\/20,.bg-white\/30):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--card-bg)!important
+}
+
+body :where(.bg-black,.bg-black\/50):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--bg-color)!important
+}
+
+body :where(
+  .text-black,.text-white,.text-zinc-900,.text-zinc-800,.text-zinc-700,.text-zinc-600,.text-zinc-500,
+  .text-zinc-400,.text-zinc-300,.text-zinc-200,.text-zinc-100,.text-zinc-50
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--text-color)!important
+}
+
+body :where(.bg-zinc-50,.bg-zinc-100):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--surface-color)!important
+}
+
+body :where(
+  .bg-zinc-200,.bg-zinc-300,.bg-zinc-400,.bg-zinc-500,.bg-zinc-600,.bg-zinc-700,.bg-zinc-800,.bg-zinc-900,.bg-zinc-950
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--surface-2-color)!important
+}
+
+body :where([class*="border"],[class*="separator"],[class*="divider"],hr,fieldset):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  border-color:var(--control-border-color)!important
+}
+
+body :where(.arrow,.chevron,.back-arrow,.next-arrow,.prev-arrow,.close-icon,.menu-icon,.icon-button,.icon-button svg,.arrow svg,.chevron svg):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--arrow-color);
+  stroke:currentColor
+}
+
+body :where(button,a,[role="button"]) svg:not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:currentColor;
+  stroke:currentColor
+}
+
+body :where(button,a,input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *):focus-visible {
+  outline:2px solid var(--text-color);
+  outline-offset:2px
+}
+
+/* Light-mode surface hierarchy — admin is excluded completely. */
 :root[data-theme="light"] body :where(
   .home-page,.site-shell,.reader-page,.community-page,.profile-page,.profile-v2-page,.profile-v2,
-  .info-page,.chapter-list-page,.admin-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell
-) {
-  background-color:var(--bg-color)!important;
+  .info-page,.chapter-list-page,.auth-page,.settings-page,.membership-page,.page-shell,.app-shell
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--bg-color)!important
 }
+
 :root[data-theme="light"] body :where(
   .hero-card,.home-section,.project-card,.chapter-row,.latest-item,.community-post,.info-card,.about-card,
-  .legal-card,.profile-v2-card,.profile-community-card,.membership-plan,.rating-card,.reader-rating-card,
-  .admin-card,.admin-overview-card,.admin-overview-stat,.performance-card,.admin-header-card,.admin-overview-toolbar
-) {
+  .legal-card,.profile-v2-card,.profile-community-card,.membership-plan,.rating-card,.reader-rating-card
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
   background-color:var(--card-bg)!important;
   background-image:none!important;
   border-color:var(--border-color)!important;
-  box-shadow:0 8px 24px rgb(0 0 0/.07)!important;
+  box-shadow:0 8px 24px rgb(0 0 0/.07)!important
 }
+
 :root[data-theme="light"] body :where(
   .hero-card:hover,.home-section:hover,.project-card:hover,.chapter-row:hover,.latest-item:hover,
   .community-post:hover,.info-card:hover,.about-card:hover,.legal-card:hover,.profile-v2-card:hover,
-  .profile-community-card:hover,.membership-plan:hover,.rating-card:hover,.reader-rating-card:hover,
-  .admin-card:hover,.admin-overview-card:hover,.admin-overview-stat:hover,.performance-card:hover
-) {
+  .profile-community-card:hover,.membership-plan:hover,.rating-card:hover,.reader-rating-card:hover
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
   background-color:#fff!important;
   border-color:color-mix(in srgb,var(--accent-color) 18%,var(--border-color))!important;
-  box-shadow:0 12px 28px rgb(0 0 0/.10)!important;
+  box-shadow:0 12px 28px rgb(0 0 0/.10)!important
 }
-:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select) { background-color:var(--card-bg)!important; color:var(--text-color)!important; border:1px solid var(--control-border-color)!important; }
-:root[data-theme="light"] body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join) { background-color:var(--accent-color)!important; color:var(--accent-contrast)!important; border-color:var(--accent-color)!important; }
-:root[data-theme="light"] body :where(a:not([class])) { color:var(--text-color)!important; }
+
+:root[data-theme="light"] body :where(button,[role="button"],input,textarea,select):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--card-bg)!important;
+  color:var(--text-color)!important;
+  border:1px solid var(--control-border-color)!important
+}
+
+:root[data-theme="light"] body :where(
+  button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,
+  .like-button,.reader-control.primary,.community-join,.ec-join
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  background-color:var(--accent-color)!important;
+  color:var(--accent-contrast)!important;
+  border-color:var(--accent-color)!important
+}
+
 :root[data-theme="light"] body :where(
   .hero-button,.primary-button,.reader-control.primary,.reader-comment-button,.like-button,.community-join,
   .admin-submit,.membership-button
-) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
   background-color:var(--accent-color)!important;
   color:var(--accent-contrast)!important;
   border-color:var(--accent-color)!important;
-  box-shadow:0 6px 16px rgb(0 0 0/.12)!important;
+  box-shadow:0 6px 16px rgb(0 0 0/.12)!important
 }
+
 :root[data-theme="light"] body :where(
   .hero-button:hover,.primary-button:hover,.reader-control.primary:hover,.reader-comment-button:hover,
   .like-button:hover,.community-join:hover,.admin-submit:hover,.membership-button:hover
-) {
+):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
   background-color:var(--accent-hover)!important;
   border-color:var(--accent-hover)!important;
-  box-shadow:0 9px 22px rgb(0 0 0/.16)!important;
+  box-shadow:0 9px 22px rgb(0 0 0/.16)!important
 }
-:root[data-theme="light"] body :where(.reader-control.secondary,.engagement-icon,.reader-engagement-button,.reader-page-pill,.reader-chapter-nav a) {
+
+:root[data-theme="light"] body :where(.reader-control.secondary,.engagement-icon,.reader-engagement-button,.reader-page-pill,.reader-chapter-nav a):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
   background-color:var(--surface-2-color)!important;
   color:var(--text-secondary)!important;
-  border-color:var(--border-color)!important;
+  border-color:var(--border-color)!important
 }
-:root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]) { color:var(--danger-color)!important; background-color:var(--danger-bg)!important; }
-:root[data-theme="light"] body :where(.success,[data-status="success"]) { color:var(--success-color)!important; }
-:root[data-theme="light"] body :where(.warning,[data-status="warning"]) { color:var(--warning-color)!important; background-color:var(--warning-bg)!important; }
-.theme-toggle{position:fixed;right:18px;bottom:18px;z-index:9999;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border-color);border-radius:999px;background:var(--card-bg);color:var(--text-color);box-shadow:0 8px 24px var(--shadow-color);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease}
-.theme-toggle:hover{transform:translateY(-1px)} .theme-toggle:active{transform:translateY(0)} .theme-toggle svg{width:20px;height:20px;display:block} .theme-toggle:focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
-@media (max-width:640px){.theme-toggle{right:14px;bottom:14px;width:42px;height:42px}}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+:root[data-theme="light"] body :where(.error,.form-error,.inline-error,[aria-invalid="true"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--danger-color)!important;
+  background-color:var(--danger-bg)!important
+}
+
+:root[data-theme="light"] body :where(.success,[data-status="success"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--success-color)!important
+}
+
+:root[data-theme="light"] body :where(.warning,[data-status="warning"]):not(.admin-page.ar-admin-v3, .admin-page.ar-admin-v3 *) {
+  color:var(--warning-color)!important;
+  background-color:var(--warning-bg)!important
+}
+
+.theme-toggle{
+  position:fixed;right:18px;bottom:18px;z-index:9999;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0;
+  border:1px solid var(--border-color);border-radius:999px;background:var(--card-bg);color:var(--text-color);
+  box-shadow:0 8px 24px var(--shadow-color);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease
+}
+.theme-toggle:hover{transform:translateY(-1px)}
+.theme-toggle:active{transform:translateY(0)}
+.theme-toggle svg{width:20px;height:20px;display:block}
+.theme-toggle:focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
+
+@media (max-width:640px){
+  .theme-toggle{right:14px;bottom:14px;width:42px;height:42px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+    animation-duration:.01ms!important
+  }
+}
