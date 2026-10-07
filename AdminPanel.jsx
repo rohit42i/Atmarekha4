@@ -11,7 +11,6 @@ import { AdminSidebar } from './admin-studio-ui.jsx';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
-import EmailCampaigns from './EmailCampaigns.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -77,7 +76,6 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'message', label: 'Email Campaigns' },
   ]},
   { label: 'Monetization', items: [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
