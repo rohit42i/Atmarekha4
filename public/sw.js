@@ -7,6 +7,47 @@ const MEDIA_ORIGINS = new Set([
   'https://pdlpl-media.rohitbaswaraj.workers.dev',
 ]);
 
+const FEEDBACK_DB = 'atma-feedback-sync-v1';
+const FEEDBACK_STORE = 'queue';
+const FEEDBACK_ENDPOINT = 'https://pbukwjokgkqacaphlqzm.supabase.co/functions/v1/submit-feedback';
+
+function openFeedbackDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(FEEDBACK_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(FEEDBACK_STORE, { keyPath: 'id' });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function flushFeedbackQueue() {
+  const db = await openFeedbackDb();
+  const items = await new Promise((resolve, reject) => {
+    const tx = db.transaction(FEEDBACK_STORE, 'readonly');
+    const req = tx.objectStore(FEEDBACK_STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+  for (const item of items) {
+    try {
+      const response = await fetch(FEEDBACK_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item),
+      });
+      if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(FEEDBACK_STORE, 'readwrite');
+          tx.objectStore(FEEDBACK_STORE).delete(item.id);
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+    } catch {}
+  }
+  db.close();
+}
+
 const PRECACHE = ['/', '/offline.html', '/ishani.png', '/site.webmanifest'];
 
 self.addEventListener('install', event => {
@@ -49,6 +90,10 @@ async function cacheFirst(request) {
     return new Response('', { status: 503, statusText: 'Offline' });
   }
 }
+
+self.addEventListener('sync', event => {
+  if (event.tag === 'atma-feedback-sync') event.waitUntil(flushFeedbackQueue().catch(()=>{}));
+});
 
 self.addEventListener('fetch', event => {
   const request = event.request;
