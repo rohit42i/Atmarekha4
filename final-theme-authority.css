@@ -895,3 +895,40 @@ html[data-theme="dark"] .chapter-discovery .chapter-language option,html[data-th
   .reader-side-button.left{left:8px!important}
   .reader-side-button.right{right:8px!important}
 }
+
+
+/* Auth age + Terms & Privacy checkboxes — final light-mode correction. */
+html[data-theme="light"] .auth-panel .auth-checkbox-box{
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 18px!important;
+  box-sizing:border-box!important;
+  border:1.5px solid #111!important;
+  border-radius:4px!important;
+  background:#fff!important;
+  color:transparent!important;
+}
+html[data-theme="light"] .auth-panel .auth-checkbox-box::after{
+  color:transparent!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  line-height:1!important;
+}
+html[data-theme="light"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box,
+html[data-theme="light"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box{
+  background:#111!important;
+  border-color:#111!important;
+  color:#fff!important;
+}
+html[data-theme="light"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box::after,
+html[data-theme="light"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box::after{
+  color:#fff!important;
+}
+html[data-theme="light"] .auth-panel .auth-checkbox.is-invalid .auth-checkbox-box,
+html[data-theme="light"] .auth-panel .auth-consent-check.is-invalid .auth-checkbox-box{
+  border-color:#dc2626!important;
+  background:#fff!important;
+}
+html[data-theme="light"] .auth-panel .auth-checkbox input{
+  accent-color:#111!important;
+}
