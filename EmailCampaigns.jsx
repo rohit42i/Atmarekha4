@@ -154,6 +154,10 @@ export default function EmailCampaigns({adminEmail=''}) {
   const [status,setStatus] = useState({type:'',text:''});
   const [busy,setBusy] = useState(false);
   const [testSent,setTestSent] = useState(false);
+  const [recipientQuery,setRecipientQuery] = useState('');
+  const [recipientResults,setRecipientResults] = useState([]);
+  const [selectedRecipients,setSelectedRecipients] = useState([]);
+  const [recipientBusy,setRecipientBusy] = useState(false);
 
   useEffect(() => {
     try {
@@ -176,6 +180,7 @@ export default function EmailCampaigns({adminEmail=''}) {
   const emailHtml = useMemo(() => buildEmailHtml(editorHtml), [editorHtml]);
   const plainText = useMemo(() => htmlToText(emailHtml), [emailHtml]);
   const canSend = Boolean(subject.trim() && plainText.trim()) && !busy;
+  const hasSelectedRecipients = selectedRecipients.length > 0;
 
   const markChanged = () => setTestSent(false);
 
@@ -240,17 +245,48 @@ export default function EmailCampaigns({adminEmail=''}) {
     setTestSent(false);
   };
 
+  const searchRecipients = async () => {
+    const query = recipientQuery.trim();
+    if (!query) {
+      setRecipientResults([]);
+      return;
+    }
+    setRecipientBusy(true);
+    try {
+      const result = await supabase.functions.invoke('send-email-to-users', {
+        body: {action:'search_users',query}
+      });
+      if (result.error) throw new Error(result.data?.error || result.error.message || 'Search failed.');
+      if (!result.data?.ok) throw new Error(result.data?.error || 'Search failed.');
+      setRecipientResults(result.data.users || []);
+    } catch (error) {
+      setStatus({type:'error',text:error?.message || 'Recipient search failed.'});
+    } finally {
+      setRecipientBusy(false);
+    }
+  };
+
+  const toggleRecipient = user => {
+    setSelectedRecipients(current =>
+      current.some(item => item.email === user.email)
+        ? current.filter(item => item.email !== user.email)
+        : [...current, user]
+    );
+    setTestSent(false);
+  };
+
   const send = async isTest => {
     if (!canSend) return;
     if (isTest && !validEmail(testEmail)) return setStatus({type:'error',text:'Enter a valid test email address.'});
     if (!isTest && !testSent) return setStatus({type:'error',text:'Send a test email first.'});
-    if (!isTest && !window.confirm('Send this email to every confirmed ATMA REKHA user now?')) return;
+    if (!isTest && !hasSelectedRecipients && !window.confirm('Send this email to every confirmed ATMA REKHA user now?')) return;
+    if (!isTest && hasSelectedRecipients && !window.confirm('Send this email to the selected recipients now?')) return;
 
     setBusy(true);
-    setStatus({type:'',text:isTest ? 'Sending test email…' : 'Sending to confirmed users…'});
+    setStatus({type:'',text:isTest ? 'Sending test email…' : hasSelectedRecipients ? 'Sending to selected recipients…' : 'Sending to confirmed users…'});
     try {
       const result = await supabase.functions.invoke('send-email-to-users', {
-        body: {subject:subject.trim(),html:emailHtml,text:plainText,...(isTest ? {testEmail:testEmail.trim()} : {})}
+        body: {subject:subject.trim(),html:emailHtml,text:plainText,...(isTest ? {testEmail:testEmail.trim()} : hasSelectedRecipients ? {recipients:selectedRecipients.map(item => item.email)} : {})}
       });
       if (result.error) throw new Error(result.data?.error || result.error.message || 'Email request failed.');
       if (!result.data?.ok) throw new Error(result.data?.error || 'Email request failed.');
@@ -260,6 +296,7 @@ export default function EmailCampaigns({adminEmail=''}) {
       } else {
         setStatus({type:'success',text:'Sent ' + (result.data.sent || 0) + ' of ' + (result.data.total || 0) + ' confirmed users. Failed: ' + (result.data.failed || 0) + '.'});
         setTestSent(false);
+        setSelectedRecipients([]);
       }
     } catch (error) {
       setStatus({type:'error',text:error?.message || 'Email send failed.'});
@@ -338,6 +375,29 @@ export default function EmailCampaigns({adminEmail=''}) {
         <iframe title="Email preview" className="email-preview-frame" srcDoc={emailHtml} sandbox="" />
       </aside>
     </div>
+
+    <section className="email-recipient-card">
+      <div className="email-recipient-head">
+        <div><span>RECIPIENTS</span><h3>Choose who receives it</h3><p>Search for a reader, select people, or leave this empty to send to all confirmed users.</p></div>
+        <strong>{selectedRecipients.length} selected</strong>
+      </div>
+      <div className="email-recipient-search">
+        <input value={recipientQuery} onChange={event => setRecipientQuery(event.target.value)} onKeyDown={event => {if(event.key === 'Enter'){event.preventDefault();searchRecipients();}}} placeholder="Search by email or name" />
+        <button type="button" onClick={searchRecipients} disabled={recipientBusy || !recipientQuery.trim()}>{recipientBusy ? 'Searching…' : 'Search'}</button>
+      </div>
+      {recipientResults.length ? <div className="email-recipient-results">
+        {recipientResults.map(user => {
+          const selected = selectedRecipients.some(item => item.email === user.email);
+          return <button key={user.email} type="button" className={'email-recipient-row' + (selected ? ' selected' : '')} onClick={() => toggleRecipient(user)}>
+            <span><strong>{user.name || user.email}</strong><small>{user.email}</small></span>
+            <b>{selected ? 'Selected' : 'Select'}</b>
+          </button>;
+        })}
+      </div> : null}
+      {selectedRecipients.length ? <div className="email-selected-list">
+        {selectedRecipients.map(user => <button key={user.email} type="button" onClick={() => toggleRecipient(user)}>{user.email} ×</button>)}
+      </div> : null}
+    </section>
 
     <section className="email-send-card">
       <div><span>SEND SAFELY</span><h3>Test first, then send</h3><p>The bulk send button unlocks only after a successful test.</p></div>
