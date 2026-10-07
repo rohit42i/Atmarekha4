@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { supabase, getCurrentMembership } from './supabase';
+import { supabase, getCurrentMembership, secureSignInWithPassword } from './supabase';
 import ProfileV2 from './ProfileV2';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { MIN_PASSWORD_LENGTH, validateNewPassword } from './passwordSecurity';
@@ -47,7 +47,7 @@ function AuthPanel({mode,setMode,onClose,onSignedIn}){
         clearDraft('atma-auth-draft');
         if(data.session)onSignedIn();else setMessage('Check your email to verify your account, then sign in.');
       }else if(mode==='login'){
-        const{error:authError}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(authError)throw authError;clearDraft('atma-auth-draft');onSignedIn();
+        await secureSignInWithPassword(email.trim(), password);clearDraft('atma-auth-draft');onSignedIn();
       }else{
         const{error:authError}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:`${window.location.origin}/?reset-password=1`});if(authError)throw authError;setMessage('Password reset link has been sent to your Gmail.');
       }
