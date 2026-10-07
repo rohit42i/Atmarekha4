@@ -867,7 +867,7 @@ export default function AdminPanel({ onLogout }) {
               </button>
               {profileOpen && <div className="ar-admin-profile-menu" role="menu">
                 <div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div>
-                <button type="button" onClick={logout}><AdminIcon name="logout" size={14}/>Sign out</button>
+                <button type="button" role="menuitem" onClick={logout}><AdminIcon name="logout" size={14}/>Sign out</button>
               </div>}
             </div>
           </div>
