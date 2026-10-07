@@ -43,10 +43,12 @@ export default function AdminMembership() {
 
   const load = async () => {
     try {
-      const [{ data, error: analyticsError }, { data: userData, error: userError }] = await Promise.all([
-        supabase.rpc('get_admin_membership_analytics'),
-        supabase.functions.invoke('get-admin-user-stats'),
+      const [{ data: membershipPayload, error: analyticsError }] = await Promise.all([
+        supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } }),
       ]);
+      const data = membershipPayload?.data || {};
+      const userData = membershipPayload?.registered_users != null ? { logged_in_users: membershipPayload.registered_users } : null;
+      const userError = membershipPayload?.error || null;
       if (analyticsError) throw analyticsError;
       if (userError) throw userError;
       setAnalytics(data || {});
