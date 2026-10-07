@@ -249,3 +249,44 @@ html[data-theme="dark"] :where(.membership-plan.is-popular,.membership-plan.is-p
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important; }
 }
+
+
+/* Admin uses the same monochrome surfaces in both themes. */
+html[data-theme="light"] main.admin-page,
+html[data-theme="light"] main.admin-page .ar-admin-shell,
+html[data-theme="light"] main.admin-page .ar-admin-sidebar,
+html[data-theme="light"] main.admin-page .ar-admin-topbar,
+html[data-theme="light"] main.admin-page .ar-admin-content,
+html[data-theme="light"] main.admin-page .ar-admin-card,
+html[data-theme="light"] main.admin-page .ar-admin-panel,
+html[data-theme="light"] main.admin-page .ar-admin-stat,
+html[data-theme="light"] main.admin-page .admin-card,
+html[data-theme="light"] main.admin-page .admin-panel {
+  background:#fff!important;color:#111!important;border-color:#dedede!important;
+}
+html[data-theme="dark"] main.admin-page,
+html[data-theme="dark"] main.admin-page .ar-admin-shell,
+html[data-theme="dark"] main.admin-page .ar-admin-sidebar,
+html[data-theme="dark"] main.admin-page .ar-admin-topbar,
+html[data-theme="dark"] main.admin-page .ar-admin-content,
+html[data-theme="dark"] main.admin-page .ar-admin-card,
+html[data-theme="dark"] main.admin-page .ar-admin-panel,
+html[data-theme="dark"] main.admin-page .ar-admin-stat,
+html[data-theme="dark"] main.admin-page .admin-card,
+html[data-theme="dark"] main.admin-page .admin-panel {
+  background:#000!important;color:#fff!important;border-color:#292929!important;
+}
+html[data-theme="light"] main.admin-page .ar-admin-content :where(input,textarea,select,button:not(.admin-submit):not(.ar-admin-primary-action)),
+html[data-theme="light"] main.admin-page :where(.ar-admin-search input,.ar-admin-profile-menu,.ar-admin-command-palette,.ar-ops-panel,.ar-mgmt-panel) {
+  background:#fff!important;color:#111!important;border-color:#dedede!important;
+}
+html[data-theme="dark"] main.admin-page .ar-admin-content :where(input,textarea,select,button:not(.admin-submit):not(.ar-admin-primary-action)),
+html[data-theme="dark"] main.admin-page :where(.ar-admin-search input,.ar-admin-profile-menu,.ar-admin-command-palette,.ar-ops-panel,.ar-mgmt-panel) {
+  background:#000!important;color:#fff!important;border-color:#292929!important;
+}
+html[data-theme="light"] main.admin-page :where(.admin-submit,.ar-admin-primary-action) {
+  background:#111!important;color:#fff!important;border-color:#111!important;
+}
+html[data-theme="dark"] main.admin-page :where(.admin-submit,.ar-admin-primary-action) {
+  background:#fff!important;color:#000!important;border-color:#fff!important;
+}
