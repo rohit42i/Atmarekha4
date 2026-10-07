@@ -116,3 +116,74 @@ html[data-theme="dark"] .auth-panel .auth-checkbox.is-invalid .auth-checkbox-box
 html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box,html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box{background:#22c55e!important;border-color:#22c55e!important;color:#000!important}
 .auth-panel .auth-consent-row>.form-field-error{color:#dc2626!important}
 html[data-theme="dark"] .auth-panel .auth-consent-row>.form-field-error{color:#f87171!important}
+
+
+/* Auth checkboxes — clean, centered, theme-correct checkmark. */
+.auth-panel .auth-checkbox{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  min-width:0!important;
+}
+.auth-panel .auth-checkbox-box{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 18px!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  border:1.5px solid #111!important;
+  border-radius:4px!important;
+  background:#fff!important;
+  color:transparent!important;
+  font-size:0!important;
+  line-height:0!important;
+}
+.auth-panel .auth-checkbox-box::after{
+  content:'✓';
+  display:block;
+  font-size:13px;
+  line-height:1;
+  font-weight:900;
+  transform:translateY(-.5px);
+  color:transparent;
+}
+html[data-theme="dark"] .auth-panel .auth-checkbox-box{
+  border-color:#fff!important;
+  background:#000!important;
+}
+.auth-panel .auth-checkbox.is-checked .auth-checkbox-box,
+.auth-panel .auth-consent-check.is-checked .auth-checkbox-box{
+  background:#111!important;
+  border-color:#111!important;
+}
+.auth-panel .auth-checkbox.is-checked .auth-checkbox-box::after,
+.auth-panel .auth-consent-check.is-checked .auth-checkbox-box::after{
+  color:#fff!important;
+}
+html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box,
+html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box{
+  background:#fff!important;
+  border-color:#fff!important;
+}
+html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box::after,
+html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbox-box::after{
+  color:#000!important;
+}
+.auth-panel .auth-checkbox.is-invalid .auth-checkbox-box,
+.auth-panel .auth-consent-check.is-invalid .auth-checkbox-box{
+  border-color:#dc2626!important;
+}
+.auth-panel .auth-checkbox-copy{
+  min-width:0!important;
+}
+.auth-panel .auth-checkbox-copy>span{
+  display:block!important;
+}
+.auth-panel .auth-consent-check{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+}
