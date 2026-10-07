@@ -38,6 +38,11 @@ iframe {
   max-width: 100%;
 }
 
+/* Reader pages intentionally preserve the manga image's native aspect/size on desktop. */
+.reader-stage img {
+  max-width: none !important;
+}
+
 .home-header,
 .subpage-header,
 .reader-header-inner,
@@ -222,6 +227,12 @@ textarea:focus-visible {
 .toast-host {
   bottom: calc(112px + env(safe-area-inset-bottom)) !important;
   right: 18px;
+}
+
+/* The browser notification prompt uses its own inline positioning; keep it clear of
+   the theme/back-to-top controls. */
+#atma-notification-prompt {
+  bottom: calc(112px + env(safe-area-inset-bottom)) !important;
 }
 
 .network-status {
