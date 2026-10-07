@@ -1,5 +1,3 @@
-installGlobalErrorLogging();
-
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
@@ -109,3 +107,5 @@ import './membership-pro.css';
 import './audience-experience.css';
 import './admin-studio-tokens.css';
 import './admin-studio-core.css';
+
+installGlobalErrorLogging();
