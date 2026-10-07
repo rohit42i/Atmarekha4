@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+
 function go(path) {
   window.history.pushState({}, '', path);
   window.dispatchEvent(new PopStateEvent('popstate'));
@@ -17,7 +19,7 @@ function Shell({ code, eyebrow, title, copy, children, className='' }) {
 }
 
 export function NotFoundPage() {
-  const [query, setQuery] = React.useState('');
+  const [query, setQuery] = useState('');
   const submit = event => {
     event.preventDefault();
     const clean = query.trim();
