@@ -162,38 +162,6 @@ export default function PrivacyCenter() {
       <PolicySection heading="Contact">For privacy questions or requests, contact {CONTACT_EMAIL{'}'}. We may verify your identity before completing a request.</PolicySection>
     </section>
 
-    <section className="privacy-policy-card">
-      <header className="privacy-section-heading">
-        <p className="section-eyebrow">YOUR DATA</p>
-        <h2>What we collect and why</h2>
-        <p>A feature-based summary of the information used by Atma Rekha.</p>
-      </header>
-      <DataTable rows={DATA_TABLE} headers={['Category', 'Typical data', 'Main purpose']} />
-    </section>
-
-    <section className="privacy-policy-card">
-      <header className="privacy-section-heading">
-        <p className="section-eyebrow">RETENTION</p>
-        <h2>How long we keep information</h2>
-      </header>
-      <DataTable rows={RETENTION_TABLE} headers={['Data type', 'Typical retention approach']} />
-    </section>
-
-    <section className="privacy-policy-card">
-      <header className="privacy-section-heading">
-        <p className="section-eyebrow">YOUR DATA</p>
-        <h2>Manage your data</h2>
-        <p>Sign in to use the main account controls. For anything else, contact privacy support.</p>
-      </header>
-      <div className="privacy-grid">
-        <section className="privacy-action"><h3>Export</h3><p>Download the personal data available through your account.</p><button className="primary-button" type="button" disabled={!user || busy} onClick={exportData}>{busy ? 'Preparing…' : 'Export my data'}</button></section>
-        <section className="privacy-action"><h3>Correct</h3><p>Update supported profile information or ask us to correct other information.</p><div className="button-row">{user && <button className="secondary-button" type="button" onClick={openProfile}>Open profile</button>}<button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy correction request')}>Request correction</button></div></section>
-        <section className="privacy-action"><h3>Delete</h3><p>Request deletion of eligible account data.</p><button className="secondary-button" type="button" disabled={!user || busy || ['pending','processing'].includes(deletion?.status)} onClick={requestDeletion}>{['pending','processing'].includes(deletion?.status) ? 'Request active' : 'Request deletion'}</button></section>
-        <section className="privacy-action"><h3>Withdraw consent</h3><p>Where processing depends on consent, you can withdraw it.</p><button className="secondary-button" type="button" disabled={!user || busy || !consent || Boolean(consent.withdrawn_at)} onClick={withdrawConsent}>{consent?.withdrawn_at ? 'Withdrawn' : 'Withdraw consent'}</button></section>
-        <section className="privacy-action"><h3>Other request</h3><p>For access, objection, restriction, portability or another privacy request.</p><button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy request')}>Contact privacy support</button></section>
-      </div>
-    </section>
-
     {(message || error) && <div className={`privacy-status ${error ? 'privacy-status-error' : 'privacy-status-success'}`} role={error ? 'alert' : 'status'} aria-live="polite">{error || message}</div>}
 
     {user && <section className="privacy-policy-card">
