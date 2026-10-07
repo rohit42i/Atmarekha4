@@ -175,21 +175,14 @@ export default function PrivacyCenter() {
     </section>
 
     <section className="privacy-policy-card">
-      <PolicySection heading="Who operates the service">Atma Rekha is an independent creator project by Arkesh, operated from India and available to readers in other locations. Privacy questions, requests and grievances can be sent to {CONTACT_EMAIL}.</PolicySection>
-      <PolicySection heading="What we collect">We collect only the information needed for the features you use. This may include account details, profile information, reading activity, community activity, membership and payment records, privacy requests, and limited technical or security information.</PolicySection>
-      <PolicySection heading="How we use your information">We use information to provide accounts and reader features, remember progress and favourites, run community and membership features, process payments, keep the service secure, prevent abuse, troubleshoot problems, provide support, and meet applicable obligations.</PolicySection>\n      <PolicySection heading="Why a particular use is allowed">Where required, we use an appropriate lawful basis for each processing activity. This can include providing the service you requested, keeping the service secure, meeting legal obligations, pursuing legitimate interests where allowed, or using your consent where consent is required.</PolicySection>
-      <PolicySection heading="Public reading and account features">Some reading pages can be available without an account. An account is required for features such as saved progress, bookmarks, community participation and membership access. Account creation currently requires the user to be 18 or older.</PolicySection>
-      <PolicySection heading="Public community content">Comments, usernames, reactions and other community contributions may be visible to other readers. Do not publish passwords, payment credentials, private addresses, government identifiers or other sensitive information in public areas.</PolicySection>
-      <PolicySection heading="Data minimisation">We aim to collect and use only information reasonably needed for a specific feature or purpose. Optional information is not required unless the feature explains why it is needed.</PolicySection>
-      <PolicySection heading="Sharing and service providers">Atma Rekha may use Supabase for authentication and database services, Cloudflare for storage, delivery, Workers and service infrastructure, and Razorpay for payments. Providers receive only the information needed for the service they perform. Payment credentials are handled through the payment provider rather than requested by Atma Rekha.</PolicySection>
-      <PolicySection heading="International data transfers">Because the website is available worldwide and relies on cloud infrastructure, personal information may be processed or stored in locations outside your home country. We use appropriate contractual, technical or organisational measures required for the applicable processing and provider arrangements.</PolicySection>
-      <PolicySection heading="Cookies, browser storage and similar technologies">Atma Rekha uses browser storage and similar mechanisms for essential preferences and reader features such as theme, language, local progress, offline reading, drafts and pseudonymous chapter-view measurement. We do not currently use advertising cookies or sell personal information for money. Your browser can clear stored site data, but doing so may remove local preferences and offline or locally stored progress.</PolicySection>
-      <PolicySection heading="Chapter-view measurement">The reader records chapter views using a randomly generated browser identifier and the chapter being viewed. This is used for aggregate readership measurement and admin reporting; it is not intended to identify you by name.</PolicySection>
-      <PolicySection heading="Security">We use access controls, row-level database policies, protected server-side functions for privileged operations, HTTPS and security headers, controlled media delivery, monitoring and backups appropriate to the service. No online system can guarantee absolute security.</PolicySection>
-      <PolicySection heading="Retention">We keep personal data only for as long as reasonably necessary for the purposes described here, or for longer where security, payment, accounting, dispute, fraud-prevention or other lawful requirements require it. When the purpose ends, eligible data is deleted, anonymised or de-identified according to our operational procedures.</PolicySection>
-      <PolicySection heading="Deletion and account closure">You can request deletion of eligible personal data. Deleting an account can affect access to profile, progress, bookmarks, community and membership features. Some records may remain for lawful retention, security, fraud prevention, accounting, payment, dispute handling or similar purposes.</PolicySection>
-      <PolicySection heading="Breaches and security incidents">When Atma Rekha becomes aware of a personal-data security incident, we assess it, contain it, investigate it and make required notifications or other protective responses under applicable law and our incident procedures.</PolicySection>\n      <PolicySection heading="Complaints and verification">You can contact us about a privacy concern or complaint. Where available in your location, you may also contact the relevant privacy or data-protection authority. We may ask for enough information to verify your identity before fulfilling a request.</PolicySection>
-      <PolicySection heading="Children and age">The current account product is intended for users aged 18 or older. Public reading availability may differ from account eligibility. We do not knowingly create accounts for users below the current account age requirement.</PolicySection>
+      <PolicySection heading="What we collect">We may collect account and profile information, reading activity, community content, membership information, payment-related details, and limited technical information needed to run and protect the service.</PolicySection>
+      <PolicySection heading="How we use it">We use information to provide the website and its features, keep accounts secure, save reading activity, operate community and membership features, provide support, improve the service, and meet applicable requirements.</PolicySection>
+      <PolicySection heading="When information is shared">We share information only when needed to provide a feature, process a transaction, protect the service, comply with applicable requirements, or when you choose to share it. We do not sell personal information for money.</PolicySection>
+      <PolicySection heading="Public content">Information you choose to post in public areas, such as comments or your public profile, may be visible to other readers. Do not post passwords, payment details or other private information publicly.</PolicySection>
+      <PolicySection heading="Cookies and storage">We use necessary browser storage and similar technologies for site preferences and features. We do not currently use advertising cookies.</PolicySection>
+      <PolicySection heading="Security and retention">We use reasonable security measures and keep information only for as long as needed for the purposes described here or where retention is otherwise required.</PolicySection>
+      <PolicySection heading="Your privacy rights">Depending on where you live, you may have rights to access, correct, delete, receive, restrict or object to certain uses of your information, or withdraw consent where applicable. Contact us if you want to make a request.</PolicySection>
+      <PolicySection heading="Contact">For privacy questions or requests, contact {CONTACT_EMAIL{'}'}. We may verify your identity before completing a request.</PolicySection>
     </section>
 
     <section className="privacy-policy-card">
@@ -211,73 +204,16 @@ export default function PrivacyCenter() {
 
     <section className="privacy-policy-card">
       <header className="privacy-section-heading">
-        <p className="section-eyebrow">YOUR RIGHTS</p>
-        <h2>Privacy controls and requests</h2>
-        <p>The rights available to you can depend on your location, the type of data involved and applicable exceptions. We may verify account ownership before completing a request.</p>
+        <p className="section-eyebrow">YOUR DATA</p>
+        <h2>Manage your data</h2>
+        <p>Sign in to use the main account controls. For anything else, contact privacy support.</p>
       </header>
-
       <div className="privacy-grid">
-        <section className="privacy-action">
-          <h3>Access / Export</h3>
-          <p>Download a machine-readable copy of personal data available through your account.</p>
-          <button className="primary-button" type="button" disabled={!user || busy} onClick={exportData}>{busy ? 'Preparing…' : 'Export my data'}</button>
-        </section>
-
-        <section className="privacy-action">
-          <h3>Correct my data</h3>
-          <p>Update supported profile information yourself, or contact us for other corrections.</p>
-          <div className="button-row">
-            {user && <button className="secondary-button" type="button" onClick={openProfile}>Open profile</button>}
-            <button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy correction request', 'Please describe the inaccurate information and the correction you are requesting.')}>Request correction</button>
-          </div>
-        </section>
-
-        <section className="privacy-action">
-          <h3>Delete my data</h3>
-          <p>Submit a deletion request for eligible personal data. Some records may need to be retained.</p>
-          <button className="secondary-button" type="button" disabled={!user || busy || ['pending','processing'].includes(deletion?.status)} onClick={requestDeletion}>
-            {['pending','processing'].includes(deletion?.status) ? 'Deletion request active' : 'Request deletion'}
-          </button>
-        </section>
-
-        <section className="privacy-action">
-          <h3>Withdraw consent</h3>
-          <p>Where processing is based on consent, you can withdraw that consent. Withdrawal does not undo earlier lawful processing.</p>
-          <button className="secondary-button" type="button" disabled={!user || busy || !consent || Boolean(consent.withdrawn_at)} onClick={withdrawConsent}>
-            {consent?.withdrawn_at ? 'Consent withdrawn' : 'Withdraw consent'}
-          </button>
-        </section>
-
-        <section className="privacy-action">
-          <h3>Object / Restrict / Portability</h3>
-          <p>For requests that depend on your location or a specific processing situation, contact privacy support and describe the request.</p>
-          <button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy rights request', 'Please state whether your request concerns objection, restriction, portability or another privacy right, and describe the relevant processing.')}>Submit request</button>
-        </section>
-
-        <section className="privacy-action">
-          <h3>Nomination</h3>
-          <p>Where this feature is relevant to you, you can save a person to contact or act on your behalf regarding your account after your death or incapacity.</p>
-          {!user ? <button className="secondary-button" type="button" onClick={() => window.dispatchEvent(new CustomEvent('atma-open-auth',{detail:{mode:'login',returnTo:'privacy'}}))}>Sign in</button> : <>
-            <div className="privacy-form-grid">
-              <label>Name<input value={nomineeName} onChange={e=>setNomineeName(e.target.value.slice(0,120))} maxLength={120} autoComplete="name"/></label>
-              <label>Email<input type="email" value={nomineeEmail} onChange={e=>setNomineeEmail(e.target.value.slice(0,254))} maxLength={254} autoComplete="email"/></label>
-              <label>Phone (optional)<input value={nomineePhone} onChange={e=>setNomineePhone(e.target.value.slice(0,30))} maxLength={30} autoComplete="tel"/></label>
-            </div>
-            <button className="secondary-button" type="button" disabled={busy} onClick={saveNomination}>{nomination ? 'Update nomination' : 'Save nomination'}</button>
-          </>}
-        </section>
-
-        <section className="privacy-action">
-          <h3>Grievance / privacy support</h3>
-          <p>For privacy questions, complaints or requests that need manual review, contact our support address.</p>
-          <button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy request')}>Email privacy support</button>
-        </section>
-
-        <section className="privacy-action">
-          <h3>Other local rights</h3>
-          <p>Your location may give you additional privacy or consumer rights. Tell us where you are located and what you are requesting so we can route the request correctly.</p>
-          <button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy request — local rights', 'Please include your country/region and the privacy right or request you want to exercise.')}>Start request</button>
-        </section>
+        <section className="privacy-action"><h3>Export</h3><p>Download the personal data available through your account.</p><button className="primary-button" type="button" disabled={!user || busy} onClick={exportData}>{busy ? 'Preparing…' : 'Export my data'}</button></section>
+        <section className="privacy-action"><h3>Correct</h3><p>Update supported profile information or ask us to correct other information.</p><div className="button-row">{user && <button className="secondary-button" type="button" onClick={openProfile}>Open profile</button>}<button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy correction request')}>Request correction</button></div></section>
+        <section className="privacy-action"><h3>Delete</h3><p>Request deletion of eligible account data.</p><button className="secondary-button" type="button" disabled={!user || busy || ['pending','processing'].includes(deletion?.status)} onClick={requestDeletion}>{['pending','processing'].includes(deletion?.status) ? 'Request active' : 'Request deletion'}</button></section>
+        <section className="privacy-action"><h3>Withdraw consent</h3><p>Where processing depends on consent, you can withdraw it.</p><button className="secondary-button" type="button" disabled={!user || busy || !consent || Boolean(consent.withdrawn_at)} onClick={withdrawConsent}>{consent?.withdrawn_at ? 'Withdrawn' : 'Withdraw consent'}</button></section>
+        <section className="privacy-action"><h3>Other request</h3><p>For access, objection, restriction, portability or another privacy request.</p><button className="secondary-button" type="button" onClick={() => requestByEmail('Privacy request')}>Contact privacy support</button></section>
       </div>
     </section>
 
