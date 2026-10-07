@@ -109,3 +109,25 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
 .theme-toggle:hover{transform:translateY(-1px)} .theme-toggle:active{transform:translateY(0)} .theme-toggle svg{width:20px;height:20px;display:block} .theme-toggle:focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
 @media (max-width:640px){.theme-toggle{right:14px;bottom:14px;width:42px;height:42px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* Keep floating controls separated: Back to top sits above the theme toggle. */
+.back-to-top{
+  position:fixed;
+  right:18px;
+  bottom:74px;
+  z-index:9998;
+  width:44px;
+  height:44px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:1px solid var(--border-color);
+  border-radius:999px;
+  background:var(--card-bg);
+  color:var(--text-color);
+  box-shadow:0 8px 24px var(--shadow-color);
+  cursor:pointer;
+}
+.back-to-top:hover{transform:translateY(-1px)}
+@media(max-width:640px){.back-to-top{right:14px;bottom:68px;width:42px;height:42px}}
