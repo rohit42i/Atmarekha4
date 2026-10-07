@@ -466,6 +466,13 @@ export default function App() { const route = useHashRoute(); const [chapters, s
           'Read ' + label + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
+      } else {
+        const chapterPart = routeParts[1] || '';
+        const numericChapter = /^\d+(?:\.\d+)?$/.test(chapterPart) ? chapterPart : '';
+        title = numericChapter ? 'Atma Rekha Chapter ' + numericChapter : 'Atma Rekha | Chapter';
+        description = numericChapter
+          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.'
+          : 'Read an Atma Rekha chapter, an original Indian fantasy manga adventure by Arkesh.';
       }
     } else if (type === 'read-chapter') {
       const legacyId = legacyChapterIdFromHash('#' + route);
@@ -525,7 +532,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
 
     const canonicalUrl = chapter
       ? chapterCanonicalUrl(chapter)
-      : SITE_URL + publicRoute;
+      : type === 'chapter'
+        ? SITE_URL + routeUrl.pathname + routeUrl.search
+        : SITE_URL + publicRoute;
 
     const chapterLanguage = chapter
       ? normalizeChapterLanguage(chapter.language)
@@ -544,7 +553,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       '503',
     ].includes(type) || type.endsWith('-admin');
 
-    const robots = isPrivateRoute
+    const unresolvedChapter = type === 'chapter' && !chapter;
+    const robots = isPrivateRoute || unresolvedChapter
       ? 'noindex,nofollow,noarchive'
       : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 
