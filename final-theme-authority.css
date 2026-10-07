@@ -762,3 +762,9 @@ html[data-theme="dark"] .auth-privacy-notice{color:#aaa!important}
   .reader-side-button{width:44px!important;height:44px!important;font-size:28px!important}
   .reader-side-button.left{left:8px!important}.reader-side-button.right{right:8px!important}
 }
+
+.reader-stage{position:relative!important}
+.reader-image-loading{position:absolute!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(0,0,0,.88)!important;z-index:3!important;pointer-events:none!important}
+html[data-theme="light"] .reader-image-loading{background:rgba(0,0,0,.88)!important;color:#fff!important}
+html[data-theme="dark"] .reader-image-loading{background:rgba(0,0,0,.92)!important;color:#fff!important}
+.reader-image-loading .loading-state{min-height:160px!important;background:transparent!important;color:#fff!important}
