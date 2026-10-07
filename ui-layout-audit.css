@@ -572,3 +572,16 @@ button {
   background-color: var(--surface-2-color);
   object-position: center;
 }
+
+.data-error-state{
+  min-width:0;
+  margin:0 auto;
+  padding:34px 22px;
+  border:1px solid var(--border-color);
+  border-radius:18px;
+  background:var(--card-bg);
+  color:var(--text-color);
+  text-align:center;
+}
+.data-error-state h2{margin:0;font-size:clamp(20px,4vw,28px)}
+.data-error-state p{max-width:54ch;margin:8px auto 18px;color:var(--muted-color);line-height:1.6;overflow-wrap:anywhere}
