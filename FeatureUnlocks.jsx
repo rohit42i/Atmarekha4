@@ -44,7 +44,8 @@ async function recordLoginOncePerUser() {
     group_chat_unlocked: data.group_chat_unlocked === true,
   };
 }
-\nexport default function FeatureUnlocks() {
+
+export default function FeatureUnlocks() {
   const [flags, setFlags] = useState(DEFAULT_FLAGS);
 
   useEffect(() => {
