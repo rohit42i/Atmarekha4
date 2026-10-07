@@ -134,7 +134,6 @@ function ChapterList({ chapters, member, admin, pageCounts, stats, onOpen, onBac
           <select value={language} onChange={event => onLanguageChange(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select>
         </label>
         <label className="chapter-sort"><span>Sort</span><select value={sort} onChange={event => onSortChange(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option><option value="views">Most viewed</option></select></label></div>
-      </div>
       {chapters.length ? <><div className="chapter-list">{chapters.map(chapter => <PdlplChapterRow key={chapter.id} chapter={chapter} member={member} admin={admin} onOpen={onOpen} pageCount={pageCounts[chapter.id] || 0} stats={stats} onRating={onRating} />)}</div><div className="chapter-discovery-end" role="status" aria-label="End of chapter list">You’ve reached the end.</div></> : <div className="empty-state" role="status" aria-live="polite"><span className="empty-state-mark" aria-hidden="true">—</span><h3>No chapters found</h3><p>Try another search, language, or sort option.</p></div>}
     </section>
     <Footer />
