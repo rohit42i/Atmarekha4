@@ -19,19 +19,29 @@ function markViewRecorded(chapterId) {
 }
 
 async function analyticsRequest(path, options = {}) {
-  const response = await fetch(`${ANALYTICS_WORKER_URL}${path}`, {
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers || {}),
-    },
-  });
-  if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    throw new Error(body || `Analytics request failed (${response.status}).`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${ANALYTICS_WORKER_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(body || `Analytics request failed (${response.status}).`);
+    }
+    return response.json();
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('Analytics request timed out. Please try again.');
+    throw error;
+  } finally {
+    clearTimeout(timer);
   }
-  return response.json();
 }
 
 export async function fetchCloudflareViews(chapterIds = []) {
