@@ -560,3 +560,81 @@ html[data-theme="dark"] .community-post h3,
 html[data-theme="dark"] .community-welcome h2{color:#fff!important}
 html[data-theme="dark"] .community-post-actions button,
 html[data-theme="dark"] .community-reaction-summary button{color:#fff!important;background:#030303!important;border-color:#292929!important}
+
+
+/* Rating dialog — explicit light/dark surfaces. */
+html[data-theme="light"] .rating-sheet,
+html[data-theme="light"] .rating-sheet .sheet-message,
+html[data-theme="light"] .rating-sheet .rating-scale button{
+  background:#fff!important;color:#111!important;border-color:#dedede!important;
+}
+html[data-theme="light"] .rating-sheet .sheet-head{border-color:#e4e4e4!important}
+html[data-theme="light"] .rating-sheet .sheet-head .section-eyebrow,
+html[data-theme="light"] .rating-sheet .rating-big span,
+html[data-theme="light"] .rating-sheet .rating-scale small{color:#666!important}
+html[data-theme="light"] .rating-sheet .rating-scale button:hover:not(:disabled),
+html[data-theme="light"] .rating-sheet .rating-scale button:focus-visible{background:#f3f3f1!important}
+html[data-theme="dark"] .rating-sheet,
+html[data-theme="dark"] .rating-sheet .sheet-message,
+html[data-theme="dark"] .rating-sheet .rating-scale button{
+  background:#030303!important;color:#fff!important;border-color:#292929!important;
+}
+html[data-theme="dark"] .rating-sheet .sheet-head{border-color:#292929!important}
+html[data-theme="dark"] .rating-sheet .sheet-head .section-eyebrow,
+html[data-theme="dark"] .rating-sheet .rating-big span,
+html[data-theme="dark"] .rating-sheet .rating-scale small{color:#aaa!important}
+
+/* Group Chat — compact, calm, readable messaging UI. */
+.group-chat-header{height:56px!important;min-height:56px!important;padding:0 14px!important}
+.group-chat-title{font-size:15px!important;font-weight:800!important;letter-spacing:-.01em!important}
+.group-chat-live{font-size:8px!important}
+.group-message{max-width:88%!important;margin-bottom:13px!important;gap:7px!important}
+.group-avatar{width:32px!important;height:32px!important;min-width:32px!important;box-shadow:none!important}
+.group-main{max-width:calc(100% - 39px)!important}
+.group-meta{font-size:9px!important;margin:0 6px 3px!important}
+.group-meta button{font-size:9px!important}
+.group-bubble{max-width:min(540px,72vw)!important;padding:9px 11px!important;border-radius:14px 14px 14px 5px!important;font-size:13px!important;line-height:1.5!important;box-shadow:none!important}
+.group-message.mine .group-bubble{border-radius:14px 14px 5px 14px!important}
+.group-read{width:18px!important;min-width:18px!important;font-size:7px!important}
+.group-read b{font-size:8px!important}
+.group-reactions{gap:3px!important;margin:4px 4px 0!important}
+.group-reaction{padding:3px 6px!important;font-size:10px!important;border-radius:9px!important}
+.group-composer{padding:8px 10px max(8px,env(safe-area-inset-bottom))!important}
+.group-composer-inner{min-height:44px!important;border-radius:14px!important}
+.group-input{font-size:13px!important}
+.group-count{font-size:8px!important}
+.group-send{width:34px!important;height:34px!important;min-width:34px!important}
+html[data-theme="light"] .group-chat-feed{background:#f7f7f5!important}
+html[data-theme="light"] .group-chat-header,
+html[data-theme="light"] .group-composer{background:#fff!important}
+html[data-theme="light"] .group-message .group-meta button{color:#333!important}
+html[data-theme="light"] .group-bubble{background:#fff!important;color:#111!important;border:1px solid #e0e0dc!important}
+html[data-theme="light"] .group-message.mine .group-bubble{background:#ededeb!important;color:#111!important}
+html[data-theme="light"] .group-avatar{background:#ededeb!important;color:#111!important;border-color:#d7d7d2!important}
+html[data-theme="light"] .group-reaction,
+html[data-theme="light"] .group-reply-preview{background:#fff!important;color:#111!important;border-color:#dedede!important}
+html[data-theme="dark"] .group-chat-feed{background:#000!important}
+html[data-theme="dark"] .group-bubble{background:#0b0b0b!important;color:#fff!important;border:1px solid #242424!important}
+html[data-theme="dark"] .group-message.mine .group-bubble{background:#151515!important}
+html[data-theme="dark"] .group-avatar{background:#111!important;color:#fff!important;border-color:#292929!important}
+html[data-theme="dark"] .group-reaction,
+html[data-theme="dark"] .group-reply-preview{background:#0b0b0b!important;color:#fff!important;border-color:#292929!important}
+@media(max-width:600px){
+  .group-message{max-width:94%!important}
+  .group-bubble{max-width:76vw!important;font-size:13px!important}
+}
+
+/* Reader loading: reserve the reader surface immediately and avoid a generic
+   full-page flash while chapter data/media resolves. */
+.reader-page .loading-state{
+  min-height:55dvh!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.reader-page .loading-state p{
+  font-size:12px!important;
+  letter-spacing:.02em!important;
+}
+html[data-theme="light"] .reader-page .loading-state{background:#fff!important;color:#111!important}
+html[data-theme="dark"] .reader-page .loading-state{background:#000!important;color:#fff!important}
