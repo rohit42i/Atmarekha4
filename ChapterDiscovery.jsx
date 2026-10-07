@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { chapterPath } from './routes';
 
 function formatDate(value) {
@@ -22,6 +22,7 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
   });
   const [sort, setSort] = useState('chapter');
   const [sortOpen, setSortOpen] = useState(false);
+  const sortMenuRef = useRef(null);
   const [recentChapterIds, setRecentChapterIds] = useState({});
 
   useEffect(() => {
@@ -31,6 +32,12 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
     document.addEventListener('keydown', close);
     return () => document.removeEventListener('keydown', close);
   }, []);
+
+  useEffect(() => {
+    if (!sortOpen) return;
+    const selected = sortMenuRef.current?.querySelector('[aria-selected="true"]');
+    selected?.focus();
+  }, [sortOpen]);
 
   useEffect(() => {
     const close = event => {
@@ -75,7 +82,7 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
 
   return (
     <>
-      <div className="chapter-discovery"><label><span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" autoComplete="off" spellCheck="false" />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear chapter search">×</button>}</label><label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange?.(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></label><div className="chapter-sort"><button type="button" className="chapter-sort-button" onClick={() => setSortOpen(value => !value)} aria-haspopup="listbox" aria-expanded={sortOpen}><span>Sort</span><b>{sort === 'chapter' ? 'Chapter' : sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : sort === 'rating' ? 'Rating' : 'Views'}</b><span aria-hidden="true">⌄</span></button>{sortOpen && <div className="chapter-sort-menu" role="listbox" aria-label="Chapter sort">{[['chapter','Chapter'],['newest','Newest first'],['oldest','Oldest first'],['rating','Top rated'],['views','Most viewed']].map(([value,label]) => <button key={value} type="button" role="option" aria-selected={sort === value} className={sort === value ? 'active' : ''} onClick={() => { setSort(value); setSortOpen(false); }}>{label}</button>)}</div>}</div></div>
+      <div className="chapter-discovery"><label><span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search chapters…" aria-label="Search chapters" autoComplete="off" spellCheck="false" />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear chapter search">×</button>}</label><label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange?.(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></label><div className="chapter-sort" ref={sortMenuRef}><button type="button" className="chapter-sort-button" onClick={() => setSortOpen(value => !value)} aria-haspopup="listbox" aria-expanded={sortOpen}><span>Sort</span><b>{sort === 'chapter' ? 'Chapter' : sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : sort === 'rating' ? 'Rating' : 'Views'}</b><span aria-hidden="true">⌄</span></button>{sortOpen && <div className="chapter-sort-menu" role="listbox" aria-label="Chapter sort">{[['chapter','Chapter'],['newest','Newest first'],['oldest','Oldest first'],['rating','Top rated'],['views','Most viewed']].map(([value,label]) => <button key={value} type="button" role="option" aria-selected={sort === value} tabIndex={sort === value ? 0 : -1} className={sort === value ? 'active' : ''} onKeyDown={event => { const options = Array.from(sortMenuRef.current?.querySelectorAll('[role="option"]') || []); const index = options.indexOf(event.currentTarget); if (event.key === 'ArrowDown') { event.preventDefault(); options[(index + 1) % options.length]?.focus(); } else if (event.key === 'ArrowUp') { event.preventDefault(); options[(index - 1 + options.length) % options.length]?.focus(); } else if (event.key === 'Home') { event.preventDefault(); options[0]?.focus(); } else if (event.key === 'End') { event.preventDefault(); options[options.length - 1]?.focus(); } else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSort(value); setSortOpen(false); sortMenuRef.current?.querySelector('.chapter-sort-button')?.focus(); } else if (event.key === 'Escape') { event.preventDefault(); setSortOpen(false); sortMenuRef.current?.querySelector('.chapter-sort-button')?.focus(); } }} onClick={() => { setSort(value); setSortOpen(false); sortMenuRef.current?.querySelector('.chapter-sort-button')?.focus(); }}>{label}</button>)}</div>}</div></div>
 
       {renderChapter(visible, recentChapterIds, navigateToChapter)}
 
