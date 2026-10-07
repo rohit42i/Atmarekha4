@@ -6,6 +6,7 @@ import SubscriberBadge from './SubscriberBadge.jsx';
 import { MIN_PASSWORD_LENGTH, validateNewPassword } from './passwordSecurity';
 import { getSiteRoute } from './routes';
 import { getMarketingAttribution } from './attribution';
+import { validateEmail, rememberDraft, loadDraft, clearDraft, passwordStrength } from './formUX.js';
 
 function routeNow() { return getSiteRoute(); }
 function isPasswordResetRoute() { const url=new URL(window.location.href); return url.searchParams.get('reset-password')==='1' || url.hash.includes('type=recovery') || url.hash.includes('access_token='); }
