@@ -32,17 +32,22 @@ const PAGES = {
   privacy: {
     eyebrow: 'LEGAL', title: 'Privacy Policy',
     sections: [
-      { heading: 'Information We Use', body: 'Atma Rekha may process information you provide through comments, ratings or messages. We aim to use only what is needed to run and improve the website.' },
-      { heading: 'Reading & Engagement', body: 'The website may use anonymous or technical identifiers for reading progress, ratings, reactions and abuse prevention.' },
-      { heading: 'Comments & Public Content', body: 'Public comments and contributions may be visible to other readers. Avoid posting private or sensitive information.' },
-      { heading: 'Cookies & Local Storage', body: 'Browser storage may be used for essential preferences, sessions and reader features. You can clear locally stored data through your browser.' },
-      { heading: 'Third Parties', body: 'Hosting, database, authentication, content delivery, analytics and payments may be provided by third-party services such as Cloudflare, Supabase and Razorpay, subject to their applicable policies.' },
-      { heading: 'Account & Payment Data', body: 'Account information is used to provide sign-in, reading features and membership access. Payment credentials are handled by the payment provider; Atma Rekha does not store full card or UPI credentials in its application database.' },
-      { heading: 'Data Requests', body: `For privacy questions or requests, contact ${CONTACT_EMAIL}.` },
-      { heading: 'Updates', body: 'This policy may change as the website changes. The latest version will be published here.' },
+      { heading: 'What personal data we process', body: 'Depending on the feature you use, Atma Rekha may process your email address, name, username, avatar, bio, account timestamps, reading history, bookmarks, ratings, comments, community activity, notification subscriptions, membership and payment-related records, and technical identifiers used for security and abuse prevention.' },
+      { heading: 'Why we process it', body: 'We use personal data to create and secure accounts, provide reading and profile features, save progress and favourites, operate community features, provide memberships and payments, prevent abuse, troubleshoot faults, communicate important service information, and meet applicable legal obligations.' },
+      { heading: 'Standalone notice & consent', body: 'Our signup notice is intended to explain the data collected and the purposes of processing in clear language before account creation. Your signup records the privacy notice version and purposes you accepted. Where processing depends on consent, you can withdraw consent through Privacy Center.' },
+      { heading: 'Your rights', body: 'You can request access to personal data, correction of inaccurate information, erasure of eligible personal data, withdrawal of consent where applicable, grievance redressal, and nomination in accordance with the Digital Personal Data Protection Act, 2023 and applicable Rules.' },
+      { heading: 'Privacy Center', body: 'Signed-in readers can use Privacy & Data in their profile to export their data, update profile information, record consent withdrawal, and submit an account deletion request.' },
+      { heading: 'Public community content', body: 'Comments and community contributions may be visible to other readers. Do not publish passwords, payment credentials, private contact details or other sensitive information in public areas.' },
+      { heading: 'Security safeguards', body: 'We use access controls, row-level database policies, protected server-side functions for privileged operations, HTTPS/security headers, controlled media delivery, logging and backups appropriate to the service. Secret keys are not stored in browser code.' },
+      { heading: 'Processors & third-party services', body: 'Infrastructure may involve Supabase for authentication/database services, Cloudflare for content delivery, storage and Workers, and Razorpay for payments. These providers process data only as needed for the services they provide and under their applicable terms and policies. Transfers and disclosures remain subject to applicable Indian law.' },
+      { heading: 'Cookies & local storage', body: 'Browser storage is used for essential preferences, reading progress, offline copies, attribution continuity and other reader features. You can clear local storage or site data through your browser. Clearing local data may remove offline copies and local progress.' },
+      { heading: 'Retention', body: 'We retain personal data only while it is needed for the stated purpose or to comply with legal, security, accounting or payment obligations. When a purpose is no longer served, eligible data is deleted or de-identified according to our operational retention rules.' },
+      { heading: 'Personal data breaches', body: 'If we become aware of a qualifying personal data breach, we will assess, contain and investigate it, maintain relevant records, and provide notices to affected Data Principals and the Data Protection Board as required by applicable law and the notified Rules.' },
+      { heading: 'Children', body: 'Atma Rekha does not intentionally create accounts for children below 18. Account creation requires an age declaration of 18 or older. Readers below 18 may read public content where permitted by the service, but should not create an account.' },
+      { heading: 'Grievance & requests', body: 'For privacy requests, correction, deletion, consent withdrawal or grievances, email ' + CONTACT_EMAIL + ' with “DPDP Request” in the subject. We may verify account ownership before disclosing or changing personal data.' },
+      { heading: 'Updates', body: 'This policy may change as the website and applicable law change. The current version is published here with its effective date.' },
     ],
-  },
-  terms: {
+  },  terms: {
     eyebrow: 'LEGAL', title: 'Terms & Conditions',
     sections: [
       { heading: '1. Acceptance', body: 'By using Atma Rekha, you agree to these Terms & Conditions.' },
