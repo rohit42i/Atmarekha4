@@ -1,7 +1,14 @@
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const IMAGE_MIME_BY_EXT = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
   gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
+const COMMUNITY_MIME_BY_EXT = {
+  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
+  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 };
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
@@ -81,15 +88,244 @@ async function hasPaidAtmaMembership(user, request, env) {
     return row.status === 'cancelled' && end !== null && end > now;
   });
 }
+function safePath(value) {
+  const key = String(value || '');
+  if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
+  return key;
+}
 function objectKey(request) {
   const pathname = new URL(request.url).pathname;
   if (!pathname.startsWith('/storage/v1/object/public/')) return null;
   let key = '';
   try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
+  key = safePath(key);
+  if (!key) return null;
+  const cover = new RegExp(`^covers/chapters/${UUID_PATTERN}/[^/]+const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const IMAGE_MIME_BY_EXT = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
+const COMMUNITY_MIME_BY_EXT = {
+  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
+  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+};
+const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
+
+function normalizeOrigin(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  try { return new URL(input).origin; } catch (_) { return input.replace(/\/+$/, ''); }
+}
+function allowedOrigins(env) {
+  return String(env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean);
+}
+function corsHeaders(request, env) {
+  const origin = request.headers.get('Origin') || '';
+  const allowlist = allowedOrigins(env);
+  const allowOrigin = allowlist.includes(normalizeOrigin(origin))
+    ? origin
+    : (allowlist[0] || 'https://www.atmarekha.in');
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || 'Authorization, Accept, Content-Type, Cache-Control',
+    'Access-Control-Max-Age': '86400',
+    'Access-Control-Expose-Headers': 'ETag, Content-Type, Content-Length, Cache-Control',
+    'Vary': 'Origin, Access-Control-Request-Headers',
+  };
+}
+function json(request, env, body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(request, env) } });
+}
+function withCors(request, env, response) {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders(request, env))) headers.set(key, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+function bearer(request) {
+  const auth = request.headers.get('Authorization') || '';
+  return auth.startsWith('Bearer ') ? auth : null;
+}
+function apiKey(env) {
+  return String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
+}
+function supabaseHeaders(env, authorization = null) {
+  const key = apiKey(env);
+  return { apikey: key, Authorization: authorization || `Bearer ${key}`, Accept: 'application/json' };
+}
+async function supabaseRows(env, table, query, authorization = null) {
+  const url = new URL(`${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/rest/v1/${table}`);
+  for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
+  const response = await fetch(url, { headers: supabaseHeaders(env, authorization) });
+  if (!response.ok) throw new Error(`Supabase media authorization check failed (${response.status}).`);
+  return response.json();
+}
+async function getUser(request, env) {
+  const authorization = bearer(request);
+  if (!authorization || !env.SUPABASE_URL || !apiKey(env)) return null;
+  const response = await fetch(`${String(env.SUPABASE_URL).replace(/\/$/, '')}/auth/v1/user`, { headers: supabaseHeaders(env, authorization) });
+  if (!response.ok) return null;
+  return response.json();
+}
+async function isAdmin(user, request, env) {
+  if (!user?.id || !bearer(request)) return false;
+  const rows = await supabaseRows(env, 'admins', { select: 'user_id', user_id: `eq.${user.id}`, limit: '1' }, bearer(request));
+  return Array.isArray(rows) && rows.length > 0;
+}
+async function hasPaidAtmaMembership(user, request, env) {
+  if (!user?.id || !bearer(request)) return false;
+  const rows = await supabaseRows(env, 'user_subscriptions', {
+    select: 'plan_id,status,current_period_end',
+    user_id: `eq.${user.id}`,
+    status: 'in.(active,cancelled)',
+  }, bearer(request));
+  const now = Date.now();
+  return (rows || []).some(row => {
+    if (!['mini_member', 'supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
+    const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
+    if (row.status === 'active') return end === null || end > now;
+    return row.status === 'cancelled' && end !== null && end > now;
+  });
+}
+function safePath(value) {
+  const key = String(value || '');
   if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
-  const cover = new RegExp(`^covers/chapters/${UUID_PATTERN}/[^/]+$`, 'i');
-  const page = new RegExp(`^(?:chapter-pages/${UUID_PATTERN}/[^/]+/[^/]+|${UUID_PATTERN}/replacements/[^/]+)$`, 'i');
-  return cover.test(key) || page.test(key) ? key : null;
+  return key;
+}
+function objectKey(request) {
+  const pathname = new URL(request.url).pathname;
+  if (!pathname.startsWith('/storage/v1/object/public/')) return null;
+  let key = '';
+  try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
+, 'i');
+  const page = new RegExp(`^(?:chapter-pages/${UUID_PATTERN}/[^/]+/[^/]+|${UUID_PATTERN}/replacements/[^/]+)const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const IMAGE_MIME_BY_EXT = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+};
+const COMMUNITY_MIME_BY_EXT = {
+  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
+  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+};
+const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
+
+function normalizeOrigin(value) {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  try { return new URL(input).origin; } catch (_) { return input.replace(/\/+$/, ''); }
+}
+function allowedOrigins(env) {
+  return String(env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean);
+}
+function corsHeaders(request, env) {
+  const origin = request.headers.get('Origin') || '';
+  const allowlist = allowedOrigins(env);
+  const allowOrigin = allowlist.includes(normalizeOrigin(origin))
+    ? origin
+    : (allowlist[0] || 'https://www.atmarekha.in');
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || 'Authorization, Accept, Content-Type, Cache-Control',
+    'Access-Control-Max-Age': '86400',
+    'Access-Control-Expose-Headers': 'ETag, Content-Type, Content-Length, Cache-Control',
+    'Vary': 'Origin, Access-Control-Request-Headers',
+  };
+}
+function json(request, env, body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(request, env) } });
+}
+function withCors(request, env, response) {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders(request, env))) headers.set(key, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+function bearer(request) {
+  const auth = request.headers.get('Authorization') || '';
+  return auth.startsWith('Bearer ') ? auth : null;
+}
+function apiKey(env) {
+  return String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
+}
+function supabaseHeaders(env, authorization = null) {
+  const key = apiKey(env);
+  return { apikey: key, Authorization: authorization || `Bearer ${key}`, Accept: 'application/json' };
+}
+async function supabaseRows(env, table, query, authorization = null) {
+  const url = new URL(`${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/rest/v1/${table}`);
+  for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
+  const response = await fetch(url, { headers: supabaseHeaders(env, authorization) });
+  if (!response.ok) throw new Error(`Supabase media authorization check failed (${response.status}).`);
+  return response.json();
+}
+async function getUser(request, env) {
+  const authorization = bearer(request);
+  if (!authorization || !env.SUPABASE_URL || !apiKey(env)) return null;
+  const response = await fetch(`${String(env.SUPABASE_URL).replace(/\/$/, '')}/auth/v1/user`, { headers: supabaseHeaders(env, authorization) });
+  if (!response.ok) return null;
+  return response.json();
+}
+async function isAdmin(user, request, env) {
+  if (!user?.id || !bearer(request)) return false;
+  const rows = await supabaseRows(env, 'admins', { select: 'user_id', user_id: `eq.${user.id}`, limit: '1' }, bearer(request));
+  return Array.isArray(rows) && rows.length > 0;
+}
+async function hasPaidAtmaMembership(user, request, env) {
+  if (!user?.id || !bearer(request)) return false;
+  const rows = await supabaseRows(env, 'user_subscriptions', {
+    select: 'plan_id,status,current_period_end',
+    user_id: `eq.${user.id}`,
+    status: 'in.(active,cancelled)',
+  }, bearer(request));
+  const now = Date.now();
+  return (rows || []).some(row => {
+    if (!['mini_member', 'supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
+    const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
+    if (row.status === 'active') return end === null || end > now;
+    return row.status === 'cancelled' && end !== null && end > now;
+  });
+}
+function safePath(value) {
+  const key = String(value || '');
+  if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
+  return key;
+}
+function objectKey(request) {
+  const pathname = new URL(request.url).pathname;
+  if (!pathname.startsWith('/storage/v1/object/public/')) return null;
+  let key = '';
+  try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
+, 'i');
+  const community = /^community/[^/]+$/i;
+  return cover.test(key) || page.test(key) || community.test(key) ? key : null;
+}
+function migrationPath(bucket, key) {
+  if (!['chapter-pages', 'covers', 'community'].includes(bucket)) return null;
+  const safe = safePath(key);
+  if (!safe) return null;
+  if (bucket === 'community' && !/^community/[^/]+$/i.test(safe)) return null;
+  return safe;
+}
+function encodeStoragePath(path) {
+  return String(path).split('/').map(part => encodeURIComponent(part)).join('/');
+}
+function publicStorageUrl(env, bucket, key) {
+  return `${String(env.SUPABASE_URL || '').replace(/\\/$/, '')}/storage/v1/object/public/${bucket}/${encodeStoragePath(key)}`;
+}
+async function migrateStorageItem(env, bucket, key, destinationKey) {
+  const source = await fetch(publicStorageUrl(env, bucket, key));
+  if (!source.ok) throw new Error(`${bucket}/${key}: source returned HTTP ${source.status}.`);
+  const contentType = source.headers.get('Content-Type') || 'application/octet-stream';
+  const contentLength = Number(source.headers.get('Content-Length') || 0);
+  if (contentLength > MAX_UPLOAD_BYTES) throw new Error(`${bucket}/${key}: source is larger than 95 MB.`);
+  await env.MANGA_BUCKET.put(destinationKey, source.body, { httpMetadata: { contentType, cacheControl: 'public, max-age=86400' } });
+  return { bucket, key, destinationKey, bytes: contentLength, contentType };
 }
 function chapterIdFromKey(key) {
   const normal = key.match(new RegExp(`^chapter-pages/(${UUID_PATTERN})/`, 'i'));
@@ -125,11 +361,31 @@ export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     try {
+      const url = new URL(request.url);
+      if (url.pathname === '/__admin/migrate-storage') {
+        if (request.method !== 'POST') return json(request, env, { error: 'Method not allowed.' }, 405);
+        const token = String(env.ATMA_MIGRATION_TOKEN || '');
+        if (!token || request.headers.get('X-Atma-Migration-Token') !== token) return json(request, env, { error: 'Migration authorization failed.' }, 403);
+        const body = await request.json().catch(() => null);
+        const items = Array.isArray(body?.items) ? body.items : [];
+        if (!items.length || items.length > 100) return json(request, env, { error: 'Provide 1-100 migration items.' }, 400);
+        const results = [];
+        for (const item of items) {
+          const bucket = String(item?.bucket || '');
+          const key = migrationPath(bucket, item?.key);
+          const destinationKey = safePath(item?.destinationKey || item?.key);
+          if (!key || !destinationKey) return json(request, env, { error: `Invalid migration path for ${bucket}.` }, 400);
+          results.push(await migrateStorageItem(env, bucket, key, destinationKey));
+        }
+        return json(request, env, { ok: true, count: results.length, results });
+      }
       const key = objectKey(request);
       if (!key) return json(request, env, { error: 'Invalid media path.' }, 400);
       const publicCover = /^covers\/chapters\//i.test(key);
+      const communityMedia = /^community\//i.test(key);
+      const publicMedia = publicCover || communityMedia;
       if (request.method === 'GET' || request.method === 'HEAD') {
-        if (!publicCover) {
+        if (!publicMedia) {
           const access = await authorizePage(request, env, key);
           if (access.status) return json(request, env, { error: access.message }, access.status);
         }
@@ -145,8 +401,9 @@ export default {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set('ETag', object.httpEtag);
-        headers.set('Cache-Control', publicCover ? 'public, max-age=86400, stale-while-revalidate=604800' : 'private, max-age=86400, stale-while-revalidate=604800');
-        headers.set('Content-Disposition', 'inline');
+        headers.set('Cache-Control', publicMedia ? 'public, max-age=86400, stale-while-revalidate=604800' : 'private, max-age=86400, stale-while-revalidate=604800');
+        const contentType = headers.get('Content-Type') || '';
+        headers.set('Content-Disposition', communityMedia && !contentType.startsWith('image/') ? 'attachment' : 'inline');
         headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
         headers.set('X-Content-Type-Options', 'nosniff');
         const response = withCors(request, env, new Response(request.method === 'HEAD' ? null : object.body, { status: 200, headers }));
@@ -157,14 +414,18 @@ export default {
       const admin = user ? await isAdmin(user, request, env) : false;
       if (!admin) return json(request, env, { error: 'Admin access required.' }, 403);
       if (request.method === 'PUT') {
-        const declaredType = String(request.headers.get('Content-Type') || '').toLowerCase();
+        const declaredType = String(request.headers.get('Content-Type') || '').toLowerCase().split(';')[0].trim();
         const ext = key.split('.').pop()?.toLowerCase() || '';
-        const contentType = declaredType.startsWith('image/') ? declaredType : IMAGE_MIME_BY_EXT[ext];
+        const communityMedia = /^community\//i.test(key);
+        const contentType = communityMedia
+          ? (declaredType || IMAGE_MIME_BY_EXT[ext] || COMMUNITY_MIME_BY_EXT[ext] || 'application/octet-stream')
+          : (declaredType.startsWith('image/') ? declaredType : IMAGE_MIME_BY_EXT[ext]);
         if (!contentType) return json(request, env, { error: 'Supported image upload required.' }, 415);
         const length = Number(request.headers.get('Content-Length') || 0);
-        if (length > MAX_UPLOAD_BYTES) return json(request, env, { error: 'Image is larger than 95 MB.' }, 413);
+        const maxBytes = communityMedia ? COMMUNITY_MAX_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+        if (length > maxBytes) return json(request, env, { error: communityMedia ? 'Community attachment is larger than 15 MB.' : 'Image is larger than 95 MB.' }, 413);
         if (!request.body) return json(request, env, { error: 'Empty upload body.' }, 400);
-        await env.MANGA_BUCKET.put(key, request.body, { httpMetadata: { contentType, cacheControl: 'private, max-age=3600' } });
+        await env.MANGA_BUCKET.put(key, request.body, { httpMetadata: { contentType, cacheControl: communityMedia ? 'public, max-age=86400' : 'private, max-age=3600' } });
         return json(request, env, { ok: true, path: key });
       }
       if (request.method === 'DELETE') {
