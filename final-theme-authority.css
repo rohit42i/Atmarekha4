@@ -270,3 +270,176 @@ html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbo
   border-left:none!important;
   border-right:none!important;
 }
+
+
+
+/* FINAL CHAPTER DISCOVERY CONTROLS
+   One clean outer control per field. Search stays dominant; Language and Sort remain real native selects.
+   Do not turn the selects into icon-only controls. */
+.chapter-discovery{
+  display:grid!important;
+  grid-template-columns:minmax(0,7fr) minmax(0,1.5fr) minmax(0,1.5fr)!important;
+  align-items:stretch!important;
+  gap:8px!important;
+  width:100%!important;
+  flex-wrap:nowrap!important;
+}
+.chapter-discovery>label{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  width:100%!important;
+  height:40px!important;
+  margin:0!important;
+  padding:0 10px!important;
+  display:flex!important;
+  align-items:center!important;
+  border:1px solid #d8d8d4!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:#000!important;
+}
+.chapter-discovery>label:first-child{
+  min-width:0!important;
+  flex:initial!important;
+  gap:7px!important;
+}
+.chapter-discovery>label:first-child input{
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  height:38px!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:#000!important;
+  font:500 13px/1 inherit!important;
+}
+.chapter-discovery>label:first-child input::placeholder{
+  color:#555!important;
+  opacity:1!important;
+}
+.chapter-discovery>label:first-child .chapter-search-icon{
+  flex:0 0 16px!important;
+  width:16px!important;
+  height:16px!important;
+  color:#555!important;
+}
+.chapter-discovery>label:first-child>button{
+  flex:0 0 24px!important;
+  width:24px!important;
+  height:24px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#000!important;
+  font-size:18px!important;
+  line-height:1!important;
+}
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{
+  min-width:0!important;
+  padding:0 8px!important;
+  gap:6px!important;
+}
+.chapter-discovery .chapter-language>span,
+.chapter-discovery .chapter-sort>span{
+  display:block!important;
+  flex:0 0 auto!important;
+  color:#555!important;
+  font-size:10px!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+}
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-sort select{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:100%!important;
+  height:38px!important;
+  padding:0 4px!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:#000!important;
+  font:600 11px/1 inherit!important;
+  appearance:auto!important;
+  -webkit-appearance:auto!important;
+}
+.chapter-discovery .chapter-language option,
+.chapter-discovery .chapter-sort option{
+  background:#fff!important;
+  color:#000!important;
+}
+html[data-theme="dark"] .chapter-discovery>label{
+  border-color:#292929!important;
+  background:#030303!important;
+  color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery>label:first-child input{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery>label:first-child input::placeholder,
+html[data-theme="dark"] .chapter-discovery .chapter-language>span,
+html[data-theme="dark"] .chapter-discovery .chapter-sort>span{
+  color:#aaa!important;
+}
+html[data-theme="dark"] .chapter-discovery>label:first-child .chapter-search-icon{
+  color:#aaa!important;
+}
+html[data-theme="dark"] .chapter-discovery>label:first-child>button{
+  color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language select,
+html[data-theme="dark"] .chapter-discovery .chapter-sort select{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language option,
+html[data-theme="dark"] .chapter-discovery .chapter-sort option{
+  background:#030303!important;
+  color:#fff!important;
+}
+@media(max-width:620px){
+  .chapter-discovery{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:7px!important;
+  }
+  .chapter-discovery>label:first-child{
+    grid-column:1 / -1!important;
+    height:40px!important;
+  }
+  .chapter-discovery .chapter-language,
+  .chapter-discovery .chapter-sort{
+    height:38px!important;
+  }
+  .chapter-discovery .chapter-language>span,
+  .chapter-discovery .chapter-sort>span{
+    font-size:9px!important;
+  }
+  .chapter-discovery .chapter-language select,
+  .chapter-discovery .chapter-sort select{
+    font-size:11px!important;
+  }
+}
+@media(max-width:380px){
+  .chapter-discovery{
+    gap:6px!important;
+  }
+  .chapter-discovery .chapter-language,
+  .chapter-discovery .chapter-sort{
+    padding:0 6px!important;
+  }
+  .chapter-discovery .chapter-language>span,
+  .chapter-discovery .chapter-sort>span{
+    display:none!important;
+  }
+  .chapter-discovery .chapter-language select,
+  .chapter-discovery .chapter-sort select{
+    font-size:11px!important;
+    padding:0!important;
+  }
+}
