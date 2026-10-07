@@ -12,6 +12,16 @@ const required = [
   ['ChapterDiscovery.jsx', '<div className=\"chapter-discovery\">'],
 ];
 
+  ['index.html', '<link rel="canonical" href="https://www.atmarekha.in/" />'],
+  ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
+  ['index.html', '<meta name="robots" content="index,follow'],
+  ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
+  ['routes.js', 'window.location.search'],
+  ['App.jsx', 'window.history.replaceState'],
+  ['scripts/generate-sitemap.mjs', 'isPublished'],
+  ['scripts/generate-sitemap.mjs', 'xmlns:image'],
+];
+
 const forbidden = [
   ['UserAuth.jsx', 'nominate a person'],
   ['membership.css', '#d946ef'],
@@ -52,6 +62,22 @@ if (oldMembership) {
   console.error('CHECK FAILED: unused Membership.css still exists.');
   failed = true;
 }
+
+
+const sitemap = await readFile('public/sitemap.xml', 'utf8');
+for (const phrase of [
+  '<urlset ',
+  '<loc>https://www.atmarekha.in/chapters</loc>',
+  '<loc>https://www.atmarekha.in/chapters?lang=en</loc>',
+  'hreflang="en-IN"',
+  'hreflang="hi-Latn-IN"',
+]) {
+  if (!sitemap.includes(phrase)) {
+    console.error('CHECK FAILED: public/sitemap.xml missing:', phrase);
+    failed = true;
+  }
+}
+
 
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
