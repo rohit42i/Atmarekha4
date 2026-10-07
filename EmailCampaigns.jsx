@@ -4,6 +4,7 @@ import { AdminIcon } from './admin-redesign-ui.jsx';
 import './email-campaign.css';
 
 const SITE_URL = 'https://www.atmarekha.in/';
+const CHAPTER_RELEASE_TEMPLATE_ID = '566311c5-dbe6-4341-b459-d1d4fdc4e032';
 const DRAFT_KEY = 'atma-rekha-email-campaign-draft-v1';
 const EMOJIS = ['❤️','🎁','✨','🔥','🙏','⭐','🌟','📖','🖤','😊','🥹','🎉','👀','💫','⚡','🫶'];
 
@@ -286,7 +287,7 @@ export default function EmailCampaigns({adminEmail=''}) {
     setStatus({type:'',text:isTest ? 'Sending test email…' : hasSelectedRecipients ? 'Sending to selected recipients…' : 'Sending to confirmed users…'});
     try {
       const result = await supabase.functions.invoke('send-email-to-users', {
-        body: {subject:subject.trim(),html:emailHtml,text:plainText,...(isTest ? {testEmail:testEmail.trim()} : hasSelectedRecipients ? {recipients:selectedRecipients.map(item => item.email)} : {})}
+        body: {subject:subject.trim(),html:emailHtml,text:plainText,templateId:CHAPTER_RELEASE_TEMPLATE_ID,...(isTest ? {testEmail:testEmail.trim()} : hasSelectedRecipients ? {recipients:selectedRecipients.map(item => item.email)} : {})}
       });
       if (result.error) { const detail = result.data?.error || result.error.message || 'Email request failed.'; const failures = Array.isArray(result.data?.failures) && result.data.failures.length ? ' ' + result.data.failures[0] : ''; throw new Error(detail + failures); }
       if (!result.data?.ok) { const detail = result.data?.error || 'Email request failed.'; const failures = Array.isArray(result.data?.failures) && result.data.failures.length ? ' ' + result.data.failures[0] : ''; throw new Error(detail + failures); }
