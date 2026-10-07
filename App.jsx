@@ -175,6 +175,7 @@ function ChapterList({ chapters, onBack }) {
   const [ratingChapter, setRatingChapter] = useState(null);
   const [commentChapter, setCommentChapter] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState('');
   const [language, setLanguage] = useState(() => {
     try { return normalizeChapterLanguage(window.localStorage.getItem('atma-language')); } catch { return 'hi'; }
   });
@@ -190,8 +191,9 @@ function ChapterList({ chapters, onBack }) {
   };
 
   const refresh = async () => {
-    if (!languageChapters.length) { setStats({}); setPageCounts({}); setLoading(false); return; }
+    if (!languageChapters.length) { setStats({}); setPageCounts({}); setDataError(''); setLoading(false); return; }
     setLoading(true);
+    setDataError('');
     try {
       const ids = languageChapters.map(chapter => chapter.id);
       const engagement = await fetchPublicEngagement(ids);
@@ -200,6 +202,7 @@ function ChapterList({ chapters, onBack }) {
       setPageCounts(counts);
     } catch (error) {
       console.error('Chapter list data:', error);
+      setDataError(error?.message || 'Unable to load chapter details.');
     } finally {
       setLoading(false);
     }
@@ -224,7 +227,13 @@ function ChapterList({ chapters, onBack }) {
         <div><p className="header-kicker">ATMA REKHA</p><h1>Chapter List</h1></div>
       </header>
       <section className="chapter-list-section">
-        {loading ? <LoadingState/> : (
+        {loading ? <LoadingState/> : dataError ? (
+          <div className="data-error-state" role="alert">
+            <h2>Chapter details unavailable</h2>
+            <p>{dataError}</p>
+            <button type="button" className="primary-button" onClick={refresh}>Retry</button>
+          </div>
+        ) : (
           <ChapterDiscovery chapters={languageChapters} stats={stats} renderChapter={renderRows} language={language} onLanguageChange={changeLanguage}/>
         )}
       </section>
