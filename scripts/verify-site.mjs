@@ -7,7 +7,7 @@ const required = [
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
-  ['scripts/generate-sitemap.mjs', "'special:' + slugify(match.title)"],
+  ['scripts/generate-sitemap.mjs', "chapterGroupKey"],
   ['UserAuth.jsx', "from './formUX.js'"],
   ['ChapterDiscovery.jsx', '<div className=\"chapter-discovery\">'],
 ];
