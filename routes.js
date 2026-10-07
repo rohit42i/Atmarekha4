@@ -99,12 +99,13 @@ export function getSiteRoute() {
   if (typeof window === 'undefined') return 'home';
   const pathname = cleanPathname(window.location.pathname);
   const hashRoute = window.location.hash.replace(/^#/, '');
+  if (pathname === '/' && !hashRoute) return 'home';
   // Legacy hash routes are still used for site-level pages. When a chapter
   // URL has a hash such as /chapter/1#chapters, the hash must take priority
   // so Back/close controls can actually leave the reader.
   if (hashRoute) return hashRoute;
   if (isChapterPath(pathname)) return pathname.slice(1) + (window.location.search || '');
-  const publicPath = /^\/(admin|chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe)$/.test(pathname);
+  const publicPath = /^\/(admin|chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe|430)$/.test(pathname);
   if (publicPath) return pathname.slice(1);
   return 'not-found';
 }
