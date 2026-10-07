@@ -178,7 +178,7 @@ export default function PrivacyCenter() {
 
     <section className="privacy-policy-card">
       <PolicySection heading="Changes to this notice">We may update this notice when Atma Rekha, its data practices or applicable requirements change. The current version and effective date are shown at the top of this page.</PolicySection>
-      <PolicySection heading="Contact">For privacy questions or requests, contact {CONTACT_EMAIL}. We may verify your identity before completing a request.</PolicySection>
+      
     </section>
 
     {!user && <section className="privacy-center-card">
