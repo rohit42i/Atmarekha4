@@ -109,7 +109,7 @@ export function getSiteRoute() {
   if (hashRoute) return hashRoute;
   if (isChapterPath(pathname)) return pathname.slice(1) + (window.location.search || '');
   const publicPath = /^\/(admin|chapters|info\/(?:about|contact|report|privacy|terms)|pal-do-pal-ke-lamhe|privacy-center|maintenance|403|430|503)$/.test(pathname);
-  if (publicPath) return pathname.slice(1);
+  if (publicPath) return pathname.slice(1) + (window.location.search || '');
   return 'not-found';
 }
 
