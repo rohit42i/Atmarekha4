@@ -939,3 +939,165 @@ html[data-theme="dark"] .auth-panel .auth-privacy-notice{
   background:rgba(255,255,255,.035);
   border-left-color:#333;
 }
+
+
+/* Final requested cleanup: language/sort controls use one clean outer control. */
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-sort select,
+.pdlpl-page-list .chapter-discovery select{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background-image:none!important;
+  border-radius:0!important;
+}
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{
+  border:1px solid #111!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language,
+html[data-theme="dark"] .chapter-discovery .chapter-sort{
+  border-color:#fff!important;
+}
+html[data-theme="light"] .chapter-discovery .chapter-language select,
+html[data-theme="light"] .chapter-discovery .chapter-sort select{
+  color:#111!important;
+  -webkit-text-fill-color:#111!important;
+  background:transparent!important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-language select,
+html[data-theme="dark"] .chapter-discovery .chapter-sort select{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:transparent!important;
+}
+
+/* PDPKL chapter covers: preserve the complete artwork instead of cropping it. */
+.pdlpl-page-list .chapter-row-cover{
+  width:76px!important;
+  height:102px!important;
+  aspect-ratio:3/4!important;
+  flex:0 0 76px!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+}
+.pdlpl-page-list .chapter-row-cover img{
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  display:block!important;
+}
+@media(max-width:640px){
+  .pdlpl-page-list .chapter-row-cover{
+    width:58px!important;
+    height:78px!important;
+    flex-basis:58px!important;
+  }
+}
+
+/* Membership cards stay intentionally monochrome in light mode. */
+html[data-theme="light"] .membership-plan,
+html[data-theme="light"] .membership-plan:hover,
+html[data-theme="light"] .membership-plan.is-popular,
+html[data-theme="light"] .membership-plan.is-current{
+  background:#050505!important;
+  background-image:none!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.16)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.16)!important;
+}
+html[data-theme="light"] .membership-plan h2,
+html[data-theme="light"] .membership-plan .membership-price,
+html[data-theme="light"] .membership-plan li{
+  color:#fff!important;
+}
+html[data-theme="light"] .membership-plan ul,
+html[data-theme="light"] .membership-plan .membership-price small{
+  color:#b8b8bd!important;
+}
+html[data-theme="light"] .membership-plan-icon{
+  background:#0b0b0b!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+html[data-theme="light"] .membership-button,
+html[data-theme="light"] .membership-plan.is-popular .membership-button{
+  background:#fff!important;
+  color:#050505!important;
+  border-color:#fff!important;
+}
+html[data-theme="light"] .membership-button:hover:not(:disabled){
+  background:#ededed!important;
+  color:#000!important;
+}
+
+/* PDPKL membership gate: clear primary action in both themes. */
+.chapter-access-cta{
+  width:100%!important;
+  min-height:48px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  box-sizing:border-box!important;
+  padding:0 18px!important;
+  border:1px solid #111!important;
+  border-radius:12px!important;
+  background:#111!important;
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  box-shadow:none!important;
+  cursor:pointer!important;
+  transition:transform .15s ease,background .15s ease,border-color .15s ease!important;
+}
+.chapter-access-cta:hover{
+  background:#000!important;
+  border-color:#000!important;
+  transform:translateY(-1px);
+}
+.chapter-access-cta:active{transform:translateY(0) scale(.99)}
+.chapter-access-cta span{font-size:15px!important}
+.chapter-access-secondary{
+  width:100%!important;
+  min-height:44px!important;
+  box-sizing:border-box!important;
+  margin-top:9px!important;
+  border:1px solid #d4d4d4!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#111!important;
+  font-size:12px!important;
+  font-weight:750!important;
+}
+html[data-theme="dark"] .chapter-access-cta{
+  background:#fff!important;
+  color:#000!important;
+  border-color:#fff!important;
+}
+html[data-theme="dark"] .chapter-access-cta:hover{
+  background:#ededed!important;
+  border-color:#ededed!important;
+}
+html[data-theme="dark"] .chapter-access-secondary{
+  background:#050505!important;
+  color:#fff!important;
+  border-color:#333!important;
+}
+
+/* Auth-triggered sign-in / membership actions use the same strong CTA language. */
+.auth-panel .primary-button{
+  min-height:44px!important;
+  border-radius:11px!important;
+  font-weight:800!important;
+}
