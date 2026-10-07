@@ -52,7 +52,7 @@ function apiKey(env) {
 }
 function supabaseHeaders(env, authorization = null) {
   const key = apiKey(env);
-  return { apikey: key, Authorization: authorization || `Bearer ${key}`, Accept: 'application/json' };
+  return { apikey: key, ...(authorization ? { Authorization: authorization } : {}), Accept: 'application/json' };
 }
 async function supabaseRows(env, table, query, authorization = null) {
   const url = new URL(`${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/rest/v1/${table}`);
