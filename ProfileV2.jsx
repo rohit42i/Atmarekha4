@@ -46,7 +46,6 @@ export default function ProfileV2() {
       {error&&<p className="profile-v2-error form-field-error" role="alert">{error}</p>}{message&&<p className="profile-v2-message form-field-success" role="status" aria-live="polite">{message}</p>}
     </form>:<div className="profile-v2-bio">{profile?.bio?<p>{profile.bio}</p>:<p className="muted">Add a short bio so your profile feels like yours.</p>}</div>}
     {!editing&&<><div className="profile-profile-actions">
-      <button type="button" className="profile-community-card" onClick={()=>window.location.hash='community'}><span className="profile-community-icon" aria-hidden="true">🤝</span><span><strong>Community</strong><small>Creator updates and messages</small></span><b>→</b></button>
       <button type="button" className="profile-community-card" onClick={()=>window.location.hash='group-chat'}><span className="profile-community-icon" aria-hidden="true">💬</span><span><strong>Group Chat</strong><small>Talk with the Atma Rekha community</small></span><b>→</b></button>
       <button type="button" className="profile-community-card" onClick={()=>window.location.hash='membership'}><span className="profile-community-icon" aria-hidden="true">✦</span><span><strong>Membership</strong><small>Choose your membership</small></span><b>→</b></button>
     </div>
