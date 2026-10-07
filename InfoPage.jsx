@@ -10,11 +10,11 @@ const PAGES = {
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
       ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
-      ['Free', 'Chapters 1–8'], ['Content Rating', '16+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
+      ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
       'Atma Rekha is an Indian fantasy adventure manga about ancient traditions, spiritual concepts, mysterious powers and mythical beings.',
-      'It is a Roman Hindi adventure manga made for Indian readers. New chapters are released on the 14th of each month. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
+      'It is a Roman Hindi adventure manga created for readers who enjoy Indian fantasy. New chapters are released on the 14th of each month. The story, characters and world are original, with AI used only in parts of the creative process such as backgrounds and references.',
     ],
   },
   contact: {
@@ -31,7 +31,7 @@ const PAGES = {
       { heading: 'Grievance handling', body: 'Complaints are handled according to the nature of the issue and applicable requirements. Where a specific process or timeframe applies, it is determined by the relevant requirements.' },
       { heading: 'Content & community reports', body: 'For incorrect, inappropriate, unlawful, infringing or broken content, tell us the chapter/page, post and what happened. Reports are reviewed according to the nature of the issue and applicable requirements.', links: [{ label: 'Report an Issue', href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Report` }] },
       { heading: 'Consumer support', body: 'For membership billing, cancellation or refund issues, include your account email and Razorpay payment/subscription reference. Never send passwords, UPI PINs, CVV or full card details.' },
-      { heading: 'National Consumer Helpline', body: 'If a consumer issue is not resolved through our grievance mechanism, you may also use the Government of India National Consumer Helpline.', links: [{ label: 'National Consumer Helpline', href: 'https://consumerhelpline.gov.in/' }] },
+      { heading: 'National Consumer Helpline', body: 'Depending on your location, you may also contact the relevant consumer-protection authority or payment provider.', links: [{ label: 'National Consumer Helpline', href: 'https://consumerhelpline.gov.in/' }] },
     ],
   },
   terms: {
