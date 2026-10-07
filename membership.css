@@ -87,28 +87,27 @@
 }
 
 /* Membership card finish + FAQ */
-.membership-plan{background:linear-gradient(145deg,#19191c 0%,#111113 58%,#0d0d0f 100%);border:1px solid rgba(255,255,255,.16);box-shadow:0 12px 30px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.045)}
-.membership-plan:hover{background:linear-gradient(145deg,#202023 0%,#131315 60%,#0d0d0f 100%);border-color:rgba(255,255,255,.3);box-shadow:0 17px 38px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)}
-.membership-plan.is-popular,.membership-plan.is-current{background:linear-gradient(145deg,#202023 0%,#141416 55%,#0d0d0f 100%);border-color:rgba(255,255,255,.32);box-shadow:0 14px 34px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.06)}
+.membership-plan{background:none;border:1px solid rgba(255,255,255,.16);box-shadow:0 12px 30px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.045)}
+.membership-plan:hover{background:none;border-color:rgba(255,255,255,.3);box-shadow:0 17px 38px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)}
+.membership-plan.is-popular,.membership-plan.is-current{background:none;border-color:rgba(255,255,255,.32);box-shadow:0 14px 34px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.06)}
 .membership-plan-access{display:none!important}
 .membership-faq{width:min(760px,100%);margin:34px auto 0}
 .membership-faq h2{margin:0 0 12px;font-size:22px;line-height:1.1;font-weight:850;letter-spacing:-.035em}
 .membership-faq-list{display:grid;gap:8px}
-.membership-faq details{border:1px solid rgba(255,255,255,.12);border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));overflow:hidden}
+.membership-faq details{border:1px solid rgba(255,255,255,.12);border-radius:12px;background:none;overflow:hidden}
 .membership-faq summary{padding:13px 15px;cursor:pointer;font-size:12px;font-weight:800;list-style:none}
 .membership-faq summary::-webkit-details-marker{display:none}
 .membership-faq summary::after{content:'+';float:right;font-size:16px;font-weight:500;color:#888}
 .membership-faq details[open] summary::after{content:'−'}
 .membership-faq details p{margin:0;padding:0 15px 14px;color:#999;font-size:11px;line-height:1.5}
 @media(max-width:620px){.membership-faq{margin-top:25px}.membership-faq h2{font-size:20px}.membership-faq summary{padding:12px;font-size:11px}.membership-faq details p{padding:0 12px 13px;font-size:10px}}
-@media(prefers-color-scheme:light){.membership-plan{background:linear-gradient(145deg,#fff 0%,#f7f7f8 100%);border-color:rgba(24,24,27,.15);box-shadow:0 12px 28px rgba(0,0,0,.09),inset 0 1px 0 rgba(255,255,255,.9)}.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:linear-gradient(145deg,#fff 0%,#f3f3f4 100%);border-color:rgba(24,24,27,.27);box-shadow:0 16px 34px rgba(0,0,0,.13)}.membership-faq details{border-color:rgba(24,24,27,.12);background:linear-gradient(145deg,#fff,#f5f5f6)}.membership-faq details p{color:#666}}
+@media(prefers-color-scheme:light){.membership-plan{background:none;border-color:rgba(24,24,27,.15);box-shadow:0 12px 28px rgba(0,0,0,.09),inset 0 1px 0 rgba(255,255,255,.9)}.membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{background:none;border-color:rgba(24,24,27,.27);box-shadow:0 16px 34px rgba(0,0,0,.13)}.membership-faq details{border-color:rgba(24,24,27,.12);background:none}.membership-faq details p{color:#666}}
 
 /* Final dark-mode membership polish */
 .membership-plan{
   border:1px solid transparent;
   background:
-    linear-gradient(145deg,#202226 0%,#17191d 46%,#101114 100%) padding-box,
-    linear-gradient(145deg,rgba(255,255,255,.24),rgba(255,255,255,.08) 48%,rgba(255,255,255,.16)) border-box;
+    none border-box;
   box-shadow:
     0 18px 38px rgba(0,0,0,.28),
     inset 0 1px 0 rgba(255,255,255,.055),
@@ -116,8 +115,7 @@
 }
 .membership-plan:hover{
   background:
-    linear-gradient(145deg,#25272b 0%,#1a1c20 46%,#111215 100%) padding-box,
-    linear-gradient(145deg,rgba(255,255,255,.32),rgba(255,255,255,.11) 50%,rgba(255,255,255,.20)) border-box;
+    none border-box;
   border-color:transparent;
   box-shadow:
     0 22px 44px rgba(0,0,0,.32),
@@ -126,8 +124,7 @@
 }
 .membership-plan.is-popular{
   background:
-    linear-gradient(145deg,#27292d 0%,#1b1d21 48%,#111215 100%) padding-box,
-    linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,.13) 50%,rgba(255,255,255,.24)) border-box;
+    none border-box;
   border-color:transparent;
   box-shadow:
     0 20px 42px rgba(0,0,0,.30),
@@ -136,28 +133,27 @@
 }
 .membership-plan.is-current{
   background:
-    linear-gradient(145deg,#232529 0%,#191b1f 48%,#111215 100%) padding-box,
-    linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.11) 50%,rgba(255,255,255,.20)) border-box;
+    none border-box;
   border-color:transparent;
 }
 .membership-plan-icon{
-  background:linear-gradient(145deg,#2b2d31,#1b1d20);
+  background:none;
   border:1px solid rgba(255,255,255,.08);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
 }
 .membership-price{font-feature-settings:"tnum";font-variant-numeric:tabular-nums}
 .membership-plan li{color:#e7e7ea}
 .membership-button{
-  background:linear-gradient(180deg,#ffffff 0%,#e7e7e9 100%);
+  background:none;
   border-color:#ffffff;
   box-shadow:0 1px 0 rgba(255,255,255,.35),0 5px 14px rgba(0,0,0,.18);
 }
 .membership-button:hover:not(:disabled){
-  background:linear-gradient(180deg,#ffffff 0%,#f1f1f2 100%);
+  background:none;
   box-shadow:0 6px 16px rgba(0,0,0,.22);
 }
 .membership-timing-note{
-  background:linear-gradient(145deg,#181a1e 0%,#111215 100%);
+  background:none;
   border:1px solid rgba(255,255,255,.15);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
 }
@@ -195,7 +191,7 @@
   overflow:hidden;
   border:1px solid rgba(255,255,255,.12);
   border-radius:14px;
-  background:linear-gradient(145deg,#17191c 0%,#101114 100%);
+  background:none;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 30px rgba(0,0,0,.20);
 }
 .membership-faq details{
@@ -247,14 +243,12 @@
 @media(max-width:620px){
   .membership-plan{
     background:
-      linear-gradient(145deg,#202226 0%,#17191d 46%,#101114 100%) padding-box,
-      linear-gradient(145deg,rgba(255,255,255,.24),rgba(255,255,255,.08) 48%,rgba(255,255,255,.16)) border-box;
+      none border-box;
     box-shadow:0 15px 30px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.05);
   }
   .membership-plan.is-popular{
     background:
-      linear-gradient(145deg,#27292d 0%,#1b1d21 48%,#111215 100%) padding-box,
-      linear-gradient(145deg,rgba(255,255,255,.36),rgba(255,255,255,.12) 50%,rgba(255,255,255,.22)) border-box;
+      none border-box;
   }
   .membership-faq{margin-top:28px}
   .membership-faq-heading h2{font-size:23px}
@@ -266,18 +260,16 @@
 }
 @media(prefers-color-scheme:light){
   .membership-plan{
-    background:linear-gradient(145deg,#ffffff 0%,#f4f4f6 100%) padding-box,
-               linear-gradient(145deg,rgba(24,24,27,.18),rgba(24,24,27,.07),rgba(24,24,27,.14)) border-box;
+    background:none border-box;
   }
   .membership-plan:hover,.membership-plan.is-popular,.membership-plan.is-current{
-    background:linear-gradient(145deg,#ffffff 0%,#f1f1f3 100%) padding-box,
-               linear-gradient(145deg,rgba(24,24,27,.24),rgba(24,24,27,.08),rgba(24,24,27,.18)) border-box;
+    background:none border-box;
   }
-  .membership-plan-icon{background:linear-gradient(145deg,#f3f3f4,#e5e5e7);border-color:rgba(24,24,27,.08)}
-  .membership-button{background:linear-gradient(180deg,#17171a,#050506);border-color:#17171a;box-shadow:0 5px 14px rgba(0,0,0,.12);color:#fff}
-  .membership-button:hover:not(:disabled){background:linear-gradient(180deg,#222226,#0b0b0d);box-shadow:0 6px 16px rgba(0,0,0,.16)}
-  .membership-timing-note{background:linear-gradient(145deg,#fff,#f3f3f5)}
-  .membership-faq-list{background:linear-gradient(145deg,#fff,#f4f4f6);border-color:rgba(24,24,27,.12);box-shadow:0 12px 26px rgba(0,0,0,.08)}
+  .membership-plan-icon{background:none;border-color:rgba(24,24,27,.08)}
+  .membership-button{background:none;border-color:#17171a;box-shadow:0 5px 14px rgba(0,0,0,.12);color:#fff}
+  .membership-button:hover:not(:disabled){background:none;box-shadow:0 6px 16px rgba(0,0,0,.16)}
+  .membership-timing-note{background:none}
+  .membership-faq-list{background:none;border-color:rgba(24,24,27,.12);box-shadow:0 12px 26px rgba(0,0,0,.08)}
   .membership-faq details{border-bottom-color:rgba(24,24,27,.09)!important}
   .membership-faq summary{color:#202024}
   .membership-faq details[open] summary{color:#111;background:rgba(24,24,27,.025)}
@@ -286,13 +278,13 @@
 }
 
 /* Dark mode final refinement */
-.membership-plan{background:radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.075),transparent 46%),linear-gradient(155deg,#1f2125 0%,#15171a 48%,#0b0c0e 100%) padding-box,linear-gradient(135deg,rgba(255,255,255,.30),rgba(255,255,255,.07) 45%,rgba(255,255,255,.18)) border-box;border:1px solid transparent;box-shadow:0 20px 42px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -24px 42px rgba(0,0,0,.13)}
-.membership-plan:hover{background:radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.095),transparent 46%),linear-gradient(155deg,#25272b 0%,#191b1f 48%,#0d0e10 100%) padding-box,linear-gradient(135deg,rgba(255,255,255,.42),rgba(255,255,255,.10) 45%,rgba(255,255,255,.23)) border-box;box-shadow:0 24px 48px rgba(0,0,0,.39),inset 0 1px 0 rgba(255,255,255,.075),inset 0 -24px 42px rgba(0,0,0,.14)}
-.membership-plan.is-popular{background:radial-gradient(125% 95% at 0% 0%,rgba(255,255,255,.12),transparent 48%),linear-gradient(155deg,#282a2f 0%,#1b1d21 48%,#0e0f11 100%) padding-box,linear-gradient(135deg,rgba(255,255,255,.48),rgba(255,255,255,.12) 45%,rgba(255,255,255,.27)) border-box;box-shadow:0 22px 46px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.085),inset 0 -24px 42px rgba(0,0,0,.14)}
-.membership-plan-icon{background:linear-gradient(145deg,#303237,#1a1c20);border-color:rgba(255,255,255,.11);box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 5px 14px rgba(0,0,0,.18)}
-.membership-button{background:linear-gradient(180deg,#fff,#e5e5e7);border-color:#fff;box-shadow:0 5px 16px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.7)}
-.membership-timing-note{background:radial-gradient(100% 140% at 0% 0%,rgba(255,255,255,.055),transparent 55%),linear-gradient(145deg,#181a1e,#0f1012);border-color:rgba(255,255,255,.17);box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 10px 24px rgba(0,0,0,.18)}
-.membership-faq-list{background:radial-gradient(100% 120% at 0% 0%,rgba(255,255,255,.045),transparent 52%),linear-gradient(145deg,#17191c,#0d0e10);border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 18px 34px rgba(0,0,0,.25)}
+.membership-plan{background:none border-box;border:1px solid transparent;box-shadow:0 20px 42px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.06),inset 0 -24px 42px rgba(0,0,0,.13)}
+.membership-plan:hover{background:none border-box;box-shadow:0 24px 48px rgba(0,0,0,.39),inset 0 1px 0 rgba(255,255,255,.075),inset 0 -24px 42px rgba(0,0,0,.14)}
+.membership-plan.is-popular{background:none border-box;box-shadow:0 22px 46px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.085),inset 0 -24px 42px rgba(0,0,0,.14)}
+.membership-plan-icon{background:none;border-color:rgba(255,255,255,.11);box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 5px 14px rgba(0,0,0,.18)}
+.membership-button{background:none;border-color:#fff;box-shadow:0 5px 16px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.7)}
+.membership-timing-note{background:none;border-color:rgba(255,255,255,.17);box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 10px 24px rgba(0,0,0,.18)}
+.membership-faq-list{background:none;border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 18px 34px rgba(0,0,0,.25)}
 .membership-faq summary:hover{background:rgba(255,255,255,.035)}
 .membership-faq details[open] summary{background:rgba(255,255,255,.028)}
 .membership-access-note{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.035)}
@@ -361,7 +353,7 @@
 .membership-page-header p{color:#66666d}
 .membership-close{background:#fff;border-color:rgba(24,24,27,.12)}
 .membership-close:hover{background:#f1f1f3}
-.membership-timing-note{background:linear-gradient(145deg,#fff,#f4f4f5);border-color:rgba(24,24,27,.13)}
+.membership-timing-note{background:none;border-color:rgba(24,24,27,.13)}
 .membership-plan{box-shadow:0 16px 34px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.9)}
 .membership-plan:hover{box-shadow:0 19px 38px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.9)}
 .membership-free-note{border-top-color:rgba(24,24,27,.09)}
