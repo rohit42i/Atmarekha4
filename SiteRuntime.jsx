@@ -46,27 +46,6 @@ function BackToTop() {
   return <button type="button" className="back-to-top" aria-label="Back to top" title="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>;
 }
 
-function PwaManager() {
-  useEffect(() => {
-    const available = event => {
-      event.preventDefault();
-      window.__atmaInstallPrompt = event;
-      window.dispatchEvent(new CustomEvent('atma:install-available'));
-    };
-    const installed = () => {
-      window.__atmaInstallPrompt = null;
-      window.dispatchEvent(new CustomEvent('atma:install-complete'));
-    };
-    window.addEventListener('beforeinstallprompt', available);
-    window.addEventListener('appinstalled', installed);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', available);
-      window.removeEventListener('appinstalled', installed);
-    };
-  }, []);
-  return null;
-}
-
 function ServiceWorkerManager() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
@@ -91,5 +70,5 @@ function ServiceWorkerManager() {
 }
 
 export default function SiteRuntime() {
-  return <><NetworkStatus/><ToastHost/><BackToTop/><PwaManager/><ServiceWorkerManager/></>;
+  return <><NetworkStatus/><ToastHost/><BackToTop/><ServiceWorkerManager/></>;
 }
