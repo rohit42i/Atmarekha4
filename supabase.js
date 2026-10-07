@@ -6,7 +6,7 @@ const supabaseKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const R2_WORKER_URL = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
-const R2_BUCKETS = new Set(['chapter-pages', 'covers']);
+const R2_BUCKETS = new Set(['chapter-pages', 'covers', 'community']);
 const CHAPTER_PAGES_TABLE = 'chapter_pages';
 
 // Manga pages keep a wider quality envelope to preserve line texture, hatching and small text.
