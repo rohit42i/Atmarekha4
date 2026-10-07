@@ -251,3 +251,22 @@ html[data-theme="dark"] .auth-panel .auth-consent-check.is-checked .auth-checkbo
     line-height:1.25!important;
   }
 }
+
+
+/* Info pages — remove the inner card/border around Terms, About and Report content. */
+.info-page .info-content,
+.info-page .info-section,
+.info-page .info-card,
+.info-page .legal-card,
+.info-page .report-card{
+  border:none!important;
+  box-shadow:none!important;
+}
+.info-page .info-content > *,
+.info-page .info-section > *,
+.info-page .info-card > *,
+.info-page .legal-card > *,
+.info-page .report-card > *{
+  border-left:none!important;
+  border-right:none!important;
+}
