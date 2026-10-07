@@ -124,7 +124,7 @@ async function compressImage(file) {
 export const cloudflareR2 = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
-    const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${bucket}/${encodePath(normalizeAtmaR2Path(bucket, path))}`;
+    const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${encodePath(normalizeAtmaR2Path(bucket, path))}`;
     return {
       async upload(path, file, options = {}) { try { const storagePath = normalizeAtmaR2Path(bucket, path); const processedFile = await compressImage(file); const response = await fetch(publicPath(storagePath), { method: 'PUT', headers: { ...(await authHeaders()), 'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream', 'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}` }, body: processedFile }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) }; } return { data: { path }, error: null }; } catch (error) { return { data: null, error }; } },
       getPublicUrl(path) { return { data: { publicUrl: publicPath(path) } }; },
