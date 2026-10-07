@@ -109,6 +109,7 @@ async function getChapter(env, chapterId, authorization = null) {
   const rows = await supabaseRows(env, 'chapters', { select: 'id,chapter_number,status', id: `eq.${chapterId}`, limit: '1' }, authorization);
   return Array.isArray(rows) ? rows[0] || null : null;
 }
+// Published unnumbered special chapters remain publicly readable.
 function isPublishedFreeChapter(chapter) {
   if (!chapter || String(chapter.status || '').toLowerCase() !== 'published') return false;
   const raw = chapter.chapter_number;
