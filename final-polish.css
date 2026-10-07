@@ -823,3 +823,35 @@ html[data-theme="dark"] .home-page .pdlpl-home-card,
 html[data-theme="dark"] .home-page .pdlpl-home-card:hover{
   box-shadow:0 22px 58px rgba(0,0,0,.48),0 2px 12px rgba(0,0,0,.30)!important;
 }
+
+/* More page — calm, editorial utility surface. */
+.more-page { min-height:100dvh; }
+.more-page-content { width:min(680px,calc(100% - 40px)); margin:0 auto; padding:48px 0 72px; }
+.more-page-content .section-eyebrow { margin:0 0 10px; font-size:11px; font-weight:800; letter-spacing:.16em; }
+.more-page-content h2 { margin:0; font-size:clamp(30px,5vw,42px); line-height:1.08; letter-spacing:-.04em; font-weight:650; }
+.more-page-intro { max-width:520px; margin:10px 0 28px; color:#686b72; font-size:15px; line-height:1.55; }
+.more-page-list { display:grid; gap:12px; }
+.more-page-button { width:100%; min-height:78px; display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:18px; align-items:center; text-align:left; padding:16px 16px 16px 20px; border:1px solid #dedee2 !important; border-radius:18px; background:#fff !important; color:#18191d !important; cursor:pointer; box-sizing:border-box; }
+.more-page-button span { min-width:0; display:grid; gap:5px; }
+.more-page-button strong { font-size:16px; line-height:1.2; font-weight:650; letter-spacing:-.015em; }
+.more-page-button small { color:#6c6f76; font-size:13px; line-height:1.45; font-weight:400; }
+.more-page-button > b { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:#f1f1ef; color:#191a1e; font-size:19px; font-weight:500; }
+.more-page-button:hover { border-color:#c9c9cd !important; background:#fcfcfb !important; }
+.more-page-button:hover > b { background:#e9e9e7; }
+.more-page-button:disabled { opacity:.62; cursor:not-allowed; }
+@media(prefers-color-scheme:dark){
+  .more-page-intro { color:#999da6; }
+  .more-page-button { border-color:#2b2e34 !important; background:#111318 !important; color:#f4f5f7 !important; }
+  .more-page-button small { color:#9b9fa8; }
+  .more-page-button > b { background:#1b1e23; color:#f2f3f5; }
+  .more-page-button:hover { border-color:#3b4049 !important; background:#14171c !important; }
+  .more-page-button:hover > b { background:#23272e; }
+}
+@media(max-width:640px){
+  .more-page-content { width:calc(100% - 28px); padding:32px 0 56px; }
+  .more-page-content h2 { font-size:32px; }
+  .more-page-intro { margin-bottom:22px; font-size:14px; }
+  .more-page-list { gap:10px; }
+  .more-page-button { min-height:74px; grid-template-columns:minmax(0,1fr) 40px; gap:12px; padding:14px 14px 14px 16px; border-radius:16px; }
+  .more-page-button > b { width:40px; height:40px; }
+}
