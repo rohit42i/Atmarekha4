@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 const required = [
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
-  ['InfoPage.jsx', 'The current account product requires users to be 15 or older.'],
+  ['InfoPage.jsx', "['Accounts', '15+']"],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
@@ -13,6 +13,7 @@ const required = [
 const forbidden = [
   ['UserAuth.jsx', 'nominate a person'],
   ['membership.css', '#d946ef'],
+  ['PrivacyCenter.jsx', 'nominate a person'],
 ];
 
 let failed = false;
