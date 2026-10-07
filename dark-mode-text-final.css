@@ -1,99 +1,37 @@
-/* Atma Rekha — final dark-mode text authority.
-   Loaded last. Visual-only: text colour/opacity only; no functionality changes. */
-
-html[data-theme="dark"] {
-  html,
-  body,
-  #root {
-    color: #fff !important;
-  }
-
-  /* All visible UI text is pure white. Hierarchy comes from size/weight, not grey text. */
-  body,
-  body * {
-    color: #fff !important;
-    opacity: 1 !important;
-  }
-
-  /* Preserve transparent containers and image/media behaviour. */
-  img,
-  video,
-  canvas,
-  svg,
-  svg *,
-  iframe {
-    color: inherit !important;
-  }
-
-  /* Form text and placeholders */
-  input,
-  textarea,
-  select,
-  option,
-  button,
-  [contenteditable="true"] {
-    color: #fff !important;
-    opacity: 1 !important;
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    color: #fff !important;
-    opacity: .72 !important;
-  }
-
-  /* White controls intentionally use black text for contrast. */
-  .hero-button,
-  .primary-button,
-  .reader-control.primary,
-  .ec-compose-row > button,
-  .ec-join button,
-  .community-join,
-  .community-admin-send,
-  .admin-submit,
-  .ar-admin-primary-action,
-  .ar-admin-nav button.active,
-  .ar-admin-tabs button.active,
-  .admin-tabs button.active {
-    color: #000 !important;
-  }
-
-  .hero-button *,
-  .primary-button *,
-  .reader-control.primary *,
-  .ec-compose-row > button *,
-  .ec-join button *,
-  .community-join *,
-  .community-admin-send *,
-  .admin-submit *,
-  .ar-admin-primary-action *,
-  .ar-admin-nav button.active *,
-  .ar-admin-tabs button.active *,
-  .admin-tabs button.active * {
-    color: #000 !important;
-  }
-
-  /* Keep semantic status indicators visually meaningful without changing text colour. */
-  .status-dot,
-  .ar-admin-status-card .status-dot {
-    opacity: 1 !important;
-  }
-
-  /* Disabled controls remain visually disabled through background/border rules,
-     while their text itself stays pure white. */
-  button:disabled,
-  input:disabled,
-  textarea:disabled,
-  select:disabled {
-    color: #fff !important;
-  }
-
-  /* Do not let text-rendering rules introduce faded typography. */
-  h1, h2, h3, h4, h5, h6,
-  p, span, small, strong, b, em, i, label, time,
-  a, li, dt, dd, legend, figcaption, summary,
-  th, td, caption {
-    color: #fff !important;
-    opacity: 1 !important;
-  }
+/* Atma Rekha — semantic dark-mode text layer.
+   Typography keeps hierarchy; only unreadable legacy dark text is corrected. */
+html[data-theme="dark"] body {
+  color:#fff;
+  background:#000;
+}
+html[data-theme="dark"] body :where(h1,h2,h3,h4,h5,h6,strong,b,legend,summary,th) {
+  color:#fff!important;
+  opacity:1!important;
+}
+html[data-theme="dark"] body :where(p,li,dd,dt,label,time,figcaption,span) {
+  color:inherit;
+}
+html[data-theme="dark"] body :where(.muted,.secondary-text,.faint,.hint,.description,.subtitle,.meta,.helper,.chapter-row-meta,.chapter-row-details) {
+  color:#c8c8c8!important;
+  opacity:1!important;
+}
+html[data-theme="dark"] body :where(a,a:hover,a:focus-visible) {
+  color:inherit;
+}
+html[data-theme="dark"] body :where(input,textarea,select,button,[contenteditable="true"]) {
+  color:#fff;
+  opacity:1;
+}
+html[data-theme="dark"] body :where(input,textarea,select)::placeholder {
+  color:#aaa;
+  opacity:1;
+}
+html[data-theme="dark"] body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join,.membership-button) {
+  color:#000!important;
+}
+html[data-theme="dark"] body :where(button.primary,.primary-button,.hero-button,.primary,.admin-submit,.reader-comment-button,.like-button,.reader-control.primary,.community-join,.ec-join,.membership-button) * {
+  color:#000!important;
+}
+html[data-theme="dark"] body :where(button:disabled,input:disabled,textarea:disabled,select:disabled) {
+  opacity:.65;
 }
