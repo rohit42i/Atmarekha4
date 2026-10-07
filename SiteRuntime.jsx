@@ -1,23 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-function announce(message) {
-  window.dispatchEvent(new CustomEvent('atma-toast', { detail: { message } }));
-}
-
-function NetworkStatus() {
-  const [online, setOnline] = useState(() => navigator.onLine);
-  const [seenOffline, setSeenOffline] = useState(false);
-  useEffect(() => {
-    const offline = () => { setOnline(false); setSeenOffline(true); };
-    const onlineNow = () => { setOnline(true); if (seenOffline) announce('Back online.'); };
-    window.addEventListener('offline', offline);
-    window.addEventListener('online', onlineNow);
-    return () => { window.removeEventListener('offline', offline); window.removeEventListener('online', onlineNow); };
-  }, [seenOffline]);
-  if (online) return null;
-  return <div className="network-status network-status-offline" role="status" aria-label="Offline" title="You are offline. Saved pages remain available."><span className="network-status-dot" aria-hidden="true" />Offline</div>;
-}
-
 function ToastHost() {
   const [items, setItems] = useState([]);
   useEffect(() => {
