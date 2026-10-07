@@ -1381,3 +1381,14 @@ html[data-theme="dark"] .auth-panel-error{color:#ff8d8d!important;border-color:#
 .auth-panel-link{display:block!important;margin:12px auto 0!important;background:transparent!important;border:0!important;padding:6px!important}
 .auth-panel-close{position:absolute!important;top:12px!important;right:12px!important}
 .auth-panel{position:relative!important}
+
+
+/* Chapter discovery labels — show only the actual selectable text. */
+.chapter-discovery .chapter-language>span,
+.chapter-discovery .chapter-sort>span{display:none!important}
+.chapter-discovery .chapter-language,
+.chapter-discovery .chapter-sort{padding:0 12px!important}
+.chapter-discovery select{font-family:inherit!important;font-size:12px!important;font-weight:600!important}
+.chapter-discovery .chapter-language::after,
+.chapter-discovery .chapter-sort::after{content:none!important;display:none!important}
+@media(max-width:560px){.chapter-discovery .chapter-language,.chapter-discovery .chapter-sort{padding:0 9px!important}.chapter-discovery select{font-size:12px!important}}
