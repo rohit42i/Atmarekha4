@@ -45,12 +45,12 @@ function LockedModal({ chapter, onClose, user, planId }) {
     ? 'Upgrade to unlock this chapter.'
     : hasUser
       ? 'Unlock this chapter with membership.'
-      : 'Chapter ' + (chapter?.chapterNumber || 1) + ' is for members.';
+      : 'PDPKL is for members.';
   const copy = isAtmaOnlyPlan
-    ? 'Your current ₹19 Supporter plan is for Atma Rekha only. Upgrade to ₹29 Premium Supporter or ₹49 Super Supporter to read Pal Do Pal Ke Lamhe.'
+    ? 'Your current ₹19 Supporter plan is for Atma Rekha only. Upgrade to ₹29 Premium Supporter or ₹49 Super Supporter to access all of Pal Do Pal Ke Lamhe from Chapter 1 onward.'
     : hasUser
-      ? 'Pal Do Pal Ke Lamhe starts with Chapter 1 as a members-only story. Choose ₹29 Premium Supporter or ₹49 Super Supporter for access.'
-      : 'Pal Do Pal Ke Lamhe Chapter 1 is members-only. Sign in, then choose ₹29 Premium Supporter or ₹49 Super Supporter.';
+      ? 'All of Pal Do Pal Ke Lamhe is members-only from Chapter 1 onward. Choose ₹29 Premium Supporter or ₹49 Super Supporter to access the story.'
+      : 'All of Pal Do Pal Ke Lamhe is members-only from Chapter 1 onward. Sign in, then choose ₹29 Premium Supporter or ₹49 Super Supporter to access the story.';
   const cta = isAtmaOnlyPlan ? 'Upgrade membership' : hasUser ? 'Choose membership' : 'Sign in & choose membership';
 
   return (
@@ -63,7 +63,7 @@ function LockedModal({ chapter, onClose, user, planId }) {
         <h2>{isAtmaOnlyPlan ? 'Your membership does not include PDPKL.' : title}</h2>
         <p className="chapter-access-copy">{copy}</p>
         <div className="chapter-access-perks">
-          <span>✦ Chapter 1 onward · PDPKL access</span>
+          <span>✦ Chapter 1 onward · Members only</span>
           <span>✦ ₹29 Premium Supporter</span>
           <span>✦ ₹49 Super Supporter</span>
         </div>
@@ -519,8 +519,6 @@ export default function PalDoPalKeLamhe() {
       const publishedRows = rows.filter(chapter => published(chapter));
       const publishedChapters = publishedRows.filter(chapter => String(chapter.language || 'hi') === language);
 
-      // Keep the chapter list independent from membership/session lookup.
-      // A membership lookup failure must never make published chapters disappear.
       setChapters(publishedChapters);
 
       try {
