@@ -64,12 +64,6 @@ export function Error430Page() {
   </Shell>;
 }
 
-export function OfflinePage({ onRetry }) {
-  return <Shell code="OFFLINE" eyebrow="NO INTERNET" title="You’re offline" copy="Your connection is unavailable. Saved pages remain available, and we’ll retry automatically when you’re back online.">
-    <div className="error-actions"><button className="primary-button" type="button" onClick={onRetry || (()=>window.location.reload())}>Retry connection</button><button className="secondary-button" type="button" onClick={()=>go('/chapters')}>Browse chapters</button></div>
-  </Shell>;
-}
-
 export function MaintenancePage({ message='We’re making a few improvements. Please check back soon.' }) {
   return <Shell code="503" eyebrow="MAINTENANCE" title="We’ll be back soon" copy={message}>
     <div className="error-actions"><button className="primary-button" type="button" onClick={()=>window.location.reload()}>Check again</button></div>
