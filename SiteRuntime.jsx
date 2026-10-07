@@ -19,73 +19,6 @@ function NetworkStatus() {
   return <div className="network-status network-status-offline" role="status" aria-live="assertive">You are offline. Saved pages remain available.</div>;
 }
 
-function ModalAccessibility() {
-  useEffect(() => {
-    const onKeyDown = event => {
-      const modal = [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')].at(-1);
-      if (!modal) return;
-      if (event.key === 'Escape') {
-        const close = modal.querySelector('[aria-label*="close" i], [aria-label*="cancel" i], .auth-panel-close, .membership-close, .ec-close');
-        if (close instanceof HTMLElement) close.click();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-      const focusable = [...modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
-        .filter(node => node instanceof HTMLElement && node.offsetParent !== null);
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, []);
-  return null;
-}
-
-function SessionMonitor() {
-  const [warning, setWarning] = useState(null);
-  useEffect(() => {
-    let interval = 0;
-    const parseExp = token => {
-      try {
-        const part = String(token).split('.')[1];
-        const normalized = part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=');
-        return Number(JSON.parse(atob(normalized)).exp || 0) * 1000;
-      } catch { return 0; }
-    };
-    const arm = session => {
-      window.clearInterval(interval);
-      setWarning(null);
-      const exp = parseExp(session?.access_token);
-      if (!exp) return;
-      const tick = () => {
-        const seconds = Math.max(0, Math.ceil((exp - Date.now()) / 1000));
-        if (seconds <= 120 && seconds > 0) setWarning(seconds);
-        else setWarning(null);
-      };
-      tick();
-      interval = window.setInterval(tick, 1000);
-    };
-    supabase.auth.getSession().then(({data})=>arm(data?.session));
-    const {data:listener}=supabase.auth.onAuthStateChange((event,session)=>{
-      if(event==='SIGNED_OUT'){setWarning(null);window.dispatchEvent(new CustomEvent('atma-toast',{detail:{message:'You have been logged out.'}}));}
-      if(session) arm(session); else setWarning(null);
-    });
-    return()=>{window.clearInterval(interval);listener.subscription.unsubscribe()};
-  },[]);
-  if (!warning) return null;
-  const minutes = Math.floor(warning / 60);
-  const seconds = String(warning % 60).padStart(2,'0');
-  return <div className="session-warning" role="status" aria-live="polite"><span>Your session refreshes in {minutes}:{seconds}. Keep this tab open.</span><button type="button" onClick={()=>setWarning(null)} aria-label="Dismiss session warning">×</button></div>;
-}
-
 function ToastHost() {
   const [items, setItems] = useState([]);
   useEffect(() => {
@@ -114,37 +47,35 @@ function BackToTop() {
   return <button type="button" className="back-to-top" aria-label="Back to top" title="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>;
 }
 
-function PageProgress() {
-  const [loading, setLoading] = useState(false);
+function PwaManager() {
   useEffect(() => {
-    let timer;
-    const start = () => { window.clearTimeout(timer); setLoading(true); timer = window.setTimeout(() => setLoading(false), 900); };
-    const end = () => { window.clearTimeout(timer); timer = window.setTimeout(() => setLoading(false), 160); };
-    window.addEventListener('atma:navigation-start', start);
-    window.addEventListener('atma:navigation-end', end);
-    return () => { window.clearTimeout(timer); window.removeEventListener('atma:navigation-start', start); window.removeEventListener('atma:navigation-end', end); };
+    const available = event => {
+      event.preventDefault();
+      window.__atmaInstallPrompt = event;
+      window.dispatchEvent(new CustomEvent('atma:install-available'));
+    };
+    const installed = () => {
+      window.__atmaInstallPrompt = null;
+      window.dispatchEvent(new CustomEvent('atma:install-complete'));
+    };
+    window.addEventListener('beforeinstallprompt', available);
+    window.addEventListener('appinstalled', installed);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', available);
+      window.removeEventListener('appinstalled', installed);
+    };
   }, []);
-  return <div className={'site-progress' + (loading ? ' is-active' : '')} aria-hidden="true"><span/></div>;
-}
-
-function InstallPrompt() {
-  const [event, setEvent] = useState(null);
-  useEffect(() => {
-    const handler = e => { e.preventDefault(); setEvent(e); };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-  if (!event) return null;
-  return <div className="install-prompt" role="dialog" aria-label="Install Atma Rekha"><div><strong>Install Atma Rekha</strong><span>Add the site to your home screen for faster access.</span></div><button type="button" className="primary-button" onClick={async()=>{await event.prompt(); setEvent(null);}}>Install</button><button type="button" className="ghost-button" aria-label="Dismiss install prompt" onClick={()=>setEvent(null)}>×</button></div>;
+  return null;
 }
 
 function ServiceWorkerManager() {
-  const [update, setUpdate] = useState(null);
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).then(reg => {
       const markUpdate = worker => {
-        if (worker) setUpdate(worker);
+        if (!worker) return;
+        window.__atmaUpdateWorker = worker;
+        window.dispatchEvent(new CustomEvent('atma:update-available'));
       };
       if (reg.waiting) markUpdate(reg.waiting);
       reg.addEventListener('updatefound', () => {
@@ -153,12 +84,11 @@ function ServiceWorkerManager() {
           if (worker.state === 'installed' && navigator.serviceWorker.controller) markUpdate(worker);
         });
       });
-      reg.update().catch(()=>{});
+      reg.update().catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
-    }).catch(()=>{});
+    }).catch(() => {});
   }, []);
-  if (!update) return null;
-  return <div className="update-banner" role="status"><span>Update available</span><button type="button" className="primary-button" onClick={()=>{update.postMessage({type:'SKIP_WAITING'}); setUpdate(null);}}>Refresh</button></div>;
+  return null;
 }
 
 export default function SiteRuntime() {
@@ -170,5 +100,5 @@ export default function SiteRuntime() {
     window.addEventListener('online', onOnline);
     return () => { window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); };
   }, []);
-  return <><NetworkStatus/><SessionMonitor/><ModalAccessibility/><PageProgress/><ToastHost/><BackToTop/><InstallPrompt/><ServiceWorkerManager/>{!online && <div className="offline-runtime-shell"><OfflinePage onRetry={()=>window.location.reload()}/></div>}</>;
+  return <><NetworkStatus/><ToastHost/><BackToTop/><PwaManager/><ServiceWorkerManager/>{!online && <div className="offline-runtime-shell"><OfflinePage onRetry={() => window.location.reload()}/></div>}</>;
 }
