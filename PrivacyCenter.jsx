@@ -173,16 +173,14 @@ export default function PrivacyCenter() {
       <p className="privacy-small-note">Requests sent by email are handled through support and may require additional identity verification before action.</p>
     </section>}
 
-}
-
     <section className="privacy-policy-card">
       <PolicySection heading="Changes to this notice">We may update this notice when Atma Rekha, its data practices or applicable requirements change. The current version and effective date are shown at the top of this page.</PolicySection>
-      <PolicySection heading="Contact">Privacy contact: {CONTACT_EMAIL}. Nothing in this notice is intended to remove a right that cannot lawfully be waived under applicable law.</PolicySection>
+      <PolicySection heading="Contact">For privacy questions or requests, contact {CONTACT_EMAIL}. We may verify your identity before completing a request.</PolicySection>
     </section>
 
     {!user && <section className="privacy-center-card">
       <h2>Manage your personal data</h2>
-      <p>Sign in to access export, consent, deletion, nomination and profile controls. You can still email us about a privacy request without signing in.</p>
+      <p>Sign in to access available privacy controls. You can also email us about a privacy request without signing in.</p>
       <div className="button-row">
         <button className="primary-button" type="button" onClick={() => window.dispatchEvent(new CustomEvent('atma-open-auth',{detail:{mode:'login',returnTo:'privacy'}}))}>Sign in</button>
         <button className="secondary-button" type="button" onClick={backHome}>Back home</button>
