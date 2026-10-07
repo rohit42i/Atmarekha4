@@ -44,6 +44,10 @@ export default function MorePage() {
           <span><strong>{installed ? 'Atma Rekha installed' : 'Install Atma Rekha'}</strong><small>{installed ? 'Atma Rekha is already on your device.' : available ? 'Add Atma Rekha to your home screen for faster access.' : 'Use your browser menu to add Atma Rekha to your home screen.'}</small></span>
           <b>{installed ? '✓' : '→'}</b>
         </button>
+        <button type="button" className="more-page-button" onClick={() => { window.location.hash='community'; }}>
+          <span><strong>Community</strong><small>Creator updates and messages from the Atma Rekha community.</small></span>
+          <b>→</b>
+        </button>
       </div>
     </section>
   </main>;
