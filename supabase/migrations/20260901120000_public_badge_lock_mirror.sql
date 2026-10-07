@@ -41,7 +41,12 @@ AS $function$
 BEGIN
   PERFORM set_config('app.allow_public_badge_write', 'on', true);
   UPDATE public.profiles p SET public_badge = (
-    SELECT CASE WHEN sp.amount_inr >= 99 THEN 'premium' ELSE 'supporter' END
+    SELECT CASE
+      WHEN sp.id = 'premium' OR sp.amount_inr >= 49 THEN 'premium'
+      WHEN sp.id = 'supporter' OR sp.amount_inr >= 29 THEN 'supporter'
+      WHEN sp.id = 'mini_member' OR sp.amount_inr >= 19 THEN 'mini_member'
+      ELSE NULL
+    END
     FROM public.user_subscriptions us
     JOIN public.subscription_plans sp ON sp.id = us.plan_id
     WHERE us.user_id = p_user_id
@@ -49,7 +54,7 @@ BEGIN
       AND (us.current_period_end IS NULL OR us.current_period_end > now())
       AND sp.active = true
       AND us.plan_id <> 'free'
-    ORDER BY CASE WHEN sp.amount_inr >= 99 THEN 2 ELSE 1 END DESC,
+    ORDER BY sp.amount_inr DESC,
              us.current_period_end DESC NULLS FIRST
     LIMIT 1
   )
