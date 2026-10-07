@@ -585,3 +585,23 @@ button {
 }
 .data-error-state h2{margin:0;font-size:clamp(20px,4vw,28px)}
 .data-error-state p{max-width:54ch;margin:8px auto 18px;color:var(--muted-color);line-height:1.6;overflow-wrap:anywhere}
+
+
+/* Final light-mode dark-surface cleanup. Intentional manga/overlay surfaces remain dark. */
+:root[data-theme="light"] body :where(
+  .bg-black,.bg-black\/50,.bg-black\/20,.bg-zinc-900,.bg-zinc-950,
+  .bg-neutral-900,.bg-neutral-950,.bg-gray-900,.bg-gray-950
+) {
+  background:#fff !important; background-color:#fff !important; color:#000 !important;
+}
+:root[data-theme="light"] .loading-state,
+:root[data-theme="light"] .empty-state,
+:root[data-theme="light"] .chapter-discovery-empty,
+:root[data-theme="light"] .chapter-discovery-end {
+  background:#fff !important; color:#000 !important; border-color:#deded9 !important;
+}
+:root[data-theme="light"] .reader-stage,
+:root[data-theme="light"] .ec-backdrop,
+:root[data-theme="light"] .community-admin-backdrop,
+:root[data-theme="light"] .modal-backdrop,
+:root[data-theme="light"] .overlay-backdrop { background:#000 !important; color:#fff !important; }
