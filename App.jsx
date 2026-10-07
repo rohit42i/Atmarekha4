@@ -483,13 +483,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
           ? '/pal-do-pal-ke-lamhe'
           : type === 'privacy-center'
             ? '/info/privacy'
-            : type === 'maintenance'
-              ? '/maintenance'
-              : type === '403'
-                ? '/403'
-                : type === '503'
-                  ? '/503'
-                  : '/';
+            : '/';
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
     const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
