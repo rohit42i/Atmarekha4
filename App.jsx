@@ -14,6 +14,7 @@ import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentL
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
+import { captureMarketingAttribution } from './attribution';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
 
@@ -97,6 +98,28 @@ function upsertJsonLd(data) {
     document.head.appendChild(script);
   }
   script.textContent = JSON.stringify(data);
+}
+
+function buildBreadcrumbList(type, routeParts, chapter, title, canonicalUrl) {
+  const items = [{ name: 'Atma Rekha', item: SITE_URL + '/' }];
+  if (type === 'chapters' || chapter) items.push({ name: 'Chapters', item: SITE_URL + '/chapters' });
+  if (type === 'info') {
+    const info = routeParts[1] || 'about';
+    const labels = { about: 'About', contact: 'Contact', report: 'Report', privacy: 'Privacy', terms: 'Terms' };
+    items.push({ name: labels[info] || 'About', item: SITE_URL + '/info/' + info });
+  }
+  if (type === 'pal-do-pal-ke-lamhe') items.push({ name: 'Pal Do Pal Ke Lamhe', item: SITE_URL + '/pal-do-pal-ke-lamhe' });
+  if (chapter) items.push({ name: title, item: canonicalUrl });
+  if (items.length < 2) return null;
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.item,
+    })),
+  };
 }
 
 function shortSeoDescription(value, fallback) {
@@ -413,6 +436,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     } else if (type === 'pal-do-pal-ke-lamhe') {
       title = 'Atma Rekha | Pal Do Pal Ke Lamhe';
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
+    } else if (type === 'not-found') {
+      title = 'Page Not Found | Atma Rekha';
+      description = 'The Atma Rekha page you requested could not be found.';
     }
 
     const publicRoute = type === 'chapters'
@@ -425,7 +451,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     const canonicalUrl = chapter ? chapterCanonicalUrl(chapter) : SITE_URL + publicRoute;
     const chapterLanguage = chapter ? normalizeChapterLanguage(chapter.language) : 'en';
     const isPrivateRoute = ['admin', 'profile', 'membership', 'group-chat', 'community'].includes(type) || type.endsWith('-admin');
-    upsertMeta('name', 'robots', isPrivateRoute ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
+    const isNotFound = type === 'not-found';
+    upsertMeta('name', 'robots', isPrivateRoute || isNotFound ? 'noindex,nofollow,noarchive' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1');
     setDocumentLanguage(chapterLanguage);
     clearAlternateLanguages();
     if (chapter && !isPrivateRoute) {
@@ -492,6 +519,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       },
       series
     ];
+    const breadcrumb = buildBreadcrumbList(type, routeParts, chapter, title, canonicalUrl);
+    if (breadcrumb) graph.push(breadcrumb);
     if (chapter) {
       graph.push({
         '@type': 'CreativeWork',
@@ -509,6 +538,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     }
     upsertJsonLd({ '@context': 'https://schema.org', '@graph': graph });
   }, [route, chapters]);
+ useEffect(() => {
+    captureMarketingAttribution();
+  }, [route]);
  useEffect(() => {
     const onChapterLinkClick = event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
