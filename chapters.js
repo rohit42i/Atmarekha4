@@ -97,25 +97,48 @@ export async function buildChapters() {
 function normalizeReaderPageUrl(url) {
   const value = String(url || '').trim();
   if (!value) return '';
+
+  const workerOrigin = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
+  const publicPrefix = '/storage/v1/object/public/';
+  const signedPrefix = '/storage/v1/object/sign/';
+  const authPrefix = '/storage/v1/object/authenticated/';
+
   try {
     const parsed = new URL(value, window.location.origin);
-    const prefix = '/storage/v1/object/public/';
-    const index = parsed.pathname.indexOf(prefix);
-    if (index >= 0) {
-      let key = decodeURIComponent(parsed.pathname.slice(index + prefix.length));
-      const legacy = key.match(/^chapter-pages\/chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
-      if (legacy) key = 'chapter-pages/' + legacy[1] + '/' + legacy[2] + '/' + legacy[3];
-      // Chapter artwork is served from the Cloudflare R2 media worker. Keep
-      // old Supabase storage URLs readable so existing chapter rows do not break.
-      if (key.startsWith('chapter-pages/')) {
-        parsed.origin = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
-        parsed.pathname = prefix + key.split('/').map(encodeURIComponent).join('/');
-        return parsed.toString();
+    let key = '';
+
+    for (const prefix of [publicPrefix, signedPrefix, authPrefix]) {
+      const index = parsed.pathname.indexOf(prefix);
+      if (index >= 0) {
+        key = decodeURIComponent(parsed.pathname.slice(index + prefix.length));
+        break;
       }
-      parsed.pathname = prefix + key.split('/').map(encodeURIComponent).join('/');
+    }
+
+    // Also accept database rows that already contain an R2 key rather than a
+    // complete URL. This makes the migration tolerant of old and new uploads.
+    if (!key && !parsed.protocol.startsWith('http')) key = value.replace(/^\/+/, '');
+    if (!key) return value;
+
+    if (key.startsWith('chapter-pages/')) {
+      const legacy = key.match(/^chapter-pages\/chapters\/([0-9a-f-]{36})\/pages\/(?:[^/]+-)?(\d+)\/(.+)$/i);
+      if (legacy) key = 'chapter-pages/' + legacy[1] + '/' + legacy[2] + '/' + legacy[3];
+
+      const legacyPages = key.match(/^chapter-pages\/chapters\/([0-9a-f-]{36})\/pages\/(\d+)\/(.+)$/i);
+      if (legacyPages) key = 'chapter-pages/' + legacyPages[1] + '/' + legacyPages[2] + '/' + legacyPages[3];
+
+      const uuidPages = key.match(/^chapter-pages\/([0-9a-f-]{36})\/pages\/(\d+)\/(.+)$/i);
+      if (uuidPages) key = 'chapter-pages/' + uuidPages[1] + '/' + uuidPages[2] + '/' + uuidPages[3];
+
+      parsed.protocol = 'https:';
+      parsed.host = new URL(workerOrigin).host;
+      parsed.pathname = publicPrefix + key.split('/').map(encodeURIComponent).join('/');
+      parsed.search = '';
+      parsed.hash = '';
       return parsed.toString();
     }
   } catch (_) {}
+
   return value;
 }
 
@@ -123,9 +146,18 @@ export async function buildChapterPages(chapterId) {
   if (!chapterId) return [];
   let lastError = null;
   for (let attempt = 1; attempt <= PAGE_FETCH_ATTEMPTS; attempt += 1) {
-    const { data, error } = await supabase.from(PAGES_TABLE).select('page_number,image_url').eq('chapter_id', chapterId).order('page_number', { ascending: true });
+    const { data, error } = await supabase
+      .from(PAGES_TABLE)
+      .select('page_number,image_url')
+      .eq('chapter_id', chapterId)
+      .order('page_number', { ascending: true });
+
     if (!error) {
-      const pages = (data || []).map((page) => normalizeReaderPageUrl(page.image_url)).filter(Boolean);
+      // Keep the database as the source of truth for page order, but normalize
+      // every legacy Supabase/R2 path before the reader tries to fetch it.
+      const rows = Array.isArray(data) ? [...data] : [];
+      rows.sort((a, b) => Number(a?.page_number) - Number(b?.page_number));
+      const pages = rows.map((page) => normalizeReaderPageUrl(page?.image_url)).filter(Boolean);
       if (pages.length || attempt === PAGE_FETCH_ATTEMPTS) return pages;
     } else {
       lastError = error;
