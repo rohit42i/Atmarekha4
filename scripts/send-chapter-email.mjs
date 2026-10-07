@@ -16,8 +16,7 @@ if (!RECIPIENTS_RAW) throw new Error('Missing EMAIL_TO.');
 
 const recipients = [...new Set(
   RECIPIENTS_RAW
-    .split(/[,
-;]+/)
+    .split(/[,\n;]+/)
     .map(value => value.trim())
     .filter(Boolean)
 )];
