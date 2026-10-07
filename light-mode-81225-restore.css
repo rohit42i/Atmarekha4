@@ -42,16 +42,8 @@ html:root[data-theme="light"],
   color: #111111 !important;
 }
 
-/* Strong light reset for all normal UI surfaces.
-   This is intentionally loaded last so later light/dark polish layers
-   cannot reintroduce gray backgrounds in the light theme. */
-:root[data-theme="light"] body :where(
-  *:not(img):not(video):not(canvas)
-) {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  color: #111111 !important;
-}
+/* Normal text and surfaces are handled by scoped selectors below.
+   Avoid applying backgrounds/colors to every descendant element. */
 
 /* Page shells and major containers */
 :root[data-theme="light"] body :where(
