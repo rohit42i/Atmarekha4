@@ -111,7 +111,9 @@ async function getChapter(env, chapterId, authorization = null) {
 }
 function isPublishedFreeChapter(chapter) {
   if (!chapter || String(chapter.status || '').toLowerCase() !== 'published') return false;
-  const value = Number(chapter.chapter_number);
+  const raw = chapter.chapter_number;
+  if (raw === null || raw === undefined || String(raw).trim() === '') return true;
+  const value = Number(raw);
   return Number.isFinite(value) && value >= 1 && value <= 8;
 }
 async function authorizePage(request, env, key) {
