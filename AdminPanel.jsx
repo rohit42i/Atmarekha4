@@ -11,6 +11,7 @@ import { AdminSidebar } from './admin-studio-ui.jsx';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
+import AdminCardThumbnails from './AdminCardThumbnails.jsx';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -82,6 +83,7 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
   ]},
   { label: 'Library', items: [
+    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
     { key: 'Media', icon: 'image', label: 'Media Library' },
   ]},
   { label: 'Tools', items: [
@@ -439,6 +441,8 @@ export default function AdminPanel({ onLogout }) {
       if (pages.error) throw new Error('Could not read chapter pages: ' + pages.error.message);
       const pagePaths = (pages.data || []).map(row => pathFromUrl(row.image_url, PAGE_BUCKET)).filter(Boolean);
       const coverPath = pathFromUrl(chapter.cover, COVER_BUCKET);
+      const cardDesktopPath = pathFromUrl(chapter.cardThumbnailDesktop, COVER_BUCKET);
+      const cardMobilePath = pathFromUrl(chapter.cardThumbnailMobile, COVER_BUCKET);
       const deleted = await supabase.from(CHAPTERS).delete().eq('id', chapter.id);
       if (deleted.error) throw new Error('Chapter delete failed: ' + deleted.error.message);
 
@@ -447,9 +451,10 @@ export default function AdminPanel({ onLogout }) {
         try { await removeFiles(PAGE_BUCKET, pagePaths); }
         catch (error) { cleanupFailures.push({ bucket: PAGE_BUCKET, paths: pagePaths, error: error.message }); }
       }
-      if (coverPath) {
-        try { await removeFiles(COVER_BUCKET, [coverPath]); }
-        catch (error) { cleanupFailures.push({ bucket: COVER_BUCKET, paths: [coverPath], error: error.message }); }
+      const coverAndCardPaths = [...new Set([coverPath, cardDesktopPath, cardMobilePath].filter(Boolean))];
+      if (coverAndCardPaths.length) {
+        try { await removeFiles(COVER_BUCKET, coverAndCardPaths); }
+        catch (error) { cleanupFailures.push({ bucket: COVER_BUCKET, paths: coverAndCardPaths, error: error.message }); }
       }
       for (const failure of cleanupFailures) {
         await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter', chapter.id, failure);
@@ -701,6 +706,108 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
+  async function saveCardThumbnail(chapter, slot, file) {
+    if (!chapter?.id || !['desktop', 'mobile'].includes(slot) || !file || busy) return;
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+    let adminUser = null;
+    let uploadedPath = null;
+    let committed = false;
+    try {
+      adminUser = await requireAdmin();
+      if (!String(file.type || '').toLowerCase().startsWith('image/')) throw new Error('Please select an image file.');
+      const language = normalizeChapterLanguage(chapter.language);
+      const ext = String(file.name || '').split('.').pop()?.toLowerCase() || 'jpg';
+      const stamp = Date.now();
+      const path = 'chapters/' + chapter.id + '/card-' + slot + '-' + language + '-' + stamp + '.' + ext;
+      const url = await upload(COVER_BUCKET, file, path);
+      uploadedPath = path;
+
+      const column = slot === 'mobile' ? 'card_thumbnail_mobile_url' : 'card_thumbnail_desktop_url';
+      const oldUrl = slot === 'mobile' ? chapter.cardThumbnailMobile : chapter.cardThumbnailDesktop;
+      const { error } = await supabase.from(CHAPTERS).update({ [column]: url }).eq('id', chapter.id);
+      if (error) throw new Error('Card thumbnail save failed: ' + error.message);
+      committed = true;
+
+      const oldPath = pathFromUrl(oldUrl, COVER_BUCKET);
+      if (oldPath) {
+        try { await removeFiles(COVER_BUCKET, [oldPath]); }
+        catch (cleanupError) {
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_card_thumbnail', chapter.id, {
+            bucket: COVER_BUCKET,
+            paths: [oldPath],
+            error: cleanupError.message,
+          });
+        }
+      }
+
+      await logAdminAction(adminUser, 'update_chapter_card_thumbnail', 'chapter', chapter.id, {
+        chapter_number: chapter.chapterNumber,
+        language,
+        slot,
+        file_name: file.name,
+      });
+      await load();
+      setNotice({
+        type: 'success',
+        text: 'Chapter ' + (chapter.chapterNumber ?? 'Special') + ' ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail updated.',
+      });
+    } catch (error) {
+      if (uploadedPath && !committed) {
+        try { await removeFiles(COVER_BUCKET, [uploadedPath]); } catch (_) {}
+      }
+      await logAdminAction(adminUser, 'update_chapter_card_thumbnail_failed', 'chapter', chapter?.id || null, {
+        error: error.message,
+        slot,
+      });
+      setNotice({ type: 'error', text: error.message || 'Card thumbnail upload failed.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function clearCardThumbnail(chapter, slot) {
+    if (!chapter?.id || !['desktop', 'mobile'].includes(slot) || busy) return;
+    const label = slot === 'mobile' ? 'mobile' : 'desktop';
+    if (!window.confirm('Remove the custom ' + label + ' card thumbnail for ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this chapter') + '? The normal chapter thumbnail will be used again.')) return;
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const column = slot === 'mobile' ? 'card_thumbnail_mobile_url' : 'card_thumbnail_desktop_url';
+      const oldUrl = slot === 'mobile' ? chapter.cardThumbnailMobile : chapter.cardThumbnailDesktop;
+      const { error } = await supabase.from(CHAPTERS).update({ [column]: null }).eq('id', chapter.id);
+      if (error) throw new Error('Card thumbnail reset failed: ' + error.message);
+      const oldPath = pathFromUrl(oldUrl, COVER_BUCKET);
+      if (oldPath) {
+        try { await removeFiles(COVER_BUCKET, [oldPath]); }
+        catch (cleanupError) {
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_card_thumbnail', chapter.id, {
+            bucket: COVER_BUCKET,
+            paths: [oldPath],
+            error: cleanupError.message,
+          });
+        }
+      }
+      await logAdminAction(adminUser, 'clear_chapter_card_thumbnail', 'chapter', chapter.id, {
+        chapter_number: chapter.chapterNumber,
+        language: normalizeChapterLanguage(chapter.language),
+        slot,
+      });
+      await load();
+      setNotice({ type: 'success', text: 'Custom ' + label + ' card thumbnail removed.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'clear_chapter_card_thumbnail_failed', 'chapter', chapter?.id || null, {
+        error: error.message,
+        slot,
+      });
+      setNotice({ type: 'error', text: error.message || 'Card thumbnail reset failed.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveMedia(event) {
     event.preventDefault();
     if (busy) return;
@@ -788,7 +895,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Media'];
+  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -892,7 +999,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} busy={busy} onUpload={saveCardThumbnail} onClear={clearCardThumbnail} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
