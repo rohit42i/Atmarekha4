@@ -981,3 +981,43 @@ html[data-theme="dark"] .ec-admin-badge{
   color:#e0b84f!important;
   border-color:#7f6525!important;
 }
+
+
+/* Admin Bestie identity: clean gold title + sparkle badge. */
+.ec-username--admin .ec-admin-title{
+  display:inline-flex!important;
+  align-items:center!important;
+  color:#8b6a1f!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.04em!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+.ec-username--admin .ec-admin-badge{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:auto!important;
+  min-height:auto!important;
+  padding:0!important;
+  margin:0 1px 0 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:inherit!important;
+  font-size:15px!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  opacity:1!important;
+}
+html[data-theme="dark"] .ec-username--admin .ec-admin-title{
+  color:#e0b84f!important;
+}
+html[data-theme="dark"] .ec-username--admin .ec-admin-badge{
+  color:#f0c95c!important;
+}
+@media(max-width:600px){
+  .ec-username--admin .ec-admin-title{font-size:8.5px!important}
+  .ec-username--admin .ec-admin-badge{font-size:14px!important}
+}
