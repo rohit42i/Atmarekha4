@@ -20,10 +20,6 @@ export function mapChapter(row) {
     cover: row.cover_path ? getPdlplMediaUrl(row.cover_path) : null,
     cardThumbnailDesktopPath: row.card_thumbnail_desktop_path || null,
     cardThumbnailMobilePath: row.card_thumbnail_mobile_path || null,
-    chapterListThumbnailDesktopPath: row.chapter_list_thumbnail_desktop_path || null,
-    chapterListThumbnailMobilePath: row.chapter_list_thumbnail_mobile_path || null,
-    chapterListThumbnailDesktop: row.chapter_list_thumbnail_desktop_path ? getPdlplMediaUrl(row.chapter_list_thumbnail_desktop_path) : null,
-    chapterListThumbnailMobile: row.chapter_list_thumbnail_mobile_path ? getPdlplMediaUrl(row.chapter_list_thumbnail_mobile_path) : null,
     cardThumbnailDesktop: row.card_thumbnail_desktop_path ? getPdlplMediaUrl(row.card_thumbnail_desktop_path) : null,
     cardThumbnailMobile: row.card_thumbnail_mobile_path ? getPdlplMediaUrl(row.card_thumbnail_mobile_path) : null,
     language: String(row.language || 'hi').toLowerCase() === 'en' ? 'en' : 'hi',
@@ -36,7 +32,7 @@ export function mapChapter(row) {
 export async function buildPdlplChapters() {
   const { data, error } = await supabase
     .from(PDLPL_CHAPTERS)
-    .select('id,chapter_number,title,description,cover_path,card_thumbnail_desktop_path,card_thumbnail_mobile_path,chapter_list_thumbnail_desktop_path,chapter_list_thumbnail_mobile_path,status,release_date,created_at,language')
+    .select('id,chapter_number,title,description,cover_path,card_thumbnail_desktop_path,card_thumbnail_mobile_path,status,release_date,created_at,language')
     .order('chapter_number', { ascending: true });
 
   if (error) throw error;
