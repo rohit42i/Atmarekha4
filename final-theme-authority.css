@@ -1248,7 +1248,7 @@ html[data-theme="dark"] .auth-panel .auth-checkbox-box{background:#000!important
   padding:0!important;
   margin:0!important;
   border:0!important;
-  border-radius:0!important;
+  border-radius:10px!important;
   background:transparent!important;
   background-image:none!important;
   color:inherit!important;
