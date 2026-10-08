@@ -1224,6 +1224,17 @@ html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box
 html[data-theme="light"] .auth-panel .auth-checkbox-box{background:#fff!important;border-color:#111!important}
 html[data-theme="dark"] .auth-panel .auth-checkbox-box{background:#000!important;border-color:#fff!important}
 
+
+.user-auth-home-button{
+  padding:2px!important;
+  border-radius:18px!important;
+  overflow:visible!important;
+}
+.user-auth-home-button .user-auth-avatar,
+.user-auth-home-button .user-auth-avatar-fallback,
+.user-auth-home-button .subscriber-badge--home{
+  border-radius:50%!important;
+}
 /* Home profile control: avatar + membership badge only. */
 .user-auth-home-button{
   display:inline-flex!important;
