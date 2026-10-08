@@ -65,3 +65,4 @@ export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [],
     </section>
     {editor && (editor.file || editor.src) && <ImageCropEditor file={editor.file} src={editor.src} aspect={editor.aspect} title={(series === 'pdpkl' ? 'PDPKL · ' : '') + numberLabel(editor.chapter) + ' · ' + (editor.slot === 'desktop' ? 'Desktop / PC' : 'Mobile')} onCancel={() => setEditor(null)} onSave={finishEdit}/>}
   </>;
+}
