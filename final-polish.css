@@ -1158,3 +1158,27 @@ html[data-theme="dark"] .ec-username--admin .ec-admin-badge{color:#ffd75a!import
     font-size:17px!important;
   }
 }
+
+
+/* Admin gold must win over all member/theme username rules. */
+.ec-meta button.ec-username.ec-username--admin .ec-member-name,
+.ec-meta button.ec-username.ec-username--admin .ec-admin-title,
+.ec-meta button.ec-username.ec-username--admin .ec-admin-badge{
+  background:transparent!important;
+  background-color:transparent!important;
+  color:#b06f00!important;
+  -webkit-text-fill-color:#b06f00!important;
+  text-shadow:none!important;
+}
+html[data-theme="light"] .ec-meta button.ec-username.ec-username--admin .ec-member-name,
+html[data-theme="light"] .ec-meta button.ec-username.ec-username--admin .ec-admin-title,
+html[data-theme="light"] .ec-meta button.ec-username.ec-username--admin .ec-admin-badge{
+  color:#a86500!important;
+  -webkit-text-fill-color:#a86500!important;
+}
+html[data-theme="dark"] .ec-meta button.ec-username.ec-username--admin .ec-member-name,
+html[data-theme="dark"] .ec-meta button.ec-username.ec-username--admin .ec-admin-title,
+html[data-theme="dark"] .ec-meta button.ec-username.ec-username--admin .ec-admin-badge{
+  color:#ffc928!important;
+  -webkit-text-fill-color:#ffc928!important;
+}
