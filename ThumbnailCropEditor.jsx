@@ -53,7 +53,7 @@ export default function ThumbnailCropEditor({
   const [src, setSrc] = useState('');
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
-  const [crop, setCrop] = useState({ width: 0, height: 0 });
+  const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [preset, setPreset] = useState('free');
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -133,7 +133,7 @@ export default function ThumbnailCropEditor({
     setCrop(current => {
       if (current.width && current.height) return current;
       const size = defaultCrop(stageSize.width, stageSize.height, PRESETS.find(item => item.key === preset)?.ratio || null);
-      return size;
+      return { x: (stageSize.width - size.width) / 2, y: (stageSize.height - size.height) / 2, ...size };
     });
   }, [stageSize.width, stageSize.height, preset]);
 
@@ -183,7 +183,7 @@ export default function ThumbnailCropEditor({
     const ratio = PRESETS.find(item => item.key === key)?.ratio || null;
     setPreset(key);
     const size = defaultCrop(stageSize.width, stageSize.height, ratio);
-    setCrop(size);
+    setCrop({ x: (stageSize.width - size.width) / 2, y: (stageSize.height - size.height) / 2, ...size });
     setPan({ x: 0, y: 0 });
     setZoom(1);
   };
@@ -191,7 +191,8 @@ export default function ThumbnailCropEditor({
   const resetAll = () => {
     if (!stageSize.width || !stageSize.height) return;
     const ratio = PRESETS.find(item => item.key === preset)?.ratio || null;
-    setCrop(defaultCrop(stageSize.width, stageSize.height, ratio));
+    const size = defaultCrop(stageSize.width, stageSize.height, ratio);
+    setCrop({ x: (stageSize.width - size.width) / 2, y: (stageSize.height - size.height) / 2, ...size });
     setZoom(1);
     setRotation(0);
     setPan({ x: 0, y: 0 });
@@ -247,22 +248,59 @@ export default function ThumbnailCropEditor({
     let width = drag.origin.width;
     let height = drag.origin.height;
     const fixedRatio = PRESETS.find(item => item.key === preset)?.ratio || null;
-
-    if (drag.handle.includes('e')) width = clamp(drag.origin.width + dx, 90, stageSize.width - 18);
-    if (drag.handle.includes('w')) width = clamp(drag.origin.width - dx, 90, stageSize.width - 18);
-    if (drag.handle.includes('s')) height = clamp(drag.origin.height + dy, 90, stageSize.height - 18);
-    if (drag.handle.includes('n')) height = clamp(drag.origin.height - dy, 90, stageSize.height - 18);
+    const minSize = 90;
+    let left = drag.origin.x;
+    let top = drag.origin.y;
 
     if (fixedRatio) {
-      const horizontal = Math.abs(dx) >= Math.abs(dy);
-      if (horizontal) height = clamp(width / fixedRatio, 90, stageSize.height - 18);
-      else width = clamp(height * fixedRatio, 90, stageSize.width - 18);
+      const sx = drag.handle.includes('w') ? -1 : 1;
+      const sy = drag.handle.includes('n') ? -1 : 1;
+      const rawWidth = drag.origin.width + dx * sx;
+      const rawHeight = drag.origin.height + dy * sy;
+      let nextWidth = Math.max(minSize, rawWidth);
+      let nextHeight = Math.max(minSize, rawHeight);
+      if (Math.abs(dx) >= Math.abs(dy)) nextHeight = nextWidth / fixedRatio;
+      else nextWidth = nextHeight * fixedRatio;
+
+      const maxWidth = drag.handle.includes('w') ? drag.origin.x + drag.origin.width : stageSize.width - drag.origin.x;
+      const maxHeight = drag.handle.includes('n') ? drag.origin.y + drag.origin.height : stageSize.height - drag.origin.y;
+      const scaleDown = Math.min(1, maxWidth / nextWidth, maxHeight / nextHeight);
+      nextWidth *= scaleDown;
+      nextHeight *= scaleDown;
+      width = clamp(nextWidth, minSize, maxWidth);
+      height = clamp(nextHeight, minSize, maxHeight);
+      if (drag.handle.includes('w')) left = drag.origin.x + drag.origin.width - width;
+      if (drag.handle.includes('n')) top = drag.origin.y + drag.origin.height - height;
+    } else {
+      if (drag.handle.includes('e')) width = clamp(drag.origin.width + dx, minSize, stageSize.width - drag.origin.x - 9);
+      if (drag.handle.includes('w')) {
+        const nextLeft = clamp(drag.origin.x + dx, 9, drag.origin.x + drag.origin.width - minSize);
+        left = nextLeft;
+        width = drag.origin.x + drag.origin.width - nextLeft;
+      }
+      if (drag.handle.includes('s')) height = clamp(drag.origin.height + dy, minSize, stageSize.height - drag.origin.y - 9);
+      if (drag.handle.includes('n')) {
+        const nextTop = clamp(drag.origin.y + dy, 9, drag.origin.y + drag.origin.height - minSize);
+        top = nextTop;
+        height = drag.origin.y + drag.origin.height - nextTop;
+      }
+    }
+
+    if (fixedRatio) {
+      if (drag.handle.includes('e')) left = drag.origin.x;
+      if (drag.handle.includes('s')) top = drag.origin.y;
+      if (!drag.handle.includes('w')) left = drag.origin.x;
+      if (!drag.handle.includes('n')) top = drag.origin.y;
+      left = clamp(left, 9, stageSize.width - width - 9);
+      top = clamp(top, 9, stageSize.height - height - 9);
     }
 
     setPreset(fixedRatio ? preset : 'free');
     setCrop({
-      width: clamp(width, 90, stageSize.width - 18),
-      height: clamp(height, 90, stageSize.height - 18),
+      x: left,
+      y: top,
+      width: clamp(width, minSize, stageSize.width - 18),
+      height: clamp(height, minSize, stageSize.height - 18),
     });
   };
 
@@ -328,10 +366,11 @@ export default function ThumbnailCropEditor({
   } : { width: '0px', height: '0px' };
 
   const imageStyle = metrics ? {
+    left: (crop.x + crop.width / 2) + 'px',
+    top: (crop.y + crop.height / 2) + 'px',
     width: metrics.drawW + 'px',
     height: metrics.drawH + 'px',
-    transform:
-      'translate3d(calc(-50% + ' + pan.x + 'px), calc(-50% + ' + pan.y + 'px), 0) rotate(' + rotation + 'deg)',
+    transform: 'translate3d(calc(-50% + ' + pan.x + 'px), calc(-50% + ' + pan.y + 'px), 0) rotate(' + rotation + 'deg)',
   } : undefined;
 
   const previewItems = previewConfigs.length ? previewConfigs : [
@@ -431,10 +470,13 @@ export default function ThumbnailCropEditor({
               {previewItems.map(item => (
                 <figure key={item.key} className="ar-ts-preview-card">
                   <div className="ar-ts-preview-frame" style={{ width: item.width + 'px', height: item.height + 'px' }}>
-                    {src ? <img src={src} alt="" style={{
-                      transform:
-                        'translate3d(-50%, -50%, 0) scale(' + Math.max(1, zoom) + ') translate(' + pan.x / Math.max(1, stageSize.width || 1) * 100 + '%, ' + pan.y / Math.max(1, stageSize.height || 1) * 100 + '%) rotate(' + rotation + 'deg)',
-                    }} /> : null}
+                    {src ? <div className="ar-ts-preview-image-wrap" style={{
+                      width: metrics ? metrics.drawW * (item.width / Math.max(1, crop.width)) + 'px' : 'auto',
+                      height: metrics ? metrics.drawH * (item.width / Math.max(1, crop.width)) + 'px' : 'auto',
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate3d(calc(-50% + ' + pan.x * (item.width / Math.max(1, crop.width)) + 'px), calc(-50% + ' + pan.y * (item.width / Math.max(1, crop.width)) + 'px), 0) rotate(' + rotation + 'deg)',
+                    }}><img src={src} alt="" /></div> : null}
                   </div>
                   <figcaption><strong>{item.label}</strong><span>{item.width}×{item.height}</span></figcaption>
                 </figure>
