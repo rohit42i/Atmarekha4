@@ -70,15 +70,46 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, outputLabel = '',
 
   useEffect(() => {
     if (!source) return undefined;
+    let active = true;
     let objectUrl = '';
-    if (source instanceof File || source instanceof Blob) objectUrl = URL.createObjectURL(source);
-    setSrc(objectUrl || source);
-    setZoom(1);
-    setPosition({ x: 0, y: 0 });
-    setRotation(0);
-    setError('');
-    setNatural({ width: 0, height: 0 });
-    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+
+    const prepareSource = async () => {
+      try {
+        setError('');
+        setNatural({ width: 0, height: 0 });
+        setZoom(1);
+        setPosition({ x: 0, y: 0 });
+        setRotation(0);
+
+        if (source instanceof File || source instanceof Blob) {
+          objectUrl = URL.createObjectURL(source);
+        } else {
+          const response = await fetch(String(source), {
+            method: 'GET',
+            credentials: 'omit',
+            cache: 'no-store',
+          });
+          if (!response.ok) throw new Error('The saved thumbnail could not be loaded for editing.');
+          const blob = await response.blob();
+          if (!blob.type.startsWith('image/')) throw new Error('The saved thumbnail is not a supported image.');
+          objectUrl = URL.createObjectURL(blob);
+        }
+
+        if (active) setSrc(objectUrl);
+      } catch (loadError) {
+        console.error(loadError);
+        if (active) {
+          setSrc('');
+          setError(loadError?.message || 'Unable to prepare this image for editing. Check the media Worker CORS settings.');
+        }
+      }
+    };
+
+    prepareSource();
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
   }, [source]);
 
   useEffect(() => {
@@ -239,7 +270,21 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, outputLabel = '',
     return () => window.removeEventListener('keydown', onKeyDown);
   });
 
-  if (!src) return null;
+  if (!src) return (
+    <div className="ar-ts-overlay" role="dialog" aria-modal="true" aria-label={title}>
+      <section className="ar-ts-editor ar-ts-editor-loading">
+        <header className="ar-ts-editor-head">
+          <div>
+            <span>THUMBNAIL STUDIO</span>
+            <h2>{error ? 'Unable to open image' : 'Preparing image…'}</h2>
+            <p>{error || 'Loading the source image into the editor.'}</p>
+          </div>
+          <button type="button" onClick={onCancel} aria-label="Close editor">×</button>
+        </header>
+      </section>
+    </div>
+  );
+
   const imageStyle = metrics ? {
     width: metrics.drawW + 'px',
     height: metrics.drawH + 'px',
@@ -291,7 +336,7 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, outputLabel = '',
           </div>
           <div className="ar-ts-output-row">
             <div><span>Output</span><strong>{outputLabel || formatRatio(ratio)} · {title.includes('Mobile') ? 'Mobile' : title.includes('Chapter List') ? 'Chapter List' : 'Desktop / PC'}</strong></div>
-            <small>Crop is exported as a new WebP image.</small>
+            <small>Drag the artwork to choose the crop. Nothing is replaced until you save.</small>
           </div>
         </div>
 
