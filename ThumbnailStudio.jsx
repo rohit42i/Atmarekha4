@@ -264,7 +264,21 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, outputLabel = '',
     return () => window.removeEventListener('keydown', onKeyDown);
   });
 
-  if (!src) return null;
+  if (!src) return (
+    <div className="ar-ts-overlay" role="dialog" aria-modal="true" aria-label={title}>
+      <section className="ar-ts-editor ar-ts-editor-loading">
+        <header className="ar-ts-editor-head">
+          <div>
+            <span>THUMBNAIL STUDIO</span>
+            <h2>{error ? 'Unable to open image' : 'Preparing image…'}</h2>
+            <p>{error || 'Loading the source image into the editor.'}</p>
+          </div>
+          <button type="button" onClick={onCancel} aria-label="Close editor">×</button>
+        </header>
+      </section>
+    </div>
+  );
+
   const imageStyle = metrics ? {
     width: metrics.drawW + 'px',
     height: metrics.drawH + 'px',
