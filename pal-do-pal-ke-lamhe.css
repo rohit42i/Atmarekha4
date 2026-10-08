@@ -772,3 +772,29 @@ html[data-theme="dark"] .chapter-discovery .chapter-sort option{
     flex-basis:56px!important;
   }
 }
+
+
+/* PDPKL desktop home card: match the Atma Rekha main card dimensions. */
+@media (min-width: 600px) {
+  .pdlpl-home-card {
+    width: min(760px, calc(100% - 64px)) !important;
+    margin-top: clamp(44px, 6vw, 62px) !important;
+  }
+  .pdlpl-home-card .hero-copy {
+    padding: clamp(44px, 5vw, 58px) !important;
+  }
+}
+@media (min-width: 900px) {
+  .pdlpl-home-card {
+    width: min(900px, calc(100% - 96px)) !important;
+    margin-top: 46px !important;
+  }
+  .pdlpl-home-card .hero-copy {
+    padding: 60px 64px !important;
+  }
+}
+@media (min-width: 1280px) {
+  .pdlpl-home-card {
+    width: min(960px, calc(100% - 120px)) !important;
+  }
+}
