@@ -165,10 +165,13 @@ export default function ThumbnailCropEditor({
 
   useEffect(() => {
     if (!stageSize.width || !stageSize.height || !crop.width || !crop.height) return;
-    setCrop(current => ({
-      width: clamp(current.width || crop.width, 90, stageSize.width - 18),
-      height: clamp(current.height || crop.height, 90, stageSize.height - 18),
-    }));
+    setCrop(current => {
+      const width = clamp(current.width, 90, Math.max(90, stageSize.width - 18));
+      const height = clamp(current.height, 90, Math.max(90, stageSize.height - 18));
+      const x = clamp(current.x, 9, Math.max(9, stageSize.width - width - 9));
+      const y = clamp(current.y, 9, Math.max(9, stageSize.height - height - 9));
+      return { ...current, x, y, width, height };
+    });
   }, [stageSize.width, stageSize.height]);
 
   useEffect(() => {
@@ -243,67 +246,51 @@ export default function ThumbnailCropEditor({
     const drag = resizeRef.current;
     if (!drag || drag.pointerId !== event.pointerId || !stageSize.width || !stageSize.height) return;
     event.preventDefault();
+
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    let width = drag.origin.width;
-    let height = drag.origin.height;
-    const fixedRatio = PRESETS.find(item => item.key === preset)?.ratio || null;
+    const origin = drag.origin;
     const minSize = 90;
-    let left = drag.origin.x;
-    let top = drag.origin.y;
+    const fixedRatio = PRESETS.find(item => item.key === preset)?.ratio || null;
+    const maxRight = stageSize.width - 9;
+    const maxBottom = stageSize.height - 9;
 
     if (fixedRatio) {
-      const sx = drag.handle.includes('w') ? -1 : 1;
-      const sy = drag.handle.includes('n') ? -1 : 1;
-      const rawWidth = drag.origin.width + dx * sx;
-      const rawHeight = drag.origin.height + dy * sy;
-      let nextWidth = Math.max(minSize, rawWidth);
-      let nextHeight = Math.max(minSize, rawHeight);
-      if (Math.abs(dx) >= Math.abs(dy)) nextHeight = nextWidth / fixedRatio;
-      else nextWidth = nextHeight * fixedRatio;
+      const anchorX = drag.handle.includes('w') ? origin.x + origin.width : origin.x;
+      const anchorY = drag.handle.includes('n') ? origin.y + origin.height : origin.y;
+      const deltaX = dx * (drag.handle.includes('w') ? -1 : 1);
+      const deltaY = dy * (drag.handle.includes('n') ? -1 : 1);
+      const scaleX = (origin.width + deltaX) / Math.max(1, origin.width);
+      const scaleY = (origin.height + deltaY) / Math.max(1, origin.height);
+      let scale = Math.max(0.1, scaleX, scaleY);
+      const maxWidth = drag.handle.includes('w') ? anchorX - 9 : maxRight - anchorX;
+      const maxHeight = drag.handle.includes('n') ? anchorY - 9 : maxBottom - anchorY;
+      scale = Math.min(scale, maxWidth / Math.max(1, origin.width), maxHeight / Math.max(1, origin.height));
+      const width = Math.max(minSize, origin.width * scale);
+      const height = Math.max(minSize, width / fixedRatio);
 
-      const maxWidth = drag.handle.includes('w') ? drag.origin.x + drag.origin.width : stageSize.width - drag.origin.x;
-      const maxHeight = drag.handle.includes('n') ? drag.origin.y + drag.origin.height : stageSize.height - drag.origin.y;
-      const scaleDown = Math.min(1, maxWidth / nextWidth, maxHeight / nextHeight);
-      nextWidth *= scaleDown;
-      nextHeight *= scaleDown;
-      width = clamp(nextWidth, minSize, maxWidth);
-      height = clamp(nextHeight, minSize, maxHeight);
-      if (drag.handle.includes('w')) left = drag.origin.x + drag.origin.width - width;
-      if (drag.handle.includes('n')) top = drag.origin.y + drag.origin.height - height;
-    } else {
-      if (drag.handle.includes('e')) width = clamp(drag.origin.width + dx, minSize, stageSize.width - drag.origin.x - 9);
-      if (drag.handle.includes('w')) {
-        const nextLeft = clamp(drag.origin.x + dx, 9, drag.origin.x + drag.origin.width - minSize);
-        left = nextLeft;
-        width = drag.origin.x + drag.origin.width - nextLeft;
-      }
-      if (drag.handle.includes('s')) height = clamp(drag.origin.height + dy, minSize, stageSize.height - drag.origin.y - 9);
-      if (drag.handle.includes('n')) {
-        const nextTop = clamp(drag.origin.y + dy, 9, drag.origin.y + drag.origin.height - minSize);
-        top = nextTop;
-        height = drag.origin.y + drag.origin.height - nextTop;
-      }
+      setCrop({
+        x: drag.handle.includes('w') ? anchorX - width : anchorX,
+        y: drag.handle.includes('n') ? anchorY - height : anchorY,
+        width: Math.min(width, maxWidth),
+        height: Math.min(height, maxHeight),
+      });
+      return;
     }
 
-    if (fixedRatio) {
-      if (drag.handle.includes('e')) left = drag.origin.x;
-      if (drag.handle.includes('s')) top = drag.origin.y;
-      if (!drag.handle.includes('w')) left = drag.origin.x;
-      if (!drag.handle.includes('n')) top = drag.origin.y;
-      left = clamp(left, 9, stageSize.width - width - 9);
-      top = clamp(top, 9, stageSize.height - height - 9);
-    }
+    let left = origin.x;
+    let top = origin.y;
+    let right = origin.x + origin.width;
+    let bottom = origin.y + origin.height;
 
-    setPreset(fixedRatio ? preset : 'free');
-    setCrop({
-      x: left,
-      y: top,
-      width: clamp(width, minSize, stageSize.width - 18),
-      height: clamp(height, minSize, stageSize.height - 18),
-    });
+    if (drag.handle.includes('w')) left = clamp(origin.x + dx, 9, right - minSize);
+    if (drag.handle.includes('e')) right = clamp(origin.x + origin.width + dx, left + minSize, maxRight);
+    if (drag.handle.includes('n')) top = clamp(origin.y + dy, 9, bottom - minSize);
+    if (drag.handle.includes('s')) bottom = clamp(origin.y + origin.height + dy, top + minSize, maxBottom);
+
+    setPreset('free');
+    setCrop({ x: left, y: top, width: right - left, height: bottom - top });
   };
-
   const stopResize = event => {
     if (resizeRef.current?.pointerId === event.pointerId) resizeRef.current = null;
   };
@@ -361,8 +348,11 @@ export default function ThumbnailCropEditor({
   };
 
   const cropStyle = stageSize.width && crop.width ? {
+    left: crop.x + 'px',
+    top: crop.y + 'px',
     width: crop.width + 'px',
     height: crop.height + 'px',
+    transform: 'none',
   } : { width: '0px', height: '0px' };
 
   const imageStyle = metrics ? {
@@ -476,7 +466,7 @@ export default function ThumbnailCropEditor({
                       left: '50%',
                       top: '50%',
                       transform: 'translate3d(calc(-50% + ' + pan.x * (item.width / Math.max(1, crop.width)) + 'px), calc(-50% + ' + pan.y * (item.width / Math.max(1, crop.width)) + 'px), 0) rotate(' + rotation + 'deg)',
-                    }}><img src={src} alt="" /></div> : null}
+                    }}><img src={src} alt="" draggable="false" /></div> : null}
                   </div>
                   <figcaption><strong>{item.label}</strong><span>{item.width}×{item.height}</span></figcaption>
                 </figure>
