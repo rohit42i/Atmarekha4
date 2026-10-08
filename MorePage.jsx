@@ -56,6 +56,18 @@ export default function MorePage() {
           <b aria-hidden="true">→</b>
         </button>
 
+        <button type="button" className="more-page-button" onClick={() => { window.location.hash = 'group-chat'; }}>
+          <span className="more-page-button-icon" aria-hidden="true">💬</span>
+          <span><strong>Group Chat</strong><small>Talk with the Atma Rekha community.</small></span>
+          <b aria-hidden="true">→</b>
+        </button>
+
+        <button type="button" className="more-page-button" onClick={() => { window.location.hash = 'security'; }}>
+          <span className="more-page-button-icon" aria-hidden="true">•</span>
+          <span><strong>Security</strong><small>Two-step verification and account security.</small></span>
+          <b aria-hidden="true">→</b>
+        </button>
+
         <button type="button" className="more-page-button more-page-install-button" onClick={handleInstall} disabled={pwa.installed} aria-describedby="more-page-install-note">
           <span className="more-page-button-icon" aria-hidden="true">↧</span>
           <span><strong>{pwa.installed ? 'App installed' : 'Install App'}</strong><small>{pwa.installed ? 'Atma Rekha is already installed on this device.' : 'Add Atma Rekha to your home screen for a faster, app-like experience.'}</small></span>
