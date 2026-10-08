@@ -134,3 +134,7 @@ html[data-theme="light"] .ar-ts-footer .ar-ts-save{background:#111;color:#fff;bo
 @media(max-width:430px){
   .ar-ts-thumb-grid{grid-template-columns:1fr}
 }
+
+.ar-ts-preview-frame{isolation:isolate}
+.ar-ts-preview-image-wrap{position:absolute;display:block;max-width:none;max-height:none;transform-origin:center;pointer-events:none;will-change:transform}
+.ar-ts-preview-image-wrap img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:fill}
