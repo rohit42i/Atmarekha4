@@ -16,6 +16,8 @@ export default function ImageCropEditor({
   src: sourceUrl = '',
   aspect = 16 / 9,
   title = 'Adjust thumbnail',
+  subtitle = 'Drag the artwork inside the frame. Zoom and rotate, then save the exact crop.',
+  outputLabel = '',
   onCancel,
   onSave,
 }) {
@@ -206,7 +208,7 @@ export default function ImageCropEditor({
           <div>
             <span>CARD ART EDITOR</span>
             <h2>{title}</h2>
-            <p>Drag the artwork inside the frame. Zoom and rotate, then save the exact crop.</p>
+            <p>{subtitle}</p>
           </div>
           <button type="button" onClick={onCancel} disabled={busy} aria-label="Close editor">×</button>
         </header>
@@ -247,7 +249,7 @@ export default function ImageCropEditor({
             </div>
             <div className="ar-crop-output-meta">
               <span>Output</span>
-              <strong>{aspect >= 1 ? '16:9 · Desktop / PC' : '3:4 · Mobile'}</strong>
+              <strong>{outputLabel || (aspect >= 1 ? '16:9 · Desktop / PC' : '3:4 · Mobile')}</strong>
               <small>Fixed card ratio</small>
             </div>
           </div>
