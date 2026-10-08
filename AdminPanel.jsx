@@ -12,6 +12,7 @@ import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
 import AdminCardThumbnails from './AdminCardThumbnails.jsx';
+import AdminChapterListThumbnails from './AdminChapterListThumbnails.jsx';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
@@ -85,7 +86,8 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
   ]},
   { label: 'Library', items: [
-    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
+    { key: 'Card Thumbnails', icon: 'image', label: 'Home Card Thumbnails' },
+    { key: 'Chapter List Thumbnails', icon: 'image', label: 'Chapter List Thumbnails' },
     { key: 'Media', icon: 'image', label: 'Media Library' },
   ]},
   { label: 'Tools', items: [
@@ -711,6 +713,66 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
+  async function saveChapterListThumbnail(chapter, file) {
+    if (!chapter?.id || !file || busy) return;
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+    let adminUser = null;
+    let uploadedPath = null;
+    let committed = false;
+    try {
+      adminUser = await requireAdmin();
+      if (!String(file.type || '').toLowerCase().startsWith('image/')) {
+        throw new Error('Please select an image file.');
+      }
+
+      const language = normalizeChapterLanguage(chapter.language);
+      const ext = String(file.name || '').split('.').pop()?.toLowerCase() || 'jpg';
+      const path = 'covers/chapters/' + chapter.id + '/cover-' + language + '-cropped-' + Date.now() + '.' + ext;
+      const url = await upload(COVER_BUCKET, file, path);
+      uploadedPath = path;
+
+      const oldUrl = chapter.cover;
+      const { error } = await supabase.from(CHAPTERS).update({ cover_url: url }).eq('id', chapter.id);
+      if (error) throw new Error('Chapter List thumbnail save failed: ' + error.message);
+      committed = true;
+
+      const oldPath = pathFromUrl(oldUrl, COVER_BUCKET);
+      if (oldPath) {
+        try {
+          await removeFiles(COVER_BUCKET, [oldPath]);
+        } catch (cleanupError) {
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_cover', chapter.id, {
+            bucket: COVER_BUCKET,
+            paths: [oldPath],
+            error: cleanupError.message,
+          });
+        }
+      }
+
+      await logAdminAction(adminUser, 'update_chapter_list_thumbnail', 'chapter', chapter.id, {
+        chapter_number: chapter.chapterNumber,
+        language,
+        file_name: file.name,
+      });
+      await load();
+      setNotice({
+        type: 'success',
+        text: 'Chapter ' + (chapter.chapterNumber ?? 'Special') + ' Chapter List thumbnail updated.',
+      });
+    } catch (error) {
+      if (uploadedPath && !committed) {
+        try { await removeFiles(COVER_BUCKET, [uploadedPath]); } catch (_) {}
+      }
+      await logAdminAction(adminUser, 'update_chapter_list_thumbnail_failed', 'chapter', chapter?.id || null, {
+        error: error.message,
+      });
+      setNotice({ type: 'error', text: error.message || 'Chapter List thumbnail update failed.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function saveCardThumbnail(chapter, slot, file) {
     if (!chapter?.id || !['desktop', 'mobile'].includes(slot) || !file || busy) return;
     setBusy(true);
@@ -937,7 +999,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
+  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Card Thumbnails', 'Chapter List Thumbnails', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -1041,7 +1103,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file, series) => series === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot, series) => series === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file, series) => series === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot, series) => series === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Chapter List Thumbnails' ? <AdminChapterListThumbnails chapters={sorted} busy={busy} onSave={saveChapterListThumbnail} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
