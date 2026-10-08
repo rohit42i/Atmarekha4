@@ -78,6 +78,9 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
 export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stats, openRating, openComments }) {
   return visibleChapters.map(chapter => {
     const item = stats[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
+    const hasListThumbnail = Boolean(chapter.chapterListThumbnailDesktop || chapter.chapterListThumbnailMobile);
+    const desktopThumbnail = chapter.chapterListThumbnailDesktop || chapter.chapterListThumbnailMobile || chapter.cover || '';
+    const mobileThumbnail = chapter.chapterListThumbnailMobile || chapter.chapterListThumbnailDesktop || chapter.cover || '';
     return (
       <article className="chapter-row" key={chapter.id} data-chapter-id={String(chapter.id)}>
         <a className="chapter-row-main" href={chapterPath(chapter)} onClick={event => {
@@ -85,18 +88,26 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
           event.preventDefault();
           navigateToChapter(chapter);
         }}>
-          <div className="chapter-row-title">
-            <span>Chapter {chapter.chapterNumber ?? 'Special'}</span>
-            <h2>{chapter.title || 'Untitled chapter'}</h2>
-          </div>
-          <div className="chapter-row-meta">
-            <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
-            <span>•</span>
-            <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-          </div>
-          <div className="chapter-row-details">
-            <span>📄 {item.pages || '—'} pages</span>
-            {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
+          {hasListThumbnail && <div className="chapter-row-card-thumb" aria-hidden="true">
+            <picture>
+              <source media="(max-width: 640px)" srcSet={mobileThumbnail} />
+              <img src={desktopThumbnail} alt="" loading="lazy" decoding="async" />
+            </picture>
+          </div>}
+          <div className="chapter-row-copy">
+            <div className="chapter-row-title">
+              <span>Chapter {chapter.chapterNumber ?? 'Special'}</span>
+              <h2>{chapter.title || 'Untitled chapter'}</h2>
+            </div>
+            <div className="chapter-row-meta">
+              <span>{item.rating.count ? (item.rating.average.toFixed(1) + '/10') : '—'} <b>★</b></span>
+              <span>•</span>
+              <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+            </div>
+            <div className="chapter-row-details">
+              <span>📄 {item.pages || '—'} pages</span>
+              {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
+            </div>
           </div>
         </a>
         <div className="chapter-row-actions">
