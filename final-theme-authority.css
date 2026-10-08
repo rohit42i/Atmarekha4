@@ -1325,3 +1325,17 @@ html[data-theme="light"] .user-auth-fixed .user-auth-home-button:hover{
   .user-auth-home-button .subscriber-badge--home{font-size:30px!important}
   .user-auth-home-button .subscriber-badge--home .subscriber-badge-mark{font-size:28px!important}
 }
+
+
+/* Final membership badge cleanup + subtle home profile rounding */
+html[data-theme="light"] .subscriber-badge,
+html[data-theme="dark"] .subscriber-badge,
+.subscriber-badge--home{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+}
+.user-auth-home-button .user-auth-avatar,
+.user-auth-home-button .user-auth-avatar-fallback{
+  border-radius:11px!important;
+}
