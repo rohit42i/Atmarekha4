@@ -38,7 +38,7 @@ async function canReadAtmaChapter(chapter) {
   }
 }
 
-// Keep the existing application implementation intact; this comment also marks a clean deployment trigger.
+// Keep the existing application implementation intact; this comment marks the production hotfix deployment.
 const STORY = { title: 'Atma Rekha', description: 'is an adventure manga/comic where traditions and powers become a part of an unfolding story.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
