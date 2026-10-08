@@ -42,8 +42,22 @@ html[data-theme="dark"] .pp-stats span{color:#999}
 html[data-theme="dark"] .pp-comments article{border-color:#252525}
 html[data-theme="dark"] .pp-comments p{color:#f2f2f2}
 html[data-theme="dark"] .pp-loading button{background:#fff;color:#000;border-color:#fff}
-html[data-theme="light"] .subscriber-badge{background:#111!important;color:#fff!important;border-color:#111!important}
-html[data-theme="dark"] .subscriber-badge{background:#fff!important;color:#000!important;border-color:#fff!important}
+html[data-theme="light"] .subscriber-badge,
+html[data-theme="dark"] .subscriber-badge{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  color:currentColor!important;
+}
+html[data-theme="light"] .subscriber-badge--home,
+html[data-theme="dark"] .subscriber-badge--home{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:0!important;
+}
 @media(max-width:600px){
   .pp-page{padding:0}
   .pp-card{min-height:100vh;border-radius:0;border-left:0;border-right:0}
