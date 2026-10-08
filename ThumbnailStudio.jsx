@@ -12,8 +12,14 @@ const CARD_TARGETS = {
   mobile: { label: 'Mobile', ratio: 3 / 4, size: '3:4' },
 };
 const LIST_TARGETS = {
-  atma: { label: 'Atma Rekha Chapter List', ratio: 13 / 9, size: '13:9', preview: '104 × 72 desktop · 76 × 100 mobile' },
-  pdpkl: { label: 'PDPKL Chapter List', ratio: 3 / 4, size: '3:4', preview: '72 × 96' },
+  atma: {
+    desktop: { label: 'Desktop / PC', ratio: 13 / 9, size: '13:9', preview: '104 × 72' },
+    mobile: { label: 'Mobile', ratio: 19 / 25, size: '19:25', preview: '76 × 100' },
+  },
+  pdpkl: {
+    desktop: { label: 'Desktop / PC', ratio: 3 / 4, size: '3:4', preview: '72 × 96' },
+    mobile: { label: 'Mobile', ratio: 3 / 4, size: '3:4', preview: '56 × 76' },
+  },
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -374,7 +380,7 @@ export default function ThumbnailStudio() {
     setLoading(true);
     try {
       await requireAdmin();
-      const [atma, pdpkl] = await Promise.all([supabase.from('chapters').select('id,manga_id,language,chapter_number,title,cover_url,card_thumbnail_desktop_url,card_thumbnail_mobile_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false }), buildPdlplChapters()]);
+      const [atma, pdpkl] = await Promise.all([supabase.from('chapters').select('id,manga_id,language,chapter_number,title,cover_url,card_thumbnail_desktop_url,card_thumbnail_mobile_url,chapter_list_thumbnail_desktop_url,chapter_list_thumbnail_mobile_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false }), buildPdlplChapters()]);
       if (atma.error) throw atma.error;
       setChapters((atma.data || []).map(row => ({
         id: row.id,
@@ -385,6 +391,8 @@ export default function ThumbnailStudio() {
         cover: row.cover_url || null,
         cardThumbnailDesktop: row.card_thumbnail_desktop_url || null,
         cardThumbnailMobile: row.card_thumbnail_mobile_url || null,
+        chapterListThumbnailDesktop: row.chapter_list_thumbnail_desktop_url || null,
+        chapterListThumbnailMobile: row.chapter_list_thumbnail_mobile_url || null,
         status: row.status || '',
         releaseDate: row.release_date || null,
         createdAt: row.created_at || null,
@@ -411,12 +419,13 @@ export default function ThumbnailStudio() {
   }, [source, query, language]);
 
   const openEditor = (kind, chapter, slot = null, file = null) => {
-    let ratio;
-    if (kind === 'cards') ratio = CARD_TARGETS[slot].ratio;
-    else ratio = LIST_TARGETS[series].ratio;
-    const existing = kind === 'cards'
+    const config = kind === 'cards' ? CARD_TARGETS[slot] : LIST_TARGETS[series][slot];
+    const custom = kind === 'cards'
       ? (slot === 'desktop' ? chapter.cardThumbnailDesktop : chapter.cardThumbnailMobile)
-      : chapter.cover;
+      : series === 'pdpkl'
+        ? (slot === 'mobile' ? chapter.chapterListThumbnailMobile : chapter.chapterListThumbnailDesktop)
+        : (slot === 'mobile' ? chapter.chapterListThumbnailMobile : chapter.chapterListThumbnailDesktop);
+    const existing = custom || chapter.cover;
     const sourceValue = file || existing;
     if (!sourceValue) return;
     setEditor({
@@ -425,15 +434,15 @@ export default function ThumbnailStudio() {
       slot,
       file,
       source: sourceValue,
-      ratio,
+      ratio: config.ratio,
       title: series === 'pdpkl'
-        ? 'PDPKL · ' + numberLabel(chapter) + (kind === 'cards' ? ' · ' + CARD_TARGETS[slot].label : ' · Chapter List')
-        : numberLabel(chapter) + (kind === 'cards' ? ' · ' + CARD_TARGETS[slot].label : ' · Chapter List'),
+        ? 'PDPKL · ' + numberLabel(chapter) + ' · ' + config.label + (kind === 'cards' ? '' : ' · Chapter List')
+        : numberLabel(chapter) + ' · ' + config.label + (kind === 'cards' ? '' : ' · Chapter List'),
       subtitle: kind === 'cards'
-        ? 'Compose the uploaded or saved image inside the exact card frame. Nothing else on the site changes.'
-        : 'Adjust the normal chapter-list cover used by this series. The saved image remains the normal cover.',
-      sourceName: (chapter.title || 'thumbnail') + (slot ? '-' + slot : '') + '.webp',
-      outputLabel: kind === 'cards' ? CARD_TARGETS[slot].size : LIST_TARGETS[series].size,
+        ? 'Compose the uploaded or saved image inside the exact card frame. Existing Chapter List behavior is untouched.'
+        : 'Reframe the normal Chapter List cover, or adjust an existing override. The original cover is never replaced.',
+      sourceName: (chapter.title || 'thumbnail') + '-' + (slot || 'chapter-list') + '.webp',
+      outputLabel: config.size + ' · ' + config.preview,
     });
   };
 
@@ -471,30 +480,90 @@ export default function ThumbnailStudio() {
 
   const renderList = chapter => {
     const target = LIST_TARGETS[series];
+    const slots = ['desktop', 'mobile'];
+
     return <article className="ar-ts-item" key={chapter.id}>
       <header className="ar-ts-item-head">
         <div><span>{series === 'pdpkl' ? 'PDPKL · ' : ''}{chapterLanguageLabel(chapter.language)}</span><h3>{numberLabel(chapter)}</h3><p>{chapter.title || 'Untitled chapter'}</p></div>
         <code>{String(chapter.id).slice(0, 8)}</code>
       </header>
+
       <div className="ar-ts-list-preview-grid">
-        <section>
-          <div className="ar-ts-subhead"><strong>Current cover</strong><small>{chapter.cover ? 'Saved' : 'No cover'}</small></div>
-          <Preview src={chapter.cover} ratio={target.ratio} label={target.size} />
-        </section>
-        <section>
-          <div className="ar-ts-subhead"><strong>Responsive view</strong><small>{target.preview}</small></div>
-          <div className="ar-ts-responsive-preview">
-            <Preview src={chapter.cover} ratio={series === 'pdpkl' ? 3 / 4 : 76 / 100} compact />
-            <Preview src={chapter.cover} ratio={series === 'pdpkl' ? 72 / 96 : 104 / 72} compact />
-          </div>
-        </section>
+        {slots.map(slot => {
+          const config = target[slot];
+          const custom = series === 'pdpkl'
+            ? (slot === 'mobile' ? chapter.chapterListThumbnailMobile : chapter.chapterListThumbnailDesktop)
+            : (slot === 'mobile' ? chapter.chapterListThumbnailMobile : chapter.chapterListThumbnailDesktop);
+          const source = custom || chapter.cover || '';
+
+          return <section key={slot}>
+            <div className="ar-ts-subhead">
+              <strong>{config.label}</strong>
+              <small>{custom ? 'Custom override' : 'Normal cover'}</small>
+            </div>
+            <Preview src={source} ratio={config.ratio} label={config.size + ' · ' + config.preview} />
+            <div className="ar-ts-actions">
+              <button type="button" disabled={!source || busy} onClick={() => openEditor('list', chapter, slot)}>
+                {custom ? 'Adjust saved' : 'Adjust normal'}
+              </button>
+              <label>
+                <span>{custom ? 'Replace + crop' : 'Upload + crop'}</span>
+                <input type="file" accept="image/*" disabled={busy} onChange={event => {
+                  const file = event.target.files?.[0];
+                  event.target.value = '';
+                  if (file) openEditor('list', chapter, slot, file);
+                }} />
+              </label>
+              {custom && <button type="button" disabled={busy} onClick={() => resetListOverride(chapter, slot)}>Use normal</button>}
+            </div>
+          </section>;
+        })}
       </div>
-      <div className="ar-ts-actions ar-ts-list-actions">
-        {chapter.cover && <button type="button" onClick={() => openEditor('list', chapter)}>Adjust existing</button>}
-        <label><span>{chapter.cover ? 'Replace + crop' : 'Upload + crop'}</span><input type="file" accept="image/*" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value=''; if (file) openEditor('list', chapter, null, file); }} /></label>
+
+      <div className="ar-ts-meta-line">
+        <span>Non-destructive Chapter List override</span>
+        <small>The existing normal cover remains untouched. Card thumbnails use their separate existing fields.</small>
       </div>
-      <div className="ar-ts-meta-line"><span>Normal Chapter List cover</span><small>Home-card custom thumbnails are separate and are not changed by this save.</small></div>
     </article>;
+  };
+
+  const resetListOverride = async (chapter, slot) => {
+    if (busy || !chapter?.id) return;
+    const label = slot === 'mobile' ? 'mobile' : 'desktop';
+    if (!window.confirm('Use the normal ' + label + ' Chapter List cover again for ' + numberLabel(chapter) + '? The original cover will not be deleted.')) return;
+
+    setBusy(true);
+    setNotice({ type: '', text: '' });
+    try {
+      await requireAdmin();
+
+      if (series === 'pdpkl') {
+        const column = slot === 'mobile' ? 'chapter_list_thumbnail_mobile_path' : 'chapter_list_thumbnail_desktop_path';
+        const oldPath = slot === 'mobile' ? chapter.chapterListThumbnailMobilePath : chapter.chapterListThumbnailDesktopPath;
+        const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: null }).eq('id', chapter.id);
+        if (error) throw new Error('PDPKL Chapter List reset failed: ' + error.message);
+        if (oldPath) {
+          try { await removePdlplFiles([oldPath]); } catch (cleanupError) { console.warn('PDPKL Chapter List cleanup failed:', cleanupError); }
+        }
+      } else {
+        const column = slot === 'mobile' ? 'chapter_list_thumbnail_mobile_url' : 'chapter_list_thumbnail_desktop_url';
+        const oldUrl = slot === 'mobile' ? chapter.chapterListThumbnailMobile : chapter.chapterListThumbnailDesktop;
+        const { error } = await supabase.from('chapters').update({ [column]: null }).eq('id', chapter.id);
+        if (error) throw new Error('Chapter List reset failed: ' + error.message);
+        const oldPath = pathFromAtmaUrl(oldUrl);
+        if (oldPath) {
+          try { await cloudflareR2.from(ATMA_BUCKET).remove([oldPath]); } catch (cleanupError) { console.warn('Atma Chapter List cleanup failed:', cleanupError); }
+        }
+      }
+
+      await load();
+      setNotice({ type: 'success', text: 'Chapter List ' + label + ' override removed. Normal cover restored.' });
+    } catch (error) {
+      console.error(error);
+      setNotice({ type: 'error', text: error.message || 'Thumbnail reset failed.' });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const save = async file => {
@@ -503,6 +572,7 @@ export default function ThumbnailStudio() {
     if (!job || !file || busy) return;
     setBusy(true);
     setNotice({ type: '', text: '' });
+    const currentSeries = job?.series || series;
     let user = null;
     let uploaded = null;
     let committed = false;
@@ -511,62 +581,74 @@ export default function ThumbnailStudio() {
       if (!(file instanceof File)) throw new Error('The edited image could not be prepared.');
       const chapter = job.chapter;
 
-      if (series === 'atma') {
+      if (currentSeries === 'atma') {
         const languageCode = normalizeChapterLanguage(chapter.language);
         const stamp = Date.now();
         let path;
         let column;
         let oldUrl;
+
         if (job.kind === 'cards') {
           path = 'chapters/' + chapter.id + '/card-' + job.slot + '-' + languageCode + '-' + stamp + '.webp';
           column = job.slot === 'mobile' ? 'card_thumbnail_mobile_url' : 'card_thumbnail_desktop_url';
           oldUrl = job.slot === 'mobile' ? chapter.cardThumbnailMobile : chapter.cardThumbnailDesktop;
         } else {
-          path = 'chapters/' + chapter.id + '/chapter-list-' + languageCode + '-' + stamp + '.webp';
-          column = 'cover_url';
-          oldUrl = chapter.cover;
+          path = 'chapters/' + chapter.id + '/chapter-list-' + job.slot + '-' + languageCode + '-' + stamp + '.webp';
+          column = job.slot === 'mobile' ? 'chapter_list_thumbnail_mobile_url' : 'chapter_list_thumbnail_desktop_url';
+          oldUrl = job.slot === 'mobile' ? chapter.chapterListThumbnailMobile : chapter.chapterListThumbnailDesktop;
         }
-        await cloudflareR2.from(ATMA_BUCKET).upload(path, file, { upsert: false, contentType: 'image/webp', cacheControl: '31536000' });
+
+        await cloudflareR2.from(ATMA_BUCKET).upload(path, file, {
+          upsert: false,
+          contentType: 'image/webp',
+          cacheControl: '31536000',
+        });
         uploaded = path;
         const url = publicAtmaUrl(path);
         const { error } = await supabase.from('chapters').update({ [column]: url }).eq('id', chapter.id);
         if (error) throw new Error('Atma Rekha thumbnail save failed: ' + error.message);
         committed = true;
+
         const oldPath = pathFromAtmaUrl(oldUrl);
         if (oldPath && oldPath !== path) {
-          try { await cloudflareR2.from(ATMA_BUCKET).remove([oldPath]); } catch (cleanupError) { console.warn('Atma thumbnail cleanup failed:', cleanupError); }
+          try { await cloudflareR2.from(ATMA_BUCKET).remove([oldPath]); }
+          catch (cleanupError) { console.warn('Atma thumbnail cleanup failed:', cleanupError); }
         }
       } else {
         const stamp = Date.now();
         let path;
         let column;
         let oldPath;
+
         if (job.kind === 'cards') {
           path = 'covers/chapters/' + chapter.id + '/card-' + job.slot + '-' + stamp + '.webp';
           column = job.slot === 'mobile' ? 'card_thumbnail_mobile_path' : 'card_thumbnail_desktop_path';
           oldPath = job.slot === 'mobile' ? chapter.cardThumbnailMobilePath : chapter.cardThumbnailDesktopPath;
         } else {
-          path = 'covers/chapters/' + chapter.id + '/chapter-list-' + stamp + '.webp';
-          column = 'cover_path';
-          oldPath = chapter.coverPath;
+          path = 'covers/chapters/' + chapter.id + '/chapter-list-' + job.slot + '-' + stamp + '.webp';
+          column = job.slot === 'mobile' ? 'chapter_list_thumbnail_mobile_path' : 'chapter_list_thumbnail_desktop_path';
+          oldPath = job.slot === 'mobile' ? chapter.chapterListThumbnailMobilePath : chapter.chapterListThumbnailDesktopPath;
         }
+
         await uploadPdlplFile(file, path);
         uploaded = path;
         const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: path }).eq('id', chapter.id);
         if (error) throw new Error('PDPKL thumbnail save failed: ' + error.message);
         committed = true;
+
         if (oldPath && oldPath !== path) {
-          try { await removePdlplFiles([oldPath]); } catch (cleanupError) { console.warn('PDPKL thumbnail cleanup failed:', cleanupError); }
+          try { await removePdlplFiles([oldPath]); }
+          catch (cleanupError) { console.warn('PDPKL thumbnail cleanup failed:', cleanupError); }
         }
       }
 
       await supabase.from('admin_activity_log').insert({
         admin_user_id: user.id,
         action: job.kind === 'cards' ? 'thumbnail_studio_save_card' : 'thumbnail_studio_save_chapter_list',
-        entity_type: series === 'pdpkl' ? 'pdlpl_chapter' : 'chapter',
+        entity_type: currentSeries === 'pdpkl' ? 'pdlpl_chapter' : 'chapter',
         entity_id: chapter.id,
         details: {
-          series,
+          series: currentSeries,
           mode: job.kind,
           slot: job.slot || null,
           language: normalizeChapterLanguage(chapter.language),
@@ -578,12 +660,14 @@ export default function ThumbnailStudio() {
       await load();
       setNotice({
         type: 'success',
-        text: (series === 'pdpkl' ? 'PDPKL ' : '') + (job.kind === 'cards' ? (job.slot === 'mobile' ? 'Mobile' : 'Desktop') + ' card thumbnail saved.' : 'Chapter List cover saved.'),
+        text: (currentSeries === 'pdpkl' ? 'PDPKL ' : '') + (job.kind === 'cards'
+          ? (job.slot === 'mobile' ? 'Mobile' : 'Desktop') + ' card thumbnail saved.'
+          : (job.slot === 'mobile' ? 'Mobile' : 'Desktop') + ' Chapter List thumbnail saved.'),
       });
     } catch (error) {
       if (uploaded && !committed) {
         try {
-          if (series === 'pdpkl') await removePdlplFiles([uploaded]);
+          if (currentSeries === 'pdpkl') await removePdlplFiles([uploaded]);
           else await cloudflareR2.from(ATMA_BUCKET).remove([uploaded]);
         } catch (_) {}
       }

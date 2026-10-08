@@ -8,7 +8,7 @@ import {
   PDLPL_ROUTE,
   published,
 } from './palDoPalKeLamhe';
-import { fetchPdlplMedia } from './pdlplR2';
+import { fetchPdlplMedia, getPdlplMediaUrl } from './pdlplR2';
 import { fetchPdlplPublicEngagement, fetchPdlplChapterEngagement, getPdlplBookmark, togglePdlplBookmark, recordPdlplChapterView, recordPdlplChapterShare, submitPdlplRating, getPdlplReadingProgress, savePdlplReadingProgress } from './pdlplEngagement';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
@@ -96,7 +96,17 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
       onOpen(chapter);
     }} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <div className="chapter-row-cover" aria-hidden="true">
-        {chapter.cover ? <img src={chapter.cover} alt="" loading="lazy" decoding="async" /> : <span>PDPKL</span>}
+        {chapter.cover || chapter.chapterListThumbnailDesktopPath || chapter.chapterListThumbnailMobilePath ? (
+          <picture>
+            {chapter.chapterListThumbnailMobilePath && <source media="(max-width: 640px)" srcSet={getPdlplMediaUrl(chapter.chapterListThumbnailMobilePath)} />}
+            <img
+              src={chapter.chapterListThumbnailDesktopPath ? getPdlplMediaUrl(chapter.chapterListThumbnailDesktopPath) : chapter.cover}
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        ) : <span>PDPKL</span>}
         {locked && <span className="chapter-row-cover-lock">🔒</span>}
       </div>
       <div className="chapter-row-title">
