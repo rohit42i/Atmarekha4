@@ -7,6 +7,7 @@ import { fetchPdlplChapterComments, fetchPdlplCommentLikes, likePdlplComment, un
 
 const ago = value => { const d = Math.max(0, Date.now() - new Date(value).getTime()); const m = Math.floor(d / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m}m`; const h = Math.floor(m / 60); if (h < 24) return `${h}h`; const days = Math.floor(h / 24); if (days < 30) return `${days}d`; if (days < 365) return `${Math.floor(days / 30)}mo`; return `${Math.floor(days / 365)}y`; };
 const profileLabel = p => p?.username || 'reader';
+// Deployment marker only; no application behavior change.
 const ADMIN_EMAILS = new Set([
   'atmarekhasupport@gmail.com',
   'atmarekhaoffical@gmail.com',
