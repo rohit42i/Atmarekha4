@@ -16,6 +16,23 @@ function ToastHost() {
   return <div className="toast-host" aria-live="polite" aria-atomic="true">{items.map(item => <div className="toast" key={item.id}><span aria-hidden="true">✓</span>{item.message}</div>)}</div>;
 }
 
+function RefreshControl() {
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    window.setTimeout(() => window.location.reload(), 120);
+  };
+  return <button
+    type="button"
+    className={'refresh-control' + (refreshing ? ' is-refreshing' : '')}
+    aria-label="Refresh page"
+    title="Refresh page"
+    onClick={handleRefresh}
+    disabled={refreshing}
+  >↻</button>;
+}
+
 function BackToTop() {
   const [show, setShow] = useState(false);
   useEffect(() => {
@@ -137,5 +154,5 @@ function ServiceWorkerManager() {
 }
 
 export default function SiteRuntime() {
-  return <><ToastHost/><BackToTop/><PwaInstallManager/><ServiceWorkerManager/></>;
+  return <><ToastHost/><BackToTop/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
 }
