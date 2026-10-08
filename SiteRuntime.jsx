@@ -110,20 +110,27 @@ function ServiceWorkerManager() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).then(reg => {
-      const activateUpdate = worker => {
+      const markUpdate = worker => {
         if (!worker) return;
-        worker.postMessage({ type: 'SKIP_WAITING' });
+        window.__atmaUpdateWorker = worker;
+        window.dispatchEvent(new CustomEvent('atma:update-available'));
       };
-      if (reg.waiting) activateUpdate(reg.waiting);
+
+      if (reg.waiting) markUpdate(reg.waiting);
+
       reg.addEventListener('updatefound', () => {
         const worker = reg.installing;
         worker?.addEventListener('statechange', () => {
-          if (worker.state === 'installed' && navigator.serviceWorker.controller) activateUpdate(worker);
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) markUpdate(worker);
         });
       });
+
       reg.update().catch(() => {});
       window.setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000);
-      navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.__atmaUpdateWorker = null;
+        window.location.reload();
+      });
     }).catch(() => {});
   }, []);
   return null;
