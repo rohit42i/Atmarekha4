@@ -16,15 +16,14 @@ export default function SubscriberBadge({ planId, show = true, size = 'inline' }
       : 'subscriber-badge--inline';
 
   return (
-    <>
-      <span
-        className={'subscriber-badge ' + sizeClass}
-        data-membership-plan={planKey}
-        aria-label={'Active ' + batch.label}
-        title={'Active ' + batch.label}
-        role="img"
-      >
-        <span className="subscriber-badge-mark" aria-hidden="true">{batch.emoji}</span>
+    <span
+      className={'subscriber-badge ' + sizeClass}
+      data-membership-plan={planKey}
+      aria-label={'Active ' + batch.label}
+      title={'Active ' + batch.label}
+      role="img"
+    >
+      <span className="subscriber-badge-mark" aria-hidden="true">{batch.emoji}</span>
     </span>
   );
 }
