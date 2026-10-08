@@ -85,18 +85,23 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
           event.preventDefault();
           navigateToChapter(chapter);
         }}>
-          <div className="chapter-row-title">
-            <span>Chapter {chapter.chapterNumber ?? 'Special'}</span>
-            <h2>{chapter.title || 'Untitled chapter'}</h2>
+          <div className="chapter-row-card-thumb" aria-hidden="true">
+            {chapter.cover ? <img src={chapter.cover} alt="" loading="lazy" decoding="async" /> : <span>AR</span>}
           </div>
-          <div className="chapter-row-meta">
+          <div className="chapter-row-copy">
+            <div className="chapter-row-title">
+              <span>Chapter {chapter.chapterNumber ?? 'Special'}</span>
+              <h2>{chapter.title || 'Untitled chapter'}</h2>
+            </div>
+            <div className="chapter-row-meta">
             <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
             <span>•</span>
             <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
           </div>
-          <div className="chapter-row-details">
-            <span>📄 {item.pages || '—'} pages</span>
-            {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
+            <div className="chapter-row-details">
+              <span>📄 {item.pages || '—'} pages</span>
+              {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
+            </div>
           </div>
         </a>
         <div className="chapter-row-actions">
