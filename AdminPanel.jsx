@@ -12,6 +12,8 @@ import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
 import AdminCardThumbnails from './AdminCardThumbnails.jsx';
+import { buildPdlplChapters } from './palDoPalKeLamhe';
+import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -100,6 +102,7 @@ const ADMIN_NAV_GROUPS = [
 export default function AdminPanel({ onLogout }) {
   const [tab, setTab] = useState('Overview');
   const [chapters, setChapters] = useState([]);
+  const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
   const [comments, setComments] = useState([]);
   const [reports, setReports] = useState([]);
@@ -137,8 +140,9 @@ export default function AdminPanel({ onLogout }) {
     try {
       const user = await requireAdmin();
       setEmail(user.email || '');
-      const [chapterData, pageResult, commentResult, reportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
+      const [chapterData, pdpklData, pageResult, commentResult, reportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
         buildChapters(),
+        buildPdlplChapters(),
         supabase.from(PAGES).select('id, chapter_id, page_number, image_url').order('page_number', { ascending: true }),
         supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100),
         supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
@@ -158,6 +162,7 @@ export default function AdminPanel({ onLogout }) {
       const counts = {};
       for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
       setChapters(chapterData || []);
+      setPdpklChapters(pdpklData || []);
       setPageCounts(counts);
       const mergedComments = await mergeReportedComments(reportResult.data || [], commentResult.data || []);
       setComments(mergedComments);
@@ -766,6 +771,43 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
+  async function savePdpklCardThumbnail(chapter, slot, file) {
+    if (!chapter?.id || !file || busy) return;
+    setBusy(true); setNotice({ type: '', text: '' });
+    let adminUser = null; let uploadedPath = null; let committed = false;
+    try {
+      adminUser = await requireAdmin();
+      const path = 'covers/chapters/' + chapter.id + '/card-' + slot + '-' + Date.now() + '.' + (String(file.name || 'jpg').split('.').pop()?.toLowerCase() || 'jpg');
+      await uploadPdlplFile(file, path); uploadedPath = path;
+      const column = slot === 'mobile' ? 'card_thumbnail_mobile_path' : 'card_thumbnail_desktop_path';
+      const oldPath = slot === 'mobile' ? chapter.cardThumbnailMobilePath : chapter.cardThumbnailDesktopPath;
+      const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: path }).eq('id', chapter.id);
+      if (error) throw new Error('PDPKL card thumbnail save failed: ' + error.message);
+      committed = true;
+      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { console.warn('PDPKL old thumbnail cleanup failed:', e); } }
+      await logAdminAction(adminUser, 'save_pdpkl_card_thumbnail', 'pdlpl_chapter', chapter.id, { slot, path });
+      await load(); setNotice({ type: 'success', text: 'PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail saved.' });
+    } catch (error) {
+      if (uploadedPath && !committed) { try { await removePdlplFiles([uploadedPath]); } catch (_) {} }
+      console.error(error); setNotice({ type: 'error', text: error.message || 'PDPKL card thumbnail upload failed.' });
+    } finally { setBusy(false); }
+  }
+
+  async function clearPdpklCardThumbnail(chapter, slot) {
+    if (!chapter?.id || busy) return;
+    if (!window.confirm('Remove the custom PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail?')) return;
+    setBusy(true); setNotice({ type: '', text: '' });
+    try {
+      const column = slot === 'mobile' ? 'card_thumbnail_mobile_path' : 'card_thumbnail_desktop_path';
+      const oldPath = slot === 'mobile' ? chapter.cardThumbnailMobilePath : chapter.cardThumbnailDesktopPath;
+      const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: null }).eq('id', chapter.id);
+      if (error) throw new Error('PDPKL card thumbnail reset failed: ' + error.message);
+      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { console.warn('PDPKL thumbnail cleanup failed:', e); } }
+      await load(); setNotice({ type: 'success', text: 'PDPKL custom card thumbnail removed.' });
+    } catch (error) { console.error(error); setNotice({ type: 'error', text: error.message || 'PDPKL card thumbnail reset failed.' }); }
+    finally { setBusy(false); }
+  }
+
   async function clearCardThumbnail(chapter, slot) {
     if (!chapter?.id || !['desktop', 'mobile'].includes(slot) || busy) return;
     const label = slot === 'mobile' ? 'mobile' : 'desktop';
@@ -999,7 +1041,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} busy={busy} onUpload={saveCardThumbnail} onClear={clearCardThumbnail} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
