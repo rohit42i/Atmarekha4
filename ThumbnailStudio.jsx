@@ -285,14 +285,6 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, outputLabel = '',
     transform: 'translate3d(calc(-50% + ' + position.x + 'px), calc(-50% + ' + position.y + 'px), 0) rotate(' + rotation + 'deg)',
   } : { width: '100%', height: '100%', objectFit: 'cover' };
 
-  if (!src && !error) return (
-    <div className="ar-ts-overlay" role="dialog" aria-modal="true" aria-label={title}>
-      <section className="ar-ts-editor ar-ts-editor-loading">
-        <div><span>THUMBNAIL STUDIO</span><h2>Preparing image…</h2><p>Loading the source image into the editor.</p></div>
-        <button type="button" onClick={onCancel} aria-label="Close editor">×</button>
-      </section>
-    </div>
-  );
   return <div className="ar-ts-overlay" role="dialog" aria-modal="true" aria-label={title}>
     <section className="ar-ts-editor">
       <header className="ar-ts-editor-head">
