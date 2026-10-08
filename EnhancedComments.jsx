@@ -13,7 +13,12 @@ const ADMIN_USER_IDS = new Set([
   '832cb9f3-8ae5-41fa-8e8f-29a0289842ee',
   'a51232cb-9d30-4566-93dd-4e9fe8f8a663',
 ]);
-const ADMIN_TITLES = new Map([\n  ['a01ec748-c3d2-41b8-a7f1-da3c114ee72f', 'Official'],\n  ['832cb9f3-8ae5-41fa-8e8f-29a0289842ee', 'Admin'],\n  ['a51232cb-9d30-4566-93dd-4e9fe8f8a663', 'Owner'],\n]);\nconst MEMBERSHIP_PRIORITY = { premium: 3, supporter: 2, mini_member: 1 };
+const ADMIN_TITLES = new Map([
+  ['a01ec748-c3d2-41b8-a7f1-da3c114ee72f', 'Official'],
+  ['832cb9f3-8ae5-41fa-8e8f-29a0289842ee', 'Admin'],
+  ['a51232cb-9d30-4566-93dd-4e9fe8f8a663', 'Owner'],
+]);
+const MEMBERSHIP_PRIORITY = { premium: 3, supporter: 2, mini_member: 1 };
 const isAdminComment = (comment, profilesById = new Map()) => {
   const profile = profilesById.get(comment?.user_id);
   return ADMIN_USER_IDS.has(comment?.user_id);
