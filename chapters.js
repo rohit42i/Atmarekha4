@@ -62,8 +62,9 @@ function installChapterCoverStyles(chapters) {
   document.getElementById(id)?.remove();
   const rules = chapters.filter((chapter) => chapter.cover).map((chapter) => {
     const href = chapterPath(chapter);
-    const cover = JSON.stringify(String(chapter.cover));
-    return `.chapter-row-main[href="${href}"]::before{background-image:url(${cover});}`;
+    const desktop = JSON.stringify(String(chapter.cardThumbnailDesktop || chapter.cover || chapter.cardThumbnailMobile || ''));
+    const mobile = JSON.stringify(String(chapter.cardThumbnailMobile || chapter.cardThumbnailDesktop || chapter.cover || ''));
+    return `.chapter-row-main[href="${href}"]::before{background-image:url(${desktop});}@media(max-width:640px){.chapter-row-main[href="${href}"]::before{background-image:url(${mobile});}}`;
   }).join('');
   if (!rules) return;
   const style = document.createElement('style');
@@ -73,7 +74,7 @@ function installChapterCoverStyles(chapters) {
 }
 
 export async function buildChapters() {
-  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,manga_id,language,chapter_number,title,description,cover_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
+  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,manga_id,language,chapter_number,title,description,cover_url,card_thumbnail_desktop_url,card_thumbnail_mobile_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {
     console.error('Supabase chapters error:', error);
     throw error;
@@ -86,6 +87,8 @@ export async function buildChapters() {
     title: chapter.title || '',
     description: chapter.description || '',
     cover: chapter.cover_url || null,
+    cardThumbnailDesktop: chapter.card_thumbnail_desktop_url || null,
+    cardThumbnailMobile: chapter.card_thumbnail_mobile_url || null,
     status: chapter.status || '',
     releaseDate: chapter.release_date || null,
     createdAt: chapter.created_at || null,
