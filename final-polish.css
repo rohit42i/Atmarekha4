@@ -870,9 +870,9 @@ html[data-theme="dark"] .home-page .pdlpl-home-card:hover{
 }
 .ec-username--member{font-weight:850!important}
 .ec-username--premium .ec-member-name{
-  background:#d8b45a!important;
-  color:#15120b!important;
-  box-shadow:inset 0 0 0 1px rgba(90,67,18,.2)!important;
+  background:#e7a8c7!important;
+  color:#351526!important;
+  box-shadow:inset 0 0 0 1px rgba(123,46,83,.18)!important;
 }
 .ec-username--supporter .ec-member-name{
   background:#e9e3d4!important;
@@ -885,9 +885,9 @@ html[data-theme="dark"] .home-page .pdlpl-home-card:hover{
   box-shadow:inset 0 0 0 1px rgba(30,30,30,.12)!important;
 }
 html[data-theme="dark"] .ec-username--premium .ec-member-name{
-  background:#b8943f!important;
-  color:#100e09!important;
-  box-shadow:inset 0 0 0 1px rgba(255,219,126,.16)!important;
+  background:#a85a83!important;
+  color:#fff0f7!important;
+  box-shadow:inset 0 0 0 1px rgba(255,185,220,.16)!important;
 }
 html[data-theme="dark"] .ec-username--supporter .ec-member-name{
   background:#3a352b!important;
@@ -959,3 +959,16 @@ html[data-theme="dark"] .ec-username--mini_member .ec-priority-badge{color:#c6c6
   .subscriber-badge--large .subscriber-badge-mark{font-size:17px!important}
 }
 
+
+/* Official Atma Rekha accounts: gold name only. */
+.ec-username--admin .ec-member-name{
+  background:#d8b45a!important;
+  color:#171208!important;
+  font-weight:900!important;
+  box-shadow:inset 0 0 0 1px rgba(100,73,15,.2)!important;
+}
+html[data-theme="dark"] .ec-username--admin .ec-member-name{
+  background:#b8943f!important;
+  color:#100d08!important;
+  box-shadow:inset 0 0 0 1px rgba(255,219,126,.16)!important;
+}
