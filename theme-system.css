@@ -126,6 +126,34 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
 /* Theme authority note: component surfaces should use the semantic theme tokens above. */
 
 
+/* Final floating controls alignment — back-to-top, refresh, and theme toggle. */
+.refresh-control{
+  position:fixed!important;
+  right:18px!important;
+  bottom:calc(max(18px,env(safe-area-inset-bottom)) + 52px)!important;
+  z-index:9998!important;
+  width:42px!important;
+  height:42px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+  border:1px solid var(--border-color)!important;
+  border-radius:50%!important;
+  background:var(--card-bg)!important;
+  color:var(--text-color)!important;
+  box-shadow:0 6px 18px var(--shadow-color)!important;
+  cursor:pointer;
+  font-size:20px;
+  line-height:1;
+  transition:transform .18s ease,background-color .18s ease,border-color .18s ease;
+}
+.refresh-control:hover{transform:translateY(-1px)}
+.refresh-control:active{transform:scale(.95)}
+.refresh-control:disabled{cursor:wait}
+.refresh-control.is-refreshing{animation:refresh-control-spin .7s linear infinite}
+@keyframes refresh-control-spin{to{transform:rotate(360deg)}}
+
 /* Final floating controls alignment — theme toggle and back-to-top. */
 .theme-toggle{
   right:18px!important;
@@ -137,7 +165,7 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
 .theme-toggle svg{width:18px!important;height:18px!important}
 .back-to-top{
   right:18px!important;
-  bottom:calc(max(18px,env(safe-area-inset-bottom)) + 52px)!important;
+  bottom:calc(max(18px,env(safe-area-inset-bottom)) + 104px)!important;
   width:42px!important;
   height:42px!important;
   box-shadow:0 6px 18px var(--shadow-color)!important;
@@ -145,5 +173,6 @@ body :where(button,a,input,textarea,select):focus-visible{outline:2px solid var(
 @media(max-width:640px){
   .theme-toggle{right:14px!important;bottom:max(14px,env(safe-area-inset-bottom))!important;width:40px!important;height:40px!important}
   .theme-toggle svg{width:17px!important;height:17px!important}
-  .back-to-top{right:14px!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 50px)!important;width:40px!important;height:40px!important}
+  .refresh-control{right:14px!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 50px)!important;width:40px!important;height:40px!important}
+  .back-to-top{right:14px!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 100px)!important;width:40px!important;height:40px!important}
 }
