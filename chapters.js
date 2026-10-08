@@ -62,9 +62,8 @@ function installChapterCoverStyles(chapters) {
   document.getElementById(id)?.remove();
   const rules = chapters.filter((chapter) => chapter.cover).map((chapter) => {
     const href = chapterPath(chapter);
-    const desktop = JSON.stringify(String(chapter.cardThumbnailDesktop || chapter.cover || chapter.cardThumbnailMobile || ''));
-    const mobile = JSON.stringify(String(chapter.cardThumbnailMobile || chapter.cardThumbnailDesktop || chapter.cover || ''));
-    return `.chapter-row-main[href="${href}"]::before{background-image:url(${desktop});}@media(max-width:640px){.chapter-row-main[href="${href}"]::before{background-image:url(${mobile});}}`;
+    const cover = JSON.stringify(String(chapter.cover));
+    return '.chapter-row-main[href="' + href + '"]::before{background-image:url(' + cover + ');}';
   }).join('');
   if (!rules) return;
   const style = document.createElement('style');
@@ -72,7 +71,6 @@ function installChapterCoverStyles(chapters) {
   style.textContent = rules;
   document.head.appendChild(style);
 }
-
 export async function buildChapters() {
   const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,manga_id,language,chapter_number,title,description,cover_url,card_thumbnail_desktop_url,card_thumbnail_mobile_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {

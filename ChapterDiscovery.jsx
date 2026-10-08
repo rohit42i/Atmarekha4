@@ -85,20 +85,7 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
           event.preventDefault();
           navigateToChapter(chapter);
         }}>
-          <div className="chapter-row-card-thumb" aria-hidden="true">
-            {(() => {
-              const desktop = chapter.cardThumbnailDesktop || chapter.cover || chapter.cardThumbnailMobile;
-              const mobile = chapter.cardThumbnailMobile || desktop;
-              return desktop ? (
-                <picture>
-                  <source media="(max-width: 640px)" srcSet={mobile} />
-                  <img src={desktop} alt="" loading="lazy" decoding="async" />
-                </picture>
-              ) : <span>AR</span>;
-            })()}
-          </div>
-          <div className="chapter-row-copy">
-            <div className="chapter-row-title">
+          <div className="chapter-row-title">
             <span>Chapter {chapter.chapterNumber ?? 'Special'}</span>
             <h2>{chapter.title || 'Untitled chapter'}</h2>
           </div>
@@ -107,10 +94,9 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
             <span>•</span>
             <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
           </div>
-            <div className="chapter-row-details">
-              <span>📄 {item.pages || '—'} pages</span>
-              {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
-            </div>
+          <div className="chapter-row-details">
+            <span>📄 {item.pages || '—'} pages</span>
+            {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
           </div>
         </a>
         <div className="chapter-row-actions">
