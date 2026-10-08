@@ -118,3 +118,6 @@ import './dialog-focus-manager.js';
 import './final-theme-authority.css';
 import './dialog-accessibility.js';
 import './chapter-card-thumbnails.css';
+
+import './admin-stable-v6.css';
+import './admin-card-crop-v2.css';
