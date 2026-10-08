@@ -1223,3 +1223,94 @@ html[data-theme="dark"] .auth-panel .auth-checkbox.is-checked .auth-checkbox-box
 .auth-panel .auth-checkbox input[type="checkbox"]:focus-visible + .auth-checkbox-box{outline:2px solid currentColor!important;outline-offset:3px!important}
 html[data-theme="light"] .auth-panel .auth-checkbox-box{background:#fff!important;border-color:#111!important}
 html[data-theme="dark"] .auth-panel .auth-checkbox-box{background:#000!important;border-color:#fff!important}
+
+/* Home profile control: avatar + membership badge only. */
+.user-auth-home-button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  width:auto!important;
+  height:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  color:inherit!important;
+  box-shadow:none!important;
+}
+.user-auth-home-button:hover,
+.user-auth-home-button:focus-visible,
+html[data-theme="light"] .user-auth-fixed .user-auth-home-button,
+html[data-theme="light"] .user-auth-fixed .user-auth-home-button:hover{
+  background:transparent!important;
+  background-image:none!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+.user-auth-home-button .user-auth-avatar,
+.user-auth-home-button .user-auth-avatar-fallback,
+.user-auth-home-button .subscriber-badge--home{
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  min-height:32px!important;
+  flex:0 0 32px!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+.user-auth-home-button .user-auth-avatar{
+  display:block!important;
+  border-radius:50%!important;
+  object-fit:cover!important;
+  border:1px solid var(--border-color,#deded9)!important;
+  box-shadow:none!important;
+}
+.user-auth-home-button .user-auth-avatar-fallback{
+  display:grid!important;
+  place-items:center!important;
+  border-radius:50%!important;
+  background:var(--card-bg,#fff)!important;
+  color:var(--text-color,#111)!important;
+  border:1px solid var(--border-color,#deded9)!important;
+  font-size:13px!important;
+  font-weight:800!important;
+}
+.user-auth-home-button .subscriber-badge--home{
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:inherit!important;
+  box-shadow:none!important;
+  font-size:32px!important;
+  line-height:1!important;
+  vertical-align:middle!important;
+}
+.user-auth-home-button .subscriber-badge--home .subscriber-badge-mark{
+  display:block!important;
+  font-size:30px!important;
+  line-height:1!important;
+  transform:none!important;
+}
+@media(max-width:600px){
+  .user-auth-home-button{gap:6px!important}
+  .user-auth-home-button .user-auth-avatar,
+  .user-auth-home-button .user-auth-avatar-fallback,
+  .user-auth-home-button .subscriber-badge--home{
+    width:30px!important;
+    height:30px!important;
+    min-width:30px!important;
+    min-height:30px!important;
+    flex-basis:30px!important;
+  }
+  .user-auth-home-button .subscriber-badge--home{font-size:30px!important}
+  .user-auth-home-button .subscriber-badge--home .subscriber-badge-mark{font-size:28px!important}
+}
