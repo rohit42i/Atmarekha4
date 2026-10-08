@@ -952,7 +952,6 @@ html[data-theme="dark"] .ec-username--mini_member .ec-priority-badge{color:#c6c6
   font-size:18px!important;background:transparent!important;
 }
 .subscriber-badge--large .subscriber-badge-mark{font-size:18px!important}
-.subscriber-badge--home .subscriber-badge-mark{font-size:24px!important}
 @media(max-width:600px){
   .ec-meta .subscriber-badge--inline{width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;font-size:11.5px!important}
   .ec-replies .subscriber-badge--inline{width:15px!important;height:15px!important;min-width:15px!important;min-height:15px!important;font-size:10px!important}
