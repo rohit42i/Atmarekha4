@@ -7,7 +7,7 @@ function makeOutputFile(blob, source) {
   return new File([blob], base + '-cropped.' + ext, { type, lastModified: Date.now() });
 }
 
-export default function ImageCropEditor({ file, aspect = 16 / 9, title = 'Adjust thumbnail', onCancel, onSave }) {
+export default function ImageCropEditor({ file = null, src: sourceUrl = '', aspect = 16 / 9, title = 'Adjust thumbnail', onCancel, onSave }) {
   const [src, setSrc] = useState('');
   const [zoom, setZoom] = useState(1);
   const [x, setX] = useState(50);
@@ -17,12 +17,12 @@ export default function ImageCropEditor({ file, aspect = 16 / 9, title = 'Adjust
   const imageRef = useRef(null);
 
   useEffect(() => {
-    if (!file) return undefined;
-    const url = URL.createObjectURL(file);
+    if (!file && !sourceUrl) return undefined;
+    const url = file ? URL.createObjectURL(file) : sourceUrl;
     setSrc(url);
     setZoom(1); setX(50); setY(50); setRotation(0);
     return () => URL.revokeObjectURL(url);
-  }, [file]);
+  }, [file, sourceUrl]);
 
   const previewStyle = useMemo(() => ({
     transform: 'translate(' + ((x - 50) / 8) + 'px,' + ((y - 50) / 8) + 'px) scale(' + zoom + ') rotate(' + rotation + 'deg)',
@@ -56,7 +56,7 @@ export default function ImageCropEditor({ file, aspect = 16 / 9, title = 'Adjust
       ctx.restore();
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .92));
       if (!blob) throw new Error('Could not create the edited thumbnail.');
-      onSave?.(makeOutputFile(blob, file));
+      onSave?.(makeOutputFile(blob, file || { name: 'card-thumbnail.jpg' }));
     } catch (error) {
       console.error(error);
       alert(error.message || 'Could not edit this image.');
@@ -65,7 +65,7 @@ export default function ImageCropEditor({ file, aspect = 16 / 9, title = 'Adjust
     }
   };
 
-  if (!file || !src) return null;
+  if ((!file && !sourceUrl) || !src) return null;
   return <div className="ar-crop-backdrop" role="dialog" aria-modal="true" aria-label={title}>
     <section className="ar-crop-modal">
       <header className="ar-crop-head">
@@ -73,7 +73,7 @@ export default function ImageCropEditor({ file, aspect = 16 / 9, title = 'Adjust
         <button type="button" onClick={onCancel} disabled={busy} aria-label="Close editor">×</button>
       </header>
       <div className="ar-crop-stage" style={{ aspectRatio: String(aspect) }}>
-        <img ref={imageRef} src={src} alt="" style={previewStyle} draggable="false" />
+        <img ref={imageRef} src={src} crossOrigin="anonymous" alt="" style={previewStyle} draggable="false" />
         <div className="ar-crop-frame" aria-hidden="true" />
       </div>
       <div className="ar-crop-controls">
