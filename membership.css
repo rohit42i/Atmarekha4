@@ -484,14 +484,14 @@
 .membership-plan.is-pdlpl-plan{border-color:rgba(255,255,255,.34)!important;box-shadow:0 16px 34px rgba(0,0,0,.30)!important}
 .membership-plan.is-pdlpl-plan::after{content:none!important}
 .membership-plan.is-atma-only-plan{opacity:.72}
-.membership-plan-context-badge{display:inline-block;margin-top:5px;padding:3px 6px;border:1px solid rgba(255,255,255,.18);border-radius:999px;color:#fff;font-size:7px;font-weight:850;letter-spacing:.10em;text-transform:uppercase}
+.membership-plan-context-badge{display:inline-block;margin-top:5px;padding:3px 0;border:0;border-radius:0;background:transparent!important;color:inherit;font-size:7px;font-weight:850;letter-spacing:.10em;text-transform:uppercase}
 .membership-plan.is-atma-only-plan .membership-button{background:#111!important;border-color:#333!important;color:#8f8f95!important;cursor:not-allowed!important}
 @media(prefers-color-scheme:light){
   .membership-pdlpl-context-note{background:#f5f5f5!important;color:#000!important;border-color:#d9d9d9!important}
   .membership-pdlpl-context-note .membership-timing-icon{background:#fff!important;color:#000!important;border-color:#d0d0d0!important}
   .membership-pdlpl-context-note strong,.membership-pdlpl-context-note small{color:#000!important}
   .membership-plan.is-pdlpl-plan{border-color:#222!important;box-shadow:0 14px 30px rgba(0,0,0,.10)!important}
-  .membership-plan-context-badge{border-color:#222;color:#000}
+  .membership-plan-context-badge{background:transparent!important;border:0;color:inherit}
   .membership-plan.is-atma-only-plan{opacity:.58}
 }
 html[data-theme="light"] .membership-pdlpl-context-note{background:#f5f5f5!important;color:#000!important;border-color:#d9d9d9!important}
