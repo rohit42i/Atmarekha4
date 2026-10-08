@@ -267,3 +267,37 @@
 .ar-crop-stage{position:relative;width:100%;max-height:55vh;overflow:hidden;border-radius:14px;background:#111;margin:15px 0}.ar-crop-stage img{position:absolute;left:50%;top:50%;width:100%;height:100%;object-fit:cover;transform-origin:center;user-select:none;pointer-events:none}.ar-crop-frame{position:absolute;inset:0;border:2px solid rgba(255,255,255,.85);border-radius:12px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.12)}
 .ar-crop-controls{display:grid;gap:10px}.ar-crop-controls label{display:grid;grid-template-columns:80px minmax(0,1fr) 55px;gap:10px;align-items:center;font-size:11px;font-weight:700}.ar-crop-controls input[type=range]{width:100%}.ar-crop-controls b{text-align:right;font-size:11px}.ar-crop-presets{display:flex;gap:7px;margin-top:10px}.ar-crop-presets button,.ar-crop-actions button{border:1px solid var(--border-color);background:transparent;color:inherit;border-radius:10px;padding:9px 12px;font:inherit;font-size:12px;font-weight:750}.ar-crop-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.ar-crop-actions .ar-crop-save{background:var(--text-color);color:var(--surface-color,#fff);border-color:var(--text-color)}
 @media(max-width:640px){.ar-crop-modal{border-radius:14px;padding:13px}.ar-crop-stage{max-height:45vh}.ar-crop-controls label{grid-template-columns:68px minmax(0,1fr) 45px}}
+
+
+/* Thumbnail Studio: only activates when a Chapter List override exists.
+   No override = existing Chapter List markup/layout remains untouched. */
+.chapter-list-page .chapter-row-list-thumb{
+  width:104px;
+  height:72px;
+  overflow:hidden;
+  border:1px solid var(--border-color,rgba(128,128,128,.25));
+  border-radius:12px;
+  background:var(--card-bg,#111);
+  display:block;
+}
+.chapter-list-page .chapter-row-list-thumb picture{
+  display:block;
+  width:100%;
+  height:100%;
+}
+.chapter-list-page .chapter-row-list-thumb img{
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  object-fit:cover;
+  object-position:center;
+}
+@media(max-width:640px){
+  .chapter-list-page .chapter-row-list-thumb{
+    width:76px;
+    height:100px;
+    border-radius:11px;
+  }
+}

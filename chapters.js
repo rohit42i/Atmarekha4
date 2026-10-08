@@ -72,7 +72,7 @@ function installChapterCoverStyles(chapters) {
   document.head.appendChild(style);
 }
 export async function buildChapters() {
-  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,manga_id,language,chapter_number,title,description,cover_url,card_thumbnail_desktop_url,card_thumbnail_mobile_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
+  const { data, error } = await supabase.from(CHAPTERS_TABLE).select('id,manga_id,language,chapter_number,title,description,cover_url,card_thumbnail_desktop_url,card_thumbnail_mobile_url,chapter_list_thumbnail_desktop_url,chapter_list_thumbnail_mobile_url,status,release_date,created_at').order('chapter_number', { ascending: true, nullsFirst: false });
   if (error) {
     console.error('Supabase chapters error:', error);
     throw error;
@@ -87,6 +87,8 @@ export async function buildChapters() {
     cover: chapter.cover_url || null,
     cardThumbnailDesktop: chapter.card_thumbnail_desktop_url || null,
     cardThumbnailMobile: chapter.card_thumbnail_mobile_url || null,
+    chapterListThumbnailDesktop: chapter.chapter_list_thumbnail_desktop_url || null,
+    chapterListThumbnailMobile: chapter.chapter_list_thumbnail_mobile_url || null,
     status: chapter.status || '',
     releaseDate: chapter.release_date || null,
     createdAt: chapter.created_at || null,
