@@ -1096,3 +1096,65 @@ html[data-theme="dark"] .ec-username--admin .ec-admin-badge{
     font-size:16px!important;
   }
 }
+
+
+/* Saturated gold + balanced comment membership markers. */
+.ec-meta .subscriber-badge--inline{
+  width:28px!important;height:28px!important;
+  min-width:28px!important;min-height:28px!important;
+  margin:0 1px 0 3px!important;
+  font-size:21px!important;
+}
+.ec-replies .subscriber-badge--inline{
+  width:24px!important;height:24px!important;
+  min-width:24px!important;min-height:24px!important;
+  margin:0 1px 0 2px!important;
+  font-size:18px!important;
+}
+.ec-meta .subscriber-badge--inline,
+.ec-replies .subscriber-badge--inline{
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  padding:0!important;
+  line-height:1!important;
+  vertical-align:middle!important;
+}
+.ec-meta .subscriber-badge--inline .subscriber-badge-mark,
+.ec-replies .subscriber-badge--inline .subscriber-badge-mark{
+  font-size:inherit!important;
+  line-height:1!important;
+  transform:translateY(1px)!important;
+}
+
+/* Strong, saturated gold for official accounts. */
+.ec-username--admin .ec-member-name,
+.ec-username--admin .ec-admin-title{
+  color:#b87400!important;
+  font-weight:900!important;
+}
+.ec-username--admin .ec-admin-badge{color:#d79a10!important}
+@media(prefers-color-scheme:dark){
+  .ec-username--admin .ec-member-name,
+  .ec-username--admin .ec-admin-title{color:#ffc928!important}
+  .ec-username--admin .ec-admin-badge{color:#ffd75a!important}
+}
+html[data-theme="dark"] .ec-username--admin .ec-member-name,
+html[data-theme="dark"] .ec-username--admin .ec-admin-title{color:#ffc928!important}
+html[data-theme="dark"] .ec-username--admin .ec-admin-badge{color:#ffd75a!important}
+
+@media(max-width:600px){
+  .ec-meta .subscriber-badge--inline{
+    width:26px!important;height:26px!important;
+    min-width:26px!important;min-height:26px!important;
+    font-size:20px!important;
+  }
+  .ec-replies .subscriber-badge--inline{
+    width:22px!important;height:22px!important;
+    min-width:22px!important;min-height:22px!important;
+    font-size:17px!important;
+  }
+}
