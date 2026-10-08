@@ -4,11 +4,14 @@
   align-items: center;
 }
 .chapter-list-page .chapter-row-main {
-  display: contents;
+  grid-column: 1 / span 2;
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
 }
 .chapter-list-page .chapter-row-card-thumb {
-  grid-column: 1;
-  grid-row: 1;
   width: 104px;
   height: 72px;
   overflow: hidden;
@@ -36,8 +39,6 @@
   letter-spacing: .08em;
 }
 .chapter-list-page .chapter-row-copy {
-  grid-column: 2;
-  grid-row: 1;
   min-width: 0;
 }
 @media (max-width: 640px) {
@@ -51,7 +52,7 @@
     border-radius: 11px;
   }
   .chapter-list-page .chapter-row-copy {
-    grid-column: 2;
+    min-width: 0;
   }
 }
 
