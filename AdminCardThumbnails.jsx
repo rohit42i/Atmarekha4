@@ -38,7 +38,7 @@ export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [],
       <div className="ar-card-thumb-actions">
         <label className={'ar-card-thumb-upload' + (busy ? ' is-disabled' : '')}>{action}<input type="file" accept="image/*" disabled={busy} onChange={e => { const file=e.target.files?.[0]||null; e.target.value=''; if(file) setEditor({chapter,slot,file,aspect:ratio}); }}/></label>
         {custom && <button type="button" onClick={() => onClear?.(chapter, slot)} disabled={busy}>Clear override</button>}
-        {custom && <button type="button" onClick={() => setEditor({chapter,slot,file:null,aspect:ratio,fromUrl:custom})} disabled={busy}>Adjust saved</button>}
+        {custom && <button type="button" onClick={() => setEditor({chapter,slot,file:null,src:custom,aspect:ratio})} disabled={busy}>Adjust saved</button>}
       </div>
     </section>;
   };
@@ -63,5 +63,5 @@ export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [],
       <div className="ar-card-thumb-grid">{visible.map(chapter => <article className="admin-card ar-card-thumb-card" key={chapter.id}><header className="ar-card-thumb-card-head"><div><span>{series === 'pdpkl' ? 'PDPKL · ' : ''}{chapterLanguageLabel(chapter.language)}</span><h3>{numberLabel(chapter)}</h3><p>{chapter.title || 'Untitled chapter'}</p></div><span className="ar-card-thumb-id">{String(chapter.id).slice(0,8)}</span></header><div className="ar-card-thumb-slots">{renderSlot(chapter,'desktop')}{renderSlot(chapter,'mobile')}</div></article>)}</div>
       {!visible.length && <section className="admin-card ar-card-thumb-empty"><strong>No chapters found</strong><span>Try another chapter title, number, or language.</span></section>}
     </section>
-    {editor?.file && <ImageCropEditor file={editor.file} aspect={editor.aspect} title={(series === 'pdpkl' ? 'PDPKL · ' : '') + numberLabel(editor.chapter) + ' · ' + (editor.slot === 'desktop' ? 'Desktop / PC' : 'Mobile')} onCancel={() => setEditor(null)} onSave={finishEdit}/>}
+    {editor && (editor.file || editor.src) && <ImageCropEditor file={editor.file} src={editor.src} aspect={editor.aspect} title={(series === 'pdpkl' ? 'PDPKL · ' : '') + numberLabel(editor.chapter) + ' · ' + (editor.slot === 'desktop' ? 'Desktop / PC' : 'Mobile')} onCancel={() => setEditor(null)} onSave={finishEdit}/>}
   </>;
