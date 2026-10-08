@@ -857,8 +857,106 @@ html[data-theme="dark"] .home-page .pdlpl-home-card:hover{
 }
 
 
-/* Membership comment priority */
-.ec-comment--priority{padding:18px 12px;margin:0 -12px;border-left:2px solid currentColor;border-radius:10px;background:color-mix(in srgb,currentColor 5%,transparent)}
-.ec-priority-badge{display:inline-flex;align-items:center;margin-left:6px;padding:2px 6px;border:1px solid currentColor;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;opacity:.8}
-html[data-theme="light"] .ec-comment--priority{background:#fafafa}
-html[data-theme="dark"] .ec-comment--priority{background:#080808}
+/* Comment membership + popularity hierarchy */
+.ec-comment--priority{padding-top:17px;padding-bottom:17px}
+.ec-username{display:inline-flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important;max-width:100%!important;color:inherit!important}
+.ec-member-name{
+  display:inline-block!important;
+  max-width:100%!important;
+  padding:2px 6px!important;
+  border-radius:7px!important;
+  line-height:1.25!important;
+  transition:background-color .18s ease,color .18s ease,box-shadow .18s ease!important;
+}
+.ec-username--member{font-weight:850!important}
+.ec-username--premium .ec-member-name{
+  background:#d8b45a!important;
+  color:#15120b!important;
+  box-shadow:inset 0 0 0 1px rgba(90,67,18,.2)!important;
+}
+.ec-username--supporter .ec-member-name{
+  background:#e9e3d4!important;
+  color:#27231b!important;
+  box-shadow:inset 0 0 0 1px rgba(90,80,58,.16)!important;
+}
+.ec-username--mini_member .ec-member-name{
+  background:#e7e7e3!important;
+  color:#272727!important;
+  box-shadow:inset 0 0 0 1px rgba(30,30,30,.12)!important;
+}
+html[data-theme="dark"] .ec-username--premium .ec-member-name{
+  background:#b8943f!important;
+  color:#100e09!important;
+  box-shadow:inset 0 0 0 1px rgba(255,219,126,.16)!important;
+}
+html[data-theme="dark"] .ec-username--supporter .ec-member-name{
+  background:#3a352b!important;
+  color:#f0e4c5!important;
+  box-shadow:inset 0 0 0 1px rgba(232,213,165,.12)!important;
+}
+html[data-theme="dark"] .ec-username--mini_member .ec-member-name{
+  background:#303033!important;
+  color:#eeeeee!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)!important;
+}
+.ec-comment-flags{display:inline-flex!important;align-items:center!important;gap:4px!important}
+.ec-priority-badge{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:18px!important;
+  padding:2px 6px!important;
+  margin:0!important;
+  border:1px solid currentColor!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  color:currentColor!important;
+  font-size:8px!important;
+  font-weight:850!important;
+  letter-spacing:.06em!important;
+  line-height:1!important;
+  text-transform:uppercase!important;
+  opacity:.8!important;
+}
+.ec-username--premium .ec-priority-badge{color:#856315!important;border-color:#b8943f!important}
+.ec-username--supporter .ec-priority-badge{color:#75694f!important;border-color:#b4a98e!important}
+.ec-username--mini_member .ec-priority-badge{color:#666!important;border-color:#aaa!important}
+html[data-theme="dark"] .ec-username--premium .ec-priority-badge{color:#e2bd61!important;border-color:#8f7130!important}
+html[data-theme="dark"] .ec-username--supporter .ec-priority-badge{color:#d6c69d!important;border-color:#655e50!important}
+html[data-theme="dark"] .ec-username--mini_member .ec-priority-badge{color:#c6c6c8!important;border-color:#55565b!important}
+
+/* Membership badges: each context gets its own scale; no painted badge background. */
+.subscriber-badge{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.subscriber-badge-mark{display:block!important;line-height:1!important}
+.ec-meta .subscriber-badge--inline{
+  width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;
+  margin:0!important;font-size:12px!important;
+}
+.ec-replies .subscriber-badge--inline{
+  width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;
+  font-size:10.5px!important;
+}
+.ec-preview .subscriber-badge--inline{
+  width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;
+  margin-left:3px!important;font-size:15px!important;
+}
+.subscriber-badge--large{
+  width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;
+  padding:0!important;margin-left:4px!important;border:0!important;border-radius:50%!important;
+  font-size:18px!important;background:transparent!important;
+}
+.subscriber-badge--large .subscriber-badge-mark{font-size:18px!important}
+.subscriber-badge--home .subscriber-badge-mark{font-size:24px!important}
+@media(max-width:600px){
+  .ec-meta .subscriber-badge--inline{width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;font-size:11.5px!important}
+  .ec-replies .subscriber-badge--inline{width:15px!important;height:15px!important;min-width:15px!important;min-height:15px!important;font-size:10px!important}
+  .subscriber-badge--large{width:26px!important;height:26px!important;min-width:26px!important;min-height:26px!important;font-size:17px!important}
+  .subscriber-badge--large .subscriber-badge-mark{font-size:17px!important}
+}
+
