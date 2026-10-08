@@ -935,12 +935,12 @@ html[data-theme="dark"] .ec-username--mini_member .ec-priority-badge{color:#c6c6
 }
 .subscriber-badge-mark{display:block!important;line-height:1!important}
 .ec-meta .subscriber-badge--inline{
-  width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;
-  margin:0!important;font-size:12px!important;
+  width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;
+  margin:0!important;font-size:14px!important;
 }
 .ec-replies .subscriber-badge--inline{
-  width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;
-  font-size:10.5px!important;
+  width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;
+  font-size:12px!important;
 }
 .ec-preview .subscriber-badge--inline{
   width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;
@@ -953,8 +953,8 @@ html[data-theme="dark"] .ec-username--mini_member .ec-priority-badge{color:#c6c6
 }
 .subscriber-badge--large .subscriber-badge-mark{font-size:18px!important}
 @media(max-width:600px){
-  .ec-meta .subscriber-badge--inline{width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;font-size:11.5px!important}
-  .ec-replies .subscriber-badge--inline{width:15px!important;height:15px!important;min-width:15px!important;min-height:15px!important;font-size:10px!important}
+  .ec-meta .subscriber-badge--inline{width:21px!important;height:21px!important;min-width:21px!important;min-height:21px!important;font-size:13.5px!important}
+  .ec-replies .subscriber-badge--inline{width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;font-size:11.5px!important}
   .subscriber-badge--large{width:26px!important;height:26px!important;min-width:26px!important;min-height:26px!important;font-size:17px!important}
   .subscriber-badge--large .subscriber-badge-mark{font-size:17px!important}
 }
@@ -962,13 +962,22 @@ html[data-theme="dark"] .ec-username--mini_member .ec-priority-badge{color:#c6c6
 
 /* Official Atma Rekha accounts: gold name only. */
 .ec-username--admin .ec-member-name{
-  background:#d8b45a!important;
-  color:#171208!important;
+  background:transparent!important;
+  color:#8b6a1f!important;
   font-weight:900!important;
-  box-shadow:inset 0 0 0 1px rgba(100,73,15,.2)!important;
+  box-shadow:none!important;
 }
 html[data-theme="dark"] .ec-username--admin .ec-member-name{
-  background:#b8943f!important;
-  color:#100d08!important;
-  box-shadow:inset 0 0 0 1px rgba(255,219,126,.16)!important;
+  background:transparent!important;
+  color:#e0b84f!important;
+  box-shadow:none!important;
+}
+.ec-admin-badge{
+  color:#8b6a1f!important;
+  border-color:#b8943f!important;
+  opacity:1!important;
+}
+html[data-theme="dark"] .ec-admin-badge{
+  color:#e0b84f!important;
+  border-color:#7f6525!important;
 }
