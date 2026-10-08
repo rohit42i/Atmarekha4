@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, cloudflareR2 } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
-import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
+import { uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import './thumbnail-studio.css';
 
@@ -19,13 +19,7 @@ const LIST_TARGETS = {
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const normalizeRotation = value => ((Number(value) % 360) + 540) % 360 - 180;
 const isQuarterTurn = value => Math.abs(normalizeRotation(value)) % 180 === 90;
-
-function safeExt(file, fallback = 'jpg') {
-  const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || fallback;
-  return /^[a-z0-9]+$/.test(ext) ? ext : fallback;
-}
-
-function pathFromAtmaUrl(url) {
+\nfunction pathFromAtmaUrl(url) {
   if (!url) return null;
   const marker = '/storage/v1/object/public/' + ATMA_BUCKET + '/';
   const index = String(url).indexOf(marker);
@@ -42,12 +36,12 @@ async function requireAdmin() {
 
 const publicAtmaUrl = path => cloudflareR2.from(ATMA_BUCKET).getPublicUrl(path).data.publicUrl;
 
-function makeOutputFile(blob, sourceName) {
+function formatRatio(ratio) {\n  if (Math.abs(ratio - 16 / 9) < 0.01) return '16:9';\n  if (Math.abs(ratio - 13 / 9) < 0.01) return '13:9';\n  if (Math.abs(ratio - 3 / 4) < 0.01) return '3:4';\n  return (ratio * 100).toFixed(0) + ':100';\n}\n\nfunction makeOutputFile(blob, sourceName) {
   const base = String(sourceName || 'thumbnail').replace(/\.[^.]+$/, '');
   return new File([blob], base + '-cropped.webp', { type: 'image/webp', lastModified: Date.now() });
 }
 
-function CropEditor({ source, sourceName = 'thumbnail', ratio, title, subtitle, onCancel, onSave }) {
+function CropEditor({ source, sourceName = 'thumbnail', ratio, outputLabel = '', title, subtitle, onCancel, onSave }) {
   const [src, setSrc] = useState('');
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -107,7 +101,7 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, title, subtitle, 
     };
   }, [natural, stage, zoom, rotation]);
 
-  const clampPosition = next => {
+  useEffect(() => {\n    if (!metrics) return;\n    setPosition(current => ({\n      x: clamp(current.x, -metrics.maxX, metrics.maxX),\n      y: clamp(current.y, -metrics.maxY, metrics.maxY),\n    }));\n  }, [metrics?.maxX, metrics?.maxY]);\n\n  const clampPosition = next => {
     if (!metrics) return next;
     return {
       x: clamp(next.x, -metrics.maxX, metrics.maxX),
@@ -274,7 +268,7 @@ function CropEditor({ source, sourceName = 'thumbnail', ratio, title, subtitle, 
             <span className="ar-ts-drag-hint">Drag artwork · Arrow keys fine-tune</span>
           </div>
           <div className="ar-ts-output-row">
-            <div><span>Output</span><strong>{Math.round(ratio * 100)}:{Math.round(100)} · {title.includes('Mobile') ? 'Mobile' : title.includes('Chapter List') ? 'Chapter List' : 'Desktop / PC'}</strong></div>
+            <div><span>Output</span><strong>{outputLabel || formatRatio(ratio)} · {title.includes('Mobile') ? 'Mobile' : title.includes('Chapter List') ? 'Chapter List' : 'Desktop / PC'}</strong></div>
             <small>Crop is exported as a new WebP image.</small>
           </div>
         </div>
@@ -422,7 +416,7 @@ export default function ThumbnailStudio() {
       subtitle: kind === 'cards'
         ? 'Compose the uploaded or saved image inside the exact card frame. Nothing else on the site changes.'
         : 'Adjust the normal chapter-list cover used by this series. The saved image remains the normal cover.',
-      sourceName: (chapter.title || 'thumbnail') + (slot ? '-' + slot : '') + '.webp',
+      sourceName: (chapter.title || 'thumbnail') + (slot ? '-' + slot : '') + '.webp',\n      outputLabel: kind === 'cards' ? CARD_TARGETS[slot].size : LIST_TARGETS[series].size,
     });
   };
 
