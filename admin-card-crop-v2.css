@@ -861,3 +861,115 @@ html[data-theme="light"] .ar-crop-actions button{background:#f7f7f5!important;co
   .ar-crop-output-meta{grid-template-columns:1fr auto!important}
   .ar-crop-output-meta small{display:none!important}
 }
+
+/* Chapter List thumbnail studio */
+main.admin-page.ar-admin-v3 .ar-list-thumb-manager{gap:16px!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-manager-head{padding:22px!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-note{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px 16px!important;
+  align-items:center!important;
+  margin:0 0 16px!important;
+  padding:11px 13px!important;
+  border:1px solid var(--a-border)!important;
+  border-radius:10px!important;
+  background:var(--a-surface-2)!important;
+  color:var(--a-muted)!important;
+  font-size:10px!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-note strong{color:var(--a-text)!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-grid{display:grid!important;gap:12px!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-card{overflow:hidden!important;padding:0!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-card-head{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:14px!important;
+  padding:16px 18px!important;
+  border-bottom:1px solid var(--a-border)!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-card-head>div{min-width:0!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-card-head>div>span{
+  color:var(--a-faint)!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  letter-spacing:.1em!important;
+  text-transform:uppercase!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-card-head h3{margin:4px 0 2px!important;color:var(--a-text)!important;font-size:15px!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-card-head p{margin:0!important;color:var(--a-muted)!important;font-size:11px!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:12px!important;
+  padding:14px 18px 0!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview-block{min-width:0!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview-block>span{
+  display:block!important;
+  margin-bottom:7px!important;
+  color:var(--a-muted)!important;
+  font-size:9px!important;
+  font-weight:800!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview{
+  overflow:hidden!important;
+  width:100%!important;
+  border:1px solid var(--a-border)!important;
+  border-radius:9px!important;
+  background:#000!important;
+  display:grid!important;
+  place-items:center!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview--desktop{aspect-ratio:104/72!important}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview--mobile{
+  width:min(112px,100%)!important;
+  aspect-ratio:76/100!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-preview b{
+  color:var(--a-faint)!important;
+  font-size:9px!important;
+  letter-spacing:.08em!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-actions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  padding:12px 18px 18px!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-actions>button{
+  min-height:36px!important;
+  padding:0 11px!important;
+  border:1px solid var(--a-border)!important;
+  border-radius:8px!important;
+  background:var(--a-surface-2)!important;
+  color:var(--a-text)!important;
+  font-size:10px!important;
+  font-weight:820!important;
+}
+main.admin-page.ar-admin-v3 .ar-list-thumb-actions>button:hover:not(:disabled){
+  background:var(--a-surface-3)!important;
+  border-color:var(--a-border-strong)!important;
+}
+@media(max-width:720px){
+  main.admin-page.ar-admin-v3 .ar-list-thumb-manager-head{padding:16px!important}
+  main.admin-page.ar-admin-v3 .ar-list-thumb-preview-row{
+    grid-template-columns:minmax(0,1fr) 86px!important;
+    align-items:end!important;
+    padding:12px!important;
+  }
+  main.admin-page.ar-admin-v3 .ar-list-thumb-actions{padding:0 12px 12px!important}
+  main.admin-page.ar-admin-v3 .ar-list-thumb-card-head{padding:14px!important}
+}
+@media(max-width:430px){
+  main.admin-page.ar-admin-v3 .ar-list-thumb-preview-row{grid-template-columns:1fr!important}
+  main.admin-page.ar-admin-v3 .ar-list-thumb-preview--mobile{width:86px!important}
+}
