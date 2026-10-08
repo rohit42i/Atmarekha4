@@ -13,7 +13,9 @@ export default function SubscriberBadge({ planId, show = true, size = 'inline' }
     ? 'subscriber-badge--compact'
     : size === 'large'
       ? 'subscriber-badge--large'
-      : 'subscriber-badge--inline';
+      : size === 'home'
+        ? 'subscriber-badge--home'
+        : 'subscriber-badge--inline';
 
   return (
     <span
