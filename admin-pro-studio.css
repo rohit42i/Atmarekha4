@@ -1,0 +1,100 @@
+/* Atma Rekha Admin Pro Studio — isolated, monochrome adaptation.
+   Scoped to the admin root to protect the public site and existing feature styles. */
+main.admin-page.ar-admin-v3 {
+  --ar-admin-primary:#d4d4d4;
+  --ar-admin-primary-dark:#a3a3a3;
+  --ar-admin-primary-light:#e5e5e5;
+  --ar-admin-primary-lighter:rgba(255,255,255,.09);
+  --ar-admin-success:#34d399;
+  --ar-admin-warning:#fbbf24;
+  --ar-admin-danger:#f87171;
+  --ar-admin-info:#93c5fd;
+  --ar-admin-radius-sm:6px;
+  --ar-admin-radius-md:9px;
+  --ar-admin-radius-lg:12px;
+  --ar-admin-transition-fast:150ms ease;
+  --ar-admin-transition-base:200ms ease;
+  color:var(--ar-admin-text-primary,#171717);
+}
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3 * { box-sizing:border-box; }
+main.admin-page.ar-admin-v3 button,
+main.admin-page.ar-admin-v3 input,
+main.admin-page.ar-admin-v3 select,
+main.admin-page.ar-admin-v3 textarea { font:inherit; }
+main.admin-page.ar-admin-v3 :is(button,input,select,textarea,[tabindex]):focus-visible {
+  outline:2px solid currentColor;
+  outline-offset:3px;
+}
+main.admin-page.ar-admin-v3 .ar-admin-card,
+main.admin-page.ar-admin-v3 .ar-admin-stat-card,
+main.admin-page.ar-admin-v3 .admin-card,
+main.admin-page.ar-admin-v3 .admin-studio-modal {
+  border-radius:12px;
+  box-shadow:none;
+}
+main.admin-page.ar-admin-v3 .ar-admin-stat-card {
+  background:var(--ar-admin-bg-primary,#fff);
+  border:1px solid var(--ar-admin-border,#e5e5e5);
+}
+main.admin-page.ar-admin-v3 .ar-admin-stat-card::before {
+  background:#737373;
+}
+main.admin-page.ar-admin-v3 .ar-admin-stat-card::after { display:none; }
+main.admin-page.ar-admin-v3 .ar-admin-stat-card:hover,
+main.admin-page.ar-admin-v3 .ar-admin-card:hover {
+  transform:none;
+  border-color:var(--ar-admin-border,#d4d4d4);
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+main.admin-page.ar-admin-v3 .ar-admin-btn,
+main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+main.admin-page.ar-admin-v3 .admin-submit {
+  border-radius:9px;
+  transition:background-color 150ms ease,border-color 150ms ease,transform 150ms ease;
+}
+main.admin-page.ar-admin-v3 .ar-admin-btn::before { display:none; }
+main.admin-page.ar-admin-v3 .ar-admin-btn:active,
+main.admin-page.ar-admin-v3 .ar-admin-primary-action:active,
+main.admin-page.ar-admin-v3 .admin-submit:active { transform:translateY(1px); }
+main.admin-page.ar-admin-v3 :is(.ar-admin-form-input,.ar-admin-form-textarea,.ar-admin-form-select,input,select,textarea) {
+  max-width:100%;
+}
+main.admin-page.ar-admin-v3 .ar-admin-table-wrapper,
+main.admin-page.ar-admin-v3 .admin-table-wrap { max-width:100%; }
+@media (prefers-reduced-motion:reduce) {
+  main.admin-page.ar-admin-v3 *,
+  main.admin-page.ar-admin-v3 *::before,
+  main.admin-page.ar-admin-v3 *::after {
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+  }
+}
+@media (max-width:640px) {
+  main.admin-page.ar-admin-v3 .ar-admin-content { min-width:0; }
+  main.admin-page.ar-admin-v3 .ar-admin-command-row { gap:12px; }
+  main.admin-page.ar-admin-v3 .ar-admin-command-row h1 { font-size:clamp(1.35rem,5vw,1.8rem); }
+  main.admin-page.ar-admin-v3 .ar-admin-top-actions { gap:6px; }
+}
+:root[data-theme="dark"] main.admin-page.ar-admin-v3,
+html.dark main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3[data-theme="dark"] {
+  --ar-admin-primary:#e5e5e5;
+  --ar-admin-primary-dark:#d4d4d4;
+  --ar-admin-primary-light:#f5f5f5;
+  --ar-admin-primary-lighter:rgba(255,255,255,.1);
+  --ar-admin-success:#6ee7b7;
+  --ar-admin-warning:#fcd34d;
+  --ar-admin-danger:#fca5a5;
+  --ar-admin-info:#bfdbfe;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) main.admin-page.ar-admin-v3 {
+    --ar-admin-primary:#e5e5e5;
+    --ar-admin-primary-dark:#d4d4d4;
+    --ar-admin-primary-light:#f5f5f5;
+    --ar-admin-primary-lighter:rgba(255,255,255,.1);
+  }
+}
