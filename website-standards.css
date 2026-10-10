@@ -19,6 +19,8 @@ html {
 }
 
 /* Functional controls use clear rectangular proportions and solid fills. */
+button,
+[role="button"],
 button[class],
 [role="button"][class],
 input[type="button"],
