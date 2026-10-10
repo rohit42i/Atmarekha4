@@ -9,7 +9,7 @@ const PAGES = {
     title: 'About Atma Rekha',
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
+      ['Release Schedule', '14th of each month'], ['Read', 'Website'],
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Minimum account age', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
@@ -60,7 +60,7 @@ const PAGES = {
 };
 
 function Section({ heading, body, links = [] }) {
-  return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label} ↗</a>)}</div>}</article>;
+  return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label}</a>)}</div>}</article>;
 }
 
 export default function InfoPage({ type, onBack }) {
