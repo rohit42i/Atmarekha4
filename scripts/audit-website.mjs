@@ -29,6 +29,8 @@ const privacy = await file('PrivacyCenter.jsx');
 const info = await file('InfoPage.jsx');
 const footer = await file('Footer.jsx');
 const errorLogger = await file('errorLogger.js');
+const discovery = await file('ChapterDiscovery.jsx');
+const groupChat = await file('GroupChat.jsx');
 
 check('HTML declares a document language', /<html\s+lang=["'][a-z-]+["']/i.test(html), 'index.html must declare a document language.');
 check('Mobile viewport is configured', /name=["']viewport["'][^>]*content=["'][^"']*width=device-width/i.test(html), 'index.html is missing a responsive viewport.');
@@ -48,6 +50,8 @@ check('Standards stylesheet has rectangular controls and solid action fills', /b
 check('Keyboard focus styles exist for light and dark themes', /:focus-visible/.test(standardsCss) && /data-theme=["']dark["']/.test(standardsCss), 'Visible keyboard-focus styles are missing.');
 check('Reduced-motion support exists', /prefers-reduced-motion:\s*reduce/.test(standardsCss), 'Reduced-motion support is missing.');
 check('Interactive transition duration is capped', /transition-duration:\s*180ms\s*!important/.test(standardsCss), 'Interactive transitions must be capped at 180ms.');
+check('Page-count and group-chat headings do not use emoji icons', !discovery.includes('📄') && !groupChat.includes('💬 Group Chat') && !groupChat.includes('group-chat-launch-icon">💬'), 'Replace decorative emoji icons in page counts and group chat navigation.');
+check('Unattended CSS animations are capped and do not loop', /animation-duration:\s*300ms\s*!important/.test(standardsCss) && /animation-iteration-count:\s*1\s*!important/.test(standardsCss), 'Unattended CSS animations must be capped at 300ms and limited to one iteration.');
 check('Build and static checks are scripted', typeof packageJson.scripts?.build === 'string' && typeof packageJson.scripts?.check === 'string', 'package.json is missing production build/check scripts.');
 check('Error logger does not print raw error objects or arbitrary context', !/console\.error\(err,\s*context\)/.test(errorLogger), 'Raw error objects/context may expose sensitive values in the browser console.');
 
