@@ -29,6 +29,9 @@ const privacy = await file('PrivacyCenter.jsx');
 const info = await file('InfoPage.jsx');
 const footer = await file('Footer.jsx');
 const errorLogger = await file('errorLogger.js');
+const releaseReadiness = JSON.parse(await file('docs/release-readiness.json') || '{}');
+const releaseGateScript = await file('scripts/check-release-readiness.mjs');
+const workflow = await file('.github/workflows/build.yml');
 const discovery = await file('ChapterDiscovery.jsx');
 const groupChat = await file('GroupChat.jsx');
 
@@ -56,6 +59,7 @@ check('Chapter browser controls use readable type and responsive mobile columns'
 check('Muted text tokens meet minimum contrast targets by source color', /--faint-color: #6b6b6b/.test(standardsCss) && /--faint-color: #a6a6a6/.test(standardsCss), 'Light/dark muted text tokens require stronger contrast.');
 check('Unattended CSS animations are capped and do not loop', /animation-duration:\s*300ms\s*!important/.test(standardsCss) && /animation-iteration-count:\s*1\s*!important/.test(standardsCss), 'Unattended CSS animations must be capped at 300ms and limited to one iteration.');
 check('Build and static checks are scripted', typeof packageJson.scripts?.build === 'string' && typeof packageJson.scripts?.check === 'string', 'package.json is missing production build/check scripts.');
+check('Production deployment is blocked without release approval and evidence', typeof releaseReadiness.approved === 'boolean' && Object.keys(releaseReadiness.gates || {}).length >= 10 && /readiness.approved === true/.test(releaseGateScript) && /missingEvidence.length === 0/.test(releaseGateScript) && /steps.release_gate.outputs.approved == 'true'/.test(workflow), 'A fail-closed production release approval gate is missing or incomplete.');
 check('Error logger does not print raw error objects or arbitrary context', !/console\.error\(err,\s*context\)/.test(errorLogger), 'Raw error objects/context may expose sensitive values in the browser console.');
 
 async function walk(dir) {
