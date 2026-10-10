@@ -10,7 +10,7 @@ const PAGES = {
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
       ['Release Schedule', '14th of each month'], ['Read', 'Website'],
-      ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Minimum account age', '15+'], ['Team', 'Solo Creator'],
+      ['Free', 'Chapters 1–8'], ['Content Rating', '16+'], ['Minimum account age', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
       'Atma Rekha follows Arnav, an isolated teenager with gaps in his memory, as he searches for answers about his past.',
