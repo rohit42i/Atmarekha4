@@ -1,0 +1,21 @@
+{
+  "approved": false,
+  "approvedBy": null,
+  "approvedAt": null,
+  "gates": {
+    "visualContentReview": false,
+    "accessibilityContrastReview": false,
+    "responsiveRealDeviceQA": false,
+    "crossBrowserQA": false,
+    "performanceLighthouse": false,
+    "liveLinksDomainTLS": false,
+    "formsEmailDelivery": false,
+    "securityReview": false,
+    "privacyTermsLegalReview": false,
+    "backupRollback": false,
+    "monitoringAnalytics": false,
+    "contentPolicyResolution": false,
+    "stakeholderSignoff": false
+  },
+  "evidence": {}
+}
