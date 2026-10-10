@@ -95,7 +95,7 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
             <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
           </div>
           <div className="chapter-row-details">
-            <span>📄 {item.pages || '—'} pages</span>
+            <span>Pages: {item.pages || '—'}</span>
             {recentChapterIds[String(chapter.id)] && <span className="chapter-resume-label">Resume · page {recentChapterIds[String(chapter.id)]}</span>}
           </div>
         </a>
