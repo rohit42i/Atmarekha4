@@ -164,6 +164,8 @@ npm run build
 The static check is a guardrail, not a replacement for the manual release gate.
 
 
+Current CI's production-only `npm audit --omit=dev` reports zero vulnerabilities. However, installation reports 8 vulnerabilities in the full dependency tree (2 moderate, 6 high); those require review before the security gate is marked complete.
+
 ## Automated production release gate
 
 The production workflow now runs `scripts/check-release-readiness.mjs` before any deployment. Every website/worker deployment step requires its `approved=true` output. The checked-in `docs/release-readiness.json` defaults to closed, with all 13 manual gates false and no evidence supplied. A successful build or static audit does not open the gate.
