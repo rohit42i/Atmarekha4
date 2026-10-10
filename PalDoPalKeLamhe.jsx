@@ -58,7 +58,7 @@ function LockedModal({ chapter, onClose, user, planId }) {
       <button className="chapter-access-backdrop" aria-label="Close" onClick={onClose} />
       <section className="chapter-access-modal">
         <button className="chapter-access-close" type="button" onClick={onClose} aria-label="Close">×</button>
-        <div className="chapter-access-icon" aria-hidden="true">🦚</div>
+        <div className="chapter-access-icon" aria-hidden="true">AR</div>
         <p className="chapter-access-eyebrow">PAL DO PAL KE LAMHE · CHAPTER {chapter?.chapterNumber || 1}</p>
         <h2>{isAtmaOnlyPlan ? 'Your membership does not include PDPKL.' : title}</h2>
         <p className="chapter-access-copy">{copy}</p>
