@@ -9,11 +9,11 @@ const PAGES = {
     title: 'About Atma Rekha',
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
+      ['Release Schedule', '14th of each month'], ['Read', 'Website'],
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
-      'Atma Rekha Is An Adventure Manga/Comic Where Traditions And Powers Become A Part Of An Unfolding Story.',
+      'Atma Rekha is an original Indian fantasy adventure manga where ancient traditions, spiritual concepts and mysterious powers shape the story.',
       'The series follows an original story built around its characters, their experiences, and the mysteries they encounter as the world gradually unfolds.',
       'Atma Rekha is originally published in Roman Hindi, with additional language versions available as they are published. New chapters are planned for release on the 14th of each month.',
       'The project is independently created by Arkesh as a solo creator. AI-assisted tools are used only for selected parts of the creative process, while the story, characters, direction, and final creative decisions remain original to the project.',
@@ -29,7 +29,7 @@ const PAGES = {
   report: {
     eyebrow: 'COMMUNITY', title: 'Report & Feedback',
     sections: [
-      { heading: 'Grievance Officer', body: 'Arkesh — Creator & Grievance Officer. Email atmarekhasupport@gmail.com for platform, community, consumer or legal grievances. Complaints can also be submitted through this page.' },
+      { heading: 'Grievance Officer', body: 'Arkesh, Creator and Grievance Officer. Email atmarekhasupport@gmail.com for platform, community, consumer or legal grievances. Complaints can also be submitted through this page.' },
       { heading: 'Grievance handling', body: 'Complaints are handled according to the nature of the issue and applicable requirements. Where a specific process or timeframe applies, it is determined by the relevant requirements.' },
       { heading: 'Content & community reports', body: 'For incorrect, inappropriate, unlawful, infringing or broken content, tell us the chapter/page, post and what happened. Reports are reviewed according to the nature of the issue and applicable requirements.', links: [{ label: 'Report an Issue', href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Report` }] },
       { heading: 'Consumer support', body: 'For membership billing, cancellation or refund issues, include your account email and Razorpay payment/subscription reference. Never send passwords, UPI PINs, CVV or full card details.' },
@@ -60,7 +60,7 @@ const PAGES = {
 };
 
 function Section({ heading, body, links = [] }) {
-  return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label} ↗</a>)}</div>}</article>;
+  return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label}</a>)}</div>}</article>;
 }
 
 export default function InfoPage({ type, onBack }) {
