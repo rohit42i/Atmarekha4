@@ -63,6 +63,15 @@ a.button,
   animation: none !important;
 }
 
+/* Cap unattended animation so no decorative loop runs for seconds. */
+*,
+*::before,
+*::after {
+  animation-duration: 300ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 180ms !important;
+}
+
 /* Users who prefer reduced motion get no transitions, CSS animations, or smooth scrolling. */
 @media (prefers-reduced-motion: reduce) {
   *,
