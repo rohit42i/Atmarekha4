@@ -17,24 +17,24 @@ This document is the working release gate for the checklist. A successful build 
 |---:|---|---|
 | 1 | No purple/aesthetic-only gradients | Manual gate. Inspect the complete site and admin at every breakpoint; no whole-site visual audit has been run. |
 | 2 | Rectangular buttons, not pills | Code guard in `website-standards.css`; verify every real component, including compact icon controls. |
-| 3 | No emoji icons | Manual source/content audit; status is not yet verified across every route. |
-| 4 | No excessive scroll animations | Manual audit of React/GSAP behavior and real scrolling. |
+| 3 | No emoji icons | Replaced the page-count and chapter reaction picker/header icons with plain text/SVG, including the group-chat launcher. Existing stored chat emoji reactions are mapped to text labels. Full route-by-route content review remains a manual gate. |
+| 4 | No excessive scroll animations | The current experience-enhancement component is disabled on the base branch; CSS motion is capped globally. Inspect remaining event-driven JavaScript motion and real scrolling manually. |
 | 5 | No custom cursor | Static source scan rejects CSS `cursor: url(...)`; still inspect runtime behavior. |
-| 6 | Clear type hierarchy | Manual visual audit and 200% text resizing. |
-| 7 | No stylistic em dashes | Manual content audit; fix any remaining user-facing instances. |
+| 6 | Clear type hierarchy | Existing typography system defines a heading scale; chapter controls/cards now use larger, consistent labels. Verify all routes and 200% resizing manually. |
+| 7 | No stylistic em dashes | Removed decorative arrows and the empty-state dash marker, and corrected the footer. Continue the user-facing copy audit for remaining stylistic dashes. |
 | 8 | Specific, actionable hero text | Manual content approval on homepage and each landing route. |
 | 9 | Documented design rationale | This file documents guardrails; finish rationale for existing components during visual audit. |
-| 10 | Consistent spacing | Manual audit across pages and breakpoints. |
-| 11 | Limited intentional color palette | Manual token and rendered-color audit. |
-| 12 | Consistent, functional icons | Manual review of every icon button and accessible name. |
+| 10 | Consistent spacing | Chapter controls/cards now share consistent gaps and padding; full-site spacing still needs a route-by-route visual audit. |
+| 11 | Limited intentional color palette | The main design remains monochrome with semantic status colors; inspect computed styles and rendered pages for legacy accents/gradients. |
+| 12 | Consistent, functional icons | Chapter rating/comments and group-chat launcher/send icons use SVG, and reaction options are text labels. Review every other route/icon manually. |
 | 13 | UI transitions under 300 ms | CSS animations capped at 300 ms and one iteration, transitions at 180 ms by code guard; inspect remaining JavaScript-driven motion manually. |
-| 14 | Purposeful borders, shadows and depth | Manual visual review. |
-| 15 | Clear font-size scale | Manual typography audit. |
-| 16 | WCAG AA contrast | Manual/automated contrast measurement still required; do not mark passed based on CSS alone. |
-| 17 | No visual noise | Manual review. |
-| 18 | Consistent hover states | Manual mouse/keyboard review. |
+| 14 | Purposeful borders, shadows and depth | Removed chapter-card gradient fills/shadows and reduced hover motion; other components still need visual review. |
+| 15 | Clear font-size scale | Existing heading scale is preserved; chapter browser controls/metadata were raised from 6–11px styling to readable sizes. Complete the full typography audit manually. |
+| 16 | WCAG AA contrast | Improved faint/muted light/dark theme tokens and added source-level checks. Rendered-state contrast measurements are still required before this passes. |
+| 17 | No visual noise | Removed decorative empty-state marker, info-link arrows, and several emoji-only UI icons; inspect remaining decorative elements across the site. |
+| 18 | Consistent hover states | Chapter-card hover is limited to a border-color change; visible hover/active states added for text reaction controls. Verify all other buttons manually. |
 | 19 | Visible keyboard focus | Code guard added for light/dark themes; verify focus in every dialog and route. |
-| 20 | Purpose-built mobile layout | Manual real-device audit. |
+| 20 | Purpose-built mobile layout | Chapter controls use a full-width search row and readable language/sort controls; cards switch to two columns on mobile and one column at 360px and below. Real-device review is still required. |
 | 21 | Default/hover/active/disabled button states | Manual interaction audit across components. |
 | 22 | Labeled forms and clear error states | Manual keyboard and screen-reader audit. |
 | 23 | Visible loading states | Existing states need route-by-route failure/loading simulation. |
