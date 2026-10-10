@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Atma Rekha">
+  <rect width="64" height="64" fill="#090909"/>
+  <path d="M12 49 25 15 38 49 M17 36h16 M40 15v34 M40 16h8c8 0 8 13 0 13h-8 M45 29l10 20"
+        fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

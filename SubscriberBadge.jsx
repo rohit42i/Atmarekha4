@@ -1,7 +1,7 @@
 const BATCHES = {
-  mini_member: { emoji: '🧸', label: 'Teddy Member' },
-  supporter: { emoji: '🌸', label: 'Flower Member' },
-  premium: { emoji: '🦚', label: 'Peacock Member' },
+  mini_member: { mark: 'S', label: 'Supporter' },
+  supporter: { mark: 'P', label: 'Premium Supporter' },
+  premium: { mark: 'S', label: 'Super Supporter' },
 };
 
 export default function SubscriberBadge({ planId, show = true, size = 'inline' }) {
@@ -25,7 +25,7 @@ export default function SubscriberBadge({ planId, show = true, size = 'inline' }
       title={'Active ' + batch.label}
       role="img"
     >
-      <span className="subscriber-badge-mark" aria-hidden="true">{batch.emoji}</span>
+      <span className="subscriber-badge-mark" aria-hidden="true">{batch.mark}</span>
     </span>
   );
 }
