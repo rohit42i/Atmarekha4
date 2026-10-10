@@ -49,22 +49,26 @@ jobs:
 
 
 
+      - name: Check production release approval gate
+        id: release_gate
+        run: node scripts/check-release-readiness.mjs
+
       - name: Deploy website to Cloudflare
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy Atma media worker to Cloudflare
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         run: npx wrangler deploy --config atma-media-worker/wrangler.toml
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Harden Cloudflare zone transport security
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         continue-on-error: true
         run: |
           curl --fail-with-body --silent --show-error \
@@ -77,7 +81,7 @@ jobs:
           CF_ZONE_ID: 8dbd4ce15e5916a6c1d95dbb5f1581d0
 
       - name: Ensure PDPL R2 bucket exists
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         working-directory: pdlpl-media-worker
         run: |
           buckets="$(npx wrangler r2 bucket list)"
@@ -89,7 +93,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Configure PDPL Worker Supabase publishable key
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         working-directory: pdlpl-media-worker
         run: printf '%s' "$SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put SUPABASE_PUBLISHABLE_KEY
         env:
@@ -97,7 +101,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Deploy protected Atma media Worker
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         working-directory: atma-media-worker
         run: npx wrangler deploy
         env:
@@ -106,7 +110,7 @@ jobs:
 
 
       - name: Deploy PDPL media Worker
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         working-directory: pdlpl-media-worker
         run: npx wrangler deploy
         env:
@@ -115,7 +119,7 @@ jobs:
 
       - name: Deploy Atma Rekha analytics Worker
         id: deploy_analytics
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true'
         continue-on-error: true
         run: npx --yes wrangler@latest deploy --config analytics-worker/wrangler.jsonc
         env:
@@ -123,5 +127,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Report optional analytics deployment status
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.deploy_analytics.outcome == 'failure'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.release_gate.outputs.approved == 'true' && steps.deploy_analytics.outcome == 'failure'
         run: echo "::warning::Analytics Worker deployment failed; website, Atma media, and PDPKL media deployments completed independently."
