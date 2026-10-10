@@ -44,6 +44,7 @@ check('Sitemap is valid XML-shaped output with unique locations', /<urlset\b/.te
 })(), 'Sitemap is empty, malformed, or contains duplicate <loc> entries.');
 check('Private routes receive no-index headers', /X-Robots-Tag:\s*noindex, nofollow, noarchive/i.test(headers), 'Expected no-index headers for private/profile routes were not found.');
 check('Privacy controls and legal pages are present in application source', /export default function PrivacyCenter/.test(privacy) && /Terms & Conditions/.test(info) && /Privacy/.test(privacy), 'Privacy controls or Terms & Conditions source is missing.');
+check('Published content rating matches the stated 16+ policy', info.includes("['Content Rating', '16+']"), 'Update the About page content rating to 16+.');
 check('Footer includes legal/contact navigation', /Footer navigation/.test(footer) && /info\/contact/.test(footer) && /info\/privacy/.test(footer) && /info\/terms/.test(footer), 'Footer legal/contact navigation is incomplete.');
 check('Standards stylesheet is imported by the app', /import ['"]\.\/website-standards\.css['"]/.test(main), 'Import website-standards.css from main.jsx.');
 check('Standards stylesheet has rectangular controls and solid action fills', /border-radius:\s*var\(--ar-control-radius\)\s*!important/.test(standardsCss) && /background-image:\s*none\s*!important/.test(standardsCss), 'Control-shape and gradient-button guardrails are missing.');
