@@ -82,3 +82,226 @@ a.button,
     transition: none !important;
   }
 }
+
+
+/* Readability: keep muted text above WCAG AA contrast on monochrome surfaces. */
+:root[data-theme="light"] {
+  --faint-color: #6b6b6b;
+  --muted-color: #5f5f5f;
+}
+:root[data-theme="dark"] {
+  --faint-color: #a6a6a6;
+  --muted-color: #c2c2c2;
+}
+
+/* Chapter discovery controls: readable labels, consistent type, and usable targets. */
+.chapter-discovery {
+  gap: 10px !important;
+}
+.chapter-discovery > label,
+.chapter-discovery .chapter-sort {
+  min-height: 44px !important;
+  border-radius: 4px !important;
+}
+.chapter-discovery input {
+  font: 500 14px/1.4 system-ui, sans-serif !important;
+}
+.chapter-discovery > label > span {
+  opacity: .78 !important;
+  font-size: 14px !important;
+}
+.chapter-discovery .chapter-language > span,
+.chapter-discovery .chapter-sort > span {
+  opacity: .82 !important;
+  font: 650 12px/1.25 system-ui, sans-serif !important;
+}
+.chapter-discovery .chapter-language select,
+.chapter-discovery .chapter-sort select {
+  min-height: 40px !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  font: 500 14px/1.35 system-ui, sans-serif !important;
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.chapter-discovery .chapter-sort {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 0 10px !important;
+  border: 1px solid #111 !important;
+  background: #fff !important;
+  color: #111 !important;
+}
+.chapter-discovery .chapter-sort select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+}
+.chapter-sort-menu button,
+.chapter-discovery-reset {
+  min-height: 40px !important;
+  font-size: 13px !important;
+}
+html[data-theme="dark"] .chapter-discovery .chapter-sort {
+  border-color: #fff !important;
+  background: #050505 !important;
+  color: #fff !important;
+}
+
+/* Chapter cards favor readable metadata over dense five-column mobile packing. */
+.chapter-list {
+  gap: 10px !important;
+}
+.chapter-row {
+  height: auto !important;
+  min-height: 136px !important;
+  padding: 13px !important;
+  border-radius: 4px !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--card-bg) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transition: border-color 180ms ease !important;
+}
+.chapter-row:hover {
+  transform: none !important;
+  border-color: var(--text-color) !important;
+  background: var(--card-bg) !important;
+  box-shadow: none !important;
+}
+.chapter-row-title > span {
+  margin-bottom: 5px !important;
+  color: var(--muted-color) !important;
+  font-size: 11px !important;
+  letter-spacing: .04em !important;
+}
+.chapter-row-title h2 {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0 !important;
+  -webkit-line-clamp: 2 !important;
+}
+.chapter-row-meta {
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+  color: var(--muted-color) !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+.chapter-row-meta span:nth-child(2),
+.chapter-row-meta span:nth-child(4) {
+  color: var(--muted-color) !important;
+}
+.chapter-row-details {
+  padding-top: 7px !important;
+  color: var(--muted-color) !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+.chapter-row-actions {
+  gap: 8px !important;
+  margin-top: 10px !important;
+  padding-top: 10px !important;
+}
+.engagement-icon {
+  min-height: 36px !important;
+  height: auto !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+}
+.engagement-icon > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 12px !important;
+}
+.engagement-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex: none;
+}
+.engagement-icon small {
+  font-size: 12px !important;
+}
+
+@media (max-width: 1100px) {
+  .chapter-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 850px) {
+  .chapter-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 700px) {
+  .chapter-discovery {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+  .chapter-discovery > label:first-child {
+    grid-column: 1 / -1;
+  }
+  .chapter-discovery > label,
+  .chapter-discovery .chapter-sort {
+    min-width: 0;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  .chapter-discovery .chapter-language > span,
+  .chapter-discovery .chapter-sort > span {
+    font-size: 12px !important;
+  }
+  .chapter-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+  .chapter-row {
+    min-height: 145px !important;
+    padding: 11px !important;
+  }
+  .chapter-row-title h2 {
+    font-size: 14px !important;
+  }
+  .chapter-row-meta,
+  .chapter-row-details {
+    font-size: 11px !important;
+  }
+  .engagement-icon {
+    min-height: 36px !important;
+    padding: 0 7px !important;
+  }
+}
+@media (max-width: 360px) {
+  .chapter-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .chapter-row {
+    min-height: 128px !important;
+  }
+}
+
+/* Text labels replace emoji-only chat reactions; retain a comfortable tap target. */
+.group-reaction-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+.group-reaction-grid button {
+  min-height: 44px !important;
+  padding: 8px 6px !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+  background: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+}
