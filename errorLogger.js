@@ -1,7 +1,11 @@
 const SENTRY_DSN = String(import.meta.env.VITE_SENTRY_DSN || '').trim();
 
 function scrub(value) {
-  return String(value || '').replace(/[?&](access_token|refresh_token|code|token|key|password|otp)=[^&]*/gi, '$1=[redacted]').slice(0, 2000);
+  return String(value || '')
+    .replace(/\\bBearer\\s+[^\\s]+/gi, 'Bearer [redacted]')
+    .replace(/[?&](access_token|refresh_token|code|token|key|password|otp|secret|api_key)=[^&\\s]*/gi, '$1=[redacted]')
+    .replace(/\\b(password|passcode|otp|secret|api[_-]?key|authorization)\\b\\s*[:=]\\s*["']?[^"',\\s&]+/gi, '$1=[redacted]')
+    .slice(0, 1000);
 }
 
 function parseDsn(dsn) {
@@ -20,7 +24,7 @@ const parsed = parseDsn(SENTRY_DSN);
 
 export async function logFrontendError(error, context = {}) {
   const err = error instanceof Error ? error : new Error(String(error || 'Unknown frontend error'));
-  console.error(err, context);
+  console.error('[Atma Rekha] Frontend error captured.');
   if (!parsed) return;
   const eventId = crypto.randomUUID().replaceAll('-', '');
   const envelopeHeader = {
