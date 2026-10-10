@@ -27,7 +27,7 @@ This document is the working release gate for the checklist. A successful build 
 | 10 | Consistent spacing | Manual audit across pages and breakpoints. |
 | 11 | Limited intentional color palette | Manual token and rendered-color audit. |
 | 12 | Consistent, functional icons | Manual review of every icon button and accessible name. |
-| 13 | UI transitions under 300 ms | Interactive transitions capped at 180 ms by code guard; inspect remaining JS/GSAP animations manually. |
+| 13 | UI transitions under 300 ms | CSS animations capped at 300 ms and one iteration, transitions at 180 ms by code guard; inspect remaining JavaScript-driven motion manually. |
 | 14 | Purposeful borders, shadows and depth | Manual visual review. |
 | 15 | Clear font-size scale | Manual typography audit. |
 | 16 | WCAG AA contrast | Manual/automated contrast measurement still required; do not mark passed based on CSS alone. |
