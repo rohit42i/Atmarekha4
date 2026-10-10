@@ -162,3 +162,10 @@ npm run build
 ```
 
 The static check is a guardrail, not a replacement for the manual release gate.
+
+
+## Automated production release gate
+
+The production workflow now runs `scripts/check-release-readiness.mjs` before any deployment. Every website/worker deployment step requires its `approved=true` output. The checked-in `docs/release-readiness.json` defaults to closed, with all 13 manual gates false and no evidence supplied. A successful build or static audit does not open the gate.
+
+To authorize a future release, the maintainer must complete all 13 gate entries, add a specific evidence reference for each one, record the approving person and timestamp, and set `approved` to `true`. The checker fails closed if any gate, evidence reference, approver or timestamp is missing. The content-policy decision must explicitly resolve the site's existing AI-assisted manga artwork versus the literal no-AI-art rule. Do not change the approval file until the evidence is real and reviewed.
