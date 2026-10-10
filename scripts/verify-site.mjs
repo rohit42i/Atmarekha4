@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 const required = [
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
-  ['InfoPage.jsx', "['Accounts', '15+']"],
+  ['InfoPage.jsx', "['Minimum account age', '15+']"],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
