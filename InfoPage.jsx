@@ -14,7 +14,7 @@ const PAGES = {
     ],
     story: [
       'Atma Rekha follows Arnav, an isolated teenager with gaps in his memory, as he searches for answers about his past.',
-      'The series follows an original story built around its characters, their experiences, and the mysteries they encounter as the world gradually unfolds.',
+      'Arnav struggles with loneliness after years of bullying and the unexplained loss of his childhood memories. The mystery around his family is only beginning.',
       'Atma Rekha is originally published in Roman Hindi, with additional language versions available as they are published. New chapters are planned for release on the 14th of each month.',
       'The project is independently created by Arkesh as a solo creator. AI-assisted tools are used only for selected parts of the creative process, while the story, characters, direction, and final creative decisions remain original to the project.',
     ],
