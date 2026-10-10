@@ -1,0 +1,71 @@
+/*
+ * Atma Rekha website standards guardrails.
+ * Loaded last so future component-level polish cannot silently reintroduce
+ * pill-shaped controls, gradient button fills, invisible focus, or long UI transitions.
+ * Manga panels and other editorial artwork are intentionally not restyled here.
+ */
+
+:root {
+  --ar-control-radius: 4px;
+  --ar-focus-light: #1d4ed8;
+  --ar-focus-dark: #93c5fd;
+}
+
+/* Keep native page scrolling predictable. No smooth-scroll or scroll-triggered CSS easing. */
+html {
+  scroll-behavior: auto !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Functional controls use clear rectangular proportions and solid fills. */
+button[class],
+[role="button"][class],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+a[role="button"][class],
+a.btn,
+a.button,
+.btn,
+.button {
+  border-radius: var(--ar-control-radius) !important;
+  background-image: none !important;
+  transition-duration: 180ms !important;
+}
+
+/* Keyboard focus must remain visible in light and dark themes. */
+:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+  outline: 3px solid var(--ar-focus-light) !important;
+  outline-offset: 3px !important;
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+  outline-color: var(--ar-focus-dark) !important;
+}
+
+/* Do not add an animation to native pointers or decorative controls. */
+:where(button, a, input, select, textarea) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Loading remains visible without an endless shimmer or spinner animation. */
+.loading-spinner,
+.skeleton,
+.loading-skeleton,
+[class*="skeleton"],
+.admin-loading::before {
+  animation: none !important;
+}
+
+/* Users who prefer reduced motion get no transitions, CSS animations, or smooth scrolling. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
