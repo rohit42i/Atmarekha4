@@ -144,7 +144,7 @@ export default function ChapterAccessGuard() {
       <button className="chapter-access-backdrop" aria-label="Close" onClick={() => setLockedChapter(null)} />
       <section className="chapter-access-modal">
         <button className="chapter-access-close" type="button" onClick={() => setLockedChapter(null)} aria-label="Close">×</button>
-        <div className="chapter-access-icon" aria-hidden="true">🦚</div>
+        <div className="chapter-access-icon" aria-hidden="true">AR</div>
         <p className="chapter-access-eyebrow">ATMA REKHA · MEMBERS ONLY</p>
         <h2>{label} is waiting for you.</h2>
         <p className="chapter-access-copy">Chapters 1–8 are free forever. From Chapter 9 onward, membership is required to continue reading.</p>
