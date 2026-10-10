@@ -1,7 +1,11 @@
 const SENTRY_DSN = String(import.meta.env.VITE_SENTRY_DSN || '').trim();
 
 function scrub(value) {
-  return String(value || '').replace(/[?&](access_token|refresh_token|code|token|key|password|otp)=[^&]*/gi, '$1=[redacted]').slice(0, 2000);
+  return String(value || '')
+    .replace(/\bBearer\s+[^\s]+/gi, 'Bearer [redacted]')
+    .replace(/[?&](access_token|refresh_token|code|token|key|password|otp|secret|api_key)=[^&\s]*/gi, '$1=[redacted]')
+    .replace(/\b(password|passcode|otp|secret|api[_-]?key|authorization|email|phone|mobile|upi_pin|cvv|card_number)\b\s*[:=]\s*["']?[^"',\s&]+/gi, '$1=[redacted]')
+    .slice(0, 1000);
 }
 
 function parseDsn(dsn) {
@@ -20,32 +24,42 @@ const parsed = parseDsn(SENTRY_DSN);
 
 export async function logFrontendError(error, context = {}) {
   const err = error instanceof Error ? error : new Error(String(error || 'Unknown frontend error'));
-  console.error(err, context);
+  // Do not expose raw errors, stack traces, or caller-supplied context in the console.
+  console.error('[Atma Rekha] Frontend error captured.');
   if (!parsed) return;
+
   const eventId = crypto.randomUUID().replaceAll('-', '');
   const envelopeHeader = {
     event_id: eventId,
     sent_at: new Date().toISOString(),
     sdk: { name: 'atma-rekha-error-logger', version: '1.0.0' },
   };
+  const safeMessage = scrub(err.message);
   const event = {
     event_id: eventId,
-    message: scrub(err.message),
+    message: safeMessage,
     level: 'error',
     platform: 'javascript',
     environment: import.meta.env.MODE,
-    exception: { values: [{ type: err.name || 'Error', value: scrub(err.message), stacktrace: { frames: [] } }] },
+    exception: { values: [{ type: scrub(err.name || 'Error'), value: safeMessage, stacktrace: { frames: [] } }] },
     contexts: { app: { route: scrub(window.location.pathname), language: document.documentElement.lang || 'en' } },
     tags: { source: scrub(context.source || 'frontend') },
   };
+
   try {
-    await fetch(`https://${parsed.host}/api/${parsed.projectId}/envelope/?sentry_version=7&sentry_key=${encodeURIComponent(parsed.publicKey)}&sentry_client=atma-rekha-error-logger/1.0.0`, {
+    const payload = JSON.stringify(event);
+    const endpoint = 'https://' + parsed.host + '/api/' + parsed.projectId
+      + '/envelope/?sentry_version=7&sentry_key=' + encodeURIComponent(parsed.publicKey)
+      + '&sentry_client=atma-rekha-error-logger/1.0.0';
+    await fetch(endpoint, {
       method: 'POST',
       keepalive: true,
       headers: { 'Content-Type': 'application/x-sentry-envelope' },
-      body: JSON.stringify(envelopeHeader) + '\n' + JSON.stringify({ type: 'event', length: JSON.stringify(event).length }) + '\n' + JSON.stringify(event),
+      body: JSON.stringify(envelopeHeader) + '\n' + JSON.stringify({ type: 'event', length: payload.length }) + '\n' + payload,
     });
-  } catch {}
+  } catch {
+    // Error telemetry must never interrupt the website.
+  }
 }
 
 export function installGlobalErrorLogging() {
