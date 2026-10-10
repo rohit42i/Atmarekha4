@@ -154,7 +154,6 @@ function LoadingState({ label = 'Loading…' }) {
 }
 function EmptyState({ title, text }) {
   return <div className="empty-state" role="status" aria-live="polite">
-    <span className="empty-state-mark" aria-hidden="true">—</span>
     <h3>{title}</h3>
     {text && <p>{text}</p>}
   </div>;
