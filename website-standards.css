@@ -293,6 +293,15 @@ html[data-theme="dark"] .chapter-discovery .chapter-sort {
 .group-reaction-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
 }
+.group-reaction-grid button:hover,
+.group-reaction-grid button:active {
+  background: var(--surface-2-color) !important;
+  border-color: var(--text-color) !important;
+}
+.group-reaction-grid button:focus-visible {
+  background: var(--surface-2-color) !important;
+}
+
 .group-reaction-grid button {
   min-height: 44px !important;
   padding: 8px 6px !important;
