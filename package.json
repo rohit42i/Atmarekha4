@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "prebuild": "node scripts/generate-sitemap.mjs",
-    "check": "node scripts/verify-site.mjs"
+    "check": "node scripts/verify-site.mjs && node scripts/audit-website.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
