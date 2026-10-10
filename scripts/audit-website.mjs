@@ -30,26 +30,26 @@ const info = await file('InfoPage.jsx');
 const footer = await file('Footer.jsx');
 const errorLogger = await file('errorLogger.js');
 
-check('HTML declares a document language', /<html\\s+lang=["'][a-z-]+["']/i.test(html), 'index.html must declare a document language.');
+check('HTML declares a document language', /<html\s+lang=["'][a-z-]+["']/i.test(html), 'index.html must declare a document language.');
 check('Mobile viewport is configured', /name=["']viewport["'][^>]*content=["'][^"']*width=device-width/i.test(html), 'index.html is missing a responsive viewport.');
-check('Page title and description exist', /<title>[^<]+<\\/title>/i.test(html) && /name=["']description["'][^>]*content=["'][^"']+["']/i.test(html), 'Missing page title or meta description.');
+check('Page title and description exist', /<title>[^<]+<\/title>/i.test(html) && /name=["']description["'][^>]*content=["'][^"']+["']/i.test(html), 'Missing page title or meta description.');
 check('Canonical and social metadata exist', /rel=["']canonical["']/i.test(html) && /property=["']og:title["']/i.test(html) && /name=["']twitter:card["']/i.test(html), 'Canonical, Open Graph, or Twitter metadata is missing.');
 check('Favicon and web manifest are referenced', /rel=["']icon["']/i.test(html) && /rel=["']manifest["']/i.test(html), 'Favicon or web manifest reference is missing.');
-check('Sitemap is discoverable by robots.txt', /Sitemap:\\s*https:\\/\\/www\\.atmarekha\\.in\\/sitemap\\.xml/i.test(robots), 'robots.txt must advertise the production sitemap.');
-check('Sitemap is valid XML-shaped output with unique locations', /<urlset\\b/.test(sitemap) && /<\\/urlset>/.test(sitemap) && (() => {
-  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(match => match[1]);
+check('Sitemap is discoverable by robots.txt', /Sitemap:\s*https:\/\/www\.atmarekha\.in\/sitemap\.xml/i.test(robots), 'robots.txt must advertise the production sitemap.');
+check('Sitemap is valid XML-shaped output with unique locations', /<urlset\b/.test(sitemap) && /<\/urlset>/.test(sitemap) && (() => {
+  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
   return locs.length > 0 && new Set(locs).size === locs.length;
 })(), 'Sitemap is empty, malformed, or contains duplicate <loc> entries.');
-check('Private routes receive no-index headers', /X-Robots-Tag:\\s*noindex, nofollow, noarchive/i.test(headers), 'Expected no-index headers for private/profile routes were not found.');
+check('Private routes receive no-index headers', /X-Robots-Tag:\s*noindex, nofollow, noarchive/i.test(headers), 'Expected no-index headers for private/profile routes were not found.');
 check('Privacy controls and legal pages are present in application source', /export default function PrivacyCenter/.test(privacy) && /Terms & Conditions/.test(info) && /Privacy/.test(privacy), 'Privacy controls or Terms & Conditions source is missing.');
-check('Footer includes legal/contact navigation', /Footer navigation/.test(footer) && /info\\/contact/.test(footer) && /info\\/privacy/.test(footer) && /info\\/terms/.test(footer), 'Footer legal/contact navigation is incomplete.');
-check('Standards stylesheet is imported by the app', /import ['"]\\.\\/website-standards\\.css['"]/.test(main), 'Import website-standards.css from main.jsx.');
-check('Standards stylesheet has rectangular controls and solid action fills', /border-radius:\\s*var\\(--ar-control-radius\\)\\s*!important/.test(standardsCss) && /background-image:\\s*none\\s*!important/.test(standardsCss), 'Control-shape and gradient-button guardrails are missing.');
+check('Footer includes legal/contact navigation', /Footer navigation/.test(footer) && /info\/contact/.test(footer) && /info\/privacy/.test(footer) && /info\/terms/.test(footer), 'Footer legal/contact navigation is incomplete.');
+check('Standards stylesheet is imported by the app', /import ['"]\.\/website-standards\.css['"]/.test(main), 'Import website-standards.css from main.jsx.');
+check('Standards stylesheet has rectangular controls and solid action fills', /border-radius:\s*var\(--ar-control-radius\)\s*!important/.test(standardsCss) && /background-image:\s*none\s*!important/.test(standardsCss), 'Control-shape and gradient-button guardrails are missing.');
 check('Keyboard focus styles exist for light and dark themes', /:focus-visible/.test(standardsCss) && /data-theme=["']dark["']/.test(standardsCss), 'Visible keyboard-focus styles are missing.');
-check('Reduced-motion support exists', /prefers-reduced-motion:\\s*reduce/.test(standardsCss), 'Reduced-motion support is missing.');
-check('Interactive transition duration is capped', /transition-duration:\\s*180ms\\s*!important/.test(standardsCss), 'Interactive transitions must be capped at 180ms.');
+check('Reduced-motion support exists', /prefers-reduced-motion:\s*reduce/.test(standardsCss), 'Reduced-motion support is missing.');
+check('Interactive transition duration is capped', /transition-duration:\s*180ms\s*!important/.test(standardsCss), 'Interactive transitions must be capped at 180ms.');
 check('Build and static checks are scripted', typeof packageJson.scripts?.build === 'string' && typeof packageJson.scripts?.check === 'string', 'package.json is missing production build/check scripts.');
-check('Error logger does not print raw error objects or arbitrary context', !/console\\.error\\(err,\\s*context\\)/.test(errorLogger), 'Raw error objects/context may expose sensitive values in the browser console.');
+check('Error logger does not print raw error objects or arbitrary context', !/console\.error\(err,\s*context\)/.test(errorLogger), 'Raw error objects/context may expose sensitive values in the browser console.');
 
 async function walk(dir) {
   let entries = [];
@@ -68,8 +68,8 @@ const sourceFiles = (await walk('.')).filter(path => path !== 'scripts/audit-web
 for (const path of sourceFiles) {
   let content = '';
   try { content = await readFile(path, 'utf8'); } catch { continue; }
-  if (/cursor\\s*:\\s*url\\s*\\(/i.test(content)) failures.push(`Custom cursor declaration found in ${path}`);
-  if (/lorem ipsum|experience the magic|10m\\+\\s+users|made with ai/i.test(content)) failures.push(`Placeholder/forbidden marketing copy found in ${path}`);
+  if (/cursor\s*:\s*url\s*\(/i.test(content)) failures.push(`Custom cursor declaration found in ${path}`);
+  if (/lorem ipsum|experience the magic|10m\+\s+users|made with ai/i.test(content)) failures.push(`Placeholder/forbidden marketing copy found in ${path}`);
 }
 
 if (failures.length) {
