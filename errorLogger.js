@@ -48,11 +48,11 @@ export async function logFrontendError(error, context = {}) {
 
   try {
     const payload = JSON.stringify(event);
-    await fetch(\`https://\${parsed.host}/api/\${parsed.projectId}/envelope/?sentry_version=7&sentry_key=\${encodeURIComponent(parsed.publicKey)}&sentry_client=atma-rekha-error-logger/1.0.0\`, {
+    await fetch(`https://${parsed.host}/api/${parsed.projectId}/envelope/?sentry_version=7&sentry_key=${encodeURIComponent(parsed.publicKey)}&sentry_client=atma-rekha-error-logger/1.0.0`, {
       method: 'POST',
       keepalive: true,
       headers: { 'Content-Type': 'application/x-sentry-envelope' },
-      body: JSON.stringify(envelopeHeader) + '\\n' + JSON.stringify({ type: 'event', length: payload.length }) + '\\n' + payload,
+      body: JSON.stringify(envelopeHeader) + '\n' + JSON.stringify({ type: 'event', length: payload.length }) + '\n' + payload,
     });
   } catch {
     // Error telemetry must never interrupt the website.
