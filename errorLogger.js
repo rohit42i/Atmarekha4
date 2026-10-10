@@ -4,7 +4,9 @@ function scrub(value) {
   return String(value || '')
     .replace(/\bBearer\s+[^\s]+/gi, 'Bearer [redacted]')
     .replace(/[?&](access_token|refresh_token|code|token|key|password|otp|secret|api_key)=[^&\s]*/gi, '$1=[redacted]')
-    .replace(/\b(password|passcode|otp|secret|api[_-]?key|authorization|email|phone|mobile|upi_pin|cvv|card_number)\b\s*[:=]\s*["']?[^"',\s&]+/gi, '$1=[redacted]')
+    .replace(/\b(password|passcode|otp|secret|api[_-]?key|authorization|email|phone|mobile|upi[_ -]?pin|cvv|card[_ -]?number|security[_ -]?code)\b\s*[:=]\s*["']?[^"',\s&]+/gi, '$1=[redacted]')
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email redacted]')
+    .replace(/\b(?:\+?\d[\d ()-]{7,}\d)\b/g, '[phone redacted]')
     .slice(0, 1000);
 }
 
