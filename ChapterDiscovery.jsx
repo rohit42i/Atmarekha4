@@ -100,8 +100,8 @@ export function ChapterDiscoveryRender({ visibleChapters, recentChapterIds, stat
           </div>
         </a>
         <div className="chapter-row-actions">
-          <button type="button" className="engagement-icon" onClick={() => openRating(chapter)} aria-label={`Rate Chapter ${chapter.chapterNumber ?? ''}`} title={`Rate Chapter ${chapter.chapterNumber ?? ''}`}><span>★</span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
-          <button type="button" className="engagement-icon" onClick={() => openComments(chapter)} aria-label={`Comments for Chapter ${chapter.chapterNumber ?? ''}`} title={`Comments for Chapter ${chapter.chapterNumber ?? ''}`}><span>💬</span><small>{new Intl.NumberFormat('en-IN', { notation: Number(item.comments) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.comments) || 0)}</small></button>
+          <button type="button" className="engagement-icon" onClick={() => openRating(chapter)} aria-label={`Rate Chapter ${chapter.chapterNumber ?? ''}`} title={`Rate Chapter ${chapter.chapterNumber ?? ''}`}><span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m12 3.5 2.65 5.37 5.93.86-4.29 4.18 1.01 5.91L12 17.03l-5.3 2.79 1.01-5.91-4.29-4.18 5.93-.86L12 3.5z" fill="currentColor"/></svg></span><small>{item.rating.count ? item.rating.average.toFixed(1) : '—'}</small></button>
+          <button type="button" className="engagement-icon" onClick={() => openComments(chapter)} aria-label={`Comments for Chapter ${chapter.chapterNumber ?? ''}`} title={`Comments for Chapter ${chapter.chapterNumber ?? ''}`}><span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 5.5h16v11H9l-5 3v-14z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 9.5h8M8 12.5h5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg></span><small>{new Intl.NumberFormat('en-IN', { notation: Number(item.comments) > 9999 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(Number(item.comments) || 0)}</small></button>
         </div>
       </article>
     );
