@@ -1,10 +1,12 @@
 const browserGlobals = {
   AbortController: "readonly",
   Blob: "readonly",
+  MutationObserver: "readonly",
   File: "readonly",
   Image: "readonly",
   URL: "readonly",
   URLSearchParams: "readonly",
+  PopStateEvent: "readonly",
   clearTimeout: "readonly",
   console: "readonly",
   createImageBitmap: "readonly",
