@@ -12,26 +12,52 @@ test("encodes each object path segment independently", () => {
 });
 
 test("normalizes legacy chapter-page upload paths into canonical keys", () => {
+  const legacy = \`chapters/\${chapterId}/pages/en-1700000000/page 1.webp\`;
+  const expected = \`chapter-pages/\${chapterId}/1700000000/page 1.webp\`;
+  const canonical = normalizeAtmaR2Path("chapter-pages", legacy);
+
+  assert.equal(canonical, expected);
+  assert.equal(normalizeAtmaR2Path("chapter-pages", canonical), expected);
+  assert.equal(normalizeAtmaR2Path("chapter-pages", \`\${chapterId}/1700000000/page 1.webp\`), expected);
   assert.equal(
-    normalizeAtmaR2Path(
-      "chapter-pages",
-      `chapters/${chapterId}/pages/chapter-3/page 1.webp`,
-    ),
-    `chapter-pages/${chapterId}/3/page%201.webp`.replace(/%20/g, " "),
+    normalizeAtmaR2Path("chapter-pages", \`chapter-pages/\${legacy}\`),
+    expected,
   );
 });
 
-test("removes an optional bucket prefix for other media buckets", () => {
-  assert.equal(normalizeAtmaR2Path("covers", "/covers/cover.webp"), "cover.webp");
-  assert.equal(normalizeAtmaR2Path("community", "community/avatar.png"), "avatar.png");
+test("retains bucket namespaces for cover and community media", () => {
+  assert.equal(
+    normalizeAtmaR2Path("covers", "/covers/chapters/cover.webp"),
+    "covers/chapters/cover.webp",
+  );
+  assert.equal(
+    normalizeAtmaR2Path("covers", "chapters/cover.webp"),
+    "covers/chapters/cover.webp",
+  );
+  assert.equal(
+    normalizeAtmaR2Path("community", "community/avatar.png"),
+    "community/avatar.png",
+  );
+  assert.equal(
+    normalizeAtmaR2Path("community", "avatar.png"),
+    "community/avatar.png",
+  );
 });
 
 test("leaves unrecognized legacy keys stable instead of guessing", () => {
-  const key = `chapters/${chapterId}/pages/cover/page.webp`;
+  const key = \`chapters/\${chapterId}/pages/cover/page.webp\`;
   assert.equal(normalizeAtmaR2Path("chapter-pages", key), key);
 });
 
-test("does not normalize chapter paths as non-chapter buckets", () => {
-  const key = `chapters/${chapterId}/pages/chapter-3/page.webp`;
-  assert.equal(normalizeAtmaR2Path("covers", key), key);
+test("keeps legacy replacement objects outside the chapter-pages namespace", () => {
+  const key = \`\${chapterId}/replacements/page.webp\`;
+  assert.equal(normalizeAtmaR2Path("chapter-pages", key), key);
+});
+
+test("prefixes the correct namespace without rewriting another bucket's path", () => {
+  const key = \`chapters/\${chapterId}/pages/chapter-3/page.webp\`;
+  assert.equal(
+    normalizeAtmaR2Path("covers", key),
+    \`covers/\${key}\`,
+  );
 });
