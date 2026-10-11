@@ -21,7 +21,7 @@ const AdminManagementTools = lazy(() => import('./AdminManagementTools.jsx'));
 const AdminProTools = lazy(() => import('./AdminProTools.jsx'));
 const AdminChapterHealth = lazy(() => import('./AdminChapterHealth.jsx'));
 const AdminOperations = lazy(() => import('./AdminOperations.jsx'));
-import ChapterAccessGuard from './ChapterAccessGuard.jsx';
+import ChapterAccessGuard from './src/features/chapters/components/ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import ExperienceEnhancements from './ExperienceEnhancements.jsx';
