@@ -1,6 +1,6 @@
 import { getAdminRole, isAdminRole } from "../auth/adminAuthorizationService.js";
 import { getCurrentMembership, supabase } from "../../../supabase";
-import { isPdlplMemberPlan, mapPdlplChapter, published } from "./chapterDomain.js";
+import { isPdlplMemberPlan, mapPdlplChapter } from "./chapterDomain.js";
 
 export {
   isPdlplMemberPlan,
