@@ -67,7 +67,6 @@ function parseError(body, status) {
   }
 }
 
-
 async function request(path, options = {}, retried = false) {
   const method = String(options.method || "GET").toUpperCase();
   const url = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
