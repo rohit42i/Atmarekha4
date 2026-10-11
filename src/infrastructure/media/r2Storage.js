@@ -204,9 +204,10 @@ export const cloudflareR2 = {
        */
       async upload(path, file, options = {}) {
         try {
-          const storagePath = normalizeAtmaR2Path(bucket, path);
           const processedFile = await compressImage(file);
-          const response = await fetch(publicPath(storagePath), {
+          // publicPath performs exactly one canonicalization. Passing an already
+          // normalized key here previously stripped the chapter-pages namespace.
+          const response = await fetch(publicPath(path), {
             method: "PUT",
             headers: {
               ...(await authHeaders()),
