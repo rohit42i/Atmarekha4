@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyebrow, normalizeChapterLanguage } from './chapters';
+import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyebrow, normalizeChapterLanguage } from './src/features/chapters/chapterService.js';
 const AdminLogin = lazy(() => import('./AdminLogin.jsx'));
 const AdminPanel = lazy(() => import('./AdminPanel.jsx'));
 import Footer from './Footer';
@@ -10,12 +10,12 @@ import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { fetchAuthenticatedMediaBlobUrl, getCurrentMembership, supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import axios from 'axios';
-import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './engagement';
-import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
+import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './src/features/engagement/engagementService.js';
+import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './src/app/routing/routeService.js';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
-import { captureMarketingAttribution } from './attribution';
+import { captureMarketingAttribution } from './src/features/attribution/attributionService.js';
 import MorePage from './MorePage.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
