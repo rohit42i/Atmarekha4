@@ -145,7 +145,6 @@ export default function ChapterAccessGuard() {
     if (!ready) return undefined;
     const markLocks = () => {
       Array.from(document.querySelectorAll('.chapter-row')).filter(row => !row.closest('.pdlpl-page-list,.pdlpl-reader')).forEach(row => {
-        const link = row.querySelector('a.chapter-row-main');
         const chapterId = row.getAttribute('data-chapter-id');
         if (!chapterId) return;
         const chapter = chapters.find(item => String(item.id) === String(chapterId));
