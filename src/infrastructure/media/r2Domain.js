@@ -17,8 +17,8 @@ export const encodePath = (path) =>
  * @param {string} path
  */
 export function normalizeAtmaR2Path(bucket, path) {
-  let clean = String(path || "").replace(/^\\/+/, "");
-  const prefix = `${bucket}/`;
+  let clean = String(path || "").replace(/^\/+/, "");
+  const prefix = String(bucket || "") + "/";
 
   if (bucket !== "chapter-pages") {
     // The Atma Worker uses one R2 bucket and validates these namespaces in the
@@ -26,16 +26,11 @@ export function normalizeAtmaR2Path(bucket, path) {
     // paths such as those recovered from a URL.
     return clean.toLowerCase().startsWith(prefix.toLowerCase())
       ? clean
-      : `${prefix}${clean}`;
+      : prefix + clean;
   }
 
   // Already-canonical chapter page keys must survive a second normalization.
-  if (
-    new RegExp(
-      `^chapter-pages/${UUID_PATTERN}/[^/]+/[^/]+$`,
-      "i",
-    ).test(clean)
-  ) {
+  if (new RegExp("^chapter-pages/" + UUID_PATTERN + "/[^/]+/[^/]+$", "i").test(clean)) {
     return clean;
   }
 
@@ -46,18 +41,18 @@ export function normalizeAtmaR2Path(bucket, path) {
   }
 
   const legacy = clean.match(
-    /^chapters\\/([0-9a-f-]{36})\\/pages\\/[^/]+-(\\d+)\\/(.+)$/i,
+    /^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i,
   );
   if (legacy) {
-    return `chapter-pages/${legacy[1]}/${legacy[2]}/${legacy[3]}`;
+    return "chapter-pages/" + legacy[1] + "/" + legacy[2] + "/" + legacy[3];
   }
 
   // pathFromUrl() returns the part after "chapter-pages/" for object cleanup.
-  const canonicalSuffix = clean.match(/^([0-9a-f-]{36})\\/[^/]+\\/[^/]+$/i);
-  if (canonicalSuffix) return `chapter-pages/${clean}`;
+  const canonicalSuffix = clean.match(/^([0-9a-f-]{36})\/[^/]+\/[^/]+$/i);
+  if (canonicalSuffix) return "chapter-pages/" + clean;
 
   // Keep the worker's supported legacy replacement keys intact.
-  if (/^[0-9a-f-]{36}\\/replacements\\/[^/]+$/i.test(clean)) return clean;
+  if (/^[0-9a-f-]{36}\/replacements\/[^/]+$/i.test(clean)) return clean;
 
   // Do not guess the meaning of older, unrecognized key shapes.
   return clean;
