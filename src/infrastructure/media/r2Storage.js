@@ -9,8 +9,10 @@ const IMAGE_MIN_SIZE = 2 * 1024 * 1024;
 const IMAGE_MAX_SIZE = 4 * 1024 * 1024;
 const IMAGE_MAX_EDGE = 3200;
 
+/** @param {string} path */
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
+/** @param {string} bucket @param {string} path */
 function normalizeAtmaR2Path(bucket, path) {
   let clean = String(path || '').replace(/^\/+/, '');
   const bucketPrefix = `${bucket}/`;
@@ -28,6 +30,11 @@ async function authHeaders() {
   return { Authorization: `Bearer ${data.session.access_token}` };
 }
 
+/**
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @param {boolean} [retried]
+ */
 export async function fetchAuthenticatedMedia(url, options = {}, retried = false) {
   let response;
   const controller = new AbortController();
@@ -75,15 +82,18 @@ export async function fetchAuthenticatedMedia(url, options = {}, retried = false
   return response;
 }
 
+/** @param {string} url @param {RequestInit} [options] */
 export async function fetchAuthenticatedMediaBlobUrl(url, options = {}) {
   const response = await fetchAuthenticatedMedia(url, options);
   return URL.createObjectURL(await response.blob());
 }
 
+/** @param {HTMLCanvasElement} canvas @param {string} type @param {number} quality */
 const blobFromCanvas = (canvas, type, quality) => new Promise((resolve, reject) => {
   canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')), type, quality);
 });
 
+/** @param {File} file @returns {Promise<ImageBitmap | HTMLImageElement>} */
 async function decodeImage(file) {
   if (typeof createImageBitmap === 'function') {
     try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (_) {}
@@ -97,15 +107,22 @@ async function decodeImage(file) {
   });
 }
 
+/** @returns {Promise<boolean>} */
+
+/** @param {ImageBitmap | HTMLImageElement} image */
+function closeDecodedImage(image) {
+  if ("close" in image && typeof image.close === "function") image.close();
+}
 async function supportsWebP() {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
   return new Promise(resolve => canvas.toBlob(blob => resolve(Boolean(blob)), 'image/webp', 0.9));
 }
 
+/** @param {File} file @returns {Promise<File | Blob>} */
 async function compressImage(file) {
   if (!(file instanceof File) || !file.type.startsWith('image/')) return file;
   const image = await decodeImage(file); const sourceWidth = image.width; const sourceHeight = image.height; const longestEdge = Math.max(sourceWidth, sourceHeight);
-  if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) { image.close?.(); return file; }
+  if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) { closeDecodedImage(image); return file; }
   const outputType = await supportsWebP() ? 'image/webp' : 'image/jpeg'; let scale = Math.min(1, IMAGE_MAX_EDGE / longestEdge);
   try {
     for (let dimensionPass = 0; dimensionPass < 7; dimensionPass += 1) {
@@ -123,13 +140,23 @@ async function compressImage(file) {
   throw new Error(`${file.name} could not be compressed below 4 MB while preserving acceptable quality.`);
 }
 
+/** Storage-compatible R2 adapter. Use the normal Supabase storage API for other buckets. */
 export const cloudflareR2 = {
+  /** @param {string} bucket */
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
+    /** @param {string} path */
     const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${encodePath(normalizeAtmaR2Path(bucket, path))}`;
     return {
+      /**
+       * @param {string} path
+       * @param {File} file
+       * @param {{ contentType?: string, cacheControl?: string | number }} [options]
+       */
       async upload(path, file, options = {}) { try { const storagePath = normalizeAtmaR2Path(bucket, path); const processedFile = await compressImage(file); const response = await fetch(publicPath(storagePath), { method: 'PUT', headers: { ...(await authHeaders()), 'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream', 'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}` }, body: processedFile }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) }; } return { data: { path }, error: null }; } catch (error) { return { data: null, error }; } },
+      /** @param {string} path */
       getPublicUrl(path) { return { data: { publicUrl: publicPath(path) } }; },
+      /** @param {string[]} paths */
       async remove(paths) { const clean = (paths || []).filter(Boolean); try { const headers = await authHeaders(); for (const path of clean) { const response = await fetch(publicPath(path), { method: 'DELETE', headers }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) }; } } return { data: clean.map(path => ({ name: path })), error: null }; } catch (error) { return { data: null, error }; } },
     };
   },
