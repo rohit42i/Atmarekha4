@@ -33,14 +33,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Temporary Prettier output for PdPL media
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 58
-        run: |
-          npx --yes prettier@3.9.10 --write src/infrastructure/media/pdlplStorage.js
-          echo PRETTIER_OUTPUT_BEGIN
-          cat src/infrastructure/media/pdlplStorage.js
-          echo PRETTIER_OUTPUT_END
-
       - name: Architecture quality gate
         run: npm run quality:check
 
