@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-import { publicEnv } from "./src/config/publicEnv.js";
-
-const supabaseUrl = publicEnv.supabaseUrl;
-const supabaseKey = publicEnv.supabasePublishableKey;
+import { client, supabaseUrl, supabaseKey } from "./src/infrastructure/supabase/client.js";
 
 const R2_WORKER_URL = publicEnv.mediaWorkerUrl;
 const R2_BUCKETS = new Set(['chapter-pages', 'covers', 'community']);
@@ -46,11 +41,6 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.');
 }
 
-const client = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder-key',
-  { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }, global: { fetch: fetchWithTimeout } },
-);
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
 function normalizeAtmaR2Path(bucket, path) {
