@@ -47,12 +47,13 @@ export function normalizeAtmaR2Path(bucket, path) {
     return "chapter-pages/" + legacy[1] + "/" + legacy[2] + "/" + legacy[3];
   }
 
+  // Keep the worker's supported legacy replacement keys intact. This must
+  // precede the generic UUID/revision/file shape below.
+  if (/^[0-9a-f-]{36}\/replacements\/[^/]+$/i.test(clean)) return clean;
+
   // pathFromUrl() returns the part after "chapter-pages/" for object cleanup.
   const canonicalSuffix = clean.match(/^([0-9a-f-]{36})\/[^/]+\/[^/]+$/i);
   if (canonicalSuffix) return "chapter-pages/" + clean;
-
-  // Keep the worker's supported legacy replacement keys intact.
-  if (/^[0-9a-f-]{36}\/replacements\/[^/]+$/i.test(clean)) return clean;
 
   // Do not guess the meaning of older, unrecognized key shapes.
   return clean;
