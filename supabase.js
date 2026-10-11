@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-import { publicEnv } from './src/config/publicEnv.js';
+import { publicEnv } from "./src/config/publicEnv.js";
 
 const supabaseUrl = publicEnv.supabaseUrl;
 const supabaseKey = publicEnv.supabasePublishableKey;
 
-const R2_WORKER_URL = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
+const R2_WORKER_URL = publicEnv.mediaWorkerUrl;
 const R2_BUCKETS = new Set(['chapter-pages', 'covers', 'community']);
 const CHAPTER_PAGES_TABLE = 'chapter_pages';
 const SUPABASE_REQUEST_TIMEOUT_MS = 15000;
