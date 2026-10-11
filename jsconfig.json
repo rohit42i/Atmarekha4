@@ -23,7 +23,9 @@
     "src/app/routing/routeService.js",
     "src/shared/api/analyticsClient.js",
     "src/features/attribution/attributionDomain.js",
-    "src/features/membership/membershipDomain.js"
+    "src/features/membership/membershipDomain.js",
+    "src/infrastructure/supabase/client.js",
+    "src/features/membership/membershipService.js"
   ],
   "exclude": [
     "node_modules",
