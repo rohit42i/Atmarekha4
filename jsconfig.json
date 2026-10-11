@@ -20,7 +20,8 @@
     "src/shared/validation/input.js",
     "src/types/vite-env.d.ts",
     "src/features/engagement/engagementDomain.js",
-    "src/app/routing/routeService.js"
+    "src/app/routing/routeService.js",
+    "src/shared/api/analyticsClient.js"
   ],
   "exclude": [
     "node_modules",
