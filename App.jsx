@@ -11,7 +11,6 @@ const MorePage = lazy(() => import("./MorePage.jsx"));
 import { buildPdlplChapters } from './src/features/pdlpl/chapterService.js';
 import { fetchAuthenticatedMediaBlobUrl, getCurrentMembership, supabase } from './supabase';
 import { getAdminRole } from './src/features/auth/adminAuthorizationService.js';
-import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './src/features/engagement/engagementService.js';
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './src/app/routing/routeService.js';
 const ChapterDiscovery = lazy(() => import('./src/features/chapters/components/ChapterDiscovery.jsx'));
