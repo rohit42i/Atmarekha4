@@ -48,7 +48,7 @@ export function selectEffectiveMemberships(rows = [], now = Date.now()) {
 
     const existingPlan = selected.get(userId);
     const candidateRank = PLAN_PRIORITY[planId] ?? 0;
-    const existingRank = PLAN_PRIORITY[existingPlan?.planId] ?? -1;
+    const existingRank = PLAN_PRIORITY[existingPlan?.planId ?? ''] ?? -1;
     const candidateStatusRank = status === "active" ? 1 : 0;
     const existingStatusRank = existingPlan?.status === "active" ? 1 : 0;
     const candidateEnd = end ?? Number.POSITIVE_INFINITY;
