@@ -2,7 +2,6 @@
  * Admin Pro Studio — reusable, accessible examples.
  * These are optional building blocks; existing admin feature components remain authoritative.
  */
-import React from 'react';
 
 export function StatCard({ icon, label, value, note, onClick }) {
   const Tag = onClick ? 'button' : 'article';
