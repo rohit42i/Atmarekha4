@@ -20,6 +20,7 @@ export async function buildPdlplChapters() {
   return (data || []).map(mapPdlplChapter);
 }
 
+/** @type {{key: string, value: {user: import('@supabase/supabase-js').User, planId: string | null, member: boolean, admin: boolean} | null, expiresAt: number}} */
 let pdlplAccessCache = { key: "", value: null, expiresAt: 0 };
 const PDLPL_ACCESS_CACHE_MS = 30 * 1000;
 
@@ -57,6 +58,7 @@ export async function getPdlplMemberAccess() {
   return result;
 }
 
+/** @param {string | null | undefined} chapterId */
 export async function buildPdlplChapterPages(chapterId) {
   if (!chapterId) return [];
 
@@ -70,6 +72,7 @@ export async function buildPdlplChapterPages(chapterId) {
   return data || [];
 }
 
+/** @param {string[]} [chapterIds] */
 export async function buildPdlplPageCounts(chapterIds = []) {
   const ids = chapterIds.filter(Boolean);
   if (!ids.length) return {};

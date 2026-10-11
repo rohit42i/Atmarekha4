@@ -1,5 +1,6 @@
 import { supabase } from "../../../supabase";
 
+/** @param {string | null | undefined} userId */
 export async function getAdminRole(userId) {
   if (!userId) return null;
   const { data, error } = await supabase
@@ -20,6 +21,7 @@ export async function getCurrentAdminRole() {
   return { user, role: await getAdminRole(user.id) };
 }
 
+/** @param {unknown} role */
 export function isAdminRole(role) {
   return role === "owner" || role === "admin";
 }

@@ -11,10 +11,12 @@ export { buildRatingSummary } from "./engagementDomain.js";
 const VIEWER_KEY_STORAGE = "atma-rekha-viewer-key-v1";
 const VIEW_RECORDED_STORAGE = "atma-rekha-view-recorded-v2";
 
+/** @param {string | null | undefined} chapterId */
 function viewRecordKey(chapterId) {
   return `${VIEW_RECORDED_STORAGE}:${String(chapterId || "")}`;
 }
 
+/** @param {string | null | undefined} chapterId */
 function wasViewRecorded(chapterId) {
   if (typeof window === "undefined") return false;
   try {
@@ -24,6 +26,7 @@ function wasViewRecorded(chapterId) {
   }
 }
 
+/** @param {string | null | undefined} chapterId */
 function markViewRecorded(chapterId) {
   if (typeof window === "undefined") return;
   try {
@@ -31,6 +34,7 @@ function markViewRecorded(chapterId) {
   } catch (_) {}
 }
 
+/** @param {string[]} [chapterIds] */
 export async function fetchCloudflareViews(chapterIds = []) {
   return fetchAnalyticsViews(chapterIds);
 }
@@ -73,6 +77,7 @@ const emptyChapterStats = () => ({
   pages: 0,
 });
 
+/** @param {string[]} chapterIds */
 export async function fetchPublicEngagement(chapterIds) {
   const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
   if (!ids.length) return {};
@@ -83,7 +88,7 @@ export async function fetchPublicEngagement(chapterIds) {
         "chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count",
       )
       .in("chapter_id", ids),
-    fetchCloudflareViews(ids).catch(() => ({})),
+    fetchCloudflareViews(ids).catch(() => (/** @type {Record<string, number>} */ ({})),
   ]);
   if (error) throw error;
   const rows = data || [];
@@ -106,6 +111,7 @@ export async function fetchPublicEngagement(chapterIds) {
   );
 }
 
+/** @param {string} chapterId */
 export async function fetchChapterEngagement(chapterId) {
   if (!chapterId) return emptyChapterStats();
   const [{ data, error }, cloudflareViews] = await Promise.all([
@@ -116,7 +122,7 @@ export async function fetchChapterEngagement(chapterId) {
       )
       .eq("chapter_id", chapterId)
       .maybeSingle(),
-    fetchCloudflareViews([chapterId]).catch(() => ({})),
+    fetchCloudflareViews([chapterId]).catch(() => (/** @type {Record<string, number>} */ ({})),
   ]);
   if (error) throw error;
   const count = Number(data?.ratings_count) || 0;
@@ -130,6 +136,7 @@ export async function fetchChapterEngagement(chapterId) {
   };
 }
 
+/** @param {string} chapterId */
 export async function fetchChapterComments(chapterId) {
   const { data, error } = await supabase
     .from("comments")
@@ -143,6 +150,7 @@ export async function fetchChapterComments(chapterId) {
   return data || [];
 }
 
+/** @param {string} announcementId */
 export async function fetchAnnouncementComments(announcementId) {
   const { data, error } = await supabase
     .from("comments")
@@ -170,6 +178,7 @@ function getLikedCommentIds() {
   }
 }
 
+/** @param {Set<string>} ids */
 function saveLikedCommentIds(ids) {
   if (typeof window === "undefined") return;
   try {
@@ -180,6 +189,7 @@ function saveLikedCommentIds(ids) {
   } catch (_) {}
 }
 
+/** @param {string[]} commentIds */
 export async function fetchCommentLikes(commentIds) {
   const ids = [...new Set((commentIds || []).filter(Boolean))].slice(0, 150);
   if (!ids.length) return { counts: {}, liked: {} };
@@ -190,6 +200,7 @@ export async function fetchCommentLikes(commentIds) {
     .in("comment_id", ids);
   if (countsError) throw countsError;
 
+  /** @type {{comment_id: string}[]} */
   let ownData = [];
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -228,7 +239,9 @@ async function requireUser() {
     user = userResult.data?.user || null;
   }
   if (!user) {
-    const err = new Error("Please sign in to continue.");
+    const err = /** @type {Error & {code: string}} */ (
+      new Error("Please sign in to continue.")
+    );
     err.code = "AUTH_REQUIRED";
     throw err;
   }
@@ -237,6 +250,7 @@ async function requireUser() {
 
 export { requireUser };
 
+/** @param {{id: string}} user */
 async function getAccountUsername(user) {
   const { data, error } = await supabase
     .from("profiles")
@@ -251,6 +265,7 @@ async function getAccountUsername(user) {
   return username || "reader";
 }
 
+/** @param {{chapterId?: string | null, announcementId?: string | null, content: string, parentCommentId?: string | null}} input */
 export async function addComment({
   chapterId = null,
   announcementId = null,
@@ -288,6 +303,7 @@ export async function addComment({
   return data;
 }
 
+/** @param {string} commentId @param {string} content */
 export async function updateComment(commentId, content) {
   const user = await requireUser();
   const clean = normalizePlainText(content, {
@@ -310,6 +326,7 @@ export async function updateComment(commentId, content) {
   return data;
 }
 
+/** @param {string} commentId */
 export async function deleteComment(commentId) {
   const user = await requireUser();
   const { error } = await supabase
@@ -320,6 +337,7 @@ export async function deleteComment(commentId) {
   if (error) throw error;
 }
 
+/** @param {string} chapterId */
 export async function recordChapterShare(chapterId) {
   if (!chapterId) throw new Error("Chapter ID is required.");
   const { error } = await supabase.from("chapter_shares").insert({
@@ -330,6 +348,7 @@ export async function recordChapterShare(chapterId) {
   return { recorded: true };
 }
 
+/** @param {string} chapterId */
 export async function recordChapterView(chapterId) {
   if (!chapterId) throw new Error("Chapter ID is required.");
   if (wasViewRecorded(chapterId)) return { recorded: false, duplicate: true };
@@ -355,6 +374,7 @@ export async function recordChapterView(chapterId) {
   }
 }
 
+/** @param {string} chapterId */
 export async function likeChapter(chapterId) {
   const { error } = await supabase
     .from("chapter_likes")
@@ -365,6 +385,7 @@ export async function likeChapter(chapterId) {
   if (error) throw error;
 }
 
+/** @param {string} commentId */
 export async function likeComment(commentId) {
   const user = await requireUser();
   const { error } = await supabase.from("comment_likes").insert({
@@ -378,6 +399,7 @@ export async function likeComment(commentId) {
   saveLikedCommentIds(likedIds);
 }
 
+/** @param {string} commentId */
 export async function unlikeComment(commentId) {
   const user = await requireUser();
   const { error: ownError } = await supabase
@@ -398,6 +420,7 @@ export async function unlikeComment(commentId) {
   saveLikedCommentIds(likedIds);
 }
 
+/** @param {string} commentId @param {string} [reason] */
 export async function reportComment(commentId, reason = "Reported by reader") {
   const { error } = await supabase.from("comment_reports").upsert(
     {
@@ -410,6 +433,7 @@ export async function reportComment(commentId, reason = "Reported by reader") {
   if (error) throw error;
 }
 
+/** @param {string} chapterId */
 export async function getMyRating(chapterId) {
   const user = await requireUser();
   const { data, error } = await supabase
@@ -422,6 +446,7 @@ export async function getMyRating(chapterId) {
   return data || null;
 }
 
+/** @param {string} chapterId @param {number | string} rating */
 export async function submitRating(chapterId, rating) {
   const user = await requireUser();
   const value = Number(rating);

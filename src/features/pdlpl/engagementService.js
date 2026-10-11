@@ -9,6 +9,7 @@ const COMMENTS = "pdlpl_comments";
 const COMMENT_LIKES = "pdlpl_comment_likes";
 const COMMENT_LIKE_COUNTS = "pdlpl_comment_like_counts";
 
+/** @param {string[]} [chapterIds] */
 export async function fetchPdlplPublicEngagement(chapterIds = []) {
   const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
   if (!ids.length) return {};
@@ -40,6 +41,7 @@ export async function fetchPdlplPublicEngagement(chapterIds = []) {
   );
 }
 
+/** @param {string} chapterId */
 export async function fetchPdlplChapterEngagement(chapterId) {
   const [result] = Object.values(await fetchPdlplPublicEngagement([chapterId]));
   return (
@@ -54,6 +56,7 @@ export async function fetchPdlplChapterEngagement(chapterId) {
   );
 }
 
+/** @param {string} chapterId */
 export async function recordPdlplChapterView(chapterId) {
   if (!chapterId) throw new Error("Chapter ID is required.");
   const { error } = await supabase.from("pdlpl_chapter_views").insert({
@@ -64,6 +67,7 @@ export async function recordPdlplChapterView(chapterId) {
   return { recorded: !error };
 }
 
+/** @param {string} chapterId */
 export async function likePdlplChapter(chapterId) {
   const { error } = await supabase.from("pdlpl_chapter_likes").insert({
     chapter_id: chapterId,
@@ -72,6 +76,7 @@ export async function likePdlplChapter(chapterId) {
   if (error && error.code !== "23505") throw error;
 }
 
+/** @param {string} chapterId */
 export async function unlikePdlplChapter(chapterId) {
   const { error } = await supabase
     .from("pdlpl_chapter_likes")
@@ -81,6 +86,7 @@ export async function unlikePdlplChapter(chapterId) {
   if (error) throw error;
 }
 
+/** @param {string} chapterId */
 export async function recordPdlplChapterShare(chapterId) {
   if (!chapterId) throw new Error("Chapter ID is required.");
   const { error } = await supabase.from("pdlpl_chapter_shares").insert({
@@ -90,6 +96,7 @@ export async function recordPdlplChapterShare(chapterId) {
   if (error && error.code !== "23505") throw error;
 }
 
+/** @param {string[]} [commentIds] */
 export async function fetchPdlplCommentLikes(commentIds = []) {
   const ids = [...new Set((commentIds || []).filter(Boolean))].slice(0, 150);
   if (!ids.length) return { counts: {}, liked: {} };
@@ -121,6 +128,7 @@ export async function fetchPdlplCommentLikes(commentIds = []) {
   };
 }
 
+/** @param {string} commentId */
 export async function likePdlplComment(commentId) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -136,6 +144,7 @@ export async function likePdlplComment(commentId) {
   if (error && error.code !== "23505") throw error;
 }
 
+/** @param {string} commentId */
 export async function unlikePdlplComment(commentId) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -151,6 +160,7 @@ export async function unlikePdlplComment(commentId) {
   if (error) throw error;
 }
 
+/** @param {string} commentId @param {string} [reason] */
 export async function reportPdlplComment(commentId, reason = "Reported by reader") {
   const { error } = await supabase.from("pdlpl_comment_reports").insert({
     comment_id: commentId,
@@ -160,6 +170,7 @@ export async function reportPdlplComment(commentId, reason = "Reported by reader
   if (error && error.code !== "23505") throw error;
 }
 
+/** @param {string} chapterId */
 export async function fetchPdlplChapterComments(chapterId) {
   const { data, error } = await supabase
     .from(COMMENTS)
@@ -173,6 +184,7 @@ export async function fetchPdlplChapterComments(chapterId) {
   return data || [];
 }
 
+/** @param {{chapterId: string, content: string, parentCommentId?: string | null}} input */
 export async function addPdlplComment({ chapterId, content, parentCommentId = null }) {
   const { data: sessionData } = await supabase.auth.getSession();
   const user = sessionData?.session?.user;
@@ -210,6 +222,7 @@ export async function addPdlplComment({ chapterId, content, parentCommentId = nu
   return data;
 }
 
+/** @param {string} chapterId */
 export async function getPdlplRating(chapterId) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -224,6 +237,7 @@ export async function getPdlplRating(chapterId) {
   return data || null;
 }
 
+/** @param {string} chapterId @param {number | string} rating */
 export async function submitPdlplRating(chapterId, rating) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -257,6 +271,7 @@ export async function submitPdlplRating(chapterId, rating) {
   };
 }
 
+/** @param {string} chapterId */
 export async function getPdlplBookmark(chapterId) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -271,6 +286,7 @@ export async function getPdlplBookmark(chapterId) {
   return Boolean(data);
 }
 
+/** @param {string} chapterId @param {boolean} saved */
 export async function togglePdlplBookmark(chapterId, saved) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -293,6 +309,7 @@ export async function togglePdlplBookmark(chapterId, saved) {
   }
 }
 
+/** @param {string} chapterId */
 export async function getPdlplReadingProgress(chapterId) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;
@@ -307,6 +324,7 @@ export async function getPdlplReadingProgress(chapterId) {
   return Number(data?.page_number) || null;
 }
 
+/** @param {string} chapterId @param {number | string} pageNumber */
 export async function savePdlplReadingProgress(chapterId, pageNumber) {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData?.session?.user?.id;

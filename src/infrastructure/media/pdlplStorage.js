@@ -5,6 +5,7 @@ export { PDLPL_MEDIA_WORKER_URL, getPdlplMediaUrl } from "./pdlplMediaDomain.js"
 
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
 const PDLPL_REQUEST_TIMEOUT_MS = 15000;
+/** @type {Record<string, string>} */
 const IMAGE_MIME_BY_EXT = {
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -15,6 +16,7 @@ const IMAGE_MIME_BY_EXT = {
   avif: "image/avif",
 };
 
+/** @param {File} file */
 function getImageMime(file) {
   const declared = String(file?.type || "").toLowerCase();
   if (declared.startsWith("image/")) return declared;
@@ -26,12 +28,14 @@ function getImageMime(file) {
   return IMAGE_MIME_BY_EXT[ext] || "";
 }
 
+/** @param {string} path */
 const encodePath = (path) =>
   String(path || "")
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");
 
+/** @param {{refresh?: boolean}} [options] */
 async function getAccessToken({ refresh = false } = {}) {
   const { data, error } = refresh
     ? await supabase.auth.refreshSession()
@@ -45,6 +49,7 @@ async function getAccessToken({ refresh = false } = {}) {
   return token;
 }
 
+/** @param {{refresh?: boolean}} [options] */
 async function authHeaders(options = {}) {
   return {
     Authorization: `Bearer ${await getAccessToken(options)}`,
@@ -52,6 +57,7 @@ async function authHeaders(options = {}) {
   };
 }
 
+/** @param {string} body @param {number} status */
 function parseError(body, status) {
   const fallback = `PDPL media request failed (${status}).`;
   if (!body) return { message: fallback, payload: null };
@@ -67,6 +73,12 @@ function parseError(body, status) {
   }
 }
 
+/**
+ * @typedef {Omit<RequestInit, 'headers'> & {headers?: Record<string, string>, body?: BodyInit | null}} PdlplRequestOptions
+ * @param {string} path
+ * @param {PdlplRequestOptions} [options]
+ * @param {boolean} [retried]
+ */
 async function request(path, options = {}, retried = false) {
   const method = String(options.method || "GET").toUpperCase();
   const url = `${PDLPL_MEDIA_WORKER_URL}/media/${encodePath(path)}`;
@@ -94,6 +106,7 @@ async function request(path, options = {}, retried = false) {
   try {
     response = await fetch(url, { ...options, signal: controller.signal, headers });
   } catch (error) {
+    /** @type {Error & {path?: string, url?: string, origin?: string, hint?: string}} */
     const networkError = new Error(
       `Cloudflare R2 ${method} request failed: ${error?.message || error}. ` +
         `This is usually a browser-to-Worker CORS/network failure; verify the deployed Worker allows origin "${window.location.origin}".`,
@@ -122,6 +135,7 @@ async function request(path, options = {}, retried = false) {
 
   const body = await response.text().catch(() => "");
   const parsed = parseError(body, response.status);
+  /** @type {Error & {status?: number, statusText?: string, path?: string, url?: string, responseBody?: string, payload?: unknown}} */
   const failure = new Error(
     `Cloudflare R2 ${method} request failed (HTTP ${response.status}) for "${path}": ${parsed.message}`,
   );
@@ -135,12 +149,14 @@ async function request(path, options = {}, retried = false) {
   throw failure;
 }
 
+/** @param {string} path @param {{signal?: AbortSignal}} [options] */
 export async function fetchPdlplMedia(path, { signal } = {}) {
   const response = await request(path, { method: "GET", signal });
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 }
 
+/** @param {File} file @param {string} path */
 export async function uploadPdlplFile(file, path) {
   if (!(file instanceof File)) {
     throw new Error("Please select an image file.");
@@ -168,6 +184,7 @@ export async function uploadPdlplFile(file, path) {
   return path;
 }
 
+/** @param {string[]} [paths] */
 export async function removePdlplFiles(paths = []) {
   for (const path of paths.filter(Boolean)) {
     await request(path, { method: "DELETE" });

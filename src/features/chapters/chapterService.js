@@ -17,6 +17,7 @@ const PAGES_TABLE = "chapter_pages";
 const PAGE_FETCH_ATTEMPTS = 2;
 const PAGE_FETCH_DELAY_MS = 150;
 
+/** @param {number} milliseconds */
 const sleep = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -24,6 +25,9 @@ const sleep = (milliseconds) =>
  * Kept here for compatibility because chapter cards currently receive their
  * cover image through this stylesheet hook. Extract it into the UI layer only
  * after every chapter-list entry point uses the same presentation component.
+ */
+/**
+ * @param {Array<{id?: string, mangaId?: string | null, chapterNumber?: unknown, cover?: string | null, title?: string}>} chapters
  */
 function installChapterCoverStyles(chapters) {
   if (typeof document === "undefined") return;
@@ -86,6 +90,7 @@ export async function buildChapters() {
   return sortChapters(chapters);
 }
 
+/** @param {string | null | undefined} url */
 function normalizeReaderPageUrl(url) {
   const value = String(url || "").trim();
   if (!value) return "";
@@ -155,6 +160,7 @@ function normalizeReaderPageUrl(url) {
   return value;
 }
 
+/** @param {string | null | undefined} chapterId */
 export async function buildChapterPages(chapterId) {
   if (!chapterId) return [];
 
@@ -168,7 +174,9 @@ export async function buildChapterPages(chapterId) {
       .order("page_number", { ascending: true });
 
     if (!error) {
-      const rows = Array.isArray(data) ? [...data] : [];
+      const rows = /** @type {{page_number?: number | string | null, image_url?: string | null}[]} */ (
+        Array.isArray(data) ? [...data] : []
+      );
       rows.sort(
         (left, right) => Number(left?.page_number) - Number(right?.page_number),
       );
@@ -193,8 +201,11 @@ export async function buildChapterPages(chapterId) {
 
           if (response.ok) {
             const payload = await response.json();
-            pages = (Array.isArray(payload?.keys) ? payload.keys : [])
-              .sort((left, right) =>
+            const rawKeys = /** @type {unknown[]} */ (
+              Array.isArray(payload?.keys) ? payload.keys : []
+            );
+            const keys = rawKeys.filter((key) => typeof key === "string");
+            pages = keys.sort((left, right) =>
                 String(left).localeCompare(String(right), undefined, {
                   numeric: true,
                 }),

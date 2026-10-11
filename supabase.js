@@ -9,20 +9,21 @@ const CHAPTER_PAGES_TABLE = "chapter_pages";
  * route the actual replacement through the database transaction function.
  * This prevents a failed insert from ever leaving a published chapter empty.
  */
+/** Legacy query compatibility shim; keep its untyped Proxy at the edge. */
 function chapterPagesTable() {
-  const table = client.from(CHAPTER_PAGES_TABLE);
+  const table = /** @type {any} */ (client.from(CHAPTER_PAGES_TABLE));
   return new Proxy(table, {
     get(target, property, receiver) {
       if (property === 'delete') {
         return () => ({
-          eq: async (column, value) => {
+          eq: async (/** @type {string} */ column, /** @type {unknown} */ value) => {
             if (column === 'chapter_id') return { data: null, error: null };
             return target.delete().eq(column, value);
           },
         });
       }
       if (property === 'insert') {
-        return rows => {
+        return (/** @type {Array<{chapter_id?: string, page_number?: number | null, image_url?: string}>} */ rows) => {
           const list = Array.isArray(rows) ? rows : [];
           if (list.length && list.every(row => row?.chapter_id && row?.page_number != null && typeof row?.image_url === 'string')) {
             const chapterId = list[0].chapter_id;
@@ -42,15 +43,16 @@ function chapterPagesTable() {
   });
 }
 
+/** @param {any} builder */
 function promiseCompatibleRpc(builder) {
   if (!builder || typeof builder !== 'object') return builder;
   return new Proxy(builder, {
     get(target, property) {
       if (property === 'catch') {
-        return onRejected => Promise.resolve(target).catch(onRejected);
+        return (/** @type {(reason: unknown) => unknown} */ onRejected) => Promise.resolve(target).catch(onRejected);
       }
       if (property === 'finally') {
-        return onFinally => Promise.resolve(target).finally(onFinally);
+        return (/** @type {() => unknown} */ onFinally) => Promise.resolve(target).finally(onFinally);
       }
       const value = Reflect.get(target, property, target);
       return typeof value === 'function' ? value.bind(target) : value;
@@ -58,11 +60,11 @@ function promiseCompatibleRpc(builder) {
   });
 }
 
-export const supabase = new Proxy(client, {
+export const supabase = new Proxy(/** @type {any} */ (client), {
   get(target, property) {
     if (property === 'storage') return cloudflareR2;
-    if (property === 'from') return table => table === CHAPTER_PAGES_TABLE ? chapterPagesTable() : client.from(table);
-    if (property === 'rpc') return (...args) => promiseCompatibleRpc(client.rpc(...args));
+    if (property === 'from') return (/** @type {string} */ table) => table === CHAPTER_PAGES_TABLE ? chapterPagesTable() : client.from(table);
+    if (property === 'rpc') return /** @type {(...args: any[]) => any} */ ((...args) => promiseCompatibleRpc((/** @type {any} */ (client)).rpc(...args)));
 
     const value = Reflect.get(target, property, target);
     return typeof value === 'function' ? value.bind(target) : value;
