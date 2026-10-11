@@ -33,6 +33,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Temporary Prettier source capture for PR 58
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 58
+        run: |
+          npx --yes prettier@3.9.10 --write src/features/auth/authService.js src/features/engagement/engagementService.js src/features/membership/membershipDomain.js src/features/membership/membershipDomain.test.js src/features/membership/membershipService.js src/infrastructure/media/r2Domain.js src/infrastructure/media/r2Domain.test.js src/infrastructure/media/r2Storage.js jsconfig.json
+          for file in src/features/auth/authService.js src/features/engagement/engagementService.js src/features/membership/membershipDomain.js src/features/membership/membershipDomain.test.js src/features/membership/membershipService.js src/infrastructure/media/r2Domain.js src/infrastructure/media/r2Domain.test.js src/infrastructure/media/r2Storage.js jsconfig.json; do
+            echo "FORMAT_CAPTURE_BEGIN:$file"
+            base64 -w0 "$file"
+            echo
+            echo "FORMAT_CAPTURE_END:$file"
+          done
+
       - name: Architecture quality gate
         run: npm run quality:check
 
