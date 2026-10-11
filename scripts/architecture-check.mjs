@@ -16,6 +16,7 @@ const requiredFiles = [
   'src/infrastructure/media/pdlplMediaDomain.js',
   'src/infrastructure/media/r2Domain.js',
   'src/features/auth/authService.js',
+  'src/features/auth/adminAuthorizationService.js',
   'src/shared/errors/toUserMessage.js',
   'src/shared/validation/input.js',
   'src/app/routing/routeService.test.js',
