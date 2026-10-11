@@ -9,7 +9,7 @@ const viteEnvironment = import.meta.env || {};
 /** @param {unknown} value */
 const readPublicValue = (value) => String(value ?? "").trim();
 
-/** @type {Readonly<{ siteUrl: string, supabaseUrl: string, supabasePublishableKey: string, mediaWorkerUrl: string, analyticsWorkerUrl: string }>} */
+/** @type {Readonly<{ siteUrl: string, supabaseUrl: string, supabasePublishableKey: string, mediaWorkerUrl: string, analyticsWorkerUrl: string, pdlplMediaWorkerUrl: string }>} */
 export const publicEnv = Object.freeze({
   siteUrl: readPublicValue(viteEnvironment.VITE_SITE_URL) || "https://www.atmarekha.in",
   supabaseUrl: readPublicValue(viteEnvironment.VITE_SUPABASE_URL).replace(/\/+$/, ""),
@@ -22,6 +22,9 @@ export const publicEnv = Object.freeze({
   analyticsWorkerUrl:
     readPublicValue(viteEnvironment.VITE_ANALYTICS_WORKER_URL) ||
     "https://atma-rekha-analytics.rohitbaswaraj.workers.dev",
+  pdlplMediaWorkerUrl:
+    readPublicValue(viteEnvironment.VITE_PDLPL_MEDIA_WORKER_URL) ||
+    "https://pdlpl-media.rohitbaswaraj.workers.dev",
 });
 
 export function getMissingPublicEnvironment(config = publicEnv) {
