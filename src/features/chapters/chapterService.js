@@ -1,15 +1,14 @@
 import { supabase } from "../../../supabase";
-import { chapterPath } from "../../../routes";
-
-const CHAPTERS_TABLE = "chapters";
-const PAGES_TABLE = "chapter_pages";
-const PAGE_FETCH_ATTEMPTS = 2;
-const PAGE_FETCH_DELAY_MS = 150;
-
-const sleep = (milliseconds) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-import { normalizeChapterLanguage, sortChapters } from "./chapterDomain.js";
+import { publicEnv } from "../../config/publicEnv.js";
+import { chapterPath } from "../../app/routing/routeService.js";
+import {
+  CHAPTER_LANGUAGES,
+  chapterLanguageLabel,
+  formatChapterEyebrow,
+  formatChapterLabel,
+  normalizeChapterLanguage,
+  sortChapters,
+} from "./chapterDomain.js";
 
 export {
   CHAPTER_LANGUAGES,
@@ -19,6 +18,14 @@ export {
   normalizeChapterLanguage,
   sortChapters,
 } from "./chapterDomain.js";
+
+const CHAPTERS_TABLE = "chapters";
+const PAGES_TABLE = "chapter_pages";
+const PAGE_FETCH_ATTEMPTS = 2;
+const PAGE_FETCH_DELAY_MS = 150;
+
+const sleep = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 /**
  * Kept here for compatibility because chapter cards currently receive their
@@ -90,7 +97,7 @@ function normalizeReaderPageUrl(url) {
   const value = String(url || "").trim();
   if (!value) return "";
 
-  const workerOrigin = "https://tiny-pond-c959.rohitbaswaraj.workers.dev";
+  const workerOrigin = publicEnv.mediaWorkerUrl;
   const publicPrefix = "/storage/v1/object/public/";
   const signedPrefix = "/storage/v1/object/sign/";
   const authenticatedPrefix = "/storage/v1/object/authenticated/";
@@ -180,7 +187,7 @@ export async function buildChapterPages(chapterId) {
       // Recover page URLs from the media Worker when metadata rows are absent.
       if (!pages.length) {
         try {
-          const workerUrl = "https://tiny-pond-c959.rohitbaswaraj.workers.dev";
+          const workerUrl = publicEnv.mediaWorkerUrl;
           const response = await fetch(
             workerUrl +
               "/storage/v1/object/list/chapter-pages/" +
