@@ -1,0 +1,7 @@
+title = "Atma Rekha Gitleaks Configuration"
+
+[[allowlists]]
+description = "LocalStorage namespace used to name a browser attribution key; it is not a credential."
+paths = ['''src/features/attribution/attributionService\.js''']
+regexTarget = "line"
+regexes = ['''^const STORAGE_KEY = "atma-rekha-marketing-attribution-v1";$''']
