@@ -23,9 +23,11 @@ src/
   features/
     attribution/           Campaign tracking domain and persistence
     chapters/              Chapter domain rules and retrieval service
-    engagement/            Engagement domain rules and API service
+    engagement/            Atma Rekha engagement domain rules and API service
     membership/            Membership reads and entitlement selection
+    pdlpl/                  PdPL engagement domain rules and service
   infrastructure/
+    media/                  Atma R2 and PdPL media Worker adapters and URL rules
     supabase/               Shared browser client, PKCE session and timeout adapter
   shared/
     api/                  Versioned Worker API clients and transport policies
@@ -54,10 +56,14 @@ after all callers have been migrated and verified.
 - **Shared validation** normalizes bounded text before writes. It is not a
   substitute for validation inside Supabase policies, Edge Functions, or Workers.
 - **Infrastructure adapters** remain at the edge: `src/infrastructure/supabase/client.js`
-  configures the shared Supabase client and timeout behavior. The root
-  `supabase.js` retains the storage compatibility adapter and re-exports the
-  legacy API surface while callers migrate. Environment values come from
-  `src/config/publicEnv.js`.
+  configures the shared Supabase client and timeout behavior. Media upload,
+  download, deletion, URL encoding, and legacy object-key normalization live
+  under `src/infrastructure/media/`; the root `pdlplR2.js` and the existing
+  storage facade keep legacy imports stable while callers migrate. Environment
+  values come from `src/config/publicEnv.js`.
+- **PdPL engagement** maps persisted rows into stable UI summaries in
+  `src/features/pdlpl/`; it does not own rendering or change the existing
+  database schema.
 - **Versioned API clients** own Worker URLs, timeouts, headers, bounded query
   parameters, and response parsing. Analytics paths are restricted to the
   existing `/v1/*` contract; do not relocate or rename deployed Worker routes
@@ -117,10 +123,12 @@ quality gate. The CI workflow also runs the quality gate on pull requests.
 
 ## Remaining migration work
 
-This first refactor establishes safe boundaries and examples rather than
-claiming every legacy file is already clean. Continue by moving admin,
-membership, community, and engagement logic feature by feature; extract
-components from large screens only where it reduces coupling; add integration
-tests around subscription authorization and media uploads; and gradually expand
-strict type checking to the legacy app. Do not delete old modules or change
-database/API contracts as part of a folder-only move.
+This is an incremental migration, not a claim that every legacy file is
+already clean. The first feature services, Atma/PdPL media adapters, and PdPL
+engagement rules are now isolated and covered by targeted unit tests. Remaining
+work includes moving admin/community logic and the remaining legacy engagement
+callers feature by feature; extracting UI from large screens only where it
+reduces coupling; adding integration tests against real RLS, subscription,
+Razorpay webhook, and media Worker authorization behavior; and expanding strict
+type checking beyond the current migration boundary. Do not delete compatibility
+facades or change deployed database/API contracts as part of folder-only moves.
