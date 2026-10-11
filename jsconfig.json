@@ -25,7 +25,8 @@
     "src/features/attribution/attributionDomain.js",
     "src/features/membership/membershipDomain.js",
     "src/infrastructure/supabase/client.js",
-    "src/features/membership/membershipService.js"
+    "src/features/membership/membershipService.js",
+    "src/infrastructure/media/r2Storage.js"
   ],
   "exclude": [
     "node_modules",
