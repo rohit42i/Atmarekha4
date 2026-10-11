@@ -5,6 +5,8 @@ const requiredFiles = [
   'src/app/routing/routeService.js',
   'src/shared/api/analyticsClient.js',
   'src/features/chapters/chapterService.js',
+  'src/features/chapters/components/ChapterDiscovery.jsx',
+  'src/features/chapters/components/ChapterAccessGuard.jsx',
   'src/features/engagement/engagementService.js',
   'src/features/membership/membershipService.js',
   'src/features/attribution/attributionService.js',
