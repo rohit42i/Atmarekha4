@@ -15,13 +15,12 @@
   },
   "include": [
     "src/**/*.js",
-    "src/**/*.jsx",
-    "src/**/*.d.ts",
-    "ErrorBoundary.jsx"
+    "src/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "src/**/*.test.js"
+    "src/**/*.test.js",
+    "src/**/*.jsx"
   ]
 }

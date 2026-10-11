@@ -111,9 +111,10 @@ RLS review and rollback planning.
   client failure modes.
 - `npm run lint`: ESLint checks migrated `src/` modules, the root error boundary,
   and all root-level React JSX components.
-- `npm run typecheck`: strict TypeScript checks every migrated JavaScript and JSX
-  module under `src/`, plus the root error boundary. Legacy root-level JavaScript
-  and JSX is linted but remains outside the strict type-check migration boundary.
+- `npm run typecheck`: strict TypeScript checks migrated JavaScript service/domain
+  modules and declarations under `src/` (excluding JSX and test files). JSX and
+  legacy root components are covered by ESLint; React component prop types remain
+  a separate migration item.
 - `npm run format:check`: Prettier verifies the migrated/shared modules and
   architecture configuration files.
 - `npm run check`: existing production regression checks.
