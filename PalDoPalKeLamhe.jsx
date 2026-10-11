@@ -85,7 +85,7 @@ function isPdlplChapterLocked(chapter, member, admin) {
   return Number.isFinite(number) && number > PDPKL_FREE_CHAPTER_LIMIT;
 }
 
-function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
+function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
   const locked = isPdlplChapterLocked(chapter, member, admin);
 
