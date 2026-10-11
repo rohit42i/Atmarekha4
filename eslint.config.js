@@ -50,6 +50,7 @@ export default [
       "main.jsx",
       "PalDoPalKeLamhe.jsx",
       "UserAuth.jsx",
+      "*.jsx",
     ],
     languageOptions: {
       ecmaVersion: "latest",
