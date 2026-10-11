@@ -3,7 +3,6 @@ import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 
 const LIMIT = 250;
-const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_chat_reads'];
 
 async function verifyAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -14,13 +13,13 @@ async function verifyAdmin() {
 }
 
 export default function AdminGroupChatTools() {
-  const [user, setUser] = useState(null), [isAdmin, setIsAdmin] = useState(false), [open, setOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false), [open, setOpen] = useState(false);
   const [tab, setTab] = useState('messages'), [messages, setMessages] = useState([]), [profiles, setProfiles] = useState({});
   const [search, setSearch] = useState(''), [authorFilter, setAuthorFilter] = useState('all'), [sort, setSort] = useState('newest');
   const [selected, setSelected] = useState(new Set()), [loading, setLoading] = useState(false), [deleting, setDeleting] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
 
-  const checkAdmin = async () => { try { const current = await verifyAdmin(); setUser(current); setIsAdmin(true); } catch (_) { setUser(null); setIsAdmin(false); } };
+  const checkAdmin = async () => { try { await verifyAdmin(); setIsAdmin(true); } catch (_) { setIsAdmin(false); } };
   useEffect(() => { checkAdmin(); const { data: listener } = supabase.auth.onAuthStateChange(() => checkAdmin()); return () => listener?.subscription?.unsubscribe(); }, []);
 
   useEffect(() => { const handler = () => { setOpen(true); }; window.addEventListener('atma-admin-open-group-chat', handler); return () => window.removeEventListener('atma-admin-open-group-chat', handler); }, [isAdmin]);
