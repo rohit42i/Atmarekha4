@@ -88,7 +88,7 @@ export async function fetchPublicEngagement(chapterIds) {
         "chapter_id,views_count,likes_count,ratings_count,ratings_sum,comments_count,pages_count",
       )
       .in("chapter_id", ids),
-    fetchCloudflareViews(ids).catch(() => (/** @type {Record<string, number>} */ ({})),
+    fetchCloudflareViews(ids).catch(() => /** @type {Record<string, number>} */ ({})),
   ]);
   if (error) throw error;
   const rows = data || [];
@@ -122,7 +122,7 @@ export async function fetchChapterEngagement(chapterId) {
       )
       .eq("chapter_id", chapterId)
       .maybeSingle(),
-    fetchCloudflareViews([chapterId]).catch(() => (/** @type {Record<string, number>} */ ({})),
+    fetchCloudflareViews([chapterId]).catch(() => /** @type {Record<string, number>} */ ({})),
   ]);
   if (error) throw error;
   const count = Number(data?.ratings_count) || 0;
