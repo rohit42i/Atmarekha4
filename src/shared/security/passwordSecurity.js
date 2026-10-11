@@ -43,9 +43,10 @@ export function findPasswordBreachCount(responseBody, suffix) {
 
 /**
  * @param {unknown} password
+ * @param {{ timeoutMs?: number }} [options]
  * @returns {Promise<{ compromised: false }>}
  */
-export async function validateNewPassword(password) {
+export async function validateNewPassword(password, { timeoutMs = PASSWORD_CHECK_TIMEOUT_MS } = {}) {
   if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
     throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
   }
@@ -60,37 +61,32 @@ export async function validateNewPassword(password) {
   const prefix = hash.slice(0, 5);
   const suffix = hash.slice(5);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), PASSWORD_CHECK_TIMEOUT_MS);
+  const safeTimeout =
+    Number.isFinite(timeoutMs) && timeoutMs > 0
+      ? timeoutMs
+      : PASSWORD_CHECK_TIMEOUT_MS;
+  const timer = setTimeout(() => controller.abort(), safeTimeout);
 
-  let response;
+  let body;
   try {
-    response = await fetch(`${HIBP_RANGE_URL}${prefix}`, {
+    const response = await fetch(`${HIBP_RANGE_URL}${prefix}`, {
       method: "GET",
       cache: "no-store",
       referrerPolicy: "no-referrer",
       signal: controller.signal,
     });
+    if (!response.ok) {
+      throw new Error("Password range request failed.");
+    }
+    // Keep the timeout active until the response body is consumed, not merely
+    // until response headers arrive. A stalled body must fail closed as well.
+    body = await response.text();
   } catch {
     throw new Error(
       "We could not complete the password security check. Please try again.",
     );
   } finally {
     clearTimeout(timer);
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      "We could not complete the password security check. Please try again.",
-    );
-  }
-
-  let body;
-  try {
-    body = await response.text();
-  } catch {
-    throw new Error(
-      "We could not complete the password security check. Please try again.",
-    );
   }
 
   if (findPasswordBreachCount(body, suffix) > 0) {
