@@ -10,11 +10,6 @@ const IMAGE_MIN_SIZE = 2 * 1024 * 1024;
 const IMAGE_MAX_SIZE = 4 * 1024 * 1024;
 const IMAGE_MAX_EDGE = 3200;
 
-/**
- * @param {string} url
- * @param {RequestInit} [options]
- * @param {boolean} [retried]
- */
 async function authHeaders() {
   const { data, error } = await client.auth.getSession();
   if (error) throw error;
@@ -30,7 +25,7 @@ export async function fetchAuthenticatedMedia(url, options = {}, retried = false
   const controller = new AbortController();
   const parentSignal = options.signal;
   let timedOut = false;
-  const forwardAbort = () => controller.abort(parentSignal.reason);
+  const forwardAbort = () => controller.abort(parentSignal?.reason);
   if (parentSignal) {
     if (parentSignal.aborted) controller.abort(parentSignal.reason);
     else parentSignal.addEventListener('abort', forwardAbort, { once: true });
@@ -43,13 +38,18 @@ export async function fetchAuthenticatedMedia(url, options = {}, retried = false
       headers: { ...(options.headers || {}), ...(await authHeaders()) },
     });
   } catch (error) {
-    const failure = new Error(
-      `Authenticated media request failed: ${error?.message || error}. Check the media Worker CORS/network configuration.`,
+    const requestError = error instanceof Error ? error : new Error(String(error));
+    const failure = /** @type {Error & { url?: string }} */ (
+      new Error(
+        `Authenticated media request failed: ${requestError.message}. Check the media Worker CORS/network configuration.`,
+      )
     );
-    failure.name = timedOut ? 'TimeoutError' : (error?.name || 'NetworkError');
-    if (timedOut) failure.message = 'Authenticated media request timed out. Please try again.';
+    failure.name = timedOut ? "TimeoutError" : requestError.name || "NetworkError";
+    if (timedOut) {
+      failure.message = "Authenticated media request timed out. Please try again.";
+    }
     failure.url = url;
-    failure.cause = error;
+    failure.cause = requestError;
     throw failure;
   } finally {
     clearTimeout(timer);
@@ -126,7 +126,7 @@ async function compressImage(file) {
       if (best) return new File([best], file.name.replace(/\.(png|jpe?g|gif|bmp|avif)$/i, '.webp'), { type: outputType, lastModified: file.lastModified });
       scale *= 0.86;
     }
-  } finally { image.close?.(); }
+  } finally { closeDecodedImage(image); }
   throw new Error(`${file.name} could not be compressed below 4 MB while preserving acceptable quality.`);
 }
 
