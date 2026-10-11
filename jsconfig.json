@@ -21,7 +21,8 @@
     "src/types/vite-env.d.ts",
     "src/features/engagement/engagementDomain.js",
     "src/app/routing/routeService.js",
-    "src/shared/api/analyticsClient.js"
+    "src/shared/api/analyticsClient.js",
+    "src/features/attribution/attributionDomain.js"
   ],
   "exclude": [
     "node_modules",
