@@ -14,21 +14,26 @@ const chapters = [
   { id: "chapter-two-hi", chapterNumber: 2, language: "hi", title: "Dhoop" },
   { id: "chapter-two-en", chapterNumber: 2, language: "en", title: "Sunlight" },
   { id: "12345678-special", chapterNumber: null, language: "hi", title: "First Dream" },
-  { id: "abcdef12-special-en", chapterNumber: null, language: "en", title: "First Dream" },
+  {
+    id: "abcdef12-special-en",
+    chapterNumber: null,
+    language: "en",
+    title: "First Dream",
+  },
 ];
 
 test("builds stable language-aware chapter URLs", () => {
   assert.equal(chapterPath(chapters[0]), "/chapter/2");
   assert.equal(chapterPath(chapters[1]), "/chapter/2?lang=en");
-  assert.equal(
-    chapterPath(chapters[2]),
-    "/chapter/special/first-dream-12345678",
-  );
+  assert.equal(chapterPath(chapters[2]), "/chapter/special/first-dream-12345678");
 });
 
 test("returns a chapters fallback for invalid chapter objects", () => {
   assert.equal(chapterPath(null), "/chapters");
-  assert.equal(chapterPath({ id: "x", chapterNumber: "not-a-number" }), "/chapter/special/special-x");
+  assert.equal(
+    chapterPath({ id: "x", chapterNumber: "not-a-number" }),
+    "/chapter/special/special-x",
+  );
 });
 
 test("recognizes only supported chapter route patterns", () => {
@@ -40,8 +45,14 @@ test("recognizes only supported chapter route patterns", () => {
 });
 
 test("resolves numbered chapter by requested language then Hindi fallback", () => {
-  assert.equal(findChapterForPath("/chapter/2?lang=en", chapters)?.id, "chapter-two-en");
-  assert.equal(findChapterForPath("/chapter/2?lang=unknown", chapters)?.id, "chapter-two-hi");
+  assert.equal(
+    findChapterForPath("/chapter/2?lang=en", chapters)?.id,
+    "chapter-two-en",
+  );
+  assert.equal(
+    findChapterForPath("/chapter/2?lang=unknown", chapters)?.id,
+    "chapter-two-hi",
+  );
   assert.equal(findChapterForPath("/chapter/4", chapters), null);
 });
 

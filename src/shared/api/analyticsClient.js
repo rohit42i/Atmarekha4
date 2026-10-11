@@ -82,16 +82,16 @@ export async function requestAnalytics(path, options = {}) {
  * @returns {Promise<Record<string, number>>}
  */
 export async function fetchAnalyticsViews(chapterIds = []) {
-  const ids = [...new Set((Array.isArray(chapterIds) ? chapterIds : []).filter(Boolean))]
+  const ids = [
+    ...new Set((Array.isArray(chapterIds) ? chapterIds : []).filter(Boolean)),
+  ]
     .map(String)
     .filter((id) => id.length <= 128)
     .slice(0, 100);
 
   if (!ids.length) return {};
 
-  return requestAnalytics(
-    "/v1/views?chapterIds=" + encodeURIComponent(ids.join(",")),
-  );
+  return requestAnalytics("/v1/views?chapterIds=" + encodeURIComponent(ids.join(",")));
 }
 
 /**

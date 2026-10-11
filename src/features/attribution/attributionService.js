@@ -1,17 +1,12 @@
 const STORAGE_KEY = "atma-rekha-marketing-attribution-v1";
-import {
-  extractUtmParameters,
-  mergeAttribution,
-} from "./attributionDomain.js";
+import { extractUtmParameters, mergeAttribution } from "./attributionDomain.js";
 
 function readStored() {
   if (typeof window === "undefined") return null;
 
   try {
     const value = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null");
-    return value && typeof value === "object" && !Array.isArray(value)
-      ? value
-      : null;
+    return value && typeof value === "object" && !Array.isArray(value) ? value : null;
   } catch {
     return null;
   }

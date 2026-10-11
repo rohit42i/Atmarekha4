@@ -15,7 +15,9 @@ export function extractUtmParameters(searchParams) {
   return Object.fromEntries(
     UTM_KEYS.map((key) => [
       key,
-      String(searchParams.get(key) || "").trim().slice(0, 200),
+      String(searchParams.get(key) || "")
+        .trim()
+        .slice(0, 200),
     ]).filter(([, value]) => value),
   );
 }
