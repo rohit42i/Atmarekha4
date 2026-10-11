@@ -11,10 +11,14 @@ export const PDLPL_MEDIA_WORKER_URL = publicEnv.pdlplMediaWorkerUrl;
  * @param {string} [workerUrl]
  */
 export function getPdlplMediaUrl(path, workerUrl = PDLPL_MEDIA_WORKER_URL) {
-  const clean = String(path ?? "").trim().replace(/^\/+/, "");
+  const clean = String(path ?? "")
+    .trim()
+    .replace(/^\/+/, "");
   if (!clean) return "";
 
-  const base = String(workerUrl ?? "").trim().replace(/\/+$/, "");
+  const base = String(workerUrl ?? "")
+    .trim()
+    .replace(/\/+$/, "");
   if (!base) throw new Error("PdPL media Worker URL is not configured.");
 
   const encoded = clean

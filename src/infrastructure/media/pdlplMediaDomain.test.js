@@ -1,15 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  PDLPL_MEDIA_WORKER_URL,
-  getPdlplMediaUrl,
-} from "./pdlplMediaDomain.js";
+import { PDLPL_MEDIA_WORKER_URL, getPdlplMediaUrl } from "./pdlplMediaDomain.js";
 
 test("uses the dedicated configured Worker URL", () => {
-  assert.equal(
-    PDLPL_MEDIA_WORKER_URL,
-    "https://pdlpl-media.rohitbaswaraj.workers.dev",
-  );
+  assert.equal(PDLPL_MEDIA_WORKER_URL, "https://pdlpl-media.rohitbaswaraj.workers.dev");
 });
 
 test("returns empty for missing paths", () => {
