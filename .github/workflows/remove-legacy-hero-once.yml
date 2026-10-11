@@ -1,0 +1,38 @@
+name: One-time legacy hero cleanup
+
+on:
+  push:
+    branches:
+      - refactor/production-architecture
+
+permissions:
+  contents: write
+
+jobs:
+  remove-unused-hero:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Remove unused hero module and dependency
+        run: |
+          npm uninstall axios
+          sed -i "/^import axios from 'axios';$/d" App.jsx
+          rm HeroSection.jsx
+          rm .github/workflows/remove-legacy-hero-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.jsx package.json package-lock.json HeroSection.jsx .github/workflows/remove-legacy-hero-once.yml
+          git commit -m "refactor: remove unused legacy hero and Axios dependency"
+          git push origin HEAD
