@@ -7,7 +7,7 @@ import {
   isChapterPath,
   legacyChapterIdFromHash,
 } from "./routes";
-import { getAdminRole } from "./adminAuth";
+import { getAdminRole } from "./src/features/auth/adminAuthorizationService.js";
 import {
   hasAtmaMembershipAccess,
   requiresAtmaMembership,
