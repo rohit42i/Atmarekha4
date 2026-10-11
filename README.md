@@ -98,3 +98,16 @@ npm run build
 Run `npm run hooks:install` once in a local clone to enable the pre-commit
 quality gate. Strict type checking currently covers the newly migrated shared
 modules; expanding it across legacy root components is a separate migration step.
+## Quality checks
+
+Use Node.js 24 for local checks. Run the complete gate before opening or merging a change:
+
+```bash
+npm ci
+npm run quality:check
+npm audit --omit=dev --audit-level=high
+npm run check
+npm run build
+```
+
+The quality gate runs ESLint, the configured strict TypeScript boundary, Prettier, unit tests, and architecture checks. Production regression checks validate sitemap, SEO metadata, security headers, and protected media-worker role rules. The current TypeScript boundary is incremental and does not yet type-check every legacy module.
