@@ -1,0 +1,55 @@
+name: One-time remaining formatter
+
+on:
+  push:
+    branches:
+      - refactor/production-architecture
+
+permissions:
+  contents: write
+
+jobs:
+  format-remaining:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Format remaining files and remove temporary workflow
+        run: |
+          npx --yes prettier@3.9.10 --write \
+            src/shared/security/passwordSecurity.js \
+            src/shared/security/passwordSecurity.test.js \
+            src/shared/validation/formUX.test.js \
+            src/features/auth/adminAuthorizationService.js \
+            src/features/pdlpl/chapterDomain.js \
+            src/features/pdlpl/chapterDomain.test.js \
+            src/features/pdlpl/chapterService.js
+          rm .github/workflows/format-remaining-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/shared/security/passwordSecurity.js \
+            src/shared/security/passwordSecurity.test.js \
+            src/shared/validation/formUX.test.js \
+            src/features/auth/adminAuthorizationService.js \
+            src/features/pdlpl/chapterDomain.js \
+            src/features/pdlpl/chapterDomain.test.js \
+            src/features/pdlpl/chapterService.js \
+            .github/workflows/format-remaining-once.yml
+          if git diff --cached --quiet; then
+            echo "No formatting changes were needed."
+            exit 0
+          fi
+          git commit -m "style: format remaining security and PdPL modules"
+          git push origin HEAD
