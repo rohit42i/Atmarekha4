@@ -1,4 +1,3 @@
-import React from 'react';
 
 export function AdminIcon({name,size=18,strokeWidth=1.8,className=''}) {
   const paths = {
