@@ -4,7 +4,6 @@ import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from '.
 import AdminOverview from './AdminOverview';
 import AdminMembership from './AdminMembership.jsx';
 import AdminChapterPages from './AdminChapterPages';
-import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminSidebar } from './admin-studio-ui.jsx';
@@ -14,11 +13,10 @@ import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
 import AdminCardThumbnails from './AdminCardThumbnails.jsx';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
-import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
+import { uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
-const MAX_PAGE_SIZE = 95 * 1024 * 1024;
 const IMAGE_MIME_BY_EXT = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
   gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
@@ -237,17 +235,6 @@ export default function AdminPanel({ onLogout }) {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   });
-
-  const choosePages = event => {
-    const files = Array.from(event.target.files || []).filter(file => {
-      if (String(file?.type || '').toLowerCase().startsWith('image/')) return true;
-      const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
-      return Boolean(IMAGE_MIME_BY_EXT[ext]);
-    });
-    const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
-    if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
-    setForm(value => ({ ...value, pages: files }));
-  };
 
   async function upload(bucket, file, path) {
     const declaredType = String(file?.type || '').toLowerCase();
@@ -528,10 +515,6 @@ export default function AdminPanel({ onLogout }) {
     } finally {
       setBusy(false);
     }
-  }
-
-  async function clearReport(id) {
-    await setReportStatus(id, 'resolved');
   }
 
   function editAnnouncement(item) {
@@ -938,9 +921,8 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
+  const tabs = ['Overview', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
-  const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
@@ -1048,7 +1030,7 @@ export default function AdminPanel({ onLogout }) {
       reportCount={reportCount}
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
-    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
+    />: tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
