@@ -21,8 +21,12 @@ src/
     routing/              Route parsing, canonical URL rules and navigation lookup
   config/                 Public browser configuration and Worker origins
   features/
-    chapters/             Chapter retrieval and URL normalization
-    engagement/            Engagement and comment domain/API services
+    attribution/           Campaign tracking domain and persistence
+    chapters/              Chapter domain rules and retrieval service
+    engagement/            Engagement domain rules and API service
+    membership/            Membership reads and entitlement selection
+  infrastructure/
+    supabase/               Shared browser client, PKCE session and timeout adapter
   shared/
     api/                  Versioned Worker API clients and transport policies
     errors/               Safe UI error messages
@@ -49,9 +53,11 @@ after all callers have been migrated and verified.
   Return predictable values and throw errors for the caller to handle.
 - **Shared validation** normalizes bounded text before writes. It is not a
   substitute for validation inside Supabase policies, Edge Functions, or Workers.
-- **Infrastructure adapters** remain at the edge: `supabase.js` wraps the
-  Supabase client and Cloudflare R2 compatibility behavior; environment values
-  come from `src/config/publicEnv.js`.
+- **Infrastructure adapters** remain at the edge: `src/infrastructure/supabase/client.js`
+  configures the shared Supabase client and timeout behavior. The root
+  `supabase.js` retains the storage compatibility adapter and re-exports the
+  legacy API surface while callers migrate. Environment values come from
+  `src/config/publicEnv.js`.
 - **Versioned API clients** own Worker URLs, timeouts, headers, bounded query
   parameters, and response parsing. Analytics paths are restricted to the
   existing `/v1/*` contract; do not relocate or rename deployed Worker routes
