@@ -1,6 +1,8 @@
+import { publicEnv } from "../../config/publicEnv.js";
+
 /** @typedef {{ id?: string | number | null, chapterNumber?: string | number | null, language?: string | null, title?: string | null, createdAt?: string | number | Date | null }} ChapterRouteModel */
 
-export const SITE_ORIGIN = "https://www.atmarekha.in";
+export const SITE_ORIGIN = publicEnv.siteUrl;
 
 /** @param {string} [pathname] */
 function cleanPathname(pathname = "/") {
