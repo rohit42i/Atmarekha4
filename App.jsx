@@ -6,7 +6,7 @@ import Footer from './Footer';
 import InfoPage from './InfoPage';
 import HomeAnnouncement from './HomeAnnouncement';
 import PalDoPalKeLamhe from './PalDoPalKeLamhe';
-import { buildPdlplChapters } from './palDoPalKeLamhe';
+import { buildPdlplChapters } from './src/features/pdlpl/chapterService.js';
 import { fetchAuthenticatedMediaBlobUrl, getCurrentMembership, supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import axios from 'axios';
