@@ -17,10 +17,14 @@ the live reader, membership access, media uploads, and admin operations.
 
 ```text
 src/
-  config/                 Public browser configuration
+  app/
+    routing/              Route parsing, canonical URL rules and navigation lookup
+  config/                 Public browser configuration and Worker origins
   features/
-    chapters/             Chapter retrieval and page URL compatibility
+    chapters/             Chapter retrieval and URL normalization
+    engagement/            Engagement and comment domain/API services
   shared/
+    api/                  Versioned Worker API clients and transport policies
     errors/               Safe UI error messages
     validation/           Reusable client-side input normalization
   types/                  Shared environment typings
@@ -48,6 +52,12 @@ after all callers have been migrated and verified.
 - **Infrastructure adapters** remain at the edge: `supabase.js` wraps the
   Supabase client and Cloudflare R2 compatibility behavior; environment values
   come from `src/config/publicEnv.js`.
+- **Versioned API clients** own Worker URLs, timeouts, headers, bounded query
+  parameters, and response parsing. Analytics paths are restricted to the
+  existing `/v1/*` contract; do not relocate or rename deployed Worker routes
+  without a coordinated rollout.
+- **Routing** lives under `src/app/routing`; the root `routes.js` file remains
+  a compatibility facade until all imports are deliberately migrated.
 - **Error presentation** uses `toUserMessage` to keep stack traces, SQL details,
   and internal service URLs out of reader-facing UI. Log diagnostics separately.
 
@@ -84,6 +94,9 @@ RLS review and rollback planning.
 ## Quality gates
 
 - `npm run test`: deterministic unit tests using Node's built-in test runner.
+  Current pure-domain tests cover chapter URL resolution, language fallbacks,
+  chapter ordering, rating summaries, validation, error mapping, and analytics
+  client failure modes.
 - `npm run lint`: ESLint checks the migrated `src/` modules and root error
   boundary.
 - `npm run typecheck`: strict TypeScript checking for the typed migration
