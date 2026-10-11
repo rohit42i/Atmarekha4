@@ -1,6 +1,5 @@
 import { getAdminRole, isAdminRole } from "../../../adminAuth";
 import { getCurrentMembership, supabase } from "../../../supabase";
-import { getPdlplMediaUrl } from "../../infrastructure/media/pdlplMediaDomain.js";
 import { isPdlplMemberPlan, mapPdlplChapter, published } from "./chapterDomain.js";
 
 export {
