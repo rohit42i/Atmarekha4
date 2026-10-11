@@ -1,6 +1,5 @@
 import { supabase } from "../../../supabase";
 import { normalizePlainText } from "../../shared/validation/input.js";
-import { buildRatingSummary } from "./engagementDomain.js";
 
 export { buildRatingSummary } from "./engagementDomain.js";
 
