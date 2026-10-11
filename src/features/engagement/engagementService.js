@@ -91,7 +91,10 @@ export async function fetchPublicEngagement(chapterIds) {
     fetchCloudflareViews(ids).catch(() => /** @type {Record<string, number>} */ ({})),
   ]);
   if (error) throw error;
-  const rows = /** @type {Array<{chapter_id?: string, ratings_count?: unknown, ratings_sum?: unknown, views_count?: unknown, likes_count?: unknown, comments_count?: unknown, pages_count?: unknown}>} */ (data || []);
+  const rows =
+    /** @type {Array<{chapter_id?: string, ratings_count?: unknown, ratings_sum?: unknown, views_count?: unknown, likes_count?: unknown, comments_count?: unknown, pages_count?: unknown}>} */ (
+      data || []
+    );
   return Object.fromEntries(
     ids.map((id) => {
       const row = rows.find((item) => String(item.chapter_id) === String(id));
@@ -122,7 +125,9 @@ export async function fetchChapterEngagement(chapterId) {
       )
       .eq("chapter_id", chapterId)
       .maybeSingle(),
-    fetchCloudflareViews([chapterId]).catch(() => /** @type {Record<string, number>} */ ({})),
+    fetchCloudflareViews([chapterId]).catch(
+      () => /** @type {Record<string, number>} */ ({}),
+    ),
   ]);
   if (error) throw error;
   const count = Number(data?.ratings_count) || 0;
@@ -214,7 +219,9 @@ export async function fetchCommentLikes(commentIds) {
     ownData = data || [];
   }
 
-  const countsRows = /** @type {Array<{comment_id: string, like_count?: unknown}>} */ (countsData || []);
+  const countsRows = /** @type {Array<{comment_id: string, like_count?: unknown}>} */ (
+    countsData || []
+  );
   const counts = Object.fromEntries(
     countsRows.map((row) => [row.comment_id, Number(row.like_count) || 0]),
   );

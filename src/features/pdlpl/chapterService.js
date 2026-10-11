@@ -84,7 +84,8 @@ export async function buildPdlplPageCounts(chapterIds = []) {
 
   if (error) throw error;
 
-  const summaryRows = /** @type {Array<{chapter_id: string, pages_count?: unknown}>} */ (data || []);
+  const summaryRows =
+    /** @type {Array<{chapter_id: string, pages_count?: unknown}>} */ (data || []);
   return Object.fromEntries(
     ids.map((id) => [
       id,

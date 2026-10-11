@@ -46,7 +46,10 @@ export function findPasswordBreachCount(responseBody, suffix) {
  * @param {{ timeoutMs?: number }} [options]
  * @returns {Promise<{ compromised: false }>}
  */
-export async function validateNewPassword(password, { timeoutMs = PASSWORD_CHECK_TIMEOUT_MS } = {}) {
+export async function validateNewPassword(
+  password,
+  { timeoutMs = PASSWORD_CHECK_TIMEOUT_MS } = {},
+) {
   if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
     throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
   }
@@ -62,9 +65,7 @@ export async function validateNewPassword(password, { timeoutMs = PASSWORD_CHECK
   const suffix = hash.slice(5);
   const controller = new AbortController();
   const safeTimeout =
-    Number.isFinite(timeoutMs) && timeoutMs > 0
-      ? timeoutMs
-      : PASSWORD_CHECK_TIMEOUT_MS;
+    Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : PASSWORD_CHECK_TIMEOUT_MS;
   const timer = setTimeout(() => controller.abort(), safeTimeout);
 
   let body;

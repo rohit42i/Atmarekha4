@@ -106,7 +106,8 @@ async function request(path, options = {}, retried = false) {
   try {
     response = await fetch(url, { ...options, signal: controller.signal, headers });
   } catch (error) {
-    const sourceError = /** @type {{message?: string, name?: string} | null | undefined} */ (error);
+    const sourceError =
+      /** @type {{message?: string, name?: string} | null | undefined} */ (error);
     /** @type {Error & {path?: string, url?: string, origin?: string, hint?: string}} */
     const networkError = new Error(
       `Cloudflare R2 ${method} request failed: ${sourceError?.message || error}. ` +

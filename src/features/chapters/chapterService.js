@@ -71,20 +71,22 @@ export async function buildChapters() {
     throw error;
   }
 
-  const chapters = (/** @type {Array<Record<string, any>>} */ (data || [])).map((chapter) => ({
-    id: chapter.id,
-    mangaId: chapter.manga_id || null,
-    language: normalizeChapterLanguage(chapter.language),
-    chapterNumber: chapter.chapter_number,
-    title: chapter.title || "",
-    description: chapter.description || "",
-    cover: chapter.cover_url || null,
-    cardThumbnailDesktop: chapter.card_thumbnail_desktop_url || null,
-    cardThumbnailMobile: chapter.card_thumbnail_mobile_url || null,
-    status: chapter.status || "",
-    releaseDate: chapter.release_date || null,
-    createdAt: chapter.created_at || null,
-  }));
+  const chapters = /** @type {Array<Record<string, any>>} */ (data || []).map(
+    (chapter) => ({
+      id: chapter.id,
+      mangaId: chapter.manga_id || null,
+      language: normalizeChapterLanguage(chapter.language),
+      chapterNumber: chapter.chapter_number,
+      title: chapter.title || "",
+      description: chapter.description || "",
+      cover: chapter.cover_url || null,
+      cardThumbnailDesktop: chapter.card_thumbnail_desktop_url || null,
+      cardThumbnailMobile: chapter.card_thumbnail_mobile_url || null,
+      status: chapter.status || "",
+      releaseDate: chapter.release_date || null,
+      createdAt: chapter.created_at || null,
+    }),
+  );
 
   installChapterCoverStyles(chapters);
   return sortChapters(chapters);
@@ -174,9 +176,10 @@ export async function buildChapterPages(chapterId) {
       .order("page_number", { ascending: true });
 
     if (!error) {
-      const rows = /** @type {{page_number?: number | string | null, image_url?: string | null}[]} */ (
-        Array.isArray(data) ? [...data] : []
-      );
+      const rows =
+        /** @type {{page_number?: number | string | null, image_url?: string | null}[]} */ (
+          Array.isArray(data) ? [...data] : []
+        );
       rows.sort(
         (left, right) => Number(left?.page_number) - Number(right?.page_number),
       );
@@ -205,7 +208,8 @@ export async function buildChapterPages(chapterId) {
               Array.isArray(payload?.keys) ? payload.keys : []
             );
             const keys = rawKeys.filter((key) => typeof key === "string");
-            pages = keys.sort((left, right) =>
+            pages = keys
+              .sort((left, right) =>
                 String(left).localeCompare(String(right), undefined, {
                   numeric: true,
                 }),

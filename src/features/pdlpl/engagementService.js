@@ -20,7 +20,8 @@ export async function fetchPdlplPublicEngagement(chapterIds = []) {
     )
     .in("chapter_id", ids);
   if (error) throw error;
-  const summaryRows = /** @type {Array<Record<string, any> & {chapter_id?: string}>} */ (data || []);
+  const summaryRows =
+    /** @type {Array<Record<string, any> & {chapter_id?: string}>} */ (data || []);
   const byId = new Map(
     summaryRows.map((row) => [
       String(row.chapter_id),
@@ -110,7 +111,9 @@ export async function fetchPdlplCommentLikes(commentIds = []) {
     .from(COMMENT_LIKES)
     .select("comment_id")
     .in("comment_id", ids);
-  const countRows = /** @type {Array<{comment_id: string, like_count?: unknown}>} */ (counts || []);
+  const countRows = /** @type {Array<{comment_id: string, like_count?: unknown}>} */ (
+    counts || []
+  );
   const ownRows = /** @type {Array<{comment_id: string}>} */ (own || []);
   if (ownError) {
     const { data: authData } = await supabase.auth.getSession();
