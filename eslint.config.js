@@ -14,6 +14,7 @@ const browserGlobals = {
   localStorage: "readonly",
   navigator: "readonly",
   setTimeout: "readonly",
+  TextEncoder: "readonly",
   structuredClone: "readonly",
   Response: "readonly",
   window: "readonly",
