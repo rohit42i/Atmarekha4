@@ -52,7 +52,10 @@ test("draft helpers degrade gracefully when browser storage is unavailable", () 
     withWindow(undefined, () => loadDraft("draft", { fallback: true })),
     { fallback: true },
   );
-  assert.equal(withWindow(undefined, () => clearDraft("draft")), false);
+  assert.equal(
+    withWindow(undefined, () => clearDraft("draft")),
+    false,
+  );
 });
 
 test("round-trips non-sensitive drafts through browser storage", () => {

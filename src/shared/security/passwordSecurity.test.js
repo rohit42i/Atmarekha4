@@ -40,7 +40,10 @@ test("sends only the five-character digest prefix and rejects breached passwords
   };
 
   try {
-    await assert.rejects(validateNewPassword(password), /appeared in known data breaches/);
+    await assert.rejects(
+      validateNewPassword(password),
+      /appeared in known data breaches/,
+    );
     assert.equal(requestedUrl, `https://api.pwnedpasswords.com/range/${prefix}`);
     assert.equal(requestedUrl.includes(password), false);
   } finally {

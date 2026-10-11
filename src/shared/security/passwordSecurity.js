@@ -26,7 +26,9 @@ async function toSha1Hex(value) {
  * @returns {number}
  */
 export function findPasswordBreachCount(responseBody, suffix) {
-  const target = String(suffix || "").trim().toUpperCase();
+  const target = String(suffix || "")
+    .trim()
+    .toUpperCase();
   if (!/^[A-F0-9]{35}$/.test(target)) return 0;
 
   const line = String(responseBody || "")
@@ -45,9 +47,7 @@ export function findPasswordBreachCount(responseBody, suffix) {
  */
 export async function validateNewPassword(password) {
   if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
-    throw new Error(
-      `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
-    );
+    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
   }
 
   if (!globalThis.crypto?.subtle) {

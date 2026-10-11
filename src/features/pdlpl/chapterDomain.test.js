@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  isPdlplMemberPlan,
-  mapPdlplChapter,
-  published,
-} from "./chapterDomain.js";
+import { isPdlplMemberPlan, mapPdlplChapter, published } from "./chapterDomain.js";
 
 test("recognizes published chapters case-insensitively", () => {
   assert.equal(published({ status: "published" }), true);

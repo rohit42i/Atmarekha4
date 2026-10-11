@@ -23,7 +23,11 @@ import { getPdlplMediaUrl } from "../../infrastructure/media/pdlplMediaDomain.js
 
 /** @param {{ status?: unknown } | null | undefined} chapter */
 export function published(chapter) {
-  return String(chapter?.status || '').trim().toLowerCase() === 'published';
+  return (
+    String(chapter?.status || "")
+      .trim()
+      .toLowerCase() === "published"
+  );
 }
 
 /** @param {PdlplChapterRow} row */
@@ -31,25 +35,30 @@ export function mapPdlplChapter(row) {
   return {
     id: row.id,
     chapterNumber: row.chapter_number,
-    title: row.title || '',
-    description: row.description || '',
+    title: row.title || "",
+    description: row.description || "",
     coverPath: row.cover_path || null,
     cover: row.cover_path ? getPdlplMediaUrl(row.cover_path) : null,
     cardThumbnailDesktopPath: row.card_thumbnail_desktop_path || null,
     cardThumbnailMobilePath: row.card_thumbnail_mobile_path || null,
-    cardThumbnailDesktop: row.card_thumbnail_desktop_path ? getPdlplMediaUrl(row.card_thumbnail_desktop_path) : null,
-    cardThumbnailMobile: row.card_thumbnail_mobile_path ? getPdlplMediaUrl(row.card_thumbnail_mobile_path) : null,
-    language: String(row.language || 'hi').toLowerCase() === 'en' ? 'en' : 'hi',
-    status: row.status || '',
+    cardThumbnailDesktop: row.card_thumbnail_desktop_path
+      ? getPdlplMediaUrl(row.card_thumbnail_desktop_path)
+      : null,
+    cardThumbnailMobile: row.card_thumbnail_mobile_path
+      ? getPdlplMediaUrl(row.card_thumbnail_mobile_path)
+      : null,
+    language: String(row.language || "hi").toLowerCase() === "en" ? "en" : "hi",
+    status: row.status || "",
     releaseDate: row.release_date || null,
     createdAt: row.created_at || null,
   };
 }
 
-
 /** @param {unknown} planId */
 export function isPdlplMemberPlan(planId) {
   return ["supporter", "premium"].includes(
-    String(planId ?? "").trim().toLowerCase(),
+    String(planId ?? "")
+      .trim()
+      .toLowerCase(),
   );
 }
