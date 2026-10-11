@@ -92,7 +92,7 @@ async function request(path, options = {}, retried = false) {
   let timer;
   const controller = new AbortController();
   const parentSignal = options.signal;
-  const forwardAbort = () => controller.abort(parentSignal.reason);
+  const forwardAbort = () => controller.abort(parentSignal?.reason);
   if (parentSignal) {
     if (parentSignal.aborted) controller.abort(parentSignal.reason);
     else parentSignal.addEventListener("abort", forwardAbort, { once: true });
@@ -106,12 +106,13 @@ async function request(path, options = {}, retried = false) {
   try {
     response = await fetch(url, { ...options, signal: controller.signal, headers });
   } catch (error) {
+    const sourceError = /** @type {{message?: string, name?: string} | null | undefined} */ (error);
     /** @type {Error & {path?: string, url?: string, origin?: string, hint?: string}} */
     const networkError = new Error(
-      `Cloudflare R2 ${method} request failed: ${error?.message || error}. ` +
+      `Cloudflare R2 ${method} request failed: ${sourceError?.message || error}. ` +
         `This is usually a browser-to-Worker CORS/network failure; verify the deployed Worker allows origin "${window.location.origin}".`,
     );
-    networkError.name = timedOut ? "TimeoutError" : error?.name || "NetworkError";
+    networkError.name = timedOut ? "TimeoutError" : sourceError?.name || "NetworkError";
     if (timedOut)
       networkError.message =
         "Cloudflare R2 request timed out. Please check your connection and try again.";

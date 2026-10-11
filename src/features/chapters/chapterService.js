@@ -27,7 +27,7 @@ const sleep = (milliseconds) =>
  * after every chapter-list entry point uses the same presentation component.
  */
 /**
- * @param {Array<{id?: string, mangaId?: string | null, chapterNumber?: unknown, cover?: string | null, title?: string}>} chapters
+ * @param {Array<{id?: string | number | null, mangaId?: string | null, chapterNumber?: string | number | null, language?: string | null, cover?: string | null, title?: string | null, createdAt?: string | number | Date | null}>} chapters
  */
 function installChapterCoverStyles(chapters) {
   if (typeof document === "undefined") return;
@@ -71,7 +71,7 @@ export async function buildChapters() {
     throw error;
   }
 
-  const chapters = (data || []).map((chapter) => ({
+  const chapters = (/** @type {Array<Record<string, any>>} */ (data || [])).map((chapter) => ({
     id: chapter.id,
     mangaId: chapter.manga_id || null,
     language: normalizeChapterLanguage(chapter.language),

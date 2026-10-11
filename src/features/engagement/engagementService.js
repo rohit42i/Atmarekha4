@@ -91,7 +91,7 @@ export async function fetchPublicEngagement(chapterIds) {
     fetchCloudflareViews(ids).catch(() => /** @type {Record<string, number>} */ ({})),
   ]);
   if (error) throw error;
-  const rows = data || [];
+  const rows = /** @type {Array<{chapter_id?: string, ratings_count?: unknown, ratings_sum?: unknown, views_count?: unknown, likes_count?: unknown, comments_count?: unknown, pages_count?: unknown}>} */ (data || []);
   return Object.fromEntries(
     ids.map((id) => {
       const row = rows.find((item) => String(item.chapter_id) === String(id));
@@ -214,8 +214,9 @@ export async function fetchCommentLikes(commentIds) {
     ownData = data || [];
   }
 
+  const countsRows = /** @type {Array<{comment_id: string, like_count?: unknown}>} */ (countsData || []);
   const counts = Object.fromEntries(
-    (countsData || []).map((row) => [row.comment_id, Number(row.like_count) || 0]),
+    countsRows.map((row) => [row.comment_id, Number(row.like_count) || 0]),
   );
   const liked = Object.fromEntries(ownData.map((row) => [row.comment_id, true]));
 
