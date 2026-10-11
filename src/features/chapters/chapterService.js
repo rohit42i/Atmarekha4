@@ -1,14 +1,7 @@
 import { supabase } from "../../../supabase";
 import { publicEnv } from "../../config/publicEnv.js";
 import { chapterPath } from "../../app/routing/routeService.js";
-import {
-  CHAPTER_LANGUAGES,
-  chapterLanguageLabel,
-  formatChapterEyebrow,
-  formatChapterLabel,
-  normalizeChapterLanguage,
-  sortChapters,
-} from "./chapterDomain.js";
+import { normalizeChapterLanguage, sortChapters } from "./chapterDomain.js";
 
 export {
   CHAPTER_LANGUAGES,
