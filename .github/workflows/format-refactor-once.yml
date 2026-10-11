@@ -1,0 +1,59 @@
+name: One-time refactor formatter
+
+on:
+  push:
+    branches:
+      - refactor/production-architecture
+
+permissions:
+  contents: write
+
+jobs:
+  format-refactor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Apply repository Prettier rules and remove this temporary workflow
+        run: |
+          npx --yes prettier@3.9.10 --write \
+            src/features/auth/authService.js \
+            src/features/engagement/engagementService.js \
+            src/features/membership/membershipDomain.js \
+            src/features/membership/membershipDomain.test.js \
+            src/features/membership/membershipService.js \
+            src/infrastructure/media/r2Domain.js \
+            src/infrastructure/media/r2Domain.test.js \
+            src/infrastructure/media/r2Storage.js \
+            jsconfig.json
+          rm .github/workflows/format-refactor-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/features/auth/authService.js \
+            src/features/engagement/engagementService.js \
+            src/features/membership/membershipDomain.js \
+            src/features/membership/membershipDomain.test.js \
+            src/features/membership/membershipService.js \
+            src/infrastructure/media/r2Domain.js \
+            src/infrastructure/media/r2Domain.test.js \
+            src/infrastructure/media/r2Storage.js \
+            jsconfig.json \
+            .github/workflows/format-refactor-once.yml
+          if git diff --cached --quiet; then
+            echo "No formatting changes were needed."
+            exit 0
+          fi
+          git commit -m "style: format architecture refactor modules"
+          git push origin HEAD
