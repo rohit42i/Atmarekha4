@@ -10,7 +10,7 @@
     "prebuild": "node scripts/generate-sitemap.mjs",
     "check": "node scripts/verify-site.mjs",
     "test": "node --test",
-    "lint": "npx --yes eslint@10.10.0 src ErrorBoundary.jsx",
+    "lint": "npx --yes eslint@10.10.0 src ErrorBoundary.jsx App.jsx main.jsx PalDoPalKeLamhe.jsx UserAuth.jsx",
     "typecheck": "npx --yes --package=typescript@7.0.2 tsc --project jsconfig.json --pretty false",
     "format": "npx --yes prettier@3.9.10 --write \"src/config/**/*.js\" \"src/app/**/*.js\" \"src/shared/**/*.js\" \"src/features/**/*.js\" \"src/infrastructure/**/*.js\" \"src/types/**/*.d.ts\" ErrorBoundary.jsx eslint.config.js jsconfig.json .prettierrc.json package.json docs/ARCHITECTURE.md",
     "format:check": "npx --yes prettier@3.9.10 --check \"src/config/**/*.js\" \"src/app/**/*.js\" \"src/shared/**/*.js\" \"src/features/**/*.js\" \"src/infrastructure/**/*.js\" \"src/types/**/*.d.ts\" ErrorBoundary.jsx eslint.config.js jsconfig.json .prettierrc.json package.json docs/ARCHITECTURE.md",
