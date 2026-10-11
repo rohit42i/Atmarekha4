@@ -7,9 +7,9 @@ import {
   getPdlplMemberAccess,
   PDLPL_ROUTE,
   published,
-} from './palDoPalKeLamhe';
-import { fetchPdlplMedia } from './pdlplR2';
-import { fetchPdlplPublicEngagement, fetchPdlplChapterEngagement, getPdlplBookmark, togglePdlplBookmark, recordPdlplChapterView, recordPdlplChapterShare, submitPdlplRating, getPdlplReadingProgress, savePdlplReadingProgress } from './pdlplEngagement';
+} from './src/features/pdlpl/chapterService.js';
+import { fetchPdlplMedia } from './src/infrastructure/media/pdlplStorage.js';
+import { fetchPdlplPublicEngagement, fetchPdlplChapterEngagement, getPdlplBookmark, togglePdlplBookmark, recordPdlplChapterView, recordPdlplChapterShare, submitPdlplRating, getPdlplReadingProgress, savePdlplReadingProgress } from './src/features/pdlpl/engagementService.js';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
