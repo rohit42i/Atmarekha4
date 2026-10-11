@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { publicEnv } from './src/config/publicEnv.js';
+
+const supabaseUrl = publicEnv.supabaseUrl;
+const supabaseKey = publicEnv.supabasePublishableKey;
 
 const R2_WORKER_URL = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev';
 const R2_BUCKETS = new Set(['chapter-pages', 'covers', 'community']);

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { normalizePlainText } from './src/shared/validation/input.js';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
 const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
@@ -228,9 +229,13 @@ export async function addComment({ chapterId = null, announcementId = null, cont
   const hasChapter = Boolean(chapterId);
   const hasAnnouncement = Boolean(announcementId);
   if (hasChapter === hasAnnouncement) throw new Error('Choose exactly one comment destination.');
-  const cleanContent = String(content || '').trim();
-  if (!cleanContent) throw new Error('Write a comment first.');
-  if (cleanContent.length > 2000) throw new Error('Comments are limited to 2000 characters.');
+  const cleanContent = normalizePlainText(content, {
+    maxLength: 2000,
+    required: true,
+    label: 'Comments',
+    requiredMessage: 'Write a comment first.',
+    maxLengthMessage: 'Comments are limited to 2000 characters.',
+  });
   const username = await getAccountUsername(user);
   const { data, error } = await supabase.from('comments').insert({
     user_id: user.id,
@@ -246,9 +251,13 @@ export async function addComment({ chapterId = null, announcementId = null, cont
 
 export async function updateComment(commentId, content) {
   const user = await requireUser();
-  const clean = String(content || '').trim();
-  if (!clean) throw new Error('Write a comment first.');
-  if (clean.length > 2000) throw new Error('Comments are limited to 2000 characters.');
+  const clean = normalizePlainText(content, {
+    maxLength: 2000,
+    required: true,
+    label: 'Comments',
+    requiredMessage: 'Write a comment first.',
+    maxLengthMessage: 'Comments are limited to 2000 characters.',
+  });
   const { data, error } = await supabase.from('comments').update({ content: clean, updated_at: new Date().toISOString() })
     .eq('id', commentId).eq('user_id', user.id)
     .select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id').single();
@@ -334,7 +343,7 @@ export async function unlikeComment(commentId) {
 }
 
 export async function reportComment(commentId, reason = 'Reported by reader') {
-  const { error } = await supabase.from('comment_reports').upsert({ comment_id: commentId, viewer_key: getViewerKey(), reason: String(reason).trim().slice(0, 500) }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
+  const { error } = await supabase.from('comment_reports').upsert({ comment_id: commentId, viewer_key: getViewerKey(), reason: normalizePlainText(reason, { maxLength: 500 }) }, { onConflict: 'comment_id,viewer_key', ignoreDuplicates: true });
   if (error) throw error;
 }
 

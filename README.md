@@ -81,3 +81,20 @@ The frontend reads these records live through the Supabase Data API. Chapter/pag
 
 The GitHub build workflow runs `npm ci` and `npm run build` on pushes and pull requests to `main`.
 
+## Architecture and quality checks
+
+The incremental folder migration, API compatibility rules, public environment
+policy, and remaining refactor stages are documented in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+Run the focused quality gate before opening a pull request:
+
+```bash
+npm run quality:check
+npm run check
+npm run build
+```
+
+Run `npm run hooks:install` once in a local clone to enable the pre-commit
+quality gate. Strict type checking currently covers the newly migrated shared
+modules; expanding it across legacy root components is a separate migration step.
