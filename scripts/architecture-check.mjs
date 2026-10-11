@@ -2,9 +2,16 @@ import { access, readFile } from 'node:fs/promises';
 
 const requiredFiles = [
   'src/config/publicEnv.js',
+  'src/app/routing/routeService.js',
+  'src/shared/api/analyticsClient.js',
   'src/features/chapters/chapterService.js',
+  'src/features/engagement/engagementService.js',
   'src/shared/errors/toUserMessage.js',
   'src/shared/validation/input.js',
+  'src/app/routing/routeService.test.js',
+  'src/shared/api/analyticsClient.test.js',
+  'src/features/chapters/chapterDomain.test.js',
+  'src/features/engagement/engagementDomain.test.js',
   'ErrorBoundary.jsx',
   'jsconfig.json',
   'eslint.config.js',
