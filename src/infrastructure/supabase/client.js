@@ -15,7 +15,7 @@ async function fetchWithTimeout(input, init = {}) {
   const controller = new AbortController();
   const parentSignal = init?.signal;
   let timedOut = false;
-  const forwardAbort = () => controller.abort(parentSignal.reason);
+  const forwardAbort = () => controller.abort(parentSignal?.reason);
 
   if (parentSignal) {
     if (parentSignal.aborted) controller.abort(parentSignal.reason);
