@@ -108,7 +108,7 @@ export default function EnhancedComments() {
   useEffect(()=>{if(open&&(chapterId||announcementId))load()},[open,chapterId,announcementId,source,user?.id]);
   const top=useMemo(
   ()=>sortCommentFeed(comments.filter(c=>!c.parent_comment_id),membershipPlans,likes.counts),
-  [comments,membershipPlans,likes.counts,profilesById]
+  [comments,membershipPlans,likes.counts]
 ); const child=useMemo(()=>comments.filter(c=>c.parent_comment_id),[comments]); const profile=id=>profiles[id]||null;
   const goProfile=id=>{if(!id)return;setPreview(null);setOpen(false);window.requestAnimationFrame(()=>{window.location.hash=`public-profile/${encodeURIComponent(id)}`})};
   const ensureAuth=()=>{if(user)return true;setError('Please log in to do this action.');return false};
