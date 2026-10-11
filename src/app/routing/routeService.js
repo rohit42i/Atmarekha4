@@ -1,3 +1,5 @@
+/** @typedef {{ id?: string | number | null, chapterNumber?: string | number | null, language?: string | null, title?: string | null, createdAt?: string | number | Date | null }} ChapterRouteModel */
+
 export const SITE_ORIGIN = "https://www.atmarekha.in";
 
 /** @param {string} [pathname] */
