@@ -8,7 +8,10 @@ import {
 } from "./passwordSecurity.js";
 
 test("requires a minimum password length before any network request", async () => {
-  await assert.rejects(validateNewPassword("short"), /at least 8 characters/);
+  await assert.rejects(
+    validateNewPassword("short"),
+    new RegExp(`at least ${MIN_PASSWORD_LENGTH} characters`),
+  );
 });
 
 test("parses breach counts from the k-anonymity range body", () => {
