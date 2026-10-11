@@ -109,10 +109,11 @@ RLS review and rollback planning.
   Current pure-domain tests cover chapter URL resolution, language fallbacks,
   chapter ordering, rating summaries, validation, error mapping, and analytics
   client failure modes.
-- `npm run lint`: ESLint checks the migrated `src/` modules and root error
-  boundary.
-- `npm run typecheck`: strict TypeScript checking for the typed migration
-  boundary in `jsconfig.json`. Legacy root modules are not yet all checked.
+- `npm run lint`: ESLint checks migrated `src/` modules, the root error boundary,
+  and all root-level React JSX components.
+- `npm run typecheck`: strict TypeScript checks every migrated JavaScript and JSX
+  module under `src/`, plus the root error boundary. Legacy root-level JavaScript
+  and JSX is linted but remains outside the strict type-check migration boundary.
 - `npm run format:check`: Prettier verifies the migrated/shared modules and
   architecture configuration files.
 - `npm run check`: existing production regression checks.
