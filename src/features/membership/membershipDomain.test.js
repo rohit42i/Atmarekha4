@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { selectEffectiveMemberships } from "./membershipDomain.js";
+import {
+  hasAtmaMembershipAccess,
+  requiresAtmaMembership,
+  selectEffectiveMemberships,
+} from "./membershipDomain.js";
 
 const now = Date.parse("2026-10-11T00:00:00.000Z");
 
@@ -62,4 +66,27 @@ test("ignores records missing identifiers", () => {
     selectEffectiveMemberships([{ user_id: "reader" }, { plan_id: "premium" }], now).size,
     0,
   );
+});
+
+
+test("keeps the first eight and special chapters public", () => {
+  assert.equal(requiresAtmaMembership({ chapterNumber: 8 }), false);
+  assert.equal(requiresAtmaMembership({ chapter_number: 1 }), false);
+  assert.equal(requiresAtmaMembership({ chapterNumber: null, title: "Intro" }), false);
+  assert.equal(requiresAtmaMembership({ chapterNumber: "invalid" }), false);
+});
+
+test("requires membership for chapter nine and later", () => {
+  assert.equal(requiresAtmaMembership({ chapterNumber: 9 }), true);
+  assert.equal(requiresAtmaMembership({ chapter_number: "12" }), true);
+});
+
+test("grants protected chapter access only to supported plans or admin roles", () => {
+  for (const plan of ["mini_member", "supporter", "premium"]) {
+    assert.equal(hasAtmaMembershipAccess(plan, null), true);
+  }
+  assert.equal(hasAtmaMembershipAccess("free", null), false);
+  assert.equal(hasAtmaMembershipAccess(null, "owner"), true);
+  assert.equal(hasAtmaMembershipAccess(null, "admin"), true);
+  assert.equal(hasAtmaMembershipAccess(null, "reader"), false);
 });
