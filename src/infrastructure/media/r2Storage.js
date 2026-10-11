@@ -15,6 +15,16 @@ const IMAGE_MAX_EDGE = 3200;
  * @param {RequestInit} [options]
  * @param {boolean} [retried]
  */
+async function authHeaders() {
+  const { data, error } = await client.auth.getSession();
+  if (error) throw error;
+  if (!data.session?.access_token) {
+    throw new Error("Your Supabase session has expired. Please sign in again.");
+  }
+  return { Authorization: "Bearer " + data.session.access_token };
+}
+
+/** @param {string} url @param {RequestInit} [options] @param {boolean} [retried] */
 export async function fetchAuthenticatedMedia(url, options = {}, retried = false) {
   let response;
   const controller = new AbortController();
