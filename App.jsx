@@ -3,23 +3,24 @@ import { buildChapters, buildChapterPages, formatChapterLabel, formatChapterEyeb
 const AdminLogin = lazy(() => import('./AdminLogin.jsx'));
 const AdminPanel = lazy(() => import('./AdminPanel.jsx'));
 import Footer from './Footer';
-import InfoPage from './InfoPage';
+const InfoPage = lazy(() => import("./InfoPage.jsx"));
 import HomeAnnouncement from './HomeAnnouncement';
-import PalDoPalKeLamhe from './PalDoPalKeLamhe';
+const PalDoPalKeLamhe = lazy(() => import("./PalDoPalKeLamhe.jsx"));
+const PrivacyCenter = lazy(() => import("./PrivacyCenter.jsx"));
+const MorePage = lazy(() => import("./MorePage.jsx"));
 import { buildPdlplChapters } from './src/features/pdlpl/chapterService.js';
 import { fetchAuthenticatedMediaBlobUrl, getCurrentMembership, supabase } from './supabase';
 import { getAdminRole } from './src/features/auth/adminAuthorizationService.js';
 import axios from 'axios';
 import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './src/features/engagement/engagementService.js';
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './src/app/routing/routeService.js';
-import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
+const ChapterDiscovery = lazy(() => import('./ChapterDiscovery.jsx'));
+const ChapterDiscoveryRender = lazy(() => import('./ChapterDiscovery.jsx').then((module) => ({ default: module.ChapterDiscoveryRender })));
 import ContinueReading from './ContinueReading.jsx';
-import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './src/features/attribution/attributionService.js';
 import { publicEnv } from './src/config/publicEnv.js';
 import { toUserMessage } from './src/shared/errors/toUserMessage.js';
 import { hasAtmaMembershipAccess, requiresAtmaMembership } from './src/features/membership/membershipDomain.js';
-import MorePage from './MorePage.jsx';
 
 async function canReadAtmaChapter(chapter) {
   if (!requiresAtmaMembership(chapter)) return true;
@@ -734,8 +735,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
  useEffect(() => {
     captureMarketingAttribution();
   }, [route]);
- useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(toUserMessage(err, 'Unable to load chapters.')); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);   if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
-  if (route === 'more') return <MorePage/>;
+ useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(toUserMessage(err, 'Unable to load chapters.')); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);   if (route === 'info/privacy' || route === 'privacy-center') return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening privacy center…"/></main>}><PrivacyCenter/></Suspense>;
+  if (route === 'more') return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening more options…"/></main>}><MorePage/></Suspense>;
   if (route.startsWith('chapter/')) {
     const chapter = findChapterForPath('/' + route, chapters);
     if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;
@@ -744,4 +745,4 @@ export default function App() { const route = useHashRoute(); const [chapters, s
   }
   const returnToAdmin = route === 'membership' && window.location.pathname.replace(/\/+$/, '') === '/admin';
   if (returnToAdmin || route === 'admin') return <AdminRoute onExit={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>
-  if (route === 'pal-do-pal-ke-lamhe' || route.startsWith('pal-do-pal-ke-lamhe/')) return <PalDoPalKeLamhe/>; if (route.startsWith('info/')) return <InfoPage type={route.split('/')[1]} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route === 'chapters' || route.startsWith('chapters?')) return <ChapterList chapters={chapters} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route.startsWith('read-chapter/')) return <Reader chapterId={decodeURIComponent(route.slice('read-chapter/'.length))} onBack={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }} chapters={chapters}/>; if (loading) return <main className="home-page"><LoadingState label="Loading Atma Rekha…"/></main>; if (error) return <main className="home-page"><div className="reader-error"><h2>{error}</h2><button className="primary-button" onClick={() => window.location.reload()}>Retry</button></div></main>; return <Home chapters={chapters}/>; }
+  if (route === 'pal-do-pal-ke-lamhe' || route.startsWith('pal-do-pal-ke-lamhe/')) return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening Pal Do Pal Ke Lamhe…"/></main>}><PalDoPalKeLamhe/></Suspense>; if (route.startsWith('info/')) return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening page…"/></main>}><InfoPage type={route.split('/')[1]} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/></Suspense>; if (route === 'chapters' || route.startsWith('chapters?')) return <Suspense fallback={<main className="site-shell"><LoadingState label="Loading chapters…"/></main>}><ChapterList chapters={chapters} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/></Suspense>; if (route.startsWith('read-chapter/')) return <Reader chapterId={decodeURIComponent(route.slice('read-chapter/'.length))} onBack={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }} chapters={chapters}/>; if (loading) return <main className="home-page"><LoadingState label="Loading Atma Rekha…"/></main>; if (error) return <main className="home-page"><div className="reader-error"><h2>{error}</h2><button className="primary-button" onClick={() => window.location.reload()}>Retry</button></div></main>; return <Home chapters={chapters}/>; }
