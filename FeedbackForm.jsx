@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
-import { validateEmail, rememberDraft, loadDraft, clearDraft } from './formUX.js';
+import { validateEmail, rememberDraft, loadDraft, clearDraft } from './src/shared/validation/formUX.js';
 
 const DRAFT_KEY = 'atma-feedback-draft-v1';
 export default function FeedbackForm() {
