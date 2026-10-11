@@ -1,45 +1,14 @@
 import { client, supabaseUrl, supabaseKey } from "./src/infrastructure/supabase/client.js";
+import { publicEnv } from "./src/config/publicEnv.js";
 
 const R2_WORKER_URL = publicEnv.mediaWorkerUrl;
-const R2_BUCKETS = new Set(['chapter-pages', 'covers', 'community']);
-const CHAPTER_PAGES_TABLE = 'chapter_pages';
-const SUPABASE_REQUEST_TIMEOUT_MS = 15000;
+const R2_BUCKETS = new Set(["chapter-pages", "covers", "community"]);
+const CHAPTER_PAGES_TABLE = "chapter_pages";
 
-async function fetchWithTimeout(input, init = {}) {
-  if (typeof AbortController === 'undefined') return fetch(input, init);
-  const controller = new AbortController();
-  const parentSignal = init?.signal;
-  let timedOut = false;
-  const forwardAbort = () => controller.abort(parentSignal.reason);
-  if (parentSignal) {
-    if (parentSignal.aborted) controller.abort(parentSignal.reason);
-    else parentSignal.addEventListener('abort', forwardAbort, { once: true });
-  }
-  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, SUPABASE_REQUEST_TIMEOUT_MS);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } catch (error) {
-    if (timedOut) {
-      const timeoutError = new Error('Request timed out. Please check your connection and try again.');
-      timeoutError.name = 'TimeoutError';
-      timeoutError.cause = error;
-      throw timeoutError;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timer);
-    parentSignal?.removeEventListener?.('abort', forwardAbort);
-  }
-}
-
-// Manga pages keep a wider quality envelope to preserve line texture, hatching and small text.
+// Manga pages keep enough pixels to preserve line texture, hatching and small text.
 const IMAGE_MIN_SIZE = 2 * 1024 * 1024;
 const IMAGE_MAX_SIZE = 4 * 1024 * 1024;
 const IMAGE_MAX_EDGE = 3200;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.');
-}
 
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
