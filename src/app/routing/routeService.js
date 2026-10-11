@@ -1,15 +1,18 @@
 export const SITE_ORIGIN = "https://www.atmarekha.in";
 
+/** @param {string} [pathname] */
 function cleanPathname(pathname = '/') {
   const value = String(pathname || '/').replace(/\\+/g, '/');
   if (value === '/') return '/';
   return '/' + value.replace(/^\/+|\/+$/g, '');
 }
 
+/** @param {string} value */
 function safeDecode(value) {
   try { return decodeURIComponent(value); } catch { return value; }
 }
 
+/** @param {unknown} value */
 function slugify(value) {
   return String(value || '')
     .toLowerCase()
@@ -19,16 +22,20 @@ function slugify(value) {
     .slice(0, 80);
 }
 
+/** @param {unknown} language */
 function normalizeLanguage(language) { return String(language || '').trim().toLowerCase() === 'en' ? 'en' : 'hi'; }
 
+/** @param {string} [search] */
 function languageFromSearch(search = '') {
   try { return normalizeLanguage(new URLSearchParams(search).get('lang')); } catch { return 'hi'; }
 }
 
+/** @param {unknown} id */
 function shortChapterId(id) {
   return String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 8).toLowerCase();
 }
 
+/** @param {ChapterRouteModel | null | undefined} chapter */
 export function chapterPath(chapter) {
   if (!chapter?.id) return '/chapters';
 
@@ -46,11 +53,16 @@ export function chapterPath(chapter) {
   return normalizeLanguage(chapter.language) === 'en' ? base + '?lang=en' : base;
 }
 
+/** @param {string} pathname */
 export function isChapterPath(pathname) {
   const path = cleanPathname(pathname);
   return /^\/chapter\/\d+(?:\.\d+)?$/.test(path) || /^\/chapter\/special\/[^/]+$/.test(path);
 }
 
+/**
+ * @param {string} pathname
+ * @param {ChapterRouteModel[]} [chapters]
+ */
 export function findChapterForPath(pathname, chapters = []) {
   const rawLocation = String(pathname || '/');
   const [pathnameOnly, inlineSearch = ''] = rawLocation.split('?');
@@ -87,17 +99,20 @@ export function findChapterForPath(pathname, chapters = []) {
     || null;
 }
 
+/** @param {string} [hash] */
 export function legacyChapterIdFromHash(hash = '') {
   const value = String(hash || '');
   if (!value.startsWith('#read-chapter/')) return null;
   return safeDecode(value.slice('#read-chapter/'.length).split(/[?#]/, 1)[0]) || null;
 }
 
+/** @returns {string | null} */
 export function getRenderedChapterId() {
   if (typeof document === 'undefined') return null;
   return document.querySelector('.reader-page[data-chapter-id]')?.getAttribute('data-chapter-id') || null;
 }
 
+/** Resolves the current browser URL to a site route without side effects. */
 export function getSiteRoute() {
   if (typeof window === 'undefined') return 'home';
   const pathname = cleanPathname(window.location.pathname);
@@ -113,6 +128,7 @@ export function getSiteRoute() {
   return 'not-found';
 }
 
+/** @param {ChapterRouteModel[]} [chapters] */
 export function getChapterIdFromLocation(chapters = []) {
   if (typeof window === 'undefined') return null;
 
@@ -125,10 +141,12 @@ export function getChapterIdFromLocation(chapters = []) {
   return legacyChapterIdFromHash(window.location.hash);
 }
 
+/** @param {ChapterRouteModel} chapter */
 export function chapterCanonicalUrl(chapter) {
   return SITE_ORIGIN + chapterPath(chapter);
 }
 
+/** @param {ChapterRouteModel | null | undefined} chapter @param {unknown} language */
 export function chapterLanguageUrl(chapter, language) {
   if (!chapter?.id) return SITE_ORIGIN + '/chapters';
   return SITE_ORIGIN + chapterPath({ ...chapter, language });
