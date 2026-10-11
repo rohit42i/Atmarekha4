@@ -18,23 +18,22 @@ import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './src/features/attribution/attributionService.js';
 import { publicEnv } from './src/config/publicEnv.js';
 import { toUserMessage } from './src/shared/errors/toUserMessage.js';
+import { hasAtmaMembershipAccess, requiresAtmaMembership } from './src/features/membership/membershipDomain.js';
 import MorePage from './MorePage.jsx';
 
-const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
-
 async function canReadAtmaChapter(chapter) {
-  const raw = chapter?.chapterNumber ?? chapter?.chapter_number;
-  const number = raw === null || raw === undefined || raw === '' ? null : Number(raw);
-  if (number === null || !Number.isFinite(number) || number <= 8) return true;
+  if (!requiresAtmaMembership(chapter)) return true;
+
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
     if (!user) return false;
+
     const [planId, role] = await Promise.all([
       getCurrentMembership(user.id),
       getAdminRole(user.id),
     ]);
-    return MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase()) || role === 'owner' || role === 'admin';
+    return hasAtmaMembershipAccess(planId, role);
   } catch {
     return false;
   }
