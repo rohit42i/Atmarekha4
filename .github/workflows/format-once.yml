@@ -47,6 +47,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "style: format R2 storage regression fix"
+            git commit -m "style: format R2 storage regression fix and verify tests"
             git push origin HEAD:refactor/production-architecture
           fi
