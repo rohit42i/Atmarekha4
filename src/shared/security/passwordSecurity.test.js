@@ -77,3 +77,25 @@ test("returns success when the range response does not contain the suffix", asyn
     globalThis.fetch = previousFetch;
   }
 });
+
+test("keeps the timeout active until the password range response body is read", async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async (_input, options) => ({
+    ok: true,
+    text: () =>
+      new Promise((_resolve, reject) => {
+        const fail = () => reject(new Error("aborted"));
+        if (options.signal.aborted) fail();
+        else options.signal.addEventListener("abort", fail, { once: true });
+      }),
+  });
+
+  try {
+    await assert.rejects(
+      validateNewPassword("TimedOutBodyRead#2026", { timeoutMs: 10 }),
+      /could not complete the password security check/,
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
