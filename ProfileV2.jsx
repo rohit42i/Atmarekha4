@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, getCurrentMembership } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
-import { validateEmail, rememberDraft, loadDraft, clearDraft } from './formUX.js';
+import { validateEmail, rememberDraft, loadDraft, clearDraft } from './src/shared/validation/formUX.js';
 
 const AVATARS = Array.from({ length: 10 }, (_, i) => `/avatars/avatar-${String(i + 1).padStart(2, '0')}.jpg`);
 function routeNow() { return window.location.hash.replace(/^#/, '') || 'home'; }
