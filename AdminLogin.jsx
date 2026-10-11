@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase, secureSignInWithPassword } from './supabase';
 import { getAdminRole } from './adminAuth';
-import { validateEmail } from './formUX.js';
+import { validateEmail } from './src/shared/validation/formUX.js';
 
 export default function AdminLogin({ onLoginSuccess }) {
   const [email,setEmail]=useState('');

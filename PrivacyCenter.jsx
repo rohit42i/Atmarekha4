@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 
 const PRIVACY_VERSION = '2026-10-07';

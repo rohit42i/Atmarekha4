@@ -1,0 +1,136 @@
+# Atma Rekha architecture
+
+## Current constraints
+
+Atma Rekha is a browser-first Vite/React application deployed as Cloudflare
+Static Assets. Supabase provides authentication and database APIs; Cloudflare
+Workers provide media and analytics services. There is no separate Express
+server. Supabase Edge Function names and Worker paths are deployed interfaces,
+so they must not be renamed or reorganized without a coordinated deployment.
+
+The older application still has many root-level modules. The refactor is
+incremental: preserve their import contracts while moving one feature at a time.
+Avoid a one-shot rename of every component; that creates unnecessary risk for
+the live reader, membership access, media uploads, and admin operations.
+
+## Source layout
+
+```text
+src/
+  app/
+    routing/              Route parsing, canonical URL rules and navigation lookup
+  config/                 Public browser configuration and Worker origins
+  features/
+    attribution/           Campaign tracking domain and persistence
+    chapters/              Chapter domain rules and retrieval service
+    engagement/            Atma Rekha engagement domain rules and API service
+    membership/            Membership reads and entitlement selection
+    pdlpl/                  PdPL engagement domain rules and service
+  infrastructure/
+    media/                  Atma R2 and PdPL media Worker adapters and URL rules
+    supabase/               Shared browser client, PKCE session and timeout adapter
+  shared/
+    api/                  Versioned Worker API clients and transport policies
+    errors/               Safe UI error messages
+    validation/           Reusable client-side input normalization
+  types/                  Shared environment typings
+docs/
+  ARCHITECTURE.md
+.githooks/
+  pre-commit
+supabase/
+  functions/              Deployed function names are stable API contracts
+  migrations/             Versioned database changes
+```
+
+The root `chapters.js` is a deliberate compatibility facade for existing
+components. New code should import from feature modules; remove the facade only
+after all callers have been migrated and verified.
+
+## Boundaries and data flow
+
+- **UI** owns rendering, local interaction state, loading, empty, and retry
+  states. Components should not embed table names or raw fetch URLs.
+- **Feature services** own chapter/domain mapping and data access for a feature.
+  Return predictable values and throw errors for the caller to handle.
+- **Shared validation** normalizes bounded text before writes. It is not a
+  substitute for validation inside Supabase policies, Edge Functions, or Workers.
+- **Infrastructure adapters** remain at the edge: `src/infrastructure/supabase/client.js`
+  configures the shared Supabase client and timeout behavior. Media upload,
+  download, deletion, URL encoding, and legacy object-key normalization live
+  under `src/infrastructure/media/`; the root `pdlplR2.js` and the existing
+  storage facade keep legacy imports stable while callers migrate. Environment
+  values come from `src/config/publicEnv.js`.
+- **PdPL engagement** maps persisted rows into stable UI summaries in
+  `src/features/pdlpl/`; it does not own rendering or change the existing
+  database schema.
+- **Versioned API clients** own Worker URLs, timeouts, headers, bounded query
+  parameters, and response parsing. Analytics paths are restricted to the
+  existing `/v1/*` contract; do not relocate or rename deployed Worker routes
+  without a coordinated rollout.
+- **Routing** lives under `src/app/routing`; the root `routes.js` file remains
+  a compatibility facade until all imports are deliberately migrated.
+- **Error presentation** uses `toUserMessage` to keep stack traces, SQL details,
+  and internal service URLs out of reader-facing UI. Log diagnostics separately.
+
+## Environment and security
+
+Copy `.env.example` to a local environment file and configure deployment
+variables in the hosting provider. Only public values belong in `VITE_*`
+variables because Vite embeds them in browser assets. Supabase publishable/anon
+keys are not authorization: database access still depends on RLS. Service-role
+keys, Razorpay secrets, SMTP credentials, and Cloudflare API tokens must remain
+in server-side secret storage.
+
+Text inputs must be bounded and validated on both client and server. React's
+normal text rendering should be preferred over injecting user content as HTML.
+Do not use a frontend validator as the sole authorization or abuse-prevention
+control.
+
+## State management
+
+Use component state for transient UI state, and existing authentication/session
+services for cross-page identity. Keep server data fetching in feature services.
+Do not introduce a global state library until there is a demonstrated shared
+state requirement; duplicate remote caches should not be created.
+
+## API compatibility and versioning
+
+The existing Worker APIs already use versioned paths such as `/v1/views`,
+`/v1/view`, and `/v1/admin/analytics`. Preserve those paths and use a new
+version when an incompatible response or authorization contract is required.
+Supabase Edge Function names are also public deployment contracts and should
+remain stable. Database changes should be additive migrations with explicit
+RLS review and rollback planning.
+
+## Quality gates
+
+- `npm run test`: deterministic unit tests using Node's built-in test runner.
+  Current pure-domain tests cover chapter URL resolution, language fallbacks,
+  chapter ordering, rating summaries, validation, error mapping, and analytics
+  client failure modes.
+- `npm run lint`: ESLint checks migrated `src/` modules, the root error boundary,
+  and all root-level React JSX components.
+- `npm run typecheck`: strict TypeScript checks migrated JavaScript service/domain
+  modules and declarations under `src/` (excluding JSX and test files). JSX and
+  legacy root components are covered by ESLint; React component prop types remain
+  a separate migration item.
+- `npm run format:check`: Prettier verifies the migrated/shared modules and
+  architecture configuration files.
+- `npm run check`: existing production regression checks.
+- `npm run build`: sitemap generation plus the Vite production build.
+
+Run `npm run hooks:install` once in a local clone to enable the pre-commit
+quality gate. The CI workflow also runs the quality gate on pull requests.
+
+## Remaining migration work
+
+This is an incremental migration, not a claim that every legacy file is
+already clean. The first feature services, Atma/PdPL media adapters, and PdPL
+engagement rules are now isolated and covered by targeted unit tests. Remaining
+work includes moving admin/community logic and the remaining legacy engagement
+callers feature by feature; extracting UI from large screens only where it
+reduces coupling; adding integration tests against real RLS, subscription,
+Razorpay webhook, and media Worker authorization behavior; and expanding strict
+type checking beyond the current migration boundary. Do not delete compatibility
+facades or change deployed database/API contracts as part of folder-only moves.

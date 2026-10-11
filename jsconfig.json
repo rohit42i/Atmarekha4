@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/app/routing/routeService.js",
+    "src/config/publicEnv.js",
+    "src/features/attribution/attributionDomain.js",
+    "src/features/attribution/attributionService.js",
+    "src/features/auth/adminAuthorizationService.js",
+    "src/features/auth/authService.js",
+    "src/features/chapters/chapterDomain.js",
+    "src/features/chapters/chapterService.js",
+    "src/features/engagement/engagementDomain.js",
+    "src/features/engagement/engagementService.js",
+    "src/features/membership/membershipDomain.js",
+    "src/features/membership/membershipService.js",
+    "src/features/pdlpl/chapterDomain.js",
+    "src/features/pdlpl/chapterService.js",
+    "src/features/pdlpl/engagementDomain.js",
+    "src/features/pdlpl/engagementService.js",
+    "src/infrastructure/media/pdlplMediaDomain.js",
+    "src/infrastructure/media/pdlplStorage.js",
+    "src/infrastructure/media/r2Domain.js",
+    "src/infrastructure/media/r2Storage.js",
+    "src/infrastructure/supabase/client.js",
+    "src/shared/api/analyticsClient.js",
+    "src/shared/errors/toUserMessage.js",
+    "src/shared/validation/formUX.js",
+    "src/shared/validation/input.js",
+    "src/types/vite-env.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

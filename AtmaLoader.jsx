@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 const PARTICLES = [
   [5,28,38,'-1.2s','4.6s'],[20,34,-42,'-.4s','5.2s'],[35,31,52,'-2.8s','4.1s'],[51,37,-30,'-1.7s','5.8s'],

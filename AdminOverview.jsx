@@ -227,10 +227,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     };
   }, [analytics, chapters, comments, pageCounts]);
 
-  const periodLabel = WINDOW_LABELS[windowKey];
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
   const deltaViews = pct(metrics.currentViews, metrics.previousViews);
-  const deltaLikes = pct(metrics.currentLikes, metrics.previousLikes);
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
   const deltaShares = pct(metrics.currentShares, metrics.previousShares);
   const periodUnit = windowKey === 'today' ? 'today' : windowKey === 'week' ? '7d' : windowKey === 'month' ? '30d' : '90d';

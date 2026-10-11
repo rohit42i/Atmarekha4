@@ -8,11 +8,18 @@
     "build": "vite build",
     "preview": "vite preview",
     "prebuild": "node scripts/generate-sitemap.mjs",
-    "check": "node scripts/verify-site.mjs"
+    "check": "node scripts/verify-site.mjs",
+    "test": "node --test",
+    "lint": "npx --yes eslint@10.10.0 src ErrorBoundary.jsx *.jsx",
+    "typecheck": "npx --yes --package=typescript@7.0.2 tsc --project jsconfig.json --pretty false",
+    "format": "npx --yes prettier@3.9.10 --write \"src/config/**/*.js\" \"src/app/**/*.js\" \"src/shared/**/*.js\" \"src/features/**/*.js\" \"src/infrastructure/**/*.js\" \"src/types/**/*.d.ts\" ErrorBoundary.jsx eslint.config.js jsconfig.json .prettierrc.json package.json docs/ARCHITECTURE.md",
+    "format:check": "npx --yes prettier@3.9.10 --check \"src/config/**/*.js\" \"src/app/**/*.js\" \"src/shared/**/*.js\" \"src/features/**/*.js\" \"src/infrastructure/**/*.js\" \"src/types/**/*.d.ts\" ErrorBoundary.jsx eslint.config.js jsconfig.json .prettierrc.json package.json docs/ARCHITECTURE.md",
+    "check:architecture": "node scripts/architecture-check.mjs",
+    "quality:check": "npm run lint && npm run typecheck && npm run format:check && npm run test && npm run check:architecture",
+    "hooks:install": "node scripts/install-git-hooks.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
-    "axios": "^1.20.0",
     "gsap": "^3.12.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -23,5 +30,9 @@
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
     "vite": "^6.4.3"
+  },
+  "overrides": {
+    "postcss-selector-parser": "7.1.6",
+    "source-map-js": "1.2.2"
   }
 }

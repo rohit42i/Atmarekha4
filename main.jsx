@@ -1,3 +1,4 @@
+import ErrorBoundary from './ErrorBoundary.jsx';
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
@@ -20,7 +21,7 @@ const AdminManagementTools = lazy(() => import('./AdminManagementTools.jsx'));
 const AdminProTools = lazy(() => import('./AdminProTools.jsx'));
 const AdminChapterHealth = lazy(() => import('./AdminChapterHealth.jsx'));
 const AdminOperations = lazy(() => import('./AdminOperations.jsx'));
-import ChapterAccessGuard from './ChapterAccessGuard.jsx';
+import ChapterAccessGuard from './src/features/chapters/components/ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import ExperienceEnhancements from './ExperienceEnhancements.jsx';
@@ -77,6 +78,7 @@ installGlobalErrorLogging();
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <ErrorBoundary>
       <AtmaLoader/>
     <App/>
     <UserAuth/>
@@ -102,6 +104,7 @@ createRoot(document.getElementById('root')).render(
       <AdminOperations/>
       </Suspense>
       <SiteRuntime/>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 

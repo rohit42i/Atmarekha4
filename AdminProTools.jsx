@@ -3,7 +3,6 @@ import { fetchAuthenticatedMedia, supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 
-const since = days => new Date(Date.now() - days * 86400000).toISOString();
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const chapterLabel = c => c?.chapter_number == null ? (c?.title || 'Special') : `Chapter ${c.chapter_number}`;
 const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;

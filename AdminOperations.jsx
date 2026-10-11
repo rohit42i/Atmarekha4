@@ -43,7 +43,7 @@ export default function AdminOperations() {
         fetchCloudflareAdminAnalytics(1).catch(() => null),
         supabase.from('chapter_likes').select('id,created_at').gte('created_at', todayStart()),
       ]);
-      for (const result of [chapterResult, archivedResult, logResult, notificationResult, profileResult, viewResult, likeResult]) if (result.error) throw result.error;
+      for (const result of [chapterResult, archivedResult, logResult, notificationResult, profileResult, likeResult]) if (result.error) throw result.error;
       if (statsResult.error) throw statsResult.error;
       setToday({
         views: Number(cloudflareAnalytics?.current_views || 0),
@@ -68,7 +68,6 @@ export default function AdminOperations() {
   useEffect(() => { if (!open) return undefined; const id = window.setInterval(load, 30000); return () => window.clearInterval(id); }, [open]);
 
   const activeChapters = useMemo(() => chapters.filter(chapter => !chapter.deleted_at), [chapters]);
-  const selectedProfile = users.find(user => user.id === selectedUser);
 
   const updateChapter = async (chapter, patch, action, confirmation = null) => {
     if (busy) return;

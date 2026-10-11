@@ -7,9 +7,9 @@ import {
   getPdlplMemberAccess,
   PDLPL_ROUTE,
   published,
-} from './palDoPalKeLamhe';
-import { fetchPdlplMedia } from './pdlplR2';
-import { fetchPdlplPublicEngagement, fetchPdlplChapterEngagement, getPdlplBookmark, togglePdlplBookmark, recordPdlplChapterView, recordPdlplChapterShare, submitPdlplRating, getPdlplReadingProgress, savePdlplReadingProgress } from './pdlplEngagement';
+} from './src/features/pdlpl/chapterService.js';
+import { fetchPdlplMedia } from './src/infrastructure/media/pdlplStorage.js';
+import { fetchPdlplPublicEngagement, fetchPdlplChapterEngagement, getPdlplBookmark, togglePdlplBookmark, recordPdlplChapterView, recordPdlplChapterShare, submitPdlplRating, getPdlplReadingProgress, savePdlplReadingProgress } from './src/features/pdlpl/engagementService.js';
 import { supabase } from './supabase';
 import './pal-do-pal-ke-lamhe.css';
 
@@ -85,7 +85,7 @@ function isPdlplChapterLocked(chapter, member, admin) {
   return Number.isFinite(number) && number > PDPKL_FREE_CHAPTER_LIMIT;
 }
 
-function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
+function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
   const locked = isPdlplChapterLocked(chapter, member, admin);
 

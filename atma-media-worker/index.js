@@ -76,9 +76,11 @@ async function getUser(request, env) {
 async function isAdmin(user, request, env) {
   if (!user?.id || !bearer(request)) return false;
   const rows = await supabaseRows(env, 'admins', {
-    select: 'user_id', user_id: `eq.${user.id}`, limit: '1',
+    select: 'user_id,role', user_id: `eq.${user.id}`, limit: '1',
   }, bearer(request));
-  return Array.isArray(rows) && rows.length > 0;
+  return Array.isArray(rows) && rows.some(row =>
+    ['owner', 'admin'].includes(String(row?.role || '').trim().toLowerCase()),
+  );
 }
 async function hasPaidAtmaMembership(user, request, env) {
   if (!user?.id || !bearer(request)) return false;

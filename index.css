@@ -23,7 +23,7 @@
 .hero-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hero-copy { padding: 58px 54px 54px; }
 .hero-eyebrow, .section-eyebrow, .header-kicker { margin: 0; color: var(--legacy-2f6cf6-e75dfb6a); font-size: 15px; font-weight: 850; letter-spacing: .28em; }
-.hero-copy h1 { margin: 12px 0 0; font-size: clamp(42px, 8vw, 68px); line-height: .98; letter-spacing: -.055em; font-weight: 900; }
+.hero-copy h1, .hero-copy h2 { margin: 12px 0 0; font-size: clamp(42px, 8vw, 68px); line-height: .98; letter-spacing: -.055em; font-weight: 900; }
 .hero-description { max-width: 470px; margin: 18px 0 0; color: var(--legacy-a1a1aa-0030ed12); font-size: 17px; line-height: 1.65; }
 .hero-button, .primary-button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 16px; background: var(--legacy-2f6cf6-e75dfb6a); color: var(--legacy-fff-d14f9016); font-weight: 800; text-decoration: none; box-shadow: 0 12px 30px var(--legacy-rgb-47-108-246-22-303eeb4a); transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
 .hero-button { margin-top: 28px; padding: 0 28px; font-size: 16px; }
@@ -265,7 +265,7 @@
   .hero-card { margin-top: 34px; border-radius: 25px; }
   .hero-art { height: 365px; }
   .hero-copy { padding: 34px 28px 30px; }
-  .hero-copy h1 { font-size: 48px; }
+  .hero-copy h1, .hero-copy h2 { font-size: 48px; }
   .hero-description { font-size: 15px; }
   .home-section { padding: 31px 27px; border-radius: 23px; }
   .section-heading { align-items: flex-start; flex-direction: column; }

@@ -123,12 +123,14 @@ async function isAdmin(user, request, env) {
   if (!authorization || !user?.id) return false;
 
   const rows = await supabaseRows(env, authorization, 'admins', {
-    select: 'user_id',
+    select: 'user_id,role',
     user_id: `eq.${user.id}`,
     limit: '1',
   });
 
-  return Array.isArray(rows) && rows.length > 0;
+  return Array.isArray(rows) && rows.some(row =>
+    ['owner', 'admin'].includes(String(row?.role || '').trim().toLowerCase()),
+  );
 }
 
 async function hasMembership(user, request, env) {

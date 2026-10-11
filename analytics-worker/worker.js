@@ -224,7 +224,7 @@ async function verifyAdmin(request, env) {
   const user = await userResponse.json();
   if (!user?.id) return false;
   const adminResponse = await fetch(
-    `${env.SUPABASE_URL}/rest/v1/admins?select=user_id&user_id=eq.${encodeURIComponent(user.id)}`,
+    `${env.SUPABASE_URL}/rest/v1/admins?select=user_id,role&user_id=eq.${encodeURIComponent(user.id)}`,
     {
       headers: {
         apikey: env.SUPABASE_PUBLISHABLE_KEY,
@@ -234,7 +234,9 @@ async function verifyAdmin(request, env) {
   );
   if (!adminResponse.ok) return false;
   const admins = await adminResponse.json();
-  return Array.isArray(admins) && admins.length > 0;
+  return Array.isArray(admins) && admins.some(row =>
+    ['owner', 'admin'].includes(String(row?.role || '').trim().toLowerCase()),
+  );
 }
 
 async function fetchLegacyRows(env, untilExclusive) {
