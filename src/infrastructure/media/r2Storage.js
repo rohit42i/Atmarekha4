@@ -1,5 +1,6 @@
 import { client } from "../supabase/client.js";
 import { publicEnv } from "../../config/publicEnv.js";
+import { encodePath, normalizeAtmaR2Path } from "./r2Domain.js";
 
 const R2_WORKER_URL = publicEnv.mediaWorkerUrl;
 const R2_BUCKETS = new Set(["chapter-pages", "covers", "community"]);
@@ -8,27 +9,6 @@ const R2_BUCKETS = new Set(["chapter-pages", "covers", "community"]);
 const IMAGE_MIN_SIZE = 2 * 1024 * 1024;
 const IMAGE_MAX_SIZE = 4 * 1024 * 1024;
 const IMAGE_MAX_EDGE = 3200;
-
-/** @param {string} path */
-const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
-
-/** @param {string} bucket @param {string} path */
-function normalizeAtmaR2Path(bucket, path) {
-  let clean = String(path || '').replace(/^\/+/, '');
-  const bucketPrefix = `${bucket}/`;
-  if (clean.toLowerCase().startsWith(bucketPrefix.toLowerCase())) clean = clean.slice(bucketPrefix.length);
-  if (bucket !== 'chapter-pages') return clean;
-  const match = clean.match(/^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
-  if (!match) return clean;
-  return `chapter-pages/${match[1]}/${match[2]}/${match[3]}`;
-}
-
-async function authHeaders() {
-  const { data, error } = await client.auth.getSession();
-  if (error) throw error;
-  if (!data.session?.access_token) throw new Error('Your Supabase session has expired. Please sign in again.');
-  return { Authorization: `Bearer ${data.session.access_token}` };
-}
 
 /**
  * @param {string} url
