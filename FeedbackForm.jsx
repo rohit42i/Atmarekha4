@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { validateEmail, rememberDraft, loadDraft, clearDraft } from './src/shared/validation/formUX.js';
 
@@ -17,12 +17,6 @@ export default function FeedbackForm() {
     return data;
   };
 
-  useEffect(()=>{
-    const online=()=>flushQueue();
-    window.addEventListener('online',online);
-    if(navigator.onLine)flushQueue();
-    return()=>window.removeEventListener('online',online)
-  },[]);
 
   const submit=async event=>{
     event.preventDefault();
