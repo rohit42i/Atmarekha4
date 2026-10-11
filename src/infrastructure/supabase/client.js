@@ -5,6 +5,10 @@ const supabaseUrl = publicEnv.supabaseUrl;
 const supabaseKey = publicEnv.supabasePublishableKey;
 const SUPABASE_REQUEST_TIMEOUT_MS = 15_000;
 
+/**
+ * @param {RequestInfo | URL} input
+ * @param {RequestInit} [init]
+ */
 async function fetchWithTimeout(input, init = {}) {
   if (typeof AbortController === "undefined") return fetch(input, init);
 
