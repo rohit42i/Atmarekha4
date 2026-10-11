@@ -1,14 +1,32 @@
 import { getPdlplMediaUrl } from "../../infrastructure/media/pdlplMediaDomain.js";
 
 /**
+ * @typedef {{
+ *   id: string | number,
+ *   chapter_number?: string | number | null,
+ *   title?: string | null,
+ *   description?: string | null,
+ *   cover_path?: string | null,
+ *   card_thumbnail_desktop_path?: string | null,
+ *   card_thumbnail_mobile_path?: string | null,
+ *   language?: string | null,
+ *   status?: string | null,
+ *   release_date?: string | null,
+ *   created_at?: string | null
+ * }} PdlplChapterRow
+ */
+
+/**
  * PdPL chapter mapping is deliberately separate from queries and session state.
  * This lets tests cover the fields consumed by the reader and admin UI.
  */
 
+/** @param {{ status?: unknown } | null | undefined} chapter */
 export function published(chapter) {
   return String(chapter?.status || '').trim().toLowerCase() === 'published';
 }
 
+/** @param {PdlplChapterRow} row */
 export function mapPdlplChapter(row) {
   return {
     id: row.id,
@@ -29,6 +47,7 @@ export function mapPdlplChapter(row) {
 }
 
 
+/** @param {unknown} planId */
 export function isPdlplMemberPlan(planId) {
   return ["supporter", "premium"].includes(
     String(planId ?? "").trim().toLowerCase(),
