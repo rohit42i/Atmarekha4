@@ -152,4 +152,3 @@ export function chapterLanguageUrl(chapter, language) {
   return SITE_ORIGIN + chapterPath({ ...chapter, language });
 }
 
-export { SITE_ORIGIN };
