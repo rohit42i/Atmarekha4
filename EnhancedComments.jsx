@@ -111,7 +111,7 @@ export default function EnhancedComments() {
   const top=useMemo(
   ()=>sortCommentFeed(comments.filter(c=>!c.parent_comment_id),membershipPlans,likes.counts,profilesById),
   [comments,membershipPlans,likes.counts,profilesById]
-); const child=useMemo(()=>comments.filter(c=>c.parent_comment_id),[comments]); const profile=id=>profiles[id]||null;
+); const child=useMemo(()=>comments.filter(c=>c.parent_comment_id),[comments]);
   const goProfile=id=>{if(!id)return;setPreview(null);setOpen(false);window.requestAnimationFrame(()=>{window.location.hash=`public-profile/${encodeURIComponent(id)}`})};
   const ensureAuth=()=>{if(user)return true;setError('Please log in to do this action.');return false};
   const post=async event=>{event.preventDefault();if(!ensureAuth()||busy)return;const clean=text.trim();if(!clean)return;setBusy(true);setError('');try{const row=source==='pdlpl'?await addPdlplComment({chapterId,content:clean,parentCommentId:replyTo}):await addComment({chapterId: chapterId || null, announcementId: announcementId || null, content:clean,parentCommentId:replyTo});setComments(p=>[...p,row]);setText('');setReplyTo(null)}catch(e){setError(friendlyError(e,'We couldn’t post your comment. Please try again.'))}finally{setBusy(false)}};
