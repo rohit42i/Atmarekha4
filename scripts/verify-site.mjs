@@ -14,7 +14,7 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
-  ['routes.js', 'window.location.search'],
+  ['src/app/routing/routeService.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
   ['scripts/generate-sitemap.mjs', 'xmlns:image'],
