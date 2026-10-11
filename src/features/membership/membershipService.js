@@ -11,9 +11,7 @@ const PUBLIC_BADGE_PLANS = new Set(["mini_member", "supporter", "premium"]);
  * @param {unknown[]} userIds
  */
 export async function getPublicReaderTiers(userIds = []) {
-  const ids = [
-    ...new Set((Array.isArray(userIds) ? userIds : []).filter(Boolean)),
-  ]
+  const ids = [...new Set((Array.isArray(userIds) ? userIds : []).filter(Boolean))]
     .map(String)
     .slice(0, 50);
 
@@ -27,9 +25,7 @@ export async function getPublicReaderTiers(userIds = []) {
 
   return new Map(
     (data || [])
-      .filter(
-        (row) => row?.id && PUBLIC_BADGE_PLANS.has(String(row.public_badge)),
-      )
+      .filter((row) => row?.id && PUBLIC_BADGE_PLANS.has(String(row.public_badge)))
       .map((row) => [row.id, row.public_badge]),
   );
 }
@@ -40,9 +36,7 @@ export async function getPublicReaderTiers(userIds = []) {
  * @param {unknown[]} userIds
  */
 export async function getCurrentMemberships(userIds = []) {
-  const ids = [
-    ...new Set((Array.isArray(userIds) ? userIds : []).filter(Boolean)),
-  ]
+  const ids = [...new Set((Array.isArray(userIds) ? userIds : []).filter(Boolean))]
     .map(String)
     .slice(0, MEMBERSHIP_QUERY_LIMIT);
 

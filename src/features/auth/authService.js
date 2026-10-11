@@ -1,4 +1,8 @@
-import { client, supabaseUrl, supabaseKey } from "../../infrastructure/supabase/client.js";
+import {
+  client,
+  supabaseUrl,
+  supabaseKey,
+} from "../../infrastructure/supabase/client.js";
 
 /**
  * Preserve auth codes alongside a short UI-safe message so login screens can
@@ -47,8 +51,7 @@ export async function secureSignInWithPassword(email, password) {
         ? "Sign-in service is temporarily unavailable."
         : error.message);
     const code = String(payload?.code || "INVALID_LOGIN");
-    const status =
-      code === "ACCOUNT_LOCKED" ? 429 : Number(error.status || 401);
+    const status = code === "ACCOUNT_LOCKED" ? 429 : Number(error.status || 401);
 
     throw createAuthError(
       providerMessage || "Invalid email or password.",

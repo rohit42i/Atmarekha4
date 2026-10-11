@@ -399,16 +399,14 @@ export async function unlikeComment(commentId) {
 }
 
 export async function reportComment(commentId, reason = "Reported by reader") {
-  const { error } = await supabase
-    .from("comment_reports")
-    .upsert(
-      {
-        comment_id: commentId,
-        viewer_key: getViewerKey(),
-        reason: normalizePlainText(reason, { maxLength: 500 }),
-      },
-      { onConflict: "comment_id,viewer_key", ignoreDuplicates: true },
-    );
+  const { error } = await supabase.from("comment_reports").upsert(
+    {
+      comment_id: commentId,
+      viewer_key: getViewerKey(),
+      reason: normalizePlainText(reason, { maxLength: 500 }),
+    },
+    { onConflict: "comment_id,viewer_key", ignoreDuplicates: true },
+  );
   if (error) throw error;
 }
 

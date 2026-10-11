@@ -33,8 +33,12 @@ export function selectEffectiveMemberships(rows = [], now = Date.now()) {
 
   for (const row of list) {
     const userId = String(row?.user_id ?? "").trim();
-    const planId = String(row?.plan_id ?? "").trim().toLowerCase();
-    const status = String(row?.status ?? "").trim().toLowerCase();
+    const planId = String(row?.plan_id ?? "")
+      .trim()
+      .toLowerCase();
+    const status = String(row?.status ?? "")
+      .trim()
+      .toLowerCase();
     if (!userId || !planId) continue;
 
     const rawEnd = row?.current_period_end;
@@ -48,7 +52,7 @@ export function selectEffectiveMemberships(rows = [], now = Date.now()) {
 
     const existingPlan = selected.get(userId);
     const candidateRank = PLAN_PRIORITY[planId] ?? 0;
-    const existingRank = PLAN_PRIORITY[existingPlan?.planId ?? ''] ?? -1;
+    const existingRank = PLAN_PRIORITY[existingPlan?.planId ?? ""] ?? -1;
     const candidateStatusRank = status === "active" ? 1 : 0;
     const existingStatusRank = existingPlan?.status === "active" ? 1 : 0;
     const candidateEnd = end ?? Number.POSITIVE_INFINITY;
@@ -57,8 +61,7 @@ export function selectEffectiveMemberships(rows = [], now = Date.now()) {
     const candidateWins =
       !existingPlan ||
       candidateRank > existingRank ||
-      (candidateRank === existingRank &&
-        candidateStatusRank > existingStatusRank) ||
+      (candidateRank === existingRank && candidateStatusRank > existingStatusRank) ||
       (candidateRank === existingRank &&
         candidateStatusRank === existingStatusRank &&
         candidateEnd > existingEnd);
@@ -68,11 +71,8 @@ export function selectEffectiveMemberships(rows = [], now = Date.now()) {
     }
   }
 
-  return new Map(
-    [...selected.entries()].map(([userId, row]) => [userId, row.planId]),
-  );
+  return new Map([...selected.entries()].map(([userId, row]) => [userId, row.planId]));
 }
-
 
 const ATMA_MEMBER_PLAN_IDS = new Set(["mini_member", "supporter", "premium"]);
 
@@ -84,8 +84,7 @@ const ATMA_MEMBER_PLAN_IDS = new Set(["mini_member", "supporter", "premium"]);
  */
 export function requiresAtmaMembership(chapter) {
   const raw = chapter?.chapterNumber ?? chapter?.chapter_number;
-  const number =
-    raw === null || raw === undefined || raw === "" ? null : Number(raw);
+  const number = raw === null || raw === undefined || raw === "" ? null : Number(raw);
 
   return number !== null && Number.isFinite(number) && number > 8;
 }
@@ -98,8 +97,12 @@ export function requiresAtmaMembership(chapter) {
  * @param {unknown} role
  */
 export function hasAtmaMembershipAccess(planId, role) {
-  const normalizedPlan = String(planId ?? "").trim().toLowerCase();
-  const normalizedRole = String(role ?? "").trim().toLowerCase();
+  const normalizedPlan = String(planId ?? "")
+    .trim()
+    .toLowerCase();
+  const normalizedRole = String(role ?? "")
+    .trim()
+    .toLowerCase();
 
   return (
     ATMA_MEMBER_PLAN_IDS.has(normalizedPlan) ||

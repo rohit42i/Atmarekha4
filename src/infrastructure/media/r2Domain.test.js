@@ -5,7 +5,10 @@ import { encodePath, normalizeAtmaR2Path } from "./r2Domain.js";
 const chapterId = "12345678-1234-1234-1234-123456789abc";
 
 test("encodes each object path segment independently", () => {
-  assert.equal(encodePath("chapter pages/page 1.webp"), "chapter%20pages/page%201.webp");
+  assert.equal(
+    encodePath("chapter pages/page 1.webp"),
+    "chapter%20pages/page%201.webp",
+  );
 });
 
 test("normalizes legacy chapter-page upload paths into canonical keys", () => {

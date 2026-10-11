@@ -24,9 +24,7 @@ export function normalizeAtmaR2Path(bucket, path) {
   }
   if (bucket !== "chapter-pages") return clean;
 
-  const match = clean.match(
-    /^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i,
-  );
+  const match = clean.match(/^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
   if (!match) return clean;
 
   return `chapter-pages/${match[1]}/${match[2]}/${match[3]}`;
