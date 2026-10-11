@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { supabase, getCurrentMembership } from './supabase';
-import { formatChapterLabel } from './chapters';
-import { findChapterForPath, isChapterPath, legacyChapterIdFromHash } from './routes';
-
-const FREE_CHAPTER_LIMIT = 8;
-const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
-const isMember = planId => MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase());
+import { supabase, getCurrentMembership } from "./supabase";
+import { formatChapterLabel } from "./chapters";
+import {
+  findChapterForPath,
+  isChapterPath,
+  legacyChapterIdFromHash,
+} from "./routes";
+import { getAdminRole } from "./adminAuth";
+import {
+  hasAtmaMembershipAccess,
+  requiresAtmaMembership,
+} from "./src/features/membership/membershipDomain.js";
 
 function isLockedChapter(chapter, member) {
-  if (!chapter || member) return false;
-  const raw = chapter.chapter_number ?? chapter.chapterNumber;
-  if (raw === null || raw === undefined || raw === '') return false; // NULL/special = free
-  const number = Number(raw);
-  return Number.isFinite(number) && number > FREE_CHAPTER_LIMIT;
+  return Boolean(chapter && !member && requiresAtmaMembership(chapter));
 }
 
 export default function ChapterAccessGuard() {
@@ -25,21 +26,52 @@ export default function ChapterAccessGuard() {
   useEffect(() => {
     let cancelled = false;
     let authSubscription;
-    const loadAccess = async user => {
-      if (!user) { if (!cancelled) setMember(false); return; }
-      try { const planId = await getCurrentMembership(user.id); if (!cancelled) setMember(isMember(planId)); }
-      catch { if (!cancelled) setMember(false); }
+    const loadAccess = async (user) => {
+      if (!user) {
+        if (!cancelled) setMember(false);
+        return;
+      }
+
+      try {
+        const [planId, role] = await Promise.all([
+          getCurrentMembership(user.id),
+          getAdminRole(user.id),
+        ]);
+        if (!cancelled) setMember(hasAtmaMembershipAccess(planId, role));
+      } catch (error) {
+        console.error("Chapter access lookup failed.", error);
+        if (!cancelled) setMember(false);
+      }
     };
+
     const init = async () => {
-      const [{ data: chapterRows, error: chapterError }, { data: sessionData }] = await Promise.all([
-        supabase.from('chapters').select('id,chapter_number,title,status').order('chapter_number', { ascending: true, nullsFirst: false }),
-        supabase.auth.getSession()
-      ]);
-      if (cancelled) return;
-      if (chapterError) console.error('Chapter access load failed:', chapterError);
-      setChapters(chapterRows || []);
-      await loadAccess(sessionData?.session?.user || null);
-      if (!cancelled) setReady(true);
+      try {
+        const [
+          { data: chapterRows, error: chapterError },
+          { data: sessionData, error: sessionError },
+        ] = await Promise.all([
+          supabase
+            .from("chapters")
+            .select("id,chapter_number,title,status")
+            .order("chapter_number", { ascending: true, nullsFirst: false }),
+          supabase.auth.getSession(),
+        ]);
+
+        if (cancelled) return;
+        if (chapterError) throw chapterError;
+        if (sessionError) throw sessionError;
+
+        setChapters(chapterRows || []);
+        await loadAccess(sessionData?.session?.user || null);
+      } catch (error) {
+        console.error("Chapter access initialization failed.", error);
+        if (!cancelled) {
+          setChapters([]);
+          setMember(false);
+        }
+      } finally {
+        if (!cancelled) setReady(true);
+      }
     };
     init();
     const listener = supabase.auth.onAuthStateChange((_event, session) => loadAccess(session?.user || null));
