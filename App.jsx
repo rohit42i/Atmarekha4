@@ -16,6 +16,7 @@ import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx
 import ContinueReading from './ContinueReading.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './src/features/attribution/attributionService.js';
+import { publicEnv } from './src/config/publicEnv.js';
 import MorePage from './MorePage.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
@@ -40,7 +41,7 @@ async function canReadAtmaChapter(chapter) {
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
 const STORY = { title: 'Atma Rekha', description: 'Is An Adventure Manga/comic Where Traditions And Powers Become A Part Of An Unfolding Story' };
-const SITE_URL = 'https://www.atmarekha.in';
+const SITE_URL = publicEnv.siteUrl;
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, ancient traditions, and mysterious powers.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
