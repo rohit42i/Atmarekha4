@@ -3,11 +3,7 @@ import {
   supabaseUrl,
   supabaseKey,
 } from "./src/infrastructure/supabase/client.js";
-import {
-  cloudflareR2,
-  fetchAuthenticatedMedia,
-  fetchAuthenticatedMediaBlobUrl,
-} from "./src/infrastructure/media/r2Storage.js";
+import { cloudflareR2 } from "./src/infrastructure/media/r2Storage.js";
 
 const CHAPTER_PAGES_TABLE = "chapter_pages";
 
