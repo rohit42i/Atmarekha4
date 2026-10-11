@@ -14,24 +14,9 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/config/publicEnv.js",
-    "src/features/chapters/chapterDomain.js",
-    "src/shared/errors/toUserMessage.js",
-    "src/shared/validation/input.js",
-    "src/types/vite-env.d.ts",
-    "src/features/engagement/engagementDomain.js",
-    "src/app/routing/routeService.js",
-    "src/shared/api/analyticsClient.js",
-    "src/features/attribution/attributionDomain.js",
-    "src/features/membership/membershipDomain.js",
-    "src/infrastructure/supabase/client.js",
-    "src/features/membership/membershipService.js",
-    "src/infrastructure/media/r2Storage.js",
-    "src/infrastructure/media/r2Domain.js",
-    "src/features/auth/authService.js",
-    "src/infrastructure/media/pdlplMediaDomain.js",
-    "src/features/pdlpl/engagementDomain.js",
-    "src/features/pdlpl/chapterDomain.js"
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "ErrorBoundary.jsx"
   ],
   "exclude": [
     "node_modules",
