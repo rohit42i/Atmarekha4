@@ -1,3 +1,4 @@
+/** @type {Record<string, number>} */
 const PLAN_PRIORITY = Object.freeze({
   premium: 3,
   supporter: 2,
@@ -25,6 +26,7 @@ const PLAN_PRIORITY = Object.freeze({
  * @returns {Map<string, string>}
  */
 export function selectEffectiveMemberships(rows = [], now = Date.now()) {
+  /** @type {Map<string, { planId: string, status: string, end: number | null }>} */
   const selected = new Map();
   const list = Array.isArray(rows) ? rows : [];
 
