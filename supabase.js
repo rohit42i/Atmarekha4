@@ -175,30 +175,6 @@ function chapterPagesTable() {
   });
 }
 
-export async function getPublicReaderTiers(userIds = []) {
-  const ids = [...new Set((userIds || []).filter(Boolean))].slice(0, 50); if (!ids.length) return new Map();
-  const { data, error } = await client.from('profiles').select('id,public_badge').in('id', ids); if (error) throw error;
-  return new Map((data || []).filter(row => row?.id && ['mini_member','supporter','premium'].includes(row.public_badge)).map(row => [row.id, row.public_badge]));
-}
-
-/** Reads only rows allowed by user_subscriptions RLS; no privileged RPC is used. */
-export async function getCurrentMemberships(userIds = []) {
-  const ids = [...new Set((userIds || []).filter(Boolean))]; if (!ids.length) return new Map();
-  const { data, error } = await client.from('user_subscriptions').select('user_id,plan_id,status,current_period_end').in('user_id', ids).in('status', ['active', 'cancelled']);
-  if (error) throw error;
-  const now = Date.now();
-  const rows = (data || []).filter(row => {
-    const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
-    if (row.status === 'active') return end === null || end > now;
-    return row.status === 'cancelled' && end !== null && end > now;
-  }).sort((a, b) => { const rank = id => ({ premium: 3, supporter: 2, mini_member: 1, free: 0 }[id] || 0); return rank(b.plan_id) - rank(a.plan_id); });
-  return new Map(rows.filter(row => row?.user_id && row?.plan_id).map(row => [row.user_id, row.plan_id]));
-}
-
-export async function getCurrentMembership(userId) { if (!userId) return null; return (await getCurrentMemberships([userId])).get(userId) || null; }
-export async function getCurrentlySubscribedUserIds(userIds = []) { return new Set((await getCurrentMemberships(userIds)).keys()); }
-export async function isCurrentlySubscribed(userId) { return Boolean(await getCurrentMembership(userId)); }
-
 function promiseCompatibleRpc(builder) {
   if (!builder || typeof builder !== 'object') return builder;
   return new Proxy(builder, {
@@ -279,3 +255,11 @@ export async function secureSignInWithPassword(email, password) {
   return { data: sessionData, error: null };
 }
 
+
+export {
+  getPublicReaderTiers,
+  getCurrentMemberships,
+  getCurrentMembership,
+  getCurrentlySubscribedUserIds,
+  isCurrentlySubscribed,
+} from "./src/features/membership/membershipService.js";
