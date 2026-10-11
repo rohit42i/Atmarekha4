@@ -1,5 +1,5 @@
 import { supabase } from "../../../supabase";
-import { PDLPL_MEDIA_WORKER_URL, getPdlplMediaUrl } from "./pdlplMediaDomain.js";
+import { PDLPL_MEDIA_WORKER_URL } from "./pdlplMediaDomain.js";
 
 export { PDLPL_MEDIA_WORKER_URL, getPdlplMediaUrl } from "./pdlplMediaDomain.js";
 
@@ -54,17 +54,6 @@ function parseError(body, status) {
   }
 }
 
-function createMediaError(path, response, body) {
-  const parsed = parseError(body, response.status);
-  const error = new Error(parsed.message);
-  error.status = response.status;
-  error.statusText = response.statusText || '';
-  error.path = path;
-  error.url = response.url;
-  error.responseBody = body || '';
-  error.payload = parsed.payload;
-  return error;
-}
 
 async function request(path, options = {}, retried = false) {
   const method = String(options.method || 'GET').toUpperCase();
