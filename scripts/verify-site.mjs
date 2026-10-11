@@ -8,7 +8,7 @@ const required = [
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
   ['scripts/generate-sitemap.mjs', "chapterGroupKey"],
-  ['UserAuth.jsx', "from './formUX.js'"],
+  ['UserAuth.jsx', "from './src/shared/validation/formUX.js'"],
   ['ChapterDiscovery.jsx', '<div className="chapter-discovery">'],
   ['index.html', '<link rel="canonical" href="https://www.atmarekha.in/" />'],
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
