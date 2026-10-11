@@ -190,7 +190,7 @@ export function chapterCanonicalUrl(chapter) {
   return SITE_ORIGIN + chapterPath(chapter);
 }
 
-/** @param {ChapterRouteModel | null | undefined} chapter @param {unknown} language */
+/** @param {ChapterRouteModel | null | undefined} chapter @param {string | null | undefined} language */
 export function chapterLanguageUrl(chapter, language) {
   if (!chapter?.id) return SITE_ORIGIN + "/chapters";
   return SITE_ORIGIN + chapterPath({ ...chapter, language });
