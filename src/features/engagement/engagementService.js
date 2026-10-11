@@ -1,10 +1,14 @@
 import { supabase } from "../../../supabase";
 import { normalizePlainText } from "../../shared/validation/input.js";
+import {
+  fetchAdminAnalytics,
+  fetchAnalyticsViews,
+  requestAnalytics,
+} from "../../shared/api/analyticsClient.js";
 
 export { buildRatingSummary } from "./engagementDomain.js";
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
-const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
 const VIEW_RECORDED_STORAGE = 'atma-rekha-view-recorded-v2';
 
 function viewRecordKey(chapterId) {
@@ -21,48 +25,16 @@ function markViewRecorded(chapterId) {
   try { window.localStorage.setItem(viewRecordKey(chapterId), '1'); } catch (_) {}
 }
 
-async function analyticsRequest(path, options = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
-  try {
-    const response = await fetch(`${ANALYTICS_WORKER_URL}${path}`, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...(options.headers || {}),
-      },
-    });
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new Error(body || `Analytics request failed (${response.status}).`);
-    }
-    return response.json();
-  } catch (error) {
-    if (error?.name === 'AbortError') throw new Error('Analytics request timed out. Please try again.');
-    throw error;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 export async function fetchCloudflareViews(chapterIds = []) {
-  const ids = [...new Set((chapterIds || []).filter(Boolean))].slice(0, 100);
-  if (!ids.length) return {};
-  return analyticsRequest(`/v1/views?chapterIds=${encodeURIComponent(ids.join(','))}`);
+  return fetchAnalyticsViews(chapterIds);
 }
 
 export async function fetchCloudflareAdminAnalytics(days = 30) {
-  const value = Number(days);
-  if (![1, 7, 30, 90].includes(value)) throw new Error('Analytics period must be 1, 7, 30 or 90 days.');
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) throw sessionError;
   const token = sessionData?.session?.access_token;
-  if (!token) throw new Error('Admin session required.');
-  return analyticsRequest(`/v1/admin/analytics?days=${value}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  if (!token) throw new Error("Admin session required.");
+  return fetchAdminAnalytics(days, token);
 }
 
 export function getViewerKey() {
@@ -296,7 +268,7 @@ export async function recordChapterView(chapterId) {
   if (wasViewRecorded(chapterId)) return { recorded: false, duplicate: true };
   const viewerKey = getViewerKey();
   try {
-    await analyticsRequest('/v1/view', {
+    await requestAnalytics('/v1/view', {
       method: 'POST',
       body: JSON.stringify({ chapterId, viewerKey }),
     });
