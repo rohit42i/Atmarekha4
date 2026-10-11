@@ -13,8 +13,8 @@ import {
 const chapters = [
   { id: "chapter-two-hi", chapterNumber: 2, language: "hi", title: "Dhoop" },
   { id: "chapter-two-en", chapterNumber: 2, language: "en", title: "Sunlight" },
-  { id: "special-12345678", chapterNumber: null, language: "hi", title: "First Dream" },
-  { id: "special-en-12345678", chapterNumber: null, language: "en", title: "First Dream" },
+  { id: "12345678-special", chapterNumber: null, language: "hi", title: "First Dream" },
+  { id: "abcdef12-special-en", chapterNumber: null, language: "en", title: "First Dream" },
 ];
 
 test("builds stable language-aware chapter URLs", () => {
@@ -22,7 +22,7 @@ test("builds stable language-aware chapter URLs", () => {
   assert.equal(chapterPath(chapters[1]), "/chapter/2?lang=en");
   assert.equal(
     chapterPath(chapters[2]),
-    "/chapter/special/first-dream-special",
+    "/chapter/special/first-dream-12345678",
   );
 });
 
@@ -48,11 +48,11 @@ test("resolves numbered chapter by requested language then Hindi fallback", () =
 test("resolves special chapters using slug and short ID suffix", () => {
   assert.equal(
     findChapterForPath("/chapter/special/first-dream-12345678", chapters)?.id,
-    "special-12345678",
+    "12345678-special",
   );
   assert.equal(
-    findChapterForPath("/chapter/special/first-dream-special-en-12345678?lang=en", chapters)?.id,
-    "special-en-12345678",
+    findChapterForPath("/chapter/special/first-dream-abcdef12?lang=en", chapters)?.id,
+    "abcdef12-special-en",
   );
 });
 
