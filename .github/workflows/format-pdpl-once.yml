@@ -1,0 +1,40 @@
+name: One-time PdPL formatter
+
+on:
+  push:
+    branches:
+      - refactor/production-architecture
+
+permissions:
+  contents: write
+
+jobs:
+  format-pdpl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Format PdPL media module and remove this temporary workflow
+        run: |
+          npx --yes prettier@3.9.10 --write src/infrastructure/media/pdlplStorage.js
+          rm .github/workflows/format-pdpl-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/infrastructure/media/pdlplStorage.js .github/workflows/format-pdpl-once.yml
+          if git diff --cached --quiet; then
+            echo "No formatting changes were needed."
+            exit 0
+          fi
+          git commit -m "style: format PdPL media storage adapter"
+          git push origin HEAD
