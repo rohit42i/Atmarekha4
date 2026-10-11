@@ -1,7 +1,8 @@
 /**
- * Pure helpers for translating application storage paths into the Worker
- * object's canonical key format. Kept separate so legacy path shapes can be
- * verified without issuing a request to the media Worker.
+ * Pure helpers for translating application storage paths into the Worker's
+ * canonical object-key format. These functions must be idempotent because
+ * admin uploads and deletion paths can arrive in either canonical or legacy
+ * form.
  */
 
 /** @param {string} path */
@@ -16,16 +17,51 @@ export const encodePath = (path) =>
  * @param {string} path
  */
 export function normalizeAtmaR2Path(bucket, path) {
-  let clean = String(path || "").replace(/^\/+/, "");
-  const bucketPrefix = `${bucket}/`;
+  let clean = String(path || "").replace(/^\\/+/, "");
+  const prefix = `${bucket}/`;
 
-  if (clean.toLowerCase().startsWith(bucketPrefix.toLowerCase())) {
-    clean = clean.slice(bucketPrefix.length);
+  if (bucket !== "chapter-pages") {
+    // The Atma Worker uses one R2 bucket and validates these namespaces in the
+    // object key. Preserve an explicit namespace or add it for bucket-relative
+    // paths such as those recovered from a URL.
+    return clean.toLowerCase().startsWith(prefix.toLowerCase())
+      ? clean
+      : `${prefix}${clean}`;
   }
-  if (bucket !== "chapter-pages") return clean;
 
-  const match = clean.match(/^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
-  if (!match) return clean;
+  // Already-canonical chapter page keys must survive a second normalization.
+  if (
+    new RegExp(
+      `^chapter-pages/${UUID_PATTERN}/[^/]+/[^/]+$`,
+      "i",
+    ).test(clean)
+  ) {
+    return clean;
+  }
 
-  return `chapter-pages/${match[1]}/${match[2]}/${match[3]}`;
+  // Older database rows can contain the bucket namespace around the previous
+  // layout, so strip it only when it is not already canonical.
+  if (clean.toLowerCase().startsWith(prefix.toLowerCase())) {
+    clean = clean.slice(prefix.length);
+  }
+
+  const legacy = clean.match(
+    /^chapters\\/([0-9a-f-]{36})\\/pages\\/[^/]+-(\\d+)\\/(.+)$/i,
+  );
+  if (legacy) {
+    return `chapter-pages/${legacy[1]}/${legacy[2]}/${legacy[3]}`;
+  }
+
+  // pathFromUrl() returns the part after "chapter-pages/" for object cleanup.
+  const canonicalSuffix = clean.match(/^([0-9a-f-]{36})\\/[^/]+\\/[^/]+$/i);
+  if (canonicalSuffix) return `chapter-pages/${clean}`;
+
+  // Keep the worker's supported legacy replacement keys intact.
+  if (/^[0-9a-f-]{36}\\/replacements\\/[^/]+$/i.test(clean)) return clean;
+
+  // Do not guess the meaning of older, unrecognized key shapes.
+  return clean;
 }
+
+/** Pattern shared with the protected-page namespace handled by the Worker. */
+const UUID_PATTERN = "[0-9a-f-]{36}";
