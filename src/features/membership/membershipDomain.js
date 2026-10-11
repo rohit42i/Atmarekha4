@@ -13,6 +13,7 @@ const PLAN_PRIORITY = Object.freeze({
  *   status?: unknown,
  *   current_period_end?: unknown
  * }} SubscriptionRow
+ * @typedef {{ chapterNumber?: unknown, chapter_number?: unknown }} AtmaChapterAccessModel
  */
 
 /**
@@ -69,5 +70,40 @@ export function selectEffectiveMemberships(rows = [], now = Date.now()) {
 
   return new Map(
     [...selected.entries()].map(([userId, row]) => [userId, row.planId]),
+  );
+}
+
+
+const ATMA_MEMBER_PLAN_IDS = new Set(["mini_member", "supporter", "premium"]);
+
+/**
+ * Chapter numbers through eight, special chapters, and malformed/missing
+ * numbers retain their existing public access behavior.
+ *
+ * @param {AtmaChapterAccessModel | null | undefined} chapter
+ */
+export function requiresAtmaMembership(chapter) {
+  const raw = chapter?.chapterNumber ?? chapter?.chapter_number;
+  const number =
+    raw === null || raw === undefined || raw === "" ? null : Number(raw);
+
+  return number !== null && Number.isFinite(number) && number > 8;
+}
+
+/**
+ * This is a client-side UI decision only. Protected rows and media must still
+ * be guarded by server-side RLS/Worker authorization.
+ *
+ * @param {unknown} planId
+ * @param {unknown} role
+ */
+export function hasAtmaMembershipAccess(planId, role) {
+  const normalizedPlan = String(planId ?? "").trim().toLowerCase();
+  const normalizedRole = String(role ?? "").trim().toLowerCase();
+
+  return (
+    ATMA_MEMBER_PLAN_IDS.has(normalizedPlan) ||
+    normalizedRole === "owner" ||
+    normalizedRole === "admin"
   );
 }
