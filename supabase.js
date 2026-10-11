@@ -1,8 +1,4 @@
-import {
-  client,
-  supabaseUrl,
-  supabaseKey,
-} from "./src/infrastructure/supabase/client.js";
+import { client } from "./src/infrastructure/supabase/client.js";
 import { cloudflareR2 } from "./src/infrastructure/media/r2Storage.js";
 
 const CHAPTER_PAGES_TABLE = "chapter_pages";
@@ -73,58 +69,6 @@ export const supabase = new Proxy(client, {
   },
 });
 
-export async function secureSignInWithPassword(email, password) {
-  const normalizedEmail = String(email || '').trim();
-  const value = String(password || '');
-
-  if (!normalizedEmail || !value) {
-    throw Object.assign(new Error('Invalid email or password.'), {
-      code: 'INVALID_LOGIN',
-      status: 401,
-    });
-  }
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Sign-in service is temporarily unavailable.');
-  }
-
-  const { data, error } = await client.functions.invoke('secure-password-login', {
-    body: { email: normalizedEmail, password: value },
-  });
-
-  if (error) {
-    let payload = null;
-    try {
-      if (error.context?.clone) {
-        const clone = error.context.clone();
-        payload = await clone.json();
-      } else if (typeof error.context?.json === 'function') {
-        payload = await error.context.json();
-      }
-    } catch (_) {}
-
-    const message = payload?.error || (error.message === 'Failed to send a request to the Edge Function' ? 'Sign-in service is temporarily unavailable.' : error.message);
-    const authError = new Error(message || 'Invalid email or password.');
-    authError.code = payload?.code || 'INVALID_LOGIN';
-    authError.status = payload?.code === 'ACCOUNT_LOCKED' ? 429 : (error.status || 401);
-    authError.lockedUntil = payload?.locked_until || null;
-    throw authError;
-  }
-
-  if (!data?.ok || !data?.session?.access_token || !data?.session?.refresh_token) {
-    const authError = new Error(data?.error || 'Invalid email or password.');
-    authError.code = data?.code || 'INVALID_LOGIN';
-    authError.status = data?.code === 'ACCOUNT_LOCKED' ? 429 : 401;
-    authError.lockedUntil = data?.locked_until || null;
-    throw authError;
-  }
-
-  const { data: sessionData, error: sessionError } = await client.auth.setSession({
-    access_token: data.session.access_token,
-    refresh_token: data.session.refresh_token,
-  });
-  if (sessionError) throw sessionError;
-  return { data: sessionData, error: null };
-}
 
 
 export {
@@ -140,3 +84,5 @@ export {
   fetchAuthenticatedMedia,
   fetchAuthenticatedMediaBlobUrl,
 } from "./src/infrastructure/media/r2Storage.js";
+
+export { secureSignInWithPassword } from "./src/features/auth/authService.js";
