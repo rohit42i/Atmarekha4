@@ -19,7 +19,7 @@ const ADMIN_TITLES = new Map([
   ['a51232cb-9d30-4566-93dd-4e9fe8f8a663', 'Owner'],
 ]);
 const MEMBERSHIP_PRIORITY = { premium: 3, supporter: 2, mini_member: 1 };
-const isAdminComment = (comment, profilesById = new Map()) => {
+const isAdminComment = comment => {
   return ADMIN_USER_IDS.has(comment?.user_id);
 };
 const membershipRank = plan => MEMBERSHIP_PRIORITY[String(plan || '').toLowerCase()] || 0;
@@ -29,12 +29,12 @@ const planLabel = plan => {
   if (key === 'mini_member') return 'Member';
   return '';
 };
-const sortCommentFeed = (rows, membershipPlans, likeCounts = {}, profilesById = new Map()) => {
+const sortCommentFeed = (rows, membershipPlans, likeCounts = {}) => {
   const enriched = rows.map((comment, index) => ({
     comment,
     likes: Number(likeCounts?.[comment.id]) || 0,
     membership: membershipRank(membershipPlans.get(comment.user_id)),
-    admin: isAdminComment(comment, profilesById),
+    admin: isAdminComment(comment),
     index,
   }));
   const byLikes = [...enriched].sort((a, b) => (
@@ -58,8 +58,8 @@ const sortCommentFeed = (rows, membershipPlans, likeCounts = {}, profilesById = 
     ));
   const ordered = [...featured, ...priority];
   return ordered.sort((a, b) => {
-    const aa = isAdminComment(a.comment, profilesById);
-    const bb = isAdminComment(b.comment, profilesById);
+    const aa = isAdminComment(a.comment);
+    const bb = isAdminComment(b.comment);
     return Number(bb) - Number(aa);
   }).map(item => item.comment);
 };
@@ -106,9 +106,8 @@ export default function EnhancedComments() {
   const load=async()=>{if(!chapterId&&!announcementId)return;setLoading(true);setError('');try{const rows=announcementId?await fetchAnnouncementComments(announcementId):source==='pdlpl'?await fetchPdlplChapterComments(chapterId):await fetchChapterComments(chapterId);setComments(rows);const commentIds=rows.map(r=>r.id);try{setLikes(announcementId?await fetchCommentLikes(commentIds):source==='pdlpl'?await fetchPdlplCommentLikes(commentIds):await fetchCommentLikes(commentIds))}catch(likeError){console.warn('Comment likes lookup failed:',likeError);setLikes({counts:{},liked:{}})}const ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];if(user?.id)ids.push(user.id);if(ids.length){const uniqueIds=[...new Set(ids)];const {data,error:e}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,created_at').in('id',uniqueIds);if(e){console.warn('Comment profile lookup failed:',e);setProfiles({})}else setProfiles(Object.fromEntries((data||[]).map(p=>[p.id,p])));try{setMembershipPlans(await getPublicReaderTiers(uniqueIds))}catch(subscriptionError){console.warn('Public membership tier lookup failed:',subscriptionError);setMembershipPlans(new Map())}}else{setProfiles({});setMembershipPlans(new Map())}}catch(e){console.error('Comments load failed:',e);setError(friendlyError(e,'We couldn’t load the comments right now. Please try again.'))}finally{setLoading(false)}};
   useEffect(()=>{if(!open||source!=='pdlpl'||!chapterId)return;const channel=supabase.channel(`pdlpl-comments-${chapterId}`).on('postgres_changes',{event:'*',schema:'public',table:'pdlpl_comments',filter:`chapter_id=eq.${chapterId}`},async payload=>{if(payload.eventType==='INSERT'){setComments(prev=>prev.some(c=>c.id===payload.new.id)?prev:[...prev,payload.new])}else if(payload.eventType==='UPDATE'){setComments(prev=>prev.map(c=>c.id===payload.new.id?payload.new:c))}else if(payload.eventType==='DELETE'){setComments(prev=>prev.filter(c=>c.id!==payload.old.id))}}).subscribe();return()=>{supabase.removeChannel(channel)}},[open,source,chapterId]);
   useEffect(()=>{if(open&&(chapterId||announcementId))load()},[open,chapterId,announcementId,source,user?.id]);
-  const profilesById = useMemo(() => new Map(Object.entries(profiles)), [profiles]);
   const top=useMemo(
-  ()=>sortCommentFeed(comments.filter(c=>!c.parent_comment_id),membershipPlans,likes.counts,profilesById),
+  ()=>sortCommentFeed(comments.filter(c=>!c.parent_comment_id),membershipPlans,likes.counts),
   [comments,membershipPlans,likes.counts,profilesById]
 ); const child=useMemo(()=>comments.filter(c=>c.parent_comment_id),[comments]); const profile=id=>profiles[id]||null;
   const goProfile=id=>{if(!id)return;setPreview(null);setOpen(false);window.requestAnimationFrame(()=>{window.location.hash=`public-profile/${encodeURIComponent(id)}`})};
