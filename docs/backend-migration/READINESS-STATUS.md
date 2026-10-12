@@ -44,10 +44,10 @@ Catalyst Data Store is not PostgreSQL. UUIDs are represented as `varchar(36)` fo
 
 - Source Supabase access in this task was read-only schema metadata; no production rows, auth records, payment payloads, secrets or Storage objects were copied.
 - Catalyst changes were limited to the dedicated Development project `81164000000013050`: Data Store table/column creation and permissions.
-- No records have been inserted or imported into Catalyst.
+- Three synthetic-only, unpublished smoke-test rows were inserted and read back from Catalyst: one test series, one draft chapter and one page. No production data was imported.
 - No changes to production Supabase, Cloudflare, Razorpay, the live website, or main runtime code.
 - No Auth, API Gateway, CORS, serverless functions, buckets, payment settings or deployment were created/enabled.
-- No build/tests, backup restore, migration rehearsal or rollback rehearsal has been run.
+- A basic synthetic insert/read-back smoke test passed for series, chapter and page tables. No full test suite, build, backup restore, migration rehearsal or rollback rehearsal has been run.
 - GitHub documentation remains on the dedicated branch and draft PR #60; it has not been merged.
 
 See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILITY-MAP.md](./CAPABILITY-MAP.md), [MIGRATION-PLAN.md](./MIGRATION-PLAN.md), [TEST-PLAN.md](./TEST-PLAN.md), [OPERATIONS.md](./OPERATIONS.md), and [CATALYST-STAGING-STATUS.md](./CATALYST-STAGING-STATUS.md). This is schema preparation, not migration authorization.
