@@ -17,7 +17,11 @@ These are **metadata/reference backups only**, not restorable data backups:
 - [SOURCE-INVENTORY.json](./source-snapshot/SOURCE-INVENTORY.json): source project metadata, inventory counts, extensions, current function names/versions, and all 180 migration-history entries.
 - [SOURCE-MIGRATION-HISTORY.csv](./source-snapshot/SOURCE-MIGRATION-HISTORY.csv): 180 source migration history records.
 - [SOURCE-TABLE-METADATA.csv](./source-snapshot/SOURCE-TABLE-METADATA.csv): 61 table definitions and 411 source field descriptions, including nullability/default/check and key metadata.
-- [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv): field-by-field target map and Catalyst table IDs.
+- [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv): per-field mapping/PK/conversion map, now annotated with current live source/target row counts, excluded rows, and row-count/field-value verification status.
+- [SOURCE-POLICY-AND-SECURITY-METADATA.json](./source-snapshot/SOURCE-POLICY-AND-SECURITY-METADATA.json): all 158 live public/private/Storage policies, table RLS flags, and Storage bucket count/size metadata.
+- [SOURCE-FUNCTION-DEFINITIONS-PUBLIC.json](./source-snapshot/SOURCE-FUNCTION-DEFINITIONS-PUBLIC.json) and [SOURCE-FUNCTION-DEFINITIONS-PRIVATE.json](./source-snapshot/SOURCE-FUNCTION-DEFINITIONS-PRIVATE.json): definitions/security metadata for all 55 public/private SQL functions.
+- [SOURCE-TRIGGER-DEFINITIONS.json](./source-snapshot/SOURCE-TRIGGER-DEFINITIONS.json): 46 non-internal trigger definitions and Realtime publication table metadata.
+- [SOURCE-INDEX-CONSTRAINT-DEFINITIONS.json](./source-snapshot/SOURCE-INDEX-CONSTRAINT-DEFINITIONS.json): 194 index definitions and 233 table-constraint definitions.
 
 No user rows, auth data, payment payloads, or Storage file bytes were committed to GitHub.
 
