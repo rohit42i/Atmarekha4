@@ -1,0 +1,270 @@
+#!/usr/bin/env node
+'use strict';
+
+/*
+ * Local Atma Rekha source backup for Android/Termux.
+ * Dumps PostgreSQL, downloads every Supabase Storage object, encrypts the package,
+ * validates the archive, and deletes plaintext temp files on success.
+ */
+
+const fs = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+const crypto = require('node:crypto');
+const { spawn } = require('node:child_process');
+
+const PROJECT_REF = 'pbukwjokgkqacaphlqzm';
+const SUPABASE_URL = 'https://' + PROJECT_REF + '.supabase.co';
+const DATABASE_URL = process.env.SUPABASE_DB_URL;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const PASSPHRASE = process.env.BACKUP_PASSPHRASE;
+const outputRoot = path.join(os.homedir(), 'storage', 'downloads', 'Atmarekha-Backups');
+const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+const outPath = path.join(outputRoot, 'Atmarekha-Supabase-' + stamp + '.tar.gz.enc');
+const manifestPath = outPath + '.manifest.txt';
+const checksumPath = outPath + '.sha256';
+const work = fs.mkdtempSync(path.join(os.tmpdir(), 'atma-backup-'));
+
+function ensure(condition, message) {
+  if (!condition) throw new Error(message);
+}
+function sha256(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+function quoteIdent(value) {
+  return '"' + String(value).replace(/"/g, '""') + '"';
+}
+function parseDatabaseUrl(input) {
+  let u;
+  try { u = new URL(input); } catch { throw new Error('The database connection URL is invalid.'); }
+  ensure(['postgres:', 'postgresql:'].includes(u.protocol), 'Use a postgresql:// or postgres:// connection URL.');
+  ensure(u.hostname && u.username && u.password && u.pathname.length > 1, 'The connection URL must include host, username, password and database name.');
+  return {
+    PGHOST: u.hostname,
+    PGPORT: u.port || '5432',
+    PGUSER: decodeURIComponent(u.username),
+    PGPASSWORD: decodeURIComponent(u.password),
+    PGDATABASE: decodeURIComponent(u.pathname.slice(1)),
+    PGSSLMODE: 'require',
+    PGCONNECT_TIMEOUT: '20',
+  };
+}
+function run(program, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(program, args, {
+      cwd: options.cwd,
+      env: options.env || process.env,
+      stdio: [options.stdin ? 'pipe' : 'ignore', options.capture ? 'pipe' : 'ignore', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    if (options.capture) child.stdout.on('data', d => { stdout += d.toString(); });
+    child.stderr.on('data', d => { stderr += d.toString(); });
+    child.on('error', e => reject(new Error(program + ' could not start: ' + e.message)));
+    child.on('close', code => {
+      if (code !== 0) reject(new Error(program + ' failed (exit ' + code + '). ' + stderr.slice(-1500)));
+      else resolve({ stdout, stderr });
+    });
+    if (options.stdin) {
+      child.stdin.write(options.stdin);
+      child.stdin.end();
+    }
+  });
+}
+async function apiRequest(route, options = {}) {
+  const response = await fetch(SUPABASE_URL + route, {
+    ...options,
+    headers: {
+      apikey: SERVICE_KEY,
+      Authorization: 'Bearer ' + SERVICE_KEY,
+      ...(options.headers || {}),
+    },
+  });
+  if (!response.ok) {
+    const detail = (await response.text()).slice(0, 600);
+    throw new Error('Supabase Storage API returned HTTP ' + response.status + ': ' + detail);
+  }
+  return response;
+}
+function safePath(root, bucket, objectName) {
+  const bucketRoot = path.resolve(root, bucket);
+  const segments = objectName.split('/');
+  ensure(segments.every(s => s && s !== '.' && s !== '..' && !s.includes('\0')), 'Unsafe Storage object path encountered.');
+  const file = path.resolve(bucketRoot, ...segments);
+  ensure(file.startsWith(bucketRoot + path.sep), 'Storage object path escaped its bucket folder.');
+  return file;
+}
+async function listObjects(bucket, prefix) {
+  const all = [];
+  const limit = 100;
+  for (let offset = 0; ; offset += limit) {
+    const response = await apiRequest('/storage/v1/object/list/' + encodeURIComponent(bucket), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ prefix, limit, offset, sortBy: { column: 'name', order: 'asc' } }),
+    });
+    const page = await response.json();
+    ensure(Array.isArray(page), 'Storage listing for bucket "' + bucket + '" did not return an object list.');
+    all.push(...page);
+    if (page.length < limit) break;
+  }
+  return all;
+}
+async function backupBucket(bucket, storageRoot, manifest) {
+  async function walk(prefix) {
+    const entries = await listObjects(bucket, prefix);
+    for (const item of entries) {
+      ensure(item && typeof item.name === 'string' && item.name.length > 0, 'Storage returned an object without a name.');
+      const objectName = prefix ? prefix + '/' + item.name : item.name;
+      if (item.id == null) {
+        await walk(objectName);
+        continue;
+      }
+      const objectPath = '/storage/v1/object/' + encodeURIComponent(bucket) + '/' + objectName.split('/').map(encodeURIComponent).join('/');
+      const response = await apiRequest(objectPath);
+      const bytes = Buffer.from(await response.arrayBuffer());
+      const target = safePath(storageRoot, bucket, objectName);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, bytes, { flag: 'wx' });
+      manifest.objects.push({
+        bucket,
+        path: objectName,
+        bytes: bytes.length,
+        sha256: sha256(bytes),
+        contentType: response.headers.get('content-type') || item.metadata?.mimetype || null,
+      });
+      manifest.totalObjectBytes += bytes.length;
+      manifest.counts[bucket] = (manifest.counts[bucket] || 0) + 1;
+    }
+  }
+  await walk('');
+}
+async function getRowCounts(pgEnv) {
+  const listing = await run('psql', [
+    '-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '-F', '\t', '-c',
+    "SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema') ORDER BY schemaname, tablename;"
+  ], { env: pgEnv, capture: true });
+  const tables = listing.stdout.split(/\r?\n/).filter(Boolean).map(line => {
+    const index = line.indexOf('\t');
+    ensure(index > 0, 'Could not parse PostgreSQL table inventory.');
+    return [line.slice(0, index), line.slice(index + 1)];
+  });
+  const chunks = [];
+  for (const [schema, table] of tables) {
+    ensure(/^[a-zA-Z0-9_]+$/.test(schema) && /^[a-zA-Z0-9_]+$/.test(table), 'Unexpected identifier in PostgreSQL inventory.');
+    chunks.push("SELECT '" + schema + '.' + table + "'::text AS table_name, count(*)::bigint AS row_count FROM " + quoteIdent(schema) + '.' + quoteIdent(table));
+  }
+  const rowCounts = ['table_name\trow_count'];
+  if (chunks.length) {
+    const counted = await run('psql', ['-X','-qAt','-v','ON_ERROR_STOP=1','-F','\t','-c',chunks.join(' UNION ALL ') + ' ORDER BY 1;'], { env: pgEnv, capture: true });
+    rowCounts.push(...counted.stdout.split(/\r?\n/).filter(Boolean));
+  }
+  return { rowCountsText: rowCounts.join('\n') + '\n', tableCount: tables.length };
+}
+async function encryptAndVerify(archivePath, encryptedPath) {
+  await run('openssl', ['enc','-aes-256-cbc','-salt','-pbkdf2','-iter','600000','-md','sha256','-in',archivePath,'-out',encryptedPath,'-pass','stdin'], {
+    stdin: PASSPHRASE + '\n',
+  });
+  const checkPath = path.join(work, 'verify-decrypted.tar.gz');
+  try {
+    await run('openssl', ['enc','-d','-aes-256-cbc','-pbkdf2','-iter','600000','-md','sha256','-in',encryptedPath,'-out',checkPath,'-pass','stdin'], { stdin: PASSPHRASE + '\n' });
+    await run('tar', ['-tzf', checkPath], { capture: true });
+  } finally {
+    try { fs.rmSync(checkPath, { force: true }); } catch {}
+  }
+}
+async function main() {
+  ensure(DATABASE_URL && SERVICE_KEY && PASSPHRASE, 'Missing prompted backup credentials.');
+  ensure(PASSPHRASE.length >= 20, 'Backup passphrase must be at least 20 characters.');
+  ensure(fs.existsSync(path.join(os.homedir(), 'storage', 'downloads')), 'Run termux-setup-storage and allow access before backing up.');
+  const pgEnv = { ...process.env, ...parseDatabaseUrl(DATABASE_URL) };
+  delete pgEnv.SUPABASE_DB_URL;
+  delete pgEnv.SUPABASE_SERVICE_ROLE_KEY;
+  delete pgEnv.BACKUP_PASSPHRASE;
+
+  fs.mkdirSync(outputRoot, { recursive: true });
+  const dumpPath = path.join(work, 'database.dump');
+  const storageRoot = path.join(work, 'storage');
+  fs.mkdirSync(storageRoot, { recursive: true });
+
+  console.log('1/6 Testing PostgreSQL connection and creating a custom-format database dump...');
+  await run('pg_dump', ['--format=custom','--no-owner','--no-acl','--verbose','--file',dumpPath], { env: pgEnv });
+  await run('pg_restore', ['--list', dumpPath], { capture: true });
+  const dumpInfo = fs.statSync(dumpPath);
+
+  console.log('2/6 Capturing table row-count reconciliation metadata...');
+  const counts = await getRowCounts(pgEnv);
+  fs.writeFileSync(path.join(work, 'row-counts.tsv'), counts.rowCountsText);
+
+  console.log('3/6 Listing Supabase Storage buckets...');
+  const bucketsResponse = await apiRequest('/storage/v1/bucket');
+  const buckets = await bucketsResponse.json();
+  ensure(Array.isArray(buckets), 'Storage bucket listing did not return an array.');
+  const storageManifest = { projectRef: PROJECT_REF, capturedAt: new Date().toISOString(), buckets, objects: [], counts: {}, totalObjectBytes: 0 };
+
+  console.log('4/6 Downloading every object from ' + buckets.length + ' Storage bucket(s) into the local backup package...');
+  for (const bucket of buckets) {
+    ensure(bucket && typeof bucket.name === 'string', 'Storage returned a bucket without a name.');
+    await backupBucket(bucket.name, storageRoot, storageManifest);
+    console.log('    Backed up bucket "' + bucket.name + '": ' + (storageManifest.counts[bucket.name] || 0) + ' object(s)');
+  }
+  fs.writeFileSync(path.join(work, 'storage-manifest.json'), JSON.stringify(storageManifest, null, 2));
+
+  const sourceSnapshot = {
+    projectRef: PROJECT_REF,
+    region: 'ap-south-1',
+    databaseVersionAtPreparation: '17.6.1.155',
+    capturedAt: new Date().toISOString(),
+    databaseDump: { format: 'PostgreSQL custom archive', bytes: dumpInfo.size, sha256: sha256(fs.readFileSync(dumpPath)), pgRestoreListCheck: 'passed' },
+    tableInventoryCount: counts.tableCount,
+    storageBucketCount: buckets.length,
+    storageObjectCount: storageManifest.objects.length,
+    storageObjectBytes: storageManifest.totalObjectBytes,
+    caution: 'This is a backup artifact, not a tested restore. Restore rehearsal is still required before migration cutover.',
+  };
+  fs.writeFileSync(path.join(work, 'source-snapshot.json'), JSON.stringify(sourceSnapshot, null, 2));
+
+  console.log('5/6 Creating and encrypting the combined backup archive...');
+  const plainArchive = path.join(work, 'backup.tar.gz');
+  await run('tar', ['-czf', plainArchive, '-C', work, 'database.dump', 'row-counts.tsv', 'storage', 'storage-manifest.json', 'source-snapshot.json']);
+  const packageBytes = fs.statSync(plainArchive).size;
+  await encryptAndVerify(plainArchive, outPath);
+  const cipher = fs.readFileSync(outPath);
+  const digest = sha256(cipher);
+  fs.writeFileSync(checksumPath, digest + '  ' + path.basename(outPath) + '\n');
+
+  const externalManifest = [
+    'Atma Rekha encrypted Supabase backup',
+    'Created (UTC): ' + new Date().toISOString(),
+    'Source project ref: ' + PROJECT_REF,
+    'Encrypted artifact: ' + path.basename(outPath),
+    'Encrypted bytes: ' + cipher.length,
+    'Encrypted SHA-256: ' + digest,
+    'Compressed package bytes before encryption: ' + packageBytes,
+    'PostgreSQL table inventory entries: ' + counts.tableCount,
+    'Storage buckets: ' + buckets.length,
+    'Storage objects downloaded: ' + storageManifest.objects.length,
+    'Storage bytes downloaded: ' + storageManifest.totalObjectBytes,
+    'Verification: pg_restore --list passed; decrypt-and-tar-list passed.',
+    'Not yet verified: complete restore into an isolated PostgreSQL/Supabase target.',
+    'Keep the encryption passphrase offline; without it the backup cannot be decrypted.',
+  ].join('\n') + '\n';
+  fs.writeFileSync(manifestPath, externalManifest);
+
+  try { fs.rmSync(plainArchive, { force: true }); } catch {}
+  try { fs.rmSync(work, { recursive: true, force: true }); } catch {}
+  console.log('6/6 Complete. Plaintext temporary backup files have been removed.');
+  console.log('Encrypted backup: ' + outPath);
+  console.log('SHA-256: ' + digest);
+  console.log('Storage buckets / objects: ' + buckets.length + ' / ' + storageManifest.objects.length);
+  console.log('Do not upload the encryption passphrase or service-role key anywhere.');
+}
+main().catch(error => {
+  console.error('BACKUP FAILED: ' + error.message);
+  console.error('If interrupted, inspect and remove plaintext atma-backup-* working files from Termux temp storage before retrying.');
+  process.exitCode = 1;
+});
+process.on('SIGINT', () => {
+  console.error('\nInterrupted. Inspect and remove plaintext atma-backup-* temporary files before retrying.');
+  process.exit(130);
+});
