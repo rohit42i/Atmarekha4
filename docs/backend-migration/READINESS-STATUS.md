@@ -29,3 +29,13 @@ The live Supabase migration ledger has 180 records; main tracks 65 SQL migration
 ## Safety record
 
 All Supabase and Catalyst checks in this session were read-only. No production data payloads or secret values were retrieved. No runtime code, database schema, Auth, Edge Function, Storage, payment, Cloudflare, or production configuration was changed. No local build, automated tests, backup/restore rehearsal, or migration rehearsal was run. See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILITY-MAP.md](./CAPABILITY-MAP.md), [MIGRATION-PLAN.md](./MIGRATION-PLAN.md), [TEST-PLAN.md](./TEST-PLAN.md), and [OPERATIONS.md](./OPERATIONS.md). These are preparation documents, not migration authorization.
+
+
+## Catalyst connector re-check — 12 October 2026
+
+The Zoho Catalyst MCP connector is now responding successfully. Read-only organization discovery returned the India-region organization `rohitbaswaraj`. Its accessible projects are:
+
+- `Project-Rainfall` — Development environment active; no Datastore tables, serverless functions, CORS domains, or Stratus buckets were returned. Hosted/embedded/third-party authentication is disabled, and API Gateway is disabled.
+- `Polls` — an existing Demo project. It has not been used or modified for Atma Rekha.
+
+Neither project is explicitly named for Atma Rekha. No resources have been created, enabled, renamed, or deployed. Before provisioning a schema, functions, authentication, CORS, storage or routes, the owner must confirm which project is intended as the dedicated Atma Rekha Development target. Do not use the existing `Polls` demo or repurpose `Project-Rainfall` based on its generic name alone. API Gateway/auth should not be enabled until the route and identity design is approved.
