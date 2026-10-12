@@ -55,3 +55,7 @@ In Termux on the Android phone:
 **Actual data migration remains blocked** until the encrypted backup succeeds and its contents are independently restored/verified in isolation. After the backup gate, the next work is to initialize Stratus, implement and deploy reviewed Development-only functions, and verify source-to-target behavioral contracts with synthetic data. Do not copy user/auth/payment data into Catalyst or route the website there yet.
 
 The source schema and migration-history snapshot is preserved, but it is not a substitute for the encrypted backup or restore rehearsal.
+
+### Coverage caveat
+
+The local kit is a **database + Supabase Storage object backup**, not a full clone of Supabase project settings. It does not export OAuth/SMTP provider secrets, project API keys, Edge Function environment secrets/deployed code, the Supabase Vault encryption root key, Cloudflare R2 objects/configuration, Razorpay settings, or the website deployment configuration. This project reports Supabase Vault installed, so follow the platform's separate Vault key/recovery procedure before calling the entire service fully recoverable. These items must be inventoried separately and stored securely outside GitHub.
