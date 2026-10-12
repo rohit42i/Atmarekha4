@@ -1,7 +1,7 @@
-# Data and schema inventory from repository artifacts
+# Data and schema inventory from repository artifacts and live snapshot
 
-**Source:** tracked source and SQL migration files on main at b4907f74d52d5e57f5622085606c4f3ea51120e6.  
-**Limit:** this is a code-reference inventory, not an authoritative live schema. The 65 SQL files are incremental migrations, not a complete foundational DDL set. No production records, row counts, user details or secrets were queried/exported.
+**Sources:** tracked source and SQL migration files on main at b4907f74d52d5e57f5622085606c4f3ea51120e6, plus read-only metadata from the live Supabase project on 12 October 2026.  
+**Limit:** the live snapshot is not a full dump and is not a restore point. The metadata endpoint returned table-level counts, but no row payloads, user details, or secret values were queried/exported. The 65 tracked SQL files do not reconstruct the 180-row live migration ledger by name; see the verified snapshot below.
 
 ## Table/entity families visible in source
 
@@ -73,3 +73,33 @@ A separately authorized read-only review must obtain:
 ## Required future inventory procedure
 
 Create a dated metadata snapshot containing column types/nullability/defaults, all constraints/indexes/FKs, SQL functions/triggers/views/extensions, effective RLS/grants, and a code-to-object map. Include the target conversion specification and all exceptions. Do not commit production row exports, personal data, credentials or keys. Do not construct target schema from this partial document.
+
+## Verified live schema snapshot — 12 October 2026
+
+Live project: `Atmarekha` (`pbukwjokgkqacaphlqzm`), `ACTIVE_HEALTHY`, region `ap-south-1`, PostgreSQL 17 (`17.6.1.155`). This was metadata-only discovery; no live schema migration was applied.
+
+### Current public tables
+
+The live public schema reports 59 tables, all with RLS enabled: `chapters, chapter_pages, announcements, media, profiles, bookmarks, reading_history, admins, comments, chapter_ratings, chapter_views, chapter_likes, comment_likes, comment_reports, notification_subscriptions, subscription_plans, user_subscriptions, payment_events, push_subscriptions, subscriptions, payments, community_posts, community_members, community_post_reactions, member_content, member_messages, group_chat_messages, group_chat_reactions, group_chat_reads, group_chat_likes, user_moderation, moderation_reports, edge_rate_limits, feature_unlock_config, feature_login_users, admin_activity_log, admin_notification_log, manga_series, pal_do_pal_ke_lamhe_chapters, pal_do_pal_ke_lamhe_chapter_pages, chapter_engagement_summary, comment_like_counts, chapter_shares, pdlpl_chapter_engagement_summary, pdlpl_comments, pdlpl_comment_likes, pdlpl_comment_like_counts, pdlpl_comment_reports, pdlpl_chapter_ratings, pdlpl_chapter_views, pdlpl_chapter_likes, pdlpl_chapter_shares, pdlpl_bookmarks, pdlpl_reading_history, dpdp_consent_records, dpdp_deletion_requests, site_feedback, dpdp_nominations, login_password_protection`.
+
+### Private and Storage schemas
+
+- Private tables with RLS disabled: `private.feedback_rate_limits`, `private.dpdp_breach_incidents`. The private schema's effective grants and Data API exposure were not verified; keep this as an open audit item, not an automatic vulnerability conclusion.
+- The `storage` schema reports 8 tables with RLS enabled. There are 13 policies on `storage.objects`.
+- Storage buckets: `assets` (public), `chapter-pages` (public; 20 MiB limit; image MIME family), `community` (public; 15 MiB limit; allow-list configured), `covers` (public), `member-content` (private), `pdlpl-content` (private; 20 MiB limit; image types allow-listed).
+- Installed extensions reported by Supabase: `pgcrypto`, `pg_stat_statements`, `supabase_vault`, `uuid-ossp`, `plpgsql`.
+
+### Security-sensitive SQL surface
+
+- 145 policies are reported under `public` across 59 tables, with RLS enabled on each public table.
+- 55 SQL functions were counted in `public` and `private`; 36 are marked `SECURITY DEFINER` (21 public, 15 private). The privilege-count query reported 8 public functions executable by `anon`, 18 by `authenticated`, and 1 private function executable by `authenticated`. This is an inventory count, not an assessment that the grants are wrong; each privileged function needs a deliberate authorization review.
+- 39 user triggers are reported in `public` and 7 in `storage`. Important behavior includes rate limiting, chapter/comment engagement summary maintenance, moderation, timestamp updates, profile badge/display-name locks and announcement limits.
+- The `supabase_realtime` publication contains `group_chat_likes`, `group_chat_messages`, `group_chat_reactions`, `group_chat_reads` and `pdlpl_comments`.
+
+### Live migration ledger versus tracked SQL files
+
+The deployed migration history lists 180 entries from `20260811002807` through `20261008052712`; `main` contains 65 SQL files under `supabase/migrations/`. A normalized-name-only comparison found 51 name matches, 129 live entries with no same-named tracked file, and 14 tracked files with no same-named live entry. Do not treat that raw name comparison as proof of missing or unapplied changes because older migrations may have different timestamps or names. Reconcile every record semantically against the live schema and source history before generating, applying, or deploying migrations.
+
+### Live Edge Functions
+
+Sixteen active Edge Functions are deployed. Seven have no same-named tracked source directory: `delete-account`, `send-chapter-notification`, `send-chapter-notification-v2`, `send-email-to-users`, `get-admin-console-data`, `dpdp-data-rights`, and `submit-feedback`. The deployed code was retrieved read-only for inventory; secret values were not read. See `LIVE-READINESS-CHECKPOINT.md` for versions, JWT-gateway settings, and concise contract notes.
