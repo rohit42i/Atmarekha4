@@ -1,4 +1,4 @@
-# Data and schema inventory from repository artifacts and live snapshot
+# Data and schema inventory from repository artifacts and live snapshot and live snapshot
 
 **Sources:** tracked source and SQL migration files on main at b4907f74d52d5e57f5622085606c4f3ea51120e6, plus read-only metadata from the live Supabase project on 12 October 2026.  
 **Limit:** the live snapshot is not a full dump and is not a restore point. The metadata endpoint returned table-level counts, but no row payloads, user details, or secret values were queried/exported. The 65 tracked SQL files do not reconstruct the 180-row live migration ledger by name; see the verified snapshot below.
@@ -59,16 +59,15 @@ UI source also invokes get-admin-console-data, send-chapter-notification-v2, dpd
 
 Only environment-variable names were inspected. No key or value is copied into this inventory.
 
-## Not inventoried from live state
+## Remaining live-state gaps after the snapshot
 
-A separately authorized read-only review must obtain:
-1. Live table/column catalog, schema DDL and migration ledger/drift.
-2. PK/FK/unique/check constraints, indexes, views, extensions, functions and triggers.
-3. Effective RLS policies, grants and auth/storage policies.
-4. Auth provider, redirect, email/session/MFA settings and user-identity metadata (no personal row values).
-5. Deployed functions and secret *names* only, plus source for missing functions.
-6. Cloudflare binding/route metadata where required, never secret values.
-7. Data volumes/counts only if approved for capacity planning and designed to avoid personal-data exposure.
+A further authorized read-only review is still required for:
+1. A complete schema DDL export and all constraints, indexes, views, sequences, enums and grants.
+2. Per-function SQL definitions/grants and complete effective RLS/schema privileges, particularly the two private-schema tables reporting RLS disabled.
+3. Current Auth provider, redirect, email, session, password-security and MFA settings.
+4. Full behavior/source drift review for seven deployed Edge Functions without tracked source, plus version/hash comparison for all 16.
+5. Cloudflare binding/route metadata and R2 backup/restore detail, without reading secret values.
+6. Verified backup/restore, synthetic-data import/export, functional/security regression and cutover/rollback rehearsals.
 
 ## Required future inventory procedure
 
@@ -103,3 +102,20 @@ The deployed migration history lists 180 entries from `20260811002807` through `
 ### Live Edge Functions
 
 Sixteen active Edge Functions are deployed. Seven have no same-named tracked source directory: `delete-account`, `send-chapter-notification`, `send-chapter-notification-v2`, `send-email-to-users`, `get-admin-console-data`, `dpdp-data-rights`, and `submit-feedback`. The deployed code was retrieved read-only for inventory; secret values were not read. See `LIVE-READINESS-CHECKPOINT.md` for versions, JWT-gateway settings, and concise contract notes.
+
+
+## Verified live schema snapshot — 12 October 2026
+
+Live project: `Atmarekha` (`pbukwjokgkqacaphlqzm`), status `ACTIVE_HEALTHY`, region `ap-south-1`, PostgreSQL 17 (`17.6.1.155`).
+
+**Current `public` tables (59; RLS enabled on all 59):** chapters, chapter_pages, announcements, media, profiles, bookmarks, reading_history, admins, comments, chapter_ratings, chapter_views, chapter_likes, comment_likes, comment_reports, notification_subscriptions, subscription_plans, user_subscriptions, payment_events, push_subscriptions, subscriptions, payments, community_posts, community_members, community_post_reactions, member_content, member_messages, group_chat_messages, group_chat_reactions, group_chat_reads, group_chat_likes, user_moderation, moderation_reports, edge_rate_limits, feature_unlock_config, feature_login_users, admin_activity_log, admin_notification_log, manga_series, pal_do_pal_ke_lamhe_chapters, pal_do_pal_ke_lamhe_chapter_pages, chapter_engagement_summary, comment_like_counts, chapter_shares, pdlpl_chapter_engagement_summary, pdlpl_comments, pdlpl_comment_likes, pdlpl_comment_like_counts, pdlpl_comment_reports, pdlpl_chapter_ratings, pdlpl_chapter_views, pdlpl_chapter_likes, pdlpl_chapter_shares, pdlpl_bookmarks, pdlpl_reading_history, dpdp_consent_records, dpdp_deletion_requests, site_feedback, dpdp_nominations, login_password_protection.
+
+**Private tables:** `private.feedback_rate_limits`, `private.dpdp_breach_incidents`; metadata reports RLS disabled for both. Effective schema grants and API exposure were not verified; do not infer exploitability without those checks.
+
+**Storage:** 8 Storage-schema tables report RLS enabled. The 6 configured buckets are `assets` (public), `chapter-pages` (public, 20 MiB limit, image types), `community` (public, 15 MiB limit, MIME allow-list), `covers` (public), `member-content` (private), and `pdlpl-content` (private, 20 MiB limit, image allow-list). Cloudflare R2/Workers are a separate live media path and were not modified.
+
+**Policies and SQL behavior:** 145 policies reported in `public`; 13 policies on `storage.objects`; 55 functions in `public`/`private`, 36 marked `SECURITY DEFINER`; 39 user triggers in `public` and 7 in `storage`. The `supabase_realtime` publication lists `group_chat_likes`, `group_chat_messages`, `group_chat_reactions`, `group_chat_reads`, and `pdlpl_comments`. Five installed extensions are reported: `pgcrypto`, `pg_stat_statements`, `supabase_vault`, `uuid-ossp`, and `plpgsql`.
+
+**Migration history:** live history contains 180 records from `20260811002807` to `20261008052712`; main has 65 SQL files. A normalized-name comparison found 51 same-name matches, 129 live rows without a same-named tracked file, and 14 tracked names without a same-named live row. Because timestamps/names can differ for semantically equivalent historical changes, review every mismatch manually before any migration operation.
+
+**Deployed functions:** 16 active functions are present. Seven deployed names lack tracked source folders: `delete-account`, `send-chapter-notification`, `send-chapter-notification-v2`, `send-email-to-users`, `get-admin-console-data`, `dpdp-data-rights`, and `submit-feedback`. Deployed code was retrieved read-only for these functions; no secret values were captured. Version and gateway JWT settings are in READINESS-STATUS.md.
