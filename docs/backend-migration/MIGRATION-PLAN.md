@@ -91,3 +91,15 @@ Keep Supabase recoverable through a defined rollback window. If target-only writ
 ## Current execution status
 
 Only repository metadata/source inspection and documentation preparation have occurred. No Catalyst provisioning, schema change, production data movement, dual-write, migration, cutover, deployment or production database operation was performed.
+
+## Readiness-gate update after live audit — 12 October 2026
+
+**Implementation gate remains blocked.** The read-only live snapshot established the following hard prerequisites:
+
+1. **Reconcile migration history first.** Live Supabase reports 180 migration-history entries; Git `main` has 65 tracked SQL files. A normalized-name comparison found 51 name matches, 129 live entries without same-named tracked source and 14 tracked names without same-named live history entries. This is only a name comparison; review semantic equivalence and agree on the authoritative schema baseline before generating or applying any migration.
+2. **Recover the deployed-only function source.** Supabase reports 16 active deployed Edge Functions, while 7 have no same-named tracked folder on `main`. Recover/review those sources under source control, then compare live version/hash/behavior for all handlers. Do not disable or redeploy them as part of preparation.
+3. **Complete authorization and platform inventory.** Verify private-schema grants for two tables reporting RLS disabled, review all 36 `SECURITY DEFINER` SQL routines and grants, and record current Auth provider/MFA/session/redirect configuration. Map storage buckets, five Realtime publication tables, Cloudflare Workers/R2 and Razorpay behavior separately.
+4. **Set up an isolated target only after preflight.** A dedicated Atma Rekha Catalyst Development project has not been identified or created. Confirm India data residency, project type, cost/quota, account ownership and secrets handling before creating it in the Catalyst console; use synthetic data only.
+5. **Prove before cutover.** Contract tests, authorization regression, row-count/hash reconciliation, payment/webhook idempotency, backup restore, realtime/storage parity, load testing and rollback rehearsal remain unrun. Production cutover requires separate explicit approval.
+
+No runtime, database, authentication, storage, payment or deployment operation occurred during this audit. The readiness dashboard is documented in `READINESS-STATUS.md`.
