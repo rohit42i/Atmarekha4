@@ -91,7 +91,7 @@ Nine tracked Edge Function entry points exist:
 
 These use Supabase APIs/RPCs and server-side configuration. Razorpay order/subscription lifecycle, signatures/webhooks, cancellation and entitlement state are sensitive business contracts. Push registration and secure password login also have rate-limit/auth dependencies. Actual secret values were not retrieved or written.
 
-The UI calls four additional function names with no matching tracked function folder found on main: get-admin-console-data, send-chapter-notification-v2, dpdp-data-rights and submit-feedback. Deployment existence and implementation are unknown. Resolve these before a future migration.
+The live project has 16 active Edge Functions. Seven deployed functions have no same-named tracked source folder: delete-account, send-chapter-notification, send-chapter-notification-v2, send-email-to-users, get-admin-console-data, dpdp-data-rights and submit-feedback. Their deployed existence and source were verified read-only; see READINESS-STATUS.md. Recover and review these sources before a future migration.
 
 Environment variable names are in .env.example; only names and purposes are relevant to this task. Vite-prefixed variables are browser-visible and must not hold secrets. The GitHub workflow includes production deployment operations and must not be triggered as a production push during this task.
 
@@ -123,3 +123,8 @@ Ship migration-readiness documentation only. Do not add a provider variable or a
 ## Live re-check pointer
 
 The earlier repository-only audit is supplemented by [LIVE-READINESS-CHECKPOINT.md](./LIVE-READINESS-CHECKPOINT.md), which records the current Supabase schema/migration/function counts and the Catalyst project discovery. The key correction is that seven deployed functions exist live without tracked source, and the live migration ledger does not reconcile by name with the tracked migration directory. Neither the live backend nor the website runtime was changed.
+
+
+## Live-state correction
+
+The live snapshot in [READINESS-STATUS.md](./READINESS-STATUS.md) supersedes repository-only statements above wherever the live environment was previously described as unverified. The live migration ledger has 180 entries versus 65 tracked SQL files; reconcile before any migration operation. No production configuration was changed.
