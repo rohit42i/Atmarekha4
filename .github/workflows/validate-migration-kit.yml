@@ -1,0 +1,39 @@
+name: Validate Atma Rekha migration kit
+
+on:
+  pull_request:
+    paths:
+      - "migration-kit/backup/**"
+      - ".github/workflows/validate-migration-kit.yml"
+  push:
+    branches:
+      - "docs/backend-migration-readiness-2026-10-12"
+    paths:
+      - "migration-kit/backup/**"
+      - ".github/workflows/validate-migration-kit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: node --check migration-kit/backup/backup-supabase.mjs
+      - name: Check shell syntax
+        run: bash -n migration-kit/backup/backup-supabase.sh
+      - name: Check tracked metadata files parse
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('docs/backend-migration/source-snapshot/SOURCE-INVENTORY.json','utf8'))"
+          node -e "const fs=require('fs'); const s=fs.readFileSync('docs/backend-migration/source-snapshot/SOURCE-MIGRATION-HISTORY.csv','utf8'); if(!s.startsWith('\"version\",\"name\"')) throw new Error('Unexpected migration CSV header');"
+      - name: Verify no production credentials or data are required for syntax tests
+        run: |
+          if grep -R -nE 'SUPABASE_SERVICE_ROLE_KEY=[^$]|PGPASSWORD=[^$]|sb_secret_[A-Za-z0-9_]+' migration-kit/backup; then
+            echo "Possible hard-coded credential found."
+            exit 1
+          fi
