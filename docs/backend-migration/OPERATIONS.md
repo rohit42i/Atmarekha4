@@ -98,3 +98,7 @@ Stratus reports: “User needs to be in session when accessing Stratus for the f
 ### Current non-configured services
 
 Catalyst Authentication (hosted/embedded/third-party), API Gateway, routes, CORS domains, functions, buckets, mail configs, scheduled jobs, payment integrations, Realtime/chat transport and production routing remain unconfigured. The available Catalyst MCP does not provide function source upload/create/deploy operations; use the supported console or CLI workflow, with code reviewed and deployed to Development only.
+
+## SDK/version selection note — 12 October 2026
+
+Zoho's official September 2026 release notes state that the modular Catalyst JavaScript SDK is generally available and replaces the separate Node.js and Web SDKs. The Node.js SDK v2 and Web SDK v4 entered deprecation on 1 October 2026, with support termination announced for 1 October 2027. New function work should therefore use the current JavaScript SDK after verifying the current API and function bundle structure, rather than starting a fresh implementation on a deprecated SDK. See [Catalyst SDK release notes](https://docs.catalyst.zoho.com/en/release-notes/sdk/) and [function implementation guidance](https://docs.catalyst.zoho.com/en/serverless/help/functions/implementation/).
