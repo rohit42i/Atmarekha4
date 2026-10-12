@@ -37,3 +37,11 @@
 PostgreSQL-compatible DDL/PLpgSQL, live RLS policy behavior, transactional page replacement, synchronous trigger semantics, TOTP MFA and session-token continuity, filtered browser Realtime/Presence, password-hash migration, the four UI-invoked but untracked function contracts, and Cloudflare Worker trust behavior all remain unresolved.
 
 For requirements that depend on PostgreSQL-specific SQL, transactions, locking or policy behavior, evaluate a compatible PostgreSQL target or approved hybrid architecture. Do not force a schema into Catalyst Data Store without a verified fit.
+
+## Live-state constraints added after read-only discovery
+
+- Supabase currently has 59 public tables, 145 public RLS policies, 55 SQL functions across public/private schemas (36 marked `SECURITY DEFINER`), 46 user triggers across public/storage, and five publication tables in `supabase_realtime`. The mapping must preserve these server-side contracts, not just client CRUD.
+- There are 16 active deployed Supabase Edge Functions. Seven live handlers have no tracked source folder on `main`; their code/contracts must be recovered and reviewed before their responsibilities can be ported.
+- The live DB reports 180 migration-history entries compared with 65 tracked SQL files. Reconcile the ledger and live schema before generating target DDL or attempting migration automation.
+- The connected Catalyst account is in the India data center, but no dedicated Atma Rekha project was identified. The discovered Catalyst capabilities include Datastore/ZCQL, Functions, API Gateway and Authentication. No target resources were created. Confirm region, data residency, pricing/quota and create an isolated project through the console before any implementation.
+- Do not treat Catalyst Datastore/ZCQL as PostgreSQL-compatible by assumption. Explicitly redesign multi-row atomic writes, unique/foreign-key/check enforcement, SECURITY DEFINER routines, RLS-equivalent ownership rules, auth session/MFA, Realtime publication/Presence, Storage access and Razorpay webhook processing.
