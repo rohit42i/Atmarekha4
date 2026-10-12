@@ -81,3 +81,20 @@ Do not use unsupervised browser dual writes. Use an approved write-freeze/final-
 - Seven of 16 active deployed Edge Functions lack same-named source folders on `main`. No function was deployed or modified during this audit. Recover and review source before backend implementation; never copy secret values into Git.
 - Read-only Catalyst listing did not identify a project clearly dedicated to Atma Rekha. Do not repurpose an unrelated project. The available MCP tool list did not expose project creation; create a separate Development project through the Catalyst console only after confirming India-region requirements, quotas, ownership and costs.
 - No backup or restore was run or verified in this session. A backup is not proven usable until a restore rehearsal succeeds. Keep Supabase, Cloudflare R2/Workers, Razorpay and the production website unchanged while preparing the target.
+
+## Actual staging target — verified 12 October 2026
+
+- Catalyst organization: `60091620701` (Zoho India).
+- Project: `Atmarekha`; project ID `81164000000013050`; active Development environment.
+- Development domain: `https://atmarekha-60091620701.development.catalystserverless.in`.
+- The existing `Polls` and `Project-Rainfall` projects were not changed.
+- All 61 source tables and 411 source fields are mapped into Catalyst Data Store. The exact table IDs and field-name/type conversions are committed in `CATALYST-SCHEMA-MAP.csv`.
+- Data Store access is deny-by-default for the Catalyst `App User` role. Do not enable it until the server-side authz implementation is complete.
+
+### Blocked first-use action
+
+Stratus reports: “User needs to be in session when accessing Stratus for the first time.” The owner must open the target project in the Catalyst console, open **Stratus / Storage** once, and complete any prompted setup. Only after this step should the setup be resumed to create the six `atma-stage-*` protected/encrypted buckets. Bucket creation attempts failed and created no buckets.
+
+### Current non-configured services
+
+Catalyst Authentication (hosted/embedded/third-party), API Gateway, routes, CORS domains, functions, buckets, mail configs, scheduled jobs, payment integrations, Realtime/chat transport and production routing remain unconfigured. The available Catalyst MCP does not provide function source upload/create/deploy operations; use the supported console or CLI workflow, with code reviewed and deployed to Development only.
