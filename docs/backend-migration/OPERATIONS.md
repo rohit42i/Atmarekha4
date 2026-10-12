@@ -97,7 +97,7 @@ Stratus reports: “User needs to be in session when accessing Stratus for the f
 
 ### Current non-configured services
 
-Catalyst Authentication (hosted/embedded/third-party), API Gateway, routes, CORS domains, functions, buckets, mail configs, scheduled jobs, payment integrations, Realtime/chat transport and production routing remain unconfigured. The available Catalyst MCP does not provide function source upload/create/deploy operations; use the supported console or CLI workflow, with code reviewed and deployed to Development only.
+Catalyst Authentication (hosted/embedded/third-party), API Gateway, routes, CORS domains, functions, buckets, mail configs, scheduled jobs, payment integrations, Realtime/chat transport and production routing remain unconfigured. The available Catalyst MCP does not provide live function resource creation/upload/deployment operations; the minimal health-probe source scaffold is in `catalyst-staging/` on this branch only. Use the supported console or CLI workflow, with code reviewed and deployed to Development only.
 
 ## SDK/version selection note — 12 October 2026
 
