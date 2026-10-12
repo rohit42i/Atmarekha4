@@ -1,0 +1,233 @@
+{
+  "snapshot_date": "2026-10-12",
+  "schema": "private",
+  "scope": "SQL definitions and function security metadata only; no application row payloads",
+  "function_count": 15,
+  "functions": [
+    {
+      "name": "check_feedback_rate_limit",
+      "identity_arguments": "p_key text, p_limit integer",
+      "argument_types": "p_key text, p_limit integer DEFAULT 5",
+      "return_type": "boolean",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, private"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.check_feedback_rate_limit(p_key text, p_limit integer DEFAULT 5)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'private'\nAS $function$\ndeclare\n  current_window timestamptz := date_trunc('hour', now());\n  next_count integer;\nbegin\n  insert into private.feedback_rate_limits(rate_key, window_start, request_count)\n  values (p_key, current_window, 1)\n  on conflict (rate_key) do update\n  set\n    window_start = case\n      when private.feedback_rate_limits.window_start < current_window then current_window\n      else private.feedback_rate_limits.window_start\n    end,\n    request_count = case\n      when private.feedback_rate_limits.window_start < current_window then 1\n      else private.feedback_rate_limits.request_count + 1\n    end\n  returning request_count into next_count;\n\n  return next_count <= greatest(1, p_limit);\nend;\n$function$\n"
+    },
+    {
+      "name": "cleanup_chapter_engagement_summary",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.cleanup_chapter_engagement_summary()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  delete from public.chapter_engagement_summary where chapter_id = old.id;\n  return old;\nend;\n$function$\n"
+    },
+    {
+      "name": "cleanup_comment_like_count",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.cleanup_comment_like_count()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  delete from public.comment_like_counts where comment_id = old.id;\n  return old;\nend;\n$function$\n"
+    },
+    {
+      "name": "cleanup_pdlpl_engagement_summary",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.cleanup_pdlpl_engagement_summary()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin delete from public.pdlpl_chapter_engagement_summary where chapter_id=old.id; return old; end;\n$function$\n"
+    },
+    {
+      "name": "enforce_rate_limit_trigger",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.enforce_rate_limit_trigger()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  rate_key text;\n  rate_limit integer;\n  rate_window integer;\n  allowed boolean;\nbegin\n  begin\n    if (select private.is_admin()) then\n      return new;\n    end if;\n  exception when others then\n    null;\n  end;\n\n  if tg_table_name = 'comments' then\n    rate_key := 'comment:' || coalesce(auth.uid()::text, new.user_id::text, '');\n    rate_limit := 6;\n    rate_window := 60;\n  elsif tg_table_name = 'group_chat_messages' then\n    rate_key := 'group-message:' || coalesce(auth.uid()::text, new.user_id::text, '');\n    rate_limit := 12;\n    rate_window := 60;\n  elsif tg_table_name = 'comment_reports' then\n    rate_key := 'comment-report:' || coalesce(new.viewer_key::text, '');\n    rate_limit := 10;\n    rate_window := 600;\n  elsif tg_table_name = 'chapter_views' then\n    rate_key := 'chapter-view:' || coalesce(new.viewer_key::text, '');\n    rate_limit := 60;\n    rate_window := 60;\n  elsif tg_table_name = 'chapter_likes' then\n    rate_key := 'chapter-like:' || coalesce(new.viewer_key::text, '');\n    rate_limit := 30;\n    rate_window := 60;\n  elsif tg_table_name = 'comment_likes' then\n    rate_key := 'comment-like:' || coalesce(new.viewer_key::text, '');\n    rate_limit := 60;\n    rate_window := 60;\n  elsif tg_table_name = 'chapter_ratings' then\n    rate_key := 'chapter-rating:' || coalesce(auth.uid()::text, new.user_id::text, '');\n    rate_limit := 10;\n    rate_window := 60;\n  elsif tg_table_name = 'community_post_reactions' then\n    rate_key := 'community-reaction:' || coalesce(auth.uid()::text, new.user_id::text, '');\n    rate_limit := 60;\n    rate_window := 60;\n  else\n    return new;\n  end if;\n\n  if length(rate_key) < 8 then\n    raise exception 'Rate limit identity unavailable.';\n  end if;\n\n  select public.consume_rate_limit(rate_key, rate_limit, rate_window) into allowed;\n  if not allowed then\n    raise exception 'Too many requests. Please wait and try again.';\n  end if;\n\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "handle_feature_login_insert",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.handle_feature_login_insert()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n  update public.feature_unlock_config\n  set\n    login_user_count = login_user_count + 1,\n    membership_unlocked = membership_unlocked or login_user_count + 1 >= 200,\n    group_chat_unlocked = group_chat_unlocked or login_user_count + 1 >= 500,\n    updated_at = now()\n  where id = true;\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "is_admin",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "boolean",
+      "language": "sql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "stable",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  SELECT EXISTS (\n    SELECT 1\n    FROM public.admins\n    WHERE user_id = (SELECT auth.uid())\n  );\n$function$\n"
+    },
+    {
+      "name": "lock_user_subscription_creation",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "void",
+      "language": "sql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.lock_user_subscription_creation(p_user_id uuid)\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  SELECT pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n$function$\n"
+    },
+    {
+      "name": "record_dpdp_consent_on_signup",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.record_dpdp_consent_on_signup()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare\n  version text;\n  purposes text[];\nbegin\n  version := nullif(coalesce(new.raw_user_meta_data->>'dpdp_privacy_consent_version',''), '');\n  if version is not null then\n    purposes := coalesce(\n      string_to_array(\n        nullif(new.raw_user_meta_data->>'dpdp_consent_purposes',''),\n        ','\n      ),\n      '{}'\n    );\n    insert into public.dpdp_consent_records(user_id, policy_version, purposes, source)\n    values (new.id, version, purposes, 'signup')\n    on conflict (user_id, policy_version) do nothing;\n  end if;\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "sync_engagement_summary",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.sync_engagement_summary()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  if tg_table_name = 'chapter_views' then\n    if tg_op = 'INSERT' then\n      insert into public.chapter_engagement_summary(chapter_id, views_count, updated_at)\n      values (new.chapter_id, 1, now())\n      on conflict (chapter_id) do update set views_count = public.chapter_engagement_summary.views_count + 1, updated_at = now();\n    elsif tg_op = 'DELETE' then\n      update public.chapter_engagement_summary\n      set views_count = greatest(views_count - 1, 0), updated_at = now()\n      where chapter_id = old.chapter_id;\n    end if;\n    return coalesce(new, old);\n  end if;\n\n  if tg_table_name = 'chapter_likes' then\n    if tg_op = 'INSERT' then\n      insert into public.chapter_engagement_summary(chapter_id, likes_count, updated_at)\n      values (new.chapter_id, 1, now())\n      on conflict (chapter_id) do update set likes_count = public.chapter_engagement_summary.likes_count + 1, updated_at = now();\n    elsif tg_op = 'DELETE' then\n      update public.chapter_engagement_summary\n      set likes_count = greatest(likes_count - 1, 0), updated_at = now()\n      where chapter_id = old.chapter_id;\n    end if;\n    return coalesce(new, old);\n  end if;\n\n  if tg_table_name = 'chapter_ratings' then\n    if tg_op = 'INSERT' then\n      insert into public.chapter_engagement_summary(chapter_id, ratings_count, ratings_sum, updated_at)\n      values (new.chapter_id, 1, new.rating, now())\n      on conflict (chapter_id) do update set ratings_count = public.chapter_engagement_summary.ratings_count + 1, ratings_sum = public.chapter_engagement_summary.ratings_sum + new.rating, updated_at = now();\n    elsif tg_op = 'DELETE' then\n      update public.chapter_engagement_summary\n      set ratings_count = greatest(ratings_count - 1, 0), ratings_sum = greatest(ratings_sum - old.rating, 0), updated_at = now()\n      where chapter_id = old.chapter_id;\n    elsif tg_op = 'UPDATE' then\n      if old.chapter_id is distinct from new.chapter_id then\n        update public.chapter_engagement_summary\n        set ratings_count = greatest(ratings_count - 1, 0), ratings_sum = greatest(ratings_sum - old.rating, 0), updated_at = now()\n        where chapter_id = old.chapter_id;\n        insert into public.chapter_engagement_summary(chapter_id, ratings_count, ratings_sum, updated_at)\n        values (new.chapter_id, 1, new.rating, now())\n        on conflict (chapter_id) do update set ratings_count = public.chapter_engagement_summary.ratings_count + 1, ratings_sum = public.chapter_engagement_summary.ratings_sum + new.rating, updated_at = now();\n      elsif old.rating is distinct from new.rating then\n        update public.chapter_engagement_summary\n        set ratings_sum = greatest(ratings_sum + new.rating - old.rating, 0), updated_at = now()\n        where chapter_id = new.chapter_id;\n      end if;\n    end if;\n    return new;\n  end if;\n\n  if tg_table_name = 'comments' then\n    if tg_op = 'INSERT' and new.chapter_id is not null then\n      insert into public.chapter_engagement_summary(chapter_id, comments_count, updated_at)\n      values (new.chapter_id, 1, now())\n      on conflict (chapter_id) do update set comments_count = public.chapter_engagement_summary.comments_count + 1, updated_at = now();\n    elsif tg_op = 'DELETE' and old.chapter_id is not null then\n      update public.chapter_engagement_summary\n      set comments_count = greatest(comments_count - 1, 0), updated_at = now()\n      where chapter_id = old.chapter_id;\n    end if;\n    return coalesce(new, old);\n  end if;\n\n  if tg_table_name = 'chapter_pages' then\n    if tg_op = 'INSERT' then\n      insert into public.chapter_engagement_summary(chapter_id, pages_count, updated_at)\n      values (new.chapter_id, 1, now())\n      on conflict (chapter_id) do update set pages_count = public.chapter_engagement_summary.pages_count + 1, updated_at = now();\n    elsif tg_op = 'DELETE' then\n      update public.chapter_engagement_summary\n      set pages_count = greatest(pages_count - 1, 0), updated_at = now()\n      where chapter_id = old.chapter_id;\n    end if;\n    return coalesce(new, old);\n  end if;\n\n  if tg_table_name = 'comment_likes' then\n    if tg_op = 'INSERT' then\n      insert into public.comment_like_counts(comment_id, like_count, updated_at)\n      values (new.comment_id, 1, now())\n      on conflict (comment_id) do update set like_count = public.comment_like_counts.like_count + 1, updated_at = now();\n    elsif tg_op = 'DELETE' then\n      update public.comment_like_counts\n      set like_count = greatest(like_count - 1, 0), updated_at = now()\n      where comment_id = old.comment_id;\n    end if;\n    return coalesce(new, old);\n  end if;\n\n  return coalesce(new, old);\nend;\n$function$\n"
+    },
+    {
+      "name": "sync_pdlpl_comment_like_count",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.sync_pdlpl_comment_like_count()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  if tg_op='INSERT' then\n    insert into public.pdlpl_comment_like_counts(comment_id,like_count,updated_at)\n    values(new.comment_id,1,now())\n    on conflict(comment_id) do update set like_count=public.pdlpl_comment_like_counts.like_count+1,updated_at=now();\n  elsif tg_op='DELETE' then\n    update public.pdlpl_comment_like_counts set like_count=greatest(like_count-1,0),updated_at=now() where comment_id=old.comment_id;\n  end if;\n  return coalesce(new,old);\nend;\n$function$\n"
+    },
+    {
+      "name": "sync_pdlpl_engagement_summary",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.sync_pdlpl_engagement_summary()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  if tg_table_name = 'pdlpl_chapter_views' then\n    if tg_op='INSERT' then\n      insert into public.pdlpl_chapter_engagement_summary(chapter_id,views_count,updated_at)\n      values(new.chapter_id,1,now())\n      on conflict(chapter_id) do update set views_count=public.pdlpl_chapter_engagement_summary.views_count+1,updated_at=now();\n    end if;\n    return coalesce(new,old);\n  end if;\n\n  if tg_table_name = 'pdlpl_chapter_likes' then\n    if tg_op='INSERT' then\n      insert into public.pdlpl_chapter_engagement_summary(chapter_id,likes_count,updated_at)\n      values(new.chapter_id,1,now())\n      on conflict(chapter_id) do update set likes_count=public.pdlpl_chapter_engagement_summary.likes_count+1,updated_at=now();\n    elsif tg_op='DELETE' then\n      update public.pdlpl_chapter_engagement_summary set likes_count=greatest(likes_count-1,0),updated_at=now() where chapter_id=old.chapter_id;\n    end if;\n    return coalesce(new,old);\n  end if;\n\n  if tg_table_name = 'pdlpl_chapter_shares' then\n    if tg_op='INSERT' then\n      insert into public.pdlpl_chapter_engagement_summary(chapter_id,shares_count,updated_at)\n      values(new.chapter_id,1,now())\n      on conflict(chapter_id) do update set shares_count=public.pdlpl_chapter_engagement_summary.shares_count+1,updated_at=now();\n    end if;\n    return coalesce(new,old);\n  end if;\n\n  if tg_table_name = 'pdlpl_chapter_ratings' then\n    if tg_op='INSERT' then\n      insert into public.pdlpl_chapter_engagement_summary(chapter_id,ratings_count,ratings_sum,updated_at)\n      values(new.chapter_id,1,new.rating,now())\n      on conflict(chapter_id) do update set ratings_count=public.pdlpl_chapter_engagement_summary.ratings_count+1,ratings_sum=public.pdlpl_chapter_engagement_summary.ratings_sum+new.rating,updated_at=now();\n    elsif tg_op='DELETE' then\n      update public.pdlpl_chapter_engagement_summary set ratings_count=greatest(ratings_count-1,0),ratings_sum=greatest(ratings_sum-old.rating,0),updated_at=now() where chapter_id=old.chapter_id;\n    elsif tg_op='UPDATE' then\n      if old.chapter_id is distinct from new.chapter_id then\n        update public.pdlpl_chapter_engagement_summary set ratings_count=greatest(ratings_count-1,0),ratings_sum=greatest(ratings_sum-old.rating,0),updated_at=now() where chapter_id=old.chapter_id;\n        insert into public.pdlpl_chapter_engagement_summary(chapter_id,ratings_count,ratings_sum,updated_at)\n        values(new.chapter_id,1,new.rating,now())\n        on conflict(chapter_id) do update set ratings_count=public.pdlpl_chapter_engagement_summary.ratings_count+1,ratings_sum=public.pdlpl_chapter_engagement_summary.ratings_sum+new.rating,updated_at=now();\n      elsif old.rating is distinct from new.rating then\n        update public.pdlpl_chapter_engagement_summary set ratings_sum=greatest(ratings_sum+new.rating-old.rating,0),updated_at=now() where chapter_id=new.chapter_id;\n      end if;\n    end if;\n    return coalesce(new,old);\n  end if;\n\n  if tg_table_name = 'pdlpl_comments' then\n    if tg_op='INSERT' then\n      insert into public.pdlpl_chapter_engagement_summary(chapter_id,comments_count,updated_at)\n      values(new.chapter_id,1,now())\n      on conflict(chapter_id) do update set comments_count=public.pdlpl_chapter_engagement_summary.comments_count+1,updated_at=now();\n    elsif tg_op='DELETE' then\n      update public.pdlpl_chapter_engagement_summary set comments_count=greatest(comments_count-1,0),updated_at=now() where chapter_id=old.chapter_id;\n    end if;\n    return coalesce(new,old);\n  end if;\n\n  if tg_table_name = 'pal_do_pal_ke_lamhe_chapter_pages' then\n    if tg_op='INSERT' then\n      insert into public.pdlpl_chapter_engagement_summary(chapter_id,pages_count,updated_at)\n      values(new.chapter_id,1,now())\n      on conflict(chapter_id) do update set pages_count=public.pdlpl_chapter_engagement_summary.pages_count+1,updated_at=now();\n    elsif tg_op='DELETE' then\n      update public.pdlpl_chapter_engagement_summary set pages_count=greatest(pages_count-1,0),updated_at=now() where chapter_id=old.chapter_id;\n    end if;\n    return coalesce(new,old);\n  end if;\n  return coalesce(new,old);\nend;\n$function$\n"
+    },
+    {
+      "name": "sync_public_badge_for_user",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.sync_public_badge_for_user(p_user_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  PERFORM set_config('app.allow_public_badge_write', 'on', true);\n  UPDATE public.profiles p SET public_badge = (\n    SELECT CASE\n      WHEN sp.id = 'premium' OR sp.amount_inr >= 49 THEN 'premium'\n      WHEN sp.id = 'supporter' OR sp.amount_inr >= 29 THEN 'supporter'\n      WHEN sp.id = 'mini_member' OR sp.amount_inr >= 19 THEN 'mini_member'\n      ELSE NULL\n    END\n    FROM public.user_subscriptions us\n    JOIN public.subscription_plans sp ON sp.id = us.plan_id\n    WHERE us.user_id = p_user_id\n      AND us.status = 'active'\n      AND (us.current_period_end IS NULL OR us.current_period_end > now())\n      AND sp.active = true\n      AND us.plan_id <> 'free'\n    ORDER BY sp.amount_inr DESC, us.current_period_end DESC NULLS FIRST\n    LIMIT 1\n  )\n  WHERE p.id = p_user_id;\nEND;\n$function$\n"
+    },
+    {
+      "name": "sync_public_badge_profile_trigger",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.sync_public_badge_profile_trigger()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  PERFORM private.sync_public_badge_for_user(NEW.id);\n  RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "name": "sync_public_badge_subscription_trigger",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION private.sync_public_badge_subscription_trigger()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  PERFORM private.sync_public_badge_for_user(COALESCE(NEW.user_id, OLD.user_id));\n  IF TG_OP = 'UPDATE' AND NEW.user_id IS DISTINCT FROM OLD.user_id THEN\n    PERFORM private.sync_public_badge_for_user(OLD.user_id);\n  END IF;\n  RETURN COALESCE(NEW, OLD);\nEND;\n$function$\n"
+    }
+  ]
+}
