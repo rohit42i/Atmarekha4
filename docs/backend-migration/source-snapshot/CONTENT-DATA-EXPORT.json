@@ -2,14 +2,15 @@
   "backup_type": "published-content-metadata-export",
   "source_project_ref": "pbukwjokgkqacaphlqzm",
   "captured_at": "2026-10-12T05:05:34.063Z",
-  "scope": "manga-series/chapter/page/announcement metadata tables; no user/profile/auth/payment/community data or Storage object bytes",
+  "scope": "manga-series/chapter/page/announcement metadata tables; no user/profile/auth/payment/community data or Storage object bytes; now also includes PDPKL chapter page path metadata",
   "note": "This preserves source metadata for a Development content pilot. Page/cover references still point to source Cloudflare/R2; binaries are not included. Not a full PostgreSQL backup.",
   "row_counts": {
     "manga_series": 1,
     "chapters": 2,
     "chapter_pages": 22,
     "announcements": 1,
-    "pdpkl_chapters": 1
+    "pdpkl_chapters": 1,
+    "pdpkl_pages": 2
   },
   "tables": {
     "manga_series": [
@@ -249,6 +250,22 @@
         "card_thumbnail_desktop_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/card-desktop-1791435720858.jpg",
         "chapter_list_thumbnail_mobile_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/chapter-list-mobile-1791438737904.webp",
         "chapter_list_thumbnail_desktop_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/chapter-list-desktop-1791438755474.webp"
+      }
+    ],
+    "pdpkl_pages": [
+      {
+        "id": "d41202c3-6211-43f5-b393-9bbbecc41320",
+        "chapter_id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "created_at": "2026-10-06T14:50:37.04983+00:00",
+        "image_path": "chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/pages/hi-1791298229423/0001.jpg",
+        "page_number": 1
+      },
+      {
+        "id": "3d21cff7-179b-4ef1-88fc-e170d2f3e7a5",
+        "chapter_id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "created_at": "2026-10-06T14:50:37.04983+00:00",
+        "image_path": "chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/pages/hi-1791298229423/0002.jpg",
+        "page_number": 2
       }
     ]
   }
