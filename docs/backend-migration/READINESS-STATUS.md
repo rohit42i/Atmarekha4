@@ -10,7 +10,7 @@
 - Live Storage lists six buckets: four public (`assets`, `chapter-pages`, `community`, `covers`) and two private (`member-content`, `pdlpl-content`).
 - Realtime publication includes `group_chat_likes`, `group_chat_messages`, `group_chat_reactions`, `group_chat_reads`, and `pdlpl_comments`.
 - Two private-schema tables report RLS disabled: `private.feedback_rate_limits` and `private.dpdp_breach_incidents`. Their effective schema privileges/exposure were not verified, so review before classifying their risk.
-- Sixteen active Edge Functions are deployed; nine have tracked source folders on main and seven do not. The deployed function versions and gateway JWT flags were inventoried read-only.
+- Sixteen active Edge Functions are deployed; nine have tracked source folders on main. Seven are deployed-only: `delete-account` v17 (gateway JWT on), `send-chapter-notification` v17 (on), `send-chapter-notification-v2` v25 (on), `send-email-to-users` v7 (on), `get-admin-console-data` v2 (on), `dpdp-data-rights` v4 (on), and `submit-feedback` v1 (off). Their source was retrieved read-only. An off gateway JWT flag requires handler-level signature/auth review; it is not proof of a vulnerability.
 - Catalyst account discovery is in the India data center. No project clearly dedicated to Atma Rekha was identified; no Catalyst resources were created.
 
 ## Critical blocker: migration history
@@ -28,4 +28,4 @@ The live Supabase migration ledger has 180 records; main tracks 65 SQL migration
 
 ## Safety record
 
-All Supabase and Catalyst checks in this session were read-only. No production data payloads or secret values were retrieved. No runtime code, database schema, Auth, Edge Function, Storage, payment, Cloudflare, or production configuration was changed. No local build, automated tests, backup/restore rehearsal, or migration rehearsal was run. See AUDIT.md and DATA-INVENTORY.md for the repository baseline and candidate architecture documents; these remain preparation documents, not migration authorization.
+All Supabase and Catalyst checks in this session were read-only. No production data payloads or secret values were retrieved. No runtime code, database schema, Auth, Edge Function, Storage, payment, Cloudflare, or production configuration was changed. No local build, automated tests, backup/restore rehearsal, or migration rehearsal was run. See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILITY-MAP.md](./CAPABILITY-MAP.md), [MIGRATION-PLAN.md](./MIGRATION-PLAN.md), [TEST-PLAN.md](./TEST-PLAN.md), and [OPERATIONS.md](./OPERATIONS.md). These are preparation documents, not migration authorization.
