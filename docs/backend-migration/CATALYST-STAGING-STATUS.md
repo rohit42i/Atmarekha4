@@ -44,12 +44,23 @@
 ## Safety ledger
 
 - Read-only schema metadata was inspected in the source Supabase project `pbukwjokgkqacaphlqzm`; no source data rows, user payloads, auth records, payment records or secrets were copied.
-- No data has been inserted into Catalyst; no real production rows were imported.
+- Only three deliberately synthetic, unpublished smoke-test rows were inserted and read back successfully (one test series, one draft chapter and one page with an `example.invalid` image URL). They contain no real user/content/payment data. No production rows were imported.
 - No changes were made to production Supabase, Cloudflare, Razorpay, the live website, or the main runtime code.
 - Catalyst Development table containers and table permissions were created/updated only in project `81164000000013050`.
 - No API routes, authentication providers, functions, storage buckets or deployments were enabled.
-- No migration, build, automated contract tests, backup restore, or rollback rehearsal has been run.
+- A basic synthetic Data Store insert/read-back smoke test passed for `manga_series` → `chapters` → `chapter_pages`. No full contract/security test suite, local build, backup restore or rollback rehearsal has been run.
 
 ## Readiness decision
 
 The project is **schema-staged, not migration-ready**. Do not provide real production data or change client routing yet. Continue only after Stratus first-use initialization, a function deployment workflow is available, the full compatibility layer is implemented, contracts and security tests pass, backup/restore and rollback are rehearsed, and a separate migration/cutover command is explicitly provided.
+
+
+## Synthetic smoke-test fixtures
+
+The only rows currently present are deliberately synthetic and unpublished:
+
+- Series slug: `migration-smoke-test-20261012`; UUID `9b2f2d4a-4b8b-4c9a-9d91-000000000114`.
+- Draft chapter UUID: `9b2f2d4a-4b8b-4c9a-9d91-000000000115`, linked using the preserved UUID string.
+- Page UUID: `9b2f2d4a-4b8b-4c9a-9d91-000000000116`, with `source_pk` derived from chapter UUID and page number.
+- Image/cover values use the reserved `example.invalid` domain.
+- All three records were retrieved from their target tables after insertion. This validates basic write/read formatting and source UUID string preservation only; it does not validate business authorization, native referential integrity, transactions, or a production migration.
