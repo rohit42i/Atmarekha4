@@ -20,12 +20,12 @@
 - Domain: https://atmarekha-60091620701.development.catalystserverless.in
 - Existing projects `Polls` and `Project-Rainfall` were not modified.
 - 61 Data Store table containers and 411 source-mapped fields were created. The column listing was compared with all 61 source table metadata definitions; expected fields were present after documented name mappings. Two extra unique `source_pk` fields were added for idempotent composite-key upserts in `chapter_pages` and `group_chat_likes`.
-- Table permissions were set on all 61 tables: App Administrator gets SELECT/INSERT/UPDATE/DELETE; App User gets no table operations. A follow-up read verified settings on representative sensitive and ordinary tables.
+- Table permissions were set on all 61 tables: App Administrator gets SELECT/INSERT/UPDATE/DELETE; App User gets no table operations. A follow-up read of all 61 table permission records verified settings with no mismatches.
 - See [Catalyst staging status](./CATALYST-STAGING-STATUS.md) and the [schema map manifest](./CATALYST-SCHEMA-MAP.csv) for target table IDs, field mappings and conversions.
 
 ## Remaining blockers before any data migration
 
-1. Resolve the first-use Stratus session requirement in the Catalyst console, then provision protected/encrypted **development-only** buckets. No buckets have been created yet.
+1. Resolve the first-use Stratus session requirement in the Catalyst console, then provision the planned four public-source and two protected-source **development-only** buckets, all with encryption. See `STRATUS-SETUP.md`. No buckets have been created yet.
 2. Approve a target identity/session/MFA design. Catalyst hosted/embedded/third-party auth are currently disabled and public signup is off. Do not enable auth until its configuration and recovery flow are reviewed.
 3. Implement and deploy the server-side function layer. Target currently has zero functions. The available MCP connector does not expose function source creation/upload/deployment.
 4. Do not enable API Gateway or CORS until function routes, authentication and throttling have been reviewed. API Gateway is currently disabled and there are zero CORS domains.
@@ -46,8 +46,8 @@ Catalyst Data Store is not PostgreSQL. UUIDs are represented as `varchar(36)` fo
 - Catalyst changes were limited to the dedicated Development project `81164000000013050`: Data Store table/column creation and permissions.
 - Three synthetic-only, unpublished smoke-test rows were inserted and read back from Catalyst: one test series, one draft chapter and one page. No production data was imported.
 - No changes to production Supabase, Cloudflare, Razorpay, the live website, or main runtime code.
-- No Auth, API Gateway, CORS, serverless functions, buckets, payment settings or deployment were created/enabled.
-- A basic synthetic insert/read-back smoke test passed for series, chapter and page tables. No full test suite, build, backup restore, migration rehearsal or rollback rehearsal has been run.
+- No Auth, API Gateway, CORS, live serverless functions, buckets, payment settings or deployment were created/enabled. A Basic I/O health-probe source scaffold exists in `catalyst-staging/` in the GitHub branch only; it is not deployed.
+- A basic synthetic insert/read-back smoke test passed for series, chapter and page tables. No full domain test suite, backend build, backup restore, migration rehearsal or rollback rehearsal has been run.
 - GitHub documentation remains on the dedicated branch and draft PR #60; it has not been merged.
 
 See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILITY-MAP.md](./CAPABILITY-MAP.md), [MIGRATION-PLAN.md](./MIGRATION-PLAN.md), [TEST-PLAN.md](./TEST-PLAN.md), [OPERATIONS.md](./OPERATIONS.md), and [CATALYST-STAGING-STATUS.md](./CATALYST-STAGING-STATUS.md). This is schema preparation, not migration authorization.
