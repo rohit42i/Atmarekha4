@@ -93,7 +93,7 @@ Do not use unsupervised browser dual writes. Use an approved write-freeze/final-
 
 ### Blocked first-use action
 
-Stratus reports: “User needs to be in session when accessing Stratus for the first time.” The owner must open the target project in the Catalyst console, open **Stratus / Storage** once, and complete any prompted setup. Only after this step should the setup be resumed to create the six `atma-stage-*` protected/encrypted buckets. Bucket creation attempts failed and created no buckets.
+Stratus reports: “User needs to be in session when accessing Stratus for the first time.” The owner must open the target project in the Catalyst console, open **Stratus / Storage** once, and complete any prompted setup. Only after this step should the setup be resumed to create the six `atma-stage-*` buckets using the access split in `STRATUS-SETUP.md` (four public-source buckets and two protected buckets, all with encryption). Bucket creation attempts failed and created no buckets.
 
 ### Current non-configured services
 
