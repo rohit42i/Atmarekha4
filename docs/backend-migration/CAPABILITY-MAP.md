@@ -56,3 +56,11 @@ Live Supabase has 16 active deployed Edge Functions; seven do not have same-name
 The migration ledger has 180 live entries versus 65 tracked migration SQL files; raw normalized-name matching found 51 matches, 129 live entries without same-named tracked files and 14 tracked names without same-named live entries. Reconcile semantically before target schema creation or migration execution.
 
 The connected Catalyst org is in the India data center, but discovery did not find a project clearly dedicated to Atma Rekha. The tool catalog includes Datastore/ZCQL, Functions, API Gateway and Authentication, which are only candidate building blocks. It does not establish parity for PostgreSQL transactions/constraints/RLS, Supabase Auth sessions/MFA, Realtime database change feeds/Presence, Storage object policies or Cloudflare/Razorpay workflows. Do not repurpose an unrelated Catalyst project.
+
+## Verified Catalyst Development scaffold (12 October 2026)
+
+The dedicated project `Atmarekha` (`81164000000013050`, Development) now contains 61 mapped Data Store tables and 411 source-mapped fields. Field presence was verified against all 61 source table definitions. `CATALYST-SCHEMA-MAP.csv` records the exact target table IDs, mapped names, source defaults/checks/FK references and conversion notes.
+
+The initial table permission model is intentionally closed: `App Administrator` has SELECT/INSERT/UPDATE/DELETE, while `App User` has no table operations. Catalyst hosted/embedded/third-party Auth remains disabled; API Gateway is disabled; no functions, routes or CORS domains exist. Do not loosen permissions or enable endpoints until a trusted server-side authorization layer is deployed and tested.
+
+**Validated limitations:** Data Store columns alone do not reproduce PostgreSQL RLS, FK actions, CHECK constraints, defaults, PL/pgSQL RPCs, triggers, multi-column uniqueness or transaction behavior. `uuid` is stored as source-preserving text; `numeric`, arrays and JSONB need lossless text serialization/validation; composite keys require a deterministic `source_pk`. This scaffold does not prove runtime parity, and no data or synthetic rows have been inserted.
