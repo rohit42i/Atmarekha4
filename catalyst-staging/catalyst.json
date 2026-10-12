@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "targets": ["atmarekha-health"],
+    "ignore": ["node_modules/**", ".DS_Store"],
+    "source": "functions"
+  }
+}
