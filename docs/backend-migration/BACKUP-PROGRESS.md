@@ -1,7 +1,7 @@
 # Backup and migration execution status
 
 **Updated:** 12 October 2026 (Asia/Kolkata)  
-**Current gate:** Source metadata snapshot is saved. The encrypted database-and-Storage backup has **not been executed**. No production data has been copied to Catalyst.
+**Current gate:** The metadata snapshot and a Git branch checkpoint are saved. The encrypted database-and-Storage backup has **not been executed**. Catalyst Development already contains a partial import of 448 source rows plus 3 synthetic fixtures; this is not a complete or accepted migration. Production routing is unchanged.
 
 ## Confirmed source backup situation
 
@@ -46,13 +46,13 @@ In Termux on the Android phone:
 - Catalyst Development schema is staged: 61 tables / 411 source-mapped fields.
 - Table permission lists have been read back for all 61 tables and match the intended model: App User has no table operations; App Administrator has CRUD.
 - Three synthetic, unpublished rows in the series → chapter → page relationship were inserted and read back successfully.
-- There is no real production data in Catalyst.
+- Catalyst Development currently has 451 rows across 62 tables: 448 source rows plus 3 synthetic fixtures. The existing import includes 12 `payment_events` rows and account-adjacent reader data. The target remains closed to the App User role, has no deployed serverless functions and has no API Gateway; review/disallow sensitive records before any public route or data-serving function is enabled. No authentication identities/password hashes or Storage object bytes were copied.
 - Authentication, server functions, API Gateway, CORS and Storage buckets are still unconfigured. Stratus requires a first-use console session before the bucket API can create buckets.
 - No production code, Supabase, Cloudflare or Razorpay settings have been changed.
 
 ## Go/no-go
 
-**Actual data migration remains blocked** until the encrypted backup succeeds and its contents are independently restored/verified in isolation. After the backup gate, the next work is to initialize Stratus, implement and deploy reviewed Development-only functions, and verify source-to-target behavioral contracts with synthetic data. Do not copy user/auth/payment data into Catalyst or route the website there yet.
+**Further data migration remains blocked** until the encrypted backup succeeds and its contents are independently restored/verified in isolation. After that gate, review already-imported sensitive records, initialize Stratus, implement/review the server-side API/authz layer, and verify source-to-target contracts with synthetic data. Do not transfer additional auth, payment, token, private feedback or incident data; do not expose existing target rows or route the website to Catalyst.
 
 The source schema and migration-history snapshot is preserved, but it is not a substitute for the encrypted backup or restore rehearsal.
 
