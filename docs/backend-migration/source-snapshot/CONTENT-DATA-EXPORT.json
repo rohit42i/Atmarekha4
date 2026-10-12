@@ -2,7 +2,7 @@
   "backup_type": "published-content-metadata-export",
   "source_project_ref": "pbukwjokgkqacaphlqzm",
   "captured_at": "2026-10-12T05:05:34.063Z",
-  "scope": "manga-series/chapter/page/announcement metadata tables; no user/profile/auth/payment/community data or Storage object bytes; now also includes PDPKL chapter page path metadata; includes non-secret membership-plan and feature-gate configuration",
+  "scope": "manga-series/chapter/page/announcement metadata tables; no user/profile/auth/payment/community data or Storage object bytes; now also includes PDPKL chapter page path metadata; includes non-secret membership-plan and feature-gate configuration; includes derived per-chapter engagement summary snapshots (not live views)",
   "note": "This preserves source metadata for a Development content pilot. Page/cover references still point to source Cloudflare/R2; binaries are not included. Not a full PostgreSQL backup.",
   "row_counts": {
     "manga_series": 1,
@@ -12,7 +12,9 @@
     "pdpkl_chapters": 1,
     "pdpkl_pages": 2,
     "subscription_plans": 3,
-    "feature_unlock_config": 1
+    "feature_unlock_config": 1,
+    "chapter_engagement_summary": 2,
+    "pdlpl_chapter_engagement_summary": 1
   },
   "tables": {
     "manga_series": [
@@ -306,6 +308,41 @@
         "login_user_count": 21,
         "group_chat_unlocked": true,
         "membership_unlocked": true
+      }
+    ],
+    "chapter_engagement_summary": [
+      {
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "updated_at": "2026-10-10T01:18:36.787121+00:00",
+        "likes_count": 0,
+        "pages_count": 5,
+        "ratings_sum": 69,
+        "views_count": 102,
+        "ratings_count": 7,
+        "comments_count": 2
+      },
+      {
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "updated_at": "2026-10-11T11:58:11.673021+00:00",
+        "likes_count": 0,
+        "pages_count": 17,
+        "ratings_sum": 98,
+        "views_count": 109,
+        "ratings_count": 10,
+        "comments_count": 12
+      }
+    ],
+    "pdlpl_chapter_engagement_summary": [
+      {
+        "chapter_id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "updated_at": "2026-10-07T01:17:17.183744+00:00",
+        "likes_count": 0,
+        "pages_count": 2,
+        "ratings_sum": 10,
+        "views_count": 3,
+        "shares_count": 0,
+        "ratings_count": 1,
+        "comments_count": 0
       }
     ]
   }
