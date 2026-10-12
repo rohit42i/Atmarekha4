@@ -22,7 +22,7 @@ The partial Catalyst import already includes 12 `payment_events` rows, 9 `user_s
 
 ## Backup and recovery status
 
-- **Metadata/source-inventory backup:** committed; includes table/column metadata, migration ledger, function inventory, row-count matrix and now recovered deployed Edge Function source files. It is not a restorable data backup.
+- **Metadata/source-inventory backup:** committed; includes table/column metadata, the 180-entry migration ledger, 158 RLS/storage policies, all 55 public/private SQL function definitions, 46 trigger definitions, 194 index definitions, 233 constraint definitions, Realtime table metadata, source/target row-count fields in the schema map, and seven recovered deployed Edge Function source folders. These are schema/code artifacts, not application row backups and not a restorable data backup.
 - **Git checkpoint:** created as described above. This is repository-only.
 - **Encrypted PostgreSQL + Supabase Storage object backup:** **not created**. The local Termux kit remains unrun and requires the database connection URL, a server-side Storage key entered locally, and an encryption passphrase. Do not put credentials into chat or GitHub.
 - **Restore rehearsal:** **not run**. No backup should be called complete or restorable until a separate staging restore succeeds.
