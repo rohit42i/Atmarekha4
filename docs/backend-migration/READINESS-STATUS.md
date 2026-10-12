@@ -51,3 +51,10 @@ Catalyst Data Store is not PostgreSQL. UUIDs are represented as `varchar(36)` fo
 - GitHub documentation remains on the dedicated branch and draft PR #60; it has not been merged.
 
 See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILITY-MAP.md](./CAPABILITY-MAP.md), [MIGRATION-PLAN.md](./MIGRATION-PLAN.md), [TEST-PLAN.md](./TEST-PLAN.md), [OPERATIONS.md](./OPERATIONS.md), and [CATALYST-STAGING-STATUS.md](./CATALYST-STAGING-STATUS.md). This is schema preparation, not migration authorization.
+
+## Backup status — 12 October 2026
+
+- Source organization plan verified as **Free**. Supabase's official docs say Free projects should regularly export data and maintain off-site backups; daily automated backups are described for Pro/Team/Enterprise. Database backups exclude actual Storage object bytes ([official backup docs](https://supabase.com/docs/guides/platform/backups)).
+- Metadata-only source backup artifacts have been committed under [source-snapshot](./source-snapshot/): complete 180-entry migration history, 61-table/411-column metadata, project/extensions/function inventory. These do not contain data rows or object bytes and are not a restorable backup.
+- An encrypted local Termux backup kit is committed under [migration-kit/backup](../../migration-kit/backup/README.md); GitHub Actions syntax validation passed. It must be run locally using the database connection URL, a Storage service-role key and an offline passphrase. Those credentials are not stored in GitHub or this conversation.
+- **Actual data + Storage backup: NOT YET CREATED.** No source rows or Storage objects have been imported into Catalyst. Do not begin real data transfer until the encrypted backup is produced, checksummed and restored/verified in an isolated environment.
