@@ -103,3 +103,11 @@ Only repository metadata/source inspection and documentation preparation have oc
 5. **Prove before cutover.** Contract tests, authorization regression, row-count/hash reconciliation, payment/webhook idempotency, backup restore, realtime/storage parity, load testing and rollback rehearsal remain unrun. Production cutover requires separate explicit approval.
 
 No runtime, database, authentication, storage, payment or deployment operation occurred during this audit. The readiness dashboard is documented in `READINESS-STATUS.md`.
+
+## Live progress checkpoint — 12 October 2026
+
+A dedicated Catalyst Development project has since been created by the owner and verified: `Atmarekha`, project ID `81164000000013050`, domain `https://atmarekha-60091620701.development.catalystserverless.in`. The schema scaffold is provisioned: 61 Data Store table containers and 411 mapped source fields, verified by listing columns against source metadata. See [CATALYST-STAGING-STATUS.md](./CATALYST-STAGING-STATUS.md) and [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv).
+
+All 61 table permission lists are closed to the default `App User` role (no table operations), while `App Administrator` retains CRUD. Auth, API Gateway, CORS, functions and Stratus buckets remain unconfigured. Bucket creation is blocked until the owner opens Stratus/Storage in the Catalyst console to satisfy a first-use session requirement. The MCP connector does not expose function source creation/deployment.
+
+This fulfills **schema staging only**, not Gate 3 implementation acceptance. No data rows have been copied or written. The next gate is: initialize Stratus, create protected/encrypted staging buckets, select identity/session/MFA design, implement server-side Functions and access controls, run synthetic-only contract/security tests, and verify backup restore/rollback. Do not treat the manifest as an import script or run a production migration based on it.
