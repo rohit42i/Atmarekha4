@@ -73,3 +73,11 @@ Do not use unsupervised browser dual writes. Use an approved write-freeze/final-
 - [ZCQL SELECT/pagination](https://docs.catalyst.zoho.com/en/cloud-scale/help/zcql/select/)
 - [Catalyst Signals](https://docs.catalyst.zoho.com/en/signals/getting-started/introduction/)
 - [Stratus permissions](https://docs.catalyst.zoho.com/en/cloud-scale/help/stratus/stratus-permissions/)
+
+## Environment status after read-only audit — 12 October 2026
+
+- Production Supabase remains `ACTIVE_HEALTHY` in `ap-south-1`, PostgreSQL 17. Do not pause, reconfigure, or replace it during readiness work.
+- The live database migration ledger (180 entries) and tracked SQL migration directory (65 files) do not reconcile by normalized name. Freeze migration writes until a reviewed mapping and full schema baseline are available.
+- Seven of 16 active deployed Edge Functions lack same-named source folders on `main`. No function was deployed or modified during this audit. Recover and review source before backend implementation; never copy secret values into Git.
+- Read-only Catalyst listing did not identify a project clearly dedicated to Atma Rekha. Do not repurpose an unrelated project. The available MCP tool list did not expose project creation; create a separate Development project through the Catalyst console only after confirming India-region requirements, quotas, ownership and costs.
+- No backup or restore was run or verified in this session. A backup is not proven usable until a restore rehearsal succeeds. Keep Supabase, Cloudflare R2/Workers, Razorpay and the production website unchanged while preparing the target.
