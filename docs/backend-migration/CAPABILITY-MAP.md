@@ -45,3 +45,14 @@ For requirements that depend on PostgreSQL-specific SQL, transactions, locking o
 - The live DB reports 180 migration-history entries compared with 65 tracked SQL files. Reconcile the ledger and live schema before generating target DDL or attempting migration automation.
 - The connected Catalyst account is in the India data center, but no dedicated Atma Rekha project was identified. The discovered Catalyst capabilities include Datastore/ZCQL, Functions, API Gateway and Authentication. No target resources were created. Confirm region, data residency, pricing/quota and create an isolated project through the console before any implementation.
 - Do not treat Catalyst Datastore/ZCQL as PostgreSQL-compatible by assumption. Explicitly redesign multi-row atomic writes, unique/foreign-key/check enforcement, SECURITY DEFINER routines, RLS-equivalent ownership rules, auth session/MFA, Realtime publication/Presence, Storage access and Razorpay webhook processing.
+
+
+## Additional live-state constraints — 12 October 2026
+
+The live Supabase inventory confirms 59 public tables, 145 public RLS policies, 55 SQL functions across public/private (36 marked `SECURITY DEFINER`), 46 user triggers across public and Storage, and five tables in the Realtime publication. A provider boundary must preserve these server-side contracts, not only browser CRUD.
+
+Live Supabase has 16 active deployed Edge Functions; seven do not have same-named tracked source folders on `main`. Recover and review those handlers before mapping behavior into Catalyst. The gateway `verify_jwt` flag is not a substitute for inspecting each handler's actual authorization or webhook-signature checks.
+
+The migration ledger has 180 live entries versus 65 tracked migration SQL files; raw normalized-name matching found 51 matches, 129 live entries without same-named tracked files and 14 tracked names without same-named live entries. Reconcile semantically before target schema creation or migration execution.
+
+The connected Catalyst org is in the India data center, but discovery did not find a project clearly dedicated to Atma Rekha. The tool catalog includes Datastore/ZCQL, Functions, API Gateway and Authentication, which are only candidate building blocks. It does not establish parity for PostgreSQL transactions/constraints/RLS, Supabase Auth sessions/MFA, Realtime database change feeds/Presence, Storage object policies or Cloudflare/Razorpay workflows. Do not repurpose an unrelated Catalyst project.
