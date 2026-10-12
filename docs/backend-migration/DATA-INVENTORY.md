@@ -119,3 +119,11 @@ Live project: `Atmarekha` (`pbukwjokgkqacaphlqzm`), status `ACTIVE_HEALTHY`, reg
 **Migration history:** live history contains 180 records from `20260811002807` to `20261008052712`; main has 65 SQL files. A normalized-name comparison found 51 same-name matches, 129 live rows without a same-named tracked file, and 14 tracked names without a same-named live row. Because timestamps/names can differ for semantically equivalent historical changes, review every mismatch manually before any migration operation.
 
 **Deployed functions:** 16 active functions are present. Seven deployed names lack tracked source folders: `delete-account`, `send-chapter-notification`, `send-chapter-notification-v2`, `send-email-to-users`, `get-admin-console-data`, `dpdp-data-rights`, and `submit-feedback`. Deployed code was retrieved read-only for these functions; no secret values were captured. Version and gateway JWT settings are in READINESS-STATUS.md.
+
+## Verified source metadata and Catalyst mapping snapshot — 12 October 2026
+
+The read-only Supabase metadata endpoint returned **61 source tables (59 public, 2 private) and 411 columns**. The source-column type distribution was: 133 text, 118 UUID, 100 timestamptz, 34 integer, 10 boolean, 6 bigint, 3 smallint, 3 arrays, 3 jsonb and 1 numeric. Metadata was used without exporting row payloads.
+
+The dedicated Catalyst Development project `Atmarekha` (project ID `81164000000013050`) now has matching table containers for all 61 source tables and all 411 source fields after the recorded name conversions. Two extra `source_pk` fields were added for the source composite primary keys (`chapter_pages` and `group_chat_likes`). Target table IDs and field conversions are recorded in [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv); private tables are flattened to `private_feedback_rate_limits` and `private_dpdp_breach_incidents`.
+
+This is a structural mapping only. No source rows, user/auth records, payment records, or media objects were copied. A target field’s presence does not imply preservation of source defaults, indexes, composite constraints, foreign-key delete behavior, database functions, triggers, RLS, or transactions. IDs must remain the original UUID strings, and the service layer must enforce relationships and invariants.
