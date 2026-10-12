@@ -23,6 +23,7 @@ const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const outPath = path.join(outputRoot, 'Atmarekha-Supabase-' + stamp + '.tar.gz.enc');
 const manifestPath = outPath + '.manifest.txt';
 const checksumPath = outPath + '.sha256';
+const hmacPath = outPath + '.hmac';
 const work = fs.mkdtempSync(path.join(os.tmpdir(), 'atma-backup-'));
 
 function ensure(condition, message) {
@@ -38,6 +39,21 @@ async function sha256File(filePath) {
     stream.on('data', chunk => hash.update(chunk));
     stream.on('error', reject);
     stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
+function hmacKey() {
+  return crypto.createHash('sha256')
+    .update('AtmaRekha Supabase backup HMAC v1\\0')
+    .update(PASSPHRASE)
+    .digest();
+}
+async function hmacFile(filePath) {
+  return new Promise((resolve, reject) => {
+    const mac = crypto.createHmac('sha256', hmacKey());
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', chunk => mac.update(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(mac.digest('hex')));
   });
 }
 function quoteIdent(value) {
@@ -240,7 +256,9 @@ async function main() {
   await encryptAndVerify(plainArchive, outPath);
   const cipherBytes = fs.statSync(outPath).size;
   const digest = await sha256File(outPath);
+  const hmac = await hmacFile(outPath);
   fs.writeFileSync(checksumPath, digest + '  ' + path.basename(outPath) + '\n');
+  fs.writeFileSync(hmacPath, 'HMAC-SHA256 ' + hmac + '  ' + path.basename(outPath) + '\n');
 
   const externalManifest = [
     'Atma Rekha encrypted Supabase backup',
@@ -249,12 +267,13 @@ async function main() {
     'Encrypted artifact: ' + path.basename(outPath),
     'Encrypted bytes: ' + cipherBytes,
     'Encrypted SHA-256: ' + digest,
+    'Authenticated HMAC-SHA256: ' + hmac,
     'Compressed package bytes before encryption: ' + packageBytes,
     'PostgreSQL table inventory entries: ' + counts.tableCount,
     'Storage buckets: ' + buckets.length,
     'Storage objects downloaded: ' + storageManifest.objects.length,
     'Storage bytes downloaded: ' + storageManifest.totalObjectBytes,
-    'Verification: pg_restore --list passed; decrypt-and-tar-list passed.',
+    'Verification: pg_restore --list passed; decrypt-and-tar-list passed; HMAC-SHA256 saved in sidecar.',
     'Not yet verified: complete restore into an isolated PostgreSQL/Supabase target.',
     'Keep the encryption passphrase offline; without it the backup cannot be decrypted.',
   ].join('\n') + '\n';
@@ -273,6 +292,7 @@ main().catch(error => {
   try { fs.rmSync(work, { recursive: true, force: true }); } catch {}
   try { fs.rmSync(outPath, { force: true }); } catch {}
   try { fs.rmSync(checksumPath, { force: true }); } catch {}
+  try { fs.rmSync(hmacPath, { force: true }); } catch {}
   try { fs.rmSync(manifestPath, { force: true }); } catch {}
   process.exitCode = 1;
 });
@@ -280,5 +300,7 @@ process.on('SIGINT', () => {
   console.error('\nInterrupted; removing plaintext temporary backup files.');
   try { fs.rmSync(work, { recursive: true, force: true }); } catch {}
   try { fs.rmSync(outPath, { force: true }); } catch {}
+  try { fs.rmSync(checksumPath, { force: true }); } catch {}
+  try { fs.rmSync(hmacPath, { force: true }); } catch {}
   process.exit(130);
 });
