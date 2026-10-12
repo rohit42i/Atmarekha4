@@ -1,0 +1,488 @@
+{
+  "snapshot_date": "2026-10-12",
+  "scope": "Non-internal trigger definitions and Realtime publication metadata only; no application row payloads",
+  "triggers": [
+    {
+      "schema": "public",
+      "table": "announcements",
+      "name": "announcements_limit_trigger",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "enforce_announcements_limit",
+      "definition": "CREATE TRIGGER announcements_limit_trigger AFTER INSERT ON announcements FOR EACH STATEMENT EXECUTE FUNCTION enforce_announcements_limit()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "name": "chapter_likes_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_engagement_summary",
+      "definition": "CREATE TRIGGER chapter_likes_engagement_summary AFTER INSERT OR DELETE ON chapter_likes FOR EACH ROW EXECUTE FUNCTION private.sync_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "name": "chapter_likes_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER chapter_likes_rate_limit BEFORE INSERT ON chapter_likes FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "name": "chapter_pages_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_engagement_summary",
+      "definition": "CREATE TRIGGER chapter_pages_engagement_summary AFTER INSERT OR DELETE ON chapter_pages FOR EACH ROW EXECUTE FUNCTION private.sync_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "name": "chapter_ratings_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_engagement_summary",
+      "definition": "CREATE TRIGGER chapter_ratings_engagement_summary AFTER INSERT OR DELETE OR UPDATE ON chapter_ratings FOR EACH ROW EXECUTE FUNCTION private.sync_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "name": "chapter_ratings_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER chapter_ratings_rate_limit BEFORE INSERT OR UPDATE ON chapter_ratings FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "name": "chapter_views_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_engagement_summary",
+      "definition": "CREATE TRIGGER chapter_views_engagement_summary AFTER INSERT OR DELETE ON chapter_views FOR EACH ROW EXECUTE FUNCTION private.sync_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "name": "chapters_cleanup_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "cleanup_chapter_engagement_summary",
+      "definition": "CREATE TRIGGER chapters_cleanup_engagement_summary AFTER DELETE ON chapters FOR EACH ROW EXECUTE FUNCTION private.cleanup_chapter_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "name": "comment_likes_count_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_engagement_summary",
+      "definition": "CREATE TRIGGER comment_likes_count_summary AFTER INSERT OR DELETE ON comment_likes FOR EACH ROW EXECUTE FUNCTION private.sync_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "name": "comment_likes_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER comment_likes_rate_limit BEFORE INSERT ON comment_likes FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "name": "comment_reports_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER comment_reports_rate_limit BEFORE INSERT ON comment_reports FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "ar_comments_moderation",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "ar_moderate_comment",
+      "definition": "CREATE TRIGGER ar_comments_moderation BEFORE INSERT ON comments FOR EACH ROW EXECUTE FUNCTION ar_moderate_comment()"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_cleanup_like_count",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "cleanup_comment_like_count",
+      "definition": "CREATE TRIGGER comments_cleanup_like_count AFTER DELETE ON comments FOR EACH ROW EXECUTE FUNCTION private.cleanup_comment_like_count()"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_engagement_summary",
+      "definition": "CREATE TRIGGER comments_engagement_summary AFTER INSERT OR DELETE ON comments FOR EACH ROW EXECUTE FUNCTION private.sync_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER comments_rate_limit BEFORE INSERT ON comments FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "set_comments_updated_at",
+      "definition": "CREATE TRIGGER comments_updated_at BEFORE UPDATE ON comments FOR EACH ROW EXECUTE FUNCTION set_comments_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "name": "community_post_reactions_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER community_post_reactions_rate_limit BEFORE INSERT ON community_post_reactions FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "feature_login_users",
+      "name": "feature_login_count_after_insert",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "handle_feature_login_insert",
+      "definition": "CREATE TRIGGER feature_login_count_after_insert AFTER INSERT ON feature_login_users FOR EACH ROW EXECUTE FUNCTION private.handle_feature_login_insert()"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "name": "ar_group_chat_moderation",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "ar_moderate_group_chat_message",
+      "definition": "CREATE TRIGGER ar_group_chat_moderation BEFORE INSERT ON group_chat_messages FOR EACH ROW EXECUTE FUNCTION ar_moderate_group_chat_message()"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "name": "group_chat_messages_rate_limit",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "enforce_rate_limit_trigger",
+      "definition": "CREATE TRIGGER group_chat_messages_rate_limit BEFORE INSERT ON group_chat_messages FOR EACH ROW EXECUTE FUNCTION private.enforce_rate_limit_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "name": "notification_subscriptions_set_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "set_reader_updated_at",
+      "definition": "CREATE TRIGGER notification_subscriptions_set_updated_at BEFORE UPDATE ON notification_subscriptions FOR EACH ROW EXECUTE FUNCTION set_reader_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "name": "pdlpl_pages_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_pages_engagement_summary AFTER INSERT OR DELETE ON pal_do_pal_ke_lamhe_chapter_pages FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "pdlpl_chapter_cleanup_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "cleanup_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_chapter_cleanup_summary AFTER DELETE ON pal_do_pal_ke_lamhe_chapters FOR EACH ROW EXECUTE FUNCTION private.cleanup_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "pdlpl_chapter_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "pdlpl_touch_chapter_updated_at",
+      "definition": "CREATE TRIGGER pdlpl_chapter_updated_at BEFORE UPDATE ON pal_do_pal_ke_lamhe_chapters FOR EACH ROW EXECUTE FUNCTION pdlpl_touch_chapter_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "name": "pdlpl_likes_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_likes_engagement_summary AFTER INSERT OR DELETE ON pdlpl_chapter_likes FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "name": "pdlpl_ratings_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_ratings_engagement_summary AFTER INSERT OR DELETE OR UPDATE ON pdlpl_chapter_ratings FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "name": "pdlpl_shares_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_shares_engagement_summary AFTER INSERT OR DELETE ON pdlpl_chapter_shares FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "name": "pdlpl_views_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_views_engagement_summary AFTER INSERT OR DELETE ON pdlpl_chapter_views FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "name": "pdlpl_comment_likes_count",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_comment_like_count",
+      "definition": "CREATE TRIGGER pdlpl_comment_likes_count AFTER INSERT OR DELETE ON pdlpl_comment_likes FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_comment_like_count()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "name": "pdlpl_comments_engagement_summary",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_pdlpl_engagement_summary",
+      "definition": "CREATE TRIGGER pdlpl_comments_engagement_summary AFTER INSERT OR DELETE ON pdlpl_comments FOR EACH ROW EXECUTE FUNCTION private.sync_pdlpl_engagement_summary()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "name": "pdlpl_comments_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "set_pdlpl_comment_updated_at",
+      "definition": "CREATE TRIGGER pdlpl_comments_updated_at BEFORE UPDATE ON pdlpl_comments FOR EACH ROW EXECUTE FUNCTION set_pdlpl_comment_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "name": "pdlpl_history_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "set_pdlpl_reading_history_updated_at",
+      "definition": "CREATE TRIGGER pdlpl_history_updated_at BEFORE UPDATE ON pdlpl_reading_history FOR EACH ROW EXECUTE FUNCTION set_pdlpl_reading_history_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "profile_display_name_lock",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "lock_profile_display_name",
+      "definition": "CREATE TRIGGER profile_display_name_lock BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION lock_profile_display_name()"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "profile_public_badge_lock",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "lock_profile_public_badge",
+      "definition": "CREATE TRIGGER profile_public_badge_lock BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION lock_profile_public_badge()"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "profile_public_badge_lock_insert",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "lock_profile_public_badge_on_insert",
+      "definition": "CREATE TRIGGER profile_public_badge_lock_insert BEFORE INSERT ON profiles FOR EACH ROW EXECUTE FUNCTION lock_profile_public_badge_on_insert()"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "profiles_set_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "set_reader_updated_at",
+      "definition": "CREATE TRIGGER profiles_set_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION set_reader_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "sync_public_badge_on_profile_insert",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_public_badge_profile_trigger",
+      "definition": "CREATE TRIGGER sync_public_badge_on_profile_insert AFTER INSERT ON profiles FOR EACH ROW EXECUTE FUNCTION private.sync_public_badge_profile_trigger()"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "name": "reading_history_set_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "public",
+      "function_name": "set_reader_updated_at",
+      "definition": "CREATE TRIGGER reading_history_set_updated_at BEFORE UPDATE ON reading_history FOR EACH ROW EXECUTE FUNCTION set_reader_updated_at()"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "name": "sync_public_badge_on_subscription",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "private",
+      "function_name": "sync_public_badge_subscription_trigger",
+      "definition": "CREATE TRIGGER sync_public_badge_on_subscription AFTER INSERT OR DELETE OR UPDATE ON user_subscriptions FOR EACH ROW EXECUTE FUNCTION private.sync_public_badge_subscription_trigger()"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "name": "enforce_bucket_name_length_trigger",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "enforce_bucket_name_length",
+      "definition": "CREATE TRIGGER enforce_bucket_name_length_trigger BEFORE INSERT OR UPDATE OF name ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_name_length()"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "name": "protect_bucket_control_insert",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "protect_bucket_control_columns",
+      "definition": "CREATE TRIGGER protect_bucket_control_insert BEFORE INSERT ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.protect_bucket_control_columns('service_role')"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "name": "protect_bucket_control_update",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "protect_bucket_control_columns",
+      "definition": "CREATE TRIGGER protect_bucket_control_update BEFORE UPDATE OF lifecycle_configuration, lifecycle_configuration_generation ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.protect_bucket_control_columns()"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "name": "protect_bucket_control_update_role",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "enforce_bucket_lifecycle_service_role",
+      "definition": "CREATE TRIGGER protect_bucket_control_update_role AFTER UPDATE OF lifecycle_configuration, lifecycle_configuration_generation ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_lifecycle_service_role('service_role')"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "name": "protect_buckets_delete",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "protect_delete",
+      "definition": "CREATE TRIGGER protect_buckets_delete BEFORE DELETE ON storage.buckets FOR EACH STATEMENT EXECUTE FUNCTION storage.protect_delete()"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "protect_objects_delete",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "protect_delete",
+      "definition": "CREATE TRIGGER protect_objects_delete BEFORE DELETE ON storage.objects FOR EACH STATEMENT EXECUTE FUNCTION storage.protect_delete()"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "update_objects_updated_at",
+      "enabled_state": "origin",
+      "is_constraint_trigger": false,
+      "function_schema": "storage",
+      "function_name": "update_updated_at_column",
+      "definition": "CREATE TRIGGER update_objects_updated_at BEFORE UPDATE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.update_updated_at_column()"
+    }
+  ],
+  "realtime_publication_tables": [
+    {
+      "schema": "public",
+      "table": "group_chat_likes"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments"
+    }
+  ]
+}
