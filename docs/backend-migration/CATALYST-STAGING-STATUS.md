@@ -34,7 +34,7 @@
 1. **Authentication remains disabled**: hosted, embedded and third-party auth are all off; public signup is off.
 2. **API Gateway remains disabled**. No routes were created.
 3. **Zero serverless functions exist**. The connected Catalyst MCP exposes read/list/update/execute/delete operations but not function-source creation/upload/deployment. Functions must be created from the Catalyst console/CLI and reviewed code, without deployment to production.
-4. **Storage buckets are not created.** Stratus operations returned a first-use-session requirement. The owner must open Stratus/Storage in the Catalyst console once, after which protected/encrypted development buckets can be created.
+4. **Storage buckets are not created.** Stratus operations returned a first-use-session requirement. The owner must open Stratus/Storage in the Catalyst console once, after which buckets with the intended public/protected split and encryption can be created.
 5. No CORS origins, email domains, payment configuration, webhooks, schedules, realtime transport or background jobs were created.
 6. Catalyst Data Store is not PostgreSQL. Defaults, multi-column unique keys, composite primary keys, foreign-key enforcement, CHECK constraints, indexes, transactions, triggers, RLS policies and PL/pgSQL functions have not been automatically reproduced. The manifest documents conversions; application-layer constraints and test suites are still required.
 7. Array/JSONB/numeric conversions require special handling: JSON values are serialized as text with size validation; exact numeric values must remain decimal strings to avoid floating-point changes.
