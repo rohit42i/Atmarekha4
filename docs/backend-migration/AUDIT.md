@@ -91,7 +91,7 @@ Nine tracked Edge Function entry points exist:
 
 These use Supabase APIs/RPCs and server-side configuration. Razorpay order/subscription lifecycle, signatures/webhooks, cancellation and entitlement state are sensitive business contracts. Push registration and secure password login also have rate-limit/auth dependencies. Actual secret values were not retrieved or written.
 
-The live project has 16 active Edge Functions. Seven deployed functions have no same-named tracked source folder: delete-account, send-chapter-notification, send-chapter-notification-v2, send-email-to-users, get-admin-console-data, dpdp-data-rights and submit-feedback. Their deployed existence and source were verified read-only; see READINESS-STATUS.md. Recover and review these sources before a future migration.
+The live project has 16 active Edge Functions. Seven deployed-only handlers (delete-account, send-chapter-notification, send-chapter-notification-v2, send-email-to-users, get-admin-console-data, dpdp-data-rights and submit-feedback) have had their source recovered into this migration branch after a basic literal-secret-pattern scan. They are not yet on `main` and are not Catalyst replacements. Review source and behavior before future migration; see `READINESS-STATUS.md` and `LIVE-READINESS-CHECKPOINT.md`.
 
 Environment variable names are in .env.example; only names and purposes are relevant to this task. Vite-prefixed variables are browser-visible and must not hold secrets. The GitHub workflow includes production deployment operations and must not be triggered as a production push during this task.
 
