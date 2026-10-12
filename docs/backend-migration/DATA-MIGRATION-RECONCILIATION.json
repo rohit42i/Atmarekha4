@@ -1,0 +1,337 @@
+{
+  "snapshot_at": "2026-10-12",
+  "source": {
+    "project_ref": "pbukwjokgkqacaphlqzm",
+    "tables": 61,
+    "columns": 411,
+    "actual_row_count": 537,
+    "migration_history_records": 180,
+    "edge_functions": 16
+  },
+  "target": {
+    "project_id": "81164000000013050",
+    "environment": "Development",
+    "mapped_source_tables": 61,
+    "mapped_source_fields": 411,
+    "table_permissions_verified": true,
+    "app_user_table_operations": "none",
+    "app_administrator_table_operations": [
+      "SELECT",
+      "INSERT",
+      "UPDATE",
+      "DELETE"
+    ]
+  },
+  "data_transfer": {
+    "imported_source_rows": 448,
+    "tables_with_data_and_full_field_comparison_verified": 35,
+    "additional_empty_table_verified": 1,
+    "value_mismatches": 0,
+    "missing_source_records": 0,
+    "unexpected_target_records": 0,
+    "verified_tables": [
+      {
+        "table": "public.manga_series",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapters",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_pages",
+        "source_rows": 22,
+        "target_source_rows_verified": 22,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.announcements",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pal_do_pal_ke_lamhe_chapters",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pal_do_pal_ke_lamhe_chapter_pages",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.subscription_plans",
+        "source_rows": 3,
+        "target_source_rows_verified": 3,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.feature_unlock_config",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_engagement_summary",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_chapter_engagement_summary",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.profiles",
+        "source_rows": 25,
+        "target_source_rows_verified": 25,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.admins",
+        "source_rows": 5,
+        "target_source_rows_verified": 5,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.feature_login_users",
+        "source_rows": 16,
+        "target_source_rows_verified": 16,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.bookmarks",
+        "source_rows": 10,
+        "target_source_rows_verified": 10,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.reading_history",
+        "source_rows": 22,
+        "target_source_rows_verified": 22,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comments",
+        "source_rows": 14,
+        "target_source_rows_verified": 14,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_ratings",
+        "source_rows": 17,
+        "target_source_rows_verified": 17,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comment_likes",
+        "source_rows": 16,
+        "target_source_rows_verified": 16,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_views",
+        "source_rows": 211,
+        "target_source_rows_verified": 211,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comment_reports",
+        "source_rows": 0,
+        "target_source_rows_verified": 0,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.user_subscriptions",
+        "source_rows": 9,
+        "target_source_rows_verified": 9,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.payment_events",
+        "source_rows": 12,
+        "target_source_rows_verified": 12,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.push_subscriptions",
+        "source_rows": 8,
+        "target_source_rows_verified": 8,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.community_posts",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.community_post_reactions",
+        "source_rows": 8,
+        "target_source_rows_verified": 8,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.group_chat_reactions",
+        "source_rows": 4,
+        "target_source_rows_verified": 4,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.group_chat_reads",
+        "source_rows": 10,
+        "target_source_rows_verified": 10,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.group_chat_likes",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_chapter_ratings",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_chapter_views",
+        "source_rows": 3,
+        "target_source_rows_verified": 3,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_bookmarks",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_reading_history",
+        "source_rows": 3,
+        "target_source_rows_verified": 3,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comment_like_counts",
+        "source_rows": 9,
+        "target_source_rows_verified": 9,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.dpdp_consent_records",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.dpdp_deletion_requests",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.site_feedback",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      }
+    ],
+    "target_only_synthetic_fixtures": [
+      {
+        "table": "manga_series",
+        "id": "9b2f2d4a-4b8b-4c9a-9d91-000000000114"
+      },
+      {
+        "table": "chapters",
+        "id": "9b2f2d4a-4b8b-4c9a-9d91-000000000115"
+      },
+      {
+        "table": "chapter_pages",
+        "id": "9b2f2d4a-4b8b-4c9a-9d91-000000000116"
+      }
+    ],
+    "excluded_runtime_state": [
+      {
+        "table": "public.edge_rate_limits",
+        "rows": 39,
+        "reason": "ephemeral throttling state; stale counters should not be replayed"
+      },
+      {
+        "table": "private.feedback_rate_limits",
+        "rows": 1,
+        "reason": "ephemeral throttling state; stale counters should not be replayed"
+      },
+      {
+        "table": "public.login_password_protection",
+        "rows": 1,
+        "reason": "auth-provider-specific lockout record; do not replay into a different identity system"
+      }
+    ],
+    "deferred_by_tool_safety_checks": [
+      {
+        "table": "public.group_chat_messages",
+        "rows": 2,
+        "reason": "MCP retrieval of message bodies was blocked by platform safety checks; not transferred"
+      },
+      {
+        "table": "public.admin_activity_log",
+        "rows": 42,
+        "reason": "MCP retrieval of audit details was blocked by platform safety checks; not transferred"
+      },
+      {
+        "table": "public.admin_notification_log",
+        "rows": 4,
+        "reason": "MCP retrieval of notification records was blocked by platform safety checks; not transferred"
+      }
+    ],
+    "note": "The source total 537 decomposes into 448 imported+verified, 48 deferred due blocked table-content retrieval, and 41 intentionally excluded runtime/auth-specific rows. Source remained unchanged. Catalyst DateTime columns accept second precision only, so source timestamps were normalized/truncated to seconds. The migration report contains no row payloads."
+  },
+  "storage": {
+    "source_buckets": 2,
+    "source_objects": 87,
+    "source_bytes": 47353285,
+    "source_mib": 45.16,
+    "buckets": [
+      {
+        "name": "atma-rekha-manga",
+        "objects": 79,
+        "bytes": 43401588
+      },
+      {
+        "name": "pdlpl-manga",
+        "objects": 8,
+        "bytes": 3951697
+      }
+    ],
+    "objects_copied": 0,
+    "target_buckets_created": 0,
+    "blocker": "Catalyst Stratus API requires the user to open Stratus/Storage in the project console once before API access is permitted."
+  },
+  "backup": {
+    "schema_and_history_metadata_snapshot": "committed to migration branch",
+    "content_metadata_export": "committed to migration branch (public content/config only)",
+    "r2_inventory_summary": "committed to migration branch (counts/bytes only)",
+    "encrypted_full_database_plus_storage_backup": "not created",
+    "local_termux_backup_kit": "committed; requires locally entered database URL, Storage service-role key, and encryption passphrase",
+    "restore_rehearsal": "not run"
+  },
+  "functions_and_cutover": {
+    "target_serverless_functions_deployed": 0,
+    "target_auth_enabled": false,
+    "target_api_gateway_routes": 0,
+    "production_routing_changed": false,
+    "source_supabase_cloudflare_razorpay_live_site_changed": false,
+    "ready_for_production_cutover": false
+  }
+}
