@@ -46,3 +46,7 @@ The prompts do not echo values. Output is saved under ~/storage/downloads/Atmare
 - Successful archive checks are not the same as a restore rehearsal. Restore into an isolated target and verify core behavior before cutover.
 
 Official guidance: [Supabase Database Backups](https://supabase.com/docs/guides/platform/backups) and [Backup and Restore using the CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore). Database backups don't contain the actual bytes held in Supabase Storage, which this kit separately downloads.
+
+## Important limitations
+
+This is a **database + Storage-object backup**, not a full Supabase project clone. It does not export project-level settings, OAuth/SMTP provider secrets, project API keys, Edge Function environment secrets or deployed function source, the Supabase Vault encryption root key, Cloudflare R2 objects/configuration, Razorpay configuration, or the application deployment configuration. Preserve those separately via their official consoles and a secure password manager. The PostgreSQL dump may include Supabase Auth and Storage metadata if the connected database role can access those schemas, but project Auth-provider settings are separate. Because pgcrypto/Supabase Vault is enabled on the source, separately verify the Vault/encryption-key recovery procedure before considering the source fully recoverable.
