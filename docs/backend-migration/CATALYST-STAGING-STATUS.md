@@ -2,7 +2,7 @@
 
 **Snapshot:** 12 October 2026 (Asia/Kolkata)  
 **Purpose:** Prepare an isolated Catalyst staging target for a later, separately authorized migration.  
-**Migration status:** NOT READY for real data or cutover.
+**Migration status:** PARTIAL DEVELOPMENT DATA IMPORT COMPLETE; NOT READY for full migration or cutover.
 
 ## Verified target
 
@@ -29,6 +29,17 @@
 - The Catalyst `App User` table permission list was set to empty on all 61 tables. A fresh read of all 61 table permission records confirmed this permission model with no mismatches.
 - This deliberately blocks the default end-user table access until a trusted authorization/function layer is implemented and tested.
 
+## Partial source-data import (12 October 2026)
+
+A limited, explicitly non-production import has now been run into Catalyst Development. Imported records were checked by source IDs or mapped primary keys using target read-back. Re-running the importer should skip records already present.
+
+- Content metadata: `manga_series` (1), `chapters` (2), `chapter_pages` (22), `pal_do_pal_ke_lamhe_chapters` (1), `pal_do_pal_ke_lamhe_chapter_pages` (2), and `announcements` (1).
+- Configuration: `subscription_plans` (3) and `feature_unlock_config` (1).
+- Reader/account-adjacent tables: `profiles`, `reading_history` (22), `comments` (14), `chapter_ratings` (17), `comment_likes` (16), `bookmarks` (10), `admins` (5), `feature_login_users` (16), `chapter_views` (211), `community_posts` (2), `community_post_reactions` (8), and the chapter-engagement aggregate tables. `comment_reports` had zero source rows.
+- For these imports, target rows were checked after writes. Existing rows were not blindly duplicated. Some admin/feature-login/bookmark and view/community rows were already present in the target and were verified rather than reinserted.
+- A partial JSON metadata/configuration snapshot is stored at [CONTENT-DATA-EXPORT.json](./source-snapshot/CONTENT-DATA-EXPORT.json) on the migration branch. It is **not** a full backup: it excludes the complete database, auth identities/credentials, all private/user/payment records, all storage object bytes, and full database routines/policies/indexes. Do not treat it as sufficient for restore.
+- Date/time values in imported rows may have been normalized to second precision; JSON/array/numeric fields were mapped to text where the schema manifest specifies it. Foreign keys, triggers, RLS, transaction behavior and business logic are not reproduced by Catalyst Data Store.
+
 ## Not completed / explicit blockers
 
 1. **Authentication remains disabled**: hosted, embedded and third-party auth are all off; public signup is off.
@@ -43,12 +54,12 @@
 
 ## Safety ledger
 
-- Read-only schema metadata was inspected in the source Supabase project `pbukwjokgkqacaphlqzm`; no source data rows, user payloads, auth records, payment records or secrets were copied.
-- Only three deliberately synthetic, unpublished smoke-test rows were inserted and read back successfully (one test series, one draft chapter and one page with an `example.invalid` image URL). They contain no real user/content/payment data. No production rows were imported.
+- Source reads were performed against Supabase project `pbukwjokgkqacaphlqzm`. A limited subset of content metadata and reader-facing rows was copied into the isolated Catalyst Development project as recorded above. This is not a full migration and must not be treated as production-ready.
+- The three synthetic, unpublished smoke-test rows remain in the target alongside the imported records. They use `example.invalid` URLs and are not source production records.
 - No changes were made to production Supabase, Cloudflare, Razorpay, the live website, or the main runtime code.
 - Catalyst Development table containers and table permissions were created/updated only in project `81164000000013050`.
 - No API routes, authentication providers, live functions, storage buckets or deployments were enabled. The liveness function currently exists only as source in GitHub.
-- A basic synthetic Data Store insert/read-back smoke test passed for `manga_series` → `chapters` → `chapter_pages`. No full contract/security test suite, local build, backup restore or rollback rehearsal has been run.
+- Basic synthetic insert/read-back and limited imported-row key verification passed. No full contract/security test suite, application build, full restore test, or rollback rehearsal has been run.
 
 ## Readiness decision
 
