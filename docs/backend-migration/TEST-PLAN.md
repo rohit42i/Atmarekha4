@@ -64,3 +64,15 @@ No production cutover until:
 - Separate authorization approves the target environment and production cutover.
 
 Record baseline SHA, target environment, test dataset version, command, timestamp, pass/fail, known issues, owner and approval. Redact personal data and secrets.
+
+## Catalyst staging smoke test — 12 October 2026
+
+**Passed:** A synthetic row was inserted and then read back from each of the three target tables in the content relationship chain:
+
+1. `manga_series`: unpublished synthetic series, stable source UUID string.
+2. `chapters`: draft-only synthetic chapter, whose `manga_id` field preserves the source UUID string.
+3. `chapter_pages`: one synthetic page, preserving `chapter_id` and a deterministic `source_pk` key.
+
+All image URLs use `example.invalid`; no production assets or rows were used. The three fixtures were retrieved successfully after insert. This smoke test establishes basic insert/read and field-type behavior only. It does **not** prove foreign-key enforcement, transaction/atomic behavior, role-based end-user denial through a deployed API, RLS parity, business contract parity or high-volume behavior.
+
+**Remaining:** run isolated tests for every domain operation, relationship validation, composite key idempotency, field defaults/checks, duplicate webhook/event handling, auth/session/MFA/role matrix, Data Store pagination, concurrency/retry/partial failure, Realtime/chat/presence, storage signed access, deletion propagation and all critical entitlement states. No production migration or rollback rehearsal has been run.
