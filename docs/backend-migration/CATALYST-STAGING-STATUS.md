@@ -26,14 +26,14 @@
 ## Access controls applied
 
 - Table permissions were set for all 61 tables to allow the Catalyst `App Administrator` role `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
-- The Catalyst `App User` table permission list was set to empty on all 61 tables. A follow-up permission read confirmed this on multiple representative sensitive and ordinary tables, including `chapters`, `payments` and `private_dpdp_breach_incidents`.
+- The Catalyst `App User` table permission list was set to empty on all 61 tables. A fresh read of all 61 table permission records confirmed this permission model with no mismatches.
 - This deliberately blocks the default end-user table access until a trusted authorization/function layer is implemented and tested.
 
 ## Not completed / explicit blockers
 
 1. **Authentication remains disabled**: hosted, embedded and third-party auth are all off; public signup is off.
 2. **API Gateway remains disabled**. No routes were created.
-3. **Zero serverless functions exist**. The connected Catalyst MCP exposes read/list/update/execute/delete operations but not function-source creation/upload/deployment. Functions must be created from the Catalyst console/CLI and reviewed code, without deployment to production.
+3. **Zero serverless functions exist in the Catalyst project.** A dependency-free Basic I/O liveness function source scaffold is committed under `catalyst-staging/`, but it is not deployed. The connected Catalyst MCP does not expose live function-resource creation/upload/deployment. Import/create it only in Development through the console/CLI and verify before use.
 4. **Storage buckets are not created.** Stratus operations returned a first-use-session requirement. The owner must open Stratus/Storage in the Catalyst console once, after which buckets with the intended public/protected split and encryption can be created.
 5. No CORS origins, email domains, payment configuration, webhooks, schedules, realtime transport or background jobs were created.
 6. Catalyst Data Store is not PostgreSQL. Defaults, multi-column unique keys, composite primary keys, foreign-key enforcement, CHECK constraints, indexes, transactions, triggers, RLS policies and PL/pgSQL functions have not been automatically reproduced. The manifest documents conversions; application-layer constraints and test suites are still required.
@@ -47,7 +47,7 @@
 - Only three deliberately synthetic, unpublished smoke-test rows were inserted and read back successfully (one test series, one draft chapter and one page with an `example.invalid` image URL). They contain no real user/content/payment data. No production rows were imported.
 - No changes were made to production Supabase, Cloudflare, Razorpay, the live website, or the main runtime code.
 - Catalyst Development table containers and table permissions were created/updated only in project `81164000000013050`.
-- No API routes, authentication providers, functions, storage buckets or deployments were enabled.
+- No API routes, authentication providers, live functions, storage buckets or deployments were enabled. The liveness function currently exists only as source in GitHub.
 - A basic synthetic Data Store insert/read-back smoke test passed for `manga_series` → `chapters` → `chapter_pages`. No full contract/security test suite, local build, backup restore or rollback rehearsal has been run.
 
 ## Readiness decision
