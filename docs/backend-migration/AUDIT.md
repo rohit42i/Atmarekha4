@@ -11,14 +11,14 @@
 3. Auth behavior is Supabase-specific: PKCE, persisted/auto-refreshed sessions, URL session detection, a custom password-login protection function, TOTP MFA, role checks and membership entitlement logic.
 4. Direct PostgREST queries, SQL RPCs, triggers, RLS and Realtime channels are current contracts. Catalyst Data Store/ZCQL, Functions/API Gateway, Authentication and Signals have different models and are not assumed drop-in replacements.
 5. Media and analytics are split between Supabase and Cloudflare. Current media Workers use Supabase-derived auth/configuration. R2, Cloudflare hosting, Razorpay and deployed behavior must remain untouched.
-6. Four invoked function names have no matching folder in tracked main source: get-admin-console-data, send-chapter-notification-v2, dpdp-data-rights and submit-feedback. They may exist in a remote deployment, but were not verified.
+6. Live Supabase re-check confirmed 16 active deployed Edge Functions. Seven deployed functions have no same-named tracked source folder: delete-account, send-chapter-notification, send-chapter-notification-v2, send-email-to-users, get-admin-console-data, dpdp-data-rights and submit-feedback. Their deployed existence was verified and their source was retrieved read-only; see LIVE-READINESS-CHECKPOINT.md.
 7. A source abstraction is unsafe to introduce as a preparation-only change: it would touch many call sites and risk changing authorization, error shapes, transactions and behavior. This change therefore remains documentation-only.
 
 ## Method and limits
 
-Inspected the complete returned GitHub main tree, relevant source/configuration, search results for data access/auth/RPC/function calls, tracked SQL migration files, workflow files, root README, and existing docs. The returned tree had 328 paths and was not marked truncated. Read-only Zoho Catalyst MCP discovery showed available feature groups and tool descriptions only; no Catalyst project resource, database table, row, user, bucket, function, environment variable or deployment was inspected or changed.
+Inspected the returned GitHub main tree and relevant source/configuration, plus read-only live Supabase metadata for tables/columns, migration ledger, RLS policy counts, SQL function-security counts, trigger counts, Realtime publication tables, Storage buckets and deployed Edge Functions. The GitHub tree had 328 paths and was not truncated. Read-only Catalyst checks enumerated the authenticated India-region organization, accessible project names and available capability groups; no Catalyst table, row, user, function, route, CORS entry, auth setting, environment variable or deployment was inspected or changed.
 
-Not inspected: live Supabase schema/catalog, deployed RLS state, current Auth provider configuration, remote-only function code, production rows, secret values, Cloudflare secret values, local uncommitted working tree or live browser behavior. GitHub branch-protection lookup was denied by the connected integration. This report does not assert live configuration matches Git.
+Not fully inspected: complete schema DDL and every constraint/index/view/grant; all SQL function bodies and per-function grants; private-schema access privileges; current Supabase Auth provider/redirect/email/session/MFA settings; Cloudflare bindings/routes and secret values; local uncommitted working tree; live browser behavior; or production row payloads. Table metadata returned table-level counts, but no user-level records or secret values were queried/exported. GitHub branch-protection lookup was denied by the connected integration. This report does not assert live configuration matches Git.
 
 ## Baseline repository
 
@@ -106,7 +106,7 @@ Environment variable names are in .env.example; only names and purposes are rele
 7. Cloudflare media Workers currently trust Supabase-related identity/configuration.
 8. Razorpay and membership entitlement consistency.
 9. Catalyst Data Store/ZCQL is not PostgreSQL; compatibility needs a table/API-by-table/API decision.
-10. No live metadata or local build/test execution evidence in this session.
+10. Live metadata was read-only inspected, but a complete schema/grant review, restore rehearsal, local build and automated test execution remain unverified.
 
 ## Checks actually performed
 
@@ -119,3 +119,7 @@ Environment variable names are in .env.example; only names and purposes are rele
 ## Decision
 
 Ship migration-readiness documentation only. Do not add a provider variable or abstraction until the complete schema, missing function contracts, authorization model, auth/MFA, realtime and transaction requirements are resolved.
+
+## Live re-check pointer
+
+The earlier repository-only audit is supplemented by [LIVE-READINESS-CHECKPOINT.md](./LIVE-READINESS-CHECKPOINT.md), which records the current Supabase schema/migration/function counts and the Catalyst project discovery. The key correction is that seven deployed functions exist live without tracked source, and the live migration ledger does not reconcile by name with the tracked migration directory. Neither the live backend nor the website runtime was changed.
