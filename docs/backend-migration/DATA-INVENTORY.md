@@ -9,7 +9,7 @@
 |---|---|---|
 | Content | manga_series, chapters, chapter_pages, media | chapters.js, App.jsx, AdminPanel.jsx, chapter/page admin. Full original create-table DDL is not present for all core tables. |
 | Identity/profile/admin | profiles, admins, user_subscriptions, community_members | supabase.js, adminAuth.js, ProfileV2.jsx, PublicProfile.jsx, Membership.jsx. Column definitions need schema metadata. |
-| Payment | payments, payment_events, user_subscriptions | Razorpay Edge Functions and membership code. No payment records were accessed. |
+| Payment | payments, payment_events, user_subscriptions | Razorpay Edge Functions and membership code. The current checkpoint used count-only Supabase queries; the pre-existing Catalyst partial import contains 12 `payment_events` and 9 `user_subscriptions` rows, so review/exclude them before any route exposes staging data. |
 | Atma reading/engagement | bookmarks, reading_history, chapter_likes, chapter_ratings, chapter_shares, chapter_views, comments, comment_likes, comment_reports | engagement.js, ProfileV2.jsx, reader components and migrations. A tracked migration indicates chapter-view analytics moved toward Cloudflare; confirm live state before planning migration. |
 | Aggregates | chapter_engagement_summary, comment_like_counts | SQL migrations and trigger functions. Derived data requires reconciliation/rebuild rules. |
 | Community | community_posts, community_post_reactions, community_members | Community.jsx, CommunityAdmin.jsx, PublicProfile.jsx. |
@@ -53,7 +53,7 @@ This list is not exhaustive for the live system. Full baseline DDL is not in Git
 
 ## Tracked functions and unknown invoked endpoints
 
-Nine tracked Supabase Edge Function folders exist: cancel-razorpay-subscription, create-razorpay-order, create-razorpay-subscription, get-admin-user-stats, razorpay-subscription-webhook, register-push-subscription, secure-password-login, verify-razorpay-payment and verify-razorpay-subscription.
+Nine source folders were originally tracked on `main`: cancel-razorpay-subscription, create-razorpay-order, create-razorpay-subscription, get-admin-user-stats, razorpay-subscription-webhook, register-push-subscription, secure-password-login, verify-razorpay-payment and verify-razorpay-subscription. The seven additional active deployed handlers have since been retrieved and added to the migration branch only; they have not been deployed as replacements.
 
 UI source also invokes get-admin-console-data, send-chapter-notification-v2, dpdp-data-rights and submit-feedback; no matching tracked function folder was found on main. Remote existence/source, permissions, inputs, outputs and side effects were not verified. Resolve owner and API contracts before future migration.
 
@@ -126,8 +126,8 @@ The read-only Supabase metadata endpoint returned **61 source tables (59 public,
 
 The dedicated Catalyst Development project `Atmarekha` (project ID `81164000000013050`) now has matching table containers for all 61 source tables and all 411 source fields after the recorded name conversions. Two extra `source_pk` fields were added for the source composite primary keys (`chapter_pages` and `group_chat_likes`). Target table IDs and field conversions are recorded in [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv); private tables are flattened to `private_feedback_rate_limits` and `private_dpdp_breach_incidents`.
 
-This is a structural mapping only. No source rows, user/auth records, payment records, or media objects were copied. A target field’s presence does not imply preservation of source defaults, indexes, composite constraints, foreign-key delete behavior, database functions, triggers, RLS, or transactions. IDs must remain the original UUID strings, and the service layer must enforce relationships and invariants.
+This paragraph describes the structural map artifact only; it is not a statement that Catalyst contains no source data. A partial import of 448 source rows exists in the separate Development target. No Auth identities/credentials or Storage object bytes were copied. A target field’s presence does not imply preservation of source defaults, indexes, composite constraints, foreign-key delete behavior, database functions, triggers, RLS, or transactions. IDs must remain the original UUID strings, and the service layer must enforce relationships and invariants.
 
 ### Target-only synthetic fixtures
 
-The Catalyst target contains three synthetic, unpublished smoke-test rows inserted and read back on 12 October 2026: a series with slug `migration-smoke-test-20261012`, one draft chapter linked by source UUID string, and one page linked by source chapter UUID plus `source_pk`. Cover/page URLs use `example.invalid`. These rows do not exist in Supabase and must be excluded from any test export/rehearsal data reconciliation. No real source rows were copied.
+The Catalyst target contains three synthetic, unpublished smoke-test rows inserted and read back on 12 October 2026: a series with slug `migration-smoke-test-20261012`, one draft chapter linked by source UUID string, and one page linked by source chapter UUID plus `source_pk`. Cover/page URLs use `example.invalid`. These rows do not exist in Supabase and must be excluded from source-row reconciliation. In addition, the separate partial import contains 448 source rows; a live count-only checkpoint observed 451 total target rows across 62 tables.
