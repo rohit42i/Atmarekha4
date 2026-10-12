@@ -24,9 +24,13 @@ jobs:
         with:
           node-version: "22"
       - name: Check JavaScript syntax
-        run: node --check migration-kit/backup/backup-supabase.mjs
+        run: |
+          node --check migration-kit/backup/backup-supabase.mjs
+          node --check migration-kit/backup/verify-backup.mjs
       - name: Check shell syntax
-        run: bash -n migration-kit/backup/backup-supabase.sh
+        run: |
+          bash -n migration-kit/backup/backup-supabase.sh
+          bash -n migration-kit/backup/verify-backup.sh
       - name: Check tracked metadata files parse
         run: |
           node -e "JSON.parse(require('fs').readFileSync('docs/backend-migration/source-snapshot/SOURCE-INVENTORY.json','utf8'))"
