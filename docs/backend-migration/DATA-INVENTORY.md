@@ -127,3 +127,7 @@ The read-only Supabase metadata endpoint returned **61 source tables (59 public,
 The dedicated Catalyst Development project `Atmarekha` (project ID `81164000000013050`) now has matching table containers for all 61 source tables and all 411 source fields after the recorded name conversions. Two extra `source_pk` fields were added for the source composite primary keys (`chapter_pages` and `group_chat_likes`). Target table IDs and field conversions are recorded in [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv); private tables are flattened to `private_feedback_rate_limits` and `private_dpdp_breach_incidents`.
 
 This is a structural mapping only. No source rows, user/auth records, payment records, or media objects were copied. A target field’s presence does not imply preservation of source defaults, indexes, composite constraints, foreign-key delete behavior, database functions, triggers, RLS, or transactions. IDs must remain the original UUID strings, and the service layer must enforce relationships and invariants.
+
+### Target-only synthetic fixtures
+
+The Catalyst target contains three synthetic, unpublished smoke-test rows inserted and read back on 12 October 2026: a series with slug `migration-smoke-test-20261012`, one draft chapter linked by source UUID string, and one page linked by source chapter UUID plus `source_pk`. Cover/page URLs use `example.invalid`. These rows do not exist in Supabase and must be excluded from any test export/rehearsal data reconciliation. No real source rows were copied.
