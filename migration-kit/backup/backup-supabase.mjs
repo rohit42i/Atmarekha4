@@ -31,6 +31,15 @@ function ensure(condition, message) {
 function sha256(buffer) {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
+async function sha256File(filePath) {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('data', chunk => hash.update(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
 function quoteIdent(value) {
   return '"' + String(value).replace(/"/g, '""') + '"';
 }
@@ -215,7 +224,7 @@ async function main() {
     region: 'ap-south-1',
     databaseVersionAtPreparation: '17.6.1.155',
     capturedAt: new Date().toISOString(),
-    databaseDump: { format: 'PostgreSQL custom archive', bytes: dumpInfo.size, sha256: sha256(fs.readFileSync(dumpPath)), pgRestoreListCheck: 'passed' },
+    databaseDump: { format: 'PostgreSQL custom archive', bytes: dumpInfo.size, sha256: await sha256File(dumpPath), pgRestoreListCheck: 'passed' },
     tableInventoryCount: counts.tableCount,
     storageBucketCount: buckets.length,
     storageObjectCount: storageManifest.objects.length,
@@ -229,8 +238,8 @@ async function main() {
   await run('tar', ['-czf', plainArchive, '-C', work, 'database.dump', 'row-counts.tsv', 'storage', 'storage-manifest.json', 'source-snapshot.json']);
   const packageBytes = fs.statSync(plainArchive).size;
   await encryptAndVerify(plainArchive, outPath);
-  const cipher = fs.readFileSync(outPath);
-  const digest = sha256(cipher);
+  const cipherBytes = fs.statSync(outPath).size;
+  const digest = await sha256File(outPath);
   fs.writeFileSync(checksumPath, digest + '  ' + path.basename(outPath) + '\n');
 
   const externalManifest = [
@@ -238,7 +247,7 @@ async function main() {
     'Created (UTC): ' + new Date().toISOString(),
     'Source project ref: ' + PROJECT_REF,
     'Encrypted artifact: ' + path.basename(outPath),
-    'Encrypted bytes: ' + cipher.length,
+    'Encrypted bytes: ' + cipherBytes,
     'Encrypted SHA-256: ' + digest,
     'Compressed package bytes before encryption: ' + packageBytes,
     'PostgreSQL table inventory entries: ' + counts.tableCount,
@@ -261,10 +270,15 @@ async function main() {
 }
 main().catch(error => {
   console.error('BACKUP FAILED: ' + error.message);
-  console.error('If interrupted, inspect and remove plaintext atma-backup-* working files from Termux temp storage before retrying.');
+  try { fs.rmSync(work, { recursive: true, force: true }); } catch {}
+  try { fs.rmSync(outPath, { force: true }); } catch {}
+  try { fs.rmSync(checksumPath, { force: true }); } catch {}
+  try { fs.rmSync(manifestPath, { force: true }); } catch {}
   process.exitCode = 1;
 });
 process.on('SIGINT', () => {
-  console.error('\nInterrupted. Inspect and remove plaintext atma-backup-* temporary files before retrying.');
+  console.error('\nInterrupted; removing plaintext temporary backup files.');
+  try { fs.rmSync(work, { recursive: true, force: true }); } catch {}
+  try { fs.rmSync(outPath, { force: true }); } catch {}
   process.exit(130);
 });
