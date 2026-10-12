@@ -16,7 +16,7 @@
 ## Datastore work completed
 
 - 61 source tables inventoried: 59 in `public` and 2 in `private`.
-- 61 corresponding Catalyst Data Store table containers created.
+- 61 corresponding Catalyst Data Store table containers created for mapped source tables, plus an empty staging-only `migration_timestamp_precision_archive` table (62 tables observed live).
 - 411 source fields mapped and created across these target tables.
 - The created columns were re-listed and compared table-by-table against the source metadata. All expected fields were found after documented name mappings; two extra `source_pk` fields were added to support deterministic upserts for the two composite-primary-key tables.
 - UUID columns are stored as `varchar(36)` to preserve source identifiers. Catalyst-generated `ROWID` must not be used as a replacement for application UUIDs.
@@ -26,7 +26,7 @@
 ## Access controls applied
 
 - Table permissions were set for all 61 tables to allow the Catalyst `App Administrator` role `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
-- The Catalyst `App User` table permission list was set to empty on all 61 tables. A fresh read of all 61 table permission records confirmed this permission model with no mismatches.
+- Live permission re-check covered all 62 target tables: `App Administrator` has SELECT/INSERT/UPDATE/DELETE and `App User` has no operations. One accidental App User SELECT on the extra `migration_timestamp_precision_archive` table was corrected in Development and read back as empty permissions.
 - This deliberately blocks the default end-user table access until a trusted authorization/function layer is implemented and tested.
 
 ## Partial source-data import (12 October 2026)
@@ -44,18 +44,18 @@ A limited, explicitly non-production import has now been run into Catalyst Devel
 
 1. **Authentication remains disabled**: hosted, embedded and third-party auth are all off; public signup is off.
 2. **API Gateway remains disabled**. No routes were created.
-3. **Zero serverless functions exist in the Catalyst project.** A dependency-free Basic I/O liveness function source scaffold is committed under `catalyst-staging/`, but it is not deployed. The connected Catalyst MCP does not expose live function-resource creation/upload/deployment. Import/create it only in Development through the console/CLI and verify before use.
+3. **Zero serverless functions are deployed in the Catalyst project.** The health-probe scaffold under `catalyst-staging/` is not deployed. Seven source folders for active Supabase Edge Functions missing from `main` have now been recovered to this migration branch only after a basic embedded-secret-pattern scan. The available Catalyst MCP exposes no function source-upload/deploy operation; deploy only reviewed functions through a supported Development-only console/CLI workflow.
 4. **Storage buckets are not created.** Stratus operations returned a first-use-session requirement. The owner must open Stratus/Storage in the Catalyst console once, after which buckets with the intended public/protected split and encryption can be created.
 5. No CORS origins, email domains, payment configuration, webhooks, schedules, realtime transport or background jobs were created.
 6. Catalyst Data Store is not PostgreSQL. Defaults, multi-column unique keys, composite primary keys, foreign-key enforcement, CHECK constraints, indexes, transactions, triggers, RLS policies and PL/pgSQL functions have not been automatically reproduced. The manifest documents conversions; application-layer constraints and test suites are still required.
 7. Array/JSONB/numeric conversions require special handling: JSON values are serialized as text with size validation; exact numeric values must remain decimal strings to avoid floating-point changes.
 8. Realtime chat/presence, identity continuity/MFA, Cloudflare R2/Workers, membership entitlements, Razorpay webhook/idempotency behavior and privacy-deletion workflows remain unimplemented and require their own compatibility/acceptance tests.
-9. The live source migration ledger and tracked SQL migrations still require semantic reconciliation; seven deployed Supabase Edge Function sources are not tracked on `main`.
+9. The live source migration ledger (180 entries) and tracked SQL migration files (65) still require semantic reconciliation. Seven deployed function source folders have been recovered to this migration branch but remain absent from `main`; no Catalyst replacement is deployed.
 
 ## Safety ledger
 
 - Source reads were performed against Supabase project `pbukwjokgkqacaphlqzm`. A limited subset of content metadata and reader-facing rows was copied into the isolated Catalyst Development project as recorded above. This is not a full migration and must not be treated as production-ready.
-- The three synthetic, unpublished smoke-test rows remain in the target alongside the imported records. They use `example.invalid` URLs and are not source production records.
+- The three synthetic, unpublished smoke-test rows remain in the target alongside 448 partially imported source rows (451 rows observed across 62 target tables). Synthetic URLs use `example.invalid`. Count-only reconciliation confirms 52 source table row-count matches, three tables each with one extra synthetic row, and six tables whose 89 source rows are not imported. The prior 35-table full-field comparison is recorded in the reconciliation file but was not repeated in this checkpoint.
 - No changes were made to production Supabase, Cloudflare, Razorpay, the live website, or the main runtime code.
 - Catalyst Development table containers and table permissions were created/updated only in project `81164000000013050`.
 - No API routes, authentication providers, live functions, storage buckets or deployments were enabled. The liveness function currently exists only as source in GitHub.
@@ -63,7 +63,7 @@ A limited, explicitly non-production import has now been run into Catalyst Devel
 
 ## Readiness decision
 
-The project is **schema-staged, not migration-ready**. Do not provide real production data or change client routing yet. Continue only after Stratus first-use initialization, a function deployment workflow is available, the full compatibility layer is implemented, contracts and security tests pass, backup/restore and rollback are rehearsed, and a separate migration/cutover command is explicitly provided.
+The project is **partially imported and schema-staged, not migration-ready**. Keep existing Catalyst rows closed pending sensitive-data review; do not add more real source rows or change client routing. Continue only after Stratus first-use initialization, reviewed Development-only function deployment, the full compatibility layer, contract/security tests, encrypted backup plus isolated restore, rollback rehearsal, and separate production cutover authorization.
 
 
 ## Synthetic smoke-test fixtures
