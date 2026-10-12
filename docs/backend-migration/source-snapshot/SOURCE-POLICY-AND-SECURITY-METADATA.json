@@ -1,0 +1,2425 @@
+{
+  "snapshot_date": "2026-10-12",
+  "scope": "schema/security metadata only; no application row payloads",
+  "policy_count": 158,
+  "policies": [
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "name": "admin_activity_admin_only",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "name": "admin_notification_admin_only",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))"
+    },
+    {
+      "schema": "public",
+      "table": "admins",
+      "name": "Admins can read own record",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "name": "Admins can delete announcements",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "name": "Admins can update announcements",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "name": "Admins can write announcements",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "name": "Announcements readable by public or admins",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(((published_at IS NOT NULL) AND (published_at <= now())) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "name": "Users can create own bookmarks",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "name": "Users can delete own bookmarks",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "name": "Users can read own bookmarks",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "name": "Public can read chapter engagement summary",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "name": "Public can add chapter likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "name": "Admins can delete chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "name": "Admins can update chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "name": "Admins can write chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "name": "Public can read free published chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "SELECT",
+      "using": "(EXISTS ( SELECT 1\n   FROM chapters c\n  WHERE ((c.id = chapter_pages.chapter_id) AND (lower(COALESCE(c.status, ''::text)) = 'published'::text) AND ((c.chapter_number IS NULL) OR (c.chapter_number <= 8)))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "name": "Signed-in readers can read entitled chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((EXISTS ( SELECT 1\n   FROM chapters c\n  WHERE ((c.id = chapter_pages.chapter_id) AND (lower(COALESCE(c.status, ''::text)) = 'published'::text) AND ((c.chapter_number IS NULL) OR (c.chapter_number <= 8) OR (EXISTS ( SELECT 1\n           FROM user_subscriptions us\n          WHERE ((us.user_id = ( SELECT auth.uid() AS uid)) AND (us.plan_id <> 'free'::text) AND (((us.status = 'active'::text) AND ((us.current_period_end IS NULL) OR (us.current_period_end > now()))) OR ((us.status = 'cancelled'::text) AND (us.current_period_end IS NOT NULL) AND (us.current_period_end > now())))))))))) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "name": "Authenticated users can read own chapter ratings",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "name": "Authenticated users can submit chapter ratings",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((user_id = ( SELECT auth.uid() AS uid)) AND ((rating >= 1) AND (rating <= 10)))"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "name": "Authenticated users can update own chapter ratings",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "((( SELECT auth.uid() AS uid) = user_id) AND (rating >= 1) AND (rating <= 10))"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "name": "Public can record chapter shares",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((chapter_id IS NOT NULL) AND ((viewer_key IS NULL) OR ((length(viewer_key) >= 16) AND (length(viewer_key) <= 128))))"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "name": "Public can record chapter views",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((chapter_id IS NOT NULL) AND (viewer_key IS NOT NULL) AND ((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128)))"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "name": "Admins can delete chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "name": "Admins can update chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "name": "Admins can write chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "name": "Public can read published chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "SELECT",
+      "using": "(lower(COALESCE(status, ''::text)) = 'published'::text)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "name": "Signed-in readers can read published chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((lower(COALESCE(status, ''::text)) = 'published'::text) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_like_counts",
+      "name": "Public can read comment like counts",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "name": "Authenticated users can add own comment likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((user_id = ( SELECT auth.uid() AS uid)) AND ((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128)))"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "name": "Authenticated users can read own comment likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "name": "Authenticated users can remove own comment likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((user_id = ( SELECT auth.uid() AS uid)) OR ((user_id IS NULL) AND ((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "name": "Admins can delete comment reports",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "name": "Admins can read comment reports",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "name": "Admins can update comment reports",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "name": "Public can report comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128)) AND (char_length(COALESCE(reason, ''::text)) <= 500))"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "Admins can delete comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "Anyone can read comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "Authenticated users can submit comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((user_id = ( SELECT auth.uid() AS uid)) AND ((char_length(TRIM(BOTH FROM content)) >= 1) AND (char_length(TRIM(BOTH FROM content)) <= 2000)) AND (char_length(COALESCE(author_name, ''::text)) <= 80))"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "Readers cannot edit comments",
+      "permissive": "RESTRICTIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "false",
+      "with_check": "false"
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "name": "community join own",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "name": "community leave own",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "name": "community membership public read",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "public"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "name": "authenticated users can react to community posts",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "name": "community reactions readable",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "name": "users remove own community reactions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "name": "admins can delete community posts",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "name": "admins can insert community posts",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid))))"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "name": "admins can update community posts",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid))))"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "name": "community posts are public to read",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "public"
+      ],
+      "command": "SELECT",
+      "using": "((published_at IS NOT NULL) AND (published_at <= now()))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "name": "Users can read their consent records",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "name": "Admins can manage deletion requests",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "name": "Users can view their deletion requests",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((( SELECT auth.uid() AS uid) = user_id) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "name": "Users can create their nomination",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "name": "Users can update their nomination",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "name": "Users can view their nomination",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "edge_rate_limits",
+      "name": "No client access to edge rate limits",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "false",
+      "with_check": "false"
+    },
+    {
+      "schema": "public",
+      "table": "feature_login_users",
+      "name": "feature_login_users_self_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+    },
+    {
+      "schema": "public",
+      "table": "feature_unlock_config",
+      "name": "Public can read feature unlock config",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "name": "group chat likes delete authorized",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((user_id = ( SELECT auth.uid() AS uid)) OR ( SELECT private.is_admin() AS is_admin))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "name": "group chat likes insert own",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "name": "group chat likes readable",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "name": "admins_delete_group_chat_messages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "name": "group_chat_insert_own",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "name": "group_chat_read",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "name": "group_chat_reactions_delete_authorized",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((user_id = ( SELECT auth.uid() AS uid)) OR ( SELECT private.is_admin() AS is_admin))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "name": "group_chat_reactions_insert_own",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "name": "group_chat_reactions_read",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "name": "admins_delete_group_chat_reads",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "name": "group_chat_reads_insert_own",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "name": "group_chat_reads_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "login_password_protection",
+      "name": "deny direct access to login protection",
+      "permissive": "RESTRICTIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "false",
+      "with_check": "false"
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "name": "Manga series readable by public or admins",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((is_published = true) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "name": "manga_series_admin_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "name": "manga_series_admin_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "name": "manga_series_admin_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "name": "Admins can delete media",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "name": "Admins can update media",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "name": "Admins can write media",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "name": "Anyone can read media",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "name": "admins delete member content",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "( SELECT private.is_admin() AS is_admin)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "name": "admins insert member content",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "name": "admins update member content",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "( SELECT private.is_admin() AS is_admin)",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "name": "members or admins read member content",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT private.is_admin() AS is_admin) OR ((is_published = true) AND (EXISTS ( SELECT 1\n   FROM user_subscriptions us\n  WHERE ((us.user_id = ( SELECT auth.uid() AS uid)) AND (us.plan_id <> 'free'::text) AND (us.status = ANY (ARRAY['active'::text, 'cancelled'::text])) AND ((us.current_period_end IS NULL) OR (us.current_period_end > now())))))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "name": "admins delete member messages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "( SELECT private.is_admin() AS is_admin)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "name": "admins update member messages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "( SELECT private.is_admin() AS is_admin)",
+      "with_check": "( SELECT private.is_admin() AS is_admin)"
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "name": "members or admins read private messages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT private.is_admin() AS is_admin) OR (user_id = ( SELECT auth.uid() AS uid)))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "name": "members or admins send private messages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT private.is_admin() AS is_admin) OR ((user_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1\n   FROM user_subscriptions us\n  WHERE ((us.user_id = ( SELECT auth.uid() AS uid)) AND (us.plan_id <> 'free'::text) AND (us.status = ANY (ARRAY['active'::text, 'cancelled'::text])) AND ((us.current_period_end IS NULL) OR (us.current_period_end > now())))))))"
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "name": "admins can read moderation reports",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "name": "admins can update moderation reports",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "name": "Users can create their own notification subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "name": "Users can delete their own notification subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "name": "Users can update their own notification subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "name": "Users can view their own notification subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "name": "pdlpl_admin_delete_pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "name": "pdlpl_admin_insert_pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "name": "pdlpl_admin_update_pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "name": "pdlpl_member_read_pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(private.is_admin() OR ((EXISTS ( SELECT 1\n   FROM pal_do_pal_ke_lamhe_chapters chapter\n  WHERE ((chapter.id = pal_do_pal_ke_lamhe_chapter_pages.chapter_id) AND (lower(COALESCE(chapter.status, ''::text)) = 'published'::text)))) AND (EXISTS ( SELECT 1\n   FROM user_subscriptions us\n  WHERE ((us.user_id = ( SELECT auth.uid() AS uid)) AND (us.plan_id = ANY (ARRAY['supporter'::text, 'premium'::text])) AND (((us.status = 'active'::text) AND ((us.current_period_end IS NULL) OR (us.current_period_end > now()))) OR ((us.status = 'cancelled'::text) AND (us.current_period_end IS NOT NULL) AND (us.current_period_end > now()))))))))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "PDPKL published chapters authenticated",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((lower(COALESCE(status, ''::text)) = 'published'::text) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "PDPKL published chapters public",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "SELECT",
+      "using": "(lower(COALESCE(status, ''::text)) = 'published'::text)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "pdlpl_admin_delete_chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "private.is_admin()",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "pdlpl_admin_insert_chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "name": "pdlpl_admin_update_chapters",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "private.is_admin()",
+      "with_check": "private.is_admin()"
+    },
+    {
+      "schema": "public",
+      "table": "payment_events",
+      "name": "No client access to payment events",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "false",
+      "with_check": "false"
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "name": "Users view own payments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "name": "pdlpl_users_delete_bookmarks",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "name": "pdlpl_users_insert_bookmarks",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "name": "pdlpl_users_read_bookmarks",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "name": "pdlpl_public_read_engagement",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "name": "pdlpl_public_delete_likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "name": "pdlpl_public_insert_likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "name": "pdlpl_users_read_ratings",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "name": "pdlpl_users_update_ratings",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "name": "pdlpl_users_write_ratings",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "name": "pdlpl_public_insert_shares",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "name": "pdlpl_public_insert_views",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_like_counts",
+      "name": "pdlpl_public_read_comment_like_counts",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "name": "pdlpl_users_delete_comment_likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "name": "pdlpl_users_insert_comment_likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "name": "pdlpl_users_read_comment_likes",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "name": "pdlpl_anyone_report_comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((char_length(viewer_key) >= 16) AND (char_length(viewer_key) <= 128))"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "name": "pdlpl_public_read_comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "name": "pdlpl_users_delete_comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((( SELECT auth.uid() AS uid) = user_id) OR private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "name": "pdlpl_users_insert_comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "name": "pdlpl_users_update_comments",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "((( SELECT auth.uid() AS uid) = user_id) OR private.is_admin())",
+      "with_check": "((( SELECT auth.uid() AS uid) = user_id) OR private.is_admin())"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "name": "pdlpl_users_read_history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "name": "pdlpl_users_update_history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "name": "pdlpl_users_write_history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "Public can read profile basics",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "Users can insert own profile",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = id)"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "name": "Users can update own profile",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = id)"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "Allow anonymous push subscription registration",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(user_id IS NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "Users can delete own push subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "Users can insert own push subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((user_id IS NULL) OR (( SELECT auth.uid() AS uid) = user_id))"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "Users can read own push subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "Users can update own push subscriptions",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "name": "Users can create own reading history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "name": "Users can delete own reading history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "name": "Users can read own reading history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "name": "Users can update own reading history",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "name": "No direct client access to feedback",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "false",
+      "with_check": "false"
+    },
+    {
+      "schema": "public",
+      "table": "subscription_plans",
+      "name": "Public can read active subscription plans",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(active = true)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "name": "Users view own subscription",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "name": "admins can update moderation status",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = ( SELECT auth.uid() AS uid))))"
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "name": "admins or owners can read moderation status",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((user_id = ( SELECT auth.uid() AS uid)) OR ( SELECT private.is_admin() AS is_admin))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "name": "Users can read own subscription",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(( SELECT auth.uid() AS uid) = user_id)",
+      "with_check": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Admins can delete chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((bucket_id = 'chapter-pages'::text) AND private.is_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Admins can delete covers",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((bucket_id = 'covers'::text) AND (EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid)))))",
+      "with_check": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Admins can update chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "((bucket_id = 'chapter-pages'::text) AND private.is_admin())",
+      "with_check": "((bucket_id = 'chapter-pages'::text) AND private.is_admin())"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Admins can update covers",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "((bucket_id = 'covers'::text) AND (EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid)))))",
+      "with_check": "((bucket_id = 'covers'::text) AND (EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid)))))"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Admins can upload chapter pages",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((bucket_id = 'chapter-pages'::text) AND private.is_admin())"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Admins can upload covers",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((bucket_id = 'covers'::text) AND (EXISTS ( SELECT 1\n   FROM admins\n  WHERE (admins.user_id = ( SELECT auth.uid() AS uid)))))"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Community admin media delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((bucket_id = 'community'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))",
+      "with_check": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Community admin media update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "((bucket_id = 'community'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))",
+      "with_check": "((bucket_id = 'community'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "Community admin media upload",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((bucket_id = 'community'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "member content storage admin delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "((bucket_id = 'member-content'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))",
+      "with_check": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "member content storage admin insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((bucket_id = 'member-content'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "member content storage admin update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "((bucket_id = 'member-content'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))",
+      "with_check": "((bucket_id = 'member-content'::text) AND (EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))))"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "name": "member content storage read",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((bucket_id = 'member-content'::text) AND ((EXISTS ( SELECT 1\n   FROM admins a\n  WHERE (a.user_id = auth.uid()))) OR (EXISTS ( SELECT 1\n   FROM user_subscriptions s\n  WHERE ((s.user_id = auth.uid()) AND (s.status = 'active'::text) AND (s.plan_id <> 'free'::text))))))",
+      "with_check": null
+    }
+  ],
+  "tables": [
+    {
+      "schema": "private",
+      "table": "dpdp_breach_incidents",
+      "row_security_enabled": false,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "private",
+      "table": "feedback_rate_limits",
+      "row_security_enabled": false,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "admins",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "comment_like_counts",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "edge_rate_limits",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "feature_login_users",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "feature_unlock_config",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "login_password_protection",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "payment_events",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_like_counts",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "subscription_plans",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "row_security_enabled": true,
+      "force_row_security": false,
+      "relation_kind": "r"
+    }
+  ],
+  "storage_buckets": [
+    {
+      "name": "assets",
+      "public": true,
+      "file_size_limit": null,
+      "allowed_mime_types": null,
+      "object_count": 0,
+      "recorded_object_size_bytes": 0
+    },
+    {
+      "name": "chapter-pages",
+      "public": true,
+      "file_size_limit": 20971520,
+      "allowed_mime_types": [
+        "image/*"
+      ],
+      "object_count": 10,
+      "recorded_object_size_bytes": 30650342
+    },
+    {
+      "name": "community",
+      "public": true,
+      "file_size_limit": 15728640,
+      "allowed_mime_types": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "application/pdf",
+        "text/plain",
+        "application/zip",
+        "application/octet-stream"
+      ],
+      "object_count": 3,
+      "recorded_object_size_bytes": 612477
+    },
+    {
+      "name": "covers",
+      "public": true,
+      "file_size_limit": null,
+      "allowed_mime_types": null,
+      "object_count": 9,
+      "recorded_object_size_bytes": 5592852
+    },
+    {
+      "name": "member-content",
+      "public": false,
+      "file_size_limit": null,
+      "allowed_mime_types": null,
+      "object_count": 0,
+      "recorded_object_size_bytes": 0
+    },
+    {
+      "name": "pdlpl-content",
+      "public": false,
+      "file_size_limit": 20971520,
+      "allowed_mime_types": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/avif"
+      ],
+      "object_count": 0,
+      "recorded_object_size_bytes": 0
+    }
+  ]
+}
