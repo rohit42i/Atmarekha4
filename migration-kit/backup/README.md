@@ -8,8 +8,8 @@ This backup kit is prepared for Atma Rekha's Supabase source project. It is **no
 - A tab-separated row-count inventory for all database tables.
 - A local copy of all objects in every Supabase Storage bucket, including private buckets.
 - One combined archive encrypted with AES-256-CBC + PBKDF2-HMAC-SHA256 (600,000 iterations).
-- A SHA-256 checksum and plain metadata manifest that contain no row payloads, object paths or secrets.
-- Archive checks using pg_restore --list and a decrypt-and-tar-list validation.
+- A SHA-256 checksum, passphrase-derived HMAC-SHA256 authentication sidecar, and plain metadata manifest that contain no row payloads, object paths or secrets.
+- Archive checks using pg_restore --list and a decrypt-and-tar-list validation. The separate verifier checks SHA-256 + HMAC before decrypting.
 
 The script does **not** upload database rows or Storage objects to GitHub. Temporary plaintext files are removed after successful encryption. A restore rehearsal is still required.
 
@@ -50,3 +50,15 @@ Official guidance: [Supabase Database Backups](https://supabase.com/docs/guides/
 ## Important limitations
 
 This is a **database + Storage-object backup**, not a full Supabase project clone. It does not export project-level settings, OAuth/SMTP provider secrets, project API keys, Edge Function environment secrets or deployed function source, the Supabase Vault encryption root key, Cloudflare R2 objects/configuration, Razorpay configuration, or the application deployment configuration. Preserve those separately via their official consoles and a secure password manager. The PostgreSQL dump may include Supabase Auth and Storage metadata if the connected database role can access those schemas, but project Auth-provider settings are separate. Because pgcrypto/Supabase Vault is enabled on the source, separately verify the Vault/encryption-key recovery procedure before considering the source fully recoverable.
+
+
+### Verify the backup before moving it
+
+After a successful backup, run the included verifier. It asks for the encrypted archive path and the same passphrase, checks the SHA-256 checksum and authenticated HMAC, decrypts in a temporary folder, validates the archive listing, and runs pg_restore --list against the included database dump. It cleans up temporary plaintext files when finished.
+
+```sh
+chmod 700 verify-backup.sh
+bash ./verify-backup.sh
+```
+
+A successful verifier is still not a restore rehearsal. Keep the encrypted archive plus its .sha256, .hmac, and .manifest.txt files together.
