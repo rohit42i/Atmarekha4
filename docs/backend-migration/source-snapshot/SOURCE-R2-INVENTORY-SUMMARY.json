@@ -1,0 +1,55 @@
+{
+  "snapshot_at": "2026-10-12",
+  "purpose": "Metadata-only inventory of the source media buckets to support a later Storage transfer and checksum reconciliation. No object names, key values, or bytes are included in this summary.",
+  "cloudflare_account_alias": "Rohitbaswaraj account",
+  "buckets": [
+    {
+      "name": "atma-rekha-manga",
+      "objects": 79,
+      "bytes": 43401588,
+      "mib": 41.39,
+      "prefixes": [
+        {
+          "prefix": "chapter-pages",
+          "objects": 71,
+          "bytes": 40273130
+        },
+        {
+          "prefix": "community",
+          "objects": 3,
+          "bytes": 612477
+        },
+        {
+          "prefix": "covers",
+          "objects": 5,
+          "bytes": 2515981
+        }
+      ]
+    },
+    {
+      "name": "pdlpl-manga",
+      "objects": 8,
+      "bytes": 3951697,
+      "mib": 3.77,
+      "prefixes": [
+        {
+          "prefix": "chapters",
+          "objects": 3,
+          "bytes": 2547697
+        },
+        {
+          "prefix": "covers",
+          "objects": 5,
+          "bytes": 1404000
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "buckets": 2,
+    "objects": 87,
+    "bytes": 47353285,
+    "mib": 45.16
+  },
+  "status": "Inventory complete via Cloudflare control-plane List Objects. No asset file data has been downloaded or copied. Catalyst Stratus target buckets have not yet been created because Stratus requires one first-use console session."
+}
