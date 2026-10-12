@@ -27,7 +27,7 @@ No user rows, auth data, payment payloads, or Storage file bytes were committed 
 - [backup-supabase.mjs](../../migration-kit/backup/backup-supabase.mjs)
 - [Backup runbook](../../migration-kit/backup/README.md)
 
-The kit asks for the source DB URL, server-side Storage service-role key and a unique encryption passphrase via silent prompts. It creates a PostgreSQL custom-format dump, captures a table row-count inventory, downloads every Supabase Storage object (including private buckets), puts these into one AES-256-CBC/PBKDF2-encrypted archive, verifies the dump listing and encrypted archive, calculates a SHA-256 checksum, and removes plaintext temporary files on success. A GitHub Actions syntax check passed for the backup kit.
+The kit asks for the source DB URL, server-side Storage service-role key and a unique encryption passphrase via silent prompts. It creates a PostgreSQL custom-format dump, captures a table row-count inventory, downloads every Supabase Storage object (including private buckets), puts these into one AES-256-CBC/PBKDF2-encrypted archive, verifies the dump listing and encrypted archive, calculates a SHA-256 checksum and passphrase-derived HMAC-SHA256 authentication sidecar, and removes plaintext temporary files on success. A separate verifier checks integrity before decryption. A GitHub Actions syntax check passed for the backup kit.
 
 ### Required local action to create the actual backup
 
@@ -37,7 +37,7 @@ In Termux on the Android phone:
 2. Download the three backup-kit files from this branch to the same folder.
 3. Run `bash ./backup-supabase.sh`.
 4. Enter credentials only into the silent local prompts. Never send the database URL, service-role key or encryption passphrase to ChatGPT or GitHub.
-5. Confirm the script says `Complete` and save the encrypted archive, .sha256 and .manifest.txt files. Keep the passphrase separate from the phone.
+5. Confirm the script says `Complete` and save the encrypted archive, .sha256, .hmac and .manifest.txt files. Keep the passphrase separate from the phone.
 
 **Do not say the backup is complete unless the script succeeds.** The script has not been run from this environment.
 
