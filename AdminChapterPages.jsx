@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2 } from './supabase';
+import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2, isSupportedImageFile } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { buildPdlplChapters } from './palDoPalKeLamhe.js';
@@ -11,11 +11,18 @@ const PDLPL_PAGES = 'pal_do_pal_ke_lamhe_chapter_pages';
 // Compatibility alias: prevents legacy PDLKL_PAGES references from breaking the editor.
 const PDLKL_PAGES = PDLPL_PAGES;
 const ATMA_BUCKET = 'chapter-pages';
-const ATMA_MAX = 20 * 1024 * 1024;
+const ATMA_MAX = 95 * 1024 * 1024;
 const PDPKL_MAX = 95 * 1024 * 1024;
 
-const safeExt = file => String(file?.name || '').split('.').pop()?.toLowerCase() || 'jpg';
-const isImage = file => file instanceof File && (String(file.type || '').startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|bmp|avif)$/i.test(file.name || ''));
+const IMAGE_MIME_BY_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif' };
+const safeExt = file => {
+  const name = String(file?.name || '');
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (name.includes('.') && IMAGE_MIME_BY_EXT[ext]) return ext;
+  const type = String(file?.type || '').toLowerCase();
+  return Object.entries(IMAGE_MIME_BY_EXT).find(([, mime]) => mime === type)?.[0] || 'jpg';
+};
+const isImage = file => isSupportedImageFile(file);
 const projectName = project => project === 'pdpkl' ? 'Pal Do Pal Ke Lamhe' : 'Atma Rekha';
 const publicAtmaUrl = path => cloudflareR2.from(ATMA_BUCKET).getPublicUrl(path).data.publicUrl;
 const atmaPath = url => {
@@ -115,7 +122,12 @@ export default function AdminChapterPages({ chapters = [] }) {
   useEffect(() => { loadPages(); }, [project, chapterId]);
 
   const replacePage = async (page, file) => {
-    if (!file || busy || !isImage(file)) return;
+    if (!file || busy) return;
+    if (!isImage(file)) {
+      setDiagnostic('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+      setNotice('Replacement failed. Choose a supported image format.');
+      return;
+    }
     if (file.size > (project === 'pdpkl' ? PDPKL_MAX : ATMA_MAX)) {
       setNotice(file.name + ' exceeds the upload limit.');
       return;
@@ -255,7 +267,7 @@ export default function AdminChapterPages({ chapters = [] }) {
             <div className="studio-inspector-art"><Artwork project={project} page={selected} className="studio-large-art" /></div>
             <div className="studio-inspector-info"><div><span>Position</span><strong>{selected.page_number}</strong><small>of {pages.length}</small></div><div><span>Language</span><strong>{chapterLanguageLabel(chapter?.language)}</strong><small>{project === 'pdpkl' ? 'PDPKL' : 'ATMA'}</small></div><div><span>Status</span><strong>{busy === selected.id ? 'Saving…' : 'Ready'}</strong><small>Protected</small></div></div>
             <div className="studio-inspector-actions">
-              <label className="studio-replace"><AdminIcon name="image" size={16}/><b>Replace artwork</b><small>JPG / PNG / WEBP · max {project === 'pdpkl' ? '95 MB' : '20 MB'}</small><input type="file" accept="image/*" disabled={Boolean(busy)} onChange={e => { const f=e.target.files?.[0]; e.target.value=''; replacePage(selected,f); }}/></label>
+              <label className="studio-replace"><AdminIcon name="image" size={16}/><b>Replace artwork</b><small>JPG / PNG / WEBP · max {project === 'pdpkl' ? '95 MB' : '20 MB'}</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" disabled={Boolean(busy)} onChange={e => { const f=e.target.files?.[0]; e.target.value=''; replacePage(selected,f); }}/></label>
               {retryFiles[selected.id] ? <button type="button" className="studio-retry" disabled={Boolean(busy)} onClick={() => replacePage(selected,retryFiles[selected.id])}>Retry replacement</button> : null}
               <div className="studio-two-actions"><button type="button" disabled={Boolean(busy) || selected.page_number <= 1} onClick={() => movePage(selected,-1)}>← Move back</button><button type="button" disabled={Boolean(busy) || selected.page_number >= pages.length} onClick={() => movePage(selected,1)}>Move forward →</button></div>
               <button type="button" className="studio-delete-action" disabled={Boolean(busy)} onClick={() => deletePage(selected)}>Delete page</button>
