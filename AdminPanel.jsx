@@ -603,9 +603,10 @@ export default function AdminPanel({ onLogout }) {
       const oldImagePath = announcement.thumbnail ? pathFromUrl(existing?.image_url, COVER_BUCKET) : null;
 
       if (announcement.thumbnail) {
-        const ext = announcement.thumbnail.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const safeName = announcement.thumbnail.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80);
-        const path = 'announcements/' + Date.now() + '-' + (safeName || ('thumbnail.' + ext));
+        const ext = imageExtension(announcement.thumbnail);
+        const rawSafeName = announcement.thumbnail.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80);
+        const safeName = /\\.[^.]+$/.test(rawSafeName) ? rawSafeName : (rawSafeName || 'thumbnail') + '.' + ext;
+        const path = 'announcements/' + Date.now() + '-' + safeName;
         imageUrl = await upload(COVER_BUCKET, announcement.thumbnail, path);
         uploadedPaths.push({ bucket: COVER_BUCKET, path });
       }
@@ -739,7 +740,7 @@ export default function AdminPanel({ onLogout }) {
       adminUser = await requireAdmin();
       if (!String(file.type || '').toLowerCase().startsWith('image/')) throw new Error('Please select an image file.');
       const language = normalizeChapterLanguage(chapter.language);
-      const ext = String(file.name || '').split('.').pop()?.toLowerCase() || 'jpg';
+      const ext = imageExtension(file);
       const stamp = Date.now();
       const path = 'chapters/' + chapter.id + '/card-' + slot + '-' + language + '-' + stamp + '.' + ext;
       const url = await upload(COVER_BUCKET, file, path);
@@ -1072,7 +1073,7 @@ export default function AdminPanel({ onLogout }) {
         </div>
         <input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)"/>
         <textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="7"/>
-        <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept="image/*" onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
+        <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
         <div className="admin-form-grid">
           <label><span>Placement</span><select value={announcement.display_position} onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}><option value="">Automatic · normal order</option>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card</option>)}</select></label>
           <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked, pin_target: e.target.checked ? (announcement.pin_target === 'none' ? 'atma' : announcement.pin_target) : 'none' })}/> Pin to top</label>
