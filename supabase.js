@@ -54,13 +54,28 @@ const client = createClient(
 const encodePath = path => String(path || '').split('/').map(encodeURIComponent).join('/');
 
 function normalizeAtmaR2Path(bucket, path) {
-  let clean = String(path || '').replace(/^\/+/, '');
-  const bucketPrefix = `${bucket}/`;
-  if (clean.toLowerCase().startsWith(bucketPrefix.toLowerCase())) clean = clean.slice(bucketPrefix.length);
-  if (bucket !== 'chapter-pages') return clean;
-  const match = clean.match(/^chapters\/([0-9a-f-]{36})\/pages\/[^/]+-(\d+)\/(.+)$/i);
-  if (!match) return clean;
-  return `chapter-pages/${match[1]}/${match[2]}/${match[3]}`;
+  const clean = String(path || '').replace(/^\\/+/, '');
+  const hasPrefix = value => clean.toLowerCase().startsWith((value + '/').toLowerCase());
+
+  // R2 object keys include the bucket prefix because the media Worker uses
+  // one R2 bucket and routes by key prefix. Keep normalization idempotent:
+  // upload() and publicPath() both normalize the same path.
+  if (bucket === 'chapter-pages') {
+    if (hasPrefix('chapter-pages')) return clean;
+
+    // Convert the legacy admin uploader path into the canonical page key.
+    const legacyPage = clean.match(/^chapters\\/([0-9a-f-]{36})\\/pages\\/[^/]+-(\\d+)\\/(.+)$/i);
+    if (legacyPage) return 'chapter-pages/' + legacyPage[1] + '/' + legacyPage[2] + '/' + legacyPage[3];
+
+    // Legacy replacement pages are intentionally stored at the UUID root.
+    if (/^[0-9a-f-]{36}\\/replacements\\/[^/]+$/i.test(clean)) return clean;
+
+    // Admin cleanup extracts object paths without their bucket prefix.
+    return 'chapter-pages/' + clean;
+  }
+
+  if (hasPrefix(bucket)) return clean;
+  return bucket + '/' + clean;
 }
 
 async function authHeaders() {
