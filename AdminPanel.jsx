@@ -103,6 +103,7 @@ const ADMIN_NAV_GROUPS = [
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
     { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
+    { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
     { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
     { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
