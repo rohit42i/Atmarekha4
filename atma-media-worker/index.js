@@ -58,7 +58,8 @@ function supabaseHeaders(env, authorization = null) {
   return { apikey: key, ...(authorization ? { Authorization: authorization } : {}), Accept: 'application/json' };
 }
 async function supabaseRows(env, table, query, authorization = null) {
-  const url = new URL(`${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/rest/v1/${table}`);
+  const baseUrl = String(env.SUPABASE_URL || '');
+  const url = new URL((baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl) + '/rest/v1/' + table);
   for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
   const response = await fetch(url, { headers: supabaseHeaders(env, authorization) });
   if (!response.ok) throw new Error(`Supabase media authorization check failed (${response.status}).`);
@@ -67,7 +68,8 @@ async function supabaseRows(env, table, query, authorization = null) {
 async function getUser(request, env) {
   const authorization = bearer(request);
   if (!authorization || !env.SUPABASE_URL || !apiKey(env)) return null;
-  const response = await fetch(`${String(env.SUPABASE_URL).replace(/\/$/, '')}/auth/v1/user`, {
+  const baseUrl = String(env.SUPABASE_URL || '');
+  const response = await fetch((baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl) + '/auth/v1/user', {
     headers: supabaseHeaders(env, authorization),
   });
   if (!response.ok) return null;
