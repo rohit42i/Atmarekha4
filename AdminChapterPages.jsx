@@ -112,8 +112,12 @@ export default function AdminChapterPages({ chapters = [] }) {
       const fields = project === 'pdpkl' ? 'id,chapter_id,page_number,image_path' : 'id,chapter_id,page_number,image_url';
       const { data, error } = await supabase.from(table).select(fields).eq('chapter_id', chapterId).order('page_number', { ascending: true });
       if (error) throw error;
-      setPages(data || []);
-      setSelectedId(data?.[0]?.id || null);
+      const nextPages = data || [];
+      setPages(nextPages);
+      // Preserve the reader's current selection after refresh or reordering.
+      setSelectedId(current => nextPages.some(page => page.id === current)
+        ? current
+        : (nextPages[0]?.id || null));
       setDiagnostic('');
     } catch (err) { setDiagnostic(err?.message || 'Unable to load pages.'); }
     finally { setBusy(''); }
@@ -267,7 +271,7 @@ export default function AdminChapterPages({ chapters = [] }) {
             <div className="studio-inspector-art"><Artwork project={project} page={selected} className="studio-large-art" /></div>
             <div className="studio-inspector-info"><div><span>Position</span><strong>{selected.page_number}</strong><small>of {pages.length}</small></div><div><span>Language</span><strong>{chapterLanguageLabel(chapter?.language)}</strong><small>{project === 'pdpkl' ? 'PDPKL' : 'ATMA'}</small></div><div><span>Status</span><strong>{busy === selected.id ? 'Saving…' : 'Ready'}</strong><small>Protected</small></div></div>
             <div className="studio-inspector-actions">
-              <label className="studio-replace"><AdminIcon name="image" size={16}/><b>Replace artwork</b><small>JPG / PNG / WEBP · max {project === 'pdpkl' ? '95 MB' : '20 MB'}</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" disabled={Boolean(busy)} onChange={e => { const f=e.target.files?.[0]; e.target.value=''; replacePage(selected,f); }}/></label>
+              <label className="studio-replace"><AdminIcon name="image" size={16}/><b>Replace artwork</b><small>JPG / PNG / WEBP / GIF / BMP / AVIF · max 95 MB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif" disabled={Boolean(busy)} onChange={e => { const f=e.target.files?.[0]; e.target.value=''; replacePage(selected,f); }}/></label>
               {retryFiles[selected.id] ? <button type="button" className="studio-retry" disabled={Boolean(busy)} onClick={() => replacePage(selected,retryFiles[selected.id])}>Retry replacement</button> : null}
               <div className="studio-two-actions"><button type="button" disabled={Boolean(busy) || selected.page_number <= 1} onClick={() => movePage(selected,-1)}>← Move back</button><button type="button" disabled={Boolean(busy) || selected.page_number >= pages.length} onClick={() => movePage(selected,1)}>Move forward →</button></div>
               <button type="button" className="studio-delete-action" disabled={Boolean(busy)} onClick={() => deletePage(selected)}>Delete page</button>
