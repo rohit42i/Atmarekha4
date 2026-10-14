@@ -20,10 +20,12 @@ const IMAGE_MIME_BY_EXT = {
 };
 
 function getImageMime(file) {
-  const declared = String(file?.type || '').toLowerCase();
-  if (declared.startsWith('image/')) return declared;
-  const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
-  return IMAGE_MIME_BY_EXT[ext] || '';
+  const name = String(file?.name || '');
+  const hasExtension = /\\.[^.]+$/.test(name);
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (hasExtension) return IMAGE_MIME_BY_EXT[ext] || '';
+  const declared = String(file?.type || '').toLowerCase().split(';')[0];
+  return Object.values(IMAGE_MIME_BY_EXT).includes(declared) ? declared : '';
 }
 
 const encodePath = path =>
