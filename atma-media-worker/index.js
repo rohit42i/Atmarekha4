@@ -1,31 +1,52 @@
 const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
-const IMAGE_MIME_BY_EXT = {
-  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
-  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
-};
 const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
-const COMMUNITY_MIME_BY_EXT = {
-  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
-  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-};
+const IMAGE_MIME_BY_EXT = Object.freeze({
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  bmp: 'image/bmp',
+  avif: 'image/avif',
+});
+const COMMUNITY_MIME_BY_EXT = Object.freeze({
+  pdf: 'application/pdf',
+  zip: 'application/zip',
+  txt: 'text/plain',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+});
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
 function normalizeOrigin(value) {
   const input = String(value || '').trim();
   if (!input) return '';
-  try { return new URL(input).origin; } catch (_) { return input.replace(/\/+$/, ''); }
+  try {
+    return new URL(input).origin;
+  } catch (_) {
+    return input.replace(/\/+$/, '');
+  }
 }
+
 function allowedOrigins(env) {
-  return String(env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean);
+  return String(env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
 }
+
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
   const allowlist = allowedOrigins(env);
-  const allowOrigin = allowlist.includes(normalizeOrigin(origin))
+  const normalizedOrigin = normalizeOrigin(origin);
+  const allowOrigin = allowlist.includes(normalizedOrigin)
     ? origin
     : (allowlist[0] || 'https://www.atmarekha.in');
+
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
@@ -35,268 +56,90 @@ function corsHeaders(request, env) {
     'Vary': 'Origin, Access-Control-Request-Headers',
   };
 }
+
 function json(request, env, body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(request, env) },
   });
 }
+
 function withCors(request, env, response) {
   const headers = new Headers(response.headers);
-  for (const [key, value] of Object.entries(corsHeaders(request, env))) headers.set(key, value);
-  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  for (const [key, value] of Object.entries(corsHeaders(request, env))) {
+    headers.set(key, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
+
 function bearer(request) {
-  const auth = request.headers.get('Authorization') || '';
-  return auth.startsWith('Bearer ') ? auth : null;
+  const authorization = request.headers.get('Authorization') || '';
+  return authorization.startsWith('Bearer ') ? authorization : null;
 }
+
 function apiKey(env) {
   return String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
 }
+
 function supabaseHeaders(env, authorization = null) {
   const key = apiKey(env);
-  return { apikey: key, ...(authorization ? { Authorization: authorization } : {}), Accept: 'application/json' };
-}
-async function supabaseRows(env, table, query, authorization = null) {
-  const baseUrl = String(env.SUPABASE_URL || '');
-  const url = new URL((baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl) + '/rest/v1/' + table);
-  for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
-  const response = await fetch(url, { headers: supabaseHeaders(env, authorization) });
-  if (!response.ok) throw new Error(`Supabase media authorization check failed (${response.status}).`);
-  return response.json();
-}
-async function getUser(request, env) {
-  const authorization = bearer(request);
-  if (!authorization || !env.SUPABASE_URL || !apiKey(env)) return null;
-  const baseUrl = String(env.SUPABASE_URL || '');
-  const response = await fetch((baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl) + '/auth/v1/user', {
-    headers: supabaseHeaders(env, authorization),
-  });
-  if (!response.ok) return null;
-  return response.json();
-}
-async function isAdmin(user, request, env) {
-  if (!user?.id || !bearer(request)) return false;
-  const rows = await supabaseRows(env, 'admins', {
-    select: 'user_id', user_id: `eq.${user.id}`, limit: '1',
-  }, bearer(request));
-  return Array.isArray(rows) && rows.length > 0;
-}
-async function hasPaidAtmaMembership(user, request, env) {
-  if (!user?.id || !bearer(request)) return false;
-  const rows = await supabaseRows(env, 'user_subscriptions', {
-    select: 'plan_id,status,current_period_end',
-    user_id: `eq.${user.id}`,
-    status: 'in.(active,cancelled)',
-  }, bearer(request));
-  const now = Date.now();
-  return (rows || []).some(row => {
-    if (!['mini_member', 'supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
-    const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
-    if (row.status === 'active') return end === null || end > now;
-    return row.status === 'cancelled' && end !== null && end > now;
-  });
-}
-function objectKey(request) {
-  const pathname = new URL(request.url).pathname;
-  if (!pathname.startsWith('/storage/v1/object/public/')) return null;
-  let key = '';
-  try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
-  if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
-  const cover = new RegExp(`^covers/chapters/${UUID_PATTERN}/[^/]+const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
-const IMAGE_MIME_BY_EXT = {
-  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
-  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
-};
-const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
-const COMMUNITY_MIME_BY_EXT = {
-  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
-  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-};
-const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
-
-function normalizeOrigin(value) {
-  const input = String(value || '').trim();
-  if (!input) return '';
-  try { return new URL(input).origin; } catch (_) { return input.replace(/\/+$/, ''); }
-}
-function allowedOrigins(env) {
-  return String(env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean);
-}
-function corsHeaders(request, env) {
-  const origin = request.headers.get('Origin') || '';
-  const allowlist = allowedOrigins(env);
-  const allowOrigin = allowlist.includes(normalizeOrigin(origin))
-    ? origin
-    : (allowlist[0] || 'https://www.atmarekha.in');
   return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || 'Authorization, Accept, Content-Type, Cache-Control',
-    'Access-Control-Max-Age': '86400',
-    'Access-Control-Expose-Headers': 'ETag, Content-Type, Content-Length, Cache-Control',
-    'Vary': 'Origin, Access-Control-Request-Headers',
+    apikey: key,
+    ...(authorization ? { Authorization: authorization } : {}),
+    Accept: 'application/json',
   };
 }
-function json(request, env, body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(request, env) },
-  });
-}
-function withCors(request, env, response) {
-  const headers = new Headers(response.headers);
-  for (const [key, value] of Object.entries(corsHeaders(request, env))) headers.set(key, value);
-  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-}
-function bearer(request) {
-  const auth = request.headers.get('Authorization') || '';
-  return auth.startsWith('Bearer ') ? auth : null;
-}
-function apiKey(env) {
-  return String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
-}
-function supabaseHeaders(env, authorization = null) {
-  const key = apiKey(env);
-  return { apikey: key, ...(authorization ? { Authorization: authorization } : {}), Accept: 'application/json' };
-}
-async function supabaseRows(env, table, query, authorization = null) {
-  const url = new URL(`${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/rest/v1/${table}`);
-  for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
-  const response = await fetch(url, { headers: supabaseHeaders(env, authorization) });
-  if (!response.ok) throw new Error(`Supabase media authorization check failed (${response.status}).`);
-  return response.json();
-}
-async function getUser(request, env) {
-  const authorization = bearer(request);
-  if (!authorization || !env.SUPABASE_URL || !apiKey(env)) return null;
-  const response = await fetch(`${String(env.SUPABASE_URL).replace(/\/$/, '')}/auth/v1/user`, {
-    headers: supabaseHeaders(env, authorization),
-  });
-  if (!response.ok) return null;
-  return response.json();
-}
-async function isAdmin(user, request, env) {
-  if (!user?.id || !bearer(request)) return false;
-  const rows = await supabaseRows(env, 'admins', {
-    select: 'user_id', user_id: `eq.${user.id}`, limit: '1',
-  }, bearer(request));
-  return Array.isArray(rows) && rows.length > 0;
-}
-async function hasPaidAtmaMembership(user, request, env) {
-  if (!user?.id || !bearer(request)) return false;
-  const rows = await supabaseRows(env, 'user_subscriptions', {
-    select: 'plan_id,status,current_period_end',
-    user_id: `eq.${user.id}`,
-    status: 'in.(active,cancelled)',
-  }, bearer(request));
-  const now = Date.now();
-  return (rows || []).some(row => {
-    if (!['mini_member', 'supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
-    const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
-    if (row.status === 'active') return end === null || end > now;
-    return row.status === 'cancelled' && end !== null && end > now;
-  });
-}
-function objectKey(request) {
-  const pathname = new URL(request.url).pathname;
-  if (!pathname.startsWith('/storage/v1/object/public/')) return null;
-  let key = '';
-  try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
-  if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
-, 'i');
-  const announcementImage = /^covers\/announcements\/[^/]+$/i.test(key);
-  const page = new RegExp(`^(?:chapter-pages/${UUID_PATTERN}/[^/]+/[^/]+|${UUID_PATTERN}/replacements/[^/]+)const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
-const IMAGE_MIME_BY_EXT = {
-  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
-  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
-};
-const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
-const COMMUNITY_MIME_BY_EXT = {
-  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
-  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-};
-const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 
-function normalizeOrigin(value) {
-  const input = String(value || '').trim();
-  if (!input) return '';
-  try { return new URL(input).origin; } catch (_) { return input.replace(/\/+$/, ''); }
+function supabaseBaseUrl(env) {
+  const value = String(env.SUPABASE_URL || '');
+  return value.endsWith('/') ? value.slice(0, -1) : value;
 }
-function allowedOrigins(env) {
-  return String(env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean);
-}
-function corsHeaders(request, env) {
-  const origin = request.headers.get('Origin') || '';
-  const allowlist = allowedOrigins(env);
-  const allowOrigin = allowlist.includes(normalizeOrigin(origin))
-    ? origin
-    : (allowlist[0] || 'https://www.atmarekha.in');
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || 'Authorization, Accept, Content-Type, Cache-Control',
-    'Access-Control-Max-Age': '86400',
-    'Access-Control-Expose-Headers': 'ETag, Content-Type, Content-Length, Cache-Control',
-    'Vary': 'Origin, Access-Control-Request-Headers',
-  };
-}
-function json(request, env, body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(request, env) },
-  });
-}
-function withCors(request, env, response) {
-  const headers = new Headers(response.headers);
-  for (const [key, value] of Object.entries(corsHeaders(request, env))) headers.set(key, value);
-  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-}
-function bearer(request) {
-  const auth = request.headers.get('Authorization') || '';
-  return auth.startsWith('Bearer ') ? auth : null;
-}
-function apiKey(env) {
-  return String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || '').trim();
-}
-function supabaseHeaders(env, authorization = null) {
-  const key = apiKey(env);
-  return { apikey: key, ...(authorization ? { Authorization: authorization } : {}), Accept: 'application/json' };
-}
+
 async function supabaseRows(env, table, query, authorization = null) {
-  const url = new URL(`${String(env.SUPABASE_URL || '').replace(/\/$/, '')}/rest/v1/${table}`);
-  for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
+  const url = new URL(supabaseBaseUrl(env) + '/rest/v1/' + table);
+  for (const [key, value] of Object.entries(query)) {
+    url.searchParams.set(key, value);
+  }
   const response = await fetch(url, { headers: supabaseHeaders(env, authorization) });
-  if (!response.ok) throw new Error(`Supabase media authorization check failed (${response.status}).`);
+  if (!response.ok) {
+    throw new Error('Supabase media authorization check failed (' + response.status + ').');
+  }
   return response.json();
 }
+
 async function getUser(request, env) {
   const authorization = bearer(request);
   if (!authorization || !env.SUPABASE_URL || !apiKey(env)) return null;
-  const response = await fetch(`${String(env.SUPABASE_URL).replace(/\/$/, '')}/auth/v1/user`, {
+
+  const response = await fetch(supabaseBaseUrl(env) + '/auth/v1/user', {
     headers: supabaseHeaders(env, authorization),
   });
   if (!response.ok) return null;
   return response.json();
 }
+
 async function isAdmin(user, request, env) {
   if (!user?.id || !bearer(request)) return false;
   const rows = await supabaseRows(env, 'admins', {
-    select: 'user_id', user_id: `eq.${user.id}`, limit: '1',
+    select: 'user_id',
+    user_id: 'eq.' + user.id,
+    limit: '1',
   }, bearer(request));
   return Array.isArray(rows) && rows.length > 0;
 }
+
 async function hasPaidAtmaMembership(user, request, env) {
   if (!user?.id || !bearer(request)) return false;
   const rows = await supabaseRows(env, 'user_subscriptions', {
     select: 'plan_id,status,current_period_end',
-    user_id: `eq.${user.id}`,
+    user_id: 'eq.' + user.id,
     status: 'in.(active,cancelled)',
   }, bearer(request));
+
   const now = Date.now();
   return (rows || []).some(row => {
     if (!['mini_member', 'supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
@@ -305,28 +148,52 @@ async function hasPaidAtmaMembership(user, request, env) {
     return row.status === 'cancelled' && end !== null && end > now;
   });
 }
+
 function objectKey(request) {
   const pathname = new URL(request.url).pathname;
-  if (!pathname.startsWith('/storage/v1/object/public/')) return null;
+  const prefix = '/storage/v1/object/public/';
+  if (!pathname.startsWith(prefix)) return null;
+
   let key = '';
-  try { key = decodeURIComponent(pathname.slice('/storage/v1/object/public/'.length)); } catch (_) { return null; }
-  if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
-, 'i');
-  const isCommunityPath = /^community\/[^/]+$/i.test(key);
-  return cover.test(key) || announcementImage || page.test(key) || isCommunityPath ? key : null;
+  try {
+    key = decodeURIComponent(pathname.slice(prefix.length));
+  } catch (_) {
+    return null;
+  }
+
+  if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) {
+    return null;
+  }
+
+  const cover = new RegExp('^covers/chapters/' + UUID_PATTERN + '/[^/]+$', 'i');
+  const announcementImage = /^covers\/announcements\/[^/]+$/i;
+  const page = new RegExp('^chapter-pages/' + UUID_PATTERN + '/[^/]+/[^/]+$', 'i');
+  const replacement = new RegExp('^' + UUID_PATTERN + '/replacements/[^/]+$', 'i');
+  const communityAttachment = /^community\/[^/]+$/i;
+
+  return cover.test(key) || announcementImage.test(key) || page.test(key)
+    || replacement.test(key) || communityAttachment.test(key)
+    ? key
+    : null;
 }
+
 function chapterIdFromKey(key) {
-  const normal = key.match(new RegExp(`^chapter-pages/(${UUID_PATTERN})/`, 'i'));
+  const normal = key.match(new RegExp('^chapter-pages/(' + UUID_PATTERN + ')/', 'i'));
   if (normal?.[1]) return normal[1];
-  const replacement = key.match(new RegExp(`^(${UUID_PATTERN})/replacements/`, 'i'));
+
+  const replacement = key.match(new RegExp('^(' + UUID_PATTERN + ')/replacements/', 'i'));
   return replacement?.[1] || null;
 }
+
 async function getChapter(env, chapterId, authorization = null) {
   const rows = await supabaseRows(env, 'chapters', {
-    select: 'id,chapter_number,status', id: `eq.${chapterId}`, limit: '1',
+    select: 'id,chapter_number,status',
+    id: 'eq.' + chapterId,
+    limit: '1',
   }, authorization);
   return Array.isArray(rows) ? rows[0] || null : null;
 }
+
 function isPublishedFreeChapter(chapter) {
   if (!chapter || String(chapter.status || '').toLowerCase() !== 'published') return false;
   const raw = chapter.chapter_number;
@@ -334,9 +201,11 @@ function isPublishedFreeChapter(chapter) {
   const value = Number(raw);
   return Number.isFinite(value) && value >= 1 && value <= 8;
 }
+
 async function authorizePage(request, env, key) {
   const chapterId = chapterIdFromKey(key);
   if (!chapterId) return { status: 400, message: 'Invalid chapter path.' };
+
   const authorization = bearer(request);
   const user = await getUser(request, env);
   const admin = user ? await isAdmin(user, request, env) : false;
@@ -345,16 +214,32 @@ async function authorizePage(request, env, key) {
   if (admin) return { user, admin, chapter };
   if (isPublishedFreeChapter(chapter)) return { user, admin, chapter };
   if (!user) return { status: 401, message: 'Authentication required.' };
-  if (String(chapter.status || '').toLowerCase() !== 'published') return { status: 404, message: 'Media not available.' };
+  if (String(chapter.status || '').toLowerCase() !== 'published') {
+    return { status: 404, message: 'Media not available.' };
+  }
   if (!(await hasPaidAtmaMembership(user, request, env))) {
     return { status: 403, message: 'Active Atma Rekha membership required.' };
   }
   return { user, admin, chapter };
 }
 
+function imageMimeFromKey(key) {
+  const ext = String(key).split('.').pop()?.toLowerCase() || '';
+  return IMAGE_MIME_BY_EXT[ext] || '';
+}
+
+function communityMimeFromKey(key) {
+  const ext = String(key).split('.').pop()?.toLowerCase() || '';
+  return IMAGE_MIME_BY_EXT[ext] || COMMUNITY_MIME_BY_EXT[ext] || '';
+}
+
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+    }
 
     if (request.method === 'GET' && requestUrl.pathname.startsWith('/storage/v1/object/list/chapter-pages/')) {
       try {
@@ -364,13 +249,14 @@ export default {
         if (!new RegExp('^' + UUID_PATTERN + '$', 'i').test(chapterId)) {
           return json(request, env, { error: 'Invalid chapter id.' }, 400);
         }
-        const access = await authorizePage(request, env, `chapter-pages/${chapterId}/_/_`);
+
+        const access = await authorizePage(request, env, 'chapter-pages/' + chapterId + '/_/_');
         if (access.status) return json(request, env, { error: access.message }, access.status);
 
-        const listed = await env.MANGA_BUCKET.list({ prefix: `chapter-pages/${chapterId}/` });
+        const listed = await env.MANGA_BUCKET.list({ prefix: 'chapter-pages/' + chapterId + '/' });
         const keys = (listed.objects || [])
           .map(object => object.key)
-          .filter(key => String(key).startsWith(`chapter-pages/${chapterId}/`))
+          .filter(key => String(key).startsWith('chapter-pages/' + chapterId + '/'))
           .filter(key => /\.(?:jpg|jpeg|png|webp|gif|bmp|avif)$/i.test(String(key)))
           .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
         return json(request, env, { keys });
@@ -378,8 +264,6 @@ export default {
         return json(request, env, { error: error?.message || 'Unable to list chapter pages.' }, 500);
       }
     }
-
-    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, env) });
 
     try {
       const key = objectKey(request);
@@ -425,21 +309,17 @@ export default {
         return response;
       }
 
+      if (request.method !== 'PUT' && request.method !== 'DELETE') {
+        return json(request, env, { error: 'Method not allowed.' }, 405);
+      }
+
       const user = await getUser(request, env);
       const admin = user ? await isAdmin(user, request, env) : false;
       if (!admin) return json(request, env, { error: 'Admin access required.' }, 403);
 
       if (request.method === 'PUT') {
-        const isCommunity = /^community\/[^/]+$/i.test(key);
-        const declaredType = String(request.headers.get('Content-Type') || '').toLowerCase().split(';')[0];
-        const ext = key.match(/\.([^.\/]+)$/)?.[1]?.toLowerCase() || '';
-        const supportedDeclaredImage = Object.values(IMAGE_MIME_BY_EXT).includes(declaredType);
-        const supportedDeclaredAttachment = Object.values(COMMUNITY_MIME_BY_EXT).includes(declaredType);
-        const contentType = isCommunity
-          ? (IMAGE_MIME_BY_EXT[ext] || COMMUNITY_MIME_BY_EXT[ext]
-            || (!ext && (supportedDeclaredImage || supportedDeclaredAttachment) ? declaredType : null))
-          : (IMAGE_MIME_BY_EXT[ext] || (!ext && supportedDeclaredImage ? declaredType : null));
-
+        const isCommunity = communityMedia;
+        const contentType = isCommunity ? communityMimeFromKey(key) : imageMimeFromKey(key);
         if (!contentType) {
           return json(request, env, {
             error: isCommunity
@@ -448,10 +328,10 @@ export default {
           }, 415);
         }
 
-        const length = Number(request.headers.get('Content-Length') || 0);
         if (!request.body) return json(request, env, { error: 'Empty upload body.' }, 400);
+        const declaredLength = Number(request.headers.get('Content-Length') || 0);
         const maxBytes = isCommunity ? COMMUNITY_MAX_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
-        if (length > maxBytes) {
+        if (declaredLength > maxBytes) {
           return json(request, env, {
             error: isCommunity ? 'Community attachment is larger than 15 MB.' : 'Image is larger than 95 MB.',
           }, 413);
@@ -466,12 +346,8 @@ export default {
         return json(request, env, { ok: true, path: key });
       }
 
-      if (request.method === 'DELETE') {
-        await env.MANGA_BUCKET.delete(key);
-        return json(request, env, { ok: true, path: key });
-      }
-
-      return json(request, env, { error: 'Method not allowed.' }, 405);
+      await env.MANGA_BUCKET.delete(key);
+      return json(request, env, { ok: true, path: key });
     } catch (error) {
       return json(request, env, { error: error?.message || 'Atma media operation failed.' }, 500);
     }
