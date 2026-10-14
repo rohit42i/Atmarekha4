@@ -24,8 +24,11 @@ const PDLPL_STATUS_RPC = 'pdlpl_set_chapter_status';
 // Publish through the guarded RPC, then verify the exact persisted row before refreshing the admin list.
 
 function safeExt(file, fallback = 'webp') {
-  const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || fallback;
-  return /^[a-z0-9]+$/.test(ext) ? ext : fallback;
+  const name = String(file?.name || '');
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (name.includes('.') && IMAGE_MIME_BY_EXT[ext]) return ext;
+  const type = String(file?.type || '').toLowerCase();
+  return Object.entries(IMAGE_MIME_BY_EXT).find(([, mime]) => mime === type)?.[0] || fallback;
 }
 
 const IMAGE_MIME_BY_EXT = {
@@ -35,8 +38,10 @@ const IMAGE_MIME_BY_EXT = {
 
 function isImageFile(file) {
   if (!(file instanceof File)) return false;
-  if (String(file.type || '').toLowerCase().startsWith('image/')) return true;
-  return Boolean(IMAGE_MIME_BY_EXT[safeExt(file, '').toLowerCase()]);
+  const name = String(file.name || '');
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (name.includes('.')) return Boolean(IMAGE_MIME_BY_EXT[ext]);
+  return Object.values(IMAGE_MIME_BY_EXT).includes(String(file.type || '').toLowerCase());
 }
 
 function pagePath(chapterId, revision, file, index) {
