@@ -738,7 +738,7 @@ export default function AdminPanel({ onLogout }) {
     let committed = false;
     try {
       adminUser = await requireAdmin();
-      if (!String(file.type || '').toLowerCase().startsWith('image/')) throw new Error('Please select an image file.');
+      if (!isSupportedImageFile(file)) throw new Error('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
       const language = normalizeChapterLanguage(chapter.language);
       const ext = imageExtension(file);
       const stamp = Date.now();
