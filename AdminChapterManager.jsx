@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import PalDoPalAdmin from './PalDoPalAdmin.jsx';
-import { supabase } from './supabase';
+import { supabase, isSupportedImageFile } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { AdminButton, AdminCard, AdminEmptyState, AdminModal, AdminTable } from './admin-studio-ui.jsx';
 
 const FILTER_KEY = 'atma-admin-studio:chapter-filters';
 const COLUMN_KEY = 'atma-admin-studio:chapter-columns';
+const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif';
 
 const DEFAULT_COLUMNS = { chapter: true, status: true, language: true, pages: true, performance: true, release: true, signal: true, actions: true };
 
@@ -202,18 +203,21 @@ export default function AdminChapterManager({
 
   const updateForm = (key, value) => setForm(current => ({ ...current, [key]: value }));
   const choosePages = event => {
-    const files = Array.from(event.target.files || []).filter(file => {
-      if (String(file?.type || '').toLowerCase().startsWith('image/')) return true;
-      return /\.(jpg|jpeg|png|webp|gif|bmp|avif)$/i.test(String(file?.name || ''));
-    });
+    const selectedFiles = Array.from(event.target.files || []);
+    const files = selectedFiles.filter(isSupportedImageFile);
+    const unsupportedCount = selectedFiles.length - files.length;
     const tooLarge = files.find(file => file.size > 95 * 1024 * 1024);
     event.target.value = '';
     if (tooLarge) {
       setNotice(tooLarge.name + ' is larger than 95 MB.');
       return;
     }
+    if (unsupportedCount) {
+      setNotice('Skipped ' + unsupportedCount + ' unsupported image(s). Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+    } else {
+      setNotice(files.length ? `${files.length} pages ready · selected order preserved.` : '');
+    }
     updateForm('pages', files);
-    setNotice(files.length ? `${files.length} pages ready · selected order preserved.` : '');
   };
 
   return (
@@ -278,14 +282,22 @@ export default function AdminChapterManager({
               </label>
               <label>
                 <span>Cover image</span>
-                <input type="file" accept="image/*" onChange={event => updateForm('cover', event.target.files?.[0] || null)} />
+                <input type="file" accept={SUPPORTED_IMAGE_ACCEPT} onChange={event => {
+                  const file = event.target.files?.[0] || null;
+                  if (file && !isSupportedImageFile(file)) {
+                    event.target.value = '';
+                    setNotice('Unsupported cover image. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+                    return;
+                  }
+                  updateForm('cover', file);
+                }} />
               </label>
             </div>
 
             <label className="admin-dropzone">
               <strong>Manga pages</strong>
               <span>Select pages in the exact order you want them published. Existing upload validation and R2 paths are unchanged.</span>
-              <input type="file" multiple accept="image/*" onChange={choosePages} />
+              <input type="file" multiple accept={SUPPORTED_IMAGE_ACCEPT} onChange={choosePages} />
               {form.pages.length > 0 ? <em>{form.pages.length} pages ready · selected order preserved</em> : null}
             </label>
 
