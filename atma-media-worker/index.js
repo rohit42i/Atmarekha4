@@ -103,7 +103,7 @@ function objectKey(request) {
   if (!key || key.length > 1024 || key.includes('..') || key.includes('\\') || key.startsWith('/')) return null;
   const cover = new RegExp(`^covers/chapters/${UUID_PATTERN}/[^/]+$`, 'i');
   const page = new RegExp(`^(?:chapter-pages/${UUID_PATTERN}/[^/]+/[^/]+|${UUID_PATTERN}/replacements/[^/]+)$`, 'i');
-  const community = /^community\/[^/]+$/i.test(key);
+  const community = /^community\\/[^/]+$/i;
   return cover.test(key) || page.test(key) || community.test(key) ? key : null;
 }
 function chapterIdFromKey(key) {
