@@ -8,6 +8,7 @@ const TOOL_RESULTS = [
   { id: 'tool-health', type: 'Tool', title: 'Chapter Health', hint: 'Inspect publishing readiness', event: 'atma-admin-open-health' },
   { id: 'tool-operations', type: 'Tool', title: 'Operations & Recovery', hint: 'Recovery, notifications and audit', event: 'atma-admin-open-operations' },
   { id: 'tool-users', type: 'Tool', title: 'Users & Memberships', hint: 'Manage readers and memberships', event: 'atma-admin-open-management', detail: { view: 'users' } },
+  { id: 'tool-push-notifications', type: 'Tool', title: 'Push Notifications', hint: 'Send a browser push notification to readers', event: 'atma-admin-open-management', detail: { view: 'notifications' } },
   { id: 'tool-moderation', type: 'Tool', title: 'Community Moderation', hint: 'Automatic reports and bans', event: 'atma-admin-open-moderation' },
   { id: 'tool-group', type: 'Tool', title: 'Group Chat', hint: 'Moderate group messages', event: 'atma-admin-open-group-chat' },
   { id: 'tool-pro', type: 'Tool', title: 'Advanced Tools', hint: 'Open advanced admin tools', event: 'atma-admin-open-pro' },
