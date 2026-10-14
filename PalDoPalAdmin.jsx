@@ -7,6 +7,7 @@ import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
 
 const MAX_PAGE_SIZE = 95 * 1024 * 1024;
+const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif';
 
 const emptyForm = () => ({
   number: '',
@@ -247,8 +248,14 @@ export default function PalDoPalAdmin({ embedded = false }) {
   );
 
   const appendPages = async filesInput => {
-    const files = Array.from(filesInput || []).filter(isImageFile);
-    if (!files.length || !selectedChapter || busy) return;
+    const selectedFiles = Array.from(filesInput || []);
+    const files = selectedFiles.filter(isImageFile);
+    const unsupportedCount = selectedFiles.length - files.length;
+    if (unsupportedCount) setNotice('Skipped ' + unsupportedCount + ' unsupported image(s). Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+    if (!files.length || !selectedChapter || busy) {
+      if (!files.length && selectedFiles.length) setNotice('No supported images selected. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+      return;
+    }
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) {
       setDiagnostic(diagnosticFromError('Validating selected pages', new Error(tooLarge.name + ' is larger than 95 MB.'), { file: tooLarge.name }));
@@ -362,14 +369,19 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
   const choosePages = event => {
     setDiagnostic(null);
-    const files = Array.from(event.target.files || []).filter(isImageFile);
+    const selectedFiles = Array.from(event.target.files || []);
+    const files = selectedFiles.filter(isImageFile);
+    const unsupportedCount = selectedFiles.length - files.length;
+    event.target.value = '';
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
     if (tooLarge) {
-      event.target.value = '';
       setNotice(`${tooLarge.name} is larger than 95 MB.`);
       return;
     }
     setForm(value => ({ ...value, pages: files }));
+    setNotice(unsupportedCount
+      ? 'Skipped ' + unsupportedCount + ' unsupported image(s). Use JPG, PNG, WEBP, GIF, BMP, or AVIF.'
+      : (files.length ? files.length + ' pages ready · selected order preserved.' : ''));
   };
 
   const reset = () => {
@@ -882,7 +894,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
           <div className="mb-3 flex items-center justify-between"><strong>Page {page.page_number}</strong><span className="text-xs text-zinc-500">{index + 1}/{selectedPages.length}</span></div>
           <PagePreview path={page.image_path} />
           <div className="flex flex-wrap gap-2">
-            <label className="cursor-pointer rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold">Replace<input type="file" accept="image/*" className="hidden" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; replacePage(page, file); }}/></label>
+            <label className="cursor-pointer rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold">Replace<input type="file" accept={SUPPORTED_IMAGE_ACCEPT} className="hidden" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; replacePage(page, file); }}/></label>
             <button type="button" onClick={() => reorder(index, -1)} disabled={busy || index === 0} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm font-bold">↑</button>
             <button type="button" onClick={() => reorder(index, 1)} disabled={busy || index === selectedPages.length - 1} className="rounded-xl border border-zinc-700 px-3 py-2 text-sm font-bold">↓</button>
             <button type="button" onClick={() => deletePage(page)} disabled={busy} className="rounded-xl border border-rose-900 px-3 py-2 text-sm font-bold text-rose-300">Delete</button>
@@ -946,7 +958,15 @@ export default function PalDoPalAdmin({ embedded = false }) {
           </label>
           <label className="pdlpl-file-input">
             Cover image
-            <input type="file" accept="image/*" onChange={e => setForm({ ...form, cover: e.target.files?.[0] || null })} />
+            <input type="file" accept={SUPPORTED_IMAGE_ACCEPT} onChange={e => {
+              const file = e.target.files?.[0] || null;
+              e.target.value = '';
+              if (file && !isImageFile(file)) {
+                setNotice('Unsupported cover image. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+                return;
+              }
+              setForm({ ...form, cover: file });
+            }} />
             {form.cover && <span>{form.cover.name}</span>}
           </label>
         </div>
@@ -954,7 +974,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
         <label className="pdlpl-dropzone">
           <strong>Manga pages</strong>
           <span>Select pages in the exact order you want them published. Filename sorting is disabled.</span>
-          <input type="file" multiple accept="image/*" onChange={choosePages} />
+          <input type="file" multiple accept={SUPPORTED_IMAGE_ACCEPT} onChange={choosePages} />
           {form.pages.length > 0 && <em>{form.pages.length} page{form.pages.length === 1 ? '' : 's'} selected · not uploaded yet · selected order preserved</em>}
         </label>
 
@@ -1033,7 +1053,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
     {selectedChapter && <section id="pdlpl-page-manager" className="pdlpl-admin-card pdlpl-page-manager">
       <div className="pdlpl-admin-card-head">
-        <div><span>PAGE MANAGER · INDIVIDUAL PAGES</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Manage individual pages: preview, replace, add, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><label className="pdlpl-inline-file">Add pages<input type="file" accept="image/*" multiple disabled={busy} onChange={e => { const files = e.target.files; e.target.value = ''; appendPages(files); }} /></label><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
+        <div><span>PAGE MANAGER · INDIVIDUAL PAGES</span><h2>{label(selectedChapter)} · {selectedChapter.title}</h2><p>Manage individual pages: preview, replace, add, reorder, or delete one page without re-uploading the whole chapter.</p></div><div className="pdlpl-admin-header-actions"><label className="pdlpl-inline-file">Add pages<input type="file" accept={SUPPORTED_IMAGE_ACCEPT} multiple disabled={busy} onChange={e => { const files = e.target.files; e.target.value = ''; appendPages(files); }} /></label><button type="button" onClick={() => loadPages(selectedId)} disabled={busy}>Refresh pages</button><button type="button" onClick={() => { window.location.hash = `${PDLPL_ROUTE}/read/${encodeURIComponent(selectedChapter.id)}`; }}>Preview chapter</button></div>
       </div>
 
       {!selectedPages.length
@@ -1044,7 +1064,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
             <div className="pdlpl-page-head"><strong>Page {page.page_number}</strong><span>{index + 1}/{selectedPages.length}</span></div>
             <p className="pdlpl-page-path">{page.image_path}</p>
             <div className="pdlpl-page-actions">
-              <label>Replace<input type="file" accept="image/*" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; replacePage(page, file); }} /></label>{retryFiles[page.id] && <button type="button" onClick={() => replacePage(page, retryFiles[page.id])} disabled={busy}>Retry</button>}
+              <label>Replace<input type="file" accept={SUPPORTED_IMAGE_ACCEPT} disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; replacePage(page, file); }} /></label>{retryFiles[page.id] && <button type="button" onClick={() => replacePage(page, retryFiles[page.id])} disabled={busy}>Retry</button>}
               <button type="button" disabled={busy || index === 0} onClick={() => reorder(index, -1)}>↑</button>
               <button type="button" disabled={busy || index === selectedPages.length - 1} onClick={() => reorder(index, 1)}>↓</button>
               <button type="button" className="danger" disabled={busy} onClick={() => deletePage(page)}>Delete</button>
