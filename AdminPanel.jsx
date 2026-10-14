@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { supabase, cloudflareR2 } from './supabase';
+import { supabase, cloudflareR2, isSupportedImageFile } from './supabase';
 import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import AdminOverview from './AdminOverview';
 import AdminMembership from './AdminMembership.jsx';
@@ -25,6 +25,15 @@ const IMAGE_MIME_BY_EXT = {
 };
 const PAGE_BUCKET = 'chapter-pages';
 const COVER_BUCKET = 'covers';
+const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif';
+
+function imageExtension(file) {
+  const name = String(file?.name || '');
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (name.includes('.') && IMAGE_MIME_BY_EXT[ext]) return ext;
+  const type = String(file?.type || '').toLowerCase();
+  return Object.entries(IMAGE_MIME_BY_EXT).find(([, mime]) => mime === type)?.[0] || 'jpg';
+}
 
 const publicUrl = (bucket, path) => cloudflareR2.from(bucket).getPublicUrl(path).data.publicUrl;
 const pathFromUrl = (url, bucket) => {
@@ -239,21 +248,28 @@ export default function AdminPanel({ onLogout }) {
   });
 
   const choosePages = event => {
-    const files = Array.from(event.target.files || []).filter(file => {
-      if (String(file?.type || '').toLowerCase().startsWith('image/')) return true;
-      const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
-      return Boolean(IMAGE_MIME_BY_EXT[ext]);
-    });
+    const selected = Array.from(event.target.files || []);
+    const files = selected.filter(isSupportedImageFile);
+    const unsupportedCount = selected.length - files.length;
     const tooLarge = files.find(file => file.size > MAX_PAGE_SIZE);
-    if (tooLarge) { event.target.value = ''; setNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
+    event.target.value = '';
+    if (tooLarge) { setNotice({ type: 'error', text: tooLarge.name + ' is larger than 95 MB.' }); return; }
+    if (unsupportedCount) {
+      setNotice({ type: 'error', text: 'Skipped ' + unsupportedCount + ' unsupported image(s). Use JPG, PNG, WEBP, GIF, BMP, or AVIF.' });
+    } else {
+      setNotice({ type: '', text: '' });
+    }
     setForm(value => ({ ...value, pages: files }));
   };
 
   async function upload(bucket, file, path) {
+    if (!isSupportedImageFile(file)) {
+      throw new Error('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+    }
     const declaredType = String(file?.type || '').toLowerCase();
-    const ext = String(file?.name || '').split('.').pop()?.toLowerCase() || '';
-    const contentType = declaredType.startsWith('image/') ? declaredType : (IMAGE_MIME_BY_EXT[ext] || undefined);
-    if (!contentType) throw new Error('Please select a supported image file.');
+    const ext = imageExtension(file);
+    const contentType = IMAGE_MIME_BY_EXT[ext] || declaredType;
+    if (!contentType || !contentType.startsWith('image/')) throw new Error('Please select a supported image file.');
     const { error } = await cloudflareR2.from(bucket).upload(path, file, { upsert: false, contentType, cacheControl: '31536000' });
     if (error) throw new Error(`Upload to ${bucket} failed: ${error.message}`);
     return publicUrl(bucket, path);
@@ -329,7 +345,7 @@ export default function AdminPanel({ onLogout }) {
 
       let oldCoverPath = null;
       if (form.cover) {
-        const ext = form.cover.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const ext = imageExtension(form.cover);
         const path = 'covers/chapters/' + chapterId + '/cover-' + language + '-' + Date.now() + '.' + ext;
         await upload(COVER_BUCKET, form.cover, path);
         uploadedPaths.push({ bucket: COVER_BUCKET, path, kind: 'cover' });
@@ -358,7 +374,7 @@ export default function AdminPanel({ onLogout }) {
 
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
-          const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+          const ext = imageExtension(file);
           const pagePath = 'chapters/' + chapterId + '/pages/' + language + '-' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + ext;
           const url = await upload(PAGE_BUCKET, file, pagePath);
           uploadedPaths.push({ bucket: PAGE_BUCKET, path: pagePath, kind: 'page' });
