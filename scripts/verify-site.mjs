@@ -1,6 +1,11 @@
 import { readFile } from 'node:fs/promises';
 
 const required = [
+  ['supabase.js', 'export function isSupportedImageFile(file)'],
+  ['supabase.js', 'body: file'],
+  ['atma-media-worker/index.js', 'const isCommunityPath ='],
+  ['atma-media-worker/index.js', 'const announcementImage'],
+  ['atma-media-worker/index.js', 'Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.'],
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
   ['InfoPage.jsx', "['Accounts', '15+']"],
@@ -23,6 +28,8 @@ const required = [
 ];
 
 const forbidden = [
+  ['supabase.js', 'async function decodeImage('],
+  ['supabase.js', 'async function compressImage('],
   ['UserAuth.jsx', 'nominate a person'],
   ['membership.css', '#d946ef'],
   ['PrivacyCenter.jsx', 'nominate a person'],
