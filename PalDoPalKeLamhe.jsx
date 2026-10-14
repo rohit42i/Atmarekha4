@@ -466,8 +466,6 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
           {urls[index]
             ? <img src={urls[index]} alt={`${formatLabel(chapter)} page ${index + 1}`} decoding="async" fetchPriority={index === 0 ? 'high' : 'auto'} draggable="false" />
             : <div className="pdlpl-page-loading">{pageLoading ? 'Loading page…' : 'Page unavailable.'}</div>}
-          <button className="reader-side-button left" type="button" onClick={() => setIndex(value => Math.max(value - 1, 0))} disabled={index === 0} aria-label="Previous page">‹</button>
-          <button className="reader-side-button right" type="button" onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))} disabled={index === pages.length - 1} aria-label="Next page">›</button>
         </div>
 
         <div className="reader-info-row"><span>Page {index + 1} of {pages.length}</span></div>
