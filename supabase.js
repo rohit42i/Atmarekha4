@@ -56,7 +56,7 @@ const COMMUNITY_ATTACHMENT_MIME_BY_EXT = Object.freeze({
 export function isSupportedImageFile(file) {
   if (typeof File === 'undefined' || !(file instanceof File)) return false;
   const name = String(file.name || '');
-  const hasExtension = /\\.[^.]+$/.test(name);
+  const hasExtension = /\.[^.]+$/.test(name);
   const ext = name.split('.').pop()?.toLowerCase() || '';
   if (hasExtension) return Boolean(IMAGE_MIME_BY_EXT[ext]);
   return SUPPORTED_IMAGE_MIMES.has(String(file.type || '').toLowerCase());
@@ -64,7 +64,7 @@ export function isSupportedImageFile(file) {
 
 function imageContentType(file, options = {}) {
   const name = String(file?.name || '');
-  const hasExtension = /\\.[^.]+$/.test(name);
+  const hasExtension = /\.[^.]+$/.test(name);
   const ext = name.split('.').pop()?.toLowerCase() || '';
   if (hasExtension) {
     const mapped = IMAGE_MIME_BY_EXT[ext];
