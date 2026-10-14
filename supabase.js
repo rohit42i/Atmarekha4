@@ -37,10 +37,59 @@ async function fetchWithTimeout(input, init = {}) {
   }
 }
 
-// Manga pages keep a wider quality envelope to preserve line texture, hatching and small text.
-const IMAGE_MIN_SIZE = 2 * 1024 * 1024;
-const IMAGE_MAX_SIZE = 4 * 1024 * 1024;
-const IMAGE_MAX_EDGE = 3200;
+// Upload original artwork directly. Browser canvas decoding can fail on valid Android-picked
+// images and recompression can damage manga linework. Validate supported formats and size instead.
+const MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+const COMMUNITY_MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const IMAGE_MIME_BY_EXT = Object.freeze({
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+  gif: 'image/gif', bmp: 'image/bmp', avif: 'image/avif',
+});
+const SUPPORTED_IMAGE_MIMES = new Set(Object.values(IMAGE_MIME_BY_EXT));
+const COMMUNITY_ATTACHMENT_MIME_BY_EXT = Object.freeze({
+  pdf: 'application/pdf', zip: 'application/zip', txt: 'text/plain',
+  doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+});
+
+export function isSupportedImageFile(file) {
+  if (typeof File === 'undefined' || !(file instanceof File)) return false;
+  const name = String(file.name || '');
+  const hasExtension = /\\.[^.]+$/.test(name);
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (hasExtension) return Boolean(IMAGE_MIME_BY_EXT[ext]);
+  return SUPPORTED_IMAGE_MIMES.has(String(file.type || '').toLowerCase());
+}
+
+function imageContentType(file, options = {}) {
+  const name = String(file?.name || '');
+  const hasExtension = /\\.[^.]+$/.test(name);
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  if (hasExtension) {
+    const mapped = IMAGE_MIME_BY_EXT[ext];
+    if (!mapped) {
+      throw new Error('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+    }
+    return mapped;
+  }
+  const declared = String(file?.type || options.contentType || '').toLowerCase().split(';')[0];
+  if (SUPPORTED_IMAGE_MIMES.has(declared)) return declared;
+  throw new Error('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+}
+
+function communityContentType(file, options = {}) {
+  const name = String(file?.name || '');
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  const declared = String(file?.type || options.contentType || '').toLowerCase().split(';')[0];
+  if (declared.startsWith('image/')) {
+    if (!SUPPORTED_IMAGE_MIMES.has(declared) && !IMAGE_MIME_BY_EXT[ext]) {
+      throw new Error('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+    }
+    return IMAGE_MIME_BY_EXT[ext] || declared;
+  }
+  return COMMUNITY_ATTACHMENT_MIME_BY_EXT[ext] || declared || 'application/octet-stream';
+}
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn('Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.');
@@ -138,55 +187,45 @@ export async function fetchAuthenticatedMediaBlobUrl(url, options = {}) {
   return URL.createObjectURL(await response.blob());
 }
 
-const blobFromCanvas = (canvas, type, quality) => new Promise((resolve, reject) => {
-  canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')), type, quality);
-});
-
-async function decodeImage(file) {
-  if (typeof createImageBitmap === 'function') {
-    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (_) {}
-  }
-  return await new Promise((resolve, reject) => {
-    const image = new Image();
-    const url = URL.createObjectURL(file);
-    image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
-    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('The selected image could not be decoded.')); };
-    image.src = url;
-  });
-}
-
-async function supportsWebP() {
-  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
-  return new Promise(resolve => canvas.toBlob(blob => resolve(Boolean(blob)), 'image/webp', 0.9));
-}
-
-async function compressImage(file) {
-  if (!(file instanceof File) || !file.type.startsWith('image/')) return file;
-  const image = await decodeImage(file); const sourceWidth = image.width; const sourceHeight = image.height; const longestEdge = Math.max(sourceWidth, sourceHeight);
-  if (file.size <= IMAGE_MIN_SIZE && longestEdge <= IMAGE_MAX_EDGE) { image.close?.(); return file; }
-  const outputType = await supportsWebP() ? 'image/webp' : 'image/jpeg'; let scale = Math.min(1, IMAGE_MAX_EDGE / longestEdge);
-  try {
-    for (let dimensionPass = 0; dimensionPass < 7; dimensionPass += 1) {
-      const width = Math.max(1, Math.round(sourceWidth * scale)); const height = Math.max(1, Math.round(sourceHeight * scale));
-      const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
-      const context = canvas.getContext('2d', { alpha: outputType === 'image/webp' }); if (!context) throw new Error('Canvas encoding is unavailable in this browser.');
-      context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high'; context.drawImage(image, 0, 0, width, height);
-      let low = 0.45; let high = 0.98; let best = null;
-      for (let i = 0; i < 10; i += 1) { const quality = (low + high) / 2; const blob = await blobFromCanvas(canvas, outputType, quality); if (blob.size <= IMAGE_MAX_SIZE) { best = blob; low = quality; } else high = quality; }
-      const highest = await blobFromCanvas(canvas, outputType, 0.98); if (highest.size <= IMAGE_MAX_SIZE) best = highest;
-      if (best) return new File([best], file.name.replace(/\.(png|jpe?g|gif|bmp|avif)$/i, '.webp'), { type: outputType, lastModified: file.lastModified });
-      scale *= 0.86;
-    }
-  } finally { image.close?.(); }
-  throw new Error(`${file.name} could not be compressed below 4 MB while preserving acceptable quality.`);
-}
-
 export const cloudflareR2 = {
   from(bucket) {
     if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
     const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${encodePath(normalizeAtmaR2Path(bucket, path))}`;
     return {
-      async upload(path, file, options = {}) { try { const storagePath = normalizeAtmaR2Path(bucket, path); const processedFile = bucket === 'chapter-pages' ? file : await compressImage(file); const response = await fetch(publicPath(storagePath), { method: 'PUT', headers: { ...(await authHeaders()), 'Content-Type': processedFile?.type || options.contentType || file?.type || 'application/octet-stream', 'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}` }, body: processedFile }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) }; } return { data: { path }, error: null }; } catch (error) { return { data: null, error }; } },
+      async upload(path, file, options = {}) {
+        try {
+          const storagePath = normalizeAtmaR2Path(bucket, path);
+          if (!file || typeof file.size !== 'number') throw new Error('Please select a file to upload.');
+          if (file.size <= 0) throw new Error(`${file.name || 'Selected file'} is empty.`);
+          const maxBytes = bucket === 'community' ? COMMUNITY_MAX_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+          if (file.size > maxBytes) {
+            throw new Error(bucket === 'community'
+              ? 'Community attachments must be 15 MB or smaller.'
+              : 'Images must be 95 MB or smaller.');
+          }
+          const contentType = bucket === 'community'
+            ? communityContentType(file, options)
+            : imageContentType(file, options);
+          // Never decode or re-encode uploads in the browser. It fails on valid mobile files
+          // and can reduce the quality of line art; the original file is uploaded unchanged.
+          const response = await fetch(publicPath(storagePath), {
+            method: 'PUT',
+            headers: {
+              ...(await authHeaders()),
+              'Content-Type': contentType,
+              'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}`,
+            },
+            body: file,
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) };
+          }
+          return { data: { path }, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
       getPublicUrl(path) { return { data: { publicUrl: publicPath(path) } }; },
       async remove(paths) { const clean = (paths || []).filter(Boolean); try { const headers = await authHeaders(); for (const path of clean) { const response = await fetch(publicPath(path), { method: 'DELETE', headers }); if (!response.ok) { const text = await response.text(); return { data: null, error: new Error(text || `R2 delete failed (${response.status})`) }; } } return { data: clean.map(path => ({ name: path })), error: null }; } catch (error) { return { data: null, error }; } },
     };
