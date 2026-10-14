@@ -21,7 +21,7 @@ const IMAGE_MIME_BY_EXT = {
 
 function getImageMime(file) {
   const name = String(file?.name || '');
-  const hasExtension = /\\.[^.]+$/.test(name);
+  const hasExtension = /\.[^.]+$/.test(name);
   const ext = name.split('.').pop()?.toLowerCase() || '';
   if (hasExtension) return IMAGE_MIME_BY_EXT[ext] || '';
   const declared = String(file?.type || '').toLowerCase().split(';')[0];
