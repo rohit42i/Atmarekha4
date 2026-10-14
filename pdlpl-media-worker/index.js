@@ -273,11 +273,12 @@ export default {
       }
 
       if (request.method === 'PUT') {
-        const declaredType = String(request.headers.get('Content-Type') || '').toLowerCase();
-        const contentType = declaredType.startsWith('image/') ? declaredType : mimeFromKey(key);
+        // Validate by the filename extension, not a caller-supplied image/* header.
+        // The reader and page-list tools only support the formats below.
+        const contentType = mimeFromKey(key);
 
         if (!contentType) {
-          return json(request, env, { error: 'Only JPG, PNG, WEBP, GIF, BMP, and AVIF uploads are allowed.' }, 415);
+          return json(request, env, { error: 'Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.' }, 415);
         }
 
         const length = Number(request.headers.get('Content-Length') || 0);
