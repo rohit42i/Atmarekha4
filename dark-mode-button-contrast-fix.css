@@ -1,0 +1,93 @@
+/* Dark-theme-only repair for controls whose existing styles used black text.
+   Keep this scoped to known affected buttons; unrelated buttons/themes are untouched. */
+html[data-theme="dark"] :where(
+  .hero-button,
+  .primary-button,
+  .reader-control.primary,
+  .reader-comment-button,
+  .like-button,
+  .community-join,
+  .admin-submit,
+  .membership-button,
+  .ec-compose-row > button,
+  .ec-join button,
+  .group-send,
+  .continue-reading-button,
+  .privacy-center .primary-button,
+  .profile-v2-edit-actions .primary-button,
+  .chapter-completion-actions .primary-button,
+  .pp-loading button,
+  .pdlpl-primary,
+  main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+  main.admin-page.ar-admin-v3 .admin-submit
+) {
+  background: #111113 !important;
+  background-color: #111113 !important;
+  background-image: none !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  border-color: #333338 !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] :where(
+  .hero-button,
+  .primary-button,
+  .reader-control.primary,
+  .reader-comment-button,
+  .like-button,
+  .community-join,
+  .admin-submit,
+  .membership-button,
+  .ec-compose-row > button,
+  .ec-join button,
+  .group-send,
+  .continue-reading-button,
+  .privacy-center .primary-button,
+  .profile-v2-edit-actions .primary-button,
+  .chapter-completion-actions .primary-button,
+  .pp-loading button,
+  .pdlpl-primary,
+  main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+  main.admin-page.ar-admin-v3 .admin-submit
+) * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+html[data-theme="dark"] :where(
+  .hero-button,
+  .primary-button,
+  .reader-control.primary,
+  .reader-comment-button,
+  .like-button,
+  .community-join,
+  .admin-submit,
+  .membership-button,
+  .ec-compose-row > button,
+  .ec-join button,
+  .group-send,
+  .continue-reading-button,
+  .privacy-center .primary-button,
+  .profile-v2-edit-actions .primary-button,
+  .chapter-completion-actions .primary-button,
+  .pp-loading button,
+  .pdlpl-primary,
+  main.admin-page.ar-admin-v3 .ar-admin-primary-action,
+  main.admin-page.ar-admin-v3 .admin-submit
+):hover:not(:disabled) {
+  background: #1b1b1f !important;
+  background-color: #1b1b1f !important;
+  color: #fff !important;
+  border-color: #48484f !important;
+}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  background: #171719 !important;
+  background-color: #171719 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  border-color: #333338 !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 .ar-admin-nav button.active * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
