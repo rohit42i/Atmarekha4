@@ -176,7 +176,26 @@ export default function AdminPanel({ onLogout }) {
       setPdpklChapters(pdpklData || []);
       setPageCounts(counts);
       const mergedComments = await mergeReportedComments(reportResult.data || [], commentResult.data || []);
-      setComments(mergedComments);
+      const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
+      let commenterProfiles = {};
+      if (commenterIds.length) {
+        const { data: profileRows, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, display_name, username')
+          .in('id', commenterIds);
+        if (profileError) console.warn('Comment author profile lookup failed:', profileError);
+        else commenterProfiles = Object.fromEntries((profileRows || []).map(profile => [profile.id, profile]));
+      }
+      setComments(mergedComments.map(comment => {
+        const profile = commenterProfiles[comment.user_id];
+        const displayName = String(profile?.display_name || '').trim();
+        const username = String(profile?.username || '').trim();
+        const storedName = String(comment.author_name || '').trim();
+        return {
+          ...comment,
+          author_display_name: displayName || username || (storedName && storedName.toLowerCase() !== 'reader' ? storedName : 'Reader'),
+        };
+      }));
       setReports(reportResult.data || []);
       setAnnouncements(announcementResult.data || []);
       setMedia(mediaResult.data || []);
@@ -1060,7 +1079,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
