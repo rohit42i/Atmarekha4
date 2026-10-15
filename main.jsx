@@ -118,4 +118,5 @@ import './dialog-focus-manager.js';
 import './final-theme-authority.css';
 import './dialog-accessibility.js';
 import './chapter-card-thumbnails.css';
+import './dark-mode-button-contrast-fix.css';
 import './comments-name-send-fix.css';
