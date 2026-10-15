@@ -1,0 +1,11 @@
+/* Comment author labels and accessible send control. */
+html[data-theme="dark"] .ec-compose-row > button {
+  background: #fff !important;
+  background-color: #fff !important;
+  background-image: none !important;
+  color: #000 !important;
+  border: 1px solid #fff !important;
+}
+html[data-theme="dark"] .ec-compose-row > button:disabled {
+  opacity: .65 !important;
+}
