@@ -115,7 +115,7 @@ for (const [name, content, phrase] of [
 const metricStart = controlRoom.indexOf('const metricGroups = useMemo');
 const metricEnd = controlRoom.indexOf('const metricCategories', metricStart);
 const metricSource = metricStart >= 0 && metricEnd > metricStart ? controlRoom.slice(metricStart, metricEnd) : '';
-const metricCount = [...metricSource.matchAll(/\\bm\\('/g)].length;
+const metricCount = [...metricSource.matchAll(/\bm\('/g)].length;
 if (metricCount < 100) {
   console.error('CHECK FAILED: admin control room must define at least 100 analytics metrics; found:', metricCount);
   failed = true;
