@@ -465,7 +465,7 @@ export default function AdminChapterManager({
                 <div className="admin-chapter-card-heading"><div><small>{chapter.chapterNumber == null ? 'SPECIAL ENTRY' : 'CHAPTER ' + chapter.chapterNumber}</small><h3>{chapter.title || 'Untitled chapter'}</h3></div><span className={`admin-status-badge ${statusClass(chapter.status)}`}>{chapter.status || 'Draft'}</span></div>
                 <div className="admin-chapter-card-meta"><span>{chapterLanguageLabel(chapter.language)}</span><span>{pageCount.toLocaleString('en-IN')} pages</span><span>{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString('en-IN')} views / 30d</span></div>
                 <div className="admin-chapter-card-health"><span className={`admin-health-signal ${signal.className}`}><i/>{signal.text}</span><span>{formatDate(chapter.releaseDate)}</span></div>
-                <div className="admin-chapter-card-progress" aria-label={`${pageCount > 0 ? 100 : 0}% page availability`}><i style={{width:(pageCount > 0 ? 100 : 0)+'%'}}/></div>
+                <div className={`admin-chapter-card-page-state ${pageCount > 0 ? 'has-pages' : 'no-pages'}`}><i aria-hidden="true"/>{pageCount > 0 ? 'Page records detected' : 'No page records'}</div>
                 <div className="admin-row-actions">
                   <AdminButton size="sm" className="admin-table-action" type="button" icon="bookmark" onClick={() => onEdit(chapter)}>Edit</AdminButton>
                   <AdminButton size="sm" className="admin-table-action" type="button" icon="eye" onClick={() => { window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })); }}>Focus in list</AdminButton>
