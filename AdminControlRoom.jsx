@@ -565,7 +565,16 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const tracked = item.value !== null && item.value !== undefined;
     return matchSearch && (metricFilter === 'all' || (metricFilter === 'tracked' ? tracked : !tracked));
   }).sort((a, b) => {
-    if (metricSort === 'largest') return (Number(b.value) || -Infinity) - (Number(a.value) || -Infinity);
+    if (metricSort === 'largest') {
+      const score = item => {
+        if (item.value == null) return -Infinity;
+        if (item.unit === 'date') return dateOf(item.value)?.getTime() ?? -Infinity;
+        const numeric = Number(item.value);
+        return Number.isFinite(numeric) ? numeric : -Infinity;
+      };
+      const difference = score(b) - score(a);
+      return Number.isNaN(difference) || difference === 0 ? a.label.localeCompare(b.label) : difference;
+    }
     if (metricSort === 'name') return a.label.localeCompare(b.label);
     return a.category.localeCompare(b.category) || a.label.localeCompare(b.label);
   });
@@ -667,7 +676,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           {chapterRankings.length ? <div className="ar-cr-rank-list">{chapterRankings.slice(0, 5).map((row, index) => {
             const metricValue = chapterRank === 'likes' ? row.period_likes : chapterRank === 'shares' ? row.period_shares : chapterRank === 'rating' ? row.rating_average : row.period_views;
             const max = Math.max(1, ...chapterRankings.map(item => chapterRank === 'likes' ? item.period_likes : chapterRank === 'shares' ? item.period_shares : chapterRank === 'rating' ? item.rating_average : item.period_views));
-            return <button type="button" key={row.id} onClick={() => onTab?.('Chapters')}><b>{String(index + 1).padStart(2, '0')}</b><span><strong>{row.title || ('Chapter ' + (row.chapter_number ?? '—'))}</strong><i><em style={{ width: Math.max(metricValue ? 3 : 0, NUMBER(metricValue) / max * 100) + '%' }}/></i></span><small>{chapterRank === 'rating' ? (NUMBER(metricValue).toFixed(1) + '/10') : fmtNum(metricValue)}</small></button>;
+            return <button type="button" key={row.id} onClick={() => { onTab?.('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: row.id } })), 120); }}><b>{String(index + 1).padStart(2, '0')}</b><span><strong>{row.title || ('Chapter ' + (row.chapter_number ?? '—'))}</strong><i><em style={{ width: Math.max(metricValue ? 3 : 0, NUMBER(metricValue) / max * 100) + '%' }}/></i></span><small>{chapterRank === 'rating' ? (NUMBER(metricValue).toFixed(1) + '/10') : fmtNum(metricValue)}</small></button>;
           })}</div> : <Empty>Chapter analytics are unavailable for this refresh.</Empty>}
         </Card>
         <Card eyebrow="PUBLISHING" title="Content readiness" aside={<button className="ar-cr-text-btn" type="button" onClick={() => onTab?.('Chapters')}>Chapter manager →</button>}>
