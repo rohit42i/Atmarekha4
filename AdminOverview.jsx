@@ -284,7 +284,6 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     return date && date.getTime() > Date.now();
   }).length;
   const missingPageCount = Math.max(0, metrics.publishedCount - metrics.withPagesCount);
-  const unpublishedCount = chapters.filter(chapter => String(chapter.status || '').toLowerCase() !== 'published').length;
 
   const dashboardResults = useMemo(() => {
     const query = dashboardSearch.trim().toLocaleLowerCase();
@@ -304,7 +303,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       if (matches([comment.author_name, comment.content, chapterName?.(comment.chapter_id), comment.id])) {
         found.push({
           key: 'comment:' + comment.id, type: 'Comment', title: comment.author_name || 'Reader comment',
-          detail: String(comment.content || '').replace(/\\s+/g, ' ').slice(0, 110),
+          detail: String(comment.content || '').replace(/\s+/g, ' ').slice(0, 110),
           target: 'Comments', id: comment.id,
         });
       }
