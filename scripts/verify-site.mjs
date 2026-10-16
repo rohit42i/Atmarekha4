@@ -92,7 +92,7 @@ for (const phrase of [
 
 
 const htmlForCsp = await readFile('index.html', 'utf8');
-const themeScriptOpen = htmlForCsp.indexOf('<script>\\n    (function()');
+const themeScriptOpen = htmlForCsp.indexOf('<script>\n    (function()');
 if (themeScriptOpen < 0) {
   console.error('CHECK FAILED: theme bootstrap script not found in index.html.');
   failed = true;
