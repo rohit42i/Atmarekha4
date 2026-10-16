@@ -26,8 +26,8 @@ Deno.serve(async req=>{
   const db=createClient(url,service);
   const {data:{user},error:ue}=await db.auth.getUser(token);
   if(ue||!user) return response({ok:false,error:'Invalid authentication'},401);
-  const {data:admin}=await db.from('admins').select('user_id').eq('user_id',user.id).maybeSingle();
-  if(!admin) return response({ok:false,error:'Admin access required'},403);
+  const {data:admin}=await db.from('admins').select('user_id,role').eq('user_id',user.id).maybeSingle();
+  if(!admin||!['owner','admin'].includes(String(admin.role||'').trim().toLowerCase())) return response({ok:false,error:'Admin access required'},403);
 const rate=await db.rpc('consume_rate_limit',{p_rate_key:`admin-push:${user.id}`,p_limit:10,p_window_seconds:60});if(rate.error){console.error('Push rate-limit check failed.');return response({ok:false,error:'Notification service temporarily unavailable.'},503)}if(rate.data===false)return response({ok:false,error:'Too many notification sends. Please try again shortly.'},429);
   const rawBody=await readLimitedBody(req,16*1024);if(rawBody===null)return response({ok:false,error:'Request body is too large.'},413);let body:any;try{body=JSON.parse(rawBody)}catch{return response({ok:false,error:'Invalid JSON body.'},400)}if(!body||typeof body!=='object'||Array.isArray(body))return response({ok:false,error:'Invalid request body.'},400);
   const title=String(body.title||'').trim(), message=String(body.body||'').trim(), target=String(body.target||'all').trim(), dedupeKey=body.dedupeKey?String(body.dedupeKey).trim():null;
