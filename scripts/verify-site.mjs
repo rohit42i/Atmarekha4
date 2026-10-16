@@ -48,6 +48,22 @@ const forbidden = [
 
 let failed = false;
 
+const feedbackSourceRegression = await readFile('FeedbackForm.jsx', 'utf8');
+if (/\\bflushQueue\\s*\\(/.test(feedbackSourceRegression) && !/\\b(?:function|const|let|var)\\s+flushQueue\\b/.test(feedbackSourceRegression)) {
+  console.error('CHECK FAILED: FeedbackForm references flushQueue without an implementation.');
+  failed = true;
+}
+
+const readerSourceRegression = await readFile('App.jsx', 'utf8');
+if (readerSourceRegression.includes('if (!pages.length) return null;')) {
+  console.error('CHECK FAILED: Reader must not render a blank page when a chapter has no pages.');
+  failed = true;
+}
+if (!readerSourceRegression.includes('No pages are available for this chapter yet.')) {
+  console.error('CHECK FAILED: Reader empty-page recovery message is missing.');
+  failed = true;
+}
+
 for (const [file, phrase] of required) {
   const content = await readFile(file, 'utf8');
   if (!content.includes(phrase)) {
