@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+process.umask(0o077);
+
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
@@ -14,10 +16,18 @@ const work = fs.mkdtempSync(path.join(os.tmpdir(), 'atma-verify-'));
 function ensure(condition, message) {
   if (!condition) throw new Error(message);
 }
+function safeChildEnv(base = process.env) {
+  const env = { ...base };
+  delete env.BACKUP_PASSPHRASE;
+  delete env.SUPABASE_DB_URL;
+  delete env.SUPABASE_SERVICE_ROLE_KEY;
+  return env;
+}
+
 function run(program, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(program, args, {
-      env: options.env || process.env,
+      env: options.env || safeChildEnv(),
       stdio: [options.stdin ? 'pipe' : 'ignore', options.capture ? 'pipe' : 'ignore', 'pipe'],
     });
     let stdout = '';
