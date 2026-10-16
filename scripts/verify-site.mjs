@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 const required = [
   ['supabase.js', 'export function isSupportedImageFile(file)'],
@@ -89,6 +90,43 @@ for (const phrase of [
   }
 }
 
+
+const htmlForCsp = await readFile('index.html', 'utf8');
+const executableInlineScripts = [...htmlForCsp.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)]
+  .filter(([, attributes]) => !/\\bsrc\\s*=/.test(attributes) && !/\\btype\\s*=\\s*["']application\\/ld\\+json["']/i.test(attributes))
+  .map(([, , body]) => body);
+for (const body of executableInlineScripts) {
+  const hashToken = "'sha256-" + createHash('sha256').update(body, 'utf8').digest('base64') + "'";
+  for (const file of ['public/_headers', 'worker.js']) {
+    const policyFile = await readFile(file, 'utf8');
+    const policyLine = policyFile.match(/Content-Security-Policy[^\\r\\n]*/i)?.[0] || '';
+    const scriptSource = policyLine.match(/script-src\\s+([^;]+)/)?.[1] || '';
+    if (!scriptSource.split(/\\s+/).includes(hashToken)) {
+      console.error('CHECK FAILED:', file, 'CSP does not allow an audited inline script hash:', hashToken);
+      failed = true;
+    }
+    if (/'unsafe-inline'/.test(scriptSource)) {
+      console.error('CHECK FAILED:', file, 'script-src must not allow unsafe-inline.');
+      failed = true;
+    }
+  }
+}
+for (const [file, phrase] of [
+  ['.gitignore', '.env'],
+  ['.github/dependabot.yml', 'package-ecosystem: npm'],
+  ['.github/workflows/codeql.yml', 'github/codeql-action/analyze@v4'],
+]) {
+  try {
+    const content = await readFile(file, 'utf8');
+    if (!content.includes(phrase)) {
+      console.error('CHECK FAILED:', file, 'missing:', phrase);
+      failed = true;
+    }
+  } catch {
+    console.error('CHECK FAILED: required security configuration is missing:', file);
+    failed = true;
+  }
+}
 
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
