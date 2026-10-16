@@ -1,0 +1,13 @@
+{
+  "name": "atmarekha-health",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development-only health probe for Atma Rekha Catalyst staging.",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "check": "node --check index.js"
+  }
+}

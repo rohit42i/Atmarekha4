@@ -1,0 +1,4201 @@
+{
+  "snapshot_date": "2026-10-12",
+  "scope": "Index and table-constraint definitions only; no application row payloads",
+  "indexes": [
+    {
+      "schema": "private",
+      "table": "dpdp_breach_incidents",
+      "index_name": "dpdp_breach_incidents_created_by_idx",
+      "definition": "CREATE INDEX dpdp_breach_incidents_created_by_idx ON private.dpdp_breach_incidents USING btree (created_by)"
+    },
+    {
+      "schema": "private",
+      "table": "dpdp_breach_incidents",
+      "index_name": "dpdp_breach_incidents_pkey",
+      "definition": "CREATE UNIQUE INDEX dpdp_breach_incidents_pkey ON private.dpdp_breach_incidents USING btree (id)"
+    },
+    {
+      "schema": "private",
+      "table": "feedback_rate_limits",
+      "index_name": "feedback_rate_limits_pkey",
+      "definition": "CREATE UNIQUE INDEX feedback_rate_limits_pkey ON private.feedback_rate_limits USING btree (rate_key)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "index_name": "admin_activity_log_admin_user_id_idx",
+      "definition": "CREATE INDEX admin_activity_log_admin_user_id_idx ON public.admin_activity_log USING btree (admin_user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "index_name": "admin_activity_log_created_at_idx",
+      "definition": "CREATE INDEX admin_activity_log_created_at_idx ON public.admin_activity_log USING btree (created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "index_name": "admin_activity_log_pkey",
+      "definition": "CREATE UNIQUE INDEX admin_activity_log_pkey ON public.admin_activity_log USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "index_name": "admin_notification_log_admin_user_id_idx",
+      "definition": "CREATE INDEX admin_notification_log_admin_user_id_idx ON public.admin_notification_log USING btree (admin_user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "index_name": "admin_notification_log_created_at_idx",
+      "definition": "CREATE INDEX admin_notification_log_created_at_idx ON public.admin_notification_log USING btree (created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "index_name": "admin_notification_log_dedupe_key_key",
+      "definition": "CREATE UNIQUE INDEX admin_notification_log_dedupe_key_key ON public.admin_notification_log USING btree (dedupe_key)"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "index_name": "admin_notification_log_pkey",
+      "definition": "CREATE UNIQUE INDEX admin_notification_log_pkey ON public.admin_notification_log USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "admins",
+      "index_name": "admins_pkey",
+      "definition": "CREATE UNIQUE INDEX admins_pkey ON public.admins USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "admins",
+      "index_name": "admins_single_owner_uidx",
+      "definition": "CREATE UNIQUE INDEX admins_single_owner_uidx ON public.admins USING btree (role) WHERE (role = 'owner'::text)"
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "index_name": "announcements_pinned_position_idx",
+      "definition": "CREATE INDEX announcements_pinned_position_idx ON public.announcements USING btree (is_pinned DESC, display_position, published_at DESC, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "index_name": "announcements_pkey",
+      "definition": "CREATE UNIQUE INDEX announcements_pkey ON public.announcements USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "index_name": "bookmarks_chapter_id_idx",
+      "definition": "CREATE INDEX bookmarks_chapter_id_idx ON public.bookmarks USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "index_name": "bookmarks_pkey",
+      "definition": "CREATE UNIQUE INDEX bookmarks_pkey ON public.bookmarks USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "index_name": "bookmarks_user_chapter_unique",
+      "definition": "CREATE UNIQUE INDEX bookmarks_user_chapter_unique ON public.bookmarks USING btree (user_id, chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "index_name": "bookmarks_user_created_idx",
+      "definition": "CREATE INDEX bookmarks_user_created_idx ON public.bookmarks USING btree (user_id, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "index_name": "chapter_engagement_summary_pkey",
+      "definition": "CREATE UNIQUE INDEX chapter_engagement_summary_pkey ON public.chapter_engagement_summary USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "index_name": "chapter_likes_chapter_id_idx",
+      "definition": "CREATE INDEX chapter_likes_chapter_id_idx ON public.chapter_likes USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "index_name": "chapter_likes_chapter_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX chapter_likes_chapter_id_viewer_key_key ON public.chapter_likes USING btree (chapter_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "index_name": "chapter_likes_pkey",
+      "definition": "CREATE UNIQUE INDEX chapter_likes_pkey ON public.chapter_likes USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "index_name": "chapter_pages_id_key",
+      "definition": "CREATE UNIQUE INDEX chapter_pages_id_key ON public.chapter_pages USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "index_name": "chapter_pages_pkey",
+      "definition": "CREATE UNIQUE INDEX chapter_pages_pkey ON public.chapter_pages USING btree (chapter_id, page_number)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "index_name": "chapter_ratings_chapter_id_idx",
+      "definition": "CREATE INDEX chapter_ratings_chapter_id_idx ON public.chapter_ratings USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "index_name": "chapter_ratings_chapter_viewer_key_idx",
+      "definition": "CREATE UNIQUE INDEX chapter_ratings_chapter_viewer_key_idx ON public.chapter_ratings USING btree (chapter_id, viewer_key) WHERE (viewer_key IS NOT NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "index_name": "chapter_ratings_pkey",
+      "definition": "CREATE UNIQUE INDEX chapter_ratings_pkey ON public.chapter_ratings USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "index_name": "chapter_ratings_user_chapter_unique",
+      "definition": "CREATE UNIQUE INDEX chapter_ratings_user_chapter_unique ON public.chapter_ratings USING btree (user_id, chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "index_name": "chapter_shares_chapter_id_idx",
+      "definition": "CREATE INDEX chapter_shares_chapter_id_idx ON public.chapter_shares USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "index_name": "chapter_shares_created_at_idx",
+      "definition": "CREATE INDEX chapter_shares_created_at_idx ON public.chapter_shares USING btree (created_at)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "index_name": "chapter_shares_pkey",
+      "definition": "CREATE UNIQUE INDEX chapter_shares_pkey ON public.chapter_shares USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "index_name": "chapter_views_chapter_id_idx",
+      "definition": "CREATE INDEX chapter_views_chapter_id_idx ON public.chapter_views USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "index_name": "chapter_views_chapter_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX chapter_views_chapter_id_viewer_key_key ON public.chapter_views USING btree (chapter_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "index_name": "chapter_views_pkey",
+      "definition": "CREATE UNIQUE INDEX chapter_views_pkey ON public.chapter_views USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "index_name": "chapters_deleted_at_idx",
+      "definition": "CREATE INDEX chapters_deleted_at_idx ON public.chapters USING btree (deleted_at)"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "index_name": "chapters_manga_id_idx",
+      "definition": "CREATE INDEX chapters_manga_id_idx ON public.chapters USING btree (manga_id)"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "index_name": "chapters_manga_language_number_idx",
+      "definition": "CREATE INDEX chapters_manga_language_number_idx ON public.chapters USING btree (manga_id, language, chapter_number)"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "index_name": "chapters_manga_number_language_unique_idx",
+      "definition": "CREATE UNIQUE INDEX chapters_manga_number_language_unique_idx ON public.chapters USING btree (manga_id, chapter_number, language) NULLS NOT DISTINCT"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "index_name": "chapters_pkey",
+      "definition": "CREATE UNIQUE INDEX chapters_pkey ON public.chapters USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_like_counts",
+      "index_name": "comment_like_counts_pkey",
+      "definition": "CREATE UNIQUE INDEX comment_like_counts_pkey ON public.comment_like_counts USING btree (comment_id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "index_name": "comment_likes_comment_id_idx",
+      "definition": "CREATE INDEX comment_likes_comment_id_idx ON public.comment_likes USING btree (comment_id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "index_name": "comment_likes_comment_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX comment_likes_comment_id_viewer_key_key ON public.comment_likes USING btree (comment_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "index_name": "comment_likes_pkey",
+      "definition": "CREATE UNIQUE INDEX comment_likes_pkey ON public.comment_likes USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "index_name": "comment_likes_user_id_idx",
+      "definition": "CREATE INDEX comment_likes_user_id_idx ON public.comment_likes USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "index_name": "comment_reports_comment_id_idx",
+      "definition": "CREATE INDEX comment_reports_comment_id_idx ON public.comment_reports USING btree (comment_id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "index_name": "comment_reports_comment_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX comment_reports_comment_id_viewer_key_key ON public.comment_reports USING btree (comment_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "index_name": "comment_reports_pkey",
+      "definition": "CREATE UNIQUE INDEX comment_reports_pkey ON public.comment_reports USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "index_name": "comment_reports_reviewed_by_idx",
+      "definition": "CREATE INDEX comment_reports_reviewed_by_idx ON public.comment_reports USING btree (reviewed_by)"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "index_name": "comment_reports_status_created_idx",
+      "definition": "CREATE INDEX comment_reports_status_created_idx ON public.comment_reports USING btree (status, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_announcement_id_created_at_idx",
+      "definition": "CREATE INDEX comments_announcement_id_created_at_idx ON public.comments USING btree (announcement_id, created_at)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_chapter_created_idx",
+      "definition": "CREATE INDEX comments_chapter_created_idx ON public.comments USING btree (chapter_id, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_chapter_id_idx",
+      "definition": "CREATE INDEX comments_chapter_id_idx ON public.comments USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_created_at_idx",
+      "definition": "CREATE INDEX comments_created_at_idx ON public.comments USING btree (created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_parent_comment_id_idx",
+      "definition": "CREATE INDEX comments_parent_comment_id_idx ON public.comments USING btree (parent_comment_id)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_pkey",
+      "definition": "CREATE UNIQUE INDEX comments_pkey ON public.comments USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "index_name": "comments_user_created_idx",
+      "definition": "CREATE INDEX comments_user_created_idx ON public.comments USING btree (user_id, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "index_name": "community_members_pkey",
+      "definition": "CREATE UNIQUE INDEX community_members_pkey ON public.community_members USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "index_name": "community_post_reactions_pkey",
+      "definition": "CREATE UNIQUE INDEX community_post_reactions_pkey ON public.community_post_reactions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "index_name": "community_post_reactions_post_id_user_id_reaction_key",
+      "definition": "CREATE UNIQUE INDEX community_post_reactions_post_id_user_id_reaction_key ON public.community_post_reactions USING btree (post_id, user_id, reaction)"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "index_name": "community_post_reactions_post_idx",
+      "definition": "CREATE INDEX community_post_reactions_post_idx ON public.community_post_reactions USING btree (post_id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "index_name": "community_post_reactions_user_id_idx",
+      "definition": "CREATE INDEX community_post_reactions_user_id_idx ON public.community_post_reactions USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "index_name": "community_posts_pinned_idx",
+      "definition": "CREATE INDEX community_posts_pinned_idx ON public.community_posts USING btree (is_pinned, published_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "index_name": "community_posts_pkey",
+      "definition": "CREATE UNIQUE INDEX community_posts_pkey ON public.community_posts USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "index_name": "community_posts_published_idx",
+      "definition": "CREATE INDEX community_posts_published_idx ON public.community_posts USING btree (published_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "index_name": "dpdp_consent_records_pkey",
+      "definition": "CREATE UNIQUE INDEX dpdp_consent_records_pkey ON public.dpdp_consent_records USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "index_name": "dpdp_consent_records_user_policy_unique",
+      "definition": "CREATE UNIQUE INDEX dpdp_consent_records_user_policy_unique ON public.dpdp_consent_records USING btree (user_id, policy_version)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "index_name": "dpdp_deletion_requests_pkey",
+      "definition": "CREATE UNIQUE INDEX dpdp_deletion_requests_pkey ON public.dpdp_deletion_requests USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "index_name": "dpdp_deletion_requests_resolved_by_idx",
+      "definition": "CREATE INDEX dpdp_deletion_requests_resolved_by_idx ON public.dpdp_deletion_requests USING btree (resolved_by)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "index_name": "dpdp_deletion_requests_status_requested_idx",
+      "definition": "CREATE INDEX dpdp_deletion_requests_status_requested_idx ON public.dpdp_deletion_requests USING btree (status, requested_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "index_name": "dpdp_deletion_requests_user_id_idx",
+      "definition": "CREATE INDEX dpdp_deletion_requests_user_id_idx ON public.dpdp_deletion_requests USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "index_name": "dpdp_nominations_pkey",
+      "definition": "CREATE UNIQUE INDEX dpdp_nominations_pkey ON public.dpdp_nominations USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "edge_rate_limits",
+      "index_name": "edge_rate_limits_pkey",
+      "definition": "CREATE UNIQUE INDEX edge_rate_limits_pkey ON public.edge_rate_limits USING btree (rate_key)"
+    },
+    {
+      "schema": "public",
+      "table": "feature_login_users",
+      "index_name": "feature_login_users_pkey",
+      "definition": "CREATE UNIQUE INDEX feature_login_users_pkey ON public.feature_login_users USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "feature_unlock_config",
+      "index_name": "feature_unlock_config_pkey",
+      "definition": "CREATE UNIQUE INDEX feature_unlock_config_pkey ON public.feature_unlock_config USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "index_name": "group_chat_likes_message_idx",
+      "definition": "CREATE INDEX group_chat_likes_message_idx ON public.group_chat_likes USING btree (message_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "index_name": "group_chat_likes_pkey",
+      "definition": "CREATE UNIQUE INDEX group_chat_likes_pkey ON public.group_chat_likes USING btree (message_id, user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "index_name": "group_chat_likes_user_id_idx",
+      "definition": "CREATE INDEX group_chat_likes_user_id_idx ON public.group_chat_likes USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "index_name": "group_chat_messages_created_at_idx",
+      "definition": "CREATE INDEX group_chat_messages_created_at_idx ON public.group_chat_messages USING btree (created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "index_name": "group_chat_messages_pkey",
+      "definition": "CREATE UNIQUE INDEX group_chat_messages_pkey ON public.group_chat_messages USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "index_name": "group_chat_messages_reply_to_idx",
+      "definition": "CREATE INDEX group_chat_messages_reply_to_idx ON public.group_chat_messages USING btree (reply_to_message_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "index_name": "group_chat_messages_user_id_idx",
+      "definition": "CREATE INDEX group_chat_messages_user_id_idx ON public.group_chat_messages USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "index_name": "group_chat_reactions_message_id_user_id_reaction_key",
+      "definition": "CREATE UNIQUE INDEX group_chat_reactions_message_id_user_id_reaction_key ON public.group_chat_reactions USING btree (message_id, user_id, reaction)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "index_name": "group_chat_reactions_message_idx",
+      "definition": "CREATE INDEX group_chat_reactions_message_idx ON public.group_chat_reactions USING btree (message_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "index_name": "group_chat_reactions_pkey",
+      "definition": "CREATE UNIQUE INDEX group_chat_reactions_pkey ON public.group_chat_reactions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "index_name": "group_chat_reactions_user_id_idx",
+      "definition": "CREATE INDEX group_chat_reactions_user_id_idx ON public.group_chat_reactions USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "index_name": "group_chat_reads_message_id_idx",
+      "definition": "CREATE INDEX group_chat_reads_message_id_idx ON public.group_chat_reads USING btree (message_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "index_name": "group_chat_reads_message_id_user_id_key",
+      "definition": "CREATE UNIQUE INDEX group_chat_reads_message_id_user_id_key ON public.group_chat_reads USING btree (message_id, user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "index_name": "group_chat_reads_pkey",
+      "definition": "CREATE UNIQUE INDEX group_chat_reads_pkey ON public.group_chat_reads USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "index_name": "group_chat_reads_user_id_idx",
+      "definition": "CREATE INDEX group_chat_reads_user_id_idx ON public.group_chat_reads USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "login_password_protection",
+      "index_name": "login_password_protection_pkey",
+      "definition": "CREATE UNIQUE INDEX login_password_protection_pkey ON public.login_password_protection USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "index_name": "manga_series_pkey",
+      "definition": "CREATE UNIQUE INDEX manga_series_pkey ON public.manga_series USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "index_name": "manga_series_slug_key",
+      "definition": "CREATE UNIQUE INDEX manga_series_slug_key ON public.manga_series USING btree (slug)"
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "index_name": "media_pkey",
+      "definition": "CREATE UNIQUE INDEX media_pkey ON public.media USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "index_name": "member_content_category_idx",
+      "definition": "CREATE INDEX member_content_category_idx ON public.member_content USING btree (category, sort_order, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "index_name": "member_content_pkey",
+      "definition": "CREATE UNIQUE INDEX member_content_pkey ON public.member_content USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "index_name": "membercontentcategory",
+      "definition": "CREATE INDEX membercontentcategory ON public.member_content USING btree (category, is_published, published_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "index_name": "member_messages_pkey",
+      "definition": "CREATE UNIQUE INDEX member_messages_pkey ON public.member_messages USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "index_name": "membermessagesuser",
+      "definition": "CREATE INDEX membermessagesuser ON public.member_messages USING btree (user_id, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "index_name": "moderation_reports_pkey",
+      "definition": "CREATE UNIQUE INDEX moderation_reports_pkey ON public.moderation_reports USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "index_name": "moderation_reports_status_created_idx",
+      "definition": "CREATE INDEX moderation_reports_status_created_idx ON public.moderation_reports USING btree (status, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "index_name": "moderation_reports_user_id_idx",
+      "definition": "CREATE INDEX moderation_reports_user_id_idx ON public.moderation_reports USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "index_name": "notification_subscriptions_endpoint_key",
+      "definition": "CREATE UNIQUE INDEX notification_subscriptions_endpoint_key ON public.notification_subscriptions USING btree (endpoint)"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "index_name": "notification_subscriptions_pkey",
+      "definition": "CREATE UNIQUE INDEX notification_subscriptions_pkey ON public.notification_subscriptions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "index_name": "notification_subscriptions_user_endpoint_key",
+      "definition": "CREATE UNIQUE INDEX notification_subscriptions_user_endpoint_key ON public.notification_subscriptions USING btree (user_id, endpoint)"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "index_name": "notification_subscriptions_user_id_idx",
+      "definition": "CREATE INDEX notification_subscriptions_user_id_idx ON public.notification_subscriptions USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "index_name": "pal_do_pal_ke_lamhe_chapter_pages_pkey",
+      "definition": "CREATE UNIQUE INDEX pal_do_pal_ke_lamhe_chapter_pages_pkey ON public.pal_do_pal_ke_lamhe_chapter_pages USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "index_name": "pdlpl_pages_chapter_idx",
+      "definition": "CREATE INDEX pdlpl_pages_chapter_idx ON public.pal_do_pal_ke_lamhe_chapter_pages USING btree (chapter_id, page_number)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "index_name": "pdlpl_pages_unique",
+      "definition": "CREATE UNIQUE INDEX pdlpl_pages_unique ON public.pal_do_pal_ke_lamhe_chapter_pages USING btree (chapter_id, page_number)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "index_name": "pal_do_pal_ke_lamhe_chapters_pkey",
+      "definition": "CREATE UNIQUE INDEX pal_do_pal_ke_lamhe_chapters_pkey ON public.pal_do_pal_ke_lamhe_chapters USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "index_name": "pdlpl_chapters_status_number_idx",
+      "definition": "CREATE INDEX pdlpl_chapters_status_number_idx ON public.pal_do_pal_ke_lamhe_chapters USING btree (status, chapter_number)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "index_name": "pdpl_chapters_language_number_idx",
+      "definition": "CREATE INDEX pdpl_chapters_language_number_idx ON public.pal_do_pal_ke_lamhe_chapters USING btree (language, chapter_number)"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "index_name": "pdpl_chapters_number_language_unique_idx",
+      "definition": "CREATE UNIQUE INDEX pdpl_chapters_number_language_unique_idx ON public.pal_do_pal_ke_lamhe_chapters USING btree (chapter_number, language) NULLS NOT DISTINCT"
+    },
+    {
+      "schema": "public",
+      "table": "payment_events",
+      "index_name": "payment_events_pkey",
+      "definition": "CREATE UNIQUE INDEX payment_events_pkey ON public.payment_events USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "payment_events",
+      "index_name": "payment_events_provider_event_id_key",
+      "definition": "CREATE UNIQUE INDEX payment_events_provider_event_id_key ON public.payment_events USING btree (provider, event_id)"
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "index_name": "payments_pkey",
+      "definition": "CREATE UNIQUE INDEX payments_pkey ON public.payments USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "index_name": "payments_user_id_idx",
+      "definition": "CREATE INDEX payments_user_id_idx ON public.payments USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "index_name": "pdlpl_bookmarks_chapter_id_idx",
+      "definition": "CREATE INDEX pdlpl_bookmarks_chapter_id_idx ON public.pdlpl_bookmarks USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "index_name": "pdlpl_bookmarks_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_bookmarks_pkey ON public.pdlpl_bookmarks USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "index_name": "pdlpl_bookmarks_user_id_chapter_id_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_bookmarks_user_id_chapter_id_key ON public.pdlpl_bookmarks USING btree (user_id, chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "index_name": "pdlpl_chapter_engagement_summary_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_engagement_summary_pkey ON public.pdlpl_chapter_engagement_summary USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "index_name": "pdlpl_chapter_likes_chapter_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_likes_chapter_id_viewer_key_key ON public.pdlpl_chapter_likes USING btree (chapter_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "index_name": "pdlpl_chapter_likes_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_likes_pkey ON public.pdlpl_chapter_likes USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "index_name": "pdlpl_chapter_ratings_chapter_id_idx",
+      "definition": "CREATE INDEX pdlpl_chapter_ratings_chapter_id_idx ON public.pdlpl_chapter_ratings USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "index_name": "pdlpl_chapter_ratings_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_ratings_pkey ON public.pdlpl_chapter_ratings USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "index_name": "pdlpl_chapter_ratings_user_id_chapter_id_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_ratings_user_id_chapter_id_key ON public.pdlpl_chapter_ratings USING btree (user_id, chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "index_name": "pdlpl_chapter_shares_chapter_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_shares_chapter_id_viewer_key_key ON public.pdlpl_chapter_shares USING btree (chapter_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "index_name": "pdlpl_chapter_shares_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_shares_pkey ON public.pdlpl_chapter_shares USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "index_name": "pdlpl_chapter_views_chapter_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_views_chapter_id_viewer_key_key ON public.pdlpl_chapter_views USING btree (chapter_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "index_name": "pdlpl_chapter_views_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_chapter_views_pkey ON public.pdlpl_chapter_views USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_like_counts",
+      "index_name": "pdlpl_comment_like_counts_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_comment_like_counts_pkey ON public.pdlpl_comment_like_counts USING btree (comment_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "index_name": "pdlpl_comment_likes_comment_id_user_id_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_comment_likes_comment_id_user_id_key ON public.pdlpl_comment_likes USING btree (comment_id, user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "index_name": "pdlpl_comment_likes_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_comment_likes_pkey ON public.pdlpl_comment_likes USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "index_name": "pdlpl_comment_likes_user_id_idx",
+      "definition": "CREATE INDEX pdlpl_comment_likes_user_id_idx ON public.pdlpl_comment_likes USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "index_name": "pdlpl_comment_reports_comment_id_viewer_key_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_comment_reports_comment_id_viewer_key_key ON public.pdlpl_comment_reports USING btree (comment_id, viewer_key)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "index_name": "pdlpl_comment_reports_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_comment_reports_pkey ON public.pdlpl_comment_reports USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "index_name": "pdlpl_comment_reports_reviewed_by_idx",
+      "definition": "CREATE INDEX pdlpl_comment_reports_reviewed_by_idx ON public.pdlpl_comment_reports USING btree (reviewed_by)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "index_name": "pdlpl_comments_chapter_created_idx",
+      "definition": "CREATE INDEX pdlpl_comments_chapter_created_idx ON public.pdlpl_comments USING btree (chapter_id, created_at)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "index_name": "pdlpl_comments_parent_comment_id_idx",
+      "definition": "CREATE INDEX pdlpl_comments_parent_comment_id_idx ON public.pdlpl_comments USING btree (parent_comment_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "index_name": "pdlpl_comments_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_comments_pkey ON public.pdlpl_comments USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "index_name": "pdlpl_comments_user_id_idx",
+      "definition": "CREATE INDEX pdlpl_comments_user_id_idx ON public.pdlpl_comments USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "index_name": "pdlpl_reading_history_chapter_id_idx",
+      "definition": "CREATE INDEX pdlpl_reading_history_chapter_id_idx ON public.pdlpl_reading_history USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "index_name": "pdlpl_reading_history_pkey",
+      "definition": "CREATE UNIQUE INDEX pdlpl_reading_history_pkey ON public.pdlpl_reading_history USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "index_name": "pdlpl_reading_history_user_id_chapter_id_key",
+      "definition": "CREATE UNIQUE INDEX pdlpl_reading_history_user_id_chapter_id_key ON public.pdlpl_reading_history USING btree (user_id, chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "index_name": "pdlpl_reading_history_user_updated_idx",
+      "definition": "CREATE INDEX pdlpl_reading_history_user_updated_idx ON public.pdlpl_reading_history USING btree (user_id, updated_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "index_name": "profiles_created_at_idx",
+      "definition": "CREATE INDEX profiles_created_at_idx ON public.profiles USING btree (created_at)"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "index_name": "profiles_pkey",
+      "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "index_name": "profiles_username_unique_idx",
+      "definition": "CREATE UNIQUE INDEX profiles_username_unique_idx ON public.profiles USING btree (lower(username)) WHERE ((username IS NOT NULL) AND (btrim(username) <> ''::text))"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "index_name": "push_subscriptions_endpoint_key",
+      "definition": "CREATE UNIQUE INDEX push_subscriptions_endpoint_key ON public.push_subscriptions USING btree (endpoint)"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "index_name": "push_subscriptions_pkey",
+      "definition": "CREATE UNIQUE INDEX push_subscriptions_pkey ON public.push_subscriptions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "index_name": "push_subscriptions_user_idx",
+      "definition": "CREATE INDEX push_subscriptions_user_idx ON public.push_subscriptions USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "index_name": "reading_history_chapter_id_idx",
+      "definition": "CREATE INDEX reading_history_chapter_id_idx ON public.reading_history USING btree (chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "index_name": "reading_history_pkey",
+      "definition": "CREATE UNIQUE INDEX reading_history_pkey ON public.reading_history USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "index_name": "reading_history_user_chapter_unique",
+      "definition": "CREATE UNIQUE INDEX reading_history_user_chapter_unique ON public.reading_history USING btree (user_id, chapter_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "index_name": "reading_history_user_id_unique",
+      "definition": "CREATE UNIQUE INDEX reading_history_user_id_unique ON public.reading_history USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "index_name": "reading_history_user_updated_idx",
+      "definition": "CREATE INDEX reading_history_user_updated_idx ON public.reading_history USING btree (user_id, updated_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "index_name": "site_feedback_pkey",
+      "definition": "CREATE UNIQUE INDEX site_feedback_pkey ON public.site_feedback USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "index_name": "site_feedback_status_created_idx",
+      "definition": "CREATE INDEX site_feedback_status_created_idx ON public.site_feedback USING btree (status, created_at DESC)"
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "index_name": "site_feedback_user_id_idx",
+      "definition": "CREATE INDEX site_feedback_user_id_idx ON public.site_feedback USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "subscription_plans",
+      "index_name": "subscription_plans_pkey",
+      "definition": "CREATE UNIQUE INDEX subscription_plans_pkey ON public.subscription_plans USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "index_name": "subscriptions_pkey",
+      "definition": "CREATE UNIQUE INDEX subscriptions_pkey ON public.subscriptions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "index_name": "subscriptions_user_id_key",
+      "definition": "CREATE UNIQUE INDEX subscriptions_user_id_key ON public.subscriptions USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "index_name": "user_moderation_flagged_until_idx",
+      "definition": "CREATE INDEX user_moderation_flagged_until_idx ON public.user_moderation USING btree (flagged_until)"
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "index_name": "user_moderation_pkey",
+      "definition": "CREATE UNIQUE INDEX user_moderation_pkey ON public.user_moderation USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_one_pending_per_user_idx",
+      "definition": "CREATE UNIQUE INDEX user_subscriptions_one_pending_per_user_idx ON public.user_subscriptions USING btree (user_id) WHERE (status = 'pending'::text)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_pkey",
+      "definition": "CREATE UNIQUE INDEX user_subscriptions_pkey ON public.user_subscriptions USING btree (id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_plan_id_idx",
+      "definition": "CREATE INDEX user_subscriptions_plan_id_idx ON public.user_subscriptions USING btree (plan_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_provider_id_idx",
+      "definition": "CREATE INDEX user_subscriptions_provider_id_idx ON public.user_subscriptions USING btree (provider, provider_subscription_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_provider_provider_subscription_id_key",
+      "definition": "CREATE UNIQUE INDEX user_subscriptions_provider_provider_subscription_id_key ON public.user_subscriptions USING btree (provider, provider_subscription_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_provider_session_idx",
+      "definition": "CREATE INDEX user_subscriptions_provider_session_idx ON public.user_subscriptions USING btree (provider_session_id) WHERE (provider_session_id IS NOT NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_provider_status_idx",
+      "definition": "CREATE INDEX user_subscriptions_provider_status_idx ON public.user_subscriptions USING btree (provider, status)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_provider_subscription_id_uidx",
+      "definition": "CREATE UNIQUE INDEX user_subscriptions_provider_subscription_id_uidx ON public.user_subscriptions USING btree (provider, provider_subscription_id) WHERE (provider_subscription_id IS NOT NULL)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_public_badge_idx",
+      "definition": "CREATE INDEX user_subscriptions_public_badge_idx ON public.user_subscriptions USING btree (user_id, status, current_period_end, plan_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_user_id_uidx",
+      "definition": "CREATE UNIQUE INDEX user_subscriptions_user_id_uidx ON public.user_subscriptions USING btree (user_id)"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "index_name": "user_subscriptions_user_status_idx",
+      "definition": "CREATE INDEX user_subscriptions_user_status_idx ON public.user_subscriptions USING btree (user_id, status)"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "index_name": "bname",
+      "definition": "CREATE UNIQUE INDEX bname ON storage.buckets USING btree (name)"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "index_name": "buckets_pkey",
+      "definition": "CREATE UNIQUE INDEX buckets_pkey ON storage.buckets USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_analytics",
+      "index_name": "buckets_analytics_pkey",
+      "definition": "CREATE UNIQUE INDEX buckets_analytics_pkey ON storage.buckets_analytics USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_analytics",
+      "index_name": "buckets_analytics_unique_name_idx",
+      "definition": "CREATE UNIQUE INDEX buckets_analytics_unique_name_idx ON storage.buckets_analytics USING btree (name) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_vectors",
+      "index_name": "buckets_vectors_pkey",
+      "definition": "CREATE UNIQUE INDEX buckets_vectors_pkey ON storage.buckets_vectors USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "migrations",
+      "index_name": "migrations_name_key",
+      "definition": "CREATE UNIQUE INDEX migrations_name_key ON storage.migrations USING btree (name)"
+    },
+    {
+      "schema": "storage",
+      "table": "migrations",
+      "index_name": "migrations_pkey",
+      "definition": "CREATE UNIQUE INDEX migrations_pkey ON storage.migrations USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "idx_objects_bucket_id_name",
+      "definition": "CREATE INDEX idx_objects_bucket_id_name ON storage.objects USING btree (bucket_id, name COLLATE \"C\")"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "idx_objects_bucket_id_name_lower",
+      "definition": "CREATE INDEX idx_objects_bucket_id_name_lower ON storage.objects USING btree (bucket_id, lower(name) COLLATE \"C\")"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "idx_objects_current_version",
+      "definition": "CREATE UNIQUE INDEX idx_objects_current_version ON storage.objects USING btree (bucket_id, name COLLATE \"C\") WHERE (archived_at IS NULL)"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "idx_objects_delete_markers",
+      "definition": "CREATE INDEX idx_objects_delete_markers ON storage.objects USING btree (bucket_id, name COLLATE \"C\") WHERE is_delete_marker"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "idx_objects_null_version",
+      "definition": "CREATE UNIQUE INDEX idx_objects_null_version ON storage.objects USING btree (bucket_id, name COLLATE \"C\") WHERE (NOT is_versioned)"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "name_prefix_search",
+      "definition": "CREATE INDEX name_prefix_search ON storage.objects USING btree (name text_pattern_ops)"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "objects_bucket_id_name_version_key",
+      "definition": "CREATE UNIQUE INDEX objects_bucket_id_name_version_key ON storage.objects USING btree (bucket_id, name COLLATE \"C\", version) NULLS NOT DISTINCT"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "index_name": "objects_pkey",
+      "definition": "CREATE UNIQUE INDEX objects_pkey ON storage.objects USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads",
+      "index_name": "idx_multipart_uploads_list",
+      "definition": "CREATE INDEX idx_multipart_uploads_list ON storage.s3_multipart_uploads USING btree (bucket_id, key, created_at)"
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads",
+      "index_name": "s3_multipart_uploads_pkey",
+      "definition": "CREATE UNIQUE INDEX s3_multipart_uploads_pkey ON storage.s3_multipart_uploads USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads_parts",
+      "index_name": "s3_multipart_uploads_parts_pkey",
+      "definition": "CREATE UNIQUE INDEX s3_multipart_uploads_parts_pkey ON storage.s3_multipart_uploads_parts USING btree (id)"
+    },
+    {
+      "schema": "storage",
+      "table": "vector_indexes",
+      "index_name": "vector_indexes_name_bucket_id_idx",
+      "definition": "CREATE UNIQUE INDEX vector_indexes_name_bucket_id_idx ON storage.vector_indexes USING btree (name, bucket_id)"
+    },
+    {
+      "schema": "storage",
+      "table": "vector_indexes",
+      "index_name": "vector_indexes_pkey",
+      "definition": "CREATE UNIQUE INDEX vector_indexes_pkey ON storage.vector_indexes USING btree (id)"
+    }
+  ],
+  "constraints": [
+    {
+      "schema": "private",
+      "table": "dpdp_breach_incidents",
+      "constraint_name": "dpdp_breach_incidents_created_by_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id)",
+      "referenced_table": "auth.users",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "private",
+      "table": "dpdp_breach_incidents",
+      "constraint_name": "dpdp_breach_incidents_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "private",
+      "table": "dpdp_breach_incidents",
+      "constraint_name": "dpdp_breach_incidents_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['investigating'::text, 'contained'::text, 'resolved'::text, 'closed'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "private",
+      "table": "feedback_rate_limits",
+      "constraint_name": "feedback_rate_limits_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (rate_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "constraint_name": "admin_activity_log_admin_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (admin_user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "admin_activity_log",
+      "constraint_name": "admin_activity_log_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "constraint_name": "admin_notification_log_admin_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (admin_user_id) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "referenced_table": "auth.users",
+      "delete_action": "set_null",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "constraint_name": "admin_notification_log_dedupe_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (dedupe_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "admin_notification_log",
+      "constraint_name": "admin_notification_log_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "admins",
+      "constraint_name": "admins_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "admins",
+      "constraint_name": "admins_role_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (role = ANY (ARRAY['owner'::text, 'admin'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "constraint_name": "announcements_display_position_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (display_position IS NULL OR display_position >= 1 AND display_position <= 10)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "constraint_name": "announcements_pin_target_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (pin_target = ANY (ARRAY['atma'::text, 'pdpkl'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "announcements",
+      "constraint_name": "announcements_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "constraint_name": "bookmarks_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "constraint_name": "bookmarks_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "bookmarks",
+      "constraint_name": "bookmarks_user_chapter_unique",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (user_id, chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_comments_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (comments_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_likes_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (likes_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_pages_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (pages_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_ratings_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (ratings_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_ratings_sum_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (ratings_sum >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_engagement_summary",
+      "constraint_name": "chapter_engagement_summary_views_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (views_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "constraint_name": "chapter_likes_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "constraint_name": "chapter_likes_chapter_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (chapter_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_likes",
+      "constraint_name": "chapter_likes_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "constraint_name": "chapter_pages_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_pages",
+      "constraint_name": "chapter_pages_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (chapter_id, page_number)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "constraint_name": "chapter_ratings_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "constraint_name": "chapter_ratings_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "constraint_name": "chapter_ratings_rating_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (rating >= 1 AND rating <= 10)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_ratings",
+      "constraint_name": "chapter_ratings_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "constraint_name": "chapter_shares_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_shares",
+      "constraint_name": "chapter_shares_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "constraint_name": "chapter_views_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "constraint_name": "chapter_views_chapter_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (chapter_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "constraint_name": "chapter_views_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapter_views",
+      "constraint_name": "chapter_views_viewer_key_length_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (viewer_key IS NOT NULL AND char_length(viewer_key) >= 16 AND char_length(viewer_key) <= 128)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "constraint_name": "chapters_language_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (language = ANY (ARRAY['en'::text, 'hi'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "constraint_name": "chapters_manga_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (manga_id) REFERENCES manga_series(id)",
+      "referenced_table": "manga_series",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "chapters",
+      "constraint_name": "chapters_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_like_counts",
+      "constraint_name": "comment_like_counts_like_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (like_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_like_counts",
+      "constraint_name": "comment_like_counts_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (comment_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "constraint_name": "comment_likes_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE",
+      "referenced_table": "comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "constraint_name": "comment_likes_comment_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (comment_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "constraint_name": "comment_likes_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_likes",
+      "constraint_name": "comment_likes_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "constraint_name": "comment_reports_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE",
+      "referenced_table": "comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "constraint_name": "comment_reports_comment_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (comment_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "constraint_name": "comment_reports_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "constraint_name": "comment_reports_reviewed_by_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (reviewed_by) REFERENCES auth.users(id)",
+      "referenced_table": "auth.users",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comment_reports",
+      "constraint_name": "comment_reports_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['open'::text, 'reviewed'::text, 'resolved'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_announcement_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (announcement_id) REFERENCES announcements(id) ON DELETE CASCADE",
+      "referenced_table": "announcements",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_content_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(TRIM(BOTH FROM content)) >= 1 AND char_length(TRIM(BOTH FROM content)) <= 2000)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_moderation_flag_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (moderation_flag = ANY (ARRAY['yellow'::text, 'red'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_parent_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE",
+      "referenced_table": "comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "constraint_name": "comments_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "constraint_name": "community_members_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "community_members",
+      "constraint_name": "community_members_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "constraint_name": "community_post_reactions_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "constraint_name": "community_post_reactions_post_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE",
+      "referenced_table": "community_posts",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "constraint_name": "community_post_reactions_post_id_user_id_reaction_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (post_id, user_id, reaction)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "community_post_reactions",
+      "constraint_name": "community_post_reactions_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "constraint_name": "community_posts_content_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(TRIM(BOTH FROM content)) >= 1 AND char_length(TRIM(BOTH FROM content)) <= 4000)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "community_posts",
+      "constraint_name": "community_posts_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "constraint_name": "dpdp_consent_records_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "constraint_name": "dpdp_consent_records_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_consent_records",
+      "constraint_name": "dpdp_consent_records_user_policy_unique",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (user_id, policy_version)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "constraint_name": "dpdp_deletion_requests_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "constraint_name": "dpdp_deletion_requests_resolved_by_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (resolved_by) REFERENCES auth.users(id)",
+      "referenced_table": "auth.users",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "constraint_name": "dpdp_deletion_requests_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'rejected'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_deletion_requests",
+      "constraint_name": "dpdp_deletion_requests_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "constraint_name": "dpdp_nominations_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "dpdp_nominations",
+      "constraint_name": "dpdp_nominations_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "edge_rate_limits",
+      "constraint_name": "edge_rate_limits_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (rate_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "feature_login_users",
+      "constraint_name": "feature_login_users_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "feature_login_users",
+      "constraint_name": "feature_login_users_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "feature_unlock_config",
+      "constraint_name": "feature_unlock_config_id_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (id = true)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "feature_unlock_config",
+      "constraint_name": "feature_unlock_config_login_user_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (login_user_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "feature_unlock_config",
+      "constraint_name": "feature_unlock_config_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "constraint_name": "group_chat_likes_message_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (message_id) REFERENCES group_chat_messages(id) ON DELETE CASCADE",
+      "referenced_table": "group_chat_messages",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "constraint_name": "group_chat_likes_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (message_id, user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_likes",
+      "constraint_name": "group_chat_likes_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "constraint_name": "group_chat_messages_content_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(content) >= 1 AND char_length(content) <= 700)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "constraint_name": "group_chat_messages_moderation_flag_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (moderation_flag = ANY (ARRAY['yellow'::text, 'red'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "constraint_name": "group_chat_messages_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "constraint_name": "group_chat_messages_reply_to_message_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (reply_to_message_id) REFERENCES group_chat_messages(id) ON DELETE SET NULL",
+      "referenced_table": "group_chat_messages",
+      "delete_action": "set_null",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_messages",
+      "constraint_name": "group_chat_messages_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "constraint_name": "group_chat_reactions_message_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (message_id) REFERENCES group_chat_messages(id) ON DELETE CASCADE",
+      "referenced_table": "group_chat_messages",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "constraint_name": "group_chat_reactions_message_id_user_id_reaction_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (message_id, user_id, reaction)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "constraint_name": "group_chat_reactions_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "constraint_name": "group_chat_reactions_reaction_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(reaction) >= 1 AND char_length(reaction) <= 8)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reactions",
+      "constraint_name": "group_chat_reactions_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "constraint_name": "group_chat_reads_message_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (message_id) REFERENCES group_chat_messages(id) ON DELETE CASCADE",
+      "referenced_table": "group_chat_messages",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "constraint_name": "group_chat_reads_message_id_user_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (message_id, user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "constraint_name": "group_chat_reads_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "group_chat_reads",
+      "constraint_name": "group_chat_reads_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "login_password_protection",
+      "constraint_name": "login_password_protection_failed_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (failed_count >= 0 AND failed_count <= 5)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "login_password_protection",
+      "constraint_name": "login_password_protection_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "login_password_protection",
+      "constraint_name": "login_password_protection_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "constraint_name": "manga_series_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "manga_series",
+      "constraint_name": "manga_series_slug_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (slug)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "media",
+      "constraint_name": "media_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "member_content",
+      "constraint_name": "member_content_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "constraint_name": "member_messages_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "member_messages",
+      "constraint_name": "member_messages_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "constraint_name": "moderation_reports_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "constraint_name": "moderation_reports_source_type_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (source_type = ANY (ARRAY['comment'::text, 'group_chat'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "constraint_name": "moderation_reports_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['open'::text, 'reviewed'::text, 'dismissed'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "moderation_reports",
+      "constraint_name": "moderation_reports_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "constraint_name": "notification_subscriptions_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "notification_subscriptions",
+      "constraint_name": "notification_subscriptions_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "constraint_name": "pal_do_pal_ke_lamhe_chapter_pages_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "constraint_name": "pal_do_pal_ke_lamhe_chapter_pages_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "constraint_name": "pdlpl_image_path_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (length(TRIM(BOTH FROM image_path)) > 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "constraint_name": "pdlpl_page_number_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (page_number >= 1)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapter_pages",
+      "constraint_name": "pdlpl_pages_unique",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (chapter_id, page_number)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "constraint_name": "pal_do_pal_ke_lamhe_chapters_language_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (language = ANY (ARRAY['en'::text, 'hi'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "constraint_name": "pal_do_pal_ke_lamhe_chapters_number_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (chapter_number IS NULL OR chapter_number >= 1)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "constraint_name": "pal_do_pal_ke_lamhe_chapters_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pal_do_pal_ke_lamhe_chapters",
+      "constraint_name": "pal_do_pal_ke_lamhe_chapters_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['Draft'::text, 'Published'::text, 'Archived'::text, 'Scheduled'::text, 'Pre-uploaded'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "payment_events",
+      "constraint_name": "payment_events_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "payment_events",
+      "constraint_name": "payment_events_provider_event_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (provider, event_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "constraint_name": "payments_amount_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (amount >= 0::numeric)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "constraint_name": "payments_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "constraint_name": "payments_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['success'::text, 'failed'::text, 'pending'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "payments",
+      "constraint_name": "payments_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "constraint_name": "pdlpl_bookmarks_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "constraint_name": "pdlpl_bookmarks_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "constraint_name": "pdlpl_bookmarks_user_id_chapter_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (user_id, chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_bookmarks",
+      "constraint_name": "pdlpl_bookmarks_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_comments_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (comments_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_likes_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (likes_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_pages_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (pages_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_ratings_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (ratings_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_ratings_sum_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (ratings_sum >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_shares_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (shares_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_engagement_summary",
+      "constraint_name": "pdlpl_chapter_engagement_summary_views_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (views_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "constraint_name": "pdlpl_chapter_likes_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "constraint_name": "pdlpl_chapter_likes_chapter_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (chapter_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "constraint_name": "pdlpl_chapter_likes_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_likes",
+      "constraint_name": "pdlpl_chapter_likes_viewer_key_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(viewer_key) >= 16 AND char_length(viewer_key) <= 128)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "constraint_name": "pdlpl_chapter_ratings_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "constraint_name": "pdlpl_chapter_ratings_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "constraint_name": "pdlpl_chapter_ratings_rating_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (rating >= 1 AND rating <= 10)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "constraint_name": "pdlpl_chapter_ratings_user_id_chapter_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (user_id, chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_ratings",
+      "constraint_name": "pdlpl_chapter_ratings_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "constraint_name": "pdlpl_chapter_shares_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "constraint_name": "pdlpl_chapter_shares_chapter_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (chapter_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "constraint_name": "pdlpl_chapter_shares_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_shares",
+      "constraint_name": "pdlpl_chapter_shares_viewer_key_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(viewer_key) >= 16 AND char_length(viewer_key) <= 128)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "constraint_name": "pdlpl_chapter_views_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "constraint_name": "pdlpl_chapter_views_chapter_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (chapter_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "constraint_name": "pdlpl_chapter_views_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_chapter_views",
+      "constraint_name": "pdlpl_chapter_views_viewer_key_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(viewer_key) >= 16 AND char_length(viewer_key) <= 128)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_like_counts",
+      "constraint_name": "pdlpl_comment_like_counts_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (comment_id) REFERENCES pdlpl_comments(id) ON DELETE CASCADE",
+      "referenced_table": "pdlpl_comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_like_counts",
+      "constraint_name": "pdlpl_comment_like_counts_like_count_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (like_count >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_like_counts",
+      "constraint_name": "pdlpl_comment_like_counts_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (comment_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "constraint_name": "pdlpl_comment_likes_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (comment_id) REFERENCES pdlpl_comments(id) ON DELETE CASCADE",
+      "referenced_table": "pdlpl_comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "constraint_name": "pdlpl_comment_likes_comment_id_user_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (comment_id, user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "constraint_name": "pdlpl_comment_likes_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "constraint_name": "pdlpl_comment_likes_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_likes",
+      "constraint_name": "pdlpl_comment_likes_viewer_key_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(viewer_key) >= 16 AND char_length(viewer_key) <= 128)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "constraint_name": "pdlpl_comment_reports_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (comment_id) REFERENCES pdlpl_comments(id) ON DELETE CASCADE",
+      "referenced_table": "pdlpl_comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "constraint_name": "pdlpl_comment_reports_comment_id_viewer_key_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (comment_id, viewer_key)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "constraint_name": "pdlpl_comment_reports_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "constraint_name": "pdlpl_comment_reports_reviewed_by_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (reviewed_by) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "referenced_table": "auth.users",
+      "delete_action": "set_null",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "constraint_name": "pdlpl_comment_reports_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['open'::text, 'reviewed'::text, 'resolved'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comment_reports",
+      "constraint_name": "pdlpl_comment_reports_viewer_key_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(viewer_key) >= 16 AND char_length(viewer_key) <= 128)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "constraint_name": "pdlpl_comments_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "constraint_name": "pdlpl_comments_content_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (char_length(TRIM(BOTH FROM content)) >= 1 AND char_length(TRIM(BOTH FROM content)) <= 2000)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "constraint_name": "pdlpl_comments_parent_comment_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (parent_comment_id) REFERENCES pdlpl_comments(id) ON DELETE CASCADE",
+      "referenced_table": "pdlpl_comments",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "constraint_name": "pdlpl_comments_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_comments",
+      "constraint_name": "pdlpl_comments_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "constraint_name": "pdlpl_reading_history_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES pal_do_pal_ke_lamhe_chapters(id) ON DELETE CASCADE",
+      "referenced_table": "pal_do_pal_ke_lamhe_chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "constraint_name": "pdlpl_reading_history_page_number_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (page_number >= 1)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "constraint_name": "pdlpl_reading_history_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "constraint_name": "pdlpl_reading_history_user_id_chapter_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (user_id, chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "pdlpl_reading_history",
+      "constraint_name": "pdlpl_reading_history_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "constraint_name": "profiles_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "constraint_name": "profiles_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "profiles",
+      "constraint_name": "profiles_public_badge_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (public_badge IS NULL OR (public_badge = ANY (ARRAY['supporter'::text, 'premium'::text])))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "constraint_name": "push_subscriptions_endpoint_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (endpoint)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "constraint_name": "push_subscriptions_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "constraint_name": "push_subscriptions_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "constraint_name": "reading_history_chapter_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE",
+      "referenced_table": "chapters",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "constraint_name": "reading_history_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "reading_history",
+      "constraint_name": "reading_history_user_chapter_unique",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (user_id, chapter_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "constraint_name": "site_feedback_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "constraint_name": "site_feedback_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['new'::text, 'reviewing'::text, 'resolved'::text, 'spam'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "constraint_name": "site_feedback_type_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (type = ANY (ARRAY['feedback'::text, 'content-report'::text, 'privacy'::text, 'other'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "site_feedback",
+      "constraint_name": "site_feedback_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "referenced_table": "auth.users",
+      "delete_action": "set_null",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "subscription_plans",
+      "constraint_name": "subscription_plans_amount_inr_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (amount_inr >= 0)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "subscription_plans",
+      "constraint_name": "subscription_plans_interval_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (\"interval\" = ANY (ARRAY['month'::text, 'year'::text, 'one_time'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "subscription_plans",
+      "constraint_name": "subscription_plans_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "constraint_name": "subscriptions_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "constraint_name": "subscriptions_plan_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (plan = ANY (ARRAY['free'::text, 'flower'::text, 'peacock'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "constraint_name": "subscriptions_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['active'::text, 'cancelled'::text, 'expired'::text, 'failed'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "subscriptions",
+      "constraint_name": "subscriptions_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "constraint_name": "user_moderation_flag_color_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (flag_color = ANY (ARRAY['yellow'::text, 'red'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "constraint_name": "user_moderation_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (user_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "user_moderation",
+      "constraint_name": "user_moderation_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "constraint_name": "user_subscriptions_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "constraint_name": "user_subscriptions_plan_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (plan_id) REFERENCES subscription_plans(id)",
+      "referenced_table": "subscription_plans",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "constraint_name": "user_subscriptions_provider_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (provider IS NULL OR provider = 'razorpay'::text)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "constraint_name": "user_subscriptions_provider_provider_subscription_id_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (provider, provider_subscription_id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "constraint_name": "user_subscriptions_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (status = ANY (ARRAY['pending'::text, 'active'::text, 'paused'::text, 'cancelled'::text, 'expired'::text, 'failed'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "public",
+      "table": "user_subscriptions",
+      "constraint_name": "user_subscriptions_user_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "referenced_table": "auth.users",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_lifecycle_configuration_pair_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK ((lifecycle_configuration IS NULL) = (lifecycle_configuration_generation IS NULL))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_lifecycle_configuration_shape_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (lifecycle_configuration IS NULL OR jsonb_typeof(lifecycle_configuration) = 'object'::text AND lifecycle_configuration ? 'rules'::text AND\nCASE\n    WHEN jsonb_typeof(lifecycle_configuration -> 'rules'::text) = 'array'::text THEN jsonb_array_length(lifecycle_configuration -> 'rules'::text) >= 1 AND jsonb_array_length(lifecycle_configuration -> 'rules'::text) <= 1000\n    ELSE false\nEND)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_lifecycle_configuration_standard_only_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (type = 'STANDARD'::storage.buckettype OR lifecycle_configuration IS NULL AND lifecycle_configuration_generation IS NULL)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_versioning_dark_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (versioning_status = 'DISABLED'::text)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_versioning_standard_only_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (type = 'STANDARD'::storage.buckettype OR versioning_status = 'DISABLED'::text)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets",
+      "constraint_name": "buckets_versioning_status_check",
+      "constraint_type": "check",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "CHECK (versioning_status = ANY (ARRAY['DISABLED'::text, 'ENABLED'::text, 'SUSPENDED'::text]))",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_analytics",
+      "constraint_name": "buckets_analytics_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "buckets_vectors",
+      "constraint_name": "buckets_vectors_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "migrations",
+      "constraint_name": "migrations_name_key",
+      "constraint_type": "unique",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "UNIQUE (name)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "migrations",
+      "constraint_name": "migrations_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "constraint_name": "objects_bucketId_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id)",
+      "referenced_table": "storage.buckets",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "storage",
+      "table": "objects",
+      "constraint_name": "objects_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads",
+      "constraint_name": "s3_multipart_uploads_bucket_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id)",
+      "referenced_table": "storage.buckets",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads",
+      "constraint_name": "s3_multipart_uploads_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads_parts",
+      "constraint_name": "s3_multipart_uploads_parts_bucket_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets(id)",
+      "referenced_table": "storage.buckets",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads_parts",
+      "constraint_name": "s3_multipart_uploads_parts_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    },
+    {
+      "schema": "storage",
+      "table": "s3_multipart_uploads_parts",
+      "constraint_name": "s3_multipart_uploads_parts_upload_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (upload_id) REFERENCES storage.s3_multipart_uploads(id) ON DELETE CASCADE",
+      "referenced_table": "storage.s3_multipart_uploads",
+      "delete_action": "cascade",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "storage",
+      "table": "vector_indexes",
+      "constraint_name": "vector_indexes_bucket_id_fkey",
+      "constraint_type": "foreign_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "FOREIGN KEY (bucket_id) REFERENCES storage.buckets_vectors(id)",
+      "referenced_table": "storage.buckets_vectors",
+      "delete_action": "no_action",
+      "update_action": "no_action"
+    },
+    {
+      "schema": "storage",
+      "table": "vector_indexes",
+      "constraint_name": "vector_indexes_pkey",
+      "constraint_type": "primary_key",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false,
+      "definition": "PRIMARY KEY (id)",
+      "referenced_table": null,
+      "delete_action": null,
+      "update_action": null
+    }
+  ]
+}

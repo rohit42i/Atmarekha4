@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "targets": ["atmarekha-health", "atma-rekha-api"],
+    "ignore": ["node_modules/**", ".DS_Store"],
+    "source": "functions"
+  }
+}

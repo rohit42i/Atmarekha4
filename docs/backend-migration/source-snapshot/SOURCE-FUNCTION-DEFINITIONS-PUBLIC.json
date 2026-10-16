@@ -1,0 +1,608 @@
+{
+  "snapshot_date": "2026-10-12",
+  "schema": "public",
+  "scope": "SQL definitions and function security metadata only; no application row payloads",
+  "function_count": 40,
+  "functions": [
+    {
+      "name": "ar_apply_moderation",
+      "identity_arguments": "p_user_id uuid, p_source_type text, p_source_id uuid, p_content text",
+      "argument_types": "p_user_id uuid, p_source_type text, p_source_id uuid, p_content text",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.ar_apply_moderation(p_user_id uuid, p_source_type text, p_source_id uuid, p_content text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\ndeclare\n  result jsonb := public.ar_find_profanity(p_content);\n  v_count integer := coalesce((result->>'count')::integer,0);\n  v_matches text[] := array(select jsonb_array_elements_text(coalesce(result->'matches','[]'::jsonb)));\n  old_recent integer := 0;\n  old_window timestamptz;\n  new_recent integer;\n  new_total integer;\n  v_color text;\n  v_auto_report boolean := false;\nbegin\n  if v_count <= 0 or p_user_id is null then return jsonb_build_object('count',0,'matches','[]'::jsonb,'flag',null); end if;\n  select offense_count,recent_offense_count,recent_window_start into new_total,old_recent,old_window from public.user_moderation where user_id=p_user_id;\n  if old_window is null or old_window < now()-interval '24 hours' then\n    new_recent := v_count;\n    old_window := now();\n  else\n    new_recent := old_recent + v_count;\n  end if;\n  new_total := coalesce(new_total,0) + v_count;\n  v_color := case when new_recent >= 3 then 'red' else 'yellow' end;\n  v_auto_report := new_total > 20 and not exists(select 1 from public.moderation_reports r where r.user_id=p_user_id and r.reason='Automatic profanity report: more than 20 flagged uses.');\n  insert into public.user_moderation(user_id,offense_count,recent_offense_count,recent_window_start,flag_color,flagged_until,auto_reported_at,updated_at)\n  values(p_user_id,new_total,new_recent,old_window,v_color,now()+interval '24 hours',case when v_auto_report then now() else null end,now())\n  on conflict(user_id) do update set offense_count=excluded.offense_count,recent_offense_count=excluded.recent_offense_count,recent_window_start=excluded.recent_window_start,flag_color=excluded.flag_color,flagged_until=excluded.flagged_until,auto_reported_at=coalesce(public.user_moderation.auto_reported_at,excluded.auto_reported_at),updated_at=now();\n  if v_auto_report then\n    insert into public.moderation_reports(user_id,source_type,source_id,reason,offense_count) values(p_user_id,p_source_type,p_source_id,'Automatic profanity report: more than 20 flagged uses.',new_total);\n  end if;\n  return jsonb_build_object('count',v_count,'matches',to_jsonb(v_matches),'flag',v_color,'flagged_until',now()+interval '24 hours','auto_reported',v_auto_report,'offense_count',new_total);\nend;\n$function$\n"
+    },
+    {
+      "name": "ar_find_profanity",
+      "identity_arguments": "p_content text",
+      "argument_types": "p_content text",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "immutable",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.ar_find_profanity(p_content text)\n RETURNS jsonb\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\ndeclare\n  normalized text := regexp_replace(lower(coalesce(p_content,'')), '[^a-z0-9]+', ' ', 'g');\n  terms text[] := array[\n    'fuck','fucking','fucker','fuckhead','fuckface','shit','shitting','shitter','shithead','bitch','bitches','bitchass','bastard','asshole','dick','dickhead','pussy','cunt','slut','whore','motherfucker','cock','cocksucker','douchebag','prick','twat','wanker','dipshit','jackass','bullshit','dumbass','nigger','faggot','retard','crap','piss','hoe','arsehole','bugger','clit','cockhead','goddamn','motherfuckers','bastards','dumbfuck','asswipe','cumslut','jizz','slutty','blowjob',\n    'chutiya','chutiye','madarchod','maderchod','behenchod','bhenchod','bhosdike','bhosdi','gaand','gandu','randi','raand','harami','kutta','kuttiya','saala','saale','kamina','kamine','lauda','loda','chut','jhant','suar','bhosda','gandmasti','laund','laundiya','bakchod','bakchodi','hijra','chutiyapa','mc','bc','bsdk','bhosadike','harambhor','kamini','chutian','gaanddu','madarchodh','bhosdika','lodu','chutiyap','randiwe','haramzada','haramzadi','gandoo','jhantu','bhosada','randiya','saali','bhenkeode','chutmarani','gaandfat','gaandmora','kutti','chuth','tattu','chodna',\n    'kanjar','kanjra','khasma','khasmakhania','fittehmu','fittehmoo','dalle','dalla','pentechoda','chawal','kuttapan','pencho','penchod',\n    'aaizavli','aaizavadya','zavli','zavadya','bhadva','bhadvya','bullya','yedzhava','yedzhavya','gandit','chutya','lavda',\n    'bokachoda','khanki','bal','khankirmag','chudmarani','gandmarani','magirchele','chodna','pod','podmarani','chodis','shor',\n    'pundai','otha','ootha','pundamavane','thevadiya','thevadiyamavan','sunni','poolu','koothi','mayiru','munda','somberi','lucu','loosie','punda',\n    'dhengey','dengey','lanja','lanjakodaka','pooku','puku','modda','gudha','sanka','lanjamunda','modagudhu','munde','maddalo',\n    'soole','soolemaga','kullamari','munde','bolli','bollimaga',\n    'myre','myru','patti','thendi','pooran','poori','vadamavane','pulayadi',\n    'chutiyam','suvar','ghando','luppad'\n  ];\n  found text[] := '{}'; term text; n integer; occurrences integer := 0;\nbegin\n  foreach term in array terms loop\n    select count(*)::integer into n from regexp_matches(normalized, '(^| )' || term || '( |$)', 'g');\n    if n > 0 then\n      found := array_append(found, term);\n      occurrences := occurrences + n;\n    end if;\n  end loop;\n  return jsonb_build_object('count',occurrences,'matches',to_jsonb(found));\nend;\n$function$\n"
+    },
+    {
+      "name": "ar_moderate_comment",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.ar_moderate_comment()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\ndeclare r jsonb;\nbegin\n  if new.user_id is not null and exists(select 1 from public.user_moderation where user_id=new.user_id and comment_banned_until is not null and comment_banned_until > now()) then\n    raise exception 'You are temporarily banned from comments.' using errcode='42501';\n  end if;\n  r:=public.ar_apply_moderation(new.user_id,'comment',new.id,new.content);\n  new.moderation_count:=coalesce((r->>'count')::integer,0);\n  new.moderation_flag:=r->>'flag';\n  new.moderation_matches:=array(select jsonb_array_elements_text(coalesce(r->'matches','[]'::jsonb)));\n  return new;\nend; $function$\n"
+    },
+    {
+      "name": "ar_moderate_group_chat_message",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.ar_moderate_group_chat_message()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\ndeclare r jsonb;\nbegin\n  if exists(select 1 from public.user_moderation where user_id=new.user_id and group_banned_until is not null and group_banned_until > now()) then\n    raise exception 'You are temporarily banned from group chat.' using errcode='42501';\n  end if;\n  r:=public.ar_apply_moderation(new.user_id,'group_chat',new.id,new.content);\n  new.moderation_count:=coalesce((r->>'count')::integer,0);\n  new.moderation_flag:=r->>'flag';\n  new.moderation_matches:=array(select jsonb_array_elements_text(coalesce(r->'matches','[]'::jsonb)));\n  return new;\nend; $function$\n"
+    },
+    {
+      "name": "check_feedback_rate_limit",
+      "identity_arguments": "p_key text, p_limit integer",
+      "argument_types": "p_key text, p_limit integer DEFAULT 5",
+      "return_type": "boolean",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, private"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.check_feedback_rate_limit(p_key text, p_limit integer DEFAULT 5)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'private'\nAS $function$\ndeclare\n  current_window timestamptz := date_trunc('hour', now());\n  next_count integer;\nbegin\n  insert into private.feedback_rate_limits(rate_key, window_start, request_count)\n  values (p_key, current_window, 1)\n  on conflict (rate_key) do update\n  set\n    window_start = case\n      when private.feedback_rate_limits.window_start < current_window then current_window\n      else private.feedback_rate_limits.window_start\n    end,\n    request_count = case\n      when private.feedback_rate_limits.window_start < current_window then 1\n      else private.feedback_rate_limits.request_count + 1\n    end\n  returning request_count into next_count;\n\n  return next_count <= greatest(1, p_limit);\nend;\n$function$\n"
+    },
+    {
+      "name": "consume_rate_limit",
+      "identity_arguments": "p_rate_key text, p_limit integer, p_window_seconds integer",
+      "argument_types": "p_rate_key text, p_limit integer, p_window_seconds integer",
+      "return_type": "boolean",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.consume_rate_limit(p_rate_key text, p_limit integer, p_window_seconds integer)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_count integer;\n  v_now timestamptz := now();\nBEGIN\n  IF p_rate_key IS NULL OR length(p_rate_key) < 8 OR p_limit < 1 OR p_window_seconds < 1 THEN\n    RETURN false;\n  END IF;\n  INSERT INTO public.edge_rate_limits(rate_key, window_started, request_count, updated_at)\n  VALUES (p_rate_key, v_now, 1, v_now)\n  ON CONFLICT (rate_key) DO UPDATE\n    SET request_count = CASE\n          WHEN v_now >= public.edge_rate_limits.window_started + make_interval(secs => p_window_seconds) THEN 1\n          ELSE public.edge_rate_limits.request_count + 1\n        END,\n        window_started = CASE\n          WHEN v_now >= public.edge_rate_limits.window_started + make_interval(secs => p_window_seconds) THEN v_now\n          ELSE public.edge_rate_limits.window_started\n        END,\n        updated_at = v_now\n  RETURNING request_count INTO v_count;\n  RETURN v_count <= p_limit;\nEND;\n$function$\n"
+    },
+    {
+      "name": "delete_chapter_page",
+      "identity_arguments": "p_page_id uuid",
+      "argument_types": "p_page_id uuid",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.delete_chapter_page(p_page_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_chapter_id uuid;\n  v_page_count bigint;\n  v_temporary_base bigint;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n  if p_page_id is null then\n    raise exception 'Page ID is required';\n  end if;\n\n  select page.chapter_id\n  into v_chapter_id\n  from public.chapter_pages page\n  where page.id = p_page_id;\n\n  if v_chapter_id is null then\n    raise exception 'Page not found';\n  end if;\n\n  perform 1\n  from public.chapter_pages page\n  where page.chapter_id = v_chapter_id\n  order by page.page_number, page.id\n  for update;\n\n  delete from public.chapter_pages\n  where id = p_page_id;\n\n  select count(*)\n  into v_page_count\n  from public.chapter_pages page\n  where page.chapter_id = v_chapter_id;\n\n  if v_page_count = 0 then\n    return;\n  end if;\n\n  select coalesce(max(page.page_number), 0) + v_page_count + 1\n  into v_temporary_base\n  from public.chapter_pages page\n  where page.chapter_id = v_chapter_id;\n\n  with renumbered as (\n    select page.id,\n           row_number() over (order by page.page_number, page.id)::bigint as new_number\n    from public.chapter_pages page\n    where page.chapter_id = v_chapter_id\n  )\n  update public.chapter_pages page\n  set page_number = v_temporary_base + renumbered.new_number\n  from renumbered\n  where page.id = renumbered.id;\n\n  with renumbered as (\n    select page.id,\n           row_number() over (order by page.page_number, page.id)::bigint as new_number\n    from public.chapter_pages page\n    where page.chapter_id = v_chapter_id\n  )\n  update public.chapter_pages page\n  set page_number = renumbered.new_number\n  from renumbered\n  where page.id = renumbered.id;\nend;\n$function$\n"
+    },
+    {
+      "name": "enforce_announcements_limit",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.enforce_announcements_limit()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n  delete from public.announcements\n  where id in (\n    select id\n    from public.announcements\n    order by published_at desc nulls last, created_at desc, id desc\n    offset 10\n  );\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "get_admin_analytics",
+      "identity_arguments": "p_days integer",
+      "argument_types": "p_days integer DEFAULT 30",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_analytics(p_days integer DEFAULT 30)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare\n  v_uid uuid := auth.uid();\n  v_now timestamptz := now();\n  v_cutoff timestamptz;\n  v_previous_start timestamptz;\n  v_result jsonb;\nbegin\n  if v_uid is null or not exists (select 1 from public.admins where user_id = v_uid) then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_days is not null and p_days not in (1, 7, 30, 90) then\n    raise exception 'Analytics period must be 1, 7, 30, 90, or null';\n  end if;\n\n  v_cutoff := case when p_days is null then null else v_now - make_interval(days => p_days) end;\n  v_previous_start := case when p_days is null then null else v_cutoff - make_interval(days => p_days) end;\n\n  select jsonb_build_object(\n    'total_views', (select count(*) from public.chapter_views),\n    'total_likes', (select count(*) from public.chapter_likes) + (select count(*) from public.comment_likes),\n    'total_shares', (select count(*) from public.chapter_shares),\n    'total_ratings', (select count(*) from public.chapter_ratings),\n    'total_comments', (select count(*) from public.comments),\n\n    'current_views', case when p_days is null then (select count(*) from public.chapter_views)\n      else (select count(*) from public.chapter_views where created_at >= v_cutoff and created_at <= v_now) end,\n    'previous_views', case when p_days is null then 0\n      else (select count(*) from public.chapter_views where created_at >= v_previous_start and created_at < v_cutoff) end,\n\n    'current_likes', case when p_days is null then (select count(*) from public.chapter_likes) + (select count(*) from public.comment_likes)\n      else (select count(*) from public.chapter_likes where created_at >= v_cutoff and created_at <= v_now)\n        + (select count(*) from public.comment_likes where created_at >= v_cutoff and created_at <= v_now) end,\n    'previous_likes', case when p_days is null then 0\n      else (select count(*) from public.chapter_likes where created_at >= v_previous_start and created_at < v_cutoff)\n        + (select count(*) from public.comment_likes where created_at >= v_previous_start and created_at < v_cutoff) end,\n\n    'current_shares', case when p_days is null then (select count(*) from public.chapter_shares)\n      else (select count(*) from public.chapter_shares where created_at >= v_cutoff and created_at <= v_now) end,\n    'previous_shares', case when p_days is null then 0\n      else (select count(*) from public.chapter_shares where created_at >= v_previous_start and created_at < v_cutoff) end,\n\n    'current_comments', case when p_days is null then (select count(*) from public.comments)\n      else (select count(*) from public.comments where created_at >= v_cutoff and created_at <= v_now) end,\n    'previous_comments', case when p_days is null then 0\n      else (select count(*) from public.comments where created_at >= v_previous_start and created_at < v_cutoff) end,\n\n    'current_ratings', case when p_days is null then (select count(*) from public.chapter_ratings)\n      else (select count(*) from public.chapter_ratings where created_at >= v_cutoff and created_at <= v_now) end,\n    'previous_ratings', case when p_days is null then 0\n      else (select count(*) from public.chapter_ratings where created_at >= v_previous_start and created_at < v_cutoff) end,\n\n    'rating_sum', coalesce((select sum(rating) from public.chapter_ratings), 0),\n    'rating_counts', coalesce((\n      select jsonb_agg(jsonb_build_object('rating', x.rating, 'count', x.cnt) order by x.rating desc)\n      from (select r.rating, count(*) as cnt from public.chapter_ratings r group by r.rating) x\n    ), '[]'::jsonb),\n\n    'released', case\n      when p_days is null then (\n        select count(*) from public.chapters c\n        where lower(coalesce(c.status,'')) = 'published'\n          and c.deleted_at is null\n          and coalesce(c.release_date, c.created_at) <= v_now\n      )\n      else (\n        select count(*) from public.chapters c\n        where lower(coalesce(c.status,'')) = 'published'\n          and c.deleted_at is null\n          and coalesce(c.release_date, c.created_at) >= v_cutoff\n          and coalesce(c.release_date, c.created_at) <= v_now\n      )\n    end,\n\n    'bookmarks', (select count(*) from public.bookmarks),\n\n    'active_readers', (\n      select count(distinct viewer_key)\n      from public.chapter_views\n      where viewer_key is not null\n        and created_at >= v_now - interval '30 days'\n        and created_at <= v_now\n    ),\n    'returning_readers', (\n      select count(*)\n      from (\n        select viewer_key\n        from public.chapter_views\n        where viewer_key is not null\n          and created_at >= v_now - interval '30 days'\n          and created_at <= v_now\n        group by viewer_key\n        having count(distinct ((created_at at time zone 'Asia/Kolkata')::date)) >= 2\n      ) returning_users\n    ),\n\n    'period_active_readers', case when p_days is null then (\n      select count(distinct viewer_key)\n      from public.chapter_views\n      where viewer_key is not null\n        and created_at <= v_now\n    ) else (\n      select count(distinct viewer_key)\n      from public.chapter_views\n      where viewer_key is not null\n        and created_at >= v_cutoff\n        and created_at <= v_now\n    ) end,\n\n    'period_returning_readers', case when p_days is null then (\n      select count(*)\n      from (\n        select viewer_key\n        from public.chapter_views\n        where viewer_key is not null\n          and created_at <= v_now\n        group by viewer_key\n        having count(distinct ((created_at at time zone 'Asia/Kolkata')::date)) >= 2\n      ) returning_users\n    ) else (\n      select count(*)\n      from (\n        select viewer_key\n        from public.chapter_views\n        where viewer_key is not null\n          and created_at >= v_cutoff\n          and created_at <= v_now\n        group by viewer_key\n        having count(distinct ((created_at at time zone 'Asia/Kolkata')::date)) >= 2\n      ) returning_users\n    ) end,\n\n    'chapter_stats', coalesce((\n      select jsonb_agg(to_jsonb(x) order by x.chapter_number nulls last)\n      from (\n        select\n          c.id,\n          c.chapter_number,\n          c.title,\n          c.status,\n          coalesce(c.release_date, c.created_at) as \"releaseDate\",\n          (select count(*) from public.chapter_views v where v.chapter_id = c.id) views,\n          (select count(*) from public.chapter_likes l where l.chapter_id = c.id)\n            + (select count(*) from public.comment_likes cl join public.comments cm on cm.id = cl.comment_id where cm.chapter_id = c.id) likes,\n          (select count(*) from public.chapter_shares s where s.chapter_id = c.id) shares,\n          (select count(*) from public.chapter_ratings r where r.chapter_id = c.id) rating_count,\n          coalesce((select avg(r.rating)::numeric from public.chapter_ratings r where r.chapter_id = c.id), 0) rating_average,\n\n          case when p_days is null then (select count(*) from public.chapter_views v where v.chapter_id = c.id)\n            else (select count(*) from public.chapter_views v where v.chapter_id = c.id and v.created_at >= v_cutoff and v.created_at <= v_now)\n          end period_views,\n\n          case when p_days is null then (select count(*) from public.chapter_likes l where l.chapter_id = c.id)\n              + (select count(*) from public.comment_likes cl join public.comments cm on cm.id = cl.comment_id where cm.chapter_id = c.id)\n            else (select count(*) from public.chapter_likes l where l.chapter_id = c.id and l.created_at >= v_cutoff and l.created_at <= v_now)\n              + (select count(*) from public.comment_likes cl join public.comments cm on cm.id = cl.comment_id where cm.chapter_id = c.id and cl.created_at >= v_cutoff and cl.created_at <= v_now)\n          end period_likes,\n\n          case when p_days is null then (select count(*) from public.chapter_shares s where s.chapter_id = c.id)\n            else (select count(*) from public.chapter_shares s where s.chapter_id = c.id and s.created_at >= v_cutoff and s.created_at <= v_now)\n          end period_shares,\n\n          case when p_days is null then (select count(*) from public.chapter_ratings r where r.chapter_id = c.id)\n            else (select count(*) from public.chapter_ratings r where r.chapter_id = c.id and r.created_at >= v_cutoff and r.created_at <= v_now)\n          end period_rating_count,\n\n          (select count(*) from public.chapter_pages p where p.chapter_id = c.id) pages\n        from public.chapters c\n        where lower(coalesce(c.status,'')) = 'published'\n          and c.deleted_at is null\n      ) x\n    ), '[]'::jsonb)\n  ) into v_result;\n\n  return v_result;\nend;\n$function$\n"
+    },
+    {
+      "name": "get_admin_analytics_for_user",
+      "identity_arguments": "p_user_id uuid, p_days integer",
+      "argument_types": "p_user_id uuid, p_days integer DEFAULT 30",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_analytics_for_user(p_user_id uuid, p_days integer DEFAULT 30)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n  if p_user_id is null then\n    raise exception 'Admin user is required';\n  end if;\n  perform set_config('request.jwt.claim.sub', p_user_id::text, true);\n  return public.get_admin_analytics(p_days);\nend;\n$function$\n"
+    },
+    {
+      "name": "get_admin_membership_analytics",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_membership_analytics()\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare\n  v_uid uuid := auth.uid();\n  v_now timestamptz := now();\n  v_result jsonb;\nbegin\n  if v_uid is null or not exists (select 1 from public.admins where user_id = v_uid) then\n    raise exception 'Admin access required';\n  end if;\n\n  select jsonb_build_object(\n    'as_of', v_now,\n    'currency', 'INR',\n    'plans', coalesce((\n      select jsonb_agg(to_jsonb(x) order by x.sort_order)\n      from (\n        select\n          sp.id,\n          sp.name,\n          sp.amount_inr,\n          sp.interval,\n          sp.active,\n          sp.sort_order,\n          (select count(*)\n             from public.user_subscriptions us\n            where us.plan_id = sp.id\n              and us.status = 'active'\n              and (us.current_period_end is null or us.current_period_end > v_now)) as active_billable,\n          (select count(*)\n             from public.user_subscriptions us\n            where us.plan_id = sp.id\n              and us.status in ('active','cancelled')\n              and (us.current_period_end is null or us.current_period_end > v_now)) as access_members,\n          (select count(*)\n             from public.user_subscriptions us\n            where us.plan_id = sp.id\n              and us.status = 'active'\n              and us.cancel_at_period_end = true\n              and (us.current_period_end is null or us.current_period_end > v_now)) as cancelling,\n          (select count(*)\n             from public.user_subscriptions us\n            where us.plan_id = sp.id\n              and us.status = 'pending') as pending\n        from public.subscription_plans sp\n      ) x\n    ), '[]'::jsonb),\n    'totals', jsonb_build_object(\n      'active_billable_members', coalesce((\n        select count(*)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status = 'active'\n          and (us.current_period_end is null or us.current_period_end > v_now)\n      ), 0),\n      'access_members', coalesce((\n        select count(*)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status in ('active','cancelled')\n          and (us.current_period_end is null or us.current_period_end > v_now)\n      ), 0),\n      'cancelling_members', coalesce((\n        select count(*)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status = 'active'\n          and us.cancel_at_period_end = true\n          and (us.current_period_end is null or us.current_period_end > v_now)\n      ), 0),\n      'pending_subscriptions', coalesce((select count(*) from public.user_subscriptions where status = 'pending'), 0),\n      'cancelled_records', coalesce((select count(*) from public.user_subscriptions where status = 'cancelled'), 0),\n      'failed_subscriptions', coalesce((select count(*) from public.user_subscriptions where status = 'failed'), 0),\n      'mrr_estimate_inr', coalesce((\n        select sum(sp.amount_inr)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status = 'active'\n          and (us.current_period_end is null or us.current_period_end > v_now)\n      ), 0),\n      'at_risk_mrr_inr', coalesce((\n        select sum(sp.amount_inr)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status = 'active'\n          and us.cancel_at_period_end = true\n          and (us.current_period_end is null or us.current_period_end > v_now)\n      ), 0),\n      'renewals_next_30d', coalesce((\n        select count(*)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status = 'active'\n          and us.cancel_at_period_end = false\n          and us.current_period_end > v_now\n          and us.current_period_end <= v_now + interval '30 days'\n      ), 0),\n      'next_renewal_at', (\n        select min(us.current_period_end)\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        where sp.amount_inr > 0\n          and us.status = 'active'\n          and us.cancel_at_period_end = false\n          and us.current_period_end > v_now\n      )\n    ),\n    'revenue', jsonb_build_object(\n      'processed_gross_all_time_inr', coalesce((\n        select sum((payload #>> '{payload,payment,entity,amount}')::numeric / 100)\n        from public.payment_events\n        where provider = 'razorpay'\n          and event_type = 'subscription.charged'\n          and nullif(payload #>> '{payload,payment,entity,amount}', '') is not null\n      ), 0),\n      'processed_gross_30d_inr', coalesce((\n        select sum((payload #>> '{payload,payment,entity,amount}')::numeric / 100)\n        from public.payment_events\n        where provider = 'razorpay'\n          and event_type = 'subscription.charged'\n          and received_at >= v_now - interval '30 days'\n          and received_at <= v_now\n          and nullif(payload #>> '{payload,payment,entity,amount}', '') is not null\n      ), 0),\n      'processed_charge_count', coalesce((\n        select count(*)\n        from public.payment_events\n        where provider = 'razorpay'\n          and event_type = 'subscription.charged'\n      ), 0),\n      'last_charge_at', (\n        select max(received_at)\n        from public.payment_events\n        where provider = 'razorpay'\n          and event_type = 'subscription.charged'\n      )\n    ),\n    'trend', coalesce((\n      select jsonb_agg(jsonb_build_object(\n        'month', to_char(bucket, 'Mon YY'),\n        'month_start', bucket,\n        'new_subscriptions', (\n          select count(*)\n          from public.user_subscriptions us\n          where us.created_at >= bucket\n            and us.created_at < bucket + interval '1 month'\n        ),\n        'cancellations', (\n          select count(*)\n          from public.user_subscriptions us\n          where us.status = 'cancelled'\n            and us.updated_at >= bucket\n            and us.updated_at < bucket + interval '1 month'\n        ),\n        'charges_inr', coalesce((\n          select sum((pe.payload #>> '{payload,payment,entity,amount}')::numeric / 100)\n          from public.payment_events pe\n          where pe.provider = 'razorpay'\n            and pe.event_type = 'subscription.charged'\n            and pe.received_at >= bucket\n            and pe.received_at < bucket + interval '1 month'\n            and nullif(pe.payload #>> '{payload,payment,entity,amount}', '') is not null\n        ), 0)\n      ) order by bucket)\n      from generate_series(\n        date_trunc('month', v_now) - interval '5 months',\n        date_trunc('month', v_now),\n        interval '1 month'\n      ) bucket\n    ), '[]'::jsonb),\n    'recent_activity', coalesce((\n      select jsonb_agg(to_jsonb(x) order by x.changed_at desc)\n      from (\n        select\n          us.id,\n          us.plan_id,\n          sp.name as plan_name,\n          sp.amount_inr,\n          us.status,\n          us.cancel_at_period_end,\n          coalesce(us.updated_at, us.created_at) as changed_at\n        from public.user_subscriptions us\n        join public.subscription_plans sp on sp.id = us.plan_id\n        order by coalesce(us.updated_at, us.created_at) desc\n        limit 8\n      ) x\n    ), '[]'::jsonb)\n  ) into v_result;\n\n  return v_result;\nend;\n$function$\n"
+    },
+    {
+      "name": "get_admin_membership_analytics_for_user",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_membership_analytics_for_user(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n  if p_user_id is null then\n    raise exception 'Admin user is required';\n  end if;\n  perform set_config('request.jwt.claim.sub', p_user_id::text, true);\n  return public.get_admin_membership_analytics();\nend;\n$function$\n"
+    },
+    {
+      "name": "get_admin_user_directory",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "TABLE(user_id uuid, email text, display_name text, username text, joined_at timestamp with time zone, subscription_status text, plan_id text, plan_name text, plan_amount_inr integer, plan_interval text, subscribed_since timestamp with time zone, current_period_end timestamp with time zone)",
+      "language": "sql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, auth"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_user_directory()\n RETURNS TABLE(user_id uuid, email text, display_name text, username text, joined_at timestamp with time zone, subscription_status text, plan_id text, plan_name text, plan_amount_inr integer, plan_interval text, subscribed_since timestamp with time zone, current_period_end timestamp with time zone)\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO 'public', 'auth'\nAS $function$\n  select\n    u.id,\n    u.email,\n    p.display_name,\n    p.username,\n    u.created_at,\n    case\n      when latest.status = 'active'\n       and (latest.current_period_end is null or latest.current_period_end > now()) then 'active'\n      when latest.status = 'cancelled' then 'cancelled'\n      when latest.status = 'expired'\n       or (latest.status = 'active' and latest.current_period_end is not null and latest.current_period_end <= now()) then 'expired'\n      else 'none'\n    end as subscription_status,\n    latest.plan_id,\n    sp.name,\n    sp.amount_inr,\n    sp.interval,\n    first_sub.subscribed_since,\n    case\n      when latest.status = 'active'\n       and (latest.current_period_end is null or latest.current_period_end > now()) then latest.current_period_end\n      else null\n    end as current_period_end\n  from auth.users u\n  left join public.profiles p on p.id = u.id\n  left join lateral (\n    select us.*\n    from public.user_subscriptions us\n    where us.user_id = u.id\n    order by us.created_at desc, us.updated_at desc\n    limit 1\n  ) latest on true\n  left join public.subscription_plans sp on sp.id = latest.plan_id\n  left join lateral (\n    select min(us.created_at) as subscribed_since\n    from public.user_subscriptions us\n    where us.user_id = u.id\n  ) first_sub on true\n  where exists (select 1 from public.admins a where a.user_id = auth.uid())\n  order by u.created_at desc;\n$function$\n"
+    },
+    {
+      "name": "get_admin_user_directory_for_user",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "TABLE(user_id uuid, email text, display_name text, username text, joined_at timestamp with time zone, subscription_status text, plan_id text, plan_name text, plan_amount_inr integer, plan_interval text, subscribed_since timestamp with time zone, current_period_end timestamp with time zone)",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, auth"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_user_directory_for_user(p_user_id uuid)\n RETURNS TABLE(user_id uuid, email text, display_name text, username text, joined_at timestamp with time zone, subscription_status text, plan_id text, plan_name text, plan_amount_inr integer, plan_interval text, subscribed_since timestamp with time zone, current_period_end timestamp with time zone)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'auth'\nAS $function$\nbegin\n  if p_user_id is null then\n    raise exception 'Admin user is required';\n  end if;\n  perform set_config('request.jwt.claim.sub', p_user_id::text, true);\n  return query select * from public.get_admin_user_directory();\nend;\n$function$\n"
+    },
+    {
+      "name": "get_admin_user_stats",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "jsonb",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_admin_user_stats()\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare\n  result jsonb;\nbegin\n  if not exists (select 1 from public.admins where user_id = auth.uid()) then\n    raise exception 'Admin access required';\n  end if;\n  select jsonb_build_object(\n    'logged_in_users', (select count(*) from auth.users),\n    'notification_users', (select count(distinct user_id) from public.push_subscriptions where user_id is not null),\n    'notification_subscriptions', (select count(*) from public.push_subscriptions),\n    'new_users_today', (select count(*) from auth.users where created_at >= date_trunc('day', now()))\n  ) into result;\n  return result;\nend;\n$function$\n"
+    },
+    {
+      "name": "get_current_memberships",
+      "identity_arguments": "target_user_ids uuid[]",
+      "argument_types": "target_user_ids uuid[]",
+      "return_type": "TABLE(user_id uuid, plan_id text)",
+      "language": "sql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "stable",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_current_memberships(target_user_ids uuid[])\n RETURNS TABLE(user_id uuid, plan_id text)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select distinct on (us.user_id) us.user_id, us.plan_id\n  from public.user_subscriptions us\n  where us.user_id = any(target_user_ids)\n    and (us.user_id = (select auth.uid()) or exists (select 1 from public.admins a where a.user_id = (select auth.uid())))\n    and us.status in ('active', 'cancelled')\n    and (us.current_period_end is null or us.current_period_end > now())\n  order by us.user_id,\n    case us.plan_id when 'premium' then 3 when 'supporter' then 2 when 'mini_member' then 1 else 0 end desc,\n    us.current_period_end desc nulls first;\n$function$\n"
+    },
+    {
+      "name": "get_currently_subscribed_user_ids",
+      "identity_arguments": "target_user_ids uuid[]",
+      "argument_types": "target_user_ids uuid[]",
+      "return_type": "TABLE(user_id uuid)",
+      "language": "sql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "stable",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.get_currently_subscribed_user_ids(target_user_ids uuid[])\n RETURNS TABLE(user_id uuid)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select us.user_id\n  from public.user_subscriptions us\n  where us.user_id = any(target_user_ids)\n    and (us.user_id = (select auth.uid()) or exists (select 1 from public.admins a where a.user_id = (select auth.uid())))\n    and us.status = 'active'\n    and (us.current_period_end is null or us.current_period_end > now())\n  group by us.user_id;\n$function$\n"
+    },
+    {
+      "name": "handle_new_user",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n  insert into public.profiles (id, display_name, avatar_url)\n  values (\n    new.id,\n    coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', split_part(coalesce(new.email, ''), '@', 1)),\n    new.raw_user_meta_data ->> 'avatar_url'\n  )\n  on conflict (id) do nothing;\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "lock_profile_display_name",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.lock_profile_display_name()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nbegin\n  if old.display_name_locked then\n    new.display_name := old.display_name;\n    new.display_name_locked := true;\n  elsif new.display_name is distinct from old.display_name then\n    new.display_name_locked := true;\n  else\n    new.display_name_locked := old.display_name_locked;\n  end if;\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "lock_profile_public_badge",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.lock_profile_public_badge()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF TG_OP = 'UPDATE' THEN\n    IF current_setting('app.allow_public_badge_write', true) = 'on' THEN\n      RETURN NEW;\n    END IF;\n    NEW.public_badge := OLD.public_badge;\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "name": "lock_profile_public_badge_on_insert",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.lock_profile_public_badge_on_insert()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF current_setting('app.allow_public_badge_write', true) = 'on' THEN\n    RETURN NEW;\n  END IF;\n  NEW.public_badge := NULL;\n  RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "name": "lock_user_subscription_creation",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "void",
+      "language": "sql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.lock_user_subscription_creation(p_user_id uuid)\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  SELECT pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n$function$\n"
+    },
+    {
+      "name": "pdlpl_append_chapter_pages",
+      "identity_arguments": "p_chapter_id uuid, p_pages jsonb",
+      "argument_types": "p_chapter_id uuid, p_pages jsonb",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_append_chapter_pages(p_chapter_id uuid, p_pages jsonb)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  page jsonb;\n  next_page bigint;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_chapter_id is null then\n    raise exception 'Chapter ID is required';\n  end if;\n\n  if jsonb_typeof(p_pages) <> 'array' or jsonb_array_length(p_pages) = 0 then\n    raise exception 'At least one page is required';\n  end if;\n\n  if not exists (\n    select 1\n    from public.pal_do_pal_ke_lamhe_chapters\n    where id = p_chapter_id\n  ) then\n    raise exception 'Chapter not found';\n  end if;\n\n  perform 1\n  from public.pal_do_pal_ke_lamhe_chapters\n  where id = p_chapter_id\n  for update;\n\n  if exists (\n    select 1\n    from jsonb_array_elements(p_pages) item\n    where nullif(trim(item->>'image_path'), '') is null\n  ) then\n    raise exception 'Every added page needs a valid image path';\n  end if;\n\n  select coalesce(max(page_number), 0)\n  into next_page\n  from public.pal_do_pal_ke_lamhe_chapter_pages\n  where chapter_id = p_chapter_id;\n\n  for page in select value from jsonb_array_elements(p_pages)\n  loop\n    next_page := next_page + 1;\n\n    insert into public.pal_do_pal_ke_lamhe_chapter_pages (\n      chapter_id,\n      page_number,\n      image_path\n    )\n    values (\n      p_chapter_id,\n      next_page,\n      trim(page->>'image_path')\n    );\n  end loop;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_delete_chapter_page",
+      "identity_arguments": "p_page_id uuid",
+      "argument_types": "p_page_id uuid",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_delete_chapter_page(p_page_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_chapter_id uuid;\n  v_page_count bigint;\n  v_temporary_base bigint;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_page_id is null then\n    raise exception 'Page ID is required';\n  end if;\n\n  select page.chapter_id\n  into v_chapter_id\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.id = p_page_id;\n\n  if v_chapter_id is null then\n    raise exception 'Page not found';\n  end if;\n\n  perform 1\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.chapter_id = v_chapter_id\n  order by page.page_number, page.id\n  for update;\n\n  delete from public.pal_do_pal_ke_lamhe_chapter_pages\n  where id = p_page_id;\n\n  select count(*)\n  into v_page_count\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.chapter_id = v_chapter_id;\n\n  if v_page_count = 0 then\n    return;\n  end if;\n\n  select coalesce(max(page.page_number), 0) + v_page_count + 1\n  into v_temporary_base\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.chapter_id = v_chapter_id;\n\n  with renumbered as (\n    select\n      page.id,\n      row_number() over (order by page.page_number, page.id)::bigint as new_number\n    from public.pal_do_pal_ke_lamhe_chapter_pages as page\n    where page.chapter_id = v_chapter_id\n  )\n  update public.pal_do_pal_ke_lamhe_chapter_pages as page\n  set page_number = v_temporary_base + renumbered.new_number\n  from renumbered\n  where page.id = renumbered.id;\n\n  with renumbered as (\n    select\n      page.id,\n      row_number() over (order by page.page_number, page.id)::bigint as new_number\n    from public.pal_do_pal_ke_lamhe_chapter_pages as page\n    where page.chapter_id = v_chapter_id\n  )\n  update public.pal_do_pal_ke_lamhe_chapter_pages as page\n  set page_number = renumbered.new_number\n  from renumbered\n  where page.id = renumbered.id;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_reorder_chapter_page",
+      "identity_arguments": "p_page_id uuid, p_direction integer",
+      "argument_types": "p_page_id uuid, p_direction integer",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_reorder_chapter_page(p_page_id uuid, p_direction integer)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_chapter_id uuid;\n  v_current_number bigint;\n  v_target_number bigint;\n  v_target_id uuid;\n  v_temporary_number bigint;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_page_id is null then\n    raise exception 'Page ID is required';\n  end if;\n\n  if p_direction not in (-1, 1) then\n    raise exception 'Direction must be -1 or 1';\n  end if;\n\n  select page.chapter_id, page.page_number\n  into v_chapter_id, v_current_number\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.id = p_page_id;\n\n  if v_chapter_id is null then\n    raise exception 'Page not found';\n  end if;\n\n  perform 1\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.chapter_id = v_chapter_id\n  order by page.page_number, page.id\n  for update;\n\n  v_target_number := v_current_number + p_direction;\n\n  select page.id\n  into v_target_id\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.chapter_id = v_chapter_id\n    and page.page_number = v_target_number\n  order by page.id\n  limit 1;\n\n  if v_target_id is null then\n    return;\n  end if;\n\n  select coalesce(max(page.page_number), 0) + 1\n  into v_temporary_number\n  from public.pal_do_pal_ke_lamhe_chapter_pages as page\n  where page.chapter_id = v_chapter_id;\n\n  update public.pal_do_pal_ke_lamhe_chapter_pages as page\n  set page_number = v_temporary_number\n  where page.id = p_page_id;\n\n  update public.pal_do_pal_ke_lamhe_chapter_pages as page\n  set page_number = v_current_number\n  where page.id = v_target_id;\n\n  update public.pal_do_pal_ke_lamhe_chapter_pages as page\n  set page_number = v_target_number\n  where page.id = p_page_id;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_replace_chapter_page",
+      "identity_arguments": "p_page_id uuid, p_image_path text",
+      "argument_types": "p_page_id uuid, p_image_path text",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_replace_chapter_page(p_page_id uuid, p_image_path text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_page_id is null then\n    raise exception 'Page ID is required';\n  end if;\n\n  if nullif(trim(p_image_path), '') is null then\n    raise exception 'Image path is required';\n  end if;\n\n  update public.pal_do_pal_ke_lamhe_chapter_pages\n  set image_path = trim(p_image_path)\n  where id = p_page_id;\n\n  if not found then\n    raise exception 'Page not found';\n  end if;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_replace_chapter_pages",
+      "identity_arguments": "p_chapter_id uuid, p_pages jsonb",
+      "argument_types": "p_chapter_id uuid, p_pages jsonb",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_replace_chapter_pages(p_chapter_id uuid, p_pages jsonb)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  page jsonb;\n  page_count integer;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_chapter_id is null then\n    raise exception 'Chapter ID is required';\n  end if;\n\n  if jsonb_typeof(p_pages) <> 'array' or jsonb_array_length(p_pages) = 0 then\n    raise exception 'At least one page is required';\n  end if;\n\n  if not exists (\n    select 1\n    from public.pal_do_pal_ke_lamhe_chapters\n    where id = p_chapter_id\n  ) then\n    raise exception 'Chapter not found';\n  end if;\n\n  select count(*)\n  into page_count\n  from jsonb_array_elements(p_pages) item\n  where nullif(trim(item->>'image_path'), '') is not null;\n\n  if page_count <> jsonb_array_length(p_pages) then\n    raise exception 'Every page needs a valid image path';\n  end if;\n\n  if exists (\n    select 1\n    from (\n      select (item->>'page_number')::bigint as page_number\n      from jsonb_array_elements(p_pages) item\n    ) numbers\n    group by page_number\n    having count(*) > 1\n  ) then\n    raise exception 'Page numbers must be unique';\n  end if;\n\n  for page in select value from jsonb_array_elements(p_pages)\n  loop\n    if (page->>'page_number') is null\n       or (page->>'page_number')::bigint < 1\n       or nullif(trim(page->>'image_path'), '') is null then\n      raise exception 'Every page needs a valid page number and image path';\n    end if;\n  end loop;\n\n  delete from public.pal_do_pal_ke_lamhe_chapter_pages\n  where chapter_id = p_chapter_id;\n\n  for page in select value from jsonb_array_elements(p_pages)\n  loop\n    insert into public.pal_do_pal_ke_lamhe_chapter_pages (\n      chapter_id,\n      page_number,\n      image_path\n    )\n    values (\n      p_chapter_id,\n      (page->>'page_number')::bigint,\n      trim(page->>'image_path')\n    );\n  end loop;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_set_chapter_status",
+      "identity_arguments": "p_chapter_id uuid, p_status text, p_release_date timestamp with time zone",
+      "argument_types": "p_chapter_id uuid, p_status text, p_release_date timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "return_type": "TABLE(id uuid, status text, release_date timestamp with time zone)",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_set_chapter_status(p_chapter_id uuid, p_status text, p_release_date timestamp with time zone DEFAULT NULL::timestamp with time zone)\n RETURNS TABLE(id uuid, status text, release_date timestamp with time zone)\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_status text;\n  v_release_date timestamptz;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_chapter_id is null then\n    raise exception 'Chapter ID is required';\n  end if;\n\n  v_status := lower(trim(coalesce(p_status, '')));\n  v_status := case v_status\n    when 'draft' then 'Draft'\n    when 'published' then 'Published'\n    when 'archived' then 'Archived'\n    when 'scheduled' then 'Scheduled'\n    when 'pre-uploaded' then 'Pre-uploaded'\n    else null\n  end;\n\n  if v_status is null then\n    raise exception 'Invalid chapter status';\n  end if;\n\n  if not exists (\n    select 1\n    from public.pal_do_pal_ke_lamhe_chapters as existing_chapter\n    where existing_chapter.id = p_chapter_id\n  ) then\n    raise exception 'Chapter not found';\n  end if;\n\n  if v_status = 'Published'\n     and not exists (\n       select 1\n       from public.pal_do_pal_ke_lamhe_chapter_pages as page\n       where page.chapter_id = p_chapter_id\n     )\n  then\n    raise exception 'Cannot publish a chapter without manga pages';\n  end if;\n\n  select coalesce(\n    p_release_date,\n    case when v_status = 'Published' then chapter.release_date end,\n    case when v_status = 'Published' then now() end\n  )\n  into v_release_date\n  from public.pal_do_pal_ke_lamhe_chapters as chapter\n  where chapter.id = p_chapter_id;\n\n  update public.pal_do_pal_ke_lamhe_chapters as chapter\n  set\n    status = v_status,\n    release_date = case\n      when v_status = 'Published' then v_release_date\n      when p_release_date is not null then p_release_date\n      else chapter.release_date\n    end\n  where chapter.id = p_chapter_id;\n\n  return query\n  select chapter.id, chapter.status, chapter.release_date\n  from public.pal_do_pal_ke_lamhe_chapters as chapter\n  where chapter.id = p_chapter_id;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_touch_chapter_updated_at",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_touch_chapter_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  new.updated_at = now();\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "pdlpl_upsert_chapter",
+      "identity_arguments": "p_chapter_id uuid, p_chapter_number bigint, p_language text, p_title text, p_description text, p_status text, p_release_date timestamp with time zone",
+      "argument_types": "p_chapter_id uuid, p_chapter_number bigint, p_language text, p_title text, p_description text DEFAULT ''::text, p_status text DEFAULT 'Draft'::text, p_release_date timestamp with time zone DEFAULT NULL::timestamp with time zone",
+      "return_type": "TABLE(id uuid, chapter_number bigint, language text, title text, description text, status text, release_date timestamp with time zone, cover_path text)",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.pdlpl_upsert_chapter(p_chapter_id uuid, p_chapter_number bigint, p_language text, p_title text, p_description text DEFAULT ''::text, p_status text DEFAULT 'Draft'::text, p_release_date timestamp with time zone DEFAULT NULL::timestamp with time zone)\n RETURNS TABLE(id uuid, chapter_number bigint, language text, title text, description text, status text, release_date timestamp with time zone, cover_path text)\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  normalized_language text := lower(trim(coalesce(p_language, 'hi')));\n  normalized_status text := initcap(lower(trim(coalesce(p_status, 'Draft'))));\n  chapter_id_value uuid := p_chapter_id;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required.';\n  end if;\n\n  if chapter_id_value is null then\n    chapter_id_value := gen_random_uuid();\n  end if;\n\n  if normalized_language not in ('hi', 'en') then\n    raise exception 'Unsupported PDPKL language.';\n  end if;\n\n  if p_chapter_number is not null and p_chapter_number < 1 then\n    raise exception 'Chapter number must be at least 1.';\n  end if;\n\n  if trim(coalesce(p_title, '')) = '' then\n    raise exception 'Chapter title is required.';\n  end if;\n\n  if normalized_status not in ('Draft', 'Published', 'Archived', 'Scheduled', 'Pre-uploaded') then\n    raise exception 'Invalid PDPKL chapter status.';\n  end if;\n\n  if normalized_status = 'Scheduled' and p_release_date is null then\n    raise exception 'Scheduled chapters need a release date.';\n  end if;\n\n  if exists (\n    select 1\n    from public.pal_do_pal_ke_lamhe_chapters as existing_chapter\n    where existing_chapter.id = chapter_id_value\n  ) then\n    update public.pal_do_pal_ke_lamhe_chapters as c\n    set\n      chapter_number = p_chapter_number,\n      language = normalized_language,\n      title = trim(p_title),\n      description = coalesce(p_description, ''),\n      status = normalized_status,\n      release_date = p_release_date,\n      updated_at = now()\n    where c.id = chapter_id_value;\n  else\n    insert into public.pal_do_pal_ke_lamhe_chapters (\n      id, chapter_number, language, title, description, status, release_date\n    )\n    values (\n      chapter_id_value,\n      p_chapter_number,\n      normalized_language,\n      trim(p_title),\n      coalesce(p_description, ''),\n      normalized_status,\n      p_release_date\n    );\n  end if;\n\n  return query\n  select\n    c.id,\n    c.chapter_number,\n    c.language,\n    c.title,\n    c.description,\n    c.status,\n    c.release_date,\n    c.cover_path\n  from public.pal_do_pal_ke_lamhe_chapters as c\n  where c.id = chapter_id_value;\nend;\n$function$\n"
+    },
+    {
+      "name": "prepare_password_login",
+      "identity_arguments": "p_email text",
+      "argument_types": "p_email text",
+      "return_type": "TABLE(user_id uuid, email text, email_confirmed boolean, has_password boolean, mfa_enabled boolean, failed_count integer, locked_until timestamp with time zone)",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public, auth"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.prepare_password_login(p_email text)\n RETURNS TABLE(user_id uuid, email text, email_confirmed boolean, has_password boolean, mfa_enabled boolean, failed_count integer, locked_until timestamp with time zone)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'auth'\nAS $function$\ndeclare\n  v_user_id uuid;\nbegin\n  select u.id into v_user_id\n  from auth.users as u\n  where lower(u.email) = lower(trim(p_email))\n    and coalesce(u.is_anonymous, false) = false\n    and u.deleted_at is null\n  order by u.created_at desc\n  limit 1;\n\n  if v_user_id is null then\n    return;\n  end if;\n\n  update public.login_password_protection as lp\n  set failed_count = 0,\n      first_failed_at = null,\n      last_failed_at = null,\n      locked_until = null,\n      last_alerted_at = null\n  where lp.user_id = v_user_id\n    and lp.locked_until is not null\n    and lp.locked_until <= now();\n\n  return query\n  select\n    u.id,\n    u.email::text,\n    u.email_confirmed_at is not null,\n    u.encrypted_password is not null and length(u.encrypted_password) > 0,\n    exists (\n      select 1\n      from auth.mfa_factors as f\n      where f.user_id = u.id\n        and f.status = 'verified'\n    ),\n    coalesce(lp.failed_count, 0),\n    lp.locked_until\n  from auth.users as u\n  left join public.login_password_protection as lp\n    on lp.user_id = u.id\n  where u.id = v_user_id;\nend;\n$function$\n"
+    },
+    {
+      "name": "record_feature_login",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "feature_unlock_config",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, auth"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.record_feature_login()\n RETURNS feature_unlock_config\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'auth'\nAS $function$\nDECLARE\n  v_user_id uuid := auth.uid();\n  v_inserted integer := 0;\n  v_config public.feature_unlock_config;\nBEGIN\n  IF v_user_id IS NULL THEN\n    RAISE EXCEPTION 'Authentication required';\n  END IF;\n\n  INSERT INTO public.feature_login_users (user_id)\n  VALUES (v_user_id)\n  ON CONFLICT (user_id) DO NOTHING;\n\n  GET DIAGNOSTICS v_inserted = ROW_COUNT;\n\n  IF v_inserted > 0 THEN\n    UPDATE public.feature_unlock_config\n    SET login_user_count = login_user_count + 1,\n        membership_unlocked = membership_unlocked OR login_user_count + 1 >= 200,\n        group_chat_unlocked = group_chat_unlocked OR login_user_count + 1 >= 500,\n        updated_at = now()\n    WHERE id = true;\n  END IF;\n\n  SELECT * INTO v_config FROM public.feature_unlock_config WHERE id = true;\n  RETURN v_config;\nEND;\n$function$\n"
+    },
+    {
+      "name": "record_password_login_failure",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "TABLE(failed_count integer, locked_until timestamp with time zone, should_alert boolean, mfa_enabled boolean)",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public, auth"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.record_password_login_failure(p_user_id uuid)\n RETURNS TABLE(failed_count integer, locked_until timestamp with time zone, should_alert boolean, mfa_enabled boolean)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'auth'\nAS $function$\ndeclare\n  v_now timestamptz := now();\n  v_failed_count integer := 0;\n  v_first_failed_at timestamptz;\n  v_last_failed_at timestamptz;\n  v_locked_until timestamptz;\n  v_previous_count integer := 0;\n  v_new_count integer;\n  v_mfa_enabled boolean;\nbegin\n  select exists (\n    select 1\n    from auth.mfa_factors as f\n    where f.user_id = p_user_id\n      and f.status = 'verified'\n  )\n  into v_mfa_enabled;\n\n  insert into public.login_password_protection (user_id)\n  values (p_user_id)\n  on conflict (user_id) do nothing;\n\n  select\n    lp.failed_count,\n    lp.first_failed_at,\n    lp.last_failed_at,\n    lp.locked_until\n  into\n    v_failed_count,\n    v_first_failed_at,\n    v_last_failed_at,\n    v_locked_until\n  from public.login_password_protection as lp\n  where lp.user_id = p_user_id\n  for update;\n\n  if v_locked_until is not null and v_locked_until > v_now then\n    return query select v_failed_count, v_locked_until, false, v_mfa_enabled;\n    return;\n  end if;\n\n  if v_last_failed_at is not null\n     and v_last_failed_at < v_now - interval '24 hours' then\n    v_failed_count := 0;\n    v_first_failed_at := null;\n    v_last_failed_at := null;\n    v_locked_until := null;\n    v_previous_count := 0;\n  else\n    v_previous_count := v_failed_count;\n  end if;\n\n  v_new_count := least(v_previous_count + 1, 5);\n\n  update public.login_password_protection as lp\n  set failed_count = v_new_count,\n      first_failed_at = coalesce(v_first_failed_at, v_now),\n      last_failed_at = v_now,\n      locked_until = case\n        when v_new_count >= 5 then v_now + interval '24 hours'\n        else null\n      end,\n      last_alerted_at = case\n        when v_new_count >= 5 then v_now\n        else lp.last_alerted_at\n      end\n  where lp.user_id = p_user_id\n  returning lp.failed_count, lp.locked_until\n  into v_failed_count, v_locked_until;\n\n  return query\n  select\n    v_failed_count,\n    v_locked_until,\n    v_new_count = 5 and v_previous_count < 5,\n    v_mfa_enabled;\nend;\n$function$\n"
+    },
+    {
+      "name": "reorder_chapter_page",
+      "identity_arguments": "p_page_id uuid, p_direction integer",
+      "argument_types": "p_page_id uuid, p_direction integer",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.reorder_chapter_page(p_page_id uuid, p_direction integer)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_chapter_id uuid;\n  v_current_number bigint;\n  v_target_id uuid;\n  v_target_number bigint;\n  v_temporary_number bigint;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n  if p_page_id is null then\n    raise exception 'Page ID is required';\n  end if;\n  if p_direction not in (-1, 1) then\n    raise exception 'Direction must be -1 or 1';\n  end if;\n\n  select page.chapter_id, page.page_number\n  into v_chapter_id, v_current_number\n  from public.chapter_pages page\n  where page.id = p_page_id;\n\n  if v_chapter_id is null then\n    raise exception 'Page not found';\n  end if;\n\n  perform 1\n  from public.chapter_pages page\n  where page.chapter_id = v_chapter_id\n  order by page.page_number, page.id\n  for update;\n\n  if p_direction = -1 then\n    select page.id, page.page_number\n    into v_target_id, v_target_number\n    from public.chapter_pages page\n    where page.chapter_id = v_chapter_id\n      and (page.page_number, page.id) < (v_current_number, p_page_id)\n    order by page.page_number desc, page.id desc\n    limit 1;\n  else\n    select page.id, page.page_number\n    into v_target_id, v_target_number\n    from public.chapter_pages page\n    where page.chapter_id = v_chapter_id\n      and (page.page_number, page.id) > (v_current_number, p_page_id)\n    order by page.page_number asc, page.id asc\n    limit 1;\n  end if;\n\n  if v_target_id is null then\n    return;\n  end if;\n\n  select coalesce(max(page.page_number), 0) + 1\n  into v_temporary_number\n  from public.chapter_pages page\n  where page.chapter_id = v_chapter_id;\n\n  update public.chapter_pages\n  set page_number = v_temporary_number\n  where id = p_page_id;\n\n  update public.chapter_pages\n  set page_number = v_current_number\n  where id = v_target_id;\n\n  update public.chapter_pages\n  set page_number = v_target_number\n  where id = p_page_id;\nend;\n$function$\n"
+    },
+    {
+      "name": "replace_chapter_pages",
+      "identity_arguments": "p_chapter_id uuid, p_pages jsonb",
+      "argument_types": "p_chapter_id uuid, p_pages jsonb",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=\"\""
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.replace_chapter_pages(p_chapter_id uuid, p_pages jsonb)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  page jsonb;\nbegin\n  if not private.is_admin() then\n    raise exception 'Admin access required';\n  end if;\n\n  if p_chapter_id is null then\n    raise exception 'Chapter ID is required';\n  end if;\n\n  if jsonb_typeof(p_pages) <> 'array' or jsonb_array_length(p_pages) = 0 then\n    raise exception 'At least one chapter page is required';\n  end if;\n\n  if not exists (select 1 from public.chapters where id = p_chapter_id) then\n    raise exception 'Chapter not found';\n  end if;\n\n  delete from public.chapter_pages where chapter_id = p_chapter_id;\n\n  for page in select value from jsonb_array_elements(p_pages)\n  loop\n    if nullif(trim(page->>'image_url'), '') is null then\n      raise exception 'Every chapter page must have an image URL';\n    end if;\n\n    insert into public.chapter_pages (chapter_id, page_number, image_url)\n    values (\n      p_chapter_id,\n      (page->>'page_number')::bigint,\n      page->>'image_url'\n    );\n  end loop;\nend;\n$function$\n"
+    },
+    {
+      "name": "reset_password_login_protection",
+      "identity_arguments": "p_user_id uuid",
+      "argument_types": "p_user_id uuid",
+      "return_type": "void",
+      "language": "plpgsql",
+      "security_definer": true,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=pg_catalog, public, auth"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.reset_password_login_protection(p_user_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public', 'auth'\nAS $function$\nbegin\n  delete from public.login_password_protection\n   where user_id = p_user_id;\nend;\n$function$\n"
+    },
+    {
+      "name": "set_comments_updated_at",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.set_comments_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nbegin\n  new.updated_at = now();\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "set_pdlpl_comment_updated_at",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.set_pdlpl_comment_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  new.updated_at=now();\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "set_pdlpl_reading_history_updated_at",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public, pg_catalog"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.set_pdlpl_reading_history_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public', 'pg_catalog'\nAS $function$\nbegin\n  new.updated_at=now();\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "name": "set_reader_updated_at",
+      "identity_arguments": "",
+      "argument_types": "",
+      "return_type": "trigger",
+      "language": "plpgsql",
+      "security_definer": false,
+      "strict": false,
+      "volatility": "volatile",
+      "parallel_safety": "u",
+      "configuration": [
+        "search_path=public"
+      ],
+      "definition": "CREATE OR REPLACE FUNCTION public.set_reader_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$ begin new.updated_at = now(); return new; end; $function$\n"
+    }
+  ]
+}

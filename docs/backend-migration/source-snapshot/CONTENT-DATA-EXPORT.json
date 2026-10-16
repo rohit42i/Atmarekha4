@@ -1,0 +1,349 @@
+{
+  "backup_type": "published-content-metadata-export",
+  "source_project_ref": "pbukwjokgkqacaphlqzm",
+  "captured_at": "2026-10-12T05:05:34.063Z",
+  "scope": "manga-series/chapter/page/announcement metadata tables; no user/profile/auth/payment/community data or Storage object bytes; now also includes PDPKL chapter page path metadata; includes non-secret membership-plan and feature-gate configuration; includes derived per-chapter engagement summary snapshots (not live views)",
+  "note": "This preserves source metadata for a Development content pilot. Page/cover references still point to source Cloudflare/R2; binaries are not included. Not a full PostgreSQL backup.",
+  "row_counts": {
+    "manga_series": 1,
+    "chapters": 2,
+    "chapter_pages": 22,
+    "announcements": 1,
+    "pdpkl_chapters": 1,
+    "pdpkl_pages": 2,
+    "subscription_plans": 3,
+    "feature_unlock_config": 1,
+    "chapter_engagement_summary": 2,
+    "pdlpl_chapter_engagement_summary": 1
+  },
+  "tables": {
+    "manga_series": [
+      {
+        "id": "04b3ddf5-5c04-4ec0-8503-e34b645766c3",
+        "kind": "manga",
+        "slug": "atma-rekha",
+        "genre": "Mythical Fantasy • Adventure",
+        "title": "Atma Rekha",
+        "cover_url": null,
+        "created_at": "2026-09-22T17:07:20.675793+00:00",
+        "sort_order": 1,
+        "description": "An Indian mythical-fantasy adventure.",
+        "is_published": true
+      }
+    ],
+    "chapters": [
+      {
+        "id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "title": "Intro",
+        "status": "Published",
+        "language": "hi",
+        "manga_id": "04b3ddf5-5c04-4ec0-8503-e34b645766c3",
+        "cover_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/282d54fd-c4c1-4bb6-976c-156921e16071/cover-1788802609015.png",
+        "created_at": "2026-09-07T17:36:49.406544+00:00",
+        "deleted_at": null,
+        "description": "",
+        "release_date": "2026-09-07T12:06:00+00:00",
+        "chapter_number": null,
+        "deleted_previous_status": null,
+        "card_thumbnail_mobile_url": null,
+        "card_thumbnail_desktop_url": null,
+        "chapter_list_thumbnail_mobile_url": null,
+        "chapter_list_thumbnail_desktop_url": null
+      },
+      {
+        "id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "title": "The Forgotten",
+        "status": "Published",
+        "language": "hi",
+        "manga_id": "04b3ddf5-5c04-4ec0-8503-e34b645766c3",
+        "cover_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/cover-1789677679658.png",
+        "created_at": "2026-09-14T17:29:28.437779+00:00",
+        "deleted_at": null,
+        "description": "",
+        "release_date": "2026-09-14T17:29:28.437779+00:00",
+        "chapter_number": 1,
+        "deleted_previous_status": null,
+        "card_thumbnail_mobile_url": null,
+        "card_thumbnail_desktop_url": null,
+        "chapter_list_thumbnail_mobile_url": null,
+        "chapter_list_thumbnail_desktop_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/chapter-list-desktop-hi-1791438968338.webp"
+      }
+    ],
+    "chapter_pages": [
+      {
+        "id": "aff281ba-7031-47a2-b7a7-65d74f37eceb",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/282d54fd-c4c1-4bb6-976c-156921e16071/1789224967394/0001.png",
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "created_at": "2026-09-12T14:56:28.626217+00:00",
+        "page_number": 1
+      },
+      {
+        "id": "bb128446-4b2d-4996-8415-a850f73acabb",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/282d54fd-c4c1-4bb6-976c-156921e16071/1789224967394/0003.png",
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "created_at": "2026-09-12T14:56:28.626217+00:00",
+        "page_number": 2
+      },
+      {
+        "id": "d71ec140-cfcb-4948-802e-d743192d5ed5",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/282d54fd-c4c1-4bb6-976c-156921e16071/1789224967394/0002.png",
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "created_at": "2026-09-12T14:56:28.626217+00:00",
+        "page_number": 3
+      },
+      {
+        "id": "d5e17092-40d2-4a7a-a27a-d65a8a63f8ce",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/282d54fd-c4c1-4bb6-976c-156921e16071/1789224967394/0004.png",
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "created_at": "2026-09-12T14:56:28.626217+00:00",
+        "page_number": 4
+      },
+      {
+        "id": "90fd49be-ab69-4e59-9ae7-6ca448b31687",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/282d54fd-c4c1-4bb6-976c-156921e16071/1789224967394/0005.png",
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "created_at": "2026-09-12T14:56:28.626217+00:00",
+        "page_number": 5
+      },
+      {
+        "id": "79882aa6-1df6-4f70-b9a7-86b9daf503b5",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0001.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 1
+      },
+      {
+        "id": "3abf31c3-ebc2-40fa-9c22-17bb1e3139da",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0002.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 2
+      },
+      {
+        "id": "16e2cd74-de10-4417-bf2b-4773f56f9fe5",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0003.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 3
+      },
+      {
+        "id": "967fee58-17e3-43d8-b5a0-08024921a0ac",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0004.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 4
+      },
+      {
+        "id": "bd29fab0-f2dd-44dd-b933-bbf5a9777513",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0005.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 5
+      },
+      {
+        "id": "9ec3ac35-9814-4dfe-867f-f91cdf1af484",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0006.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 6
+      },
+      {
+        "id": "cb952f2c-3fb0-419b-bbb1-f2de1838fe97",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0007.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 7
+      },
+      {
+        "id": "b34fb361-a328-4625-bff5-59722a3c78a6",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0008.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 8
+      },
+      {
+        "id": "164c638c-77b3-4819-b2e8-ead328544128",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0009.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 9
+      },
+      {
+        "id": "081fabfc-202b-4e16-b7a3-29b7163779ca",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0010.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 10
+      },
+      {
+        "id": "abdc316b-a2d5-47df-be9e-61dc74bc258b",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0011.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 11
+      },
+      {
+        "id": "e5b6d716-29b3-4d43-8791-1c59564d6e8e",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0012.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 12
+      },
+      {
+        "id": "9ea66a05-2650-498d-aea6-0565607a9923",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0013.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 13
+      },
+      {
+        "id": "6561d504-7465-46d9-b564-4ad20bf6f111",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0014.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 14
+      },
+      {
+        "id": "02dc715b-a341-4e97-b91e-559ad765330e",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0015.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 15
+      },
+      {
+        "id": "5dace37b-bd10-4b70-9d7b-870c33f5fb1d",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0016.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 16
+      },
+      {
+        "id": "15a98dcd-6fcb-4b52-96d8-f47fe006435a",
+        "image_url": "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/chapter-pages/a6ddc25b-c814-4ad2-8386-58ce94639586/1789406971121/0017.png",
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "created_at": "2026-09-14T17:32:33.947918+00:00",
+        "page_number": 17
+      }
+    ],
+    "announcements": [
+      {
+        "id": "9d90f827-5c01-4f6d-b9cf-382910d8ba83",
+        "title": "Chapter 2",
+        "content": "14th October",
+        "image_url": null,
+        "is_pinned": true,
+        "created_at": "2026-10-06T09:43:37.24443+00:00",
+        "pin_target": "pdpkl",
+        "published_at": "2026-10-06T09:43:37.844+00:00",
+        "display_position": null
+      }
+    ],
+    "pdpkl_chapters": [
+      {
+        "id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "title": "Nothing",
+        "status": "Published",
+        "language": "hi",
+        "cover_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/cover-1791438830715.jpg",
+        "created_at": "2026-10-06T13:22:17.509002+00:00",
+        "updated_at": "2026-10-08T05:53:59.369511+00:00",
+        "description": "",
+        "release_date": "2026-10-05T09:52:00+00:00",
+        "chapter_number": 1,
+        "card_thumbnail_mobile_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/card-mobile-1791435666707.jpg",
+        "card_thumbnail_desktop_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/card-desktop-1791435720858.jpg",
+        "chapter_list_thumbnail_mobile_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/chapter-list-mobile-1791438737904.webp",
+        "chapter_list_thumbnail_desktop_path": "covers/chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/chapter-list-desktop-1791438755474.webp"
+      }
+    ],
+    "pdpkl_pages": [
+      {
+        "id": "d41202c3-6211-43f5-b393-9bbbecc41320",
+        "chapter_id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "created_at": "2026-10-06T14:50:37.04983+00:00",
+        "image_path": "chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/pages/hi-1791298229423/0001.jpg",
+        "page_number": 1
+      },
+      {
+        "id": "3d21cff7-179b-4ef1-88fc-e170d2f3e7a5",
+        "chapter_id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "created_at": "2026-10-06T14:50:37.04983+00:00",
+        "image_path": "chapters/cbc77860-15ac-4d41-abe0-f568fc9856af/pages/hi-1791298229423/0002.jpg",
+        "page_number": 2
+      }
+    ],
+    "subscription_plans": [
+      {
+        "id": "mini_member",
+        "name": "Supporter",
+        "active": true,
+        "interval": "month",
+        "amount_inr": 19,
+        "sort_order": 10,
+        "description": "A simple way to join the Atma Rekha journey."
+      },
+      {
+        "id": "supporter",
+        "name": "Premium Supporter",
+        "active": true,
+        "interval": "month",
+        "amount_inr": 29,
+        "sort_order": 20,
+        "description": "Join the Atma Rekha journey and help us keep creating."
+      },
+      {
+        "id": "premium",
+        "name": "Super Supporter",
+        "active": true,
+        "interval": "month",
+        "amount_inr": 49,
+        "sort_order": 30,
+        "description": "Our highest membership tier for readers who want to support Atma Rekha even more."
+      }
+    ],
+    "feature_unlock_config": [
+      {
+        "id": true,
+        "updated_at": "2026-09-23T14:28:47.498142+00:00",
+        "login_user_count": 21,
+        "group_chat_unlocked": true,
+        "membership_unlocked": true
+      }
+    ],
+    "chapter_engagement_summary": [
+      {
+        "chapter_id": "282d54fd-c4c1-4bb6-976c-156921e16071",
+        "updated_at": "2026-10-10T01:18:36.787121+00:00",
+        "likes_count": 0,
+        "pages_count": 5,
+        "ratings_sum": 69,
+        "views_count": 102,
+        "ratings_count": 7,
+        "comments_count": 2
+      },
+      {
+        "chapter_id": "a6ddc25b-c814-4ad2-8386-58ce94639586",
+        "updated_at": "2026-10-11T11:58:11.673021+00:00",
+        "likes_count": 0,
+        "pages_count": 17,
+        "ratings_sum": 98,
+        "views_count": 109,
+        "ratings_count": 10,
+        "comments_count": 12
+      }
+    ],
+    "pdlpl_chapter_engagement_summary": [
+      {
+        "chapter_id": "cbc77860-15ac-4d41-abe0-f568fc9856af",
+        "updated_at": "2026-10-07T01:17:17.183744+00:00",
+        "likes_count": 0,
+        "pages_count": 2,
+        "ratings_sum": 10,
+        "views_count": 3,
+        "shares_count": 0,
+        "ratings_count": 1,
+        "comments_count": 0
+      }
+    ]
+  }
+}

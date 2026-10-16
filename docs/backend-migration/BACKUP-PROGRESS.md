@@ -1,0 +1,122 @@
+# Backup and migration execution status
+
+**Live update:** 16 October 2026 (UTC). This file supersedes the older status notes below where they conflict.
+
+## Latest verified state
+
+- **Encrypted Supabase backup:** Created locally by the owner and verified in Termux. The verifier reported all four checks passed: SHA-256 checksum, HMAC authentication, decryption/package integrity, and PostgreSQL archive listing. This is integrity verification, not a successful restore rehearsal.
+- **Catalyst Development project:** `Atmarekha`, project ID `81164000000013050`, org `60091620701`.
+- **Storage:** A read-only check returned zero Catalyst buckets. Creating the first bucket was attempted for Development and failed with `OPERATION_NOT_ALLOWED`: “User needs to be in session when accessing Stratus for the first time.” The project owner must open Stratus in the Catalyst console once before API-based provisioning can proceed.
+- **Functions:** A live check returned zero Catalyst functions. Supabase has 16 active Edge Functions; their source was retrieved and audited for migration dependencies, but no Catalyst replacements are deployed.
+- **Authentication:** Catalyst configuration reports hosted, embedded, and third-party authentication all disabled.
+- **API Gateway:** Disabled. A route-list attempt returned `INVALID_OPERATION`; no gateway routes were created.
+- **Database:** The existing schema map covers 61 source tables and 411 source columns. During the 16 October session, partial Development data writes were attempted and tool responses reported 165 inserts and 15 updates across a subset of mapped tables. Full 61-table row-by-row reconciliation is **not complete**; treat this as a partial import, not an accepted migration.
+- **Known data risks:** Earlier migration work includes synthetic smoke fixtures. The target also needs a complete audit for missing, duplicate, target-only, and synthetic records. Protected push-subscription tokens were not blindly copied.
+- **Production safety:** Supabase remains the production backend. No production traffic cutover was performed. The migration PR remains draft and unmerged. The GitHub `main` branch, Cloudflare Workers/R2, and deployment pipeline were not intentionally changed by this migration work.
+
+## Remaining gates
+
+1. Owner opens Stratus in the Catalyst console; create and verify all six buckets with correct public/private access.
+2. Complete the full source/target reconciliation across every table, including review/removal of synthetic fixtures only after identification.
+3. Transfer and verify all Storage objects, keeping member-only buckets private.
+4. Implement and deploy Catalyst-compatible server-side functions and authentication; do not expose service credentials in browser code.
+5. Migrate and test all 16 Edge Function behaviours, especially account deletion, payment creation/verification, subscriptions, webhook idempotency, push notifications, admin authorization, and DPDP data rights.
+6. Validate identity continuity and user access rules.
+7. Restore the encrypted backup into an isolated disposable database and prove recovery.
+8. Run end-to-end, authorization, payment, privacy, and rollback tests.
+9. Only then make a separately approved production cutover decision.
+
+---
+
+**Updated:** 12 October 2026 (Asia/Kolkata)  
+
+**Live re-check:** 16 October 2026 (Asia/Kolkata). The encrypted backup is still not created: it requires local Termux execution with the owner's database URL, Storage service-role key, and separately stored passphrase. Catalyst Development still has no Storage buckets or deployed functions; Stratus first-use initialization requires the owner to open Storage in the Catalyst console. No new source rows were transferred and no production resources were changed during this re-check.
+**Current gate:** The metadata snapshot and a Git branch checkpoint are saved. The encrypted database-and-Storage backup has **not been executed**. Catalyst Development already contains a partial import of 448 source rows plus 3 synthetic fixtures; this is not a complete or accepted migration. Production routing is unchanged.
+
+## Confirmed source backup situation
+
+- Source Supabase project ref: `pbukwjokgkqacaphlqzm`, PostgreSQL 17.6.1, region `ap-south-1`.
+- Supabase organization plan was checked through the connected management tool: **Free**.
+- Supabase documents automatic daily database backups for Pro, Team and Enterprise plans, and recommends logical exports/off-site backups for Free-tier projects. Database backups alone do not include the actual bytes stored through the Storage API. See [Supabase Database Backups](https://supabase.com/docs/guides/platform/backups).
+- No native backup/restore command is exposed by the connected Supabase MCP tools. A complete local export needs the database connection URL and a server-side Storage key, entered directly on the owner's phone.
+
+## Metadata snapshot committed to this branch
+
+These are **metadata/reference backups only**, not restorable data backups:
+
+- [SOURCE-INVENTORY.json](./source-snapshot/SOURCE-INVENTORY.json): source project metadata, inventory counts, extensions, current function names/versions, and all 180 migration-history entries.
+- [SOURCE-MIGRATION-HISTORY.csv](./source-snapshot/SOURCE-MIGRATION-HISTORY.csv): 180 source migration history records.
+- [SOURCE-TABLE-METADATA.csv](./source-snapshot/SOURCE-TABLE-METADATA.csv): 61 table definitions and 411 source field descriptions, including nullability/default/check and key metadata.
+- [CATALYST-SCHEMA-MAP.csv](./CATALYST-SCHEMA-MAP.csv): per-field mapping/PK/conversion map, now annotated with current live source/target row counts, excluded rows, and row-count/field-value verification status.
+- [SOURCE-POLICY-AND-SECURITY-METADATA.json](./source-snapshot/SOURCE-POLICY-AND-SECURITY-METADATA.json): all 158 live public/private/Storage policies, table RLS flags, and Storage bucket count/size metadata.
+- [SOURCE-FUNCTION-DEFINITIONS-PUBLIC.json](./source-snapshot/SOURCE-FUNCTION-DEFINITIONS-PUBLIC.json) and [SOURCE-FUNCTION-DEFINITIONS-PRIVATE.json](./source-snapshot/SOURCE-FUNCTION-DEFINITIONS-PRIVATE.json): definitions/security metadata for all 55 public/private SQL functions.
+- [SOURCE-TRIGGER-DEFINITIONS.json](./source-snapshot/SOURCE-TRIGGER-DEFINITIONS.json): 46 non-internal trigger definitions and Realtime publication table metadata.
+- [SOURCE-INDEX-CONSTRAINT-DEFINITIONS.json](./source-snapshot/SOURCE-INDEX-CONSTRAINT-DEFINITIONS.json): 194 index definitions and 233 table-constraint definitions.
+
+No user rows, auth data, payment payloads, or Storage file bytes were committed to GitHub.
+
+## Encrypted local backup kit prepared
+
+- [backup-supabase.sh](../../migration-kit/backup/backup-supabase.sh)
+- [backup-supabase.mjs](../../migration-kit/backup/backup-supabase.mjs)
+- [Backup runbook](../../migration-kit/backup/README.md)
+
+The kit asks for the source DB URL, server-side Storage service-role key and a unique encryption passphrase via silent prompts. It creates a PostgreSQL custom-format dump, captures a table row-count inventory, downloads every Supabase Storage object (including private buckets), puts these into one AES-256-CBC/PBKDF2-encrypted archive, verifies the dump listing and encrypted archive, calculates a SHA-256 checksum and passphrase-derived HMAC-SHA256 authentication sidecar, and removes plaintext temporary files on success. A separate verifier checks integrity before decryption. A GitHub Actions syntax check passed for the backup kit.
+
+### Required local action to create the actual backup
+
+In Termux on the Android phone:
+
+1. Install requirements and grant shared Downloads access as shown in the runbook.
+2. Download the three backup-kit files from this branch to the same folder.
+3. Run `bash ./backup-supabase.sh`.
+4. Enter credentials only into the silent local prompts. Never send the database URL, service-role key or encryption passphrase to ChatGPT or GitHub.
+5. Confirm the script says `Complete` and save the encrypted archive, .sha256, .hmac and .manifest.txt files. Keep the passphrase separate from the phone.
+
+**Do not say the backup is complete unless the script succeeds.** The script has not been run from this environment.
+
+## Current migration state
+
+- Catalyst Development schema is staged: 61 tables / 411 source-mapped fields.
+- Table permission lists have been read back for all 61 tables and match the intended model: App User has no table operations; App Administrator has CRUD.
+- Three synthetic, unpublished rows in the series → chapter → page relationship were inserted and read back successfully.
+- Catalyst Development currently has 451 rows across 62 tables: 448 source rows plus 3 synthetic fixtures. The existing import includes 12 `payment_events` rows and account-adjacent reader data. The target remains closed to the App User role, has no deployed serverless functions and has no API Gateway; review/disallow sensitive records before any public route or data-serving function is enabled. No authentication identities/password hashes or Storage object bytes were copied.
+- Authentication, server functions, API Gateway, CORS and Storage buckets are still unconfigured. Stratus requires a first-use console session before the bucket API can create buckets.
+- No production code, Supabase, Cloudflare or Razorpay settings have been changed.
+
+## 16 October execution update — backup safety and owner steps
+
+The local backup kit was hardened in the migration branch:
+
+- Validates the database host/project-specific Session Pooler username against source project `pbukwjokgkqacaphlqzm` before dumping.
+- Stops unless the exact six reviewed Storage buckets are present and their current public/private settings match the reviewed inventory.
+- Applies owner-only local file permissions (`umask 077`) and no longer forwards the database URL, Storage service-role key, or passphrase to child utility processes by default.
+- Backup verification similarly strips the passphrase from spawned subprocess environments.
+- Interrupt/termination cleanup removes in-progress plaintext work folders and incomplete artifacts.
+
+The GitHub Actions migration-kit validation run #48 completed successfully on commit `8a06bed2e5eed11132c451b0f1be86cb8fecc6fa`: JavaScript syntax, shell syntax, and tracked metadata parse checks passed. The same pull-request commit's main application workflow #3086 also passed dependency audit, static regression checks, and the production build; all Cloudflare deployment/infrastructure steps were **skipped**. This was build/static validation only. The actual source backup is still **NOT CREATED**, and no restore rehearsal has run.
+
+The exact phone-only instructions are now documented in [OWNER-EXECUTION-STEPS.md](./OWNER-EXECUTION-STEPS.md). Start with Phase 1 (Termux backup) and then Phase 2 (owner's first-use Stratus initialization). Do not transfer more records or enable public APIs before the backup and restore gates pass.
+
+## Go/no-go
+
+**Further data migration remains blocked** until the encrypted backup succeeds and its contents are independently restored/verified in isolation. After that gate, review already-imported sensitive records, initialize Stratus, implement/review the server-side API/authz layer, and verify source-to-target contracts with synthetic data. Do not transfer additional auth, payment, token, private feedback or incident data; do not expose existing target rows or route the website to Catalyst.
+
+The source schema and migration-history snapshot is preserved, but it is not a substitute for the encrypted backup or restore rehearsal.
+
+### Coverage caveat
+
+The local kit is a **database + Supabase Storage object backup**, not a full clone of Supabase project settings. It does not export OAuth/SMTP provider secrets, project API keys, Edge Function environment secrets/deployed code, the Supabase Vault encryption root key, Cloudflare R2 objects/configuration, Razorpay settings, or the website deployment configuration. This project reports Supabase Vault installed, so follow the platform's separate Vault key/recovery procedure before calling the entire service fully recoverable. These items must be inventoried separately and stored securely outside GitHub.
+
+
+## Live correction — 16 October 2026
+
+This section supersedes any conflicting earlier status in this file.
+
+- The encrypted backup **was created and passed integrity checks in Termux**. It has not passed an isolated restore rehearsal.
+- Latest Catalyst auth check reports **hosted authentication enabled** and **public signup enabled**; embedded and third-party auth are disabled. This does not prove identity migration or login compatibility.
+- Source application schema is 61 tables (59 public + 2 private) and 411 columns. Catalyst has 62 Datastore tables: all source table names are represented through the current mapping, including the two private tables with `private_` prefixes, plus target-only `migration_timestamp_precision_archive`. Field-level parity and data reconciliation are still unverified.
+- Catalyst Functions remains at **0 deployed**; all 16 Supabase Edge Functions still need compatible replacements and tests.
+- Catalyst Stratus still reports **0 buckets**. The owner reports creating six folders in Catalyst **File Store** using underscore names; these are distinct from Stratus buckets, and this connection cannot verify File Store contents or permissions.
+- Supabase remains production. Do not merge PR #60 or change GitHub `main`, Cloudflare Workers/R2, or the deployment pipeline.
+- See [STATUS-ADDENDUM-2026-10-16.md](./STATUS-ADDENDUM-2026-10-16.md) for the direct checks and exact remaining release gates.

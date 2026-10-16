@@ -1,0 +1,484 @@
+{
+  "snapshot_at": "2026-10-12",
+  "source": {
+    "project_ref": "pbukwjokgkqacaphlqzm",
+    "tables": 61,
+    "columns": 411,
+    "actual_row_count": 537,
+    "migration_history_records": 180,
+    "edge_functions": 16,
+    "schema_distribution": {
+      "public_tables": 59,
+      "public_columns": 396,
+      "private_tables": 2,
+      "private_columns": 15,
+      "total_tables": 61,
+      "total_columns": 411,
+      "exact_count_query_rows": 537,
+      "nonempty_tables": 41,
+      "empty_tables": 20
+    }
+  },
+  "target": {
+    "project_id": "81164000000013050",
+    "environment": "Development",
+    "mapped_source_tables": 61,
+    "mapped_source_fields": 411,
+    "table_permissions_verified": true,
+    "app_user_table_operations": "none",
+    "app_administrator_table_operations": [
+      "SELECT",
+      "INSERT",
+      "UPDATE",
+      "DELETE"
+    ],
+    "observed_table_count": 62,
+    "live_total_row_count": 451,
+    "table_permissions_checked_count": 62
+  },
+  "data_transfer": {
+    "imported_source_rows": 448,
+    "tables_with_data_and_full_field_comparison_verified": 35,
+    "additional_empty_table_verified": 1,
+    "value_mismatches": 0,
+    "missing_source_records": 89,
+    "unexpected_target_records": 3,
+    "verified_tables": [
+      {
+        "table": "public.manga_series",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapters",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_pages",
+        "source_rows": 22,
+        "target_source_rows_verified": 22,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.announcements",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pal_do_pal_ke_lamhe_chapters",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pal_do_pal_ke_lamhe_chapter_pages",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.subscription_plans",
+        "source_rows": 3,
+        "target_source_rows_verified": 3,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.feature_unlock_config",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_engagement_summary",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_chapter_engagement_summary",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.profiles",
+        "source_rows": 25,
+        "target_source_rows_verified": 25,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.admins",
+        "source_rows": 5,
+        "target_source_rows_verified": 5,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.feature_login_users",
+        "source_rows": 16,
+        "target_source_rows_verified": 16,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.bookmarks",
+        "source_rows": 10,
+        "target_source_rows_verified": 10,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.reading_history",
+        "source_rows": 22,
+        "target_source_rows_verified": 22,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comments",
+        "source_rows": 14,
+        "target_source_rows_verified": 14,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_ratings",
+        "source_rows": 17,
+        "target_source_rows_verified": 17,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comment_likes",
+        "source_rows": 16,
+        "target_source_rows_verified": 16,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.chapter_views",
+        "source_rows": 211,
+        "target_source_rows_verified": 211,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comment_reports",
+        "source_rows": 0,
+        "target_source_rows_verified": 0,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.user_subscriptions",
+        "source_rows": 9,
+        "target_source_rows_verified": 9,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.payment_events",
+        "source_rows": 12,
+        "target_source_rows_verified": 12,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.push_subscriptions",
+        "source_rows": 8,
+        "target_source_rows_verified": 8,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.community_posts",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.community_post_reactions",
+        "source_rows": 8,
+        "target_source_rows_verified": 8,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.group_chat_reactions",
+        "source_rows": 4,
+        "target_source_rows_verified": 4,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.group_chat_reads",
+        "source_rows": 10,
+        "target_source_rows_verified": 10,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.group_chat_likes",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_chapter_ratings",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_chapter_views",
+        "source_rows": 3,
+        "target_source_rows_verified": 3,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_bookmarks",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.pdlpl_reading_history",
+        "source_rows": 3,
+        "target_source_rows_verified": 3,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.comment_like_counts",
+        "source_rows": 9,
+        "target_source_rows_verified": 9,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.dpdp_consent_records",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.dpdp_deletion_requests",
+        "source_rows": 2,
+        "target_source_rows_verified": 2,
+        "full_mapped_field_comparison": "pass"
+      },
+      {
+        "table": "public.site_feedback",
+        "source_rows": 1,
+        "target_source_rows_verified": 1,
+        "full_mapped_field_comparison": "pass"
+      }
+    ],
+    "target_only_synthetic_fixtures": [
+      {
+        "table": "manga_series",
+        "id": "9b2f2d4a-4b8b-4c9a-9d91-000000000114"
+      },
+      {
+        "table": "chapters",
+        "id": "9b2f2d4a-4b8b-4c9a-9d91-000000000115"
+      },
+      {
+        "table": "chapter_pages",
+        "id": "9b2f2d4a-4b8b-4c9a-9d91-000000000116"
+      }
+    ],
+    "excluded_runtime_state": [
+      {
+        "table": "public.edge_rate_limits",
+        "rows": 39,
+        "reason": "ephemeral throttling state; stale counters should not be replayed"
+      },
+      {
+        "table": "private.feedback_rate_limits",
+        "rows": 1,
+        "reason": "ephemeral throttling state; stale counters should not be replayed"
+      },
+      {
+        "table": "public.login_password_protection",
+        "rows": 1,
+        "reason": "auth-provider-specific lockout record; do not replay into a different identity system"
+      }
+    ],
+    "deferred_by_tool_safety_checks": [
+      {
+        "table": "public.group_chat_messages",
+        "rows": 2,
+        "reason": "MCP retrieval of message bodies was blocked by platform safety checks; not transferred"
+      },
+      {
+        "table": "public.admin_activity_log",
+        "rows": 42,
+        "reason": "MCP retrieval of audit details was blocked by platform safety checks; not transferred"
+      },
+      {
+        "table": "public.admin_notification_log",
+        "rows": 4,
+        "reason": "MCP retrieval of notification records was blocked by platform safety checks; not transferred"
+      }
+    ],
+    "note": "Live count-only reconciliation on 2026-10-12 confirms 537 source rows across 61 mapped tables, 448 source rows already present in Catalyst Development, and 3 known synthetic fixtures (451 target rows across 62 target tables). 89 source rows remain absent across six deferred/operational tables listed in source_rows_not_imported. No row values were included in this report. The earlier import report records full mapped-field comparison for 35 tables plus one empty table; this checkpoint repeated row counts but did not repeat field-by-field value comparisons. Catalyst DateTime columns accept second precision only, so imported timestamps may have been normalized/truncated to seconds.",
+    "records_missing_within_imported_subset": 0,
+    "known_synthetic_extra_records": [
+      {
+        "table": "manga_series",
+        "count": 1,
+        "description": "synthetic migration smoke series"
+      },
+      {
+        "table": "chapters",
+        "count": 1,
+        "description": "synthetic draft smoke chapter"
+      },
+      {
+        "table": "chapter_pages",
+        "count": 1,
+        "description": "synthetic smoke page"
+      }
+    ],
+    "source_rows_not_imported": [
+      {
+        "table": "public.group_chat_messages",
+        "source_rows": 2
+      },
+      {
+        "table": "public.edge_rate_limits",
+        "source_rows": 39
+      },
+      {
+        "table": "public.admin_activity_log",
+        "source_rows": 42
+      },
+      {
+        "table": "public.admin_notification_log",
+        "source_rows": 4
+      },
+      {
+        "table": "private.feedback_rate_limits",
+        "source_rows": 1
+      },
+      {
+        "table": "public.login_password_protection",
+        "source_rows": 1
+      }
+    ],
+    "tables_with_matching_source_target_row_counts": 52,
+    "tables_with_one_extra_synthetic_row": 3,
+    "source_rows_not_imported_total": 89,
+    "observed_target_rows_total": 451
+  },
+  "storage": {
+    "source_buckets": 2,
+    "source_objects": 87,
+    "source_bytes": 47353285,
+    "source_mib": 45.16,
+    "buckets": [
+      {
+        "name": "atma-rekha-manga",
+        "objects": 79,
+        "bytes": 43401588
+      },
+      {
+        "name": "pdlpl-manga",
+        "objects": 8,
+        "bytes": 3951697
+      }
+    ],
+    "objects_copied": 0,
+    "target_buckets_created": 0,
+    "blocker": "Catalyst Stratus API requires the user to open Stratus/Storage in the project console once before API access is permitted."
+  },
+  "backup": {
+    "schema_and_history_metadata_snapshot": "committed to migration branch",
+    "content_metadata_export": "committed to migration branch (public content/config only)",
+    "r2_inventory_summary": "committed to migration branch (counts/bytes only)",
+    "encrypted_full_database_plus_storage_backup": "not created",
+    "local_termux_backup_kit": "committed; requires locally entered database URL, Storage service-role key, and encryption passphrase",
+    "restore_rehearsal": "not run",
+    "git_source_checkpoint_branch": "backup/backend-migration-checkpoint-2026-10-12",
+    "git_source_checkpoint_base_sha": "c90f4d76baf3c346dda486aa4ee86b9284753494",
+    "encrypted_full_database_plus_supabase_storage_backup": "not created",
+    "isolated_restore_rehearsal": "not run",
+    "note": "The Git checkpoint preserves the repository snapshot only. It is not a PostgreSQL dump, Auth export, Storage object backup, or proven restorable backup."
+  },
+  "functions_and_cutover": {
+    "target_serverless_functions_deployed": 0,
+    "target_auth_enabled": false,
+    "target_api_gateway_routes": 0,
+    "production_routing_changed": false,
+    "source_supabase_cloudflare_razorpay_live_site_changed": false,
+    "ready_for_production_cutover": false,
+    "target_datastore_table_count": 62,
+    "target_table_permissions": "Verified on all 62 tables: App Administrator SELECT/INSERT/UPDATE/DELETE; App User has no table operations.",
+    "source_missing_function_sources_recovered_to_migration_branch": [
+      {
+        "slug": "delete-account",
+        "version": 17
+      },
+      {
+        "slug": "send-chapter-notification",
+        "version": 17
+      },
+      {
+        "slug": "send-chapter-notification-v2",
+        "version": 25
+      },
+      {
+        "slug": "send-email-to-users",
+        "version": 7
+      },
+      {
+        "slug": "get-admin-console-data",
+        "version": 2
+      },
+      {
+        "slug": "dpdp-data-rights",
+        "version": 4
+      },
+      {
+        "slug": "submit-feedback",
+        "version": 1
+      }
+    ],
+    "source_recovery_note": "Function source files and any returned deno.json files were retrieved from the live Supabase function source API and committed to the migration branch after basic literal-secret-pattern scanning. No deployed function was modified. These sources are not yet on main and are not Catalyst replacements."
+  },
+  "supabase_storage_live_audit": {
+    "observed_at": "2026-10-12",
+    "source_buckets": 6,
+    "source_objects": 22,
+    "recorded_object_size_bytes": 36855671,
+    "buckets": [
+      {
+        "name": "assets",
+        "public": true,
+        "objects": 0,
+        "recorded_size_bytes": 0
+      },
+      {
+        "name": "chapter-pages",
+        "public": true,
+        "objects": 10,
+        "recorded_size_bytes": 30650342
+      },
+      {
+        "name": "community",
+        "public": true,
+        "objects": 3,
+        "recorded_size_bytes": 612477
+      },
+      {
+        "name": "covers",
+        "public": true,
+        "objects": 9,
+        "recorded_size_bytes": 5592852
+      },
+      {
+        "name": "member-content",
+        "public": false,
+        "objects": 0,
+        "recorded_size_bytes": 0
+      },
+      {
+        "name": "pdlpl-content",
+        "public": false,
+        "objects": 0,
+        "recorded_size_bytes": 0
+      }
+    ],
+    "object_bytes_copied_to_catalyst": 0,
+    "target_stratus_buckets_created": 0,
+    "blocker": "Open Stratus/Storage once in the Catalyst Development console to satisfy first-use session requirement before bucket provisioning."
+  }
+}
