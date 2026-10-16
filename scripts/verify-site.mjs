@@ -99,6 +99,19 @@ if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupCh
   console.error('CHECK FAILED: Group Chat must offer sign-in for sending, liking and reacting while logged out.');
   failed = true;
 }
+const communityShareRegression = await readFile('Community.jsx', 'utf8');
+if (!communityShareRegression.includes('const copy=async post=>') || !communityShareRegression.includes('await navigator.clipboard.writeText(post.content)') || !communityShareRegression.includes('Could not copy this message on your device.')) {
+  console.error('CHECK FAILED: Community Copy must await clipboard success and report failure accurately.');
+  failed = true;
+}
+if (!communityShareRegression.includes('Message and link copied.') || !communityShareRegression.includes('if(navigator.share)')) {
+  console.error('CHECK FAILED: Community Share must use native share or a working link-copy fallback.');
+  failed = true;
+}
+if (communityShareRegression.includes("navigator.clipboard?.writeText(post.content);setNotice('Message copied.')")) {
+  console.error('CHECK FAILED: Community must not claim a clipboard copy succeeded without awaiting it.');
+  failed = true;
+}
 const readerSourceRegression = await readFile('App.jsx', 'utf8');
 if (readerSourceRegression.includes('if (!pages.length) return null;')) {
   console.error('CHECK FAILED: Reader must not render a blank page when a chapter has no pages.');
