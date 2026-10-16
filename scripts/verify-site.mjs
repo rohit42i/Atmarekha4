@@ -95,8 +95,21 @@ if (!enhancedCommentsAuthRegression.includes("detail:{mode:'login'}") || !enhanc
   failed = true;
 }
 const groupChatAuthRegression = await readFile('GroupChat.jsx', 'utf8');
-if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupChatAuthRegression.includes("detail:{mode:'login'}")) {
+if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupChatAuthRegression.includes("detail:{mode:'login'}") || !groupChatAuthRegression.includes('Sign in to join the conversation')) {
   console.error('CHECK FAILED: Group Chat must offer sign-in for sending, liking and reacting while logged out.');
+  failed = true;
+}
+const communityShareRegression = await readFile('Community.jsx', 'utf8');
+if (!communityShareRegression.includes('const copy=async post=>') || !communityShareRegression.includes('await navigator.clipboard.writeText(post.content)') || !communityShareRegression.includes('Could not copy this message on your device.')) {
+  console.error('CHECK FAILED: Community Copy must await clipboard success and report failure accurately.');
+  failed = true;
+}
+if (!communityShareRegression.includes('Message and link copied.') || !communityShareRegression.includes('if(navigator.share)')) {
+  console.error('CHECK FAILED: Community Share must use native share or a working link-copy fallback.');
+  failed = true;
+}
+if (communityShareRegression.includes("navigator.clipboard?.writeText(post.content);setNotice('Message copied.')")) {
+  console.error('CHECK FAILED: Community must not claim a clipboard copy succeeded without awaiting it.');
   failed = true;
 }
 const readerSourceRegression = await readFile('App.jsx', 'utf8');
