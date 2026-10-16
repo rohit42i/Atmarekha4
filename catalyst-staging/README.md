@@ -11,7 +11,7 @@ This directory is separate from the Vite website build and production deployment
 
 ### `functions/atmarekha-health`
 
-A dependency-free Basic I/O liveness probe. It reports static staging status and does not connect to the Data Store or process identities.
+A dependency-free Basic I/O liveness probe. It reports static Development status and does not connect to the Data Store or process identities. It is a readiness indicator only; it must not be used as a production health contract.
 
 ### `functions/atma-rekha-api`
 
