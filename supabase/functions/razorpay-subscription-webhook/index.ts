@@ -1,6 +1,29 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+
+async function readLimitedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(req.headers.get('content-length') || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      try { await reader.cancel(); } catch {}
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
 function hexBytes(hex: string) { if (!/^[0-9a-f]+$/i.test(hex) || hex.length % 2) return null; const bytes = new Uint8Array(hex.length / 2); for (let i = 0; i < bytes.length; i += 1) bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16); return bytes; }
 function safeEqual(a: Uint8Array, b: Uint8Array) { if (a.length !== b.length) return false; let diff = 0; for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i]; return diff === 0; }
 async function hmac(body: string, secret: string) { const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body)); return new Uint8Array(signature); }
@@ -13,7 +36,7 @@ Deno.serve(async req => {
   try {
     const secret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET')?.trim() || ''; const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim() || ''; const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() || '';
     if (!secret || !supabaseUrl || !service) return new Response('Webhook configuration missing', { status: 500 });
-    const raw = await req.text(); const received = req.headers.get('x-razorpay-signature') || ''; const expected = await hmac(raw, secret); const receivedBytes = hexBytes(received);
+    const raw = await readLimitedBody(req, 1024 * 1024); if (raw === null) return new Response('Payload too large', { status: 413 }); const received = req.headers.get('x-razorpay-signature') || ''; const expected = await hmac(raw, secret); const receivedBytes = hexBytes(received);
     if (!receivedBytes || !safeEqual(expected, receivedBytes)) return new Response('Invalid signature', { status: 400 });
     let event: any;
     try { event = JSON.parse(raw); } catch { return new Response('Invalid JSON', { status: 400 }); }
