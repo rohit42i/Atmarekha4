@@ -270,5 +270,63 @@ if (!adminPanelSource.includes("{ key: 'Email Campaigns'") || !adminPanelSource.
   failed = true;
 }
 
+
+const adminPaletteSource = await readFile('AdminCommandPalette.jsx', 'utf8');
+const adminOperationsSource = await readFile('AdminOperations.jsx', 'utf8');
+const adminHealthSource = await readFile('AdminChapterHealth.jsx', 'utf8');
+const adminWorkspaceCss = await readFile('admin-workspace-ux.css', 'utf8');
+const adminToolListeners = [
+  ['atma-admin-open-health', 'AdminChapterHealth.jsx', '<AdminChapterHealth />'],
+  ['atma-admin-open-operations', 'AdminOperations.jsx', '<AdminOperations />'],
+  ['atma-admin-open-management', 'AdminManagementTools.jsx', '<AdminManagementTools />'],
+  ['atma-admin-open-moderation', 'AdminModerationTools.jsx', '<AdminModerationTools />'],
+  ['atma-admin-open-group-chat', 'AdminGroupChatTools.jsx', '<AdminGroupChatTools />'],
+  ['atma-admin-open-pro', 'AdminProTools.jsx', '<AdminProTools />'],
+  ['atma-admin-open-community', 'CommunityAdmin.jsx', '<CommunityAdmin />'],
+];
+for (const [eventName, sourceFile, mountTag] of adminToolListeners) {
+  const componentSource = await readFile(sourceFile, 'utf8');
+  const listenerPattern = new RegExp("(?:window\\.)?addEventListener\\(['\\\"]" + eventName + "['\\\"]");
+  if (!listenerPattern.test(componentSource) || !adminPanelSource.includes(mountTag)) {
+    console.error('CHECK FAILED: admin action has no mounted event handler:', eventName, sourceFile);
+    failed = true;
+  }
+}
+if (!adminPanelSource.includes("window.addEventListener('atma-admin-open-command', openPalette)")) {
+  console.error('CHECK FAILED: Control Room command shortcuts cannot open the admin command palette.');
+  failed = true;
+}
+if (adminPaletteSource.includes("id: 'tool-command'")) {
+  console.error('CHECK FAILED: command palette contains a self-opening command action.');
+  failed = true;
+}
+if (!adminPaletteSource.includes("id: 'tool-activity'") || !adminPanelSource.includes("label: 'Admin Activity Log'")) {
+  console.error('CHECK FAILED: admin activity log is missing from quick navigation.');
+  failed = true;
+}
+if (/\\bviewResult\\b/.test(adminOperationsSource)) {
+  console.error('CHECK FAILED: Operations references the stale/undefined viewResult variable.');
+  failed = true;
+}
+if (/\\bscheduleAt\\b|Save scheduled record|Schedule \\(optional\\)/.test(adminOperationsSource)) {
+  console.error('CHECK FAILED: Operations still advertises the unsupported notification scheduler.');
+  failed = true;
+}
+if (!adminHealthSource.includes('chapter.coverUrl || chapter.cover_url || chapter.cover')) {
+  console.error('CHECK FAILED: Chapter Health does not recognize normalized chapter cover fields.');
+  failed = true;
+}
+if (!adminPanelSource.includes("import './admin-workspace-ux.css';") ||
+    !adminWorkspaceCss.includes('@media (max-width:760px)') ||
+    !adminWorkspaceCss.includes('.admin-bottom-nav')) {
+  console.error('CHECK FAILED: responsive admin workspace styles are not imported or missing the phone navigation layout.');
+  failed = true;
+}
+if (!adminControlRoom.includes('Open {featureCatalog.length} tools') ||
+    !adminControlRoom.includes('{featureCatalog.length} shortcuts')) {
+  console.error('CHECK FAILED: admin workbench count and copy are not generated from the action catalogue.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
