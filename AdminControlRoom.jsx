@@ -674,16 +674,24 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const recentReports = (hasCommentReportRows ? [...commentReportRows] : []).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 6);
   const sourceChecks = dataSources;
 
-  const exportMetrics = () => {
+  const csvCell = value => {
+    const textValue = String(value ?? '');
+    // Prevent spreadsheet formula execution when exported fields contain user-controlled text.
+    const safeValue = /^[=+@\\t\\r]/.test(textValue) || /^-/.test(textValue) ? "'" + textValue : textValue;
+    return '"' + safeValue.replace(/"/g, '""') + '"';
+  };
+  const exportMetricRows = (items, filename) => {
     const rows = [['category', 'metric', 'value', 'unit', 'description', 'source']];
-    for (const item of allMetrics) rows.push([
+    for (const item of items) rows.push([
       item.category, item.label,
       item.value == null ? '' : item.value,
       item.unit, item.description, item.source,
     ]);
-    const csv = rows.map(row => row.map(value => '"' + String(value ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
-    downloadFile('atma-rekha-control-room-metrics.csv', 'text/csv;charset=utf-8', csv);
+    const csv = rows.map(row => row.map(csvCell).join(',')).join('\\r\\n');
+    downloadFile(filename, 'text/csv;charset=utf-8', csv);
   };
+  const exportMetrics = () => exportMetricRows(allMetrics, 'atma-rekha-control-room-metrics.csv');
+  const exportVisibleMetrics = () => exportMetricRows(visibleMetrics, 'atma-rekha-control-room-visible-metrics.csv');
   const exportSnapshot = () => {
     const snapshot = {
       generated_at: new Date().toISOString(),
@@ -801,7 +809,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
 
     {section !== 'Command Center' && <div className="ar-cr-explorer">
       <div className="ar-cr-explorer-head"><div><span className="ar-cr-kicker">ANALYTICS WORKSPACE</span><h3>{section}</h3><p>{section === 'Metric Explorer' ? 'Search, filter and export 100+ tracked or explicitly unavailable analytics.' : 'Inspect verified indicators for this operational domain. Click a section in the control-room navigation to switch domains.'}</p></div><div className="ar-cr-explorer-tools"><label><span>Search metrics</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, source or meaning"/></label><label><span>Data coverage</span><select value={metricFilter} onChange={event => setMetricFilter(event.target.value)}><option value="all">All metrics</option><option value="tracked">Tracked only</option><option value="untracked">Not tracked</option></select></label><label><span>Sort</span><select value={metricSort} onChange={event => setMetricSort(event.target.value)}><option value="category">Category</option><option value="name">Name</option><option value="largest">Largest value</option></select></label><button type="button" className="ar-cr-btn" onClick={() => setCollapsedMetrics(value => !value)}>{collapsedMetrics ? 'Expand details' : 'Compact view'}</button></div></div>
-      <div className="ar-cr-results-line"><span>{visibleMetrics.length} metrics shown</span><span>{visibleMetrics.filter(item => item.value != null).length} with values · {visibleMetrics.filter(item => item.value == null).length} unavailable/not tracked</span><button type="button" className="ar-cr-text-btn" onClick={exportMetrics}>Export visible catalogue</button></div>
+      <div className="ar-cr-results-line"><span>{visibleMetrics.length} metrics shown</span><span>{visibleMetrics.filter(item => item.value != null).length} with values · {visibleMetrics.filter(item => item.value == null).length} unavailable/not tracked</span><button type="button" className="ar-cr-text-btn" onClick={exportVisibleMetrics}>Export visible catalogue</button></div>
       {section === 'Metric Explorer' && <div className="ar-cr-category-chips">{metricCategories.map(category => <button key={category} type="button" onClick={() => { setSearch(category); setMetricFilter('all'); }}>{category}<b>{metricGroups[category].length}</b></button>)}</div>}
       <div className={'ar-cr-metric-grid' + (collapsedMetrics ? ' compact' : '')}>
         {visibleMetrics.map((item, index) => <Metric key={item.category + ':' + item.label} item={item} compact={collapsedMetrics}/>)}
