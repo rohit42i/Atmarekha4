@@ -217,10 +217,14 @@ async function requireUser() {
 export { requireUser };
 
 async function getAccountUsername(user) {
-  const { data, error } = await supabase.from('profiles').select('username').eq('id', user.id).maybeSingle();
+  const { data, error } = await supabase.from('profiles').select('username,display_name').eq('id', user.id).maybeSingle();
   if (error) throw error;
-  const username = String(data?.username || '').trim().replace(/^@+/, '').slice(0, 24);
-  return username || 'reader';
+  const accountName = String(data?.username || data?.display_name || user?.user_metadata?.full_name || '')
+    .trim()
+    .replace(/^@+/, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 80);
+  return accountName || 'Reader';
 }
 
 export async function addComment({ chapterId = null, announcementId = null, content, parentCommentId = null }) {
