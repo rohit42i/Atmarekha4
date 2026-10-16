@@ -105,7 +105,7 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'mail', label: 'Email Campaigns' },
+    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
     { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
@@ -119,7 +119,7 @@ const ADMIN_NAV_GROUPS = [
     { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
-    { key: '__activity', icon: 'list', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
+    { key: '__activity', icon: 'calendar', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
     { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
   ]},
 ];
