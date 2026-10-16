@@ -44,6 +44,12 @@ jobs:
       - name: Static production regression checks
         run: npm run check
 
+      - name: Worker syntax and SEO regression tests
+        run: |
+          node --check worker.js
+          node --check atma-media-worker/index.js
+          node scripts/test-worker-seo.mjs
+
       - name: Build production bundle
         run: npm run build
         env:
