@@ -40,7 +40,7 @@ function setMeta(html, attribute, key, value) {
 
 function setTitle(html, title) {
   const tag = "<title>" + escapeHtml(title) + "</title>";
-  return /<title>[\\s\\S]*?<\\/title>/i.test(html) ? html.replace(/<title>[\\s\\S]*?<\\/title>/i, tag) : html.replace("</head>", "  " + tag + "\n</head>");
+  return /<title>[\s\S]*?<\/title>/i.test(html) ? html.replace(/<title>[\s\S]*?<\/title>/i, tag) : html.replace("</head>", "  " + tag + "\n</head>");
 }
 
 function setCanonical(html, url) {
@@ -50,20 +50,20 @@ function setCanonical(html, url) {
 }
 
 function setAlternates(html, alternates) {
-  html = html.replace(/<link[^>]*rel="alternate"[^>]*hreflang="[^"]*"[^>]*\\/?>(?:\\s*)/gi, "");
+  html = html.replace(/<link[^>]*rel="alternate"[^>]*hreflang="[^"]*"[^>]*\/?>(?:\s*)/gi, "");
   const tags = alternates.map(item => '<link rel="alternate" hreflang="' + escapeHtml(item.language) + '" href="' + escapeHtml(item.url) + '" />').join("\n  ");
   const pattern = /<link[^>]*rel="canonical"[^>]*>/i;
   return pattern.test(html) ? html.replace(pattern, match => match + "\n  " + tags) : html.replace("</head>", "  " + tags + "\n</head>");
 }
 
 function privatePath(path) {
-  return /^\\/(?:admin|profile|membership|group-chat|community|maintenance|403|430|503)(?:\\/|$)/i.test(path) || path === "/privacy-center";
+  return /^\/(?:admin|profile|membership|group-chat|community|maintenance|403|430|503)(?:\/|$)/i.test(path) || path === "/privacy-center";
 }
 
 function knownPath(path) {
   if (path === "/" || path === "/chapters" || path === "/admin" || path === "/profile" || path === "/membership" || path === "/group-chat" || path === "/community" || path === "/privacy-center" || path === "/maintenance" || path === "/403" || path === "/430" || path === "/503" || path === "/pal-do-pal-ke-lamhe") return true;
-  if (/^\\/info\\/(?:about|contact|report|privacy|terms)$/.test(path)) return true;
-  if (/^\\/chapter\\/\\d+(?:\\.\\d+)?$/.test(path) || /^\\/chapter\\/special\\/[^/]+$/.test(path)) return true;
+  if (/^\/info\/(?:about|contact|report|privacy|terms)$/.test(path)) return true;
+  if (/^\/chapter\/\d+(?:\.\d+)?$/.test(path) || /^\/chapter\/special\/[^/]+$/.test(path)) return true;
   return false;
 }
 
@@ -92,7 +92,7 @@ function chapterPath(chapter) {
 }
 
 async function loadPublishedChapters(env) {
-  const base = String(env.SUPABASE_URL || SUPABASE_URL).replace(/\\/+$/, "");
+  const base = String(env.SUPABASE_URL || SUPABASE_URL).replace(/\/+$/, "");
   const key = String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || PUBLIC_SUPABASE_KEY);
   const endpoint = new URL(base + "/rest/v1/chapters");
   endpoint.searchParams.set("select", "id,chapter_number,title,language,status,cover_url,release_date,created_at");
@@ -117,8 +117,8 @@ async function loadPublishedChapters(env) {
 }
 
 function findChapter(path, url, chapters) {
-  const numbered = path.match(/^\\/chapter\\/(\\d+(?:\\.\\d+)?)$/);
-  const special = path.match(/^\\/chapter\\/special\\/([^/]+)$/);
+  const numbered = path.match(/^\/chapter\/(\d+(?:\.\d+)?)$/);
+  const special = path.match(/^\/chapter\/special\/([^/]+)$/);
   const language = normalizeLanguage(url.searchParams.get("lang"));
   let matches = [];
   if (numbered) {
@@ -150,7 +150,7 @@ function safeCover(value) {
 }
 
 function addJsonLd(html, nodes) {
-  const pattern = /<script[^>]*id="atma-rekha-site-schema"[^>]*>([\\s\\S]*?)<\\/script>/i;
+  const pattern = /<script[^>]*id="atma-rekha-site-schema"[^>]*>([\s\S]*?)<\/script>/i;
   const match = html.match(pattern);
   let base = null;
   try { if (match) base = JSON.parse(match[1]); } catch (_) {}
@@ -163,7 +163,7 @@ function addJsonLd(html, nodes) {
 
 async function addServerSeo(request, response, env) {
   const url = new URL(request.url);
-  const path = url.pathname === "/" ? "/" : "/" + url.pathname.replace(/^\\/+|\\/+$/g, "");
+  const path = url.pathname === "/" ? "/" : "/" + url.pathname.replace(/^\/+|\/+$/g, "");
   const headers = new Headers(response.headers);
   const isPrivate = privatePath(path);
   const isKnown = knownPath(path);
@@ -192,7 +192,7 @@ async function addServerSeo(request, response, env) {
     html = setCanonical(html, SITE_ORIGIN + path);
   }
 
-  if (/^\\/chapter\\/(?:\\d+(?:\\.\\d+)?|special\\/[^/]+)$/.test(path)) {
+  if (/^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
     try {
       const chapters = await loadPublishedChapters(env);
       const chapter = findChapter(path, url, chapters);
