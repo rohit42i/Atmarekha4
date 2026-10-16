@@ -93,6 +93,7 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
+    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
   ]},
   { label: 'Monetization', items: [
@@ -979,7 +980,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
+  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
