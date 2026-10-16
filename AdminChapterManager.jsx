@@ -75,6 +75,7 @@ export default function AdminChapterManager({
   const [savedFilters, setSavedFilters] = useState(() => { const value = readStored(FILTER_KEY, []); return Array.isArray(value) ? value : []; });
   const [filterName, setFilterName] = useState('');
   const [showColumns, setShowColumns] = useState(false);
+  const [viewMode, setViewMode] = useState('table');
   const [bulkAction, setBulkAction] = useState(null);
   const [notice, setNotice] = useState('');
   const [focusChapterId, setFocusChapterId] = useState(null);
@@ -383,6 +384,10 @@ export default function AdminChapterManager({
         </div>
 
         <div className="admin-table-toolbar">
+          <div className="admin-view-switch" role="group" aria-label="Chapter display mode">
+            <button type="button" className={viewMode === 'table' ? 'is-active' : ''} aria-pressed={viewMode === 'table'} onClick={() => setViewMode('table')}>List</button>
+            <button type="button" className={viewMode === 'cards' ? 'is-active' : ''} aria-pressed={viewMode === 'cards'} onClick={() => setViewMode('cards')}>Cards</button>
+          </div>
           <div className="admin-bulkbar" aria-live="polite">
             <span>{selected.size} selected</span>
             <AdminButton type="button" size="sm" onClick={() => setSelected(new Set())} disabled={!selected.size}>Clear</AdminButton>
@@ -404,7 +409,7 @@ export default function AdminChapterManager({
           </div>
         </div>
 
-        <AdminTable>
+        {viewMode === 'table' ? <AdminTable>
           <thead>
             <tr>
               <th className="admin-check-cell"><input type="checkbox" checked={allVisibleSelected} onChange={event => selectAllVisible(event.target.checked)} aria-label="Select all visible chapters" /></th>
@@ -445,7 +450,31 @@ export default function AdminChapterManager({
               );
             })}
           </tbody>
-        </AdminTable>
+        </AdminTable> : <div className="admin-chapter-card-grid">
+          {filtered.map(chapter => {
+            const pageCount = Number(pageCounts[chapter.id] || 0);
+            const signal = signalFor(chapter, pageCount);
+            const selectedRow = selected.has(chapter.id);
+            const cover = chapter.coverUrl || chapter.cover_url || chapter.cover || '';
+            return <article key={chapter.id} className={'admin-chapter-card' + (focusChapterId === chapter.id ? ' is-highlighted' : '')} data-admin-chapter-id={chapter.id}>
+              <label className="admin-chapter-card-select"><input type="checkbox" checked={selectedRow} onChange={() => toggleSelected(chapter.id)} aria-label={`Select ${chapter.title || 'chapter'}`}/><span>Select</span></label>
+              <div className="admin-chapter-card-cover">
+                {cover ? <img src={cover} alt="" loading="lazy" onError={event => { event.currentTarget.style.display = 'none'; }}/> : <span aria-hidden="true">AR</span>}
+              </div>
+              <div className="admin-chapter-card-content">
+                <div className="admin-chapter-card-heading"><div><small>{chapter.chapterNumber == null ? 'SPECIAL ENTRY' : 'CHAPTER ' + chapter.chapterNumber}</small><h3>{chapter.title || 'Untitled chapter'}</h3></div><span className={`admin-status-badge ${statusClass(chapter.status)}`}>{chapter.status || 'Draft'}</span></div>
+                <div className="admin-chapter-card-meta"><span>{chapterLanguageLabel(chapter.language)}</span><span>{pageCount.toLocaleString('en-IN')} pages</span><span>{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString('en-IN')} views / 30d</span></div>
+                <div className="admin-chapter-card-health"><span className={`admin-health-signal ${signal.className}`}><i/>{signal.text}</span><span>{formatDate(chapter.releaseDate)}</span></div>
+                <div className="admin-chapter-card-progress" aria-label={`${pageCount > 0 ? 100 : 0}% page availability`}><i style={{width:(pageCount > 0 ? 100 : 0)+'%'}}/></div>
+                <div className="admin-row-actions">
+                  <AdminButton size="sm" className="admin-table-action" type="button" icon="bookmark" onClick={() => onEdit(chapter)}>Edit</AdminButton>
+                  <AdminButton size="sm" className="admin-table-action" type="button" icon="eye" onClick={() => { window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })); }}>Focus in list</AdminButton>
+                  <AdminButton size="sm" className="admin-table-action" type="button" variant="danger" icon="flag" onClick={() => onDelete(chapter)} disabled={busy}>Delete</AdminButton>
+                </div>
+              </div>
+            </article>;
+          })}
+        </div>}
 
         {!filtered.length ? (
           <AdminEmptyState
