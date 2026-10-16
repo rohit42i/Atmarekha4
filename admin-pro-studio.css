@@ -1,10 +1,10 @@
 /* Atma Rekha Admin Pro Studio — isolated, monochrome adaptation.
    Scoped to the admin root to protect the public site and existing feature styles. */
 main.admin-page.ar-admin-v3 {
-  --ar-admin-primary:#d4d4d4;
-  --ar-admin-primary-dark:#a3a3a3;
-  --ar-admin-primary-light:#e5e5e5;
-  --ar-admin-primary-lighter:rgba(255,255,255,.09);
+  --ar-admin-primary:#ff8a00;
+  --ar-admin-primary-dark:#d96f00;
+  --ar-admin-primary-light:#ffa126;
+  --ar-admin-primary-lighter:rgba(255,138,0,.13);
   --ar-admin-success:#34d399;
   --ar-admin-warning:#fbbf24;
   --ar-admin-danger:#f87171;
@@ -111,15 +111,15 @@ main.admin-page.ar-admin-v3[data-theme="dark"] {
   --ar-text:#f5f5f5;
   --ar-text-2:#b5b5b5;
   --ar-muted:#858585;
-  --ar-violet:#d4d4d4;
-  --ar-violet-2:#a3a3a3;
+  --ar-violet:#ff8a00;
+  --ar-violet-2:#ffa126;
   --ar-shadow:0 14px 40px rgba(0,0,0,.24);
-  background:#090909!important;
+  background:#0f1115!important;
   color:#f5f5f5!important;
 }
 .admin-page.ar-admin-v3 .ar-admin-app { background:transparent!important; }
 .admin-page.ar-admin-v3 .ar-admin-sidebar {
-  background:#101010!important;
+  background:#151820!important;
   border:1px solid #292929!important;
   border-radius:16px!important;
   box-shadow:none!important;
@@ -129,18 +129,18 @@ main.admin-page.ar-admin-v3[data-theme="dark"] {
 .admin-page.ar-admin-v3 .ar-admin-brand-mark,
 .admin-page.ar-admin-v3 .ar-admin-avatar-mini,
 .admin-page.ar-admin-v3 .ar-admin-avatar {
-  background:#252525!important;
+  background:#252a33!important;
   color:#fff!important;
   box-shadow:none!important;
 }
 .admin-page.ar-admin-v3 .ar-admin-nav button.active {
-  background:#262626!important;
+  background:rgba(255,138,0,.14)!important;
   color:#fff!important;
-  border-color:#393939!important;
+  border-color:rgba(255,138,0,.42)!important;
   box-shadow:none!important;
 }
 .admin-page.ar-admin-v3 .ar-admin-nav button.active:before {
-  background:#f5f5f5!important;
+  background:#ff8a00!important;
   box-shadow:none!important;
 }
 .admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon { color:#fff!important; }
@@ -151,7 +151,7 @@ main.admin-page.ar-admin-v3[data-theme="dark"] {
 }
 .admin-page.ar-admin-v3 .ar-admin-main { background:transparent!important; }
 .admin-page.ar-admin-v3 .ar-admin-topbar {
-  background:rgba(9,9,9,.94)!important;
+  background:rgba(15,17,21,.96)!important;
   border-bottom:1px solid #222!important;
   backdrop-filter:blur(12px);
 }
@@ -162,7 +162,7 @@ main.admin-page.ar-admin-v3[data-theme="dark"] {
 .admin-page.ar-admin-v3 .admin-studio-modal,
 .admin-page.ar-admin-v3 .ar-admin-status-card,
 .admin-page.ar-admin-v3 .ar-admin-workspace {
-  background:#111!important;
+  background:#1a1e27!important;
   border:1px solid #292929!important;
   border-radius:12px!important;
   box-shadow:none!important;
@@ -226,4 +226,73 @@ main.admin-page.ar-admin-v3[data-theme="dark"] {
     background:#101010!important;
   }
   .admin-page.ar-admin-v3 .ar-admin-main { margin-left:0!important; }
+}
+
+
+/* October 2026 charcoal + orange visual pass. Scoped to the admin only. */
+main.admin-page.ar-admin-v3 {
+  --ar-admin-bg-primary:#1a1e27;
+  --ar-admin-border:#343a46;
+  --ar-admin-text-primary:#f5f6f8;
+  --ar-admin-text-secondary:#a1a7b3;
+  --ar-admin-primary:#ff8a00;
+  --ar-admin-primary-dark:#d96f00;
+  --ar-admin-primary-light:#ffa126;
+  --ar-admin-primary-lighter:rgba(255,138,0,.13);
+}
+main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  background:#151820!important;
+  border:1px solid #292e38!important;
+  border-radius:14px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  background:#ff8a00!important;
+  color:#211306!important;
+  border-radius:10px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  background:rgba(255,138,0,.14)!important;
+  border-color:rgba(255,138,0,.42)!important;
+  color:#ffd19b!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active:before {
+  background:#ff8a00!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon {
+  color:#ffa126!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  background:rgba(15,17,21,.96)!important;
+  border-bottom-color:#292e38!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-stat-card,.admin-card,.ar-admin-status-card,.ar-admin-workspace,.admin-studio-modal) {
+  background:#1a1e27!important;
+  border-color:#343a46!important;
+  border-radius:12px!important;
+  color:#f5f6f8;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card-title h2,.ar-overview-hero h2,.ar-membership-hero h2) {
+  color:#f5f6f8!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card-title p,.ar-overview-hero p,.ar-membership-hero p) {
+  color:#a1a7b3!important;
+}
+main.admin-page.ar-admin-v3 :is(button,input,select,textarea):focus-visible {
+  outline-color:#ffa126!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-submit,.ar-admin-primary-action,.ar-admin-btn-primary) {
+  background:#ff8a00!important;
+  border-color:#ff8a00!important;
+  color:#211306!important;
+  border-radius:8px!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-submit,.ar-admin-primary-action,.ar-admin-btn-primary):hover {
+  background:#ffa126!important;
+  border-color:#ffa126!important;
+}
+@media (max-width:760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar { border-radius:0 14px 14px 0!important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding-left:12px!important;padding-right:12px!important; }
+  main.admin-page.ar-admin-v3 .ar-admin-topbar { gap:8px; }
+  main.admin-page.ar-admin-v3 :is(.ar-overview-kpis,.ar-membership-kpis) { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }

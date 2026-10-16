@@ -1,18 +1,18 @@
 /* Atma Rekha admin system — shared, restrained and data-first.
    Scoped to the admin root; existing CRUD, upload and moderation behavior is unchanged. */
 main.admin-page.ar-admin-v3 {
-  --ar-ui-bg:#111315;
-  --ar-ui-sidebar:#191c1f;
-  --ar-ui-surface:#1c2023;
-  --ar-ui-raised:#22272a;
-  --ar-ui-border:#343a3e;
-  --ar-ui-border-soft:#2a3034;
+  --ar-ui-bg:#0f1115;
+  --ar-ui-sidebar:#151820;
+  --ar-ui-surface:#1a1e27;
+  --ar-ui-raised:#252a33;
+  --ar-ui-border:#343a46;
+  --ar-ui-border-soft:#292e38;
   --ar-ui-text:#f2f5f5;
   --ar-ui-muted:#a9b2b6;
   --ar-ui-subtle:#7f8b91;
-  --ar-ui-accent:#20b2aa;
-  --ar-ui-accent-strong:#2bc8bf;
-  --ar-ui-accent-soft:rgba(32,178,170,.12);
+  --ar-ui-accent:#ff8a00;
+  --ar-ui-accent-strong:#ffa126;
+  --ar-ui-accent-soft:rgba(255,138,0,.13);
   --ar-ui-good:#45c98a;
   --ar-ui-warn:#f2b65d;
   --ar-ui-danger:#f07878;
@@ -29,7 +29,7 @@ main.admin-page.ar-admin-v3 :is(button,input,select,textarea,[role="button"],a):
 }
 main.admin-page.ar-admin-v3 :is(input,select,textarea) {
   color:var(--ar-ui-text);
-  background:#121619;
+  background:#12151c;
   border:1px solid var(--ar-ui-border);
   border-radius:7px;
 }
@@ -43,7 +43,7 @@ main.admin-page.ar-admin-v3 .ar-admin-topbar {
 }
 main.admin-page.ar-admin-v3 .ar-admin-search,
 main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
-  background:#171b1e;
+  background:#1b2029;
   border:1px solid var(--ar-ui-border);
   color:var(--ar-ui-muted);
   border-radius:8px;
@@ -63,7 +63,7 @@ main.admin-page.ar-admin-v3 .admin-submit,
 main.admin-page.ar-admin-v3 .ar-admin-btn-primary {
   background:var(--ar-ui-accent)!important;
   border-color:var(--ar-ui-accent)!important;
-  color:#071918!important;
+  color:#211306!important;
   font-weight:750;
 }
 main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,
@@ -90,7 +90,7 @@ main.admin-page.ar-admin-v3 .ar-kicker {
 }
 main.admin-page.ar-admin-v3 .ar-period-switch {
   display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:4px;
-  background:#14181a;border:1px solid var(--ar-ui-border);border-radius:9px;
+  background:#171b23;border:1px solid var(--ar-ui-border);border-radius:9px;
 }
 main.admin-page.ar-admin-v3 .ar-period-switch button {
   min-height:34px;padding:0 11px;border:1px solid transparent;border-radius:6px;
@@ -98,7 +98,7 @@ main.admin-page.ar-admin-v3 .ar-period-switch button {
 }
 main.admin-page.ar-admin-v3 .ar-period-switch button[aria-selected="true"],
 main.admin-page.ar-admin-v3 .ar-period-switch button.active {
-  background:var(--ar-ui-accent-soft);border-color:rgba(32,178,170,.35);color:#8ce6df;
+  background:var(--ar-ui-accent-soft);border-color:rgba(255,138,0,.38);color:#ffc06b;
 }
 main.admin-page.ar-admin-v3 .ar-overview-kpis,
 main.admin-page.ar-admin-v3 .ar-membership-kpis {
@@ -182,7 +182,7 @@ main.admin-page.ar-admin-v3 .admin-filter-control :is(input,select) {
   border-radius:7px;background:#111517;color:var(--ar-ui-text);
 }
 main.admin-page.ar-admin-v3 .admin-filter-control :is(input,select):focus {
-  border-color:var(--ar-ui-accent);outline:2px solid rgba(32,178,170,.15);
+  border-color:var(--ar-ui-accent);outline:2px solid rgba(255,138,0,.16);
 }
 main.admin-page.ar-admin-v3 .admin-table-toolbar {
   display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
@@ -233,7 +233,7 @@ main.admin-page.ar-admin-v3 .admin-table-action {
   min-width:34px;min-height:34px;padding:6px 8px;border:1px solid var(--ar-ui-border);
   border-radius:6px;background:#1c2225;color:#d8e0e2;font-size:11px;
 }
-main.admin-page.ar-admin-v3 .admin-table-action:hover { border-color:var(--ar-ui-accent);color:#a1f0ea; }
+main.admin-page.ar-admin-v3 .admin-table-action:hover { border-color:var(--ar-ui-accent);color:#ffc06b; }
 main.admin-page.ar-admin-v3 .admin-context-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
 main.admin-page.ar-admin-v3 .admin-context-block {
   min-width:0;padding:12px;border:1px solid var(--ar-ui-border-soft);border-radius:8px;background:#171b1e;
@@ -274,7 +274,7 @@ main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric { background:var(--ar
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-btn.is-primary,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary { background:var(--ar-ui-accent)!important;border-color:var(--ar-ui-accent)!important;color:#071918!important; }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-nav button.active,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-nav button.active { color:#9bece7;border-color:rgba(32,178,170,.38);background:var(--ar-ui-accent-soft); }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-nav button.active { color:#ffc06b;border-color:rgba(32,178,170,.38);background:var(--ar-ui-accent-soft); }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-rank-list>button>b,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-rank-list>button>b,
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-readiness>strong,
@@ -335,7 +335,7 @@ main.admin-page.ar-admin-v3 .admin-view-switch button {
 }
 main.admin-page.ar-admin-v3 .admin-view-switch button:hover { color:var(--ar-ui-text); }
 main.admin-page.ar-admin-v3 .admin-view-switch button.is-active {
-  color:#a0efea;background:var(--ar-ui-accent-soft);border-color:rgba(32,178,170,.32);
+  color:#ffc06b;background:var(--ar-ui-accent-soft);border-color:rgba(255,138,0,.34);
 }
 main.admin-page.ar-admin-v3 .admin-chapter-card-grid {
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0;

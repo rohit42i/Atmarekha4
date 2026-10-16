@@ -1,15 +1,15 @@
 /* Atma Rekha Control Room — operational data first, restrained dark surfaces. */
 .admin-page.ar-admin-v3 .ar-control-room {
-  --cr-bg:#0a0a0b;
-  --cr-card:#111113;
-  --cr-card-raised:#171719;
-  --cr-border:#29292c;
-  --cr-border-soft:#202023;
+  --cr-bg:#0f1115;
+  --cr-card:#1a1e27;
+  --cr-card-raised:#252a33;
+  --cr-border:#343a46;
+  --cr-border-soft:#292e38;
   --cr-text:#f3f0e9;
   --cr-muted:#b1aca2;
   --cr-faint:#79766f;
-  --cr-gold:#d6ad53;
-  --cr-gold-soft:rgba(214,173,83,.1);
+  --cr-gold:#ff8a00;
+  --cr-gold-soft:rgba(255,138,0,.13);
   --cr-green:#69c79a;
   --cr-red:#ed8585;
   --cr-yellow:#ecc16c;
@@ -47,7 +47,7 @@
 .admin-page.ar-admin-v3 .ar-cr-field-row select,
 .admin-page.ar-admin-v3 .ar-cr-table-tools select {
   min-width:0;min-height:35px;max-width:100%;padding:0 10px;border:1px solid var(--cr-border)!important;border-radius:8px!important;
-  background:#151517!important;color:var(--cr-text)!important;font:600 10px/1.3 inherit;box-shadow:none!important;
+  background:#1b2029!important;color:var(--cr-text)!important;font:600 10px/1.3 inherit;box-shadow:none!important;
 }
 .admin-page.ar-admin-v3 .ar-cr-explorer-tools input { min-width:180px;padding:0 11px; }
 .admin-page.ar-admin-v3 .ar-cr-btn {
@@ -55,10 +55,10 @@
   border:1px solid var(--cr-border)!important;border-radius:8px!important;background:#151517!important;color:#e8e3da!important;
   font-size:10px;font-weight:750;cursor:pointer;white-space:nowrap;
 }
-.admin-page.ar-admin-v3 .ar-cr-btn:hover { border-color:#766039!important;background:#1b1914!important;color:#f5d99b!important; }
+.admin-page.ar-admin-v3 .ar-cr-btn:hover { border-color:#a85d10!important;background:#1b1914!important;color:#ffd49a!important; }
 .admin-page.ar-admin-v3 .ar-cr-btn:disabled { opacity:.55;cursor:wait; }
-.admin-page.ar-admin-v3 .ar-cr-btn.is-primary { background:var(--cr-gold)!important;border-color:var(--cr-gold)!important;color:#18140b!important; }
-.admin-page.ar-admin-v3 .ar-cr-btn.is-primary:hover { background:#e3c16f!important; }
+.admin-page.ar-admin-v3 .ar-cr-btn.is-primary { background:var(--cr-gold)!important;border-color:var(--cr-gold)!important;color:#211306!important; }
+.admin-page.ar-admin-v3 .ar-cr-btn.is-primary:hover { background:#ffa126!important; }
 .admin-page.ar-admin-v3 .ar-cr-nav {
   display:flex;gap:5px;align-items:center;max-width:100%;overflow-x:auto;padding:5px;
   border:1px solid var(--cr-border-soft);border-radius:12px;background:#0f0f11;
@@ -68,13 +68,13 @@
   flex:none;display:flex;align-items:center;gap:8px;min-height:37px;padding:0 11px;border:1px solid transparent;
   border-radius:8px;background:transparent;color:#aaa59b;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;
 }
-.admin-page.ar-admin-v3 .ar-cr-nav button:hover { color:var(--cr-text);background:#19191b; }
+.admin-page.ar-admin-v3 .ar-cr-nav button:hover { color:var(--cr-text);background:#252a33; }
 .admin-page.ar-admin-v3 .ar-cr-nav button.active {
-  background:var(--cr-gold-soft);border-color:#51432a;color:#f0cf80;
+  background:var(--cr-gold-soft);border-color:#654018;color:#ffc06b;
 }
 .admin-page.ar-admin-v3 .ar-cr-nav button b {
-  display:grid;place-items:center;min-width:20px;height:18px;padding:0 4px;border:1px solid #534329;border-radius:5px;
-  color:#f1ce7d;background:#211b10;font-size:9px;
+  display:grid;place-items:center;min-width:20px;height:18px;padding:0 4px;border:1px solid #654018;border-radius:5px;
+  color:#ffc06b;background:#24190d;font-size:9px;
 }
 .admin-page.ar-admin-v3 .ar-cr-alert {
   display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border:1px solid var(--cr-border);
@@ -87,7 +87,7 @@
 .admin-page.ar-admin-v3 .ar-cr-alert strong { display:block;color:var(--cr-text);font-size:11px; }
 .admin-page.ar-admin-v3 .ar-cr-alert p { margin:4px 0 0;color:var(--cr-muted);font-size:10px;line-height:1.5; }
 .admin-page.ar-admin-v3 .ar-cr-text-btn {
-  padding:4px 0;border:0;background:transparent;color:#e2bf70;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;
+  padding:4px 0;border:0;background:transparent;color:#ffb54a;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;
 }
 .admin-page.ar-admin-v3 .ar-cr-text-btn:hover { color:#ffe3a0;text-decoration:underline;text-underline-offset:3px; }
 .admin-page.ar-admin-v3 .ar-cr-kpis { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px; }
