@@ -175,5 +175,26 @@ for (const [file, phrase] of [
 }
 
 
+const adminControlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
+const adminPanelSource = await readFile('AdminPanel.jsx', 'utf8');
+const declaredMetricCount = [...adminControlRoom.matchAll(/\bm\(['"][^'"]+['"],\s*['"][^'"]+['"]/g)].length;
+const workbenchActionCount = [...adminControlRoom.matchAll(/\{\s*id:\s*'[^']+',\s*group:\s*'[^']+',\s*title:/g)].length;
+if (declaredMetricCount < 200) {
+  console.error('CHECK FAILED: admin control room must expose at least 200 documented analytics metrics; found', declaredMetricCount);
+  failed = true;
+}
+if (workbenchActionCount !== 50) {
+  console.error('CHECK FAILED: admin workbench must expose exactly 50 declared actions; found', workbenchActionCount);
+  failed = true;
+}
+if (!adminControlRoom.includes("onClick={item.run}") || !adminControlRoom.includes("section === 'Feature Workbench'")) {
+  console.error('CHECK FAILED: admin workbench actions are not connected to the rendered interface.');
+  failed = true;
+}
+if (!adminPanelSource.includes("{ key: 'Email Campaigns'") || !adminPanelSource.includes("'Community Posts', 'Membership & Earnings'")) {
+  console.error('CHECK FAILED: admin sidebar links and tab allow-list are out of sync.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
