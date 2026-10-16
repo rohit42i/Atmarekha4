@@ -66,9 +66,13 @@ Deno.serve(async req => {
     const admin = createClient(url, key);
     const authHeader = req.headers.get("Authorization") || "";
     let userId: string | null = null;
-    if (authHeader.startsWith("Bearer ")) {
-      const { data } = await admin.auth.getUser(authHeader.slice(7).trim());
-      userId = data.user?.id || null;
+    if (authHeader) {
+      if (!authHeader.startsWith("Bearer ") || !authHeader.slice(7).trim()) {
+        return json({ error: "Authentication failed." }, 401, origin);
+      }
+      const { data, error: authError } = await admin.auth.getUser(authHeader.slice(7).trim());
+      if (authError || !data.user) return json({ error: "Authentication failed." }, 401, origin);
+      userId = data.user.id;
     }
 
     const rawBody = await readLimitedBody(req, 12 * 1024);
