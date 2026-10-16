@@ -1,5 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
+umask 077
 
 for cmd in node pg_dump pg_restore psql openssl tar sha256sum; do
   command -v "$cmd" >/dev/null 2>&1 || {
