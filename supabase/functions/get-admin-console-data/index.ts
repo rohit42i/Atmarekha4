@@ -62,6 +62,17 @@ Deno.serve(async (req) => {
       return json({ error: "Admin access required." }, 403, origin);
     }
 
+    const { data: rateAllowed, error: rateError } = await admin.rpc("consume_rate_limit", {
+      p_rate_key: "admin-console-data:" + user.id,
+      p_limit: 60,
+      p_window_seconds: 60,
+    });
+    if (rateError) {
+      console.error("Admin console rate-limit check failed.");
+      return json({ error: "Admin data is temporarily unavailable." }, 503, origin);
+    }
+    if (rateAllowed === false) return json({ error: "Too many admin data requests. Please try again shortly." }, 429, origin);
+
     let body: Record<string, unknown> = {};
     const rawBody = await readLimitedBody(req, 8192);
     if (rawBody === null) return json({ error: "Request body is too large." }, 413, origin);
