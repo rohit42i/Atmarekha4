@@ -704,7 +704,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         </div>
       </div>
       <div className="ar-cr-hero-actions">
-        <label><span>Reporting window</span><select value={days} onChange={event => setDays(Number(event.target.value)}>{WINDOWS.map(row => <option key={row.value} value={row.value}>{row.label}</option>)}</select></label>
+        <label><span>Reporting window</span><select value={days} onChange={event => setDays(Number(event.target.value))}>{WINDOWS.map(row => <option key={row.value} value={row.value}>{row.label}</option>)}</select></label>
         <button type="button" className="ar-cr-btn is-primary" onClick={load} disabled={refreshing}><AdminIcon name="refresh" size={15}/>{refreshing ? 'Refreshing…' : 'Refresh all'}</button>
         <button type="button" className="ar-cr-btn" onClick={exportMetrics}><AdminIcon name="chart" size={15}/>Export CSV</button>
         <button type="button" className="ar-cr-btn" onClick={exportSnapshot}><AdminIcon name="layers" size={15}/>Export JSON</button>
