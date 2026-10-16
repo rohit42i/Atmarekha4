@@ -65,8 +65,10 @@ if (!feedbackWorkerRegression.includes("event.data?.type === 'FLUSH_FEEDBACK_QUE
   failed = true;
 }
 const notificationScheduleRegression = await readFile('AdminOperations.jsx', 'utf8');
-if (!notificationScheduleRegression.includes('Scheduled notification delivery is not configured yet. No notification was scheduled.')) {
-  console.error('CHECK FAILED: Admin must not report a scheduled notification without an active scheduler.');
+if (notificationScheduleRegression.includes('Save scheduled record') ||
+    notificationScheduleRegression.includes('Schedule (optional)') ||
+    notificationScheduleRegression.includes('scheduleAt')) {
+  console.error('CHECK FAILED: Operations advertises notification scheduling without an active scheduler.');
   failed = true;
 }
 
@@ -270,5 +272,93 @@ if (!adminPanelSource.includes("{ key: 'Email Campaigns'") || !adminPanelSource.
   failed = true;
 }
 
+
+const adminPaletteSource = await readFile('AdminCommandPalette.jsx', 'utf8');
+const adminOperationsSource = await readFile('AdminOperations.jsx', 'utf8');
+const adminHealthSource = await readFile('AdminChapterHealth.jsx', 'utf8');
+const adminWorkspaceCss = await readFile('admin-workspace-ux.css', 'utf8');
+const adminToolListeners = [
+  ['atma-admin-open-health', 'AdminChapterHealth.jsx', '<AdminChapterHealth />'],
+  ['atma-admin-open-operations', 'AdminOperations.jsx', '<AdminOperations />'],
+  ['atma-admin-open-management', 'AdminManagementTools.jsx', '<AdminManagementTools />'],
+  ['atma-admin-open-moderation', 'AdminModerationTools.jsx', '<AdminModerationTools />'],
+  ['atma-admin-open-group-chat', 'AdminGroupChatTools.jsx', '<AdminGroupChatTools />'],
+  ['atma-admin-open-pro', 'AdminProTools.jsx', '<AdminProTools />'],
+  ['atma-admin-open-community', 'CommunityAdmin.jsx', '<CommunityAdmin />'],
+];
+for (const [eventName, sourceFile, mountTag] of adminToolListeners) {
+  const componentSource = await readFile(sourceFile, 'utf8');
+  const listenerPattern = new RegExp("(?:window\\.)?addEventListener\\(['\\\"]" + eventName + "['\\\"]");
+  if (!listenerPattern.test(componentSource) || !adminPanelSource.includes(mountTag)) {
+    console.error('CHECK FAILED: admin action has no mounted event handler:', eventName, sourceFile);
+    failed = true;
+  }
+}
+if (!adminPanelSource.includes("window.addEventListener('atma-admin-open-command', openPalette)")) {
+  console.error('CHECK FAILED: Control Room command shortcuts cannot open the admin command palette.');
+  failed = true;
+}
+if (adminPaletteSource.includes("id: 'tool-command'")) {
+  console.error('CHECK FAILED: command palette contains a self-opening command action.');
+  failed = true;
+}
+if (!adminPaletteSource.includes('window.requestAnimationFrame(() => window.requestAnimationFrame(')) {
+  console.error('CHECK FAILED: chapter search can dispatch focus before the chapter manager mounts.');
+  failed = true;
+}
+if (!adminPaletteSource.includes("id: 'tool-activity'") || !adminPanelSource.includes("label: 'Admin Activity Log'")) {
+  console.error('CHECK FAILED: admin activity log is missing from quick navigation.');
+  failed = true;
+}
+if (adminOperationsSource.includes('viewResult')) {
+  console.error('CHECK FAILED: Operations references the stale/undefined viewResult variable.');
+  failed = true;
+}
+if (adminOperationsSource.includes('scheduleAt') || adminOperationsSource.includes('Save scheduled record') || adminOperationsSource.includes('Schedule (optional)')) {
+  console.error('CHECK FAILED: Operations still advertises the unsupported notification scheduler.');
+  failed = true;
+}
+if (!adminHealthSource.includes('chapter.coverUrl || chapter.cover_url || chapter.cover')) {
+  console.error('CHECK FAILED: Chapter Health does not recognize normalized chapter cover fields.');
+  failed = true;
+}
+if (!adminPanelSource.includes("import './admin-workspace-ux.css';") ||
+    !adminWorkspaceCss.includes('@media (max-width:760px)') ||
+    !adminWorkspaceCss.includes('.admin-bottom-nav')) {
+  console.error('CHECK FAILED: responsive admin workspace styles are not imported or missing the phone navigation layout.');
+  failed = true;
+}
+if (!adminControlRoom.includes('Open {featureCatalog.length} tools') ||
+    !adminControlRoom.includes('{featureCatalog.length} shortcuts')) {
+  console.error('CHECK FAILED: admin workbench count and copy are not generated from the action catalogue.');
+  failed = true;
+}
+
+
+const adminIconRegistrySource = await readFile('admin-redesign-ui.jsx', 'utf8');
+const iconRegistryBlock = adminIconRegistrySource.split('const paths = {')[1]?.split('\n  };')[0] || '';
+const registeredAdminIcons = new Set(
+  [...iconRegistryBlock.matchAll(/^\s*(?:'([^']+)'|([A-Za-z][\w-]*))\s*:/gm)].map(match => match[1] || match[2])
+);
+const usedAdminIcons = new Set([
+  ...[...adminPanelSource.matchAll(/\{ key: '[^']+', icon: '([^']+)'/g)].map(match => match[1]),
+  ...[...adminControlRoom.matchAll(/icon:\s*'([^']+)'/g)].map(match => match[1]),
+]);
+const unsupportedAdminIcons = [...usedAdminIcons].filter(icon => !registeredAdminIcons.has(icon));
+if (unsupportedAdminIcons.length) {
+  console.error('CHECK FAILED: admin navigation/workbench uses unregistered icons:', unsupportedAdminIcons.join(', '));
+  failed = true;
+}
+const navigationGroupSource = adminPanelSource.split('const ADMIN_NAV_GROUPS = [')[1]?.split('\n];')[0] || '';
+const navigationKeys = [...navigationGroupSource.matchAll(/\{\s*key: '([^']+)'/g)]
+  .map(match => match[1])
+  .filter(key => !key.startsWith('__'));
+const tabsDeclaration = adminPanelSource.match(/const tabs = \[([^\]]+)\];/);
+const tabKeys = tabsDeclaration ? [...tabsDeclaration[1].matchAll(/'([^']+)'/g)].map(match => match[1]) : [];
+const missingNavigationTabs = navigationKeys.filter(key => !tabKeys.includes(key));
+if (!tabsDeclaration || missingNavigationTabs.length) {
+  console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
+  failed = true;
+}
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');

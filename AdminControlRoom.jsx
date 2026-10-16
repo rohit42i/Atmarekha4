@@ -23,7 +23,7 @@ const SECTIONS = [
   { id: 'Audit & Reliability', label: 'Audit & Reliability', icon: 'settings' },
   { id: 'Metric Explorer', label: 'All Metrics', icon: 'layers' },
   { id: 'Deep Analytics', label: 'Deep Analytics', icon: 'chart' },
-  { id: 'Feature Workbench', label: '50-Action Workbench', icon: 'settings' },
+  { id: 'Feature Workbench', label: 'Admin Workbench', icon: 'settings' },
 ];
 const NUMBER = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const asNumber = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
@@ -874,7 +874,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         <button type="button" className="ar-cr-btn is-primary" onClick={load} disabled={refreshing}><AdminIcon name="refresh" size={15}/>{refreshing ? 'Refreshing…' : 'Refresh all'}</button>
         <button type="button" className="ar-cr-btn" onClick={exportMetrics}><AdminIcon name="chart" size={15}/>Export CSV</button>
         <button type="button" className="ar-cr-btn" onClick={exportSnapshot}><AdminIcon name="layers" size={15}/>Export JSON</button>
-        <button type="button" className="ar-cr-btn is-primary" onClick={() => { setSection('Feature Workbench'); setFeatureSearch(''); }}><AdminIcon name="settings" size={15}/>Open 50 tools</button>
+        <button type="button" className="ar-cr-btn is-primary" onClick={() => { setSection('Feature Workbench'); setFeatureSearch(''); }}><AdminIcon name="settings" size={15}/>Open {featureCatalog.length} tools</button>
       </div>
     </header>
 
@@ -1024,7 +1024,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
 
     {section === 'Feature Workbench' && <div className="ar-cr-feature-workbench">
       <div className="ar-cr-feature-hero">
-        <div><span className="ar-cr-kicker">OPERATIONS / QUICK TASKS</span><h3>Admin workbench</h3><p>50 working shortcuts for analytics, publishing, community operations and data exports. Each action uses an existing screen or current loaded data.</p></div>
+        <div><span className="ar-cr-kicker">OPERATIONS / QUICK TASKS</span><h3>Admin workbench</h3><p>{featureCatalog.length} shortcuts for analytics, publishing, community operations and data exports. Each action opens an existing tool or uses the data loaded in this workspace.</p></div>
         <div className="ar-cr-feature-count"><strong>{featureCatalog.length}</strong><span>available actions</span></div>
       </div>
       <label className="ar-cr-feature-search"><AdminIcon name="search" size={17}/><input value={featureSearch} onChange={event => setFeatureSearch(event.target.value)} placeholder="Search actions, domains or exports…" aria-label="Search workbench actions"/><span>{filteredFeatures.length} / {featureCatalog.length}</span></label>
