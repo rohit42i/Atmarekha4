@@ -304,11 +304,11 @@ if (!adminPaletteSource.includes("id: 'tool-activity'") || !adminPanelSource.inc
   console.error('CHECK FAILED: admin activity log is missing from quick navigation.');
   failed = true;
 }
-if (/\\bviewResult\\b/.test(adminOperationsSource)) {
+if (adminOperationsSource.includes('viewResult')) {
   console.error('CHECK FAILED: Operations references the stale/undefined viewResult variable.');
   failed = true;
 }
-if (/\\bscheduleAt\\b|Save scheduled record|Schedule \\(optional\\)/.test(adminOperationsSource)) {
+if (adminOperationsSource.includes('scheduleAt') || adminOperationsSource.includes('Save scheduled record') || adminOperationsSource.includes('Schedule (optional)')) {
   console.error('CHECK FAILED: Operations still advertises the unsupported notification scheduler.');
   failed = true;
 }
