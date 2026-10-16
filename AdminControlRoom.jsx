@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 import { AdminIcon } from './admin-redesign-ui.jsx';
@@ -192,8 +192,10 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [lastRefresh, setLastRefresh] = useState(null);
   const [loadDuration, setLoadDuration] = useState(null);
   const [collapsedMetrics, setCollapsedMetrics] = useState(false);
+  const loadSequence = useRef(0);
 
   const load = async () => {
+    const requestId = ++loadSequence.current;
     const startedAt = Date.now();
     setRefreshing(true);
     const results = await Promise.all([
@@ -236,6 +238,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       profilesCount: profilesResult.count,
       profilesError: profilesResult.error,
     };
+    // Ignore slower refreshes when a newer period/manual refresh has already started.
+    if (requestId !== loadSequence.current) return;
     setBundle(combined);
     setLastRefresh(new Date());
     setLoadDuration(Date.now() - startedAt);
@@ -244,18 +248,16 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   };
 
   useEffect(() => {
-    let alive = true;
-    const run = async () => {
-      await load();
-    };
-    if (alive) run();
+    const run = async () => { await load(); };
+    run();
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') run();
     }, 60000);
     const onVisibility = () => { if (document.visibilityState === 'visible') run(); };
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
-      alive = false;
+      // Invalidate in-flight work on period changes and unmount.
+      loadSequence.current += 1;
       window.clearInterval(timer);
       document.removeEventListener('visibilitychange', onVisibility);
     };
@@ -645,7 +647,14 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const tracked = item.value !== null && item.value !== undefined;
     return matchSearch && (metricFilter === 'all' || (metricFilter === 'tracked' ? tracked : !tracked));
   }).sort((a, b) => {
-    if (metricSort === 'largest') return (Number(b.value) || -Infinity) - (Number(a.value) || -Infinity);
+    if (metricSort === 'largest') {
+      const aValue = a.value == null || !Number.isFinite(Number(a.value)) ? null : Number(a.value);
+      const bValue = b.value == null || !Number.isFinite(Number(b.value)) ? null : Number(b.value);
+      if (aValue == null && bValue != null) return 1;
+      if (aValue != null && bValue == null) return -1;
+      if (aValue == null && bValue == null) return a.label.localeCompare(b.label);
+      return bValue - aValue || a.label.localeCompare(b.label);
+    }
     if (metricSort === 'name') return a.label.localeCompare(b.label);
     return a.category.localeCompare(b.category) || a.label.localeCompare(b.label);
   });
