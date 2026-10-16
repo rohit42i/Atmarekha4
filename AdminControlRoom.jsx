@@ -874,6 +874,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         <button type="button" className="ar-cr-btn is-primary" onClick={load} disabled={refreshing}><AdminIcon name="refresh" size={15}/>{refreshing ? 'Refreshing…' : 'Refresh all'}</button>
         <button type="button" className="ar-cr-btn" onClick={exportMetrics}><AdminIcon name="chart" size={15}/>Export CSV</button>
         <button type="button" className="ar-cr-btn" onClick={exportSnapshot}><AdminIcon name="layers" size={15}/>Export JSON</button>
+        <button type="button" className="ar-cr-btn is-primary" onClick={() => { setSection('Feature Workbench'); setFeatureSearch(''); }}><AdminIcon name="settings" size={15}/>Open 50 tools</button>
       </div>
     </header>
 
