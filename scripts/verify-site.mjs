@@ -49,7 +49,7 @@ const forbidden = [
 let failed = false;
 
 const feedbackSourceRegression = await readFile('FeedbackForm.jsx', 'utf8');
-if (/\\bflushQueue\\s*\\(/.test(feedbackSourceRegression) && !/\\b(?:function|const|let|var)\\s+flushQueue\\b/.test(feedbackSourceRegression)) {
+if (/\bflushQueue\s*\(/.test(feedbackSourceRegression) && !/\b(?:function|const|let|var)\s+flushQueue\b/.test(feedbackSourceRegression)) {
   console.error('CHECK FAILED: FeedbackForm references flushQueue without an implementation.');
   failed = true;
 }
