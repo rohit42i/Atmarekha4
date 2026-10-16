@@ -48,6 +48,38 @@ const forbidden = [
 
 let failed = false;
 
+const feedbackSourceRegression = await readFile('FeedbackForm.jsx', 'utf8');
+if (/\bflushQueue\s*\(/.test(feedbackSourceRegression) && !/\b(?:function|const|let|var)\s+flushQueue\b/.test(feedbackSourceRegression)) {
+  console.error('CHECK FAILED: FeedbackForm references flushQueue without an implementation.');
+  failed = true;
+}
+
+const feedbackQueueRegression = await readFile('FeedbackForm.jsx', 'utf8');
+if (!feedbackQueueRegression.includes('enqueueFeedbackPayload(payload)') || !feedbackQueueRegression.includes('Your message is saved on this device')) {
+  console.error('CHECK FAILED: Feedback form must persist offline submissions and show queue status.');
+  failed = true;
+}
+const feedbackWorkerRegression = await readFile('public/sw.js', 'utf8');
+if (!feedbackWorkerRegression.includes("event.data?.type === 'FLUSH_FEEDBACK_QUEUE'")) {
+  console.error('CHECK FAILED: Service worker feedback queue flush message handler is missing.');
+  failed = true;
+}
+const notificationScheduleRegression = await readFile('AdminOperations.jsx', 'utf8');
+if (!notificationScheduleRegression.includes('Scheduled notification delivery is not configured yet. No notification was scheduled.')) {
+  console.error('CHECK FAILED: Admin must not report a scheduled notification without an active scheduler.');
+  failed = true;
+}
+
+const readerSourceRegression = await readFile('App.jsx', 'utf8');
+if (readerSourceRegression.includes('if (!pages.length) return null;')) {
+  console.error('CHECK FAILED: Reader must not render a blank page when a chapter has no pages.');
+  failed = true;
+}
+if (!readerSourceRegression.includes('No pages are available for this chapter yet.')) {
+  console.error('CHECK FAILED: Reader empty-page recovery message is missing.');
+  failed = true;
+}
+
 for (const [file, phrase] of required) {
   const content = await readFile(file, 'utf8');
   if (!content.includes(phrase)) {
