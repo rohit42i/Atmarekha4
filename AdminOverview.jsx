@@ -62,6 +62,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const [analytics, setAnalytics] = useState(null);
   const [last24, setLast24] = useState({ views: 0, ratings: 0, comments: 0, loading: true });
   const [periodLoading, setPeriodLoading] = useState(false);
+  const [chapterSort, setChapterSort] = useState('views');
+  const [adminActivity, setAdminActivity] = useState([]);
 
   const days = WINDOWS[windowKey];
 
@@ -75,6 +77,27 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     });
     return () => { active = false; };
   }, [comments]);
+
+  // Read the existing audit log for the dashboard feed; this is display-only and does not alter admin actions.
+  useEffect(() => {
+    let active = true;
+    const loadAdminActivity = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('admin_activity_log')
+          .select('id,action,entity_type,entity_id,details,created_at')
+          .order('created_at', { ascending: false })
+          .limit(6);
+        if (error) throw error;
+        if (active) setAdminActivity(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.warn('Admin activity feed lookup failed:', error);
+        if (active) setAdminActivity([]);
+      }
+    };
+    loadAdminActivity();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -189,7 +212,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       const date = safeDate(chapter.releaseDate);
       return date && date.getTime() > Date.now();
     }).sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)).slice(0, 4);
-    const top = [...chapterStats].sort((a, b) => b.periodViews - a.periodViews).slice(0, 5);
+    const top = chapterStats;
     return {
       totalViews: Number(data.total_views || 0),
       totalLikes: Number(data.total_likes || 0),
@@ -234,7 +257,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
   const deltaShares = pct(metrics.currentShares, metrics.previousShares);
   const periodUnit = windowKey === 'today' ? 'today' : windowKey === 'week' ? '7d' : windowKey === 'month' ? '30d' : '90d';
-  const maxTop = Math.max(...metrics.top.map(chapter => chapter.periodViews), 1);
+  const maxTop = Math.max(...metrics.top.map(chapter => chapterSort === 'rating' ? chapter.ratingAverage : chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews), 1);
 
   const insights = useMemo(() => {
     const values = [];
@@ -297,12 +320,12 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
     <div className="ar-overview-secondary">
       <GlassCard>
-        <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button>}/>
+        <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<div className="ar-overview-chapter-actions"><label className="ar-overview-sort-label"><span className="sr-only">Sort chapters by</span><select value={chapterSort} onChange={event => setChapterSort(event.target.value)} aria-label="Sort top chapters"><option value="views">Views</option><option value="likes">Likes</option><option value="rating">Rating</option></select></label><button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button></div>}/>
         <div className="ar-top-list">
-          {metrics.top.map((chapter, index) => <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}>
+          {[...metrics.top].sort((a, b) => chapterSort === 'rating' ? b.ratingAverage - a.ratingAverage : chapterSort === 'likes' ? b.periodLikes - a.periodLikes : b.periodViews - a.periodViews).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
             <b>{String(index + 1).padStart(2, '0')}</b>
-            <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, chapter.periodViews / maxTop * 100) + '%' }}/></i></div>
-            <strong className="ar-top-value">{formatNumber(chapter.periodViews)}</strong>
+            <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, (chapterSort === 'rating' ? chapter.ratingAverage : chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews) / maxTop * 100) + '%' }}/></i></div>
+            <strong className="ar-top-value">{chapterSort === 'rating' ? (chapter.ratingAverage ? chapter.ratingAverage.toFixed(1) + '/10' : '—') : formatNumber(chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews)}</strong>
             <AdminIcon name="chevron" size={16}/>
           </button>)}
           {!metrics.top.length && <div className="ar-empty-inline">No chapter analytics yet.</div>}
@@ -357,9 +380,26 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       </GlassCard>
     </div>
 
+    <GlassCard className="ar-admin-activity-feed">
+      <SectionHeader eyebrow="AUDIT LOG" title="Recent admin activity" description="Latest recorded actions in the existing admin audit log." />
+      <div className="ar-admin-activity-list">
+        {adminActivity.map(item => {
+          const detail = item.details && typeof item.details === 'object' ? item.details : {};
+          const entity = [item.entity_type, detail.title || detail.chapter_title || (detail.chapter_number != null ? 'Chapter ' + detail.chapter_number : '')].filter(Boolean).join(' · ');
+          const when = safeDate(item.created_at);
+          return <article key={item.id}>
+            <span className="ar-admin-activity-mark"><AdminIcon name="pulse" size={15}/></span>
+            <div className="ar-admin-activity-copy"><strong>{String(item.action || 'Admin action').replace(/[_-]+/g, ' ')}</strong><span>{entity || 'Workspace action'}</span></div>
+            <time dateTime={item.created_at}>{when ? when.toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—'}</time>
+          </article>;
+        })}
+        {!adminActivity.length && <div className="ar-empty-inline">No recent admin activity has been recorded.</div>}
+      </div>
+    </GlassCard>
+
     <GlassCard className="ar-data-note">
-      <div><AdminIcon name="settings" size={16}/><div><strong>Data coverage</strong><p>Some business metrics are not available in the current admin data, so they are intentionally omitted rather than estimated.</p></div></div>
-      <div className="ar-data-tags"><span>Live analytics</span><span>Reader activity</span><span>Content health</span></div>
+      <div><AdminIcon name="settings" size={16}/><div><strong>Data coverage</strong><p>Device/source breakdowns and daily trend series are not returned by the current analytics response, so this dashboard avoids inventing those metrics.</p></div></div>
+      <div className="ar-data-tags"><span>Live analytics</span><span>Reader activity</span><span>Content health</span><span>Admin audit log</span></div>
     </GlassCard>
   </section>;
 }
