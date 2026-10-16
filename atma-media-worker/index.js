@@ -233,6 +233,30 @@ function communityMimeFromKey(key) {
   return IMAGE_MIME_BY_EXT[ext] || COMMUNITY_MIME_BY_EXT[ext] || '';
 }
 
+function boundedUploadStream(stream, maxBytes, onLimit) {
+  const reader = stream.getReader();
+  let received = 0;
+  return new ReadableStream({
+    async pull(controller) {
+      try {
+        const part = await reader.read();
+        if (part.done) { controller.close(); return; }
+        received += part.value?.byteLength || 0;
+        if (received > maxBytes) {
+          onLimit();
+          try { await reader.cancel(); } catch (_) {}
+          controller.error(new Error('UPLOAD_TOO_LARGE'));
+          return;
+        }
+        controller.enqueue(part.value);
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+    cancel(reason) { return reader.cancel(reason); },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
@@ -337,19 +361,28 @@ export default {
           }, 413);
         }
 
-        await env.MANGA_BUCKET.put(key, request.body, {
-          httpMetadata: {
-            contentType,
-            cacheControl: isCommunity ? 'public, max-age=86400' : 'private, max-age=3600',
-          },
-        });
+        let uploadExceededLimit = false;
+        try {
+          await env.MANGA_BUCKET.put(key, boundedUploadStream(request.body, maxBytes, () => { uploadExceededLimit = true; }), {
+            httpMetadata: {
+              contentType,
+              cacheControl: isCommunity ? 'public, max-age=86400' : 'private, max-age=3600',
+            },
+          });
+        } catch (error) {
+          if (uploadExceededLimit || error?.message === 'UPLOAD_TOO_LARGE') {
+            return json(request, env, { error: isCommunity ? 'Community attachment is larger than 15 MB.' : 'Image is larger than 95 MB.' }, 413);
+          }
+          throw error;
+        }
         return json(request, env, { ok: true, path: key });
       }
 
       await env.MANGA_BUCKET.delete(key);
       return json(request, env, { ok: true, path: key });
     } catch (error) {
-      return json(request, env, { error: error?.message || 'Atma media operation failed.' }, 500);
+      console.error('Atma media operation failed:', error instanceof Error ? error.message : 'unknown error');
+      return json(request, env, { error: 'Atma media operation failed.' }, 500);
     }
   },
 };
