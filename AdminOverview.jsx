@@ -63,6 +63,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const [last24, setLast24] = useState({ views: 0, ratings: 0, comments: 0, loading: true });
   const [periodLoading, setPeriodLoading] = useState(false);
   const [chapterSort, setChapterSort] = useState('views');
+  const [adminActivity, setAdminActivity] = useState([]);
 
   const days = WINDOWS[windowKey];
 
@@ -76,6 +77,27 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     });
     return () => { active = false; };
   }, [comments]);
+
+  // Read the existing audit log for the dashboard feed; this is display-only and does not alter admin actions.
+  useEffect(() => {
+    let active = true;
+    const loadAdminActivity = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('admin_activity_log')
+          .select('id,action,entity_type,entity_id,details,created_at')
+          .order('created_at', { ascending: false })
+          .limit(6);
+        if (error) throw error;
+        if (active) setAdminActivity(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.warn('Admin activity feed lookup failed:', error);
+        if (active) setAdminActivity([]);
+      }
+    };
+    loadAdminActivity();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -358,9 +380,26 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       </GlassCard>
     </div>
 
+    <GlassCard className="ar-admin-activity-feed">
+      <SectionHeader eyebrow="AUDIT LOG" title="Recent admin activity" description="Latest recorded actions in the existing admin audit log." />
+      <div className="ar-admin-activity-list">
+        {adminActivity.map(item => {
+          const detail = item.details && typeof item.details === 'object' ? item.details : {};
+          const entity = [item.entity_type, detail.title || detail.chapter_title || (detail.chapter_number != null ? 'Chapter ' + detail.chapter_number : '')].filter(Boolean).join(' · ');
+          const when = safeDate(item.created_at);
+          return <article key={item.id}>
+            <span className="ar-admin-activity-mark"><AdminIcon name="pulse" size={15}/></span>
+            <div className="ar-admin-activity-copy"><strong>{String(item.action || 'Admin action').replace(/[_-]+/g, ' ')}</strong><span>{entity || 'Workspace action'}</span></div>
+            <time dateTime={item.created_at}>{when ? when.toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—'}</time>
+          </article>;
+        })}
+        {!adminActivity.length && <div className="ar-empty-inline">No recent admin activity has been recorded.</div>}
+      </div>
+    </GlassCard>
+
     <GlassCard className="ar-data-note">
-      <div><AdminIcon name="settings" size={16}/><div><strong>Data coverage</strong><p>Some business metrics are not available in the current admin data, so they are intentionally omitted rather than estimated.</p></div></div>
-      <div className="ar-data-tags"><span>Live analytics</span><span>Reader activity</span><span>Content health</span></div>
+      <div><AdminIcon name="settings" size={16}/><div><strong>Data coverage</strong><p>Device/source breakdowns and daily trend series are not returned by the current analytics response, so this dashboard avoids inventing those metrics.</p></div></div>
+      <div className="ar-data-tags"><span>Live analytics</span><span>Reader activity</span><span>Content health</span><span>Admin audit log</span></div>
     </GlassCard>
   </section>;
 }
