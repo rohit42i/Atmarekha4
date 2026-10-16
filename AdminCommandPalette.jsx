@@ -111,7 +111,7 @@ export default function AdminCommandPalette({
         run: () => {
           onSelectTab?.('Chapters');
           onClose?.();
-          window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 0);
+          window.requestAnimationFrame(() => window.requestAnimationFrame(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } }))));
         },
       }));
   }, [chapters, query, onSelectTab, onClose]);
