@@ -66,7 +66,7 @@ The local backup kit was hardened in the migration branch:
 - Backup verification similarly strips the passphrase from spawned subprocess environments.
 - Interrupt/termination cleanup removes in-progress plaintext work folders and incomplete artifacts.
 
-The GitHub Actions migration-kit validation run #48 completed successfully on commit `8a06bed2e5eed11132c451b0f1be86cb8fecc6fa`: JavaScript syntax, shell syntax, and tracked metadata parse checks passed. This was static validation only. The actual source backup is still **NOT CREATED**, and no restore rehearsal has run.
+The GitHub Actions migration-kit validation run #48 completed successfully on commit `8a06bed2e5eed11132c451b0f1be86cb8fecc6fa`: JavaScript syntax, shell syntax, and tracked metadata parse checks passed. The same pull-request commit's main application workflow #3086 also passed dependency audit, static regression checks, and the production build; all Cloudflare deployment/infrastructure steps were **skipped**. This was build/static validation only. The actual source backup is still **NOT CREATED**, and no restore rehearsal has run.
 
 The exact phone-only instructions are now documented in [OWNER-EXECUTION-STEPS.md](./OWNER-EXECUTION-STEPS.md). Start with Phase 1 (Termux backup) and then Phase 2 (owner's first-use Stratus initialization). Do not transfer more records or enable public APIs before the backup and restore gates pass.
 
