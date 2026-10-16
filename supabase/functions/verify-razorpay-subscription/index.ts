@@ -1,6 +1,29 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+
+async function readLimitedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(req.headers.get('content-length') || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      try { await reader.cancel(); } catch {}
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
 const ALLOWED_ORIGINS = new Set(['https://www.atmarekha.in', 'https://atmarekha.in', 'http://localhost:5173']);
 
 function cors(origin: string | null) {
@@ -13,7 +36,7 @@ function cors(origin: string | null) {
 }
 
 function json(body: Record<string, unknown>, status: number, origin: string | null) {
-  return new Response(JSON.stringify(body), { status, headers: { ...cors(origin), 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify(body), { status, headers: { ...cors(origin), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 }
 
 function hexBytes(hex: string) {
@@ -73,9 +96,17 @@ Deno.serve(async req => {
 
     const admin = createClient(supabaseUrl, service);
     const { data: { user }, error: authError } = await admin.auth.getUser(token);
-    if (authError || !user) return json({ error: `Authentication failed: ${authError?.message || 'Invalid session.'}` }, 401, origin);
+    if (authError || !user) return json({ error: 'Authentication required. Please sign in again.' }, 401, origin);
 
-    const body = await req.json().catch(() => ({}));
+    const { data: rateAllowed, error: rateError } = await admin.rpc('consume_rate_limit', { p_rate_key: `razorpay-subscription-verify:${user.id}`, p_limit: 10, p_window_seconds: 60 });
+    if (rateError) { console.error('Subscription verification rate-limit check failed.'); return json({ error: 'Verification temporarily unavailable.' }, 503, origin); }
+    if (rateAllowed === false) return json({ error: 'Too many requests. Please try again shortly.' }, 429, origin);
+
+    const rawBody = await readLimitedBody(req, 8192);
+    if (rawBody === null) return json({ error: 'Request body is too large.' }, 413, origin);
+    let body: any;
+    try { body = JSON.parse(rawBody); } catch { return json({ error: 'Invalid JSON body.' }, 400, origin); }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'Invalid request body.' }, 400, origin);
     const paymentId = String(body?.razorpay_payment_id || '');
     const subscriptionId = String(body?.razorpay_subscription_id || '');
     const received = String(body?.razorpay_signature || '');
@@ -120,6 +151,6 @@ Deno.serve(async req => {
     return json({ success: true, subscription_id: subscriptionId, plan_id: record.plan_id, current_period_end: periodEnd }, 200, origin);
   } catch (error) {
     console.error('Razorpay subscription verification failed:', error instanceof Error ? error.message : 'unknown error');
-    return json({ error: error instanceof Error ? error.message : 'Unable to verify subscription.' }, 500, origin);
+    return json({ error: 'Unable to verify subscription. Please try again.' }, 500, origin);
   }
 });
