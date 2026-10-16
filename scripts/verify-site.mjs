@@ -70,6 +70,20 @@ if (!notificationScheduleRegression.includes('Scheduled notification delivery is
   failed = true;
 }
 
+const engagementDisplayNameRegression = await readFile('engagement.js', 'utf8');
+if (!engagementDisplayNameRegression.includes(".select('username,display_name')") || !engagementDisplayNameRegression.includes('data?.display_name')) {
+  console.error('CHECK FAILED: Comment author names must fall back to the public display name, not only the username.');
+  failed = true;
+}
+const appCommentRegression = await readFile('App.jsx', 'utf8');
+if (appCommentRegression.includes("window.localStorage.getItem('atma-rekha-comment-name')") || appCommentRegression.includes('authorName: cleanName')) {
+  console.error('CHECK FAILED: Comment composer must not display an ignored, user-controlled author-name field.');
+  failed = true;
+}
+if (!appCommentRegression.includes("Sign in to post a comment.") || !appCommentRegression.includes("detail: { mode: 'login' }")) {
+  console.error('CHECK FAILED: Comment action must open the sign-in panel when authentication is required.');
+  failed = true;
+}
 const readerSourceRegression = await readFile('App.jsx', 'utf8');
 if (readerSourceRegression.includes('if (!pages.length) return null;')) {
   console.error('CHECK FAILED: Reader must not render a blank page when a chapter has no pages.');
