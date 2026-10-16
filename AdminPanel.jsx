@@ -85,6 +85,7 @@ const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
     { key: 'Overview', icon: 'grid', label: 'Dashboard' },
     { key: 'Control Room', icon: 'chart', label: 'Control Room' },
+    { key: 'Control Room', icon: 'chart', label: 'Control Room' },
     { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
     { key: 'Pages', icon: 'layers', label: 'Page Editor' },
   ]},
