@@ -44,14 +44,14 @@ try {
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
-  assert.match(aboutHtml, /<title>About Atma Rekha \\| Indian Fantasy Manga<\\/title>/);
+  assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga<\/title>/);
   assert.match(aboutHtml, /Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh/);
-  assert.match(aboutHtml, /rel="canonical" href="https:\\/\\/www\\.atmarekha\\.in\\/info\\/about"/);
+  assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
 
   const chaptersEnglish = await worker.fetch(new Request("https://www.atmarekha.in/chapters?lang=en"), env);
   const chaptersEnglishHtml = await chaptersEnglish.text();
-  assert.match(chaptersEnglishHtml, /rel="canonical" href="https:\\/\\/www\\.atmarekha\\.in\\/chapters\\?lang=en"/);
+  assert.match(chaptersEnglishHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapters\?lang=en"/);
   assert.match(chaptersEnglishHtml, /hreflang="hi-Latn-IN"/);
   assert.match(chaptersEnglishHtml, /hreflang="en-IN"/);
 
@@ -69,16 +69,16 @@ try {
 
   const chapterHindi = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1"), env);
   const chapterHindiHtml = await chapterHindi.text();
-  assert.match(chapterHindiHtml, /<title>The Forgotten Dream \\| Atma Rekha<\\/title>/);
-  assert.match(chapterHindiHtml, /property="og:title" content="The Forgotten Dream \\| Atma Rekha"/);
-  assert.match(chapterHindiHtml, /rel="canonical" href="https:\\/\\/www\\.atmarekha\\.in\\/chapter\\/1"/);
+  assert.match(chapterHindiHtml, /<title>The Forgotten Dream \| Atma Rekha<\/title>/);
+  assert.match(chapterHindiHtml, /property="og:title" content="The Forgotten Dream \| Atma Rekha"/);
+  assert.match(chapterHindiHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/1"/);
   assert.match(chapterHindiHtml, /"@type":"ComicStory"/);
   assert.match(chapterHindiHtml, /"@type":"BreadcrumbList"/);
   assert.match(chapterHindiHtml, /hreflang="en-IN"/);
 
   const chapterEnglish = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1?lang=en"), env);
   const chapterEnglishHtml = await chapterEnglish.text();
-  assert.match(chapterEnglishHtml, /rel="canonical" href="https:\\/\\/www\\.atmarekha\\.in\\/chapter\\/1\\?lang=en"/);
+  assert.match(chapterEnglishHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/1\?lang=en"/);
 
   const redirect = await worker.fetch(new Request("http://atmarekha.in/chapters?lang=en"), env);
   assert.equal(redirect.status, 301);
