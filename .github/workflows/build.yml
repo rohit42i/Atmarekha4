@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Production dependency security audit
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --audit-level=high
 
       - name: Static production regression checks
         run: npm run check
