@@ -1,4 +1,15 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+async function readLimitedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(req.headers.get('content-length') || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return '';
+  const reader = req.body.getReader(); const chunks: Uint8Array[] = []; let total = 0;
+  while (true) { const { done, value } = await reader.read(); if (done) break; total += value.byteLength; if (total > maxBytes) { try { await reader.cancel(); } catch {} return null; } chunks.push(value); }
+  const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = new Set(['https://www.atmarekha.in', 'https://atmarekha.in', 'http://localhost:5173']);
@@ -70,8 +81,8 @@ Deno.serve(async req => {
     if (rate.error) throw new Error(`Rate-limit check failed: ${rate.error.message}`);
     if (!rate.data) return json({ error: 'Too many membership attempts. Please wait a minute and try again.' }, 429, origin);
 
-    const rawBody = await req.text();
-    if (rawBody.length > 8192) return json({ error: 'Request is too large.' }, 413, origin);
+    const rawBody = await readLimitedBody(req, 8192);
+    if (rawBody === null) return json({ error: 'Request body is too large.' }, 413, origin);
     let body: any = {};
     try { body = JSON.parse(rawBody || '{}'); } catch { return json({ error: 'Invalid request body.' }, 400, origin); }
     const planId = String(body?.plan_id || '') as PlanId;
@@ -138,10 +149,9 @@ Deno.serve(async req => {
     if (error instanceof RazorpayApiError) {
       console.error('Razorpay API failure:', JSON.stringify({ status: error.status, code: error.code, reason: error.reason, description: error.message }));
       const status = error.status === 401 ? 401 : error.status >= 400 && error.status < 500 ? 400 : 502;
-      return json({ error: error.status === 401 ? 'Razorpay authentication failed. Check that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are a matching pair from the same Razorpay environment.' : error.message, code: error.code, reason: error.reason }, status, origin);
+      return json({ error: error.status === 401 ? 'Membership checkout is temporarily unavailable. Please try again later.' : 'Razorpay could not start membership checkout. Please try again.' }, status, origin);
     }
-    const message = error instanceof Error ? error.message : 'Unable to start membership checkout.';
-    console.error('Razorpay subscription creation failed:', message);
-    return json({ error: message }, 500, origin);
+    console.error('Razorpay subscription creation failed:', error instanceof Error ? error.message : 'unknown error');
+    return json({ error: 'Unable to start membership checkout. Please try again.' }, 500, origin);
   }
 });
