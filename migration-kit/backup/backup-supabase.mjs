@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
+// Keep backup files owner-only even when Termux has a permissive default umask.
+process.umask(0o077);
+
 /*
  * Local Atma Rekha source backup for Android/Termux.
  * Dumps PostgreSQL, downloads every Supabase Storage object, encrypts the package,
@@ -74,11 +77,19 @@ function parseDatabaseUrl(input) {
     PGCONNECT_TIMEOUT: '20',
   };
 }
+function safeChildEnv(base = process.env) {
+  const env = { ...base };
+  delete env.SUPABASE_DB_URL;
+  delete env.SUPABASE_SERVICE_ROLE_KEY;
+  delete env.BACKUP_PASSPHRASE;
+  return env;
+}
+
 function run(program, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(program, args, {
       cwd: options.cwd,
-      env: options.env || process.env,
+      env: options.env || safeChildEnv(),
       stdio: [options.stdin ? 'pipe' : 'ignore', options.capture ? 'pipe' : 'ignore', 'pipe'],
     });
     let stdout = '';
@@ -202,12 +213,22 @@ async function main() {
   ensure(DATABASE_URL && SERVICE_KEY && PASSPHRASE, 'Missing prompted backup credentials.');
   ensure(PASSPHRASE.length >= 20, 'Backup passphrase must be at least 20 characters.');
   ensure(fs.existsSync(path.join(os.homedir(), 'storage', 'downloads')), 'Run termux-setup-storage and allow access before backing up.');
-  const pgEnv = { ...process.env, ...parseDatabaseUrl(DATABASE_URL) };
+  const parsedUrl = new URL(DATABASE_URL);
+  const dbHost = parsedUrl.hostname.toLowerCase();
+  const dbUser = decodeURIComponent(parsedUrl.username).toLowerCase();
+  const expectedDirectHost = 'db.' + PROJECT_REF + '.supabase.co';
+  const expectedPooler = dbHost.endsWith('.pooler.supabase.com') &&
+    (dbUser === 'postgres.' + PROJECT_REF || dbUser.endsWith('.' + PROJECT_REF));
+  ensure(dbHost === expectedDirectHost || expectedPooler,
+    'Database URL does not identify the expected Atma Rekha Supabase project. Use its direct host or its project-specific Session Pooler username. No backup was taken.');
+
+  const pgEnv = { ...safeChildEnv(), ...parseDatabaseUrl(DATABASE_URL) };
   delete pgEnv.SUPABASE_DB_URL;
   delete pgEnv.SUPABASE_SERVICE_ROLE_KEY;
   delete pgEnv.BACKUP_PASSPHRASE;
 
-  fs.mkdirSync(outputRoot, { recursive: true });
+  fs.mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
+  try { fs.chmodSync(outputRoot, 0o700); } catch {}
   const dumpPath = path.join(work, 'database.dump');
   const storageRoot = path.join(work, 'storage');
   fs.mkdirSync(storageRoot, { recursive: true });
@@ -225,6 +246,18 @@ async function main() {
   const bucketsResponse = await apiRequest('/storage/v1/bucket');
   const buckets = await bucketsResponse.json();
   ensure(Array.isArray(buckets), 'Storage bucket listing did not return an array.');
+  const expectedBuckets = new Map([
+    ['assets', true], ['chapter-pages', true], ['community', true], ['covers', true],
+    ['member-content', false], ['pdlpl-content', false],
+  ]);
+  const actualBucketNames = buckets.map(bucket => bucket && bucket.name).sort();
+  const expectedBucketNames = [...expectedBuckets.keys()].sort();
+  ensure(JSON.stringify(actualBucketNames) === JSON.stringify(expectedBucketNames),
+    'Storage bucket inventory differs from the six reviewed source buckets. Stop and review the current Supabase bucket list before backing up; this run will not silently omit or add buckets.');
+  for (const bucket of buckets) {
+    ensure(typeof bucket.public === 'boolean' && bucket.public === expectedBuckets.get(bucket.name),
+      'Storage access setting changed for bucket "' + bucket.name + '". Stop and review it before backup.');
+  }
   const storageManifest = { projectRef: PROJECT_REF, capturedAt: new Date().toISOString(), buckets, objects: [], counts: {}, totalObjectBytes: 0 };
 
   console.log('4/6 Downloading every object from ' + buckets.length + ' Storage bucket(s) into the local backup package...');
@@ -295,6 +328,15 @@ main().catch(error => {
   try { fs.rmSync(hmacPath, { force: true }); } catch {}
   try { fs.rmSync(manifestPath, { force: true }); } catch {}
   process.exitCode = 1;
+});
+process.on('SIGTERM', () => {
+  console.error('\nTerminated; removing plaintext temporary backup files.');
+  try { fs.rmSync(work, { recursive: true, force: true }); } catch {}
+  try { fs.rmSync(outPath, { force: true }); } catch {}
+  try { fs.rmSync(checksumPath, { force: true }); } catch {}
+  try { fs.rmSync(hmacPath, { force: true }); } catch {}
+  try { fs.rmSync(manifestPath, { force: true }); } catch {}
+  process.exit(143);
 });
 process.on('SIGINT', () => {
   console.error('\nInterrupted; removing plaintext temporary backup files.');
