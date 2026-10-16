@@ -65,8 +65,10 @@ if (!feedbackWorkerRegression.includes("event.data?.type === 'FLUSH_FEEDBACK_QUE
   failed = true;
 }
 const notificationScheduleRegression = await readFile('AdminOperations.jsx', 'utf8');
-if (!notificationScheduleRegression.includes('Scheduled notification delivery is not configured yet. No notification was scheduled.')) {
-  console.error('CHECK FAILED: Admin must not report a scheduled notification without an active scheduler.');
+if (notificationScheduleRegression.includes('Save scheduled record') ||
+    notificationScheduleRegression.includes('Schedule (optional)') ||
+    notificationScheduleRegression.includes('scheduleAt')) {
+  console.error('CHECK FAILED: Operations advertises notification scheduling without an active scheduler.');
   failed = true;
 }
 
