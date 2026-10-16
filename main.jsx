@@ -119,6 +119,7 @@ import './final-theme-authority.css';
 import './dialog-accessibility.js';
 import './chapter-card-thumbnails.css';
 import './comments-name-send-fix.css';
+import './profile-ultimate-ui.css';
 
 import './admin-overview-premium.css';
 import './admin-control-room.css';
