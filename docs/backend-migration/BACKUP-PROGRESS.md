@@ -56,6 +56,20 @@ In Termux on the Android phone:
 - Authentication, server functions, API Gateway, CORS and Storage buckets are still unconfigured. Stratus requires a first-use console session before the bucket API can create buckets.
 - No production code, Supabase, Cloudflare or Razorpay settings have been changed.
 
+## 16 October execution update — backup safety and owner steps
+
+The local backup kit was hardened in the migration branch:
+
+- Validates the database host/project-specific Session Pooler username against source project `pbukwjokgkqacaphlqzm` before dumping.
+- Stops unless the exact six reviewed Storage buckets are present and their current public/private settings match the reviewed inventory.
+- Applies owner-only local file permissions (`umask 077`) and no longer forwards the database URL, Storage service-role key, or passphrase to child utility processes by default.
+- Backup verification similarly strips the passphrase from spawned subprocess environments.
+- Interrupt/termination cleanup removes in-progress plaintext work folders and incomplete artifacts.
+
+The GitHub Actions migration-kit validation run #48 completed successfully on commit `8a06bed2e5eed11132c451b0f1be86cb8fecc6fa`: JavaScript syntax, shell syntax, and tracked metadata parse checks passed. This was static validation only. The actual source backup is still **NOT CREATED**, and no restore rehearsal has run.
+
+The exact phone-only instructions are now documented in [OWNER-EXECUTION-STEPS.md](./OWNER-EXECUTION-STEPS.md). Start with Phase 1 (Termux backup) and then Phase 2 (owner's first-use Stratus initialization). Do not transfer more records or enable public APIs before the backup and restore gates pass.
+
 ## Go/no-go
 
 **Further data migration remains blocked** until the encrypted backup succeeds and its contents are independently restored/verified in isolation. After that gate, review already-imported sensitive records, initialize Stratus, implement/review the server-side API/authz layer, and verify source-to-target contracts with synthetic data. Do not transfer additional auth, payment, token, private feedback or incident data; do not expose existing target rows or route the website to Catalyst.
