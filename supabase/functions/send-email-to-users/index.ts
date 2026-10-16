@@ -31,9 +31,6 @@ const response = (req: Request, body: Record<string, unknown>, status = 200) =>
 function stripHtmlToText(html: string) {
   return sanitizeHtml(html, { allowedTags: [], allowedAttributes: {}, disallowedTagsMode: "discard" })
     .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
     .replace(/[ \\t]+\\n/g, "\\n")
     .replace(/\\n{3,}/g, "\\n\\n")
     .trim();
