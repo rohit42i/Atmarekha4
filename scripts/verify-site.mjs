@@ -95,7 +95,7 @@ if (!enhancedCommentsAuthRegression.includes("detail:{mode:'login'}") || !enhanc
   failed = true;
 }
 const groupChatAuthRegression = await readFile('GroupChat.jsx', 'utf8');
-if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupChatAuthRegression.includes("detail:{mode:'login'}")) {
+if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupChatAuthRegression.includes("detail:{mode:'login'}") || !groupChatAuthRegression.includes('Sign in to join the conversation')) {
   console.error('CHECK FAILED: Group Chat must offer sign-in for sending, liking and reacting while logged out.');
   failed = true;
 }
