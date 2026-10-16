@@ -107,3 +107,16 @@ The source schema and migration-history snapshot is preserved, but it is not a s
 ### Coverage caveat
 
 The local kit is a **database + Supabase Storage object backup**, not a full clone of Supabase project settings. It does not export OAuth/SMTP provider secrets, project API keys, Edge Function environment secrets/deployed code, the Supabase Vault encryption root key, Cloudflare R2 objects/configuration, Razorpay settings, or the website deployment configuration. This project reports Supabase Vault installed, so follow the platform's separate Vault key/recovery procedure before calling the entire service fully recoverable. These items must be inventoried separately and stored securely outside GitHub.
+
+
+## Live correction — 16 October 2026
+
+This section supersedes any conflicting earlier status in this file.
+
+- The encrypted backup **was created and passed integrity checks in Termux**. It has not passed an isolated restore rehearsal.
+- Latest Catalyst auth check reports **hosted authentication enabled** and **public signup enabled**; embedded and third-party auth are disabled. This does not prove identity migration or login compatibility.
+- Source application schema is 61 tables (59 public + 2 private) and 411 columns. Catalyst has 62 Datastore tables: all source table names are represented through the current mapping, including the two private tables with `private_` prefixes, plus target-only `migration_timestamp_precision_archive`. Field-level parity and data reconciliation are still unverified.
+- Catalyst Functions remains at **0 deployed**; all 16 Supabase Edge Functions still need compatible replacements and tests.
+- Catalyst Stratus still reports **0 buckets**. The owner reports creating six folders in Catalyst **File Store** using underscore names; these are distinct from Stratus buckets, and this connection cannot verify File Store contents or permissions.
+- Supabase remains production. Do not merge PR #60 or change GitHub `main`, Cloudflare Workers/R2, or the deployment pipeline.
+- See [STATUS-ADDENDUM-2026-10-16.md](./STATUS-ADDENDUM-2026-10-16.md) for the direct checks and exact remaining release gates.
