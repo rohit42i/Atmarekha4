@@ -1,5 +1,33 @@
 # Backup and migration execution status
 
+**Live update:** 16 October 2026 (UTC). This file supersedes the older status notes below where they conflict.
+
+## Latest verified state
+
+- **Encrypted Supabase backup:** Created locally by the owner and verified in Termux. The verifier reported all four checks passed: SHA-256 checksum, HMAC authentication, decryption/package integrity, and PostgreSQL archive listing. This is integrity verification, not a successful restore rehearsal.
+- **Catalyst Development project:** `Atmarekha`, project ID `81164000000013050`, org `60091620701`.
+- **Storage:** A read-only check returned zero Catalyst buckets. Creating the first bucket was attempted for Development and failed with `OPERATION_NOT_ALLOWED`: “User needs to be in session when accessing Stratus for the first time.” The project owner must open Stratus in the Catalyst console once before API-based provisioning can proceed.
+- **Functions:** A live check returned zero Catalyst functions. Supabase has 16 active Edge Functions; their source was retrieved and audited for migration dependencies, but no Catalyst replacements are deployed.
+- **Authentication:** Catalyst configuration reports hosted, embedded, and third-party authentication all disabled.
+- **API Gateway:** Disabled. A route-list attempt returned `INVALID_OPERATION`; no gateway routes were created.
+- **Database:** The existing schema map covers 61 source tables and 411 source columns. During the 16 October session, partial Development data writes were attempted and tool responses reported 165 inserts and 15 updates across a subset of mapped tables. Full 61-table row-by-row reconciliation is **not complete**; treat this as a partial import, not an accepted migration.
+- **Known data risks:** Earlier migration work includes synthetic smoke fixtures. The target also needs a complete audit for missing, duplicate, target-only, and synthetic records. Protected push-subscription tokens were not blindly copied.
+- **Production safety:** Supabase remains the production backend. No production traffic cutover was performed. The migration PR remains draft and unmerged. The GitHub `main` branch, Cloudflare Workers/R2, and deployment pipeline were not intentionally changed by this migration work.
+
+## Remaining gates
+
+1. Owner opens Stratus in the Catalyst console; create and verify all six buckets with correct public/private access.
+2. Complete the full source/target reconciliation across every table, including review/removal of synthetic fixtures only after identification.
+3. Transfer and verify all Storage objects, keeping member-only buckets private.
+4. Implement and deploy Catalyst-compatible server-side functions and authentication; do not expose service credentials in browser code.
+5. Migrate and test all 16 Edge Function behaviours, especially account deletion, payment creation/verification, subscriptions, webhook idempotency, push notifications, admin authorization, and DPDP data rights.
+6. Validate identity continuity and user access rules.
+7. Restore the encrypted backup into an isolated disposable database and prove recovery.
+8. Run end-to-end, authorization, payment, privacy, and rollback tests.
+9. Only then make a separately approved production cutover decision.
+
+---
+
 **Updated:** 12 October 2026 (Asia/Kolkata)  
 
 **Live re-check:** 16 October 2026 (Asia/Kolkata). The encrypted backup is still not created: it requires local Termux execution with the owner's database URL, Storage service-role key, and separately stored passphrase. Catalyst Development still has no Storage buckets or deployed functions; Stratus first-use initialization requires the owner to open Storage in the Catalyst console. No new source rows were transferred and no production resources were changed during this re-check.
