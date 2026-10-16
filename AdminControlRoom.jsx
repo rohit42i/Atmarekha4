@@ -677,7 +677,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const csvCell = value => {
     const textValue = String(value ?? '');
     // Prevent spreadsheet formula execution when exported fields contain user-controlled text.
-    const safeValue = /^[=+@\\t\\r]/.test(textValue) || /^-/.test(textValue) ? "'" + textValue : textValue;
+    const safeValue = /^[=+@\t\r]/.test(textValue) || /^-/.test(textValue) ? "'" + textValue : textValue;
     return '"' + safeValue.replace(/"/g, '""') + '"';
   };
   const exportMetricRows = (items, filename) => {
@@ -687,7 +687,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       item.value == null ? '' : item.value,
       item.unit, item.description, item.source,
     ]);
-    const csv = rows.map(row => row.map(csvCell).join(',')).join('\\r\\n');
+    const csv = rows.map(row => row.map(csvCell).join(',')).join('\r\n');
     downloadFile(filename, 'text/csv;charset=utf-8', csv);
   };
   const exportMetrics = () => exportMetricRows(allMetrics, 'atma-rekha-control-room-metrics.csv');
