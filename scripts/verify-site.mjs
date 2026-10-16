@@ -20,6 +20,8 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
+  ['public/.well-known/security.txt', 'Contact: mailto:atmarekhasupport@gmail.com'],
+  ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
