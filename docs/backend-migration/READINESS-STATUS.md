@@ -1,6 +1,8 @@
 # Backend migration readiness status
 
 **Snapshot:** 12 October 2026 (Asia/Kolkata)  
+
+**Live re-check:** 16 October 2026 (Asia/Kolkata). GitHub PR #60 remains open and draft, head `236a78a8709cb930a50b1522bf0474b14446fa77`; no merge or production cutover was performed. Catalyst Development read-only checks confirm the 61 mapped table containers remain present, but the project still has zero functions and zero Storage buckets; hosted, embedded and third-party authentication remain disabled, public signup is off, and API Gateway remains disabled. The Storage API rejected bucket creation because the owner must initialize Stratus in an authenticated Catalyst console session first. This checkpoint made no production/source writes and did not create a backup, transfer more data, or deploy code.
 **Decision:** Schema scaffolding in Catalyst Development is complete and verified at the column-presence level. The system is **not ready for real data migration or production cutover**.
 
 ## Verified source snapshot
