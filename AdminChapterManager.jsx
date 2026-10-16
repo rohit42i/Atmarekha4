@@ -81,11 +81,15 @@ export default function AdminChapterManager({
   const [focusChapterId, setFocusChapterId] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem(COLUMN_KEY, JSON.stringify(columns));
+    try { localStorage.setItem(COLUMN_KEY, JSON.stringify(columns)); } catch {
+      // Keep the chapter manager usable when storage is disabled or full.
+    }
   }, [columns]);
 
   useEffect(() => {
-    try { localStorage.setItem(FILTER_KEY, JSON.stringify(savedFilters.slice(0, 10))); } catch {}
+    try { localStorage.setItem(FILTER_KEY, JSON.stringify(savedFilters.slice(0, 10))); } catch {
+      // Saved filters are a convenience; storage failure must not break admin work.
+    }
   }, [savedFilters]);
 
   useEffect(() => {
