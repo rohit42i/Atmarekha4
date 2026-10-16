@@ -149,10 +149,9 @@ Deno.serve(async req => {
     if (error instanceof RazorpayApiError) {
       console.error('Razorpay API failure:', JSON.stringify({ status: error.status, code: error.code, reason: error.reason, description: error.message }));
       const status = error.status === 401 ? 401 : error.status >= 400 && error.status < 500 ? 400 : 502;
-      return json({ error: error.status === 401 ? 'Razorpay authentication failed. Check that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are a matching pair from the same Razorpay environment.' : error.message, code: error.code, reason: error.reason }, status, origin);
+      return json({ error: error.status === 401 ? 'Membership checkout is temporarily unavailable. Please try again later.' : 'Razorpay could not start membership checkout. Please try again.' }, status, origin);
     }
-    const message = error instanceof Error ? error.message : 'Unable to start membership checkout.';
-    console.error('Razorpay subscription creation failed:', message);
-    return json({ error: message }, 500, origin);
+    console.error('Razorpay subscription creation failed:', error instanceof Error ? error.message : 'unknown error');
+    return json({ error: 'Unable to start membership checkout. Please try again.' }, 500, origin);
   }
 });
