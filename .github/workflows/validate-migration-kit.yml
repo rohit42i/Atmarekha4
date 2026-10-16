@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - "migration-kit/backup/**"
+      - "catalyst-staging/**"
+      - "docs/backend-migration/**"
       - ".github/workflows/validate-migration-kit.yml"
   push:
     branches:
       - "docs/backend-migration-readiness-2026-10-12"
     paths:
       - "migration-kit/backup/**"
+      - "catalyst-staging/**"
+      - "docs/backend-migration/**"
       - ".github/workflows/validate-migration-kit.yml"
 
 permissions:
@@ -27,6 +31,10 @@ jobs:
         run: |
           node --check migration-kit/backup/backup-supabase.mjs
           node --check migration-kit/backup/verify-backup.mjs
+          node --check catalyst-staging/functions/atma-rekha-health/index.js
+          node --check catalyst-staging/functions/atma-rekha-api/index.js
+          node --check catalyst-staging/functions/atma-rekha-api/lib/public-chapters.js
+          node --test catalyst-staging/functions/atma-rekha-api/test/*.test.js
       - name: Check shell syntax
         run: |
           bash -n migration-kit/backup/backup-supabase.sh
@@ -35,9 +43,12 @@ jobs:
         run: |
           node -e "JSON.parse(require('fs').readFileSync('docs/backend-migration/source-snapshot/SOURCE-INVENTORY.json','utf8'))"
           node -e "const fs=require('fs'); const s=fs.readFileSync('docs/backend-migration/source-snapshot/SOURCE-MIGRATION-HISTORY.csv','utf8'); if(!s.startsWith('\"version\",\"name\"')) throw new Error('Unexpected migration CSV header');"
+          node -e "JSON.parse(require('fs').readFileSync('catalyst-staging/functions/atma-rekha-api/package.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('catalyst-staging/functions/atma-rekha-api/catalyst-config.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('catalyst-staging/catalyst.json','utf8'))"
       - name: Verify no production credentials or data are required for syntax tests
         run: |
-          if grep -R -nE 'SUPABASE_SERVICE_ROLE_KEY=[^$]|PGPASSWORD=[^$]|sb_secret_[A-Za-z0-9_]+' migration-kit/backup; then
+          if grep -R -nE 'SUPABASE_SERVICE_ROLE_KEY=[^$]|PGPASSWORD=[^$]|sb_secret_[A-Za-z0-9_]+' migration-kit/backup catalyst-staging; then
             echo "Possible hard-coded credential found."
             exit 1
           fi
