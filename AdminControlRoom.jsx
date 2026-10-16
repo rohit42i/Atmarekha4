@@ -792,6 +792,69 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const availableMetricCount = allMetrics.filter(item => item.value !== null && item.value !== undefined).length;
   const periodLabel = WINDOWS.find(row => row.value === days)?.label || (days + ' days');
 
+  const exportRows = (filename, headers, items) => {
+    const cell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
+    const csv = '\uFEFF' + [headers, ...items].map(row => row.map(cell).join(',')).join('\r\n');
+    downloadFile(filename, 'text/csv;charset=utf-8', csv);
+  };
+  const featureCatalog = [
+    { id: 'refresh', group: 'Analytics & reporting', title: 'Refresh all data sources', detail: 'Run every source check again', icon: 'refresh', run: () => load() },
+    { id: 'all-csv', group: 'Analytics & reporting', title: 'Export all metrics CSV', detail: 'Download the full analytics catalogue', icon: 'chart', run: () => exportMetrics() },
+    { id: 'snapshot', group: 'Analytics & reporting', title: 'Export full JSON snapshot', detail: 'Include metrics, source status and summary', icon: 'layers', run: () => exportSnapshot() },
+    { id: 'visible-csv', group: 'Analytics & reporting', title: 'Export current metric view', detail: 'Download only the filtered metric results', icon: 'download', run: () => exportVisibleMetrics() },
+    { id: 'tracked-only', group: 'Analytics & reporting', title: 'Show metrics with values', detail: 'Filter the catalogue to available values', icon: 'pulse', run: () => { setSection('Metric Explorer'); setMetricFilter('tracked'); setSearch(''); } },
+    { id: 'untracked-only', group: 'Analytics & reporting', title: 'Show unavailable metrics', detail: 'Expose coverage gaps and missing sources', icon: 'flag', run: () => { setSection('Metric Explorer'); setMetricFilter('untracked'); setSearch(''); } },
+    { id: 'sort-largest', group: 'Analytics & reporting', title: 'Sort by largest value', detail: 'Rank metrics by numeric value', icon: 'chart', run: () => { setSection('Metric Explorer'); setMetricSort('largest'); setMetricFilter('all'); setSearch(''); } },
+    { id: 'sort-name', group: 'Analytics & reporting', title: 'Sort metrics alphabetically', detail: 'Find a metric by its name', icon: 'search', run: () => { setSection('Metric Explorer'); setMetricSort('name'); setSearch(''); } },
+    { id: 'sort-category', group: 'Analytics & reporting', title: 'Group metrics by category', detail: 'Keep related metrics together', icon: 'grid', run: () => { setSection('Metric Explorer'); setMetricSort('category'); setSearch(''); } },
+    { id: 'compact', group: 'Analytics & reporting', title: 'Compact metric cards', detail: 'Fit more values on screen', icon: 'layers', run: () => { setSection('Metric Explorer'); setCollapsedMetrics(true); } },
+    { id: 'expand', group: 'Analytics & reporting', title: 'Expand metric details', detail: 'Show definitions and source notes', icon: 'book', run: () => { setSection('Metric Explorer'); setCollapsedMetrics(false); } },
+    { id: 'reset-metrics', group: 'Analytics & reporting', title: 'Reset metric filters', detail: 'Clear search, coverage filter and sort', icon: 'refresh', run: () => { setSection('Metric Explorer'); setSearch(''); setMetricFilter('all'); setMetricSort('category'); setCollapsedMetrics(false); } },
+    { id: 'window-1', group: 'Analytics & reporting', title: 'Use 24-hour window', detail: 'Recalculate supported period metrics', icon: 'calendar', run: () => setDays(1) },
+    { id: 'window-7', group: 'Analytics & reporting', title: 'Use 7-day window', detail: 'Recalculate supported period metrics', icon: 'calendar', run: () => setDays(7) },
+    { id: 'window-30', group: 'Analytics & reporting', title: 'Use 30-day window', detail: 'Recalculate supported period metrics', icon: 'calendar', run: () => setDays(30) },
+    { id: 'window-90', group: 'Analytics & reporting', title: 'Use 90-day window', detail: 'Recalculate supported period metrics', icon: 'calendar', run: () => setDays(90) },
+    { id: 'traffic', group: 'Analytics domains', title: 'Traffic & reach analysis', detail: 'Daily view trend and reader reach', icon: 'chart', run: () => { setSection('Traffic & Reach'); setSearch(''); } },
+    { id: 'content', group: 'Analytics domains', title: 'Content intelligence', detail: 'Chapter inventory and publishing quality', icon: 'book', run: () => { setSection('Content Intelligence'); setSearch(''); } },
+    { id: 'audience', group: 'Analytics domains', title: 'Audience intelligence', detail: 'Registered, active and returning readers', icon: 'user', run: () => { setSection('Audience'); setSearch(''); } },
+    { id: 'engagement', group: 'Analytics domains', title: 'Engagement analysis', detail: 'Likes, shares, comments and interaction rates', icon: 'pulse', run: () => { setSection('Engagement'); setSearch(''); } },
+    { id: 'ratings', group: 'Analytics domains', title: 'Ratings & sentiment', detail: 'Scores, distributions and chapter reception', icon: 'sparkle', run: () => { setSection('Ratings'); setSearch(''); } },
+    { id: 'community', group: 'Analytics domains', title: 'Community & safety', detail: 'Comments, reports and moderation signals', icon: 'message', run: () => { setSection('Community'); setSearch(''); } },
+    { id: 'revenue', group: 'Analytics domains', title: 'Membership & revenue analytics', detail: 'Plans, MRR estimate and processed gross', icon: 'chart', run: () => { setSection('Membership & Revenue'); setSearch(''); } },
+    { id: 'notifications', group: 'Analytics domains', title: 'Notification delivery center', detail: 'Review sent, failed and scheduled records', icon: 'bell', run: () => { setSection('Notifications'); setSearch(''); } },
+    { id: 'reliability', group: 'Analytics domains', title: 'Audit & reliability', detail: 'Check source coverage and admin events', icon: 'settings', run: () => { setSection('Audit & Reliability'); setSearch(''); } },
+    { id: 'deep-analytics', group: 'Analytics domains', title: 'Deep analytics lab', detail: 'Open the extended set of derived measures', icon: 'chart', run: () => { setSection('Deep Analytics'); setSearch(''); setMetricFilter('all'); } },
+    { id: 'command-center', group: 'Analytics domains', title: 'Return to command center', detail: 'Open the main operational overview', icon: 'grid', run: () => { setSection('Command Center'); setSearch(''); } },
+    { id: 'chapter-manager', group: 'Publishing & community', title: 'Open chapter manager', detail: 'Create, edit, sort and publish chapters', icon: 'book', run: () => onTab?.('Chapters') },
+    { id: 'page-editor', group: 'Publishing & community', title: 'Open page editor', detail: 'Review and replace chapter artwork', icon: 'layers', run: () => onTab?.('Pages') },
+    { id: 'chapter-health', group: 'Publishing & community', title: 'Run chapter health check', detail: 'Open the existing asset/page health tool', icon: 'pulse', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-health')) },
+    { id: 'reader-directory', group: 'Publishing & community', title: 'Open reader directory', detail: 'Search accounts and membership status', icon: 'user', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-management', { detail: { view: 'users' } })) },
+    { id: 'push-composer', group: 'Publishing & community', title: 'Open push notification composer', detail: 'Compose and send a reader update', icon: 'bell', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-management', { detail: { view: 'notifications' } })) },
+    { id: 'community-moderation', group: 'Publishing & community', title: 'Open community moderation', detail: 'Review flagged members and content reports', icon: 'flag', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-moderation')) },
+    { id: 'group-chat', group: 'Publishing & community', title: 'Open group chat tools', detail: 'Moderate reader group discussions', icon: 'message', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-group-chat')) },
+    { id: 'operations', group: 'Publishing & community', title: 'Open operations & recovery', detail: 'Inspect failed operations and delivery history', icon: 'settings', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-operations')) },
+    { id: 'advanced-tools', group: 'Publishing & community', title: 'Open advanced admin tools', detail: 'Launch the existing advanced-tools workspace', icon: 'chart', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-pro')) },
+    { id: 'command-palette', group: 'Publishing & community', title: 'Open command palette', detail: 'Use the global admin command search', icon: 'search', run: () => window.dispatchEvent(new CustomEvent('atma-admin-open-command')) },
+    { id: 'comments', group: 'Publishing & community', title: 'Open reader comments', detail: 'Review current comments and moderation actions', icon: 'message', run: () => onTab?.('Comments') },
+    { id: 'reports', group: 'Publishing & community', title: 'Open comment reports', detail: 'Resolve or reopen reported comments', icon: 'flag', run: () => onTab?.('Reports') },
+    { id: 'announcements', group: 'Publishing & community', title: 'Open announcements', detail: 'Create or edit reader announcements', icon: 'bell', run: () => onTab?.('Announcements') },
+    { id: 'thumbnails', group: 'Publishing & community', title: 'Open card thumbnails', detail: 'Manage chapter-card artwork variants', icon: 'image', run: () => onTab?.('Card Thumbnails') },
+    { id: 'media-library', group: 'Publishing & community', title: 'Open media library', detail: 'Manage reusable media assets', icon: 'image', run: () => onTab?.('Media') },
+    { id: 'membership-workspace', group: 'Publishing & community', title: 'Open membership workspace', detail: 'Review plans, subscriber activity and earnings', icon: 'chart', run: () => onTab?.('Membership & Earnings') },
+    { id: 'export-chapters', group: 'Data exports', title: 'Export chapter inventory CSV', detail: 'Chapter status, release, cover, language and page counts', icon: 'download', run: () => exportRows('atma-rekha-chapter-inventory.csv', ['ID', 'Chapter number', 'Title', 'Status', 'Language', 'Release date', 'Has cover', 'Page count', 'Lifetime views'], rows.map(row => [row.id, row.chapter_number ?? row.chapterNumber, row.title, row.status, row.language || row.mangaLanguage, row.release_date || row.releaseDate, Boolean(row.cover_url || row.coverUrl), pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? '', chapterStats.find(item => String(item.id) === String(row.id))?.views ?? ''])) },
+    { id: 'export-content-qa', group: 'Data exports', title: 'Export content QA checklist', detail: 'Missing titles, covers, descriptions and page records', icon: 'download', run: () => exportRows('atma-rekha-content-qa.csv', ['ID', 'Chapter number', 'Title', 'Status', 'Missing fields'], rows.map(row => { const missing = [!String(row.title || '').trim() && 'Title', !String(row.cover_url || row.coverUrl || '').trim() && 'Cover', !String(row.description || '').trim() && 'Description', !(Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) > 0) && 'Pages'].filter(Boolean); return [row.id, row.chapter_number ?? row.chapterNumber, row.title, row.status, missing.join('; ')]; }).filter(row => row[4])) },
+    { id: 'export-comments', group: 'Data exports', title: 'Export loaded comment records', detail: 'Metadata only, limited to the current loaded sample', icon: 'download', run: () => exportRows('atma-rekha-comments-sample.csv', ['ID', 'User ID', 'Chapter ID', 'Announcement ID', 'Parent Comment ID', 'Created at'], rawComments.map(row => [row.id, row.user_id, row.chapter_id, row.announcement_id, row.parent_comment_id, row.created_at])) },
+    { id: 'export-comment-reports', group: 'Data exports', title: 'Export comment reports CSV', detail: 'Report reason, status and review timestamps', icon: 'download', run: () => exportRows('atma-rekha-comment-reports.csv', ['ID', 'Reason', 'Status', 'Created at', 'Reviewed at'], commentReportRows.map(row => [row.id, row.reason, row.status, row.created_at, row.reviewed_at])) },
+    { id: 'export-notifications', group: 'Data exports', title: 'Export notification logs CSV', detail: 'Delivery counts, status and error fields', icon: 'download', run: () => exportRows('atma-rekha-notification-log.csv', ['ID', 'Title', 'Target', 'Target count', 'Sent', 'Failed', 'Removed', 'Status', 'Scheduled for', 'Sent at', 'Created at', 'Error'], notificationLogs.map(row => [row.id, row.title, row.target, row.target_count, row.sent_count, row.failed_count, row.removed_count, row.status, row.scheduled_for, row.sent_at, row.created_at, row.error])) },
+    { id: 'export-audit', group: 'Data exports', title: 'Export admin audit log CSV', detail: 'Recent action records with entity references', icon: 'download', run: () => exportRows('atma-rekha-admin-audit.csv', ['ID', 'Admin user ID', 'Action', 'Entity type', 'Entity ID', 'Created at', 'Details'], adminLogs.map(row => [row.id, row.admin_user_id, row.action, row.entity_type, row.entity_id, row.created_at, JSON.stringify(row.details || {})])) },
+    { id: 'export-source-health', group: 'Data exports', title: 'Export data-source health CSV', detail: 'Connection outcomes and error messages from this refresh', icon: 'download', run: () => exportRows('atma-rekha-data-source-health.csv', ['Source', 'Available', 'Error'], dataSources.map(row => [row.name, row.ok, row.error || ''])) },
+  ];
+  const featureGroups = [...new Set(featureCatalog.map(item => item.group))];
+  const filteredFeatures = featureCatalog.filter(item => {
+    const query = featureSearch.trim().toLowerCase();
+    return !query || [item.group, item.title, item.detail].some(value => String(value || '').toLowerCase().includes(query));
+  });
+
   return <section className="ar-control-room">
     <header className="ar-cr-hero">
       <div className="ar-cr-hero-copy">
@@ -892,7 +955,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       </Card>
     </div>}
 
-    {section !== 'Command Center' && <div className="ar-cr-explorer">
+    {section !== 'Command Center' && section !== 'Feature Workbench' && <div className="ar-cr-explorer">
       <div className="ar-cr-explorer-head"><div><span className="ar-cr-kicker">ANALYTICS WORKSPACE</span><h3>{section}</h3><p>{section === 'Metric Explorer' ? 'Search, filter and export 100+ tracked or explicitly unavailable analytics.' : 'Inspect verified indicators for this operational domain. Click a section in the control-room navigation to switch domains.'}</p></div><div className="ar-cr-explorer-tools"><label><span>Search metrics</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, source or meaning"/></label><label><span>Data coverage</span><select value={metricFilter} onChange={event => setMetricFilter(event.target.value)}><option value="all">All metrics</option><option value="tracked">Tracked only</option><option value="untracked">Not tracked</option></select></label><label><span>Sort</span><select value={metricSort} onChange={event => setMetricSort(event.target.value)}><option value="category">Category</option><option value="name">Name</option><option value="largest">Largest value</option></select></label><button type="button" className="ar-cr-btn" onClick={() => setCollapsedMetrics(value => !value)}>{collapsedMetrics ? 'Expand details' : 'Compact view'}</button></div></div>
       <div className="ar-cr-results-line"><span>{visibleMetrics.length} metrics shown</span><span>{visibleMetrics.filter(item => item.value != null).length} with values · {visibleMetrics.filter(item => item.value == null).length} unavailable/not tracked</span><button type="button" className="ar-cr-text-btn" onClick={exportVisibleMetrics}>Export visible catalogue</button></div>
       {section === 'Metric Explorer' && <div className="ar-cr-category-chips">{metricCategories.map(category => <button key={category} type="button" onClick={() => { setSearch(category); setMetricFilter('all'); }}>{category}<b>{metricGroups[category].length}</b></button>)}</div>}
@@ -956,6 +1019,30 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     {section === 'Audit & Reliability' && <div className="ar-cr-audit">
       <Card eyebrow="SOURCE DIAGNOSTICS" title="Data service checks"><div className="ar-cr-source-list expanded">{sourceChecks.map(row => <div key={row.name}><span className={'ar-cr-source-icon ' + (row.ok ? 'ok' : 'bad')}>{row.ok ? '✓' : '!'}</span><div><strong>{row.name}</strong><small>{row.ok ? 'Returned a response' : row.error || 'Unavailable'}</small></div><b>{statusLabel(row.ok)}</b></div>)}</div></Card>
       <Card eyebrow="AUDIT TRAIL" title="Recent actions"><div className="ar-cr-table-wrap"><table><thead><tr><th>Action</th><th>Entity</th><th>Entity ID</th><th>Timestamp</th><th>Result signal</th></tr></thead><tbody>{(hasAuditRows ? adminLogs : []).slice(0, 100).map(row => <tr key={row.id}><td><strong>{String(row.action || 'Admin action').replace(/[_-]+/g, ' ')}</strong></td><td>{row.entity_type || '—'}</td><td>{String(row.entity_id || '—').slice(0, 10)}</td><td>{fmtDate(row.created_at)}</td><td><span className={'ar-cr-pill ' + (/fail|error/i.test(row.action || '') || row.details?.error ? 'bad' : 'good')}>{/fail|error/i.test(row.action || '') || row.details?.error ? 'Failure signal' : 'Recorded'}</span></td></tr>)}</tbody></table></div></Card>
+    </div>}
+
+    {section === 'Feature Workbench' && <div className="ar-cr-feature-workbench">
+      <div className="ar-cr-feature-hero">
+        <div><span className="ar-cr-kicker">OPERATIONS / QUICK TASKS</span><h3>Admin workbench</h3><p>50 working shortcuts for analytics, publishing, community operations and data exports. Each action uses an existing screen or current loaded data.</p></div>
+        <div className="ar-cr-feature-count"><strong>{featureCatalog.length}</strong><span>available actions</span></div>
+      </div>
+      <label className="ar-cr-feature-search"><AdminIcon name="search" size={17}/><input value={featureSearch} onChange={event => setFeatureSearch(event.target.value)} placeholder="Search actions, domains or exports…" aria-label="Search workbench actions"/><span>{filteredFeatures.length} / {featureCatalog.length}</span></label>
+      {featureGroups.map(group => {
+        const items = filteredFeatures.filter(item => item.group === group);
+        if (!items.length) return null;
+        return <section className="ar-cr-feature-group" key={group}>
+          <header><h4>{group}</h4><span>{items.length} actions</span></header>
+          <div className="ar-cr-feature-grid">
+            {items.map(item => <button key={item.id} type="button" className="ar-cr-feature-button" onClick={item.run}>
+              <span className="ar-cr-feature-icon"><AdminIcon name={item.icon} size={17}/></span>
+              <span className="ar-cr-feature-copy"><strong>{item.title}</strong><small>{item.detail}</small></span>
+              <AdminIcon name="chevron" size={15}/>
+            </button>)}
+          </div>
+        </section>;
+      })}
+      {!filteredFeatures.length && <Empty>No workbench actions match your search.</Empty>}
+      <div className="ar-cr-feature-footnote">Exports reflect the current data loaded by the admin view and respect its sample limits. Sensitive reader identifiers appear only in the explicit admin CSV exports. No device, geo, income, or bandwidth values are invented.</div>
     </div>}
 
     {section === 'Metric Explorer' && <Card eyebrow="CATALOGUE" title="Metric coverage by domain">
