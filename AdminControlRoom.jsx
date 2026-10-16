@@ -327,8 +327,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const notificationSuccessRate = attemptedDeliveries > 0 ? deliveredNotifications / attemptedDeliveries * 100 : null;
   const latestNotification = [...notificationLogs].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0] || null;
   const userStats = data.users || {};
-  const registeredUsers = data.profilesCount ?? (data.registeredUsers || userStats.logged_in_users || null);
-  const pushSubscriptions = userStats.notification_subscriptions ?? userStats.notification_users ?? null;
+  const registeredUsers = data.profilesCount != null && !data.profilesError ? asNumber(data.profilesCount) : (!data.usersError ? asNumber(data.registeredUsers ?? userStats.logged_in_users) : null);
+  const pushSubscriptions = !data.usersError ? asNumber(userStats.notification_subscriptions ?? userStats.notification_users) : null;
+  const hasCommentRows = Array.isArray(data.comments) && !data.commentsError;
+  const hasCommentReportRows = Array.isArray(data.commentReports) && !data.commentReportsError;
+  const hasModerationRows = Array.isArray(data.moderationReports) && !data.moderationReportsError;
+  const hasAuditRows = Array.isArray(data.adminLogs) && !data.adminLogsError;
+  const hasNotificationRows = Array.isArray(data.notifications) && !data.notificationsError;
   const mrr = totals.mrr_estimate_inr == null ? null : NUMBER(totals.mrr_estimate_inr);
   const arr = mrr == null ? null : mrr * 12;
   const activeBillable = totals.active_billable_members == null ? null : NUMBER(totals.active_billable_members);
@@ -361,17 +366,17 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const activeLanguages = new Set(activeChapters.map(row => String(row.language || row.mangaLanguage || '').trim()).filter(Boolean));
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
-    { name: 'Admin analytics function', ok: Boolean(data.analytics), error: data.analyticsError },
-    { name: 'Cloudflare analytics', ok: Boolean(data.cloudflare), error: data.cloudflareError },
-    { name: 'User statistics', ok: Boolean(data.users), error: data.usersError },
-    { name: 'Membership analytics', ok: Boolean(data.membership), error: data.membershipError },
-    { name: 'Chapter inventory', ok: Boolean(data.chapters), error: data.chaptersError },
-    { name: 'Comments inventory', ok: Boolean(data.comments), error: data.commentsError },
-    { name: 'Comment reports', ok: Boolean(data.commentReports), error: data.commentReportsError },
-    { name: 'Moderation reports', ok: Boolean(data.moderationReports) && !data.moderationReportsError, error: data.moderationReportsError },
-    { name: 'Admin audit log', ok: Boolean(data.adminLogs) && !data.adminLogsError, error: data.adminLogsError },
-    { name: 'Notification log', ok: Boolean(data.notifications) && !data.notificationsError, error: data.notificationsError },
-    { name: 'Profiles count', ok: data.profilesCount != null, error: data.profilesError },
+    { name: 'Admin analytics function', ok: data.analytics != null && !data.analyticsError, error: data.analyticsError },
+    { name: 'Cloudflare analytics', ok: data.cloudflare != null && !data.cloudflareError, error: data.cloudflareError },
+    { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
+    { name: 'Membership analytics', ok: data.membership != null && !data.membershipError, error: data.membershipError },
+    { name: 'Chapter inventory', ok: data.chapters != null && !data.chaptersError, error: data.chaptersError },
+    { name: 'Comments inventory', ok: data.comments != null && !data.commentsError, error: data.commentsError },
+    { name: 'Comment reports', ok: data.commentReports != null && !data.commentReportsError, error: data.commentReportsError },
+    { name: 'Moderation reports', ok: data.moderationReports != null && !data.moderationReportsError, error: data.moderationReportsError },
+    { name: 'Admin audit log', ok: data.adminLogs != null && !data.adminLogsError, error: data.adminLogsError },
+    { name: 'Notification log', ok: data.notifications != null && !data.notificationsError, error: data.notificationsError },
+    { name: 'Profiles count', ok: data.profilesCount != null && !data.profilesError, error: data.profilesError },
   ];
   const healthySources = dataSources.filter(row => row.ok).length;
   const sourceErrors = dataSources.filter(row => !row.ok);
@@ -431,8 +436,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Audience', 'Returning readers as share of active', ratio(returningReaders, activeReaders), 'percent', 'Returning reader count divided by active reader count.', 'Derived'),
         m('Audience', 'Saved bookmarks', totalBookmarks, 'count', 'All bookmarks reported by the admin analytics function.', 'Admin analytics'),
         m('Audience', 'Bookmarks per active reader', activeReaders && activeReaders > 0 && totalBookmarks != null ? Number(totalBookmarks) / Number(activeReaders) : null, 'decimal', 'Lifetime bookmarks divided by selected-window active readers; mixed time windows.', 'Derived'),
-        m('Audience', 'Unique commenters in loaded records', data.comments ? commenters : null, 'count', 'Unique user IDs found in up to 1,000 most recent comments.', 'Recent comment records'),
-        m('Audience', 'Commenting users as share of accounts', data.comments && registeredUsers > 0 ? ratio(commenters, registeredUsers) : null, 'percent', 'Based on the fetched comment window and registered account count.', 'Derived; limited comment window'),
+        m('Audience', 'Unique commenters in loaded records', hasCommentRows ? commenters : null, 'count', 'Unique user IDs found in up to 1,000 most recent comments.', 'Recent comment records'),
+        m('Audience', 'Commenting users as share of accounts', hasCommentRows && registeredUsers > 0 ? ratio(commenters, registeredUsers) : null, 'percent', 'Based on the fetched comment window and registered account count.', 'Derived; limited comment window'),
         m('Audience', 'Push notification subscriptions', pushSubscriptions, 'count', 'Subscriptions reported by the existing user-statistics function.', 'Admin user stats'),
         m('Audience', 'Accounts with push subscription', pushSubscriptions != null && registeredUsers > 0 ? ratio(pushSubscriptions, registeredUsers) : null, 'percent', 'Push subscription count divided by registered accounts.', 'Derived'),
         m('Audience', 'Audience age or gender breakdown', null, 'text', 'Not shown because the existing admin data does not provide these demographics.', 'Not collected'),
@@ -457,13 +462,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Community', 'Comments in previous window', previousComments, 'count', 'Comments in the immediately prior equal-length period.', 'Admin analytics'),
         m('Community', 'Comment change versus previous', deltaPercent(currentComments, previousComments), 'percent', 'Period-over-period change with a valid previous baseline.', 'Current and previous comments'),
         m('Community', 'Comments per day', currentComments == null ? null : Number(currentComments) / selectedDays, 'decimal', 'Period comments divided by window length.', 'Derived'),
-        m('Community', 'Replies in loaded comments', data.comments ? commentReplies : null, 'count', 'Replies among up to 1,000 latest comment records.', 'Recent comment records'),
-        m('Community', 'Reply share in loaded comments', data.comments ? ratio(commentReplies, rawComments.length) : null, 'percent', 'Replies as share of the loaded comment sample.', 'Derived; limited comment window'),
-        m('Community', 'Chapter-linked comments in sample', data.comments ? chapterComments : null, 'count', 'Loaded comments linked to chapters.', 'Recent comment records'),
-        m('Community', 'Announcement-linked comments in sample', data.comments ? announcementComments : null, 'count', 'Loaded comments linked to announcements.', 'Recent comment records'),
-        m('Community', 'Open comment reports in loaded records', data.commentReports ? openCommentReports : null, 'count', 'Open reports among up to 1,000 most recent report rows.', 'Comment report records'),
-        m('Community', 'Reviewed or resolved comment reports', data.commentReports ? resolvedCommentReports : null, 'count', 'Rows marked reviewed or resolved in the fetched report sample.', 'Comment report records'),
-        m('Community', 'Oldest open comment report age', oldestOpenCommentReport ? Math.max(0, (Date.now() - oldestOpenCommentReport.getTime()) / 86400000) : data.commentReports ? null : null, 'days', 'Age of oldest open report within the fetched report sample.', 'Comment report records'),
+        m('Community', 'Replies in loaded comments', hasCommentRows ? commentReplies : null, 'count', 'Replies among up to 1,000 latest comment records.', 'Recent comment records'),
+        m('Community', 'Reply share in loaded comments', hasCommentRows ? ratio(commentReplies, rawComments.length) : null, 'percent', 'Replies as share of the loaded comment sample.', 'Derived; limited comment window'),
+        m('Community', 'Chapter-linked comments in sample', hasCommentRows ? chapterComments : null, 'count', 'Loaded comments linked to chapters.', 'Recent comment records'),
+        m('Community', 'Announcement-linked comments in sample', hasCommentRows ? announcementComments : null, 'count', 'Loaded comments linked to announcements.', 'Recent comment records'),
+        m('Community', 'Open comment reports in loaded records', hasCommentReportRows ? openCommentReports : null, 'count', 'Open reports among up to 1,000 most recent report rows.', 'Comment report records'),
+        m('Community', 'Reviewed or resolved comment reports', hasCommentReportRows ? resolvedCommentReports : null, 'count', 'Rows marked reviewed or resolved in the fetched report sample.', 'Comment report records'),
+        m('Community', 'Oldest open comment report age', hasCommentReportRows && oldestOpenCommentReport ? Math.max(0, (Date.now() - oldestOpenCommentReport.getTime()) / 86400000) : null, 'days', 'Age of oldest open report within the fetched report sample.', 'Comment report records'),
       ],
       'Membership & Revenue': [
         m('Membership & Revenue', 'Active billable members', activeBillable, 'count', 'Eligible active subscriptions from membership analytics.', 'Membership action'),
@@ -481,29 +486,29 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       ],
       'Notifications': [
         m('Notifications', 'Push subscribers', pushSubscriptions, 'count', 'Subscription total from the existing user-statistics endpoint.', 'Admin user stats'),
-        m('Notifications', 'Notification log records loaded', data.notifications ? notificationLogs.length : null, 'count', 'Most recent notification-log rows, capped at 250.', 'admin_notification_log'),
-        m('Notifications', 'Delivery attempts in loaded records', data.notifications ? attemptedDeliveries : null, 'count', 'Sum of target_count where present; sample limited to 250 log records.', 'admin_notification_log'),
-        m('Notifications', 'Successful deliveries in loaded records', data.notifications ? deliveredNotifications : null, 'count', 'Sum of sent_count in loaded notification log rows.', 'admin_notification_log'),
-        m('Notifications', 'Failed deliveries in loaded records', data.notifications ? failedDeliveryCount : null, 'count', 'Sum of failed_count in loaded notification log rows.', 'admin_notification_log'),
-        m('Notifications', 'Delivery success rate in loaded records', data.notifications ? notificationSuccessRate : null, 'percent', 'Successful deliveries divided by target_count across loaded log rows.', 'Derived; latest 250 records'),
-        m('Notifications', 'Scheduled notification records', data.notifications ? scheduledNotifications.length : null, 'count', 'Scheduled rows among the latest 250 notification-log records.', 'admin_notification_log'),
-        m('Notifications', 'Failed notification records', data.notifications ? failedNotifications.length : null, 'count', 'Rows marked failed or containing a non-zero failed delivery count.', 'admin_notification_log'),
-        m('Notifications', 'Sent notification records', data.notifications ? sentNotifications.length : null, 'count', 'Rows with sent/completed/success status among loaded records.', 'admin_notification_log'),
-        m('Notifications', 'Latest notification record', latestNotification?.created_at ?? null, 'date', 'Creation time of the most recent loaded notification record.', 'admin_notification_log'),
-        m('Notifications', 'Latest notification record age', latestNotification ? Math.max(0, (Date.now() - new Date(latestNotification.created_at).getTime()) / 86400000) : data.notifications ? null : null, 'days', 'Age of newest log row in days.', 'admin_notification_log'),
+        m('Notifications', 'Notification log records loaded', hasNotificationRows ? notificationLogs.length : null, 'count', 'Most recent notification-log rows, capped at 250.', 'admin_notification_log'),
+        m('Notifications', 'Delivery attempts in loaded records', hasNotificationRows ? attemptedDeliveries : null, 'count', 'Sum of target_count where present; sample limited to 250 log records.', 'admin_notification_log'),
+        m('Notifications', 'Successful deliveries in loaded records', hasNotificationRows ? deliveredNotifications : null, 'count', 'Sum of sent_count in loaded notification log rows.', 'admin_notification_log'),
+        m('Notifications', 'Failed deliveries in loaded records', hasNotificationRows ? failedDeliveryCount : null, 'count', 'Sum of failed_count in loaded notification log rows.', 'admin_notification_log'),
+        m('Notifications', 'Delivery success rate in loaded records', hasNotificationRows ? notificationSuccessRate : null, 'percent', 'Successful deliveries divided by target_count across loaded log rows.', 'Derived; latest 250 records'),
+        m('Notifications', 'Scheduled notification records', hasNotificationRows ? scheduledNotifications.length : null, 'count', 'Scheduled rows among the latest 250 notification-log records.', 'admin_notification_log'),
+        m('Notifications', 'Failed notification records', hasNotificationRows ? failedNotifications.length : null, 'count', 'Rows marked failed or containing a non-zero failed delivery count.', 'admin_notification_log'),
+        m('Notifications', 'Sent notification records', hasNotificationRows ? sentNotifications.length : null, 'count', 'Rows with sent/completed/success status among loaded records.', 'admin_notification_log'),
+        m('Notifications', 'Latest notification record', hasNotificationRows ? (latestNotification?.created_at ?? null) : null, 'date', 'Creation time of the most recent loaded notification record.', 'admin_notification_log'),
+        m('Notifications', 'Latest notification record age', hasNotificationRows && latestNotification ? Math.max(0, (Date.now() - new Date(latestNotification.created_at).getTime()) / 86400000) : null, 'days', 'Age of newest log row in days.', 'admin_notification_log'),
         m('Notifications', 'Notification error text telemetry', null, 'text', 'Message-level provider diagnostics are not summarized here; inspect Operations & Recovery for individual failures.', 'Not aggregated'),
       ],
       'Audit & Reliability': [
-        m('Audit & Reliability', 'Audit records loaded', data.adminLogs ? adminLogs.length : null, 'count', 'Most recent audit-log rows, capped at 250.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Admin actions in last 24 hours', data.adminLogs ? recentAdminLogs.length : null, 'count', 'Audit rows with created_at inside the last 24 hours.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Failed/error audit records loaded', data.adminLogs ? failedAdminLogs.length : null, 'count', 'Recent audit rows whose action or details suggest failure.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Failure share in loaded audit records', data.adminLogs && adminLogs.length ? ratio(failedAdminLogs.length, adminLogs.length) : null, 'percent', 'Failures among loaded audit records; not a site-wide incident rate.', 'Derived; latest 250 records'),
-        m('Audit & Reliability', 'Distinct action types in loaded audit', data.adminLogs ? distinctActions : null, 'count', 'Unique action values in the loaded audit sample.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Chapter publish actions in sample', data.adminLogs ? adminLogs.filter(row => /publish/i.test(String(row.action || ''))).length : null, 'count', 'Audit actions containing the word publish.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Chapter edit/update actions in sample', data.adminLogs ? adminLogs.filter(row => /update|edit/i.test(String(row.action || ''))).length : null, 'count', 'Audit actions whose names suggest updates or edits.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Delete actions in sample', data.adminLogs ? adminLogs.filter(row => /delete|remove/i.test(String(row.action || ''))).length : null, 'count', 'Audit actions whose names suggest deletes/removals.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Media cleanup failures in sample', data.adminLogs ? adminLogs.filter(row => /cleanup_failed/i.test(String(row.action || ''))).length : null, 'count', 'Cleanup failure actions in the loaded audit sample.', 'admin_activity_log'),
-        m('Audit & Reliability', 'Last recorded admin action', adminLogs[0]?.created_at ?? null, 'date', 'Newest record in the audit log sample.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Audit records loaded', hasAuditRows ? adminLogs.length : null, 'count', 'Most recent audit-log rows, capped at 250.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Admin actions in last 24 hours', hasAuditRows ? recentAdminLogs.length : null, 'count', 'Audit rows with created_at inside the last 24 hours.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Failed/error audit records loaded', hasAuditRows ? failedAdminLogs.length : null, 'count', 'Recent audit rows whose action or details suggest failure.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Failure share in loaded audit records', hasAuditRows && adminLogs.length ? ratio(failedAdminLogs.length, adminLogs.length) : null, 'percent', 'Failures among loaded audit records; not a site-wide incident rate.', 'Derived; latest 250 records'),
+        m('Audit & Reliability', 'Distinct action types in loaded audit', hasAuditRows ? distinctActions : null, 'count', 'Unique action values in the loaded audit sample.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Chapter publish actions in sample', hasAuditRows ? adminLogs.filter(row => /publish/i.test(String(row.action || ''))).length : null, 'count', 'Audit actions containing the word publish.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Chapter edit/update actions in sample', hasAuditRows ? adminLogs.filter(row => /update|edit/i.test(String(row.action || ''))).length : null, 'count', 'Audit actions whose names suggest updates or edits.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Delete actions in sample', hasAuditRows ? adminLogs.filter(row => /delete|remove/i.test(String(row.action || ''))).length : null, 'count', 'Audit actions whose names suggest deletes/removals.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Media cleanup failures in sample', hasAuditRows ? adminLogs.filter(row => /cleanup_failed/i.test(String(row.action || ''))).length : null, 'count', 'Cleanup failure actions in the loaded audit sample.', 'admin_activity_log'),
+        m('Audit & Reliability', 'Last recorded admin action', hasAuditRows ? (adminLogs[0]?.created_at ?? null) : null, 'date', 'Newest record in the audit log sample.', 'admin_activity_log'),
         m('Audit & Reliability', 'Analytics load duration', loadDuration, 'decimal', 'Duration of the last control-room refresh in milliseconds.', 'Browser measurement'),
         m('Audit & Reliability', 'Connected data sources', healthySources, 'text', 'Successful source reads out of the 11 checks performed by this control room.', 'Control room checks'),
       ],
@@ -575,9 +580,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const comparisonMax = Math.max(1, ...comparison.flatMap(row => [NUMBER(row.current), NUMBER(row.previous)]));
   const chapterRankings = [...chapterStats].sort((a, b) => chapterRank === 'likes' ? b.period_likes - a.period_likes : chapterRank === 'shares' ? b.period_shares - a.period_shares : chapterRank === 'rating' ? b.rating_average - a.rating_average : b.period_views - a.period_views).slice(0, 10);
   const filteredChapters = rows.filter(row => chapterStatus === 'all' || String(row.status || '').toLowerCase() === chapterStatus);
-  const recentAudit = adminLogs.slice(0, 8);
-  const recentNotificationLogs = notificationLogs.slice(0, 6);
-  const recentReports = [...commentReportRows].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 6);
+  const recentAudit = hasAuditRows ? adminLogs.slice(0, 8) : [];
+  const recentNotificationLogs = hasNotificationRows ? notificationLogs.slice(0, 6) : [];
+  const recentReports = (hasCommentReportRows ? [...commentReportRows] : []).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 6);
   const sourceChecks = dataSources;
 
   const exportMetrics = () => {
@@ -673,7 +678,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           <div className="ar-cr-action-strip"><button type="button" onClick={() => { setSection('Content Intelligence'); setChapterStatus('published'); }}>Published audit</button><button type="button" onClick={() => { setSection('Content Intelligence'); setChapterStatus('scheduled'); }}>Release queue</button></div>
         </Card>
         <Card eyebrow="COMMUNITY" title="Open queues" aside={<button className="ar-cr-text-btn" type="button" onClick={() => onTab?.('Reports')}>Moderate →</button>}>
-          <div className="ar-cr-queue-grid"><button onClick={() => onTab?.('Reports')} type="button"><span>Open comment reports</span><strong>{data.commentReports ? fmtNum(openCommentReports) : '—'}</strong></button><button onClick={() => { setSection('Community'); }} type="button"><span>Open moderation reports</span><strong>{data.moderationReports ? fmtNum(openModerationRows.length) : '—'}</strong></button><button onClick={() => setSection('Notifications')} type="button"><span>Failed notification rows</span><strong>{data.notifications ? fmtNum(failedNotifications.length) : '—'}</strong></button><button onClick={() => setSection('Audit & Reliability')} type="button"><span>Failed audit rows</span><strong>{data.adminLogs ? fmtNum(failedAdminLogs.length) : '—'}</strong></button></div>
+          <div className="ar-cr-queue-grid"><button onClick={() => onTab?.('Reports')} type="button"><span>Open comment reports</span><strong>{data.commentReports ? fmtNum(openCommentReports) : '—'}</strong></button><button onClick={() => { setSection('Community'); }} type="button"><span>Open moderation reports</span><strong>{hasModerationRows ? fmtNum(openModerationRows.length) : '—'}</strong></button><button onClick={() => setSection('Notifications')} type="button"><span>Failed notification rows</span><strong>{hasNotificationRows ? fmtNum(failedNotifications.length) : '—'}</strong></button><button onClick={() => setSection('Audit & Reliability')} type="button"><span>Failed audit rows</span><strong>{hasAuditRows ? fmtNum(failedAdminLogs.length) : '—'}</strong></button></div>
         </Card>
       </div>
 
@@ -737,7 +742,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         <button type="button" className="ar-cr-btn" onClick={() => onTab?.('Reports')}>Open moderation queue</button>
       </Card>
       <Card eyebrow="COMMUNITY SAFETY" title="Moderation reports">
-        {moderationRows.length ? <div className="ar-cr-event-list">{moderationRows.slice(0, 8).map(row => <article key={row.id}><span className={'ar-cr-event-dot ' + (String(row.status).toLowerCase() === 'open' ? 'warn' : '')}/><div><strong>{row.reason || 'Community report'}</strong><small>{row.source_type || 'Community content'} · {row.status || 'open'}{row.offense_count ? ' · ' + row.offense_count + ' offenses' : ''}</small></div><time>{fmtDate(row.created_at)}</time></article>)}</div> : <Empty>Moderation reports were empty or unavailable.</Empty>}
+        {hasModerationRows && moderationRows.length ? <div className="ar-cr-event-list">{moderationRows.slice(0, 8).map(row => <article key={row.id}><span className={'ar-cr-event-dot ' + (String(row.status).toLowerCase() === 'open' ? 'warn' : '')}/><div><strong>{row.reason || 'Community report'}</strong><small>{row.source_type || 'Community content'} · {row.status || 'open'}{row.offense_count ? ' · ' + row.offense_count + ' offenses' : ''}</small></div><time>{fmtDate(row.created_at)}</time></article>)}</div> : <Empty>Moderation reports were empty or unavailable.</Empty>}
         <button type="button" className="ar-cr-btn" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-moderation'))}>Open community moderation tools</button>
       </Card>
     </div>}
@@ -759,12 +764,12 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     </div>}
 
     {section === 'Notifications' && <Card eyebrow="DELIVERY OPERATIONS" title="Notification delivery records" aside={<button type="button" className="ar-cr-text-btn" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-operations'))}>Open notification tools →</button>}>
-      {notificationLogs.length ? <div className="ar-cr-table-wrap"><table><thead><tr><th>Notification</th><th>Target</th><th>Attempts</th><th>Sent</th><th>Failed</th><th>Status</th><th>Timestamp</th></tr></thead><tbody>{notificationLogs.slice(0, 100).map(row => <tr key={row.id}><td><strong>{row.title || 'Untitled notification'}</strong><small>{String(row.id || '').slice(0, 8)}</small></td><td>{row.target || '—'}</td><td>{row.target_count == null ? '—' : fmtNum(row.target_count)}</td><td>{row.sent_count == null ? '—' : fmtNum(row.sent_count)}</td><td>{row.failed_count == null ? '—' : fmtNum(row.failed_count)}</td><td><span className={'ar-cr-pill ' + (String(row.status).toLowerCase() === 'sent' ? 'good' : String(row.status).toLowerCase() === 'failed' ? 'bad' : 'warn')}>{row.status || 'unknown'}</span>{row.error && <small>{String(row.error).slice(0, 110)}</small>}</td><td>{fmtDate(row.sent_at || row.created_at)}</td></tr>)}</tbody></table></div> : <Empty>Notification log was empty or unavailable.</Empty>}
+      {hasNotificationRows && notificationLogs.length ? <div className="ar-cr-table-wrap"><table><thead><tr><th>Notification</th><th>Target</th><th>Attempts</th><th>Sent</th><th>Failed</th><th>Status</th><th>Timestamp</th></tr></thead><tbody>{notificationLogs.slice(0, 100).map(row => <tr key={row.id}><td><strong>{row.title || 'Untitled notification'}</strong><small>{String(row.id || '').slice(0, 8)}</small></td><td>{row.target || '—'}</td><td>{row.target_count == null ? '—' : fmtNum(row.target_count)}</td><td>{row.sent_count == null ? '—' : fmtNum(row.sent_count)}</td><td>{row.failed_count == null ? '—' : fmtNum(row.failed_count)}</td><td><span className={'ar-cr-pill ' + (String(row.status).toLowerCase() === 'sent' ? 'good' : String(row.status).toLowerCase() === 'failed' ? 'bad' : 'warn')}>{row.status || 'unknown'}</span>{row.error && <small>{String(row.error).slice(0, 110)}</small>}</td><td>{fmtDate(row.sent_at || row.created_at)}</td></tr>)}</tbody></table></div> : <Empty>Notification log was empty or unavailable.</Empty>}
     </Card>}
 
     {section === 'Audit & Reliability' && <div className="ar-cr-audit">
       <Card eyebrow="SOURCE DIAGNOSTICS" title="Data service checks"><div className="ar-cr-source-list expanded">{sourceChecks.map(row => <div key={row.name}><span className={'ar-cr-source-icon ' + (row.ok ? 'ok' : 'bad')}>{row.ok ? '✓' : '!'}</span><div><strong>{row.name}</strong><small>{row.ok ? 'Returned a response' : row.error || 'Unavailable'}</small></div><b>{statusLabel(row.ok)}</b></div>)}</div></Card>
-      <Card eyebrow="AUDIT TRAIL" title="Recent actions"><div className="ar-cr-table-wrap"><table><thead><tr><th>Action</th><th>Entity</th><th>Entity ID</th><th>Timestamp</th><th>Result signal</th></tr></thead><tbody>{adminLogs.slice(0, 100).map(row => <tr key={row.id}><td><strong>{String(row.action || 'Admin action').replace(/[_-]+/g, ' ')}</strong></td><td>{row.entity_type || '—'}</td><td>{String(row.entity_id || '—').slice(0, 10)}</td><td>{fmtDate(row.created_at)}</td><td><span className={'ar-cr-pill ' + (/fail|error/i.test(row.action || '') || row.details?.error ? 'bad' : 'good')}>{/fail|error/i.test(row.action || '') || row.details?.error ? 'Failure signal' : 'Recorded'}</span></td></tr>)}</tbody></table></div></Card>
+      <Card eyebrow="AUDIT TRAIL" title="Recent actions"><div className="ar-cr-table-wrap"><table><thead><tr><th>Action</th><th>Entity</th><th>Entity ID</th><th>Timestamp</th><th>Result signal</th></tr></thead><tbody>{(hasAuditRows ? adminLogs : []).slice(0, 100).map(row => <tr key={row.id}><td><strong>{String(row.action || 'Admin action').replace(/[_-]+/g, ' ')}</strong></td><td>{row.entity_type || '—'}</td><td>{String(row.entity_id || '—').slice(0, 10)}</td><td>{fmtDate(row.created_at)}</td><td><span className={'ar-cr-pill ' + (/fail|error/i.test(row.action || '') || row.details?.error ? 'bad' : 'good')}>{/fail|error/i.test(row.action || '') || row.details?.error ? 'Failure signal' : 'Recorded'}</span></td></tr>)}</tbody></table></div></Card>
     </div>}
 
     {section === 'Metric Explorer' && <Card eyebrow="CATALOGUE" title="Metric coverage by domain">
