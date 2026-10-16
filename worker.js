@@ -182,14 +182,37 @@ async function addServerSeo(request, response, env) {
   let html;
   try { html = await response.text(); } catch (_) { return response; }
 
-  if (isPrivate || !isKnown) html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
+  if (isPrivate || !isKnown) {
+    html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
+    html = setAlternates(html, []);
+  }
 
   if (path === "/" || STATIC_SEO[path]) {
     if (STATIC_SEO[path]) {
       html = setTitle(html, STATIC_SEO[path][0]);
       html = setMeta(html, "name", "description", STATIC_SEO[path][1]);
     }
-    html = setCanonical(html, SITE_ORIGIN + path);
+    const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
+      ? SITE_ORIGIN + "/chapters?lang=en"
+      : SITE_ORIGIN + path;
+    html = setCanonical(html, canonical);
+    if (path === "/chapters") {
+      html = setAlternates(html, [
+        { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
+        { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapters" },
+        { language: "x-default", url: SITE_ORIGIN + "/chapters" },
+      ]);
+    } else if (path === "/") {
+      html = setAlternates(html, [
+        { language: "en-IN", url: SITE_ORIGIN + "/" },
+        { language: "x-default", url: SITE_ORIGIN + "/" },
+      ]);
+    } else {
+      html = setAlternates(html, [
+        { language: "en-IN", url: canonical },
+        { language: "x-default", url: canonical },
+      ]);
+    }
   }
 
   if (/^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
@@ -271,9 +294,14 @@ async function addServerSeo(request, response, env) {
   headers.delete("content-length");
   headers.delete("Content-Encoding");
   headers.delete("content-encoding");
-  if (isPrivate || !isKnown) headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
-  headers.set("Cache-Control", "public, max-age=0, must-revalidate");
-  headers.set("CDN-Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  if (isPrivate || !isKnown) {
+    headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    headers.set("Cache-Control", "private, no-store, max-age=0");
+    headers.delete("CDN-Cache-Control");
+  } else {
+    headers.set("Cache-Control", "public, max-age=0, must-revalidate");
+    headers.set("CDN-Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  }
   return new Response(html, { status: response.status, statusText: response.statusText, headers });
 }
 
