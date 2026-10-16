@@ -84,6 +84,21 @@ if (!appCommentRegression.includes("Sign in to post a comment.") || !appCommentR
   console.error('CHECK FAILED: Comment action must open the sign-in panel when authentication is required.');
   failed = true;
 }
+const communityAuthRegression = await readFile('Community.jsx', 'utf8');
+if (!communityAuthRegression.includes("detail:{mode:'login'}") || !communityAuthRegression.includes("if(!user){setNotice('Sign in to react.')")) {
+  console.error('CHECK FAILED: Community reactions must offer sign-in when authentication is required.');
+  failed = true;
+}
+const enhancedCommentsAuthRegression = await readFile('EnhancedComments.jsx', 'utf8');
+if (!enhancedCommentsAuthRegression.includes("detail:{mode:'login'}") || !enhancedCommentsAuthRegression.includes("detail:{mode:'signup'}")) {
+  console.error('CHECK FAILED: The newer comment sheet must open sign-in/sign-up rather than leave protected actions blocked.');
+  failed = true;
+}
+const groupChatAuthRegression = await readFile('GroupChat.jsx', 'utf8');
+if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupChatAuthRegression.includes("detail:{mode:'login'}")) {
+  console.error('CHECK FAILED: Group Chat must offer sign-in for sending, liking and reacting while logged out.');
+  failed = true;
+}
 const readerSourceRegression = await readFile('App.jsx', 'utf8');
 if (readerSourceRegression.includes('if (!pages.length) return null;')) {
   console.error('CHECK FAILED: Reader must not render a blank page when a chapter has no pages.');
