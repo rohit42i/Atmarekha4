@@ -17,12 +17,6 @@ export default function FeedbackForm() {
     return data;
   };
 
-  useEffect(()=>{
-    const online=()=>flushQueue();
-    window.addEventListener('online',online);
-    if(navigator.onLine)flushQueue();
-    return()=>window.removeEventListener('online',online)
-  },[]);
 
   const submit=async event=>{
     event.preventDefault();
