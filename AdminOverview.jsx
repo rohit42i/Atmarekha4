@@ -62,6 +62,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const [analytics, setAnalytics] = useState(null);
   const [last24, setLast24] = useState({ views: 0, ratings: 0, comments: 0, loading: true });
   const [periodLoading, setPeriodLoading] = useState(false);
+  const [chapterSort, setChapterSort] = useState('views');
 
   const days = WINDOWS[windowKey];
 
@@ -297,9 +298,9 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
     <div className="ar-overview-secondary">
       <GlassCard>
-        <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button>}/>
+        <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<div className="ar-overview-chapter-actions"><label className="ar-overview-sort-label"><span className="sr-only">Sort chapters by</span><select value={chapterSort} onChange={event => setChapterSort(event.target.value)} aria-label="Sort top chapters"><option value="views">Views</option><option value="likes">Likes</option><option value="rating">Rating</option></select></label><button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button></div>}/>
         <div className="ar-top-list">
-          {metrics.top.map((chapter, index) => <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}>
+          {[...metrics.top].sort((a, b) => chapterSort === 'rating' ? b.ratingAverage - a.ratingAverage : chapterSort === 'likes' ? b.periodLikes - a.periodLikes : b.periodViews - a.periodViews).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
             <b>{String(index + 1).padStart(2, '0')}</b>
             <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, chapter.periodViews / maxTop * 100) + '%' }}/></i></div>
             <strong className="ar-top-value">{formatNumber(chapter.periodViews)}</strong>
