@@ -17,6 +17,9 @@ const pct = (current, previous) => !previous ? (current ? 100 : 0) : ((current -
 const safeDate = value => { const d = new Date(value || 0); return Number.isFinite(d.getTime()) ? d : null; };
 const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : 'Chapter ' + chapter.chapterNumber;
 
+const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\\r?\\n/g, ' ') + '"';
+const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
+
 function LibraryChart({ chapters }) {
   const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
   if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
@@ -64,6 +67,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const [periodLoading, setPeriodLoading] = useState(false);
   const [chapterSort, setChapterSort] = useState('views');
   const [adminActivity, setAdminActivity] = useState([]);
+  const [dashboardSearch, setDashboardSearch] = useState('');
 
   const days = WINDOWS[windowKey];
 
@@ -275,6 +279,108 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     ['Returning · ' + periodUnit, metrics.periodReturningReaders],
   ];
   const lifecycleMax = Math.max(lifecycle[0][1], 1);
+  const releaseQueueCount = chapters.filter(chapter => {
+    const date = safeDate(chapter.releaseDate);
+    return date && date.getTime() > Date.now();
+  }).length;
+  const missingPageCount = Math.max(0, metrics.publishedCount - metrics.withPagesCount);
+  const unpublishedCount = chapters.filter(chapter => String(chapter.status || '').toLowerCase() !== 'published').length;
+
+  const dashboardResults = useMemo(() => {
+    const query = dashboardSearch.trim().toLocaleLowerCase();
+    if (!query) return [];
+    const matches = (values) => values.some(value => String(value ?? '').toLocaleLowerCase().includes(query));
+    const found = [];
+    chapters.forEach(chapter => {
+      if (matches([chapter.title, chapter.chapterNumber, chapter.status, chapter.language, chapter.releaseDate])) {
+        found.push({
+          key: 'chapter:' + chapter.id, type: 'Chapter', title: chapterLabel(chapter),
+          detail: [chapter.title || 'Untitled chapter', chapter.status || 'Status unknown', chapterLanguageLabel(chapter.language)].filter(Boolean).join(' · '),
+          target: 'Chapters', id: chapter.id,
+        });
+      }
+    });
+    comments.forEach(comment => {
+      if (matches([comment.author_name, comment.content, chapterName?.(comment.chapter_id), comment.id])) {
+        found.push({
+          key: 'comment:' + comment.id, type: 'Comment', title: comment.author_name || 'Reader comment',
+          detail: String(comment.content || '').replace(/\\s+/g, ' ').slice(0, 110),
+          target: 'Comments', id: comment.id,
+        });
+      }
+    });
+    reports.forEach(report => {
+      if (matches([report.title, report.description, report.reason, report.content, report.status, report.id])) {
+        found.push({
+          key: 'report:' + report.id, type: 'Report', title: report.title || report.reason || ('Report ' + String(report.id || '').slice(0, 8)),
+          detail: [report.status || 'Open', report.description || report.content || 'Moderation review'].filter(Boolean).join(' · ').slice(0, 110),
+          target: 'Reports', id: report.id,
+        });
+      }
+    });
+    return found.slice(0, 10);
+  }, [dashboardSearch, chapters, comments, reports, chapterName]);
+
+  const openDashboardResult = item => {
+    setDashboardSearch('');
+    onTab(item.target);
+    if (item.type === 'Chapter' && item.id) {
+      window.setTimeout(() => adminAction('atma-admin-focus-chapter', { chapterId: item.id }), 120);
+    }
+    if (item.type === 'Comment' && item.id) {
+      window.setTimeout(() => adminAction('atma-admin-focus-comment', { commentId: item.id }), 120);
+    }
+  };
+
+  const exportDashboardCsv = () => {
+    const rows = [
+      ['Atma Rekha admin export', new Date().toISOString()],
+      ['Analytics window', periodLabel],
+      [],
+      ['Summary metric', 'Value'],
+      ['Published chapters', metrics.publishedCount],
+      ['Published chapters with pages', metrics.withPagesCount],
+      ['Published chapters missing pages', missingPageCount],
+      ['Upcoming releases', releaseQueueCount],
+      ['Open reports', reportCount],
+      ['Views in selected window', metrics.currentViews],
+      ['Comments in selected window', metrics.currentComments],
+      ['Shares in selected window', metrics.currentShares],
+      ['Active readers in selected window', metrics.periodActiveReaders],
+      ['Returning readers in selected window', metrics.periodReturningReaders],
+      ['Registered users', userStats.logged_in_users],
+      ['Push notification subscriptions', userStats.notification_subscriptions],
+      [],
+      ['Chapter', 'Title', 'Views in window', 'Likes in window', 'Shares in window', 'Average rating', 'Page count'],
+      ...metrics.chapterStats.map(chapter => [
+        chapterLabel(chapter), chapter.title || '', chapter.periodViews, chapter.periodLikes,
+        chapter.periodShares, chapter.ratingAverage || '', chapter.pages,
+      ]),
+      [],
+      ['Recent comment author', 'Comment', 'Chapter', 'Created at'],
+      ...metrics.recentComments.map(comment => [
+        comment.author_name || 'Reader', comment.content || '', chapterName?.(comment.chapter_id) || '', comment.created_at || '',
+      ]),
+    ];
+    const content = '\\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\\r\\n');
+    const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'atma-rekha-admin-' + windowKey + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const quickActions = [
+    { label: 'Chapter manager', detail: 'Create, edit and publish', icon: 'book', run: () => onTab('Chapters') },
+    { label: 'Page editor', detail: 'Review chapter artwork', icon: 'layers', run: () => onTab('Pages') },
+    { label: 'Analytics explorer', detail: 'Investigate trends and reach', icon: 'chart', run: () => onTab('Control Room') },
+    { label: 'Reader directory', detail: 'Search users and memberships', icon: 'user', run: () => adminAction('atma-admin-open-management', { view: 'users' }) },
+    { label: 'Push notifications', detail: 'Compose a reader update', icon: 'bell', run: () => adminAction('atma-admin-open-management', { view: 'notifications' }) },
+    { label: 'Asset health', detail: 'Check chapter-page readiness', icon: 'pulse', run: () => adminAction('atma-admin-open-health') },
+  ];
 
   return <section className="ar-overview">
     <div className="ar-overview-hero">
@@ -289,6 +395,46 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       </div>
     </div>
 
+    <div className="ar-ref-discovery">
+      <label className="ar-ref-search">
+        <AdminIcon name="search" size={17}/>
+        <input
+          type="search"
+          value={dashboardSearch}
+          onChange={event => setDashboardSearch(event.target.value)}
+          placeholder="Explore chapters, comments and reports…"
+          aria-label="Search loaded chapters, comments and reports"
+        />
+        <kbd>ENTERPRISE SEARCH</kbd>
+      </label>
+      <button type="button" className="ar-ref-export" onClick={exportDashboardCsv}>
+        <AdminIcon name="download" size={16}/> Export data
+      </button>
+    </div>
+
+    {dashboardSearch.trim() && <div className="ar-ref-search-results" role="region" aria-label="Dashboard search results">
+      <div className="ar-ref-results-head">
+        <strong>Search results</strong><span>{dashboardResults.length} match{dashboardResults.length === 1 ? '' : 'es'} · loaded admin data</span>
+        <button type="button" onClick={() => setDashboardSearch('')} aria-label="Clear dashboard search">Clear</button>
+      </div>
+      {dashboardResults.length ? dashboardResults.map(item => <button type="button" className="ar-ref-result" key={item.key} onClick={() => openDashboardResult(item)}>
+        <span className="ar-ref-result-type">{item.type}</span>
+        <span className="ar-ref-result-copy"><strong>{item.title}</strong><small>{item.detail}</small></span>
+        <AdminIcon name="arrow-right" size={15}/>
+      </button>) : <div className="ar-ref-no-results">No matches in the loaded chapters, comments or reports.</div>}
+    </div>}
+
+    <section className="ar-ref-quick-actions" aria-label="Admin shortcuts">
+      <div className="ar-ref-section-title"><div><span>WORKSPACE</span><h3>Quick actions</h3></div><small>One tap to the tools you use most</small></div>
+      <div className="ar-ref-action-grid">
+        {quickActions.map(action => <button type="button" key={action.label} className="ar-ref-action" onClick={action.run}>
+          <span className="ar-ref-action-icon"><AdminIcon name={action.icon} size={18}/></span>
+          <span className="ar-ref-action-copy"><strong>{action.label}</strong><small>{action.detail}</small></span>
+          <AdminIcon name="arrow-up-right" size={15}/>
+        </button>)}
+      </div>
+    </section>
+
     {analytics === null ? <SkeletonGrid/> : <div className="ar-overview-kpis">
       <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released + ' released in period'} icon="book" accent="blue"/>
       <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} icon="chart" accent="blue"/>
@@ -301,6 +447,50 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <StatCard label={"Shares · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentShares)} delta={deltaShares} icon="chart" accent="blue"/>
       <StatCard label="Notifications On" value={compactNumber(userStats.notification_subscriptions)} note="Push subscriptions" icon="bell" accent="green"/>
     </div>}
+
+    <section className="ar-ref-pulse" aria-label="Publishing and community status">
+      <div className="ar-ref-section-title"><div><span>MONITORING</span><h3>Publishing & community pulse</h3></div><span className="ar-ref-live-label"><i/> Based on loaded admin data</span></div>
+      <div className="ar-ref-pulse-grid">
+        <button type="button" className={'ar-ref-pulse-card ' + (missingPageCount ? 'is-warning' : 'is-clear')} onClick={() => adminAction('atma-admin-open-health')}>
+          <span className="ar-ref-pulse-icon"><AdminIcon name="layers" size={17}/></span>
+          <span className="ar-ref-pulse-copy"><small>Published chapters missing pages</small><strong>{formatNumber(missingPageCount)}</strong><em>{missingPageCount ? 'Review page health' : 'No page gaps found'}</em></span>
+          <AdminIcon name="arrow-up-right" size={15}/>
+        </button>
+        <button type="button" className="ar-ref-pulse-card" onClick={() => onTab('Chapters')}>
+          <span className="ar-ref-pulse-icon"><AdminIcon name="calendar" size={17}/></span>
+          <span className="ar-ref-pulse-copy"><small>Upcoming releases</small><strong>{formatNumber(releaseQueueCount)}</strong><em>{metrics.upcoming[0] ? 'Next: ' + (safeDate(metrics.upcoming[0].releaseDate)?.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) || 'Scheduled') : 'No future release dates'}</em></span>
+          <AdminIcon name="arrow-up-right" size={15}/>
+        </button>
+        <button type="button" className={'ar-ref-pulse-card ' + (reportCount ? 'is-warning' : 'is-clear')} onClick={() => onTab('Reports')}>
+          <span className="ar-ref-pulse-icon"><AdminIcon name="flag" size={17}/></span>
+          <span className="ar-ref-pulse-copy"><small>Open moderation reports</small><strong>{formatNumber(reportCount)}</strong><em>{reportCount ? 'Review the queue' : 'Queue is clear'}</em></span>
+          <AdminIcon name="arrow-up-right" size={15}/>
+        </button>
+        <button type="button" className="ar-ref-pulse-card" onClick={() => adminAction('atma-admin-open-management', { view: 'notifications' })}>
+          <span className="ar-ref-pulse-icon"><AdminIcon name="bell" size={17}/></span>
+          <span className="ar-ref-pulse-copy"><small>Push subscriptions</small><strong>{formatNumber(userStats.notification_subscriptions)}</strong><em>Open notification center</em></span>
+          <AdminIcon name="arrow-up-right" size={15}/>
+        </button>
+      </div>
+      <div className="ar-ref-workbench">
+        <div className="ar-ref-workbench-heading"><strong>Publishing checklist</strong><span>Operational tasks, not estimated metrics</span></div>
+        <button type="button" onClick={() => adminAction('atma-admin-open-health')}>
+          <span className="ar-ref-checkmark">{missingPageCount ? <AdminIcon name="alert-circle" size={15}/> : <AdminIcon name="check-circle" size={15}/>}</span>
+          <span><strong>Verify published chapter pages</strong><small>{missingPageCount ? missingPageCount + ' published chapter(s) have no recorded pages.' : 'All published chapters have recorded page entries.'}</small></span>
+          <b className={missingPageCount ? 'attention' : 'complete'}>{missingPageCount ? 'Review' : 'Clear'}</b>
+        </button>
+        <button type="button" onClick={() => onTab('Chapters')}>
+          <span className="ar-ref-checkmark"><AdminIcon name="calendar" size={15}/></span>
+          <span><strong>Check the release schedule</strong><small>{releaseQueueCount ? releaseQueueCount + ' future release date(s) found.' : 'No upcoming release dates are recorded.'}</small></span>
+          <b>{releaseQueueCount ? 'Open queue' : 'Schedule'}</b>
+        </button>
+        <button type="button" onClick={() => onTab('Reports')}>
+          <span className="ar-ref-checkmark">{reportCount ? <AdminIcon name="flag" size={15}/> : <AdminIcon name="check-circle" size={15}/>}</span>
+          <span><strong>Review the moderation queue</strong><small>{reportCount ? reportCount + ' report(s) remain open.' : 'No open reports are currently listed.'}</small></span>
+          <b className={reportCount ? 'attention' : 'complete'}>{reportCount ? 'Review' : 'Clear'}</b>
+        </button>
+      </div>
+    </section>
 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
