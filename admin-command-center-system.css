@@ -384,3 +384,10 @@ main.admin-page.ar-admin-v3 .admin-chapter-card .admin-table-action { min-height
   main.admin-page.ar-admin-v3 .admin-chapter-card .admin-row-actions { display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); }
   main.admin-page.ar-admin-v3 .admin-chapter-card .admin-row-actions button:last-child { grid-column:1/-1; }
 }
+
+main.admin-page.ar-admin-v3 .admin-chapter-card-page-state { display:flex;align-items:center;gap:6px;color:var(--ar-ui-subtle);font-size:10px; }
+main.admin-page.ar-admin-v3 .admin-chapter-card-page-state i { width:7px;height:7px;border-radius:50%;background:#758188; }
+main.admin-page.ar-admin-v3 .admin-chapter-card-page-state.has-pages { color:#94dfb4; }
+main.admin-page.ar-admin-v3 .admin-chapter-card-page-state.has-pages i { background:#45c98a; }
+main.admin-page.ar-admin-v3 .admin-chapter-card-page-state.no-pages { color:#f0b2b2; }
+main.admin-page.ar-admin-v3 .admin-chapter-card-page-state.no-pages i { background:#f07878; }
