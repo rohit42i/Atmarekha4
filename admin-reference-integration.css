@@ -286,3 +286,221 @@ main.admin-page.ar-admin-v3 .ar-overview :is(button,input,select):focus-visible 
 @media (prefers-reduced-motion: reduce) {
   main.admin-page.ar-admin-v3 .ar-ref-action { transition: none; }
 }
+
+
+/* Control room workbench: responsive, searchable, functional action catalogue. */
+html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-control-room {
+  --cr-bg:#f4f6f9;
+  --cr-card:#ffffff;
+  --cr-card-raised:#edf1f5;
+  --cr-border:#d7dee7;
+  --cr-border-soft:#e3e8ee;
+  --cr-text:#19222e;
+  --cr-muted:#586777;
+  --cr-faint:#728091;
+  --cr-gold:#3255c6;
+  --cr-gold-soft:rgba(50,85,198,.09);
+  --cr-green:#3e7657;
+  --cr-red:#aa4853;
+  --cr-yellow:#8b671f;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-workbench {
+  display:grid;
+  gap:15px;
+  min-width:0;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-hero {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:19px;
+  border:1px solid var(--cr-border);
+  border-radius:11px;
+  background:var(--cr-card);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-hero > div:first-child { min-width:0; }
+main.admin-page.ar-admin-v3 .ar-cr-feature-hero h3 {
+  margin:6px 0 0;
+  color:var(--cr-text);
+  font-size:clamp(20px,2.8vw,27px);
+  letter-spacing:-.035em;
+  line-height:1.15;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-hero p {
+  max-width:760px;
+  margin:8px 0 0;
+  color:var(--cr-muted);
+  font-size:11px;
+  line-height:1.6;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-count {
+  display:grid;
+  flex:0 0 115px;
+  gap:3px;
+  justify-items:center;
+  padding:13px;
+  border:1px solid var(--cr-border);
+  border-radius:8px;
+  background:var(--cr-bg);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-count strong {
+  color:var(--cr-text);
+  font-size:29px;
+  line-height:1.1;
+  letter-spacing:-.05em;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-count span {
+  color:var(--cr-muted);
+  font-size:9px;
+  text-align:center;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-search {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:46px;
+  min-width:0;
+  padding:0 13px;
+  border:1px solid var(--cr-border);
+  border-radius:8px;
+  background:var(--cr-card);
+  color:var(--cr-muted);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-search:focus-within {
+  border-color:var(--cr-gold);
+  box-shadow:0 0 0 3px var(--cr-gold-soft);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-search input {
+  flex:1;
+  min-width:0;
+  width:100%;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:var(--cr-text)!important;
+  font-size:12px;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-search input::placeholder { color:var(--cr-faint)!important; }
+main.admin-page.ar-admin-v3 .ar-cr-feature-search span {
+  flex:0 0 auto;
+  color:var(--cr-faint);
+  font-size:9px;
+  font-variant-numeric:tabular-nums;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-group {
+  display:grid;
+  gap:10px;
+  min-width:0;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-group > header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 2px;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-group > header h4 {
+  margin:0;
+  color:var(--cr-text);
+  font-size:13px;
+  font-weight:800;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-group > header span {
+  color:var(--cr-faint);
+  font-size:9px;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  min-width:0;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-button {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  min-height:76px;
+  padding:12px;
+  border:1px solid var(--cr-border);
+  border-radius:8px;
+  background:var(--cr-card);
+  color:var(--cr-text);
+  text-align:left;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-button:hover {
+  border-color:var(--cr-gold);
+  background:var(--cr-card-raised);
+  transform:translateY(-1px);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-button:active { transform:translateY(0); }
+main.admin-page.ar-admin-v3 .ar-cr-feature-button:focus-visible {
+  outline:2px solid var(--cr-gold)!important;
+  outline-offset:2px!important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-icon {
+  display:grid;
+  place-items:center;
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  border:1px solid var(--cr-border);
+  border-radius:7px;
+  background:var(--cr-bg);
+  color:var(--cr-gold);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-copy {
+  display:grid;
+  gap:4px;
+  flex:1;
+  min-width:0;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-copy strong {
+  color:var(--cr-text);
+  font-size:10px;
+  font-weight:800;
+  line-height:1.4;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-copy small {
+  color:var(--cr-muted);
+  font-size:9px;
+  line-height:1.45;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-button > svg:last-child {
+  flex:0 0 auto;
+  color:var(--cr-faint);
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-footnote {
+  padding:12px 14px;
+  border:1px solid var(--cr-border-soft);
+  border-radius:8px;
+  background:var(--cr-bg);
+  color:var(--cr-faint);
+  font-size:9px;
+  line-height:1.6;
+}
+main.admin-page.ar-admin-v3 .ar-cr-feature-workbench :is(button,input,select):focus-visible {
+  outline-offset:2px!important;
+}
+@media(max-width:1100px) {
+  main.admin-page.ar-admin-v3 .ar-cr-feature-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:640px) {
+  main.admin-page.ar-admin-v3 .ar-cr-feature-hero { align-items:stretch; padding:13px; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-count { flex:0 0 72px; padding:9px 4px; align-self:center; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-count strong { font-size:23px; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-count span { font-size:8px; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-search { gap:7px; padding:0 10px; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-search span { font-size:8px; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-grid { grid-template-columns:minmax(0,1fr); }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-button { min-height:64px; padding:10px; }
+  main.admin-page.ar-admin-v3 .ar-cr-feature-copy strong { font-size:11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  main.admin-page.ar-admin-v3 .ar-cr-feature-button { transition:none; }
+}
