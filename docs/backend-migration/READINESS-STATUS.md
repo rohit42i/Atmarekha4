@@ -54,6 +54,12 @@ Catalyst Data Store is not PostgreSQL. UUIDs are represented as `varchar(36)` fo
 
 See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILITY-MAP.md](./CAPABILITY-MAP.md), [MIGRATION-PLAN.md](./MIGRATION-PLAN.md), [TEST-PLAN.md](./TEST-PLAN.md), [OPERATIONS.md](./OPERATIONS.md), and [CATALYST-STAGING-STATUS.md](./CATALYST-STAGING-STATUS.md). This is schema preparation, not migration authorization.
 
+## Execution support update — 16 October 2026
+
+A phone-only owner runbook is available at [OWNER-EXECUTION-STEPS.md](./OWNER-EXECUTION-STEPS.md). It gives the exact Termux download/backup/verification steps and the controlled sequence for Stratus initialization, Development-only function deployment, later Razorpay test-webhook and Cloudflare/R2 validation, and production cutover gates.
+
+The backup kit now fails closed if the database endpoint does not match the source project or if the reviewed six-bucket inventory/public-private settings differ. It uses owner-only file permissions and strips backup secrets from subprocess environments by default. GitHub Actions validation run #48 passed static syntax/metadata checks; this does **not** mean the real backup or a restore test ran.
+
 ## Backup status — 12 October 2026
 
 - Source organization plan verified as **Free**. Supabase's official docs say Free projects should regularly export data and maintain off-site backups; daily automated backups are described for Pro/Team/Enterprise. Database backups exclude actual Storage object bytes ([official backup docs](https://supabase.com/docs/guides/platform/backups)).
