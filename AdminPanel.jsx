@@ -16,6 +16,14 @@ import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
 import AdminCardThumbnails from './AdminCardThumbnails.jsx';
+import AdminChapterHealth from './AdminChapterHealth.jsx';
+import AdminOperations from './AdminOperations.jsx';
+import AdminManagementTools from './AdminManagementTools.jsx';
+import AdminModerationTools from './AdminModerationTools.jsx';
+import AdminGroupChatTools from './AdminGroupChatTools.jsx';
+import AdminProTools from './AdminProTools.jsx';
+import CommunityAdmin from './CommunityAdmin.jsx';
+import './admin-workspace-ux.css';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
@@ -108,6 +116,7 @@ const ADMIN_NAV_GROUPS = [
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
     { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
+    { key: '__activity', icon: 'list', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
     { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
     { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
@@ -995,6 +1004,17 @@ export default function AdminPanel({ onLogout }) {
     return () => window.removeEventListener('atma-admin-select-tab', handler);
   }, []);
 
+  // Custom-tool actions use the same command palette as the global search shortcut.
+  useEffect(() => {
+    const openPalette = () => {
+      setCommandOpen(true);
+      setMobileSidebarOpen(false);
+      setProfileOpen(false);
+    };
+    window.addEventListener('atma-admin-open-command', openPalette);
+    return () => window.removeEventListener('atma-admin-open-command', openPalette);
+  }, []);
+
   useEffect(() => {
     const handler = event => {
       const id = event?.detail?.commentId;
@@ -1135,6 +1155,14 @@ export default function AdminPanel({ onLogout }) {
           onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
           onRefresh={load}
         />
+        {/* Mount event-driven tools once so sidebar, dashboard and command-palette actions share real handlers. */}
+        <AdminChapterHealth />
+        <AdminOperations />
+        <AdminManagementTools />
+        <AdminModerationTools />
+        <AdminGroupChatTools />
+        <AdminProTools />
+        <CommunityAdmin />
       </div>
     </div>
   </main>;
