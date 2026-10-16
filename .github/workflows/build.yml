@@ -39,8 +39,19 @@ jobs:
       - name: Production dependency security audit
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Full dependency audit report
+        continue-on-error: true
+        run: |
+          npm audit --audit-level=high || echo '::warning::Development dependency advisories remain under review; production dependencies are gated separately.'
+
       - name: Static production regression checks
         run: npm run check
+
+      - name: Worker syntax and SEO regression tests
+        run: |
+          node --check worker.js
+          node --check atma-media-worker/index.js
+          node scripts/test-worker-seo.mjs
 
       - name: Build production bundle
         run: npm run build
