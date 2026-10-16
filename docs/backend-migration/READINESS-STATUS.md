@@ -58,7 +58,7 @@ See [AUDIT.md](./AUDIT.md), [DATA-INVENTORY.md](./DATA-INVENTORY.md), [CAPABILIT
 
 A phone-only owner runbook is available at [OWNER-EXECUTION-STEPS.md](./OWNER-EXECUTION-STEPS.md). It gives the exact Termux download/backup/verification steps and the controlled sequence for Stratus initialization, Development-only function deployment, later Razorpay test-webhook and Cloudflare/R2 validation, and production cutover gates.
 
-The backup kit now fails closed if the database endpoint does not match the source project or if the reviewed six-bucket inventory/public-private settings differ. It uses owner-only file permissions and strips backup secrets from subprocess environments by default. GitHub Actions validation run #48 passed static syntax/metadata checks; this does **not** mean the real backup or a restore test ran.
+The backup kit now fails closed if the database endpoint does not match the source project or if the reviewed six-bucket inventory/public-private settings differ. It uses owner-only file permissions and strips backup secrets from subprocess environments by default. GitHub Actions validation run #48 passed static syntax/metadata checks. The associated PR build run #3086 also passed dependency audit, regression checks, and production bundle build; Cloudflare deployment/infrastructure steps were skipped. These runs do **not** mean the real backup or a restore test ran.
 
 ## Backup status — 12 October 2026
 
