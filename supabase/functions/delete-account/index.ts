@@ -1,0 +1,58 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const ALLOWED_ORIGINS = new Set(["https://www.atmarekha.in", "https://atmarekha.in", "http://localhost:5173"]);
+function cors(origin: string | null) {
+  return {
+    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://www.atmarekha.in",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+    "Cache-Control": "no-store",
+  };
+}
+function json(body: Record<string, unknown>, status: number, origin: string | null) {
+  return new Response(JSON.stringify(body), { status, headers: { ...cors(origin), "Content-Type": "application/json; charset=utf-8" } });
+}
+
+Deno.serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
+  if (req.method !== "POST") return json({ error: "Method not allowed." }, 405, origin);
+  const declaredLength = Number(req.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > 1024) return json({ error: "Request body is too large." }, 413, origin);
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Authentication required." }, 401, origin);
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+  if (!supabaseUrl || !serviceRoleKey) return json({ error: "Account deletion is temporarily unavailable." }, 503, origin);
+
+  try {
+    const userClient = createClient(supabaseUrl, serviceRoleKey, { global: { headers: { Authorization: authHeader } } });
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) return json({ error: "Authentication failed." }, 401, origin);
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: rateAllowed, error: rateError } = await adminClient.rpc("consume_rate_limit", {
+      p_rate_key: "delete-account:" + user.id,
+      p_limit: 3,
+      p_window_seconds: 3600,
+    });
+    if (rateError) {
+      console.error("Account-deletion rate-limit check failed.");
+      return json({ error: "Account deletion is temporarily unavailable." }, 503, origin);
+    }
+    if (rateAllowed === false) return json({ error: "Too many deletion attempts. Please try again later." }, 429, origin);
+
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
+    if (deleteError) {
+      console.error("Account deletion failed:", deleteError.message);
+      return json({ error: "Unable to delete your account right now." }, 500, origin);
+    }
+    return json({ success: true }, 200, origin);
+  } catch (error) {
+    console.error("Account deletion request failed:", error instanceof Error ? error.message : "unknown error");
+    return json({ error: "Unable to delete your account right now." }, 500, origin);
+  }
+});
