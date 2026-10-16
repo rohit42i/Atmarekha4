@@ -90,5 +90,38 @@ for (const phrase of [
 }
 
 
+
+const adminPanel = await readFile('AdminPanel.jsx', 'utf8');
+const controlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
+const chapterManager = await readFile('AdminChapterManager.jsx', 'utf8');
+const adminStyles = await readFile('admin-command-center-system.css', 'utf8');
+
+for (const [name, content, phrase] of [
+  ['AdminPanel.jsx', adminPanel, "import './admin-command-center-system.css';"],
+  ['AdminControlRoom.jsx', controlRoom, "import './admin-control-room.css';"],
+  ['AdminControlRoom.jsx', controlRoom, 'const loadSequence = useRef(0);'],
+  ['AdminControlRoom.jsx', controlRoom, 'const exportVisibleMetrics = () => exportMetricRows(visibleMetrics'],
+  ['AdminControlRoom.jsx', controlRoom, 'onClick={exportVisibleMetrics}'],
+  ['AdminChapterManager.jsx', chapterManager, 'admin-chapter-card-grid'],
+  ['admin-command-center-system.css', adminStyles, ':focus-visible'],
+  ['admin-command-center-system.css', adminStyles, 'prefers-reduced-motion'],
+]) {
+  if (!content.includes(phrase)) {
+    console.error('CHECK FAILED:', name, 'missing admin control-room safeguard:', phrase);
+    failed = true;
+  }
+}
+
+const metricStart = controlRoom.indexOf('const metricGroups = useMemo');
+const metricEnd = controlRoom.indexOf('const metricCategories', metricStart);
+const metricSource = metricStart >= 0 && metricEnd > metricStart ? controlRoom.slice(metricStart, metricEnd) : '';
+const metricCount = [...metricSource.matchAll(/\bm\('/g)].length;
+if (metricCount < 100) {
+  console.error('CHECK FAILED: admin control room must define at least 100 analytics metrics; found:', metricCount);
+  failed = true;
+} else {
+  console.log('Admin control-room metric definitions:', metricCount);
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');

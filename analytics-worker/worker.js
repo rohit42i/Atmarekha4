@@ -177,6 +177,64 @@ async function combinedPeriodCounts(env, start, end) {
   return result;
 }
 
+async function dailyTrendForPeriod(env, start, end) {
+  const now = new Date();
+  const retentionStart = addDays(now, -RETENTION_DAYS);
+  const totalsByDay = {};
+  const archiveEnd = new Date(Math.min(end.getTime(), retentionStart.getTime()));
+
+  // Older Analytics Engine events are rolled into daily R2 archive objects.
+  if (start < archiveEnd) {
+    for (const month of monthRange(start, archiveEnd)) {
+      const archived = await readJson(env, monthObjectKey(month), null);
+      const days = archived?.days || {};
+      for (const [day, record] of Object.entries(days)) {
+        const bucketStart = new Date(`${day}T00:00:00Z`);
+        if (bucketStart < start || bucketStart >= archiveEnd) continue;
+        const chapterCounts = record?.chapters || {};
+        totalsByDay[day] = Math.max(0, Number(record?.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
+      }
+    }
+  }
+
+  // Query retained Analytics Engine events in one aggregate query, not one query per day.
+  const analyticsStart = new Date(Math.max(start.getTime(), retentionStart.getTime()));
+  if (analyticsStart < end) {
+    const result = await analyticsQuery(
+      env,
+      `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS day_start,
+              SUM(_sample_interval) AS views
+       FROM ${DATASET_TABLE}
+       WHERE timestamp >= $start AND timestamp < $end
+       GROUP BY day_start
+       ORDER BY day_start`,
+      { start: analyticsStart.toISOString(), end: end.toISOString() },
+    );
+    for (const row of rows(result)) {
+      const bucket = dateKeyFromAnalytics(row.day_start);
+      if (bucket) totalsByDay[bucket] = Math.max(0, Number(row.views) || 0);
+    }
+  }
+
+  const trend = [];
+  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+    const day = dayKey(cursor);
+    const bucketEnd = addDays(cursor, 1);
+    trend.push({
+      day,
+      views: Math.max(0, Number(totalsByDay[day]) || 0),
+      partial: cursor < start || bucketEnd > end,
+    });
+  }
+  return trend;
+}
+
+function dateKeyFromAnalytics(value) {
+  if (value == null) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : dayKey(date);
+}
+
 async function totalFromMap(map) {
   return Object.values(map).reduce((sum, value) => sum + Number(value || 0), 0);
 }
@@ -390,9 +448,11 @@ async function handleAdminAnalytics(request, env) {
   const previousStart = new Date(now.getTime() - days * 2 * DAY_MS);
   const current = await combinedPeriodCounts(env, currentStart, now);
   const previous = await combinedPeriodCounts(env, previousStart, currentStart);
-  const [currentReaders, previousReaders] = await Promise.all([
+  const [currentReaders, previousReaders, dailyTrend, previousDailyTrend] = await Promise.all([
     readerMetrics(env, currentStart, now),
     readerMetrics(env, previousStart, currentStart),
+    dailyTrendForPeriod(env, currentStart, now),
+    dailyTrendForPeriod(env, previousStart, currentStart),
   ]);
 
   const summary = await readJson(env, summaryKey(), { chapterViews: {} });
@@ -420,6 +480,8 @@ async function handleAdminAnalytics(request, env) {
     returning_readers: currentReaders.returningReaders,
     reader_metrics_limited: Boolean(currentReaders.unavailable),
     chapter_stats: chapterStats,
+    daily_trend: dailyTrend,
+    previous_daily_trend: previousDailyTrend,
     updated_at: new Date().toISOString(),
   }, 200, { 'Cache-Control': 'private, no-store' });
 }
