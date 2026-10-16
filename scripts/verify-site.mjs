@@ -334,5 +334,32 @@ if (!adminControlRoom.includes('Open {featureCatalog.length} tools') ||
   failed = true;
 }
 
+
+const adminIconRegistrySource = await readFile('admin-redesign-ui.jsx', 'utf8');
+const iconRegistryBlock = adminIconRegistrySource.split('const paths = {')[1]?.split('\\n  };')[0] || '';
+const registeredAdminIcons = new Set(
+  [...iconRegistryBlock.matchAll(/^\\s*(?:'([^']+)'|([A-Za-z][\\w-]*))\\s*:/gm)].map(match => match[1] || match[2])
+);
+const usedAdminIcons = new Set([
+  ...[...adminPanelSource.matchAll(/\\{ key: '[^']+', icon: '([^']+)'/g)].map(match => match[1]),
+  ...[...adminControlRoom.matchAll(/icon:\\s*'([^']+)'/g)].map(match => match[1]),
+]);
+const unsupportedAdminIcons = [...usedAdminIcons].filter(icon => !registeredAdminIcons.has(icon));
+if (unsupportedAdminIcons.length) {
+  console.error('CHECK FAILED: admin navigation/workbench uses unregistered icons:', unsupportedAdminIcons.join(', '));
+  failed = true;
+}
+const navigationGroupSource = adminPanelSource.split('const ADMIN_NAV_GROUPS = [')[1]?.split('\\n];')[0] || '';
+const navigationKeys = [...navigationGroupSource.matchAll(/\\{ key: '([^']+)'/g)]
+  .map(match => match[1])
+  .filter(key => !key.startsWith('__'));
+const tabsDeclaration = adminPanelSource.match(/const tabs = \\[([^\\]]+)\\];/);
+const tabKeys = tabsDeclaration ? [...tabsDeclaration[1].matchAll(/'([^']+)'/g)].map(match => match[1]) : [];
+const missingNavigationTabs = navigationKeys.filter(key => !tabKeys.includes(key));
+if (!tabsDeclaration || missingNavigationTabs.length) {
+  console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
