@@ -23,6 +23,7 @@ const SECTIONS = [
   { id: 'Metric Explorer', label: 'All Metrics', icon: 'layers' },
 ];
 const NUMBER = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+const asNumber = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
 const fmtNum = value => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 1 });
 const fmtMoney = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN');
 const dateOf = value => {
@@ -64,6 +65,27 @@ const modeFromCounts = counts => {
   const rows = (counts || []).map(row => ({ rating: Number(row.rating), count: Number(row.count) })).filter(row => row.count > 0);
   if (!rows.length) return null;
   return rows.sort((a, b) => b.count - a.count || b.rating - a.rating)[0].rating;
+};
+const weightedMedian = counts => {
+  const rows = (counts || []).map(row => ({ rating: Number(row.rating), count: Math.max(0, Number(row.count) || 0) })).filter(row => row.count > 0).sort((a, b) => a.rating - b.rating);
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  if (!total) return null;
+  const positions = total % 2 ? [Math.floor(total / 2)] : [total / 2 - 1, total / 2];
+  return positions.reduce((sum, position) => {
+    let cumulative = 0;
+    for (const row of rows) {
+      cumulative += row.count;
+      if (position < cumulative) return sum + row.rating / positions.length;
+    }
+    return sum;
+  }, 0);
+};
+const weightedStdDev = counts => {
+  const rows = (counts || []).map(row => ({ rating: Number(row.rating), count: Math.max(0, Number(row.count) || 0) })).filter(row => row.count > 0);
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  if (!total) return null;
+  const mean = rows.reduce((sum, row) => sum + row.rating * row.count, 0) / total;
+  return Math.sqrt(rows.reduce((sum, row) => sum + row.count * ((row.rating - mean) ** 2), 0) / total);
 };
 const statusLabel = value => value ? 'Available' : 'Unavailable';
 
@@ -116,6 +138,26 @@ function MiniBar({ label, current, previous, max }) {
     <div className="ar-cr-compare-track"><i className="current" style={{ width: Math.max(currentValue ? 2 : 0, currentValue / safeMax * 100) + '%' }}/></div>
     <div className="ar-cr-compare-track previous"><i style={{ width: Math.max(previousValue ? 2 : 0, previousValue / safeMax * 100) + '%' }}/></div>
     <small>Previous: {fmtNum(previousValue)}</small>
+  </div>;
+}
+
+function DailyTrendChart({ current = [], previous = [] }) {
+  if (!current.length) return <Empty>Daily trend data will appear when the updated analytics Worker is available. Totals and chapter comparisons remain available meanwhile.</Empty>;
+  const max = Math.max(1, ...current.map(row => NUMBER(row.views)), ...previous.map(row => NUMBER(row.views)));
+  return <div className="ar-cr-daily-trend">
+    <div className="ar-cr-legend"><span><i className="is-current"/>Selected window</span><span><i/>Previous equal-length window</span><small>UTC day buckets; edges can be partial.</small></div>
+    <div className="ar-cr-daily-grid" role="img" aria-label="Daily chapter views compared with the previous equal-length reporting window" style={{ gridTemplateColumns: `repeat(${current.length}, minmax(3px, 1fr))` }}>
+      {current.map((row, index) => {
+        const prior = previous[index] || null;
+        const currentHeight = NUMBER(row.views) / max * 100;
+        const previousHeight = NUMBER(prior?.views) / max * 100;
+        return <div className="ar-cr-daily-column" key={row.day + ':' + index} title={row.day + ': ' + fmtNum(row.views) + ' views' + (prior ? ' · previous bucket ' + fmtNum(prior.views) : '') + (row.partial ? ' · partial bucket' : '')}>
+          <div className="ar-cr-daily-bars"><i className="current" style={{ height: currentHeight + '%' }}/><b style={{ height: previousHeight + '%' }}/></div>
+          <span>{current.length <= 14 || index === 0 || index === current.length - 1 || index % Math.ceil(current.length / 8) === 0 ? String(row.day || '').slice(8, 10) : ''}</span>
+        </div>;
+      })}
+    </div>
+    <div className="ar-cr-daily-summary"><span><small>Current total</small><strong>{fmtNum(current.reduce((sum, row) => sum + NUMBER(row.views), 0))}</strong></span><span><small>Previous total</small><strong>{fmtNum(previous.reduce((sum, row) => sum + NUMBER(row.views), 0))}</strong></span><span><small>Peak current day</small><strong>{fmtNum(Math.max(0, ...current.map(row => NUMBER(row.views))))}</strong></span></div>
   </div>;
 }
 
@@ -173,11 +215,11 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       analyticsError: analyticsResult.error || analyticsResult.data?.error?.message || null,
       cloudflare: cloudResult.data || null,
       cloudflareError: cloudResult.error || null,
-      users: usersResult.data?.data || null,
+      users: usersResult.data?.data || usersResult.data || null,
       usersError: usersResult.error || usersResult.data?.error?.message || null,
       membership: membershipEnvelope?.data || null,
       membershipError: membershipResult.error || membershipEnvelope?.error?.message || null,
-      registeredUsers: Number(membershipEnvelope?.registered_users ?? usersResult.data?.data?.logged_in_users ?? 0),
+      registeredUsers: asNumber(membershipEnvelope?.registered_users ?? usersResult.data?.logged_in_users),
       chapters: chapterResult.data || chapters,
       chaptersError: chapterResult.error,
       comments: commentResult.data || comments,
@@ -226,28 +268,49 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const revenue = membership.revenue || {};
   const plans = Array.isArray(membership.plans) ? membership.plans : [];
   const membershipTrend = Array.isArray(membership.trend) ? membership.trend : [];
-  const currentViews = NUMBER(cloud.current_views ?? analytics.current_views);
-  const previousViews = NUMBER(cloud.previous_views ?? analytics.previous_views);
-  const totalViews = cloud.total_views ?? analytics.total_views ?? null;
-  const currentLikes = analytics.current_likes ?? null;
-  const previousLikes = analytics.previous_likes ?? null;
-  const currentShares = cloud.current_shares ?? analytics.current_shares ?? null;
-  const previousShares = cloud.previous_shares ?? analytics.previous_shares ?? null;
-  const currentComments = analytics.current_comments ?? null;
-  const previousComments = analytics.previous_comments ?? null;
-  const currentRatings = analytics.current_ratings ?? null;
-  const previousRatings = analytics.previous_ratings ?? null;
-  const activeReaders = cloud.active_readers ?? analytics.period_active_readers ?? analytics.active_readers ?? null;
-  const returningReaders = cloud.returning_readers ?? analytics.period_returning_readers ?? analytics.returning_readers ?? null;
+  const currentViews = asNumber(cloud.current_views ?? analytics.current_views);
+  const previousViews = asNumber(cloud.previous_views ?? analytics.previous_views);
+  const totalViews = asNumber(cloud.total_views ?? analytics.total_views);
+  const currentLikes = asNumber(analytics.current_likes);
+  const previousLikes = asNumber(analytics.previous_likes);
+  const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
+  const previousShares = asNumber(cloud.previous_shares ?? analytics.previous_shares);
+  const currentComments = asNumber(analytics.current_comments);
+  const previousComments = asNumber(analytics.previous_comments);
+  const currentRatings = asNumber(analytics.current_ratings);
+  const previousRatings = asNumber(analytics.previous_ratings);
+  const activeReaders = asNumber(cloud.active_readers ?? analytics.period_active_readers ?? analytics.active_readers);
+  const returningReaders = asNumber(cloud.returning_readers ?? analytics.period_returning_readers ?? analytics.returning_readers);
+  const dailyTrendRows = Array.isArray(cloud.daily_trend) ? cloud.daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
+  const previousDailyTrendRows = Array.isArray(cloud.previous_daily_trend) ? cloud.previous_daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
+  const dailyViewValues = dailyTrendRows.map(row => row.views);
+  const previousDailyViewValues = previousDailyTrendRows.map(row => row.views);
+  const dailyMean = average(dailyViewValues);
+  const dailyStdDev = standardDeviation(dailyViewValues);
+  const peakDailyRow = dailyTrendRows.reduce((best, row) => !best || row.views > best.views ? row : best, null);
+  const previousPeakDaily = previousDailyTrendRows.reduce((best, row) => !best || row.views > best.views ? row : best, null);
+  const activeViewDays = dailyTrendRows.filter(row => row.views > 0).length;
+  const previousActiveViewDays = previousDailyTrendRows.filter(row => row.views > 0).length;
+  const weekdayTotals = Array.from({ length: 7 }, (_, weekday) => ({ weekday, views: [], label: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][weekday] }));
+  for (const row of dailyTrendRows) {
+    const date = dateOf(row.day + 'T00:00:00Z');
+    if (date) weekdayTotals[date.getUTCDay()].views.push(row.views);
+  }
+  const weekdayAverages = weekdayTotals.map(row => ({ ...row, average: average(row.views) })).filter(row => row.average != null);
+  const busiestWeekday = weekdayAverages.sort((a, b) => b.average - a.average)[0] || null;
+  const weekendValues = weekdayTotals.filter(row => row.weekday === 0 || row.weekday === 6).flatMap(row => row.views);
+  const weekdayValues = weekdayTotals.filter(row => row.weekday > 0 && row.weekday < 6).flatMap(row => row.views);
+  const lastDailyChange = dailyTrendRows.length > 1 ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyTrendRows[dailyTrendRows.length - 2].views) : null;
+  const positiveDailyChanges = dailyTrendRows.slice(1).filter((row, index) => row.views > dailyTrendRows[index].views).length;
   const ratingCounts = (analytics.rating_counts || []).map(row => ({ rating: Number(row.rating), count: Number(row.count) }));
   const allRatings = NUMBER(analytics.total_ratings);
   const ratingSum = NUMBER(analytics.rating_sum);
   const allTimeAverageRating = allRatings ? ratingSum / allRatings : null;
-  const totalLikes = analytics.total_likes ?? null;
-  const totalShares = cloud.total_shares ?? analytics.total_shares ?? null;
-  const totalComments = analytics.total_comments ?? null;
-  const totalRatings = analytics.total_ratings ?? null;
-  const totalBookmarks = analytics.bookmarks ?? null;
+  const totalLikes = asNumber(analytics.total_likes);
+  const totalShares = asNumber(cloud.total_shares ?? analytics.total_shares);
+  const totalComments = asNumber(analytics.total_comments);
+  const totalRatings = asNumber(analytics.total_ratings);
+  const totalBookmarks = asNumber(analytics.bookmarks);
   const chapterStats = (analytics.chapter_stats || []).map(row => {
     const cloudStat = (cloud.chapter_stats || []).find(item => String(item.id) === String(row.id));
     return {
@@ -292,12 +355,11 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const averageChapterViews = average(chapterViews);
   const ratingPositive = ratingCounts.filter(row => row.rating >= 8).reduce((sum, row) => sum + row.count, 0);
   const ratingLow = ratingCounts.filter(row => row.rating <= 4).reduce((sum, row) => sum + row.count, 0);
-  const ratingValues = ratingCounts.flatMap(row => Array(Math.min(10000, Math.max(0, row.count))).fill(row.rating));
-  const ratingMedian = median(ratingValues);
+  const ratingMedian = weightedMedian(ratingCounts);
   const ratingMode = modeFromCounts(ratingCounts);
-  const ratingDeviation = standardDeviation(ratingValues);
-  const currentInteractions = NUMBER(currentLikes) + NUMBER(currentShares) + NUMBER(currentComments) + NUMBER(currentRatings);
-  const currentViewRate = currentViews > 0 ? currentInteractions / currentViews * 100 : null;
+  const ratingDeviation = weightedStdDev(ratingCounts);
+  const interactionsAvailable = [currentLikes, currentShares, currentComments, currentRatings].every(value => value != null);
+  const currentInteractions = interactionsAvailable ? NUMBER(currentLikes) + NUMBER(currentShares) + NUMBER(currentComments) + NUMBER(currentRatings) : null;
   const rawComments = Array.isArray(data.comments) ? data.comments : comments;
   const recentComments = rawComments;
   const commentReplies = rawComments.filter(row => Boolean(row.parent_comment_id)).length;
@@ -380,7 +442,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   ];
   const healthySources = dataSources.filter(row => row.ok).length;
   const sourceErrors = dataSources.filter(row => !row.ok);
-  const ratio = (numerator, denominator) => Number(denominator) > 0 ? Number(numerator) / Number(denominator) * 100 : null;
+  const ratio = (numerator, denominator) => numerator == null || denominator == null || Number(denominator) <= 0 ? null : Number(numerator) / Number(denominator) * 100;
   const selectedDays = Number(days);
 
   const metricGroups = useMemo(() => {
@@ -391,7 +453,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Views in selected window', currentViews, 'count', 'Reads inside the selected reporting window.', 'Selected-period analytics'),
         m('Traffic & Reach', 'Views in previous window', previousViews, 'count', 'Same-length period immediately before the selected window.', 'Selected-period analytics'),
         m('Traffic & Reach', 'View change versus previous', deltaPercent(currentViews, previousViews), 'percent', 'Percent change; unavailable when the previous baseline is zero and current is non-zero.', 'Current and previous views'),
-        m('Traffic & Reach', 'Average views per day', currentViews / selectedDays, 'decimal', 'Selected-window views divided by its number of days.', 'Derived'),
+        m('Traffic & Reach', 'Average views per day', currentViews == null ? null : currentViews / selectedDays, 'decimal', 'Selected-window views divided by its number of days.', 'Derived'),
         m('Traffic & Reach', 'Active readers in window', activeReaders, 'count', 'Distinct readers the analytics source reported for the period.', 'Cloudflare / admin function'),
         m('Traffic & Reach', 'Returning readers in window', returningReaders, 'count', 'Distinct readers counted as returning by the analytics source.', 'Cloudflare / admin function'),
         m('Traffic & Reach', 'Returning reader share', ratio(returningReaders, activeReaders), 'percent', 'Returning readers divided by active readers.', 'Derived'),
@@ -399,6 +461,23 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Published chapters with reads', chaptersWithViews.length, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
         m('Traffic & Reach', 'Published chapters with zero reads', viewlessChapters.length, 'count', 'Published chapters represented in analytics with zero lifetime views.', 'Chapter analytics'),
         m('Traffic & Reach', 'Median lifetime views per published chapter', median(chapterViews), 'decimal', 'Median chapter-level lifetime views; not a daily trend.', 'Chapter analytics'),
+        m('Traffic & Reach', 'Daily trend buckets returned', cloud.daily_trend ? dailyTrendRows.length : null, 'count', 'Number of UTC calendar buckets in the selected rolling window; boundary buckets may be partial.', 'Cloudflare Analytics Engine and R2 archive'),
+        m('Traffic & Reach', 'Days with at least one view', cloud.daily_trend ? activeViewDays : null, 'count', 'Selected-window date buckets with one or more chapter views.', 'Daily trend'),
+        m('Traffic & Reach', 'Days with zero views', cloud.daily_trend ? dailyTrendRows.filter(row => row.views === 0).length : null, 'count', 'Selected-window date buckets with no recorded chapter views.', 'Daily trend'),
+        m('Traffic & Reach', 'Average views per daily bucket', cloud.daily_trend ? dailyMean : null, 'decimal', 'Mean views per returned UTC calendar bucket, including zero-view buckets.', 'Daily trend'),
+        m('Traffic & Reach', 'Median views per daily bucket', cloud.daily_trend ? median(dailyViewValues) : null, 'decimal', 'Median views across returned UTC calendar buckets.', 'Daily trend'),
+        m('Traffic & Reach', 'Peak daily views', cloud.daily_trend ? peakDailyRow?.views ?? null : null, 'count', 'Highest daily total in the selected reporting window.', 'Daily trend'),
+        m('Traffic & Reach', 'Date of peak daily views', cloud.daily_trend ? peakDailyRow?.day ?? null : null, 'text', 'UTC date of the highest daily view total.', 'Daily trend'),
+        m('Traffic & Reach', 'Previous window peak daily views', cloud.previous_daily_trend ? previousPeakDaily?.views ?? null : null, 'count', 'Highest daily total in the previous equal-length reporting window.', 'Previous daily trend'),
+        m('Traffic & Reach', 'Active-day coverage', cloud.daily_trend ? ratio(activeViewDays, dailyTrendRows.length) : null, 'percent', 'Share of returned date buckets with at least one view.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily views standard deviation', cloud.daily_trend ? dailyStdDev : null, 'decimal', 'Population standard deviation across daily view totals.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily views volatility', cloud.daily_trend && dailyMean > 0 ? dailyStdDev / dailyMean * 100 : null, 'percent', 'Coefficient of variation for daily view totals; higher values indicate more uneven daily reach.', 'Daily trend'),
+        m('Traffic & Reach', 'Days with growth versus prior day', cloud.daily_trend ? positiveDailyChanges : null, 'count', 'Adjacent UTC date buckets where views increased.', 'Daily trend'),
+        m('Traffic & Reach', 'Most-viewed weekday', cloud.daily_trend ? (busiestWeekday?.label || null) : null, 'text', 'Weekday with the highest average views in this window; partial boundary dates can affect the sample.', 'Daily trend'),
+        m('Traffic & Reach', 'Average weekend views', cloud.daily_trend ? average(weekendValues) : null, 'decimal', 'Mean daily views for Saturday and Sunday buckets in the selected window.', 'Daily trend'),
+        m('Traffic & Reach', 'Average weekday views', cloud.daily_trend ? average(weekdayValues) : null, 'decimal', 'Mean daily views for Monday through Friday buckets in the selected window.', 'Daily trend'),
+        m('Traffic & Reach', 'Last daily bucket change', cloud.daily_trend ? lastDailyChange : null, 'percent', 'Change between the last two returned daily buckets. Boundary buckets may be partial.', 'Daily trend'),
+        m('Traffic & Reach', 'Active-day change vs previous period', cloud.daily_trend && cloud.previous_daily_trend ? deltaPercent(activeViewDays, previousActiveViewDays) : null, 'percent', 'Period-over-period change in date buckets with at least one recorded view.', 'Current and previous daily trends'),
       ],
       'Content Intelligence': [
         m('Content Intelligence', 'Published chapters', published.length, 'count', 'Published, non-archived chapter records currently loaded.', 'Chapter inventory'),
@@ -420,12 +499,12 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Engagement', 'Shares in selected window', currentShares, 'count', 'Period chapter shares.', 'Cloudflare / admin analytics'),
         m('Engagement', 'Comments in selected window', currentComments, 'count', 'Period comments, including replies when the function includes them.', 'Admin analytics'),
         m('Engagement', 'Ratings submitted in window', currentRatings, 'count', 'Ratings submitted inside the selected reporting window.', 'Admin analytics'),
-        m('Engagement', 'All interactions in window', currentLikes != null && currentShares != null && currentComments != null && currentRatings != null ? currentInteractions : null, 'count', 'Likes + shares + comments + ratings; one person can create several events.', 'Derived'),
+        m('Engagement', 'All interactions in window', interactionsAvailable ? currentInteractions : null, 'count', 'Likes + shares + comments + ratings; one person can create several events.', 'Derived'),
         m('Engagement', 'Likes per 100 views', currentLikes == null ? null : ratio(currentLikes, currentViews) == null ? null : ratio(currentLikes, currentViews) * 100, 'decimal', 'Like events per 100 view events; not a person-level conversion rate.', 'Derived'),
         m('Engagement', 'Shares per 100 views', currentShares == null ? null : ratio(currentShares, currentViews) == null ? null : ratio(currentShares, currentViews) * 100, 'decimal', 'Share events per 100 view events.', 'Derived'),
         m('Engagement', 'Comments per 100 views', currentComments == null ? null : ratio(currentComments, currentViews) == null ? null : ratio(currentComments, currentViews) * 100, 'decimal', 'Comment events per 100 view events.', 'Derived'),
         m('Engagement', 'Ratings per 100 views', currentRatings == null ? null : ratio(currentRatings, currentViews) == null ? null : ratio(currentRatings, currentViews) * 100, 'decimal', 'Rating events per 100 view events.', 'Derived'),
-        m('Engagement', 'Interactions per active reader', activeReaders && activeReaders > 0 ? currentInteractions / Number(activeReaders) : null, 'decimal', 'Events per distinct active reader; not deduplicated across event types.', 'Derived'),
+        m('Engagement', 'Interactions per active reader', activeReaders && activeReaders > 0 && currentInteractions != null ? currentInteractions / Number(activeReaders) : null, 'decimal', 'Events per distinct active reader; not deduplicated across event types.', 'Derived'),
         m('Engagement', 'Like change versus previous', deltaPercent(currentLikes, previousLikes), 'percent', 'Period-over-period change when a valid prior baseline exists.', 'Current and previous likes'),
       ],
       'Audience': [
@@ -565,16 +644,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const tracked = item.value !== null && item.value !== undefined;
     return matchSearch && (metricFilter === 'all' || (metricFilter === 'tracked' ? tracked : !tracked));
   }).sort((a, b) => {
-    if (metricSort === 'largest') {
-      const score = item => {
-        if (item.value == null) return -Infinity;
-        if (item.unit === 'date') return dateOf(item.value)?.getTime() ?? -Infinity;
-        const numeric = Number(item.value);
-        return Number.isFinite(numeric) ? numeric : -Infinity;
-      };
-      const difference = score(b) - score(a);
-      return Number.isNaN(difference) || difference === 0 ? a.label.localeCompare(b.label) : difference;
-    }
+    if (metricSort === 'largest') return (Number(b.value) || -Infinity) - (Number(a.value) || -Infinity);
     if (metricSort === 'name') return a.label.localeCompare(b.label);
     return a.category.localeCompare(b.category) || a.label.localeCompare(b.label);
   });
@@ -670,13 +740,17 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         </Card>
       </div>
 
+      <Card eyebrow="TRAFFIC TREND" title="Daily views over time" aside={<small>{periodLabel} vs previous equal-length window · UTC calendar buckets</small>}>
+        <DailyTrendChart current={dailyTrendRows} previous={previousDailyTrendRows}/>
+      </Card>
+
       <div className="ar-cr-three-col">
         <Card eyebrow="CONTENT" title="Top chapters" aside={<button className="ar-cr-text-btn" type="button" onClick={() => onTab?.('Chapters')}>Manage →</button>}>
           <div className="ar-cr-field-row"><label>Rank by<select value={chapterRank} onChange={event => setChapterRank(event.target.value)}><option value="views">Period views</option><option value="likes">Period likes</option><option value="shares">Period shares</option><option value="rating">Average rating</option></select></label></div>
           {chapterRankings.length ? <div className="ar-cr-rank-list">{chapterRankings.slice(0, 5).map((row, index) => {
             const metricValue = chapterRank === 'likes' ? row.period_likes : chapterRank === 'shares' ? row.period_shares : chapterRank === 'rating' ? row.rating_average : row.period_views;
             const max = Math.max(1, ...chapterRankings.map(item => chapterRank === 'likes' ? item.period_likes : chapterRank === 'shares' ? item.period_shares : chapterRank === 'rating' ? item.rating_average : item.period_views));
-            return <button type="button" key={row.id} onClick={() => { onTab?.('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: row.id } })), 120); }}><b>{String(index + 1).padStart(2, '0')}</b><span><strong>{row.title || ('Chapter ' + (row.chapter_number ?? '—'))}</strong><i><em style={{ width: Math.max(metricValue ? 3 : 0, NUMBER(metricValue) / max * 100) + '%' }}/></i></span><small>{chapterRank === 'rating' ? (NUMBER(metricValue).toFixed(1) + '/10') : fmtNum(metricValue)}</small></button>;
+            return <button type="button" key={row.id} onClick={() => onTab?.('Chapters')}><b>{String(index + 1).padStart(2, '0')}</b><span><strong>{row.title || ('Chapter ' + (row.chapter_number ?? '—'))}</strong><i><em style={{ width: Math.max(metricValue ? 3 : 0, NUMBER(metricValue) / max * 100) + '%' }}/></i></span><small>{chapterRank === 'rating' ? (NUMBER(metricValue).toFixed(1) + '/10') : fmtNum(metricValue)}</small></button>;
           })}</div> : <Empty>Chapter analytics are unavailable for this refresh.</Empty>}
         </Card>
         <Card eyebrow="PUBLISHING" title="Content readiness" aside={<button className="ar-cr-text-btn" type="button" onClick={() => onTab?.('Chapters')}>Chapter manager →</button>}>
@@ -687,7 +761,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           <div className="ar-cr-action-strip"><button type="button" onClick={() => { setSection('Content Intelligence'); setChapterStatus('published'); }}>Published audit</button><button type="button" onClick={() => { setSection('Content Intelligence'); setChapterStatus('scheduled'); }}>Release queue</button></div>
         </Card>
         <Card eyebrow="COMMUNITY" title="Open queues" aside={<button className="ar-cr-text-btn" type="button" onClick={() => onTab?.('Reports')}>Moderate →</button>}>
-          <div className="ar-cr-queue-grid"><button onClick={() => onTab?.('Reports')} type="button"><span>Open comment reports</span><strong>{data.commentReports ? fmtNum(openCommentReports) : '—'}</strong></button><button onClick={() => { setSection('Community'); }} type="button"><span>Open moderation reports</span><strong>{hasModerationRows ? fmtNum(openModerationRows.length) : '—'}</strong></button><button onClick={() => setSection('Notifications')} type="button"><span>Failed notification rows</span><strong>{hasNotificationRows ? fmtNum(failedNotifications.length) : '—'}</strong></button><button onClick={() => setSection('Audit & Reliability')} type="button"><span>Failed audit rows</span><strong>{hasAuditRows ? fmtNum(failedAdminLogs.length) : '—'}</strong></button></div>
+          <div className="ar-cr-queue-grid"><button onClick={() => onTab?.('Reports')} type="button"><span>Open comment reports</span><strong>{hasCommentReportRows ? fmtNum(openCommentReports) : '—'}</strong></button><button onClick={() => { setSection('Community'); }} type="button"><span>Open moderation reports</span><strong>{hasModerationRows ? fmtNum(openModerationRows.length) : '—'}</strong></button><button onClick={() => setSection('Notifications')} type="button"><span>Failed notification rows</span><strong>{hasNotificationRows ? fmtNum(failedNotifications.length) : '—'}</strong></button><button onClick={() => setSection('Audit & Reliability')} type="button"><span>Failed audit rows</span><strong>{hasAuditRows ? fmtNum(failedAdminLogs.length) : '—'}</strong></button></div>
         </Card>
       </div>
 
