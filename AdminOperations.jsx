@@ -173,10 +173,8 @@ export default function AdminOperations() {
       const user = await requireAdmin();
       const dedupeKey = `admin:${actualTarget}:${title.trim()}:${body.trim()}:${scheduleAt || 'now'}`;
       if (scheduleAt && new Date(scheduleAt).getTime() > Date.now() + 5000 && !test) {
-        const { error } = await supabase.from('admin_notification_log').insert({ admin_user_id: user.id, title: title.trim(), body: body.trim(), target: actualTarget, status: 'scheduled', scheduled_for: new Date(scheduleAt).toISOString(), dedupe_key: dedupeKey });
-        if (error) throw error;
-        await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'schedule_notification', entity_type: 'notification', details: { target: actualTarget, scheduled_for: scheduleAt, title: title.trim() } });
-        setNotice('Scheduled notification record created.'); setScheduleAt(''); await load(); return;
+        setNotice('Scheduled notification delivery is not configured yet. No notification was scheduled. Clear the date and send now instead.');
+        return;
       }
       const { data, error } = await supabase.functions.invoke('send-chapter-notification-v2', { body: { title: title.trim(), body: body.trim(), target: actualTarget, dedupeKey, url: '/' } });
       if (error) throw error;
