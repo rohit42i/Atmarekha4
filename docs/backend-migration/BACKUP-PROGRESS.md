@@ -1,6 +1,8 @@
 # Backup and migration execution status
 
 **Updated:** 12 October 2026 (Asia/Kolkata)  
+
+**Live re-check:** 16 October 2026 (Asia/Kolkata). The encrypted backup is still not created: it requires local Termux execution with the owner's database URL, Storage service-role key, and separately stored passphrase. Catalyst Development still has no Storage buckets or deployed functions; Stratus first-use initialization requires the owner to open Storage in the Catalyst console. No new source rows were transferred and no production resources were changed during this re-check.
 **Current gate:** The metadata snapshot and a Git branch checkpoint are saved. The encrypted database-and-Storage backup has **not been executed**. Catalyst Development already contains a partial import of 448 source rows plus 3 synthetic fixtures; this is not a complete or accepted migration. Production routing is unchanged.
 
 ## Confirmed source backup situation
