@@ -227,3 +227,72 @@ main.admin-page.ar-admin-v3[data-theme="dark"] {
   }
   .admin-page.ar-admin-v3 .ar-admin-main { margin-left:0!important; }
 }
+
+
+/* October 2026 charcoal + orange visual pass. Scoped to the admin only. */
+main.admin-page.ar-admin-v3 {
+  --ar-admin-bg-primary:#1a1e27;
+  --ar-admin-border:#343a46;
+  --ar-admin-text-primary:#f5f6f8;
+  --ar-admin-text-secondary:#a1a7b3;
+  --ar-admin-primary:#ff8a00;
+  --ar-admin-primary-dark:#d96f00;
+  --ar-admin-primary-light:#ffa126;
+  --ar-admin-primary-lighter:rgba(255,138,0,.13);
+}
+main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  background:#151820!important;
+  border:1px solid #292e38!important;
+  border-radius:14px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  background:#ff8a00!important;
+  color:#211306!important;
+  border-radius:10px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  background:rgba(255,138,0,.14)!important;
+  border-color:rgba(255,138,0,.42)!important;
+  color:#ffd19b!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active:before {
+  background:#ff8a00!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon {
+  color:#ffa126!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  background:rgba(15,17,21,.96)!important;
+  border-bottom-color:#292e38!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-stat-card,.admin-card,.ar-admin-status-card,.ar-admin-workspace,.admin-studio-modal) {
+  background:#1a1e27!important;
+  border-color:#343a46!important;
+  border-radius:12px!important;
+  color:#f5f6f8;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card-title h2,.ar-overview-hero h2,.ar-membership-hero h2) {
+  color:#f5f6f8!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card-title p,.ar-overview-hero p,.ar-membership-hero p) {
+  color:#a1a7b3!important;
+}
+main.admin-page.ar-admin-v3 :is(button,input,select,textarea):focus-visible {
+  outline-color:#ffa126!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-submit,.ar-admin-primary-action,.ar-admin-btn-primary) {
+  background:#ff8a00!important;
+  border-color:#ff8a00!important;
+  color:#211306!important;
+  border-radius:8px!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-submit,.ar-admin-primary-action,.ar-admin-btn-primary):hover {
+  background:#ffa126!important;
+  border-color:#ffa126!important;
+}
+@media (max-width:760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar { border-radius:0 14px 14px 0!important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding-left:12px!important;padding-right:12px!important; }
+  main.admin-page.ar-admin-v3 .ar-admin-topbar { gap:8px; }
+  main.admin-page.ar-admin-v3 :is(.ar-overview-kpis,.ar-membership-kpis) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
