@@ -1,4 +1,28 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+async function readLimitedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(req.headers.get('content-length') || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      try { await reader.cancel(); } catch {}
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SITE_ORIGINS = new Set([
@@ -106,7 +130,11 @@ Deno.serve(async (req) => {
       console.error("RESEND_API_KEY is not configured.");
     }
 
-    const body = await req.json().catch(() => ({}));
+    const rawBody = await readLimitedBody(req, 8192);
+    if (rawBody === null) return response(req, { ok: false, error: "Request body is too large." }, 413);
+    let body: any;
+    try { body = JSON.parse(rawBody); } catch { return response(req, { ok: false, error: "Invalid request body." }, 400); }
+    if (!body || typeof body !== "object" || Array.isArray(body)) return response(req, { ok: false, error: "Invalid request body." }, 400);
     const email = normalizedEmail(body.email);
     const password = String(body.password || "");
 
