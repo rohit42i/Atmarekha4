@@ -4,7 +4,6 @@ import { supabase } from './supabase';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 
 const TOOL_RESULTS = [
-  { id: 'tool-command', type: 'Tool', title: 'Command Center', hint: 'Open platform activity and health', event: 'atma-admin-open-command' },
   { id: 'tool-health', type: 'Tool', title: 'Chapter Health', hint: 'Inspect publishing readiness', event: 'atma-admin-open-health' },
   { id: 'tool-operations', type: 'Tool', title: 'Operations & Recovery', hint: 'Recovery, notifications and audit', event: 'atma-admin-open-operations' },
   { id: 'tool-users', type: 'Tool', title: 'Users & Memberships', hint: 'Manage readers and memberships', event: 'atma-admin-open-management', detail: { view: 'users' } },
@@ -16,12 +15,16 @@ const TOOL_RESULTS = [
 
 const TAB_RESULTS = [
   ['Overview', 'Dashboard'],
+  ['Control Room', 'Control Room'],
   ['Chapters', 'Chapter Manager'],
   ['Pages', 'Page Editor'],
   ['Comments', 'Comments'],
   ['Reports', 'Reported comments'],
   ['Announcements', 'Announcements'],
+  ['Email Campaigns', 'Email Campaigns'],
+  ['Community Posts', 'Community Posts'],
   ['Membership & Earnings', 'Revenue & Membership'],
+  ['Card Thumbnails', 'Card Thumbnails'],
   ['Media', 'Media Library'],
 ].map(([id, title]) => ({ id: `tab-${id}`, type: 'Section', title, hint: `Open ${title}`, tab: id }));
 
