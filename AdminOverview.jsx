@@ -17,7 +17,7 @@ const pct = (current, previous) => !previous ? (current ? 100 : 0) : ((current -
 const safeDate = value => { const d = new Date(value || 0); return Number.isFinite(d.getTime()) ? d : null; };
 const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : 'Chapter ' + chapter.chapterNumber;
 
-const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\\r?\\n/g, ' ') + '"';
+const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
 const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
 
 function LibraryChart({ chapters }) {
@@ -362,7 +362,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         comment.author_name || 'Reader', comment.content || '', chapterName?.(comment.chapter_id) || '', comment.created_at || '',
       ]),
     ];
-    const content = '\\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\\r\\n');
+    const content = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
     const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8;' }));
     const link = document.createElement('a');
     link.href = url;
