@@ -302,6 +302,10 @@ if (adminPaletteSource.includes("id: 'tool-command'")) {
   console.error('CHECK FAILED: command palette contains a self-opening command action.');
   failed = true;
 }
+if (!adminPaletteSource.includes('window.requestAnimationFrame(() => window.requestAnimationFrame(')) {
+  console.error('CHECK FAILED: chapter search can dispatch focus before the chapter manager mounts.');
+  failed = true;
+}
 if (!adminPaletteSource.includes("id: 'tool-activity'") || !adminPanelSource.includes("label: 'Admin Activity Log'")) {
   console.error('CHECK FAILED: admin activity log is missing from quick navigation.');
   failed = true;
