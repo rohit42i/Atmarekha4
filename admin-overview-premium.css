@@ -245,3 +245,15 @@
   .admin-page.ar-admin-v3 .ar-overview *::before,
   .admin-page.ar-admin-v3 .ar-overview *::after { animation:none!important;transition:none!important;scroll-behavior:auto!important; }
 }
+
+.admin-page.ar-admin-v3 .ar-overview-chapter-actions { display:flex;align-items:center;gap:7px; }
+.admin-page.ar-admin-v3 .ar-overview-sort-label select {
+  max-width:100px;min-height:32px;padding:0 24px 0 9px;border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:8px;background:#171719!important;color:#d7d0c6!important;font:600 10px/1 inherit;cursor:pointer;
+}
+.admin-page.ar-admin-v3 .ar-overview-sort-label select:focus-visible { outline:2px solid #ffc16b!important;outline-offset:2px; }
+.admin-page.ar-admin-v3 .ar-overview-sort-label select option { background:#171719;color:#f4f2ef; }
+@media(max-width:520px) {
+  .admin-page.ar-admin-v3 .ar-overview-chapter-actions { flex-wrap:wrap;justify-content:flex-end; }
+  .admin-page.ar-admin-v3 .ar-overview-sort-label select { max-width:88px; }
+}
