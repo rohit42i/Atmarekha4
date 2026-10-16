@@ -380,6 +380,9 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     { label: 'Reader directory', detail: 'Search users and memberships', icon: 'user', run: () => adminAction('atma-admin-open-management', { view: 'users' }) },
     { label: 'Push notifications', detail: 'Compose a reader update', icon: 'bell', run: () => adminAction('atma-admin-open-management', { view: 'notifications' }) },
     { label: 'Asset health', detail: 'Check chapter-page readiness', icon: 'pulse', run: () => adminAction('atma-admin-open-health') },
+    { label: 'Community moderation', detail: 'Open safety and report tools', icon: 'flag', run: () => adminAction('atma-admin-open-moderation') },
+    { label: 'Group chat tools', detail: 'Manage the reader community', icon: 'message', run: () => adminAction('atma-admin-open-group-chat') },
+    { label: 'Operations & recovery', detail: 'Inspect diagnostics and failures', icon: 'settings', run: () => adminAction('atma-admin-open-operations') },
   ];
 
   return <section className="ar-overview">
@@ -405,7 +408,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           placeholder="Explore chapters, comments and reports…"
           aria-label="Search loaded chapters, comments and reports"
         />
-        <kbd>ENTERPRISE SEARCH</kbd>
+        <kbd>SEARCH WORKSPACE</kbd>
       </label>
       <button type="button" className="ar-ref-export" onClick={exportDashboardCsv}>
         <AdminIcon name="download" size={16}/> Export data
