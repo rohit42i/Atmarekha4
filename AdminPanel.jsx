@@ -94,32 +94,32 @@ const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
     { key: 'Overview', icon: 'grid', label: 'Dashboard' },
     { key: 'Control Room', icon: 'chart', label: 'Control Room' },
+  ]},
+  { label: 'Publishing', items: [
     { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
     { key: 'Pages', icon: 'layers', label: 'Page Editor' },
+    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
+    { key: 'Media', icon: 'image', label: 'Media Library' },
   ]},
   { label: 'Community', items: [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
+    { key: 'Email Campaigns', icon: 'mail', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
-  ]},
-  { label: 'Monetization', items: [
-    { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
-  ]},
-  { label: 'Library', items: [
-    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
-    { key: 'Media', icon: 'image', label: 'Media Library' },
-  ]},
-  { label: 'Tools', items: [
-    { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
-    { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
-    { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
-    { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
-    { key: '__activity', icon: 'list', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
     { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
     { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
+  ]},
+  { label: 'Membership', items: [
+    { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
+    { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
+  ]},
+  { label: 'System', items: [
+    { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
+    { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
+    { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
+    { key: '__activity', icon: 'list', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
     { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
   ]},
 ];
