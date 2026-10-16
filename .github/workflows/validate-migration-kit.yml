@@ -31,7 +31,7 @@ jobs:
         run: |
           node --check migration-kit/backup/backup-supabase.mjs
           node --check migration-kit/backup/verify-backup.mjs
-          node --check catalyst-staging/functions/atma-rekha-health/index.js
+          node --check catalyst-staging/functions/atmarekha-health/index.js
           node --check catalyst-staging/functions/atma-rekha-api/index.js
           node --check catalyst-staging/functions/atma-rekha-api/lib/public-chapters.js
           node --test catalyst-staging/functions/atma-rekha-api/test/*.test.js
