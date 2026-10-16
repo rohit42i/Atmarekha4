@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 import { AdminIcon } from './admin-redesign-ui.jsx';
+import './admin-control-room.css';
 
 const WINDOWS = [
   { value: 1, label: '24 hours' },
