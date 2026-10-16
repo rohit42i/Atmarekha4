@@ -21,7 +21,7 @@ function checkChapter(chapter, pages) {
   const max = finite.length ? Math.max(...finite) : 0;
   const missing = max ? Array.from({ length: max }, (_, i) => i + 1).filter(n => !numbers.includes(n)) : [];
   if (!chapter.title?.trim()) issues.push('Missing chapter title');
-  if (!chapter.cover?.trim()) issues.push('Missing cover image');
+  if (!String(chapter.coverUrl || chapter.cover_url || chapter.cover || '').trim()) issues.push('Missing cover image');
   if (String(chapter.status).toLowerCase() === 'published' && !pages.length) issues.push('Published chapter has no pages');
   if (duplicates.length) issues.push(`Duplicate page numbers: ${[...new Set(duplicates)].join(', ')}`);
   if (missing.length) issues.push(`Missing pages: ${missing.join(', ')}`);
