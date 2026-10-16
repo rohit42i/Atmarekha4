@@ -124,6 +124,7 @@ for (const [file, phrase] of [
   ['.gitignore', '.env'],
   ['.github/dependabot.yml', 'package-ecosystem: npm'],
   ['.github/workflows/codeql.yml', 'github/codeql-action/analyze@v4'],
+  ['supabase/migrations/20261016112803_make_legacy_chapter_pages_bucket_private.sql', "SET public = false"],
 ]) {
   try {
     const content = await readFile(file, 'utf8');
