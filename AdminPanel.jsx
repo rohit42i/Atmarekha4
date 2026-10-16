@@ -10,6 +10,7 @@ import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminSidebar } from './admin-studio-ui.jsx';
 import './admin-pro-studio.css';
+import './admin-command-center-system.css';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
