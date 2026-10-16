@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 const required = [
   ['supabase.js', 'export function isSupportedImageFile(file)'],
@@ -19,6 +20,8 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
+  ['public/.well-known/security.txt', 'Contact: mailto:atmarekhasupport@gmail.com'],
+  ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
@@ -122,6 +125,54 @@ if (metricCount < 100) {
 } else {
   console.log('Admin control-room metric definitions:', metricCount);
 }
+
+const htmlForCsp = await readFile('index.html', 'utf8');
+const themeScriptOpen = htmlForCsp.indexOf('<script>\n    (function()');
+if (themeScriptOpen < 0) {
+  console.error('CHECK FAILED: theme bootstrap script not found in index.html.');
+  failed = true;
+} else {
+  const bodyStart = htmlForCsp.indexOf('>', themeScriptOpen) + 1;
+  const bodyEnd = htmlForCsp.indexOf('</script>', bodyStart);
+  if (bodyStart <= 0 || bodyEnd < bodyStart) {
+    console.error('CHECK FAILED: theme bootstrap script could not be parsed.');
+    failed = true;
+  } else {
+    const body = htmlForCsp.slice(bodyStart, bodyEnd);
+    const hashToken = "'sha256-" + createHash('sha256').update(body, 'utf8').digest('base64') + "'";
+    for (const file of ['public/_headers', 'worker.js']) {
+      const policyFile = await readFile(file, 'utf8');
+      const policyLine = policyFile.match(/Content-Security-Policy[^\n]*/i)?.[0] || '';
+      const scriptSource = policyLine.match(/script-src ([^;]+)/)?.[1] || '';
+      if (!scriptSource.split(/\s+/).includes(hashToken)) {
+        console.error('CHECK FAILED:', file, 'CSP does not allow the audited theme bootstrap hash:', hashToken);
+        failed = true;
+      }
+      if (scriptSource.includes("'unsafe-inline'")) {
+        console.error('CHECK FAILED:', file, 'script-src must not allow unsafe-inline.');
+        failed = true;
+      }
+    }
+  }
+}
+for (const [file, phrase] of [
+  ['.gitignore', '.env'],
+  ['.github/dependabot.yml', 'package-ecosystem: npm'],
+  ['.github/workflows/codeql.yml', 'github/codeql-action/analyze@v4'],
+  ['supabase/migrations/20261016112803_make_legacy_chapter_pages_bucket_private.sql', "SET public = false"],
+]) {
+  try {
+    const content = await readFile(file, 'utf8');
+    if (!content.includes(phrase)) {
+      console.error('CHECK FAILED:', file, 'missing:', phrase);
+      failed = true;
+    }
+  } catch {
+    console.error('CHECK FAILED: required security configuration is missing:', file);
+    failed = true;
+  }
+}
+
 
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
