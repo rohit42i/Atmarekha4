@@ -92,22 +92,31 @@ for (const phrase of [
 
 
 const htmlForCsp = await readFile('index.html', 'utf8');
-const executableInlineScripts = [...htmlForCsp.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)]
-  .filter(([, attributes]) => !/\\bsrc\\s*=/.test(attributes) && !/\\btype\\s*=\\s*["']application\\/ld\\+json["']/i.test(attributes))
-  .map(([, , body]) => body);
-for (const body of executableInlineScripts) {
-  const hashToken = "'sha256-" + createHash('sha256').update(body, 'utf8').digest('base64') + "'";
-  for (const file of ['public/_headers', 'worker.js']) {
-    const policyFile = await readFile(file, 'utf8');
-    const policyLine = policyFile.match(/Content-Security-Policy[^\\r\\n]*/i)?.[0] || '';
-    const scriptSource = policyLine.match(/script-src\\s+([^;]+)/)?.[1] || '';
-    if (!scriptSource.split(/\\s+/).includes(hashToken)) {
-      console.error('CHECK FAILED:', file, 'CSP does not allow an audited inline script hash:', hashToken);
-      failed = true;
-    }
-    if (/'unsafe-inline'/.test(scriptSource)) {
-      console.error('CHECK FAILED:', file, 'script-src must not allow unsafe-inline.');
-      failed = true;
+const themeScriptOpen = htmlForCsp.indexOf('<script>\\n    (function()');
+if (themeScriptOpen < 0) {
+  console.error('CHECK FAILED: theme bootstrap script not found in index.html.');
+  failed = true;
+} else {
+  const bodyStart = htmlForCsp.indexOf('>', themeScriptOpen) + 1;
+  const bodyEnd = htmlForCsp.indexOf('</script>', bodyStart);
+  if (bodyStart <= 0 || bodyEnd < bodyStart) {
+    console.error('CHECK FAILED: theme bootstrap script could not be parsed.');
+    failed = true;
+  } else {
+    const body = htmlForCsp.slice(bodyStart, bodyEnd);
+    const hashToken = "'sha256-" + createHash('sha256').update(body, 'utf8').digest('base64') + "'";
+    for (const file of ['public/_headers', 'worker.js']) {
+      const policyFile = await readFile(file, 'utf8');
+      const policyLine = policyFile.match(/Content-Security-Policy[^\n]*/i)?.[0] || '';
+      const scriptSource = policyLine.match(/script-src ([^;]+)/)?.[1] || '';
+      if (!scriptSource.split(/\s+/).includes(hashToken)) {
+        console.error('CHECK FAILED:', file, 'CSP does not allow the audited theme bootstrap hash:', hashToken);
+        failed = true;
+      }
+      if (scriptSource.includes("'unsafe-inline'")) {
+        console.error('CHECK FAILED:', file, 'script-src must not allow unsafe-inline.');
+        failed = true;
+      }
     }
   }
 }
