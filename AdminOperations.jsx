@@ -3,8 +3,9 @@ import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2 } from './supaba
 import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 
-const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+const fmt = value => value ? new Date(value).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const SITE_TIME_ZONE = 'Asia/Kolkata';
 const todayStart = () => { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: SITE_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); return new Date(`${parts}T00:00:00+05:30`).toISOString(); };
 
@@ -40,7 +41,7 @@ export default function AdminOperations() {
         supabase.from('admin_notification_log').select('id,title,body,target,target_count,sent_count,failed_count,removed_count,status,scheduled_for,sent_at,created_at,error').order('created_at', { ascending: false }).limit(50),
         supabase.from('profiles').select('id,username,display_name').order('display_name', { ascending: true, nullsFirst: false }).limit(250),
         supabase.functions.invoke('get-admin-user-stats'),
-        fetchCloudflareAdminAnalytics(1).catch(() => null),
+        fetchCloudflareAdminAnalytics(1).catch(error => { notifyAdminToast('Cloudflare analytics could not be loaded: ' + (error?.message || 'unknown error'), 'warning'); return null; }),
         supabase.from('chapter_likes').select('id,created_at').gte('created_at', todayStart()),
       ]);
       for (const result of [chapterResult, archivedResult, logResult, notificationResult, profileResult, statsResult, likeResult]) if (result.error) throw result.error;
@@ -71,7 +72,12 @@ export default function AdminOperations() {
 
   const updateChapter = async (chapter, patch, action, confirmation = null) => {
     if (busy) return;
-    if (confirmation && !window.confirm(confirmation)) return;
+    if (confirmation && !(await requestAdminConfirm({
+      title: 'Confirm chapter change',
+      message: confirmation,
+      consequence: 'This updates the selected chapter in the publishing database and may change what readers can access.',
+      confirmLabel: 'Continue',
+    }))) return;
     setBusy(true); setNotice('');
     try {
       const user = await requireAdmin();
@@ -89,7 +95,7 @@ export default function AdminOperations() {
       setNotice('Chapter updated successfully.'); await load();
     } catch (error) {
       setNotice(error.message || 'Chapter update failed.');
-      try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: `${action}_failed`, entity_type: 'chapter', entity_id: chapter.id, details: { error: error.message } }); } catch (_) {}
+      try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: `${action}_failed`, entity_type: 'chapter', entity_id: chapter.id, details: { error: error.message } }); } catch (auditError) { notifyAdminToast('Could not write the admin failure log: ' + (auditError?.message || 'unknown error'), 'warning'); }
     } finally { setBusy(false); }
   };
 
@@ -177,7 +183,7 @@ export default function AdminOperations() {
       setNotice(`Notification sent: ${data.sent || 0} delivered, ${data.failed || 0} failed.`); await load();
     } catch (error) {
       setNotice(error.message || 'Notification failed.');
-      try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'send_notification_failed', entity_type: 'notification', details: { target: actualTarget, error: error.message } }); } catch (_) {}
+      try { const user = await requireAdmin(); const { error: auditError } = await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'send_notification_failed', entity_type: 'notification', details: { target: actualTarget, error: error.message } }); if (auditError) notifyAdminToast('Could not write the notification failure log: ' + auditError.message, 'warning'); } catch (auditError) { notifyAdminToast('Could not write the notification failure log: ' + (auditError?.message || 'unknown error'), 'warning'); }
     } finally { setBusy(false); }
   };
 
@@ -191,13 +197,13 @@ export default function AdminOperations() {
     <header className="ar-ops-head"><div><small>Atma Rekha · Admin</small><h2>Operations</h2><p>Chapter control, recovery, notifications, delivery history and audit information in one place.</p></div><button className="ar-ops-close" onClick={() => setOpen(false)}>×</button></header>
     <div className="ar-ops-body">
       {notice && <div className="ar-ops-notice">{notice}</div>}
-      <div className="ar-ops-metrics"><div className="ar-ops-metric"><span>Today · Views</span><strong>{today.views.toLocaleString('en-IN')}</strong><small>Live 30s refresh</small></div><div className="ar-ops-metric"><span>Today · Readers</span><strong>{today.readers.toLocaleString('en-IN')}</strong><small>Unique viewer keys</small></div><div className="ar-ops-metric"><span>Today · Likes</span><strong>{today.likes.toLocaleString('en-IN')}</strong><small>New likes today</small></div><div className="ar-ops-metric"><span>Unique Push Subscribers</span><strong>{subscriberCount.toLocaleString('en-IN')}</strong><small>From active push subscriptions</small></div></div>
+      <div className="ar-ops-metrics"><div className="ar-ops-metric"><span>Today · Views</span><strong>{today.views.toLocaleString(undefined)}</strong><small>Live 30s refresh</small></div><div className="ar-ops-metric"><span>Today · Readers</span><strong>{today.readers.toLocaleString(undefined)}</strong><small>Unique viewer keys</small></div><div className="ar-ops-metric"><span>Today · Likes</span><strong>{today.likes.toLocaleString(undefined)}</strong><small>New likes today</small></div><div className="ar-ops-metric"><span>Unique Push Subscribers</span><strong>{subscriberCount.toLocaleString(undefined)}</strong><small>From active push subscriptions</small></div></div>
       <div className="ar-ops-grid"><div>
         <Section label="CHAPTER CONTROL" title="Status, preview & publishing" text="Use preview before publishing. Unpublish keeps the chapter and pages intact."><div className="ar-ops-list">{activeChapters.map(chapter => <article className="ar-ops-row" key={chapter.id}><div className="ar-ops-row-main"><strong>{chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : 'Unnumbered'} — {chapter.title || 'Untitled'}</strong><p>{chapter.status || 'Draft'} · {chapter.release_date ? `Release ${fmt(chapter.release_date)}` : 'No release date'}</p></div><div className="ar-ops-actions"><button onClick={() => preview(chapter)}>Preview</button><select className="ar-ops-select" value={chapter.status || 'Draft'} onChange={e => updateChapter(chapter, { status: e.target.value }, 'change_chapter_status')} disabled={busy}><option>Draft</option><option>Pre-uploaded</option><option>Scheduled</option><option>Published</option></select>{String(chapter.status).toLowerCase() === 'published' && <button onClick={() => unpublish(chapter)}>Unpublish</button>}<button className="danger" onClick={() => archive(chapter)}>Archive</button></div></article>)}{!activeChapters.length && <div className="ar-ops-empty">No active chapters.</div>}</div></Section>
         <Section label="RECOVERY" title="Safe Archive → Recovery" text="Archived chapters keep their database row and can be restored to the previous status."><div className="ar-ops-list">{deleted.map(chapter => <article className="ar-ops-row" key={chapter.id}><div className="ar-ops-row-main"><strong>{chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : 'Unnumbered'} — {chapter.title || 'Untitled'}</strong><p>Archived {fmt(chapter.deleted_at)} · previous status: {chapter.deleted_previous_status || 'Draft'}</p></div><div className="ar-ops-actions"><button onClick={() => restore(chapter)} disabled={busy}>Restore</button></div></article>)}{!deleted.length && <div className="ar-ops-empty">Recovery is empty.</div>}</div></Section>
         <Section label="FAILED OPERATIONS" title="Failed-operation panel" text="Recorded failures stay here until you recover them. R2 cleanup failures can be retried without touching the database record."><div className="ar-ops-list">{failures.map(item => <article className="ar-ops-row" key={item.id}><div className="ar-ops-row-main"><strong>{item.action}</strong><p>{item.details?.error || 'Operation failed'} · {fmt(item.created_at)}</p></div><div className="ar-ops-actions">{((Array.isArray(item.details?.paths) && item.details.paths.length) && (item.details?.provider === 'pdpl' || item.details?.bucket)) && <button onClick={() => retryCleanup(item)} disabled={busy}>Retry cleanup</button>}</div></article>)}{!failures.length && <div className="ar-ops-empty">No failed admin operations recorded.</div>}</div></Section>
       </div><div>
-        <Section label="NOTIFICATIONS" title="Send notification" text={`${subscriberCount.toLocaleString('en-IN')} unique push subscribers.`}><div className="ar-ops-form"><div className="ar-ops-form-grid"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Notification title"/><select value={target} onChange={e => setTarget(e.target.value)}><option value="all">Everyone</option><option value="community">Community</option><option value="user">Selected user</option></select></div>{target === 'user' && <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}><option value="">Select a user…</option>{users.map(user => <option key={user.id} value={user.id}>{user.display_name || user.username || user.id.slice(0, 8)}</option>)}</select>}<textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Notification message"/><div className="ar-ops-form-actions"><button type="button" onClick={() => send(true)} disabled={busy}>Test on myself</button><button type="button" className="ar-ops-primary" onClick={() => send(false)} disabled={busy}>{busy ? 'Sending…' : 'Send notification'}</button><button type="button" onClick={load} disabled={busy}>Refresh</button></div><small style={{color:'var(--faint-color)',fontSize:8}}>Duplicate sends are blocked by a unique notification key.</small></div></Section>
+        <Section label="NOTIFICATIONS" title="Send notification" text={`${subscriberCount.toLocaleString(undefined)} unique push subscribers.`}><div className="ar-ops-form"><div className="ar-ops-form-grid"><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Notification title"/><select value={target} onChange={e => setTarget(e.target.value)}><option value="all">Everyone</option><option value="community">Community</option><option value="user">Selected user</option></select></div>{target === 'user' && <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}><option value="">Select a user…</option>{users.map(user => <option key={user.id} value={user.id}>{user.display_name || user.username || user.id.slice(0, 8)}</option>)}</select>}<textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Notification message"/><div className="ar-ops-form-actions"><button type="button" onClick={() => send(true)} disabled={busy}>Test on myself</button><button type="button" className="ar-ops-primary" onClick={() => send(false)} disabled={busy}>{busy ? 'Sending…' : 'Send notification'}</button><button type="button" onClick={load} disabled={busy}>Refresh</button></div><small style={{color:'var(--faint-color)',fontSize:8}}>Duplicate sends are blocked by a unique notification key.</small></div></Section>
         <Section label="DELIVERY" title="Notification history"><div className="ar-ops-list ar-ops-history">{notifications.map(item => <article className="ar-ops-row" key={item.id}><div className="ar-ops-row-main"><strong>{item.title || 'Notification'}</strong><p>{item.target} · {item.sent_count || 0}/{item.target_count || 0} delivered · {item.failed_count || 0} failed · {fmt(item.sent_at || item.scheduled_for || item.created_at)}</p><span className={`ar-ops-status ${item.status === 'failed' ? 'failed' : item.status === 'scheduled' ? 'scheduled' : item.status === 'sent' ? 'sent' : ''}`}>{item.status}</span></div></article>)}{!notifications.length && <div className="ar-ops-empty">No notification records yet.</div>}</div></Section>
         <Section label="AUDIT" title="Admin activity log"><div className="ar-ops-list ar-ops-history">{logs.map(item => <article className="ar-ops-row" key={item.id}><div className="ar-ops-row-main"><strong>{item.action}</strong><p>{item.entity_type || 'system'}{item.details?.title ? ` · ${item.details.title}` : ''} · {fmt(item.created_at)}</p></div></article>)}{!logs.length && <div className="ar-ops-empty">No activity logged yet.</div>}</div></Section>
       </div></div>

@@ -2,17 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-ui.jsx';
 
-const money = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN');
-const number = value => Math.round(Number(value) || 0).toLocaleString('en-IN');
+const money = value => '₹' + Math.round(Number(value) || 0).toLocaleString(undefined);
+const number = value => Math.round(Number(value) || 0).toLocaleString(undefined);
 const date = value => {
   if (!value) return '—';
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
 };
 const dateTime = value => {
   if (!value) return '—';
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
 function MembershipTrend({ rows }) {

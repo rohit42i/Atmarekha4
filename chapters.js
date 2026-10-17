@@ -79,6 +79,7 @@ export async function buildChapters() {
   }
   const chapters = (data || []).map((chapter) => ({
     id: chapter.id,
+    source: 'atma',
     mangaId: chapter.manga_id || null,
     language: normalizeChapterLanguage(chapter.language),
     chapterNumber: chapter.chapter_number,

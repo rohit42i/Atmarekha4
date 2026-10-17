@@ -3,10 +3,11 @@ import { supabase, getPublicReaderTiers } from './supabase';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-ui.jsx';
+import { notifyAdminToast } from './admin-feedback';
 
 const WINDOWS = { today: 1, week: 7, month: 30, quarter: 90 };
 const WINDOW_LABELS = { today: 'Today', week: '7 Days', month: '30 Days', quarter: '90 Days' };
-const formatNumber = value => Number(value || 0).toLocaleString('en-IN');
+const formatNumber = value => Number(value || 0).toLocaleString(undefined);
 const compactNumber = value => {
   const n = Number(value || 0);
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
@@ -76,7 +77,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     const ids = [...new Set(comments.map(comment => comment.user_id).filter(Boolean))];
     if (!ids.length) { setMembershipPlans(new Map()); return () => { active = false; }; }
     getPublicReaderTiers(ids).then(map => { if (active) setMembershipPlans(map); }).catch(error => {
-      console.warn('Admin membership badge lookup failed:', error);
+      console.warn('Admin membership badge lookup failed:', error); notifyAdminToast('Membership badge data is unavailable: ' + (error?.message || 'unknown error'), 'warning');
       if (active) setMembershipPlans(new Map());
     });
     return () => { active = false; };
@@ -95,7 +96,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         if (error) throw error;
         if (active) setAdminActivity(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.warn('Admin activity feed lookup failed:', error);
+        console.warn('Admin activity feed lookup failed:', error); notifyAdminToast('Admin activity feed is unavailable: ' + (error?.message || 'unknown error'), 'warning');
         if (active) setAdminActivity([]);
       }
     };
@@ -113,7 +114,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           logged_in_users: Number(data.logged_in_users || 0),
           notification_subscriptions: Number(data.notification_subscriptions || 0),
         });
-      } catch (error) { console.warn('Admin user stats lookup failed:', error); }
+      } catch (error) { console.warn('Admin user stats lookup failed:', error); notifyAdminToast('Admin user statistics are unavailable: ' + (error?.message || 'unknown error'), 'warning'); }
     };
     loadUserStats();
     const timer = setInterval(loadUserStats, 30000);
@@ -128,7 +129,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       try {
         const [{ data, error }, cloudflare] = await Promise.all([
           supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(1).catch(() => null),
+          fetchCloudflareAdminAnalytics(1).catch(error => { notifyAdminToast('Cloudflare analytics unavailable: ' + (error?.message || 'unknown error'), 'warning'); return null; }),
         ]);
         if (error) throw error;
         if (active) setLast24({
@@ -138,7 +139,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           loading: false,
         });
       } catch (error) {
-        console.warn('Admin 24-hour activity lookup failed:', error);
+        console.warn('Admin 24-hour activity lookup failed:', error); notifyAdminToast('Recent activity data is unavailable: ' + (error?.message || 'unknown error'), 'warning');
         if (active) setLast24(value => ({ ...value, loading: false }));
       }
     };
@@ -157,7 +158,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       try {
         const [{ data, error }, cloudflare] = await Promise.all([
           supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
+          fetchCloudflareAdminAnalytics(Number(days)).catch(error => { notifyAdminToast('Cloudflare analytics unavailable: ' + (error?.message || 'unknown error'), 'warning'); return null; }),
         ]);
         if (error) throw error;
         if (active) {
@@ -183,7 +184,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           });
         }
       } catch (error) {
-        console.warn('Admin analytics lookup failed:', error);
+        console.warn('Admin analytics lookup failed:', error); notifyAdminToast('Chapter analytics are unavailable: ' + (error?.message || 'unknown error'), 'warning');
         if (active) setAnalytics(null);
       } finally {
         if (active) setPeriodLoading(false);
@@ -460,7 +461,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         </button>
         <button type="button" className="ar-ref-pulse-card" onClick={() => onTab('Chapters')}>
           <span className="ar-ref-pulse-icon"><AdminIcon name="calendar" size={17}/></span>
-          <span className="ar-ref-pulse-copy"><small>Upcoming releases</small><strong>{formatNumber(releaseQueueCount)}</strong><em>{metrics.upcoming[0] ? 'Next: ' + (safeDate(metrics.upcoming[0].releaseDate)?.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) || 'Scheduled') : 'No future release dates'}</em></span>
+          <span className="ar-ref-pulse-copy"><small>Upcoming releases</small><strong>{formatNumber(releaseQueueCount)}</strong><em>{metrics.upcoming[0] ? 'Next: ' + (safeDate(metrics.upcoming[0].releaseDate)?.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) || 'Scheduled') : 'No future release dates'}</em></span>
           <AdminIcon name="arrow-up-right" size={15}/>
         </button>
         <button type="button" className={'ar-ref-pulse-card ' + (reportCount ? 'is-warning' : 'is-clear')} onClick={() => onTab('Reports')}>
@@ -544,7 +545,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         <SectionHeader eyebrow="COMMUNITY" title="Recent comments" action={<button className="ar-text-action" type="button" onClick={() => onTab('Comments')}>Open <span>→</span></button>}/>
         <div className="ar-comment-feed">{metrics.recentComments.map(comment => <article key={comment.id}>
           <div className="ar-avatar">{(comment.author_name || 'R').slice(0, 1).toUpperCase()}</div>
-          <div><div className="ar-comment-meta"><strong>{comment.author_name || 'Reader'} <SubscriberBadge planId={membershipPlans.get(comment.user_id)}/></strong><time>{safeDate(comment.created_at)?.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</time></div><p>{comment.content}</p><small>{chapterName(comment.chapter_id)}</small></div>
+          <div><div className="ar-comment-meta"><strong>{comment.author_name || 'Reader'} <SubscriberBadge planId={membershipPlans.get(comment.user_id)}/></strong><time>{safeDate(comment.created_at)?.toLocaleDateString(undefined,{day:'numeric',month:'short'})}</time></div><p>{comment.content}</p><small>{chapterName(comment.chapter_id)}</small></div>
         </article>)}{!metrics.recentComments.length && <div className="ar-empty-inline">No comments yet.</div>}</div>
       </GlassCard>
 
@@ -568,7 +569,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
       <GlassCard>
         <SectionHeader eyebrow="UPCOMING" title="Release schedule" action={<button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>Manage <span>→</span></button>}/>
-        <div className="ar-upcoming">{metrics.upcoming.length ? metrics.upcoming.map(chapter => <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}><span>{safeDate(chapter.releaseDate)?.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span><strong>Chapter {chapter.chapterNumber == null ? '—' : chapter.chapterNumber}</strong><small>{chapter.title || 'Untitled'}</small><AdminIcon name="chevron" size={15}/></button>) : <div className="ar-empty-inline">No future release dates are currently scheduled.</div>}</div>
+        <div className="ar-upcoming">{metrics.upcoming.length ? metrics.upcoming.map(chapter => <button type="button" key={chapter.id} onClick={() => onTab('Chapters')}><span>{safeDate(chapter.releaseDate)?.toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span><strong>Chapter {chapter.chapterNumber == null ? '—' : chapter.chapterNumber}</strong><small>{chapter.title || 'Untitled'}</small><AdminIcon name="chevron" size={15}/></button>) : <div className="ar-empty-inline">No future release dates are currently scheduled.</div>}</div>
       </GlassCard>
     </div>
 
@@ -582,7 +583,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           return <article key={item.id}>
             <span className="ar-admin-activity-mark"><AdminIcon name="pulse" size={15}/></span>
             <div className="ar-admin-activity-copy"><strong>{String(item.action || 'Admin action').replace(/[_-]+/g, ' ')}</strong><span>{entity || 'Workspace action'}</span></div>
-            <time dateTime={item.created_at}>{when ? when.toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—'}</time>
+            <time dateTime={item.created_at}>{when ? when.toLocaleString(undefined, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—'}</time>
           </article>;
         })}
         {!adminActivity.length && <div className="ar-empty-inline">No recent admin activity has been recorded.</div>}
