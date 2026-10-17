@@ -61,6 +61,8 @@ export default function AdminChapterManager({
   onReset,
   onEdit,
   onDelete,
+  onOpenPages,
+  onOpenThumbnails,
   onReload,
   chapterPerformance = {},
   onNewChapter,
@@ -462,7 +464,9 @@ export default function AdminChapterManager({
                     <td>
                       <div className="admin-row-actions">
                         <AdminButton size="sm" className="admin-table-action" type="button" icon="bookmark" onClick={() => onEdit(chapter)}>Edit</AdminButton>
-                        <AdminButton size="sm" className="admin-table-action" type="button" variant="danger" icon="flag" onClick={() => onDelete(chapter)} disabled={busy}>Delete</AdminButton>
+                        <AdminButton size="sm" className="admin-table-action" type="button" icon="layers" onClick={() => onOpenPages?.(chapter)} title="Open this chapter in the page editor">Pages</AdminButton>
+                        <AdminButton size="sm" className="admin-table-action" type="button" icon="image" onClick={() => onOpenThumbnails?.(chapter)} title="Manage this chapter's card thumbnails">Thumbnails</AdminButton>
+                        <AdminButton size="sm" className="admin-table-action" type="button" variant="danger" icon="flag" onClick={() => onDelete(chapter)} disabled={busy} title={busy ? 'Wait for the current admin operation to finish.' : 'Delete this chapter and its associated assets'}>Delete</AdminButton>
                       </div>
                     </td>
                   ) : null}
@@ -488,8 +492,9 @@ export default function AdminChapterManager({
                 <div className={`admin-chapter-card-page-state ${pageCount > 0 ? 'has-pages' : 'no-pages'}`}><i aria-hidden="true"/>{pageCount > 0 ? 'Page records detected' : 'No page records'}</div>
                 <div className="admin-row-actions">
                   <AdminButton size="sm" className="admin-table-action" type="button" icon="bookmark" onClick={() => onEdit(chapter)}>Edit</AdminButton>
-                  <AdminButton size="sm" className="admin-table-action" type="button" icon="eye" onClick={() => { window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })); }}>Focus in list</AdminButton>
-                  <AdminButton size="sm" className="admin-table-action" type="button" variant="danger" icon="flag" onClick={() => onDelete(chapter)} disabled={busy}>Delete</AdminButton>
+                  <AdminButton size="sm" className="admin-table-action" type="button" icon="layers" onClick={() => onOpenPages?.(chapter)} title="Open this chapter in the page editor">Pages</AdminButton>
+                  <AdminButton size="sm" className="admin-table-action" type="button" icon="image" onClick={() => onOpenThumbnails?.(chapter)} title="Manage this chapter's card thumbnails">Thumbnails</AdminButton>
+                  <AdminButton size="sm" className="admin-table-action" type="button" variant="danger" icon="flag" onClick={() => onDelete(chapter)} disabled={busy} title={busy ? 'Wait for the current admin operation to finish.' : 'Delete this chapter and its associated assets'}>Delete</AdminButton>
                 </div>
               </div>
             </article>;
