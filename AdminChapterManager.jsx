@@ -63,6 +63,8 @@ export default function AdminChapterManager({
   onReload,
   chapterPerformance = {},
   onNewChapter,
+  editorOpen = false,
+  onEditorOpenChange = () => {},
 }) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
@@ -227,6 +229,12 @@ export default function AdminChapterManager({
 
   return (
     <section className="admin-stack">
+      {editorOpen && <div className="ar-admin-chapter-drawer-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onEditorOpenChange(false); }}>
+        <aside className="ar-admin-chapter-drawer" role="dialog" aria-modal="true" aria-labelledby="ar-admin-chapter-drawer-title">
+          <header className="ar-admin-chapter-drawer-head">
+            <div><span>CHAPTER WORKSPACE</span><h2 id="ar-admin-chapter-drawer-title">{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Special Entry'}` : 'New chapter'}</h2><p>Prepare the cover and page sequence, then review before saving.</p></div>
+            <button type="button" className="ar-admin-chapter-drawer-close" aria-label="Close chapter editor" onClick={() => onEditorOpenChange(false)}>×</button>
+          </header>
       <AdminCard
         className="admin-studio-publisher-card"
         eyebrow="PUBLISHER"
@@ -249,7 +257,7 @@ export default function AdminChapterManager({
           className="admin-studio-form-card"
           eyebrow={editing ? 'EDIT CHAPTER' : 'NEW CHAPTER'}
           title={editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Chapter details'}
-          actions={editing ? <AdminButton type="button" icon="close" onClick={onReset}>Cancel</AdminButton> : null}
+          actions={editing ? <AdminButton type="button" icon="close" onClick={() => { onReset?.(); onEditorOpenChange(false); }}>Cancel</AdminButton> : null}
         >
           <form onSubmit={onSubmit} className="admin-form">
             <div className="admin-form-grid">
@@ -325,12 +333,17 @@ export default function AdminChapterManager({
 
       {notice ? <div className="ar-admin-notice success" role="status">{notice}</div> : null}
 
+          </aside>
+      </div>}
       <AdminCard
         eyebrow="LIBRARY"
         title="Chapter manager"
         description={`${filtered.length} shown · ${chapters.length} total · ${missingCount} missing pages. Performance analytics remain in the Overview rather than being fabricated here.`}
         actions={
-          <AdminButton type="button" icon="refresh" onClick={onReload} disabled={busy}>Refresh</AdminButton>
+          <>
+            <AdminButton type="button" variant="primary" icon="plus" onClick={() => { onNewChapter?.(); onEditorOpenChange(true); }}>New chapter</AdminButton>
+            <AdminButton type="button" icon="refresh" onClick={onReload} disabled={busy} title={busy ? 'Wait for the current admin operation to finish.' : undefined}>Refresh</AdminButton>
+          </>
         }
       >
         <div className="admin-chapter-toolbar">
