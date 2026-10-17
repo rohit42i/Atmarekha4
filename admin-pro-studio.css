@@ -673,3 +673,74 @@ main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop { position: fixed; inset: 
     transition-duration: 0.01ms;
   }
 }
+
+/* Comments moderation view */
+main.admin-page.ar-admin-v3 .ar-admin-comments-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(2, minmax(130px, 0.7fr)) auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+main.admin-page.ar-admin-v3 .ar-admin-comments-filters label { display: grid; gap: 7px; min-width: 0; color: var(--ar-text-secondary); font-size: 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-filters input:not([type="checkbox"]),
+main.admin-page.ar-admin-v3 .ar-admin-comments-filters select { width: 100%; min-height: 40px; padding: 8px 11px; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-filters .ar-admin-reported-filter { display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 40px; white-space: nowrap; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-filters input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--ar-primary); }
+main.admin-page.ar-admin-v3 .ar-admin-comments-table { width: 100%; border-collapse: collapse; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-table th,
+main.admin-page.ar-admin-v3 .ar-admin-comments-table td { padding: 14px 12px; border-bottom: 1px solid var(--ar-border); text-align: left; vertical-align: top; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-table th { font-size: 11px; font-weight: 650; white-space: nowrap; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-table tr:last-child td { border-bottom: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-author { display: flex; align-items: center; gap: 8px; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-author > span { display: inline-grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; border-radius: var(--ar-radius-pill); background: var(--ar-raised); color: var(--ar-primary-hover); font-size: 12px; font-weight: 700; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-author strong { color: var(--ar-text); font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-content { max-width: 430px; margin: 8px 0 0; color: var(--ar-text-secondary); font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-reply-label,
+main.admin-page.ar-admin-v3 .ar-admin-comment-reported { display: inline-flex; margin-top: 7px; padding: 3px 7px; border-radius: var(--ar-radius-pill); background: var(--ar-info-bg); color: var(--ar-info); font-size: 10px; font-weight: 650; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-reported { margin-left: 5px; background: var(--ar-warning-bg); color: var(--ar-warning); }
+main.admin-page.ar-admin-v3 .ar-admin-comment-target { display: inline-flex; max-width: 220px; padding: 4px 8px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-pill); color: var(--ar-text-secondary); font-size: 11px; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-target.is-announcement { border-color: rgba(167, 139, 250, 0.24); color: var(--ar-chart-violet); }
+main.admin-page.ar-admin-v3 .ar-admin-comment-table time,
+main.admin-page.ar-admin-v3 .ar-admin-comments-table time { color: var(--ar-text-secondary); font-size: 12px; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-actions { display: flex; flex-wrap: wrap; gap: 6px; min-width: 170px; }
+main.admin-page.ar-admin-v3 .ar-admin-comment-actions button {
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-sm);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+main.admin-page.ar-admin-v3 .ar-admin-comment-actions button.danger-text { color: var(--ar-danger); }
+main.admin-page.ar-admin-v3 .ar-admin-comment-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-empty { padding: 32px; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-empty > span { display: block; margin-bottom: 10px; color: var(--ar-text-muted); font-size: 25px; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-empty strong { color: var(--ar-text); }
+main.admin-page.ar-admin-v3 .ar-admin-comments-empty p { margin: 7px 0 0; color: var(--ar-text-secondary); font-size: 13px; }
+main.admin-page.ar-admin-v3 .ar-admin-comments-empty button { margin-top: 14px; min-height: 38px; padding: 0 14px; border: 1px solid var(--ar-border-strong); border-radius: var(--ar-radius-button); background: var(--ar-raised); color: var(--ar-text); font-weight: 600; }
+main.admin-page.ar-admin-v3 .ar-admin-reply-dialog { display: grid; gap: 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-reply-dialog label { color: var(--ar-text-secondary); font-size: 13px; font-weight: 600; }
+main.admin-page.ar-admin-v3 .ar-admin-reply-dialog textarea { width: 100%; min-height: 130px; padding: 12px; resize: vertical; }
+main.admin-page.ar-admin-v3 .ar-admin-reply-dialog .ar-admin-confirm-accept:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 1100px) {
+  main.admin-page.ar-admin-v3 .ar-admin-comments-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-comments-filters { grid-template-columns: minmax(0, 1fr); }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table-wrap { overflow: visible; border: 0; }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table,
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table tbody { display: block; width: 100%; }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table tr { display: grid; gap: 0; margin-bottom: 12px; padding: 6px 14px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-card); background: var(--ar-surface); }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table td { display: grid; grid-template-columns: minmax(94px, 0.34fr) minmax(0, 1fr); gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--ar-border); overflow-wrap: anywhere; }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table td::before { content: attr(data-label); color: var(--ar-text-muted); font-size: 11px; font-weight: 650; }
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table td:last-child { border-bottom: 0; }
+  main.admin-page.ar-admin-v3 .ar-admin-comment-actions { min-width: 0; }
+}
+@media (max-width: 380px) {
+  main.admin-page.ar-admin-v3 .ar-admin-comments-table td { grid-template-columns: 1fr; gap: 5px; }
+}
