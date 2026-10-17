@@ -5,6 +5,7 @@ import { normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES, PDLPL_ROUTE } from './palDoPalKeLamhe';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import './pal-do-pal-ke-lamhe.css';
+import { requestAdminConfirmation } from './AdminConfirmDialog.jsx';
 
 const MAX_PAGE_SIZE = 95 * 1024 * 1024;
 const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif';
@@ -623,8 +624,19 @@ export default function PalDoPalAdmin({ embedded = false }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const deleteChapter = async chapter => {
-    if (busy || !window.confirm('Delete ' + label(chapter) + ' and all its pages and cover?')) return;
+  const deleteChapter = async (chapter, confirmed = false) => {
+    if (busy) return;
+    if (!confirmed) {
+      const pageCount = Number(pageCounts[chapter.id] || 0);
+      requestAdminConfirmation({
+        title: 'Delete PDPKL chapter permanently?',
+        message: `Deletes ${label(chapter)}, its ${pageCount} page record${pageCount === 1 ? '' : 's'}, and its cover. Stored page images and the cover are then removed from the PDPKL media store when cleanup succeeds.`,
+        confirmLabel: 'Delete PDPKL chapter',
+        tone: 'danger',
+        onConfirm: () => deleteChapter(chapter, true),
+      });
+      return;
+    }
     setBusy(true);
     setNotice('');
     let adminUser = null;
@@ -799,8 +811,18 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
 
-  const deletePage = async page => {
-    if (busy || !window.confirm('Delete page ' + page.page_number + '?')) return;
+  const deletePage = async (page, confirmed = false) => {
+    if (busy || !page) return;
+    if (!confirmed) {
+      requestAdminConfirmation({
+        title: 'Delete PDPKL page?',
+        message: `Deletes page ${page.page_number} from this chapter and attempts to remove the original page image from the PDPKL media store. This cannot be undone.`,
+        confirmLabel: 'Delete page',
+        tone: 'danger',
+        onConfirm: () => deletePage(page, true),
+      });
+      return;
+    }
     setBusy(true);
     setNotice('');
     let adminUser = null;
