@@ -153,6 +153,7 @@ export default function AdminPanel({ onLogout }) {
   const [mediaSearch, setMediaSearch] = useState('');
   const [mediaCategoryFilter, setMediaCategoryFilter] = useState('all');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
@@ -1119,11 +1120,13 @@ export default function AdminPanel({ onLogout }) {
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
   return <main className="admin-page ar-admin-v3" data-admin-root="true">
-    <div className="ar-admin-app">
+    <div className={`ar-admin-app${sidebarCollapsed ? ' is-sidebar-collapsed' : ''}`}>
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
         activeKey={tab}
         mobileOpen={mobileSidebarOpen}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(value => !value)}
         onClose={() => setMobileSidebarOpen(false)}
         onSelect={item => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)}
         email={email}
