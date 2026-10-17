@@ -24,7 +24,7 @@ function formatDate(value) {
   if (!value) return '—';
   const date = new Date(value);
   return Number.isFinite(date.getTime())
-    ? date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    ? date.toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '—';
 }
 
@@ -438,8 +438,8 @@ export default function AdminChapterManager({
                   {columns.chapter ? <td className="admin-chapter-cell"><strong>{chapter.chapterNumber == null ? 'Special' : `Chapter ${chapter.chapterNumber}`}</strong><span>{chapter.title || 'Untitled'}</span></td> : null}
                   {columns.status ? <td><span className={`admin-status-badge ${statusClass(chapter.status)}`}>{chapter.status || 'Draft'}</span></td> : null}
                   {columns.language ? <td>{chapterLanguageLabel(chapter.language)}</td> : null}
-                  {columns.pages ? <td className="admin-table-muted">{pageCount.toLocaleString('en-IN')}</td> : null}
-                  {columns.performance ? <td className="admin-table-muted">{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString('en-IN')}</td> : null}
+                  {columns.pages ? <td className="admin-table-muted">{pageCount.toLocaleString(undefined)}</td> : null}
+                  {columns.performance ? <td className="admin-table-muted">{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString(undefined)}</td> : null}
                   {columns.release ? <td className="admin-table-muted">{formatDate(chapter.releaseDate)}</td> : null}
                   {columns.signal ? <td><span className={`admin-health-signal ${signal.className}`}><i />{signal.text}</span></td> : null}
                   {columns.actions ? (
@@ -467,7 +467,7 @@ export default function AdminChapterManager({
               </div>
               <div className="admin-chapter-card-content">
                 <div className="admin-chapter-card-heading"><div><small>{chapter.chapterNumber == null ? 'SPECIAL ENTRY' : 'CHAPTER ' + chapter.chapterNumber}</small><h3>{chapter.title || 'Untitled chapter'}</h3></div><span className={`admin-status-badge ${statusClass(chapter.status)}`}>{chapter.status || 'Draft'}</span></div>
-                <div className="admin-chapter-card-meta"><span>{chapterLanguageLabel(chapter.language)}</span><span>{pageCount.toLocaleString('en-IN')} pages</span><span>{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString('en-IN')} views / 30d</span></div>
+                <div className="admin-chapter-card-meta"><span>{chapterLanguageLabel(chapter.language)}</span><span>{pageCount.toLocaleString(undefined)} pages</span><span>{Number(chapterPerformance[chapter.id]?.views || 0).toLocaleString(undefined)} views / 30d</span></div>
                 <div className="admin-chapter-card-health"><span className={`admin-health-signal ${signal.className}`}><i/>{signal.text}</span><span>{formatDate(chapter.releaseDate)}</span></div>
                 <div className={`admin-chapter-card-page-state ${pageCount > 0 ? 'has-pages' : 'no-pages'}`}><i aria-hidden="true"/>{pageCount > 0 ? 'Page records detected' : 'No page records'}</div>
                 <div className="admin-row-actions">
