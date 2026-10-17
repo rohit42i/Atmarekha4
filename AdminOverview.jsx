@@ -77,7 +77,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     const ids = [...new Set(comments.map(comment => comment.user_id).filter(Boolean))];
     if (!ids.length) { setMembershipPlans(new Map()); return () => { active = false; }; }
     getPublicReaderTiers(ids).then(map => { if (active) setMembershipPlans(map); }).catch(error => {
-      console.warn('Admin membership badge lookup failed:', error);
+      console.warn('Admin membership badge lookup failed:', error); notifyAdminToast('Membership badge data is unavailable: ' + (error?.message || 'unknown error'), 'warning');
       if (active) setMembershipPlans(new Map());
     });
     return () => { active = false; };
@@ -96,7 +96,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         if (error) throw error;
         if (active) setAdminActivity(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.warn('Admin activity feed lookup failed:', error);
+        console.warn('Admin activity feed lookup failed:', error); notifyAdminToast('Admin activity feed is unavailable: ' + (error?.message || 'unknown error'), 'warning');
         if (active) setAdminActivity([]);
       }
     };
@@ -114,7 +114,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           logged_in_users: Number(data.logged_in_users || 0),
           notification_subscriptions: Number(data.notification_subscriptions || 0),
         });
-      } catch (error) { console.warn('Admin user stats lookup failed:', error); }
+      } catch (error) { console.warn('Admin user stats lookup failed:', error); notifyAdminToast('Admin user statistics are unavailable: ' + (error?.message || 'unknown error'), 'warning'); }
     };
     loadUserStats();
     const timer = setInterval(loadUserStats, 30000);
@@ -139,7 +139,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           loading: false,
         });
       } catch (error) {
-        console.warn('Admin 24-hour activity lookup failed:', error);
+        console.warn('Admin 24-hour activity lookup failed:', error); notifyAdminToast('Recent activity data is unavailable: ' + (error?.message || 'unknown error'), 'warning');
         if (active) setLast24(value => ({ ...value, loading: false }));
       }
     };
@@ -184,7 +184,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
           });
         }
       } catch (error) {
-        console.warn('Admin analytics lookup failed:', error);
+        console.warn('Admin analytics lookup failed:', error); notifyAdminToast('Chapter analytics are unavailable: ' + (error?.message || 'unknown error'), 'warning');
         if (active) setAnalytics(null);
       } finally {
         if (active) setPeriodLoading(false);
