@@ -1341,7 +1341,7 @@ export default function AdminPanel({ onLogout }) {
               <div className="admin-form-actions"><button type="button" onClick={() => setMediaModalOpen(false)}>Cancel</button><button className="admin-submit" disabled={busy} title={busy ? 'Wait for the current admin operation to finish.' : undefined}>{busy ? 'Saving…' : 'Add media'}</button></div>
             </form>
           </div>}
-        </section>
+        </section>}
 
         </div>
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
