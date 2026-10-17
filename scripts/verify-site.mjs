@@ -402,5 +402,17 @@ if (!communitySource.includes('requestAdminConfirm') ||
   failed = true;
 }
 
+const adminVisualStyles = await Promise.all([
+  'admin-command-center-system.css',
+  'admin-ultimate-ui.css',
+  'admin-workspace-ux.css',
+  'admin-control-room.css',
+  'admin-pro-studio.css',
+].map(path => readFile(path, 'utf8')));
+if (adminVisualStyles.some(styles => /(?:linear|radial|repeating-linear)-gradient|backdrop-filter\s*:\s*blur/i.test(styles))) {
+  console.error('CHECK FAILED: active admin styles must not use gradients or glass/blur effects.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
