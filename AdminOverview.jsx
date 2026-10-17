@@ -3,6 +3,7 @@ import { supabase, getPublicReaderTiers } from './supabase';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 import SubscriberBadge from './SubscriberBadge.jsx';
 import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-ui.jsx';
+import { notifyAdminToast } from './admin-feedback';
 
 const WINDOWS = { today: 1, week: 7, month: 30, quarter: 90 };
 const WINDOW_LABELS = { today: 'Today', week: '7 Days', month: '30 Days', quarter: '90 Days' };
@@ -128,7 +129,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       try {
         const [{ data, error }, cloudflare] = await Promise.all([
           supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(1).catch(() => null),
+          fetchCloudflareAdminAnalytics(1).catch(error => { notifyAdminToast('Cloudflare analytics unavailable: ' + (error?.message || 'unknown error'), 'warning'); return null; }),
         ]);
         if (error) throw error;
         if (active) setLast24({
@@ -157,7 +158,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       try {
         const [{ data, error }, cloudflare] = await Promise.all([
           supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
+          fetchCloudflareAdminAnalytics(Number(days)).catch(error => { notifyAdminToast('Cloudflare analytics unavailable: ' + (error?.message || 'unknown error'), 'warning'); return null; }),
         ]);
         if (error) throw error;
         if (active) {
