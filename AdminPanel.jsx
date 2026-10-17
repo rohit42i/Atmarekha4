@@ -146,6 +146,7 @@ export default function AdminPanel({ onLogout }) {
   const [form, setForm] = useState(emptyForm());
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
   const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false, pin_target: 'none', display_position: '' });
+  const [announcementPreview, setAnnouncementPreview] = useState('');
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
@@ -161,6 +162,8 @@ export default function AdminPanel({ onLogout }) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const [chapterPerformance, setChapterPerformance] = useState({});
+
+  useEffect(() => () => { if (announcementPreview.startsWith('blob:')) URL.revokeObjectURL(announcementPreview); }, [announcementPreview]);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -711,6 +714,7 @@ export default function AdminPanel({ onLogout }) {
       pin_target: item.pin_target || (item.is_pinned ? 'atma' : 'none'),
       display_position: item.display_position ? String(item.display_position) : '',
     });
+    setAnnouncementPreview(item.image_url || '');
     setTab('Announcements');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -718,6 +722,7 @@ export default function AdminPanel({ onLogout }) {
   function cancelAnnouncementEdit() {
     setEditingAnnouncementId(null);
     setAnnouncement({ title: '', content: '', thumbnail: null, is_pinned: false, pin_target: 'none', display_position: '' });
+    setAnnouncementPreview('');
   }
 
   async function saveAnnouncement(event) {
@@ -1254,30 +1259,39 @@ export default function AdminPanel({ onLogout }) {
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
     />: tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
-      <form onSubmit={saveAnnouncement} className="admin-card admin-form">
+             <div className="ar-admin-announcement-workspace">
+       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
           {editingAnnouncementId && <button type="button" onClick={cancelAnnouncementEdit}>Cancel edit</button>}
         </div>
-        <input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)"/>
-        <textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="7"/>
-        <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} onChange={e => setAnnouncement({ ...announcement, thumbnail: e.target.files?.[0] || null })}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
+        <label><span>Title</span><input value={announcement.title} onChange={e => setAnnouncement({ ...announcement, title: e.target.value })} placeholder="Title (optional for image-only update)" /></label>
+        <label><span>Text</span><textarea value={announcement.content} onChange={e => setAnnouncement({ ...announcement, content: e.target.value })} placeholder="Text (optional for image-only update)" rows="7" /></label>
+        <label className="admin-file-field"><span>Thumbnail / image (optional)</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} onChange={e => { const file = e.target.files?.[0] || null; setAnnouncement({ ...announcement, thumbnail: file }); setAnnouncementPreview(file ? URL.createObjectURL(file) : ''); }}/>{announcement.thumbnail && <em>{announcement.thumbnail.name}</em>}</label>
         <div className="admin-form-grid">
           <label><span>Placement</span><select value={announcement.display_position} onChange={e => setAnnouncement({ ...announcement, display_position: e.target.value })}><option value="">Automatic · normal order</option>{Array.from({ length: 10 }, (_, i) => <option key={i + 1} value={String(i + 1)}>{i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'} card</option>)}</select></label>
           <label className="check-row"><input type="checkbox" checked={announcement.is_pinned} onChange={e => setAnnouncement({ ...announcement, is_pinned: e.target.checked, pin_target: e.target.checked ? (announcement.pin_target === 'none' ? 'atma' : announcement.pin_target) : 'none' })}/> Pin to top</label>
-          {announcement.is_pinned && <label><span>Pin on</span><select value={announcement.pin_target} onChange={e => setAnnouncement({ ...announcement, pin_target: e.target.value })}><option value="atma">Atma Rekha</option><option value="pdpkl">PDPKL</option></select></label>}
+          {announcement.is_pinned && <div className="ar-admin-pin-target-control" role="group" aria-label="Pin announcement to"><span>Pin on</span><div><button type="button" aria-pressed={announcement.pin_target === 'atma'} className={announcement.pin_target === 'atma' ? 'active' : ''} onClick={() => setAnnouncement({ ...announcement, pin_target: 'atma' })}>Atma Rekha</button><button type="button" aria-pressed={announcement.pin_target === 'pdpkl'} className={announcement.pin_target === 'pdpkl' ? 'active' : ''} onClick={() => setAnnouncement({ ...announcement, pin_target: 'pdpkl' })}>PDPKL</button></div></div>}
         </div>
         <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
+         <aside className="ar-admin-announcement-preview" aria-live="polite" aria-label="Live announcement preview">
+           <span>LIVE PREVIEW</span>
+           {announcementPreview && <img src={announcementPreview} alt="Announcement image preview" />}
+           <strong>{announcement.title.trim() || 'Announcement title'}</strong>
+           <p>{announcement.content.trim() || 'Your announcement text will appear here as readers see it.'}</p>
+           <div><span>{announcement.display_position ? 'Slot ' + announcement.display_position : 'Automatic placement'}</span>{announcement.is_pinned && <span className="ar-admin-pinned-badge">Pinned · {announcement.pin_target === 'pdpkl' ? 'PDPKL' : 'Atma Rekha'}</span>}</div>
+         </aside>
         <button className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
       </form>
       <div className="admin-card">
         <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
-        <div className="admin-mini-list">{announcements.map(item => <div key={item.id}>
-          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString(undefined)}</small></div></div>
+        <div className="admin-mini-list">{announcements.map((item, index) => <div key={item.id}>
+          <div className="admin-announcement-admin-row"><span className="ar-admin-announcement-slot">Slot {item.display_position || index + 1}</span>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString(undefined)}</small></div></div>
           <div className="admin-row-actions"><button type="button" onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button type="button" className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
       </div>
+       </div>
     </section> : <section className="admin-stack">
           <section className="admin-card admin-media-library">
             <div className="admin-card-title">
