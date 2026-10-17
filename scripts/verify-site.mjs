@@ -379,5 +379,28 @@ if (!adminPanelSource.includes('const safeName = /\\.[^.]+$/.test(rawSafeName)')
   failed = true;
 }
 
+const thumbnailsSource = await readFile('AdminCardThumbnails.jsx', 'utf8');
+if (!thumbnailsSource.includes("import { requestAdminConfirm } from './admin-feedback';") ||
+    !thumbnailsSource.includes('const clearOverride = async (chapter, slot)') ||
+    !thumbnailsSource.includes('onClick={() => clearOverride(chapter, slot)}')) {
+  console.error('CHECK FAILED: clearing a custom card thumbnail must require explicit confirmation.');
+  failed = true;
+}
+
+if (!moderationQueueSource.includes('const updated = await onSetReportStatus?.(report.id, nextStatus)') ||
+    !moderationQueueSource.includes('status: nextStatus } : current')) {
+  console.error('CHECK FAILED: report context status must update after a successful report action.');
+  failed = true;
+}
+
+const communitySource = await readFile('CommunityAdmin.jsx', 'utf8');
+if (!communitySource.includes('requestAdminConfirm') ||
+    !communitySource.includes('supabase.storage.from(\'community\').remove(paths)') ||
+    !communitySource.includes("if(role!=='owner'&&role!=='admin')throw Error('Admin access required.')") ||
+    !communitySource.includes("URL.revokeObjectURL(preview)")) {
+  console.error('CHECK FAILED: community deletion must be confirmed, role-checked, and clean up storage/preview resources.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
