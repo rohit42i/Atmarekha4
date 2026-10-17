@@ -451,3 +451,47 @@ main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer .admin-studio-publisher-car
   main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer { width: 100%; padding: 16px; border-left: 0; }
   main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-head { top: -16px; margin: -16px -16px 16px; padding: 16px; }
 }
+
+main.admin-page.ar-admin-v3 .ar-admin-media-dialog {
+  display: grid;
+  gap: 14px;
+  width: min(560px, 100%);
+  margin: 0;
+  padding: 24px;
+  align-self: center;
+  background: var(--ar-surface);
+}
+main.admin-page.ar-admin-v3 .ar-admin-media-dialog > label { display: grid; gap: 7px; color: var(--ar-text-secondary); font-size: 13px; }
+main.admin-page.ar-admin-v3 .ar-admin-media-dialog > label > input { width: 100%; min-height: 42px; padding: 10px 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-media-dialog .admin-card-title { align-items: flex-start; }
+main.admin-page.ar-admin-v3 .ar-admin-media-dialog .admin-card-title > button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-sm);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  font-size: 21px;
+}
+main.admin-page.ar-admin-v3 .admin-media-filters label { display: grid; gap: 7px; color: var(--ar-text-secondary); font-size: 13px; }
+main.admin-page.ar-admin-v3 .admin-media-filters input,
+main.admin-page.ar-admin-v3 .admin-media-filters select { min-height: 42px; padding: 9px 12px; width: 100%; }
+main.admin-page.ar-admin-v3 .admin-media-grid article .admin-row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+main.admin-page.ar-admin-v3 .admin-media-grid article .admin-row-actions button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-sm);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+main.admin-page.ar-admin-v3 .admin-media-grid article .admin-row-actions button.danger-text { color: var(--ar-danger); }
+main.admin-page.ar-admin-v3 .admin-media-grid article .admin-row-actions button:disabled { cursor: not-allowed; opacity: 0.5; }
+@media (max-width: 760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-media-dialog { padding: 20px; }
+}
