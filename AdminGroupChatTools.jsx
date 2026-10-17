@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 
 const LIMIT = 250;
 const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_chat_reads'];
@@ -20,7 +21,7 @@ export default function AdminGroupChatTools() {
   const [selected, setSelected] = useState(new Set()), [loading, setLoading] = useState(false), [deleting, setDeleting] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
 
-  const checkAdmin = async () => { try { const current = await verifyAdmin(); setUser(current); setIsAdmin(true); } catch (_) { setUser(null); setIsAdmin(false); } };
+  const checkAdmin = async () => { try { const current = await verifyAdmin(); setUser(current); setIsAdmin(true); } catch (error) { setUser(null); setIsAdmin(false); if (open) notifyAdminToast('Group chat admin access could not be verified: ' + (error?.message || 'access denied'), 'error'); } };
   useEffect(() => { checkAdmin(); const { data: listener } = supabase.auth.onAuthStateChange(() => checkAdmin()); return () => listener?.subscription?.unsubscribe(); }, []);
 
   useEffect(() => { const handler = () => { setOpen(true); }; window.addEventListener('atma-admin-open-group-chat', handler); return () => window.removeEventListener('atma-admin-open-group-chat', handler); }, [isAdmin]);
@@ -65,8 +66,24 @@ export default function AdminGroupChatTools() {
       setDeleting(false);
     }
   };
-  const deleteOne=async m=>{if(window.confirm('Delete this message permanently? This cannot be undone.'))await deleteIds([m.id]);};
-  const deleteSelected=async()=>{const ids=[...selected];if(ids.length&&window.confirm(`Delete ${ids.length} selected message${ids.length===1?'':'s'} permanently?`))await deleteIds(ids);};
+  const deleteOne = async m => {
+    if (await requestAdminConfirm({
+      title: 'Delete group message?',
+      message: 'Delete this message from ' + (profiles[m.user_id]?.display_name || profiles[m.user_id]?.username || 'this reader') + '?',
+      consequence: 'Permanently removes the selected message from group chat. This cannot be undone.',
+      confirmLabel: 'Delete message',
+    })) await deleteIds([m.id]);
+  };
+  const deleteSelected = async () => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    if (await requestAdminConfirm({
+      title: 'Delete selected messages?',
+      message: 'Delete ' + ids.length + ' selected message' + (ids.length === 1 ? '' : 's') + '?',
+      consequence: 'Permanently removes every selected message from group chat. This cannot be undone.',
+      confirmLabel: 'Delete ' + ids.length + ' message' + (ids.length === 1 ? '' : 's'),
+    })) await deleteIds(ids);
+  };
   if(!isAdmin)return null;
 
   return <>
