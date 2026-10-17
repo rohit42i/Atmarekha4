@@ -1405,3 +1405,63 @@ body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-btn.is-primary {
     justify-self: stretch;
   }
 }
+
+
+/* Bring leftover overview/chart accents into the same warm, semantic palette. */
+body main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  border-color: var(--ar-primary) !important;
+  background-color: var(--ar-primary) !important;
+  color: var(--ar-on-primary) !important;
+}
+
+body main.admin-page.ar-admin-v3 .ar-chart-legend .dot.violet,
+body main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i,
+body main.admin-page.ar-admin-v3 .ar-top-copy i em {
+  background-color: var(--ar-primary) !important;
+}
+
+body main.admin-page.ar-admin-v3 .ar-chart-legend .dot.pink {
+  background-color: var(--ar-danger) !important;
+}
+
+body main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b {
+  background-color: var(--ar-success) !important;
+}
+
+body main.admin-page.ar-admin-v3 .ar-chart-track,
+body main.admin-page.ar-admin-v3 .ar-health-bar {
+  background-color: var(--ar-raised) !important;
+}
+
+body main.admin-page.ar-admin-v3 .ar-funnel-list > div > i em {
+  background-color: var(--ar-success) !important;
+}
+
+body main.admin-page.ar-admin-v3 .admin-studio-table-wrap thead,
+body main.admin-page.ar-admin-v3 .admin-studio-table-wrap th {
+  background-color: var(--ar-raised) !important;
+  color: var(--ar-text-secondary) !important;
+}
+
+body main.admin-page.ar-admin-v3 .admin-studio-table-wrap tbody tr:nth-child(odd) {
+  background-color: var(--ar-surface) !important;
+}
+
+body main.admin-page.ar-admin-v3 .admin-studio-table-wrap tbody tr:nth-child(even) {
+  background-color: var(--ar-raised) !important;
+}
+
+body main.admin-page.ar-admin-v3 .admin-studio-table-wrap tbody tr:hover {
+  background-color: var(--ar-primary-soft) !important;
+}
+
+body main.admin-page.ar-admin-v3 .admin-studio-table-wrap tbody td {
+  border-color: var(--ar-border) !important;
+  color: var(--ar-text-secondary);
+}
+
+body main.admin-page.ar-admin-v3 .ar-admin-status-card,
+body main.admin-page.ar-admin-v3 .ar-admin-workspace {
+  background-color: var(--ar-raised);
+  border-color: var(--ar-border);
+}
