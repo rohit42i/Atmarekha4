@@ -876,7 +876,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       <h2>Access denied</h2>
       <p>{notice || 'Admin access required.'}</p>
       {diagnostic && <section className="pdlpl-diagnostic" role="alert">
-        <div className="pdlpl-diagnostic-head"><strong>Exact diagnostic</strong><button type="button" onClick={async () => { try { await navigator.clipboard?.writeText(diagnosticText(diagnostic)); setNotice('Diagnostic copied.'); } catch (_) {} }}>Copy</button></div>
+        <div className="pdlpl-diagnostic-head"><strong>Exact diagnostic</strong><button type="button" onClick={async () => { try { await navigator.clipboard?.writeText(diagnosticText(diagnostic)); setNotice('Diagnostic copied.'); } catch (copyError) { notifyAdminToast('Could not copy diagnostic details: ' + (copyError?.message || 'clipboard unavailable'), 'warning'); } }}>Copy</button></div>
         <pre className="pdlpl-diagnostic-pre">{diagnosticText(diagnostic)}</pre>
       </section>}
       <button type="button" onClick={() => { window.location.hash = 'admin'; }}>Back to Admin</button>
@@ -1008,7 +1008,8 @@ export default function PalDoPalAdmin({ embedded = false }) {
                   try {
                     await navigator.clipboard?.writeText(diagnosticText(diagnostic));
                     setNotice('Diagnostic copied.');
-                  } catch (_) {
+                  } catch (copyError) {
+                    notifyAdminToast('Could not copy diagnostic details: ' + (copyError?.message || 'clipboard unavailable'), 'warning');
                     setNotice('Diagnostic copy failed. The details are shown below.');
                   }
                 }}
