@@ -943,3 +943,48 @@ main.admin-page.ar-admin-v3 .ar-admin-report-actions :is(button, .admin-studio-b
 @media (max-width: 980px) {
   main.admin-page.ar-admin-v3 .ar-admin-report-cards { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Structured chapter publisher form and local page-file preview */
+main.admin-page.ar-admin-v3 .ar-admin-chapter-form { display: grid; gap: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-form-section { min-width: 0; padding: 20px 0; border-bottom: 1px solid var(--ar-border); }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-form-section:first-child { padding-top: 4px; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-form-section:last-of-type { border-bottom: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading > span { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid rgba(245, 144, 30, 0.25); border-radius: var(--ar-radius-sm); background: rgba(245, 144, 30, 0.1); color: var(--ar-primary-hover); font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading h3 { margin: 0; color: var(--ar-text); font-size: 14px; font-weight: 650; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading p { margin: 4px 0 0; color: var(--ar-text-secondary); font-size: 12px; line-height: 1.5; }
+main.admin-page.ar-admin-v3 .ar-admin-cover-select { display: grid; gap: 10px; }
+main.admin-page.ar-admin-v3 .ar-admin-cover-select input[type="file"] { width: 100%; min-height: 42px; padding: 8px; }
+main.admin-page.ar-admin-v3 .ar-admin-cover-preview,
+main.admin-page.ar-admin-v3 .ar-admin-current-cover { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-cover-preview img,
+main.admin-page.ar-admin-v3 .ar-admin-current-cover img { display: block; width: 84px; height: 112px; object-fit: cover; border: 1px solid var(--ar-border-strong); border-radius: var(--ar-radius-sm); background: var(--ar-raised); }
+main.admin-page.ar-admin-v3 .ar-admin-cover-preview > span,
+main.admin-page.ar-admin-v3 .ar-admin-current-cover > span { flex: 1; min-width: 150px; color: var(--ar-text-secondary); font-size: 12px; line-height: 1.5; }
+main.admin-page.ar-admin-v3 .ar-admin-cover-preview button { min-height: 34px; padding: 0 11px; border: 1px solid var(--ar-border-strong); border-radius: var(--ar-radius-sm); background: var(--ar-raised); color: var(--ar-danger); font-size: 12px; font-weight: 600; cursor: pointer; }
+main.admin-page.ar-admin-v3 .ar-admin-pages-dropzone { display: grid; gap: 7px; }
+main.admin-page.ar-admin-v3 .ar-admin-pages-dropzone input[type="file"] { margin-top: 4px; width: 100%; min-height: 42px; padding: 8px; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-pages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-pages article { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 9px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-sm); background: var(--ar-raised); }
+main.admin-page.ar-admin-v3 .ar-admin-selected-pages article.is-dragging { border-color: var(--ar-primary); opacity: 0.55; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-image { position: relative; flex: 0 0 48px; width: 48px; height: 68px; overflow: hidden; border-radius: 5px; background: var(--ar-surface); }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-image > span { position: absolute; inset: auto 3px 3px auto; display: grid; place-items: center; min-width: 19px; height: 19px; padding: 0 4px; border-radius: var(--ar-radius-pill); background: rgba(14, 14, 16, 0.88); color: var(--ar-text); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-info { display: grid; gap: 3px; flex: 1; min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-info strong { color: var(--ar-text); font-size: 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-info span { color: var(--ar-text-secondary); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-info small { color: var(--ar-text-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-actions { display: grid; gap: 4px; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-actions button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--ar-border-strong); border-radius: 6px; background: var(--ar-surface); color: var(--ar-text); font-size: 14px; cursor: pointer; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-actions button.is-danger { color: var(--ar-danger); }
+main.admin-page.ar-admin-v3 .ar-admin-selected-page-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+main.admin-page.ar-admin-v3 .ar-admin-selected-pages-empty { margin: 0; padding: 14px; border: 1px dashed var(--ar-border-strong); border-radius: var(--ar-radius-sm); color: var(--ar-text-muted); font-size: 12px; line-height: 1.5; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-review { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-review > div { display: grid; gap: 6px; min-width: 0; padding: 11px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-sm); background: var(--ar-raised); }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-review span { color: var(--ar-text-muted); font-size: 11px; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-review strong { color: var(--ar-text); font-size: 13px; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-form-actions { position: sticky; bottom: 0; z-index: 5; padding: 14px 0 calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--ar-border); background: var(--ar-bg); }
+@media (max-width: 620px) {
+  main.admin-page.ar-admin-v3 .ar-admin-selected-pages { grid-template-columns: minmax(0, 1fr); }
+  main.admin-page.ar-admin-v3 .ar-admin-chapter-review { grid-template-columns: minmax(0, 1fr); }
+}
