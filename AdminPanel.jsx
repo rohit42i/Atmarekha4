@@ -156,6 +156,8 @@ export default function AdminPanel({ onLogout }) {
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
   const [chapterEditorOpen, setChapterEditorOpen] = useState(false);
+  const [pageEditorFocusChapterId, setPageEditorFocusChapterId] = useState('');
+  const [cardThumbnailFocus, setCardThumbnailFocus] = useState(null);
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
   const [mediaSearch, setMediaSearch] = useState('');
   const [mediaCategoryFilter, setMediaCategoryFilter] = useState('all');
@@ -1238,7 +1240,7 @@ export default function AdminPanel({ onLogout }) {
         <div className="ar-admin-content">
           <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); setChapterEditorOpen(true); }} className="ar-admin-primary-action">New chapter</button></div></div>
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role={notice.type === 'error' ? 'alert' : 'status'} aria-live="polite">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span><button type="button" className="ar-admin-toast-close" aria-label="Dismiss notification" onClick={() => setNotice({ type: '', text: '' })}>×</button></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} initialChapterId={pageEditorFocusChapterId} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
       form={form}
@@ -1252,12 +1254,14 @@ export default function AdminPanel({ onLogout }) {
       onReset={resetForm}
       onEdit={editChapter}
       onDelete={deleteChapter}
+      onOpenPages={chapter => { setPageEditorFocusChapterId(chapter.id); setTab('Pages'); }}
+      onOpenThumbnails={chapter => { setCardThumbnailFocus(chapter); setTab('Card Thumbnails'); }}
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); setChapterEditorOpen(true); }}
       editorOpen={chapterEditorOpen}
       onEditorOpenChange={setChapterEditorOpen}
-    /> : tab === 'Comments' ? <AdminComments comments={comments} reports={reports} chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onDeleteComment={deleteComment} onReply={comment => { setReplyTarget(comment); setReplyText(''); }} onReviewReports={markCommentReportsReviewed} /> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.source === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.source === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <AdminComments comments={comments} reports={reports} chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onDeleteComment={deleteComment} onReply={comment => { setReplyTarget(comment); setReplyText(''); }} onReviewReports={markCommentReportsReviewed} /> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} focusChapter={cardThumbnailFocus} busy={busy} onUpload={(chapter, slot, file) => chapter.source === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.source === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
