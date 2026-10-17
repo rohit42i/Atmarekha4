@@ -374,7 +374,7 @@ if (!adminPanelSource.includes('function safeImagePreviewUrl(value)') ||
   console.error('CHECK FAILED: announcement preview URLs must pass through the allowed-protocol URL validator.');
   failed = true;
 }
-if (!adminPanelSource.includes('const safeName = /\\\\.[^.]+$/.test(rawSafeName)')) {
+if (!adminPanelSource.includes('const safeName = /\\.[^.]+$/.test(rawSafeName)')) {
   console.error('CHECK FAILED: announcement upload filenames must preserve a valid single extension.');
   failed = true;
 }
