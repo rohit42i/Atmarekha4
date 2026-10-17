@@ -3,6 +3,7 @@ import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2 } from './supaba
 import { removePdlplFiles } from './pdlplR2';
 import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 
 const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const SITE_TIME_ZONE = 'Asia/Kolkata';
@@ -40,7 +41,7 @@ export default function AdminOperations() {
         supabase.from('admin_notification_log').select('id,title,body,target,target_count,sent_count,failed_count,removed_count,status,scheduled_for,sent_at,created_at,error').order('created_at', { ascending: false }).limit(50),
         supabase.from('profiles').select('id,username,display_name').order('display_name', { ascending: true, nullsFirst: false }).limit(250),
         supabase.functions.invoke('get-admin-user-stats'),
-        fetchCloudflareAdminAnalytics(1).catch(() => null),
+        fetchCloudflareAdminAnalytics(1).catch(error => { notifyAdminToast('Cloudflare analytics could not be loaded: ' + (error?.message || 'unknown error'), 'warning'); return null; }),
         supabase.from('chapter_likes').select('id,created_at').gte('created_at', todayStart()),
       ]);
       for (const result of [chapterResult, archivedResult, logResult, notificationResult, profileResult, statsResult, likeResult]) if (result.error) throw result.error;
@@ -71,7 +72,12 @@ export default function AdminOperations() {
 
   const updateChapter = async (chapter, patch, action, confirmation = null) => {
     if (busy) return;
-    if (confirmation && !window.confirm(confirmation)) return;
+    if (confirmation && !(await requestAdminConfirm({
+      title: 'Confirm chapter change',
+      message: confirmation,
+      consequence: 'This updates the selected chapter in the publishing database and may change what readers can access.',
+      confirmLabel: 'Continue',
+    }))) return;
     setBusy(true); setNotice('');
     try {
       const user = await requireAdmin();
@@ -89,7 +95,7 @@ export default function AdminOperations() {
       setNotice('Chapter updated successfully.'); await load();
     } catch (error) {
       setNotice(error.message || 'Chapter update failed.');
-      try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: `${action}_failed`, entity_type: 'chapter', entity_id: chapter.id, details: { error: error.message } }); } catch (_) {}
+      try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: `${action}_failed`, entity_type: 'chapter', entity_id: chapter.id, details: { error: error.message } }); } catch (auditError) { notifyAdminToast('Could not write the admin failure log: ' + (auditError?.message || 'unknown error'), 'warning'); }
     } finally { setBusy(false); }
   };
 
