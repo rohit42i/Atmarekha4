@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAdminRole } from './adminAuth';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 import { supabase } from './supabase';
 import { normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import { buildPdlplChapters, PDLPL_CHAPTERS, PDLPL_PAGES, PDLPL_ROUTE } from './palDoPalKeLamhe';
@@ -298,7 +299,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       if (!databaseCommitted) {
         for (const uploadedPath of uploaded) {
           try { await removePdlplFiles([uploadedPath]); }
-          catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + uploadedPath + ': ' + (cleanupError?.message || cleanupError)); }
+          catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + uploadedPath + ': ' + (cleanupError?.message || cleanupError)); notifyAdminToast('PDPKL rollback cleanup failed: ' + (cleanupError?.message || cleanupError), 'warning'); }
         }
       }
       setDiagnostic(diagnosticFromError(stage, error, {
@@ -578,7 +579,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       const cleanupErrors = [];
       if (!wasEditing && chapterId) {
         try { await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId); }
-        catch (cleanupError) { cleanupErrors.push('Chapter rollback: ' + (cleanupError?.message || cleanupError)); }
+        catch (cleanupError) { cleanupErrors.push('Chapter rollback: ' + (cleanupError?.message || cleanupError)); notifyAdminToast('PDPKL chapter rollback failed: ' + (cleanupError?.message || cleanupError), 'warning'); }
       }
       for (const path of uploaded) {
         const shouldKeep = wasEditing && ((pagesCommitted && path.includes('/pages/')) || (coverCommitted && path === pendingCoverPath));
@@ -588,7 +589,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
       }
       if (wasEditing && pendingCoverPath && !coverCommitted) {
         try { await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId); }
-        catch (cleanupError) { cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError)); }
+        catch (cleanupError) { cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError)); notifyAdminToast('PDPKL cover rollback failed: ' + (cleanupError?.message || cleanupError), 'warning'); }
       }
       setDiagnostic(diagnosticFromError(currentStage, error, {
         chapterId,
@@ -624,7 +625,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
   };
 
   const deleteChapter = async chapter => {
-    if (busy || !window.confirm('Delete ' + label(chapter) + ' and all its pages and cover?')) return;
+    if (busy) return;
+    if (!(await requestAdminConfirm({
+      title: 'Delete PDPKL chapter permanently?',
+      message: 'Delete ' + label(chapter) + '?',
+      consequence: 'Removes the chapter record, every page record, all stored page images, and the chapter cover. This cannot be undone.',
+      confirmLabel: 'Delete chapter',
+    }))) return;
     setBusy(true);
     setNotice('');
     let adminUser = null;
@@ -800,7 +807,13 @@ export default function PalDoPalAdmin({ embedded = false }) {
 
 
   const deletePage = async page => {
-    if (busy || !window.confirm('Delete page ' + page.page_number + '?')) return;
+    if (busy) return;
+    if (!(await requestAdminConfirm({
+      title: 'Delete PDPKL page?',
+      message: 'Delete page ' + page.page_number + '?',
+      consequence: 'Removes this page from the chapter and attempts to delete its stored image.',
+      confirmLabel: 'Delete page',
+    }))) return;
     setBusy(true);
     setNotice('');
     let adminUser = null;
