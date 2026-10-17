@@ -985,6 +985,7 @@ export default function AdminPanel({ onLogout }) {
       if (error) throw error;
       await logAdminAction(adminUser, 'create_media', 'media', data?.id || null, { title: mediaForm.title.trim(), category: mediaForm.category.trim() });
       setMediaForm({ title: '', image_url: '', category: '' });
+      setMediaModalOpen(false);
       await load();
       setNotice({ type: 'success', text: 'Media added.' });
     } catch (error) {
@@ -1213,7 +1214,47 @@ export default function AdminPanel({ onLogout }) {
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
       </div>
-    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
+    </section> : <section className="admin-stack">
+          <section className="admin-card admin-media-library">
+            <div className="admin-card-title">
+              <div><span>LIBRARY</span><h2>Media library</h2><p>{media.length} stored items · searchable and reusable across publishing workflows.</p></div>
+              <button type="button" className="admin-submit" onClick={() => setMediaModalOpen(true)}>Add media</button>
+            </div>
+            <div className="admin-form-grid admin-media-filters">
+              <label><span>Search media</span><input value={mediaSearch} onChange={event => setMediaSearch(event.target.value)} placeholder="Search title or category…" /></label>
+              <label><span>Category</span><select value={mediaCategoryFilter} onChange={event => setMediaCategoryFilter(event.target.value)}><option value="all">All categories</option>{Array.from(new Set(media.map(item => String(item.category || '').trim()).filter(Boolean))).sort().map(category => <option key={category} value={category}>{category}</option>)}</select></label>
+            </div>
+          </section>
+          <div className="admin-media-grid">
+            {media.filter(item => {
+              const query = mediaSearch.trim().toLowerCase();
+              const searchable = (String(item.title || '') + ' ' + String(item.category || '')).toLowerCase();
+              return (!query || searchable.includes(query)) && (mediaCategoryFilter === 'all' || item.category === mediaCategoryFilter);
+            }).map(item => <article key={item.id}>
+              {item.image_url && <img src={item.image_url} alt={item.title ? item.title + ' preview' : 'Media preview'} loading="lazy" />}
+              <div><strong>{item.title}</strong><span>{item.category}</span>
+                <div className="admin-row-actions">
+                  <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(item.image_url); notifyAdminToast('Media URL copied.', 'success'); } catch (error) { notifyAdminToast('Could not copy URL: ' + (error?.message || 'clipboard unavailable'), 'error'); } }} disabled={!item.image_url} title={!item.image_url ? 'This media item has no URL to copy.' : 'Copy the media URL'}>Copy URL</button>
+                  <button type="button" className="danger-text" onClick={() => deleteMedia(item.id)} disabled={busy} title={busy ? 'Wait for the current admin operation to finish.' : 'Delete this media item'}>Delete</button>
+                </div>
+              </div>
+            </article>)}
+            {!media.some(item => {
+              const query = mediaSearch.trim().toLowerCase();
+              const searchable = (String(item.title || '') + ' ' + String(item.category || '')).toLowerCase();
+              return (!query || searchable.includes(query)) && (mediaCategoryFilter === 'all' || item.category === mediaCategoryFilter);
+            }) && <div className="admin-card admin-empty-state"><strong>No media matches these filters.</strong><p>Try a different search or category, or add a media item.</p><button type="button" className="admin-submit" onClick={() => { setMediaSearch(''); setMediaCategoryFilter('all'); setMediaModalOpen(true); }}>Add media</button></div>}
+          </div>
+          {mediaModalOpen && <div className="ar-admin-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setMediaModalOpen(false); }}>
+            <form onSubmit={saveMedia} className="admin-card admin-form ar-admin-media-dialog" role="dialog" aria-modal="true" aria-labelledby="ar-admin-media-title">
+              <div className="admin-card-title"><div><span>LIBRARY</span><h2 id="ar-admin-media-title">Add media item</h2><p>Store a reusable image URL and category.</p></div><button type="button" aria-label="Close add media dialog" onClick={() => setMediaModalOpen(false)}>×</button></div>
+              <label><span>Title</span><input value={mediaForm.title} onChange={event => setMediaForm({ ...mediaForm, title: event.target.value })} required placeholder="e.g. Chapter banner" /></label>
+              <label><span>Category</span><input value={mediaForm.category} onChange={event => setMediaForm({ ...mediaForm, category: event.target.value })} required placeholder="e.g. Covers" /></label>
+              <label><span>Image URL</span><input type="url" value={mediaForm.image_url} onChange={event => setMediaForm({ ...mediaForm, image_url: event.target.value })} required placeholder="https://…" /></label>
+              <div className="admin-form-actions"><button type="button" onClick={() => setMediaModalOpen(false)}>Cancel</button><button className="admin-submit" disabled={busy} title={busy ? 'Wait for the current admin operation to finish.' : undefined}>{busy ? 'Saving…' : 'Add media'}</button></div>
+            </form>
+          </div>}
+        </section>
 
         </div>
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
