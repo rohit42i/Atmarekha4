@@ -305,6 +305,43 @@ export default function AdminPanel({ onLogout }) {
     return () => document.removeEventListener('keydown', onEscape, true);
   }, [confirmDialog]);
 
+  // Keep keyboard focus within the active custom admin dialog and return it
+  // to the invoking control when the dialog closes.
+  useEffect(() => {
+    const backdrops = Array.from(document.querySelectorAll('.ar-admin-confirm-backdrop'));
+    const backdrop = backdrops[backdrops.length - 1];
+    const dialog = backdrop?.querySelector('[role="dialog"], [role="alertdialog"]');
+    if (!dialog) return undefined;
+
+    const previousFocus = document.activeElement;
+    const focusableElements = () => Array.from(dialog.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    )).filter(element => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true');
+    const focusable = focusableElements();
+    const initialFocus = dialog.querySelector('[autofocus]') || focusable[0];
+    initialFocus?.focus({ preventScroll: true });
+
+    const keepFocusInside = event => {
+      if (event.key !== 'Tab') return;
+      const current = focusableElements();
+      if (!current.length) { event.preventDefault(); return; }
+      const first = current[0];
+      const last = current[current.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', keepFocusInside, true);
+    return () => {
+      document.removeEventListener('keydown', keepFocusInside, true);
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [confirmDialog, replyTarget, shortcutHelpOpen, mediaModalOpen]);
+
   useEffect(() => {
     const refreshHandler = () => load();
     window.addEventListener('atma-admin-refresh', refreshHandler);
