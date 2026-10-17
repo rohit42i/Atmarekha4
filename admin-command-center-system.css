@@ -37,9 +37,8 @@ main.admin-page.ar-admin-v3 :is(input,select,textarea)::placeholder { color:#7f8
 main.admin-page.ar-admin-v3 :is(button,a) { -webkit-tap-highlight-color:transparent; }
 main.admin-page.ar-admin-v3 :is(button,a):disabled { opacity:.45;cursor:not-allowed; }
 main.admin-page.ar-admin-v3 .ar-admin-topbar {
-  background:rgba(17,19,21,.96);
+  background:#111315;
   border-bottom:1px solid var(--ar-ui-border-soft);
-  backdrop-filter:blur(10px);
 }
 main.admin-page.ar-admin-v3 .ar-admin-search,
 main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
@@ -481,10 +480,9 @@ main.admin-page.ar-admin-v3 .ar-admin-topbar {
   position:sticky;
   top:0;
   z-index:30;
-  background:rgba(13,16,21,.96);
+  background:#0d1015;
   border-bottom:1px solid #27313f;
   box-shadow:0 6px 22px rgba(0,0,0,.12);
-  backdrop-filter:blur(14px);
 }
 main.admin-page.ar-admin-v3 .ar-admin-page-context span {
   color:#ffad42;
