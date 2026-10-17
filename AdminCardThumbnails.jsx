@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import ImageCropEditor from './ImageCropEditor.jsx';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
+import { requestAdminConfirm } from './admin-feedback';
 
 const numberLabel = chapter => chapter?.chapterNumber == null ? 'Special' : 'Chapter ' + chapter.chapterNumber;
 
@@ -37,7 +38,7 @@ export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [],
       <div className="ar-card-thumb-preview">{preview ? <img src={preview} alt="" loading="lazy" decoding="async"/> : <span>AR</span>}</div>
       <div className="ar-card-thumb-actions">
         <label className={'ar-card-thumb-upload' + (busy ? ' is-disabled' : '')}>{action}<input type="file" accept="image/*" disabled={busy} onChange={e => { const file=e.target.files?.[0]||null; e.target.value=''; if(file) setEditor({chapter,slot,file,aspect:ratio}); }}/></label>
-        {custom && <button type="button" onClick={() => onClear?.(chapter, slot)} disabled={busy}>Clear override</button>}
+        {custom && <button type="button" onClick={() => clearOverride(chapter, slot)} disabled={busy}>Clear override</button>}
         {custom && <button type="button" onClick={() => setEditor({chapter,slot,file:null,src:custom,aspect:ratio})} disabled={busy}>Adjust saved</button>}
       </div>
     </section>;
@@ -47,6 +48,19 @@ export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [],
     const job = editor;
     setEditor(null);
     if (file && job) onUpload?.(job.chapter, job.slot, file);
+  };
+
+  const clearOverride = async (chapter, slot) => {
+    const approved = await requestAdminConfirm({
+      title: 'Clear custom card thumbnail?',
+      message: 'Remove the custom ' + (slot === 'desktop' ? 'desktop' : 'mobile') + ' thumbnail for ' + numberLabel(chapter) + '?',
+      consequence: slot === 'desktop'
+        ? 'Desktop cards will fall back to the chapter thumbnail. Mobile cards may also use this desktop image if no mobile override exists.'
+        : 'Mobile cards will fall back to the desktop thumbnail or the chapter thumbnail.',
+      confirmLabel: 'Clear override',
+      tone: 'warning',
+    });
+    if (approved) await onClear?.(chapter, slot);
   };
 
   return <>
