@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { requestAdminConfirmation } from './AdminConfirmDialog.jsx';
 
 const LIMIT = 250;
 const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_chat_reads'];
@@ -65,8 +66,24 @@ export default function AdminGroupChatTools() {
       setDeleting(false);
     }
   };
-  const deleteOne=async m=>{if(window.confirm('Delete this message permanently? This cannot be undone.'))await deleteIds([m.id]);};
-  const deleteSelected=async()=>{const ids=[...selected];if(ids.length&&window.confirm(`Delete ${ids.length} selected message${ids.length===1?'':'s'} permanently?`))await deleteIds(ids);};
+  const deleteOne = m => requestAdminConfirmation({
+    title: 'Delete chat message?',
+    message: `Permanently deletes this message from ${profiles[m.user_id]?.display_name || profiles[m.user_id]?.username || 'the reader'} and cascades linked reactions/likes/reads where configured. This cannot be undone.`,
+    confirmLabel: 'Delete message',
+    tone: 'danger',
+    onConfirm: () => deleteIds([m.id]),
+  });
+  const deleteSelected = () => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    requestAdminConfirmation({
+      title: `Delete ${ids.length} selected message${ids.length === 1 ? '' : 's'}?`,
+      message: 'Permanently removes the selected group-chat messages. Linked reactions/likes/reads are handled by the existing database relationship.',
+      confirmLabel: `Delete ${ids.length} message${ids.length === 1 ? '' : 's'}`,
+      tone: 'danger',
+      onConfirm: () => deleteIds(ids),
+    });
+  };
   if(!isAdmin)return null;
 
   return <>
