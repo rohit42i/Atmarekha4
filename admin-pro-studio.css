@@ -857,3 +857,89 @@ main.admin-page.ar-admin-v3 .admin-announcement-admin-row > div { min-width: 0; 
   main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav button { justify-content: flex-start; padding-inline: 10px; }
   main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-status-card { justify-content: flex-start; padding: 12px 10px; }
 }
+
+/* Report moderation queue */
+main.admin-page.ar-admin-v3 .ar-admin-report-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--ar-border);
+}
+main.admin-page.ar-admin-v3 .ar-admin-report-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--ar-border);
+  border-radius: var(--ar-radius-button);
+  background: var(--ar-raised);
+  color: var(--ar-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+main.admin-page.ar-admin-v3 .ar-admin-report-tabs button.active {
+  border-color: rgba(245, 144, 30, 0.32);
+  background: rgba(245, 144, 30, 0.12);
+  color: var(--ar-primary-hover);
+}
+main.admin-page.ar-admin-v3 .ar-admin-report-tabs button b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--ar-radius-pill);
+  background: var(--ar-surface);
+  color: var(--ar-text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+main.admin-page.ar-admin-v3 .ar-admin-report-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+main.admin-page.ar-admin-v3 .ar-admin-report-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--ar-border);
+  border-radius: var(--ar-radius-card);
+  background: var(--ar-surface);
+}
+main.admin-page.ar-admin-v3 .ar-admin-report-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+main.admin-page.ar-admin-v3 .ar-admin-report-card-head > div { display: flex; flex-wrap: wrap; gap: 7px; }
+main.admin-page.ar-admin-v3 .ar-admin-report-card-head time { color: var(--ar-text-muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+main.admin-page.ar-admin-v3 .ar-admin-report-severity,
+main.admin-page.ar-admin-v3 .ar-admin-report-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: var(--ar-radius-pill);
+  background: var(--ar-info-bg);
+  color: var(--ar-info);
+  font-size: 10px;
+  font-weight: 700;
+}
+main.admin-page.ar-admin-v3 .ar-admin-report-severity.is-high { background: var(--ar-danger-bg); color: var(--ar-danger); }
+main.admin-page.ar-admin-v3 .ar-admin-report-severity.is-medium { background: var(--ar-warning-bg); color: var(--ar-warning); }
+main.admin-page.ar-admin-v3 .ar-admin-report-severity.is-low { background: var(--ar-info-bg); color: var(--ar-info); }
+main.admin-page.ar-admin-v3 .ar-admin-report-status.is-resolved { background: var(--ar-success-bg); color: var(--ar-success); }
+main.admin-page.ar-admin-v3 .ar-admin-report-status.is-reviewed,
+main.admin-page.ar-admin-v3 .ar-admin-report-status.is-dismissed { background: var(--ar-warning-bg); color: var(--ar-warning); }
+main.admin-page.ar-admin-v3 .ar-admin-report-comment { display: grid; gap: 6px; }
+main.admin-page.ar-admin-v3 .ar-admin-report-comment small,
+main.admin-page.ar-admin-v3 .ar-admin-report-meta small { color: var(--ar-text-muted); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; }
+main.admin-page.ar-admin-v3 .ar-admin-report-comment strong { color: var(--ar-text); font-size: 13px; font-weight: 650; }
+main.admin-page.ar-admin-v3 .ar-admin-report-comment p { margin: 0; padding: 12px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-sm); background: var(--ar-raised); color: var(--ar-text-secondary); font-size: 13px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-report-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-report-meta > div { display: grid; align-content: start; gap: 5px; min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-report-meta > div > span { color: var(--ar-text-secondary); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-report-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding-top: 12px; border-top: 1px solid var(--ar-border); }
+main.admin-page.ar-admin-v3 .ar-admin-report-actions :is(button, .admin-studio-button) { min-height: 34px; padding-inline: 10px; font-size: 11px; }
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-report-cards { grid-template-columns: minmax(0, 1fr); }
+}
