@@ -138,7 +138,12 @@ export default function AdminPanel({ onLogout }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState({ type: '', text: '' });
+  const [notice, setNoticeState] = useState({ type: '', text: '' });
+  const setNotice = value => {
+    setNoticeState(value);
+    if (value && typeof value === 'object' && value.type === 'error' && value.text) notifyAdminToast(value.text, 'error');
+    if (value && typeof value === 'object' && value.type === 'warning' && value.text) notifyAdminToast(value.text, 'warning');
+  };
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
