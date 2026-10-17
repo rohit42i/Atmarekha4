@@ -247,11 +247,15 @@ export default function AdminChapterManager({
     const tooLarge = files.find(file => file.size > 95 * 1024 * 1024);
     event.target.value = '';
     if (tooLarge) {
-      setNotice(tooLarge.name + ' is larger than 95 MB.');
+      const message = tooLarge.name + ' is larger than 95 MB.';
+      setNotice(message);
+      notifyAdminToast(message, 'error');
       return;
     }
     if (unsupportedCount) {
-      setNotice('Skipped ' + unsupportedCount + ' unsupported image(s). Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+      const message = 'Skipped ' + unsupportedCount + ' unsupported image(s). Use JPG, PNG, WEBP, GIF, BMP, or AVIF.';
+      setNotice(message);
+      notifyAdminToast(message, 'warning');
     } else {
       setNotice(files.length ? `${files.length} pages ready · selected order preserved.` : '');
     }
