@@ -158,6 +158,14 @@ export default function AdminPanel({ onLogout }) {
 
   const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); };
 
+  const openNewChapter = () => {
+    setChapterPublishProject('atma');
+    resetForm();
+    setTab('Chapters');
+    setMobileSidebarOpen(false);
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-new-chapter')), 0);
+  };
+
   const load = async () => {
     setLoading(true); setNotice({ type: '', text: '' });
     try {
@@ -239,6 +247,17 @@ export default function AdminPanel({ onLogout }) {
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
+    const toastHandler = event => {
+      const detail = event?.detail || {};
+      const text = String(detail.text || '').trim();
+      if (!text) return;
+      setNotice({ type: ['success', 'warning', 'error'].includes(detail.type) ? detail.type : 'error', text });
+    };
+    window.addEventListener('atma-admin-toast', toastHandler);
+    return () => window.removeEventListener('atma-admin-toast', toastHandler);
+  }, []);
+
+  useEffect(() => {
     const refreshHandler = () => load();
     window.addEventListener('atma-admin-refresh', refreshHandler);
     return () => window.removeEventListener('atma-admin-refresh', refreshHandler);
@@ -275,9 +294,7 @@ export default function AdminPanel({ onLogout }) {
       }
       if (key === 'n') {
         event.preventDefault();
-        setChapterPublishProject('atma');
-        activateTab('Chapters');
-        resetForm();
+        openNewChapter();
       } else if (key === 'r') {
         event.preventDefault();
         load();
@@ -1091,7 +1108,7 @@ export default function AdminPanel({ onLogout }) {
     setProfileOpen(false);
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
-  return <main className="admin-page ar-admin-v3 ar-admin" data-admin-root="true">
+  return <main className={`admin-page ar-admin-v3 ar-admin${sidebarCollapsed ? ' ar-admin-sidebar-collapsed' : ''}`} data-admin-root="true">
     <div className="ar-admin-app">
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
@@ -1146,7 +1163,7 @@ export default function AdminPanel({ onLogout }) {
           </div>
         </header>
         <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={openNewChapter} className="ar-admin-primary-action">New chapter</button></div></div>
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : notice.type === 'warning' ? 'warning' : 'success'}`} role={notice.type === 'error' ? 'alert' : 'status'}><AdminIcon name={notice.type === 'error' ? 'flag' : notice.type === 'warning' ? 'pulse' : 'sparkle'} size={16}/><span>{notice.text}</span><button type="button" aria-label="Dismiss notification" onClick={() => setNotice({ type: '', text: '' })}><AdminIcon name="close" size={15}/></button></div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
@@ -1213,7 +1230,7 @@ export default function AdminPanel({ onLogout }) {
           pageCounts={pageCounts}
           onSelectTab={activateTab}
           onOpenTool={openAdminTool}
-          onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
+          onNewChapter={openNewChapter}
           onRefresh={load}
         />
         {/* Mount event-driven tools once so sidebar, dashboard and command-palette actions share real handlers. */}
