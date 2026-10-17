@@ -38,7 +38,7 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
   const commentById = useMemo(() => new Map(comments.map(comment => [String(comment.id), comment])), [comments]);
   const counts = useMemo(() => ({
     open: reports.filter(report => normalizeStatus(report) === 'open').length,
-    resolved: reports.filter(report => ['resolved', 'reviewed'].includes(normalizeStatus(report))).length,
+    resolved: reports.filter(report => normalizeStatus(report) === 'resolved').length,
     dismissed: reports.filter(report => ['reviewed', 'dismissed'].includes(normalizeStatus(report))).length,
   }), [reports]);
 
@@ -48,7 +48,7 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
       const comment = commentById.get(String(report.comment_id));
       const reportStatus = normalizeStatus(report);
       const bucketMatch = status === 'resolved'
-        ? ['resolved', 'reviewed'].includes(reportStatus)
+        ? reportStatus === 'resolved'
         : (status === 'dismissed' ? ['reviewed', 'dismissed'].includes(reportStatus) : status === reportStatus);
       const matchesSeverity = severity === 'all' || classifySeverity(report.reason) === severity;
       const haystack = `${report.reason || ''} ${comment?.author_display_name || comment?.author_name || ''} ${comment?.content || ''}`.toLowerCase();
