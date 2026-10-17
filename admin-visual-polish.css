@@ -1261,3 +1261,77 @@ body main.admin-page.ar-admin-v3 :is(button, input, select, textarea, a, [tabind
     scroll-behavior: auto !important;
   }
 }
+
+/* Light-mode control bridge: override site-wide !important defaults within admin only. */
+html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(
+  button,
+  [role="button"],
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea
+) {
+  background-color: var(--ar-raised) !important;
+  color: var(--ar-text) !important;
+  border-color: var(--ar-border-strong) !important;
+}
+
+html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(
+  .ar-admin-primary-action,
+  .admin-submit,
+  .admin-studio-button-primary,
+  .ar-admin-btn-primary,
+  .ar-cr-btn.is-primary,
+  .ar-ops-primary
+) {
+  background-color: var(--ar-primary) !important;
+  border-color: var(--ar-primary) !important;
+  color: var(--ar-on-primary) !important;
+}
+
+html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(
+  .ar-admin-nav button.active,
+  .admin-bottom-nav button.active,
+  .ar-period-switch button.active,
+  .ar-cr-nav button.active,
+  .ar-admin-report-tabs button.active,
+  .ar-card-thumb-series button.active,
+  .ar-admin-pin-target-control button.active
+) {
+  background-color: var(--ar-primary-soft) !important;
+  border-color: var(--ar-primary-border) !important;
+  color: var(--ar-primary) !important;
+}
+
+html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(
+  .ar-admin-nav button:not(.active),
+  .admin-bottom-nav button:not(.active),
+  .ar-cr-nav button:not(.active),
+  .ar-text-action,
+  .ar-cr-link
+) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--ar-text-secondary) !important;
+}
+
+html[data-theme="light"] body main.admin-page.ar-admin-v3 .ar-ref-search input {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(button.danger-text, .danger-text, .ar-ops-actions button.danger) {
+  color: var(--ar-danger) !important;
+}
+
+html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(
+  .ar-admin-primary-action,
+  .admin-submit,
+  .admin-studio-button-primary,
+  .ar-admin-btn-primary,
+  .ar-cr-btn.is-primary,
+  .ar-ops-primary
+):hover:not(:disabled) {
+  background-color: var(--ar-primary-hover) !important;
+  border-color: var(--ar-primary-hover) !important;
+  color: var(--ar-on-primary) !important;
+}
