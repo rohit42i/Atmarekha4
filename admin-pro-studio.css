@@ -141,10 +141,8 @@ main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
   border-radius: var(--ar-radius-sm);
 }
 main.admin-page.ar-admin-v3 .ar-admin-topbar {
-  background: rgba(14, 14, 16, 0.94);
+  background: var(--ar-bg);
   border-bottom: 1px solid var(--ar-border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 main.admin-page.ar-admin-v3 .ar-admin-content { color: var(--ar-text); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-stat-card, .ar-stat-card, .admin-card, .ar-admin-card, .ar-admin-status-card, .ar-admin-workspace, .ar-glass-card, .admin-studio-modal) {
