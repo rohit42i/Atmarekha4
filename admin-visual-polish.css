@@ -254,7 +254,7 @@ body main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
   border-color: var(--ar-border-strong);
 }
 
-body main main.admin-page.ar-admin-v3 .ar-admin-top-actions {
+body main.admin-page.ar-admin-v3 .ar-admin-top-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
