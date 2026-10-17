@@ -191,3 +191,133 @@ main.admin-page.ar-admin-v3 :is(.ar-admin-stat-value, .ar-stat-value, .tabular-n
     transition-duration: 0.01ms;
   }
 }
+
+/* Shared confirmation dialogs and dismissible feedback. */
+main.admin-page.ar-admin-v3 .ar-admin-notice {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1300;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: min(440px, calc(100vw - 32px));
+  margin: 0;
+  padding: 14px 15px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-card);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  line-height: 1.5;
+}
+main.admin-page.ar-admin-v3 .ar-admin-notice.error { color: var(--ar-danger); background: var(--ar-danger-bg); }
+main.admin-page.ar-admin-v3 .ar-admin-notice.success { color: var(--ar-success); background: var(--ar-success-bg); }
+main.admin-page.ar-admin-v3 .ar-admin-notice > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-toast-close,
+main.admin-page.ar-admin-v3 .ar-admin-toast button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+main.admin-page.ar-admin-v3 .ar-admin-toast-region {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 1400;
+  display: grid;
+  gap: 10px;
+  width: min(440px, calc(100vw - 32px));
+  pointer-events: none;
+}
+main.admin-page.ar-admin-v3 .ar-admin-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-card);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  line-height: 1.5;
+  pointer-events: auto;
+}
+main.admin-page.ar-admin-v3 .ar-admin-toast span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-toast.error { border-color: rgba(248, 113, 113, 0.3); background: var(--ar-danger-bg); color: var(--ar-danger); }
+main.admin-page.ar-admin-v3 .ar-admin-toast.warning { border-color: rgba(251, 191, 36, 0.3); background: var(--ar-warning-bg); color: var(--ar-warning); }
+main.admin-page.ar-admin-v3 .ar-admin-toast.success { border-color: rgba(52, 211, 153, 0.3); background: var(--ar-success-bg); color: var(--ar-success); }
+main.admin-page.ar-admin-v3 .ar-admin-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+}
+main.admin-page.ar-admin-v3 .ar-admin-confirm-dialog {
+  width: min(480px, 100%);
+  max-height: min(90dvh, 720px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-card);
+  background: var(--ar-surface);
+  color: var(--ar-text);
+}
+main.admin-page.ar-admin-v3 .ar-admin-confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: var(--ar-danger-bg);
+  color: var(--ar-danger);
+}
+main.admin-page.ar-admin-v3 .ar-admin-confirm-dialog h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; line-height: 1.35; }
+main.admin-page.ar-admin-v3 .ar-admin-confirm-dialog p { margin: 0; color: var(--ar-text-secondary); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-confirm-dialog .ar-admin-confirm-consequence {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--ar-border);
+  border-radius: var(--ar-radius-sm);
+  background: var(--ar-raised);
+  color: var(--ar-text-secondary);
+}
+main.admin-page.ar-admin-v3 .ar-admin-confirm-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+main.admin-page.ar-admin-v3 .ar-admin-confirm-actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-button);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--ar-transition), border-color var(--ar-transition), transform var(--ar-transition);
+}
+main.admin-page.ar-admin-v3 .ar-admin-confirm-actions button:active { transform: translateY(1px); }
+main.admin-page.ar-admin-v3 .ar-admin-confirm-actions .ar-admin-confirm-accept { border-color: var(--ar-danger); background: var(--ar-danger); color: var(--ar-on-primary); }
+main.admin-page.ar-admin-v3 .ar-admin-confirm-actions .ar-admin-confirm-accept:hover { filter: brightness(1.08); }
+main.admin-page.ar-admin-v3 .ar-admin-shortcut-dialog dl { display: grid; gap: 0; margin: 18px 0 0; }
+main.admin-page.ar-admin-v3 .ar-admin-shortcut-dialog dl > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--ar-border); }
+main.admin-page.ar-admin-v3 .ar-admin-shortcut-dialog dt { font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 .ar-admin-shortcut-dialog dd { margin: 0; color: var(--ar-text-secondary); font-size: 13px; text-align: right; }
+@media (max-width: 760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-notice { top: 70px; right: 12px; }
+  main.admin-page.ar-admin-v3 .ar-admin-toast-region { right: 12px; bottom: 78px; }
+  main.admin-page.ar-admin-v3 .ar-admin-confirm-dialog { padding: 20px; }
+}
