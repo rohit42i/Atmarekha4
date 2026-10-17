@@ -5,6 +5,7 @@ import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { buildPdlplChapters } from './palDoPalKeLamhe.js';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import { AdminIcon } from './admin-redesign-ui.jsx';
+import { requestAdminConfirmation } from './AdminConfirmDialog.jsx';
 
 const ATMA_PAGES = 'chapter_pages';
 const PDLPL_PAGES = 'pal_do_pal_ke_lamhe_chapter_pages';
@@ -194,19 +195,31 @@ export default function AdminChapterPages({ chapters = [] }) {
     finally { setBusy(''); }
   };
 
-  const deletePage = async page => {
-    if (!page || busy || !window.confirm(`Delete ${projectName(project)} · Page ${page.page_number}? This cannot be undone.`)) return;
+  const deletePage = async (page, confirmed = false) => {
+    if (!page || busy) return;
+    if (!confirmed) {
+      requestAdminConfirmation({
+        title: 'Delete page permanently?',
+        message: `Deletes ${projectName(project)} page ${page.page_number} from the chapter. Its stored image will also be queued for storage cleanup when a path is available.`,
+        confirmLabel: 'Delete page',
+        tone: 'danger',
+        onConfirm: () => deletePage(page, true),
+      });
+      return;
+    }
     setBusy(page.id);
     try {
       const user = await adminUser();
+      let cleanupPending = false;
       const rpc = project === 'pdpkl' ? 'pdlpl_delete_chapter_page' : 'delete_chapter_page';
       const { error } = await supabase.rpc(rpc, { p_page_id: page.id });
       if (error) throw error;
-      if (project === 'pdpkl' && page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); } }
-      if (project === 'atma') { const old = atmaPath(page.image_url); if (old) { try { await cloudflareR2.from(ATMA_BUCKET).remove([old]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); } } }
+      if (project === 'pdpkl' && page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { cleanupPending = true; await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { provider: 'pdpl', paths: [page.image_path], error: err.message }); } }
+      if (project === 'atma') { const old = atmaPath(page.image_url); if (old) { try { const { error } = await cloudflareR2.from(ATMA_BUCKET).remove([old]); if (error) throw error; } catch (err) { cleanupPending = true; await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { bucket: ATMA_BUCKET, paths: [old], error: err.message }); } } }
       await audit(user, 'delete_page', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, { chapter_id: page.chapter_id, page_number: page.page_number, project });
       await loadPages();
-      setNotice('Page deleted.');
+      setNotice(cleanupPending ? 'Page deleted; image cleanup failed and needs retry in Operations.' : 'Page deleted.');
+      if (cleanupPending) window.dispatchEvent(new CustomEvent('atma-admin-toast', { detail: { type: 'warning', text: 'Page deleted, but its stored image could not be removed. Retry cleanup in Operations.' } }));
     } catch (err) { setDiagnostic(err?.message || 'Page deletion failed.'); }
     finally { setBusy(''); }
   };
