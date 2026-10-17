@@ -744,3 +744,100 @@ main.admin-page.ar-admin-v3 .ar-admin-reply-dialog .ar-admin-confirm-accept:disa
 @media (max-width: 380px) {
   main.admin-page.ar-admin-v3 .ar-admin-comments-table td { grid-template-columns: 1fr; gap: 5px; }
 }
+
+/* Announcement composer and preview workspace */
+main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  min-width: 0;
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace > .admin-card { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace .admin-form > label:not(.admin-file-field) {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+  color: var(--ar-text-secondary);
+  font-size: 13px;
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace .admin-form > label > :is(input, textarea) {
+  width: 100%;
+  padding: 11px 12px;
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace .admin-form > label > input { min-height: 42px; }
+main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace .admin-form > label > textarea { min-height: 130px; resize: vertical; }
+main.admin-page.ar-admin-v3 .ar-admin-announcement-preview {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-card);
+  background: var(--ar-raised);
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-preview > span:first-child {
+  color: var(--ar-primary-hover);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-preview > img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: var(--ar-radius-sm);
+  background: var(--ar-surface);
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-preview > strong { color: var(--ar-text); font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-announcement-preview > p { margin: 0; color: var(--ar-text-secondary); font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-announcement-preview > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 8px; border-top: 1px solid var(--ar-border); color: var(--ar-text-muted); font-size: 11px; }
+main.admin-page.ar-admin-v3 .ar-admin-pinned-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 9px;
+  border-radius: var(--ar-radius-pill);
+  background: var(--ar-warning-bg);
+  color: var(--ar-warning);
+  font-weight: 650;
+}
+main.admin-page.ar-admin-v3 .ar-admin-pin-target-control { display: grid; gap: 8px; }
+main.admin-page.ar-admin-v3 .ar-admin-pin-target-control > span { color: var(--ar-text-secondary); font-size: 12px; }
+main.admin-page.ar-admin-v3 .ar-admin-pin-target-control > div { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-button); background: var(--ar-raised); }
+main.admin-page.ar-admin-v3 .ar-admin-pin-target-control button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--ar-radius-sm);
+  background: transparent;
+  color: var(--ar-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+main.admin-page.ar-admin-v3 .ar-admin-pin-target-control button.active {
+  border-color: rgba(245, 144, 30, 0.24);
+  background: rgba(245, 144, 30, 0.12);
+  color: var(--ar-primary-hover);
+}
+main.admin-page.ar-admin-v3 .ar-admin-announcement-slot {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-pill);
+  background: var(--ar-raised);
+  color: var(--ar-text-secondary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+main.admin-page.ar-admin-v3 .admin-announcement-admin-row { display: flex; align-items: flex-start; gap: 10px; }
+main.admin-page.ar-admin-v3 .admin-announcement-admin-row > div { min-width: 0; flex: 1; }
+@media (max-width: 1020px) {
+  main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace { grid-template-columns: minmax(0, 1fr); }
+}
