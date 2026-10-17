@@ -4,10 +4,10 @@ import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 
 const numberLabel = chapter => chapter?.chapterNumber == null ? 'Special' : 'Chapter ' + chapter.chapterNumber;
 
-export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [], busy = false, onUpload, onClear }) {
-  const [query, setQuery] = useState('');
+export default function AdminCardThumbnails({ chapters = [], pdpklChapters = [], focusChapter = null, busy = false, onUpload, onClear }) {
+  const [query, setQuery] = useState(() => focusChapter ? numberLabel(focusChapter) : '');
   const [language, setLanguage] = useState('all');
-  const [series, setSeries] = useState('atma');
+  const [series, setSeries] = useState(() => focusChapter?.source === 'pdpkl' ? 'pdpkl' : 'atma');
   const [editor, setEditor] = useState(null);
 
   const source = series === 'pdpkl' ? pdpklChapters : chapters;
