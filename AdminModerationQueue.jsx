@@ -24,7 +24,7 @@ const localDate = value => {
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date) : '—';
 };
-const statusText = value => value === 'reviewed' ? 'Reviewed' : value ? value[0].toUpperCase() + value.slice(1) : 'Open';
+const statusText = value => value === 'reviewed' ? 'Dismissed' : value ? value[0].toUpperCase() + value.slice(1) : 'Open';
 
 export default function AdminModerationQueue({ reports = [], comments = [], onDeleteComment, onSetReportStatus, reportCount = 0 }) {
   const [status, setStatus] = useState('open');
@@ -39,7 +39,7 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
   const counts = useMemo(() => ({
     open: reports.filter(report => normalizeStatus(report) === 'open').length,
     resolved: reports.filter(report => ['resolved', 'reviewed'].includes(normalizeStatus(report))).length,
-    dismissed: reports.filter(report => normalizeStatus(report) === 'dismissed').length,
+    dismissed: reports.filter(report => ['reviewed', 'dismissed'].includes(normalizeStatus(report))).length,
   }), [reports]);
 
   const rows = useMemo(() => {
@@ -49,7 +49,7 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
       const reportStatus = normalizeStatus(report);
       const bucketMatch = status === 'resolved'
         ? ['resolved', 'reviewed'].includes(reportStatus)
-        : status === reportStatus;
+        : (status === 'dismissed' ? ['reviewed', 'dismissed'].includes(reportStatus) : status === reportStatus);
       const matchesSeverity = severity === 'all' || classifySeverity(report.reason) === severity;
       const haystack = `${report.reason || ''} ${comment?.author_display_name || comment?.author_name || ''} ${comment?.content || ''}`.toLowerCase();
       return bucketMatch && matchesSeverity && (!query || haystack.includes(query));
@@ -135,7 +135,7 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
               <footer className="ar-admin-report-actions">
                 <AdminButton size="sm" type="button" onClick={() => setSelectedReport(report)}>Context</AdminButton>
                 {reportStatus !== 'resolved' && <AdminButton size="sm" type="button" variant="primary" onClick={() => setReportStatus(report, 'resolved')}>Resolve</AdminButton>}
-                {reportStatus !== 'dismissed' && <AdminButton size="sm" type="button" onClick={() => setReportStatus(report, 'dismissed')}>Dismiss</AdminButton>}
+                {!['reviewed', 'dismissed'].includes(reportStatus) && <AdminButton size="sm" type="button" onClick={() => setReportStatus(report, 'reviewed')}>Dismiss</AdminButton>}
                 {reportStatus !== 'open' && <AdminButton size="sm" type="button" onClick={() => setReportStatus(report, 'open')}>Reopen</AdminButton>}
                 {comment && <AdminButton size="sm" variant="danger" type="button" onClick={() => onDeleteComment?.(comment.id)}>Delete comment</AdminButton>}
               </footer>
@@ -146,7 +146,7 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
       <AdminModal open={Boolean(openReport)} onClose={() => setSelectedReport(null)} title="Report context" description={openReport ? `${openReport.severity.toUpperCase()} severity · ${ageLabel(openReport.created_at)} · status ${statusText(normalizeStatus(openReport))}` : ''} footer={openReport ? <>
         <AdminButton type="button" onClick={() => setSelectedReport(null)}>Close</AdminButton>
         {normalizeStatus(openReport) !== 'resolved' && <AdminButton type="button" variant="primary" onClick={() => setReportStatus(openReport, 'resolved')}>Resolve report</AdminButton>}
-        {normalizeStatus(openReport) !== 'dismissed' && <AdminButton type="button" onClick={() => setReportStatus(openReport, 'dismissed')}>Dismiss report</AdminButton>}
+        {!['reviewed', 'dismissed'].includes(normalizeStatus(openReport)) && <AdminButton type="button" onClick={() => setReportStatus(openReport, 'reviewed')}>Dismiss report</AdminButton>}
       </> : null}>
         {openReport ? <div className="admin-context-grid">
           <div className="admin-context-block"><span>Reason</span><strong>{openReport.reason || 'No reason supplied'}</strong></div>
