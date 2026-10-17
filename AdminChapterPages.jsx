@@ -71,11 +71,11 @@ function Artwork({ project, page, className = '', alt = '' }) {
   return src ? <img className={className} src={src} alt={alt} /> : <div className={className + ' studio-art-placeholder'}>{error || 'Loading artwork…'}</div>;
 }
 
-export default function AdminChapterPages({ chapters = [] }) {
+export default function AdminChapterPages({ chapters = [], initialChapterId = '' }) {
   const [project, setProject] = useState('atma');
   const [language, setLanguage] = useState('all');
   const [pdpklChapters, setPdpklChapters] = useState([]);
-  const [chapterId, setChapterId] = useState('');
+  const [chapterId, setChapterId] = useState(initialChapterId || '');
   const [pages, setPages] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
@@ -97,10 +97,12 @@ export default function AdminChapterPages({ chapters = [] }) {
   const chapter = source.find(ch => ch.id === chapterId) || visibleChapters[0];
   const selected = pages.find(p => p.id === selectedId) || pages[0] || null;
 
+  useEffect(() => { if (initialChapterId) { setProject('atma'); setLanguage('all'); setSearch(''); setChapterId(initialChapterId); } }, [initialChapterId]);
+
   useEffect(() => {
     if (project !== 'pdpkl') return;
     let alive = true;
-    buildPdlplChapters().then(rows => { if (alive) setPdpklChapters(rows); }).catch(err => setNotice(err?.message || 'PDPKL chapters could not be loaded.'));
+    buildPdlplChapters().then(rows => { if (alive) setPdpklChapters(rows); }).catch(err => { const message = err?.message || 'PDPKL chapters could not be loaded.'; setNotice(message); notifyAdminToast(message, 'error'); });
     return () => { alive = false; };
   }, [project]);
 
@@ -125,7 +127,7 @@ export default function AdminChapterPages({ chapters = [] }) {
         ? current
         : (nextPages[0]?.id || null));
       setDiagnostic('');
-    } catch (err) { setDiagnostic(err?.message || 'Unable to load pages.'); }
+    } catch (err) { const message = err?.message || 'Unable to load pages.'; setDiagnostic(message); notifyAdminToast(message, 'error'); }
     finally { setBusy(''); }
   };
 
@@ -183,6 +185,7 @@ export default function AdminChapterPages({ chapters = [] }) {
       setRetryFiles(rows => ({ ...rows, [page.id]: file }));
       setDiagnostic(err?.message || 'Page replacement failed.');
       setNotice('Replacement failed. The original page is still active.');
+      notifyAdminToast((err?.message || 'Page replacement failed.') + ' The original page is still active.', 'error');
     } finally { setBusy(''); }
   };
 
@@ -198,7 +201,7 @@ export default function AdminChapterPages({ chapters = [] }) {
       const { error } = await supabase.rpc(rpc, { p_page_id: page.id, p_direction: direction });
       if (error) throw error;
       await loadPages();
-    } catch (err) { setDiagnostic(err?.message || 'Could not reorder page.'); }
+    } catch (err) { const message = err?.message || 'Could not reorder page.'; setDiagnostic(message); notifyAdminToast(message, 'error'); }
     finally { setBusy(''); }
   };
 
@@ -222,7 +225,7 @@ export default function AdminChapterPages({ chapters = [] }) {
       await audit(user, 'delete_page', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, { chapter_id: page.chapter_id, page_number: page.page_number, project });
       await loadPages();
       setNotice('Page deleted.');
-    } catch (err) { setDiagnostic(err?.message || 'Page deletion failed.'); }
+    } catch (err) { const message = err?.message || 'Page deletion failed.'; setDiagnostic(message); notifyAdminToast(message, 'error'); }
     finally { setBusy(''); }
   };
 
