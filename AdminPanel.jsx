@@ -174,6 +174,8 @@ export default function AdminPanel({ onLogout }) {
         supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error })).catch(error => ({ data: null, error })),
       ]);
       for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
+      const loadWarnings = [];
+      if (performanceResult?.error) loadWarnings.push('Analytics could not be loaded: ' + (performanceResult.error.message || 'The analytics source returned an error.'));
       const performanceMap = {};
       for (const row of performanceResult?.data?.chapter_stats || []) {
         performanceMap[row.id] = {
@@ -195,7 +197,7 @@ export default function AdminPanel({ onLogout }) {
           .from('profiles')
           .select('id, display_name, username')
           .in('id', commenterIds);
-        if (profileError) console.warn('Comment author profile lookup failed:', profileError);
+        if (profileError) loadWarnings.push('Comment display names could not be loaded: ' + profileError.message);
         else commenterProfiles = Object.fromEntries((profileRows || []).map(profile => [profile.id, profile]));
       }
       setComments(mergedComments.map(comment => {
@@ -213,6 +215,7 @@ export default function AdminPanel({ onLogout }) {
       setMedia(mediaResult.data || []);
       setChapterPerformance(performanceMap);
       setLastRefreshedAt(new Date());
+      if (loadWarnings.length) setNotice({ type: 'warning', text: loadWarnings.join(' ') });
     } catch (error) {
       console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
     } finally { setLoading(false); }
@@ -324,6 +327,7 @@ export default function AdminPanel({ onLogout }) {
     let coverCommitted = false;
     let chapterCreated = false;
     const uploadedPaths = [];
+    const cleanupWarnings = [];
 
     try {
       adminUser = await requireAdmin();
@@ -396,6 +400,7 @@ export default function AdminPanel({ onLogout }) {
         if (oldCoverPath) {
           try { await removeFiles(COVER_BUCKET, [oldCoverPath]); }
           catch (cleanupError) {
+            cleanupWarnings.push('Old cover file cleanup failed. Retry it from Operations.');
             await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_cover', chapterId, { bucket: COVER_BUCKET, paths: [oldCoverPath], error: cleanupError.message });
           }
         }
@@ -431,6 +436,7 @@ export default function AdminPanel({ onLogout }) {
         if (oldPaths.length) {
           try { await removeFiles(PAGE_BUCKET, oldPaths); }
           catch (cleanupError) {
+            cleanupWarnings.push('Previous page-image cleanup failed. Retry it from Operations.');
             await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_pages', chapterId, { bucket: PAGE_BUCKET, paths: oldPaths, error: cleanupError.message });
           }
         }
@@ -449,7 +455,7 @@ export default function AdminPanel({ onLogout }) {
       const wasEditing = Boolean(editing);
       resetForm();
       await load();
-      setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' });
+      setNotice({ type: cleanupWarnings.length ? 'warning' : 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' + (cleanupWarnings.length ? ' ' + cleanupWarnings.join(' ') : '') });
     } catch (error) {
       console.error(error);
       for (const item of uploadedPaths) {
@@ -457,6 +463,7 @@ export default function AdminPanel({ onLogout }) {
         if (!committed) {
           try { await removeFiles(item.bucket, [item.path]); }
           catch (cleanupError) {
+            cleanupWarnings.push('A newly uploaded file could not be removed during rollback: ' + item.path);
             await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, { bucket: item.bucket, paths: [item.path], error: cleanupError.message });
           }
         }
@@ -468,16 +475,16 @@ export default function AdminPanel({ onLogout }) {
           // The new chapter was never valid without its required page set.
           // Mark committed uploads as cleanable so they do not become R2 orphans.
           for (const item of uploadedPaths) {
-            try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
+            try { await removeFiles(item.bucket, [item.path]); } catch (cleanupError) { cleanupWarnings.push('Rollback cleanup failed for ' + item.path + ': ' + cleanupError.message); await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, { bucket: item.bucket, paths: [item.path], error: cleanupError.message }); }
           }
-        } catch (_) {}
+        } catch (rollbackError) { cleanupWarnings.push('New chapter rollback failed: ' + rollbackError.message); }
       }
 
       if (adminUser) await logAdminAction(adminUser, 'chapter_operation_failed', 'chapter', chapterId, {
         error: error.message,
         r2_cleanup: error.r2Cleanup || null,
       });
-      setNotice({ type: 'error', text: error.message || 'Chapter upload failed.' });
+      setNotice({ type: 'error', text: (error.message || 'Chapter upload failed.') + (cleanupWarnings.length ? ' Cleanup warning: ' + cleanupWarnings.join(' ') : '') });
       setProgress({ current: 0, total: 0, text: '' });
     } finally {
       setBusy(false);
@@ -490,8 +497,18 @@ export default function AdminPanel({ onLogout }) {
     setTab('Chapters'); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  async function deleteChapter(chapter) {
-    if (!window.confirm('Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently?')) return;
+  async function deleteChapter(chapter, confirmed = false) {
+    if (!confirmed) {
+      const pageCount = Number(pageCounts[chapter.id] || 0);
+      requestAdminConfirmation({
+        title: 'Delete chapter permanently?',
+        message: `This deletes ${chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : (chapter.title || 'the unnumbered chapter')} and ${pageCount} page record${pageCount === 1 ? '' : 's'}. The existing cleanup then attempts to remove page images, the cover, and custom card thumbnails from storage. This cannot be undone.`,
+        confirmLabel: 'Delete chapter',
+        tone: 'danger',
+        onConfirm: () => deleteChapter(chapter, true),
+      });
+      return;
+    }
     setBusy(true);
     let adminUser = null;
     try {
@@ -540,8 +557,19 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
-  async function deleteComment(id) {
-    if (!window.confirm('Delete this comment and its replies?')) return;
+  async function deleteComment(id, confirmed = false) {
+    if (!confirmed) {
+      const comment = comments.find(row => row.id === id);
+      const replyCount = comments.filter(row => row.parent_comment_id === id).length;
+      requestAdminConfirmation({
+        title: 'Delete comment?',
+        message: `This deletes the selected comment${comment?.author_display_name ? ' by ' + comment.author_display_name : ''}. ${replyCount} direct repl${replyCount === 1 ? 'y is' : 'ies are'} present in the loaded comments. The database relationship determines whether replies are also cascaded. This cannot be undone.`,
+        confirmLabel: 'Delete comment',
+        tone: 'danger',
+        onConfirm: () => deleteComment(id, true),
+      });
+      return;
+    }
     setBusy(true);
     let adminUser = null;
     try {
@@ -839,34 +867,54 @@ export default function AdminPanel({ onLogout }) {
       const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: path }).eq('id', chapter.id);
       if (error) throw new Error('PDPKL card thumbnail save failed: ' + error.message);
       committed = true;
-      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { console.warn('PDPKL old thumbnail cleanup failed:', e); } }
+      let cleanupPending = false;
+      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { cleanupPending = true; await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_card_thumbnail', chapter.id, { provider: 'pdpl', paths: [oldPath], error: e.message }); } }
       await logAdminAction(adminUser, 'save_pdpkl_card_thumbnail', 'pdlpl_chapter', chapter.id, { slot, path });
-      await load(); setNotice({ type: 'success', text: 'PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail saved.' });
+      await load(); setNotice({ type: cleanupPending ? 'warning' : 'success', text: 'PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail saved.' + (cleanupPending ? ' Old thumbnail cleanup failed; retry it from Operations.' : '') });
     } catch (error) {
       if (uploadedPath && !committed) { try { await removePdlplFiles([uploadedPath]); } catch (_) {} }
       console.error(error); setNotice({ type: 'error', text: error.message || 'PDPKL card thumbnail upload failed.' });
     } finally { setBusy(false); }
   }
 
-  async function clearPdpklCardThumbnail(chapter, slot) {
+  async function clearPdpklCardThumbnail(chapter, slot, confirmed = false) {
     if (!chapter?.id || busy) return;
-    if (!window.confirm('Remove the custom PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail?')) return;
+    if (!confirmed) {
+      requestAdminConfirmation({
+        title: 'Remove PDPKL card thumbnail?',
+        message: `Removes the custom ${slot} thumbnail for ${chapter.title || 'this PDPKL chapter'} and restores the fallback artwork. The database path is cleared and storage cleanup is attempted.`,
+        confirmLabel: 'Remove thumbnail',
+        tone: 'danger',
+        onConfirm: () => clearPdpklCardThumbnail(chapter, slot, true),
+      });
+      return;
+    }
     setBusy(true); setNotice({ type: '', text: '' });
     try {
       const column = slot === 'mobile' ? 'card_thumbnail_mobile_path' : 'card_thumbnail_desktop_path';
       const oldPath = slot === 'mobile' ? chapter.cardThumbnailMobilePath : chapter.cardThumbnailDesktopPath;
       const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: null }).eq('id', chapter.id);
       if (error) throw new Error('PDPKL card thumbnail reset failed: ' + error.message);
-      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { console.warn('PDPKL thumbnail cleanup failed:', e); } }
-      await load(); setNotice({ type: 'success', text: 'PDPKL custom card thumbnail removed.' });
+      let cleanupPending = false;
+      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { cleanupPending = true; await logAdminAction(null, 'r2_cleanup_failed', 'pdlpl_card_thumbnail', chapter.id, { provider: 'pdpl', paths: [oldPath], error: e.message }); } }
+      await load(); setNotice({ type: cleanupPending ? 'warning' : 'success', text: 'PDPKL custom card thumbnail removed.' + (cleanupPending ? ' Storage cleanup failed; retry it from Operations.' : '') });
     } catch (error) { console.error(error); setNotice({ type: 'error', text: error.message || 'PDPKL card thumbnail reset failed.' }); }
     finally { setBusy(false); }
   }
 
-  async function clearCardThumbnail(chapter, slot) {
+  async function clearCardThumbnail(chapter, slot, confirmed = false) {
     if (!chapter?.id || !['desktop', 'mobile'].includes(slot) || busy) return;
     const label = slot === 'mobile' ? 'mobile' : 'desktop';
-    if (!window.confirm('Remove the custom ' + label + ' card thumbnail for ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this chapter') + '? The normal chapter thumbnail will be used again.')) return;
+    if (!confirmed) {
+      requestAdminConfirmation({
+        title: 'Remove card thumbnail override?',
+        message: `Removes the custom ${label} thumbnail for ${chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : (chapter.title || 'this chapter')}. The standard chapter cover will be used again, and storage cleanup is attempted.`,
+        confirmLabel: 'Remove thumbnail',
+        tone: 'danger',
+        onConfirm: () => clearCardThumbnail(chapter, slot, true),
+      });
+      return;
+    }
     setBusy(true);
     setNotice({ type: '', text: '' });
     let adminUser = null;
@@ -933,8 +981,12 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
-  async function deleteAnnouncement(item) {
-    if (!window.confirm('Delete this announcement permanently?')) return;
+  async function deleteAnnouncement(item, confirmed = false) {
+    if (!confirmed) {
+      const title = item.title?.startsWith('__image_only_') ? 'Image-only announcement' : (item.title || 'Untitled announcement');
+      requestAdminConfirmation({ title: 'Delete announcement?', message: `Permanently removes “${title}” from the public announcement rail. Its image storage cleanup will be attempted after the record is deleted.`, confirmLabel: 'Delete announcement', tone: 'danger', onConfirm: () => deleteAnnouncement(item, true) });
+      return;
+    }
     setBusy(true);
     let adminUser = null;
     try {
@@ -971,8 +1023,12 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
-  async function deleteMedia(id) {
-    if (!window.confirm('Delete this media item permanently?')) return;
+  async function deleteMedia(id, confirmed = false) {
+    if (!confirmed) {
+      const item = media.find(row => row.id === id);
+      requestAdminConfirmation({ title: 'Delete media record?', message: `Permanently removes “${item?.title || 'this media item'}” from the media library. The underlying image file is not deleted by this action.`, confirmLabel: 'Delete media record', tone: 'danger', onConfirm: () => deleteMedia(id, true) });
+      return;
+    }
     setBusy(true);
     let adminUser = null;
     try {
@@ -1047,8 +1103,8 @@ export default function AdminPanel({ onLogout }) {
         onSelect={item => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)}
         email={email}
         reportCount={reportCount}
-        connectionState={loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}
-        connectionError={notice.type === 'error'}
+        connectionState={loading ? 'Loading admin data…' : ['error', 'warning'].includes(notice.type) ? 'Needs attention' : 'Operational'}
+        connectionError={['error', 'warning'].includes(notice.type)}
       />
       {mobileSidebarOpen && <button type="button" className="ar-admin-drawer-backdrop" onClick={() => setMobileSidebarOpen(false)} aria-label="Close admin navigation" />}
       <div className="ar-admin-main">
@@ -1091,7 +1147,7 @@ export default function AdminPanel({ onLogout }) {
         </header>
         <div className="ar-admin-content">
           <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
-          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
+          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : notice.type === 'warning' ? 'warning' : 'success'}`} role={notice.type === 'error' ? 'alert' : 'status'}><AdminIcon name={notice.type === 'error' ? 'flag' : notice.type === 'warning' ? 'pulse' : 'sparkle'} size={16}/><span>{notice.text}</span><button type="button" aria-label="Dismiss notification" onClick={() => setNotice({ type: '', text: '' })}><AdminIcon name="close" size={15}/></button></div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
