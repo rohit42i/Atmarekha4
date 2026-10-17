@@ -1335,3 +1335,73 @@ html[data-theme="light"] body main.admin-page.ar-admin-v3 :is(
   border-color: var(--ar-primary-hover) !important;
   color: var(--ar-on-primary) !important;
 }
+
+
+/* Control Room toolbar: align the reporting window and one primary action
+   on the first row; keep exports/refresh together on a secondary row. */
+body main.admin-page.ar-admin-v3 .ar-cr-hero-actions {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) max-content;
+  align-items: end;
+  justify-content: stretch;
+  gap: 9px;
+}
+
+body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > label {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-hero-secondary-actions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-btn.is-primary {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  margin-left: 0;
+}
+
+@media (max-width: 1380px) {
+  body main.admin-page.ar-admin-v3 .ar-cr-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions {
+    max-width: 760px;
+    grid-template-columns: minmax(160px, 1fr) max-content;
+  }
+}
+
+@media (max-width: 760px) {
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > label,
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-hero-secondary-actions,
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-btn.is-primary {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-hero-secondary-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  body main.admin-page.ar-admin-v3 .ar-cr-hero-actions > .ar-cr-btn.is-primary {
+    justify-self: stretch;
+  }
+}
