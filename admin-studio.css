@@ -10,6 +10,7 @@
   --ar-text: #F4F4F5;
   --ar-secondary: #A1A1AA;
   --ar-muted: #71717A;
+  --ar-on-accent: #111111;
   --ar-orange: #F5901E;
   --ar-orange-hover: #FF9F3A;
   --ar-orange-pressed: #E07F0F;
@@ -73,11 +74,11 @@
 .ar-admin button.admin-studio-button-primary {
   background: var(--ar-orange);
   border-color: var(--ar-orange);
-  color: #111111;
+  color: var(--ar-on-accent);
 }
 .ar-admin button.ar-admin-primary-action:hover:not(:disabled),
 .ar-admin button.admin-submit:hover:not(:disabled),
-.ar-admin button.admin-studio-button-primary:hover:not(:disabled) { background: var(--ar-orange-hover); border-color: var(--ar-orange-hover); color: #111111; }
+.ar-admin button.admin-studio-button-primary:hover:not(:disabled) { background: var(--ar-orange-hover); border-color: var(--ar-orange-hover); color: var(--ar-on-accent); }
 .ar-admin button.ar-admin-primary-action:active:not(:disabled),
 .ar-admin button.admin-submit:active:not(:disabled),
 .ar-admin button.admin-studio-button-primary:active:not(:disabled) { background: var(--ar-orange-pressed); }
@@ -91,6 +92,7 @@
 .ar-admin button.danger-text:hover:not(:disabled),
 .ar-admin button.studio-delete-action:hover:not(:disabled),
 .ar-admin .ar-admin-danger-button:hover:not(:disabled) { background: var(--ar-danger-tint); border-color: var(--ar-danger); }
+ .ar-admin-sidebar-collapsed .ar-admin-app { grid-template-columns: 72px minmax(0, 1fr); }
 .ar-admin .ar-admin-app {
   display: grid;
   grid-template-columns: 264px minmax(0, 1fr);
@@ -128,7 +130,7 @@
   height: 38px;
   border: 1px solid rgba(245,144,30,.3);
   border-radius: 9px;
-  color: #111111;
+  color: var(--ar-on-accent);
   background: var(--ar-orange);
   font-size: 12px;
   font-weight: 800;
@@ -219,7 +221,7 @@
   place-items: center;
   padding: 0 5px;
   border-radius: 999px;
-  color: #111111;
+  color: var(--ar-on-accent);
   background: var(--ar-orange);
   font-size: 11px;
   font-style: normal;
@@ -422,8 +424,7 @@
 .ar-admin .admin-loading { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; color: var(--ar-secondary); font-size: 13px; }
 .ar-admin .admin-loading::before { grid-column: 1 / -1; display: block; height: 1px; content: ""; }
 .ar-admin .admin-loading { position: relative; }
-.ar-admin .admin-loading:after { grid-column: 1 / -1; display: block; height: 120px; border: 1px solid var(--ar-border); border-radius: 12px; background: linear-gradient(90deg,var(--ar-surface),var(--ar-raised),var(--ar-surface)); background-size: 240% 100%; animation: ar-admin-shimmer 1.4s ease infinite; content: ""; }
-@keyframes ar-admin-shimmer { to { background-position: -240% 0; } }
+.ar-admin .admin-loading:after { grid-column: 1 / -1; display: block; height: 120px; border: 1px solid var(--ar-border); border-radius: 12px; background: var(--ar-raised); content: ""; }
 .ar-admin .ar-admin-confirm-backdrop,
 .ar-admin .ar-admin-shortcut-backdrop {
   position: fixed;
@@ -445,6 +446,7 @@
   background: var(--ar-surface);
   box-shadow: var(--ar-shadow);
 }
+.ar-admin .ar-admin-confirm-error { margin-top: 14px; color: var(--ar-danger); font-size: 12px; }
 .ar-admin .ar-admin-confirm-dialog h2,
 .ar-admin .ar-admin-shortcut-dialog h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.35; }
 .ar-admin .ar-admin-confirm-dialog p,
@@ -547,7 +549,7 @@
   }
   .ar-admin .admin-bottom-nav button { position: relative; display: grid; justify-items: center; gap: 3px; min-width: 0; min-height: 48px; padding: 4px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ar-secondary); font-size: 10px; }
   .ar-admin .admin-bottom-nav button.active { background: var(--ar-orange-tint); color: var(--ar-orange); }
-  .ar-admin .admin-bottom-nav button b { position: absolute; top: 0; right: 10px; color: #111111; border-radius: 999px; background: var(--ar-orange); padding: 1px 5px; font-size: 9px; }
+  .ar-admin .admin-bottom-nav button b { position: absolute; top: 0; right: 10px; color: var(--ar-on-accent); border-radius: 999px; background: var(--ar-orange); padding: 1px 5px; font-size: 9px; }
   .ar-admin .admin-loading { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .ar-admin .ar-chapter-drawer-backdrop { align-items: stretch; }
   .ar-admin .ar-chapter-drawer { width: 100%; border-left: 0; }
