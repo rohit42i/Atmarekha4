@@ -5,7 +5,7 @@ import { getAdminRole } from './adminAuth';
 import { fetchCloudflareAdminAnalytics } from './engagement';
 import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 
-const fmt = value => value ? new Date(value).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+const fmt = value => value ? new Date(value).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const SITE_TIME_ZONE = 'Asia/Kolkata';
 const todayStart = () => { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: SITE_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); return new Date(`${parts}T00:00:00+05:30`).toISOString(); };
 
@@ -183,7 +183,7 @@ export default function AdminOperations() {
       setNotice(`Notification sent: ${data.sent || 0} delivered, ${data.failed || 0} failed.`); await load();
     } catch (error) {
       setNotice(error.message || 'Notification failed.');
-      try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'send_notification_failed', entity_type: 'notification', details: { target: actualTarget, error: error.message } }); } catch (_) {}
+      try { const user = await requireAdmin(); const { error: auditError } = await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: 'send_notification_failed', entity_type: 'notification', details: { target: actualTarget, error: error.message } }); if (auditError) notifyAdminToast('Could not write the notification failure log: ' + auditError.message, 'warning'); } catch (auditError) { notifyAdminToast('Could not write the notification failure log: ' + (auditError?.message || 'unknown error'), 'warning'); }
     } finally { setBusy(false); }
   };
 
