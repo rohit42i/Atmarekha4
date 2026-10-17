@@ -105,7 +105,6 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
     { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
@@ -989,7 +988,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
+  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -1110,7 +1109,7 @@ export default function AdminPanel({ onLogout }) {
       reportCount={reportCount}
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
-    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
+    />: tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
