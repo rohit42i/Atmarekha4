@@ -1336,7 +1336,7 @@ export default function AdminPanel({ onLogout }) {
 
         </div>
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
-          <button type="button" className={tab === 'Control Room' ? 'active' : ''} onClick={() => activateTab('Control Room')}><AdminIcon name="chart" size={16}/><span>Control Room</span></button>
+          <button type="button" className={tab === 'Overview' ? 'active' : ''} onClick={() => activateTab('Overview')}><AdminIcon name="grid" size={16}/><span>Home</span></button>
           <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}><AdminIcon name="book" size={16}/><span>Chapters</span></button>
           <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
           <button type="button" onClick={() => setMobileSidebarOpen(true)}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
