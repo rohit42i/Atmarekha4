@@ -4,6 +4,7 @@ import { supabase, isSupportedImageFile } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { AdminButton, AdminCard, AdminEmptyState, AdminModal, AdminTable } from './admin-studio-ui.jsx';
+import { notifyAdminToast } from './admin-feedback';
 
 const FILTER_KEY = 'atma-admin-studio:chapter-filters';
 const COLUMN_KEY = 'atma-admin-studio:chapter-columns';
@@ -187,19 +188,21 @@ export default function AdminChapterManager({
       const ids = [...selected];
       const { error } = await supabase.from('chapters').update({ status: bulkAction.status }).in('id', ids);
       if (error) throw error;
-      await supabase.from('admin_activity_log').insert({
+      const { error: auditError } = await supabase.from('admin_activity_log').insert({
         admin_user_id: user.id,
         action: `bulk_${action}_chapters`,
         entity_type: 'chapter',
         entity_id: null,
         details: { ids, count: ids.length, status: bulkAction.status },
       });
+      if (auditError) notifyAdminToast('Chapters were updated, but the admin activity log could not be saved: ' + auditError.message, 'warning');
       setSelected(new Set());
       setBulkAction(null);
       setNotice(`${ids.length} chapter${ids.length === 1 ? '' : 's'} ${action}ed successfully.`);
       await onReload?.();
     } catch (error) {
       setNotice(error?.message || 'Bulk chapter update failed.');
+      notifyAdminToast(error?.message || 'Bulk chapter update failed.', 'error');
       setBulkAction(null);
     }
   };
