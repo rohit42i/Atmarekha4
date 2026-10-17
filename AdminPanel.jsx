@@ -5,13 +5,10 @@ import AdminOverview from './AdminOverview';
 import AdminControlRoom from './AdminControlRoom.jsx';
 import AdminMembership from './AdminMembership.jsx';
 import AdminChapterPages from './AdminChapterPages';
-import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminSidebar } from './admin-studio-ui.jsx';
-import './admin-pro-studio.css';
-import './admin-command-center-system.css';
-import './admin-ultimate-ui.css';
+import './admin-studio.css';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
@@ -23,7 +20,7 @@ import AdminModerationTools from './AdminModerationTools.jsx';
 import AdminGroupChatTools from './AdminGroupChatTools.jsx';
 import AdminProTools from './AdminProTools.jsx';
 import CommunityAdmin from './CommunityAdmin.jsx';
-import './admin-workspace-ux.css';
+import AdminConfirmDialog, { requestAdminConfirmation } from './AdminConfirmDialog.jsx';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
@@ -94,28 +91,27 @@ const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
     { key: 'Overview', icon: 'grid', label: 'Dashboard' },
     { key: 'Control Room', icon: 'chart', label: 'Control Room' },
-  ]},
-  { label: 'Publishing', items: [
     { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
     { key: 'Pages', icon: 'layers', label: 'Page Editor' },
-    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
-    { key: 'Media', icon: 'image', label: 'Media Library' },
   ]},
   { label: 'Community', items: [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
     { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
     { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
   ]},
-  { label: 'Membership', items: [
+  { label: 'Monetization', items: [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
     { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
   ]},
-  { label: 'System', items: [
+  { label: 'Library', items: [
+    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
+    { key: 'Media', icon: 'image', label: 'Media Library' },
+  ]},
+  { label: 'Tools', items: [
     { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
@@ -145,6 +141,8 @@ export default function AdminPanel({ onLogout }) {
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
@@ -267,6 +265,11 @@ export default function AdminPanel({ onLogout }) {
         return;
       }
       if (isTyping(event) || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (key === '?' || (event.shiftKey && key === '/')) {
+        event.preventDefault();
+        setShortcutHelpOpen(true);
+        return;
+      }
       if (key === 'n') {
         event.preventDefault();
         setChapterPublishProject('atma');
@@ -989,7 +992,7 @@ export default function AdminPanel({ onLogout }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
+  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -1032,11 +1035,13 @@ export default function AdminPanel({ onLogout }) {
     setProfileOpen(false);
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
-  return <main className="admin-page ar-admin-v3" data-admin-root="true">
+  return <main className="admin-page ar-admin-v3 ar-admin" data-admin-root="true">
     <div className="ar-admin-app">
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
         activeKey={tab}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(value => !value)}
         mobileOpen={mobileSidebarOpen}
         onClose={() => setMobileSidebarOpen(false)}
         onSelect={item => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)}
@@ -1062,8 +1067,8 @@ export default function AdminPanel({ onLogout }) {
             </button>
           </div>
           <div className="ar-admin-top-actions">
-            <span className="ar-admin-freshness" title={lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-IN') : 'Not loaded yet'}>
-              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + lastRefreshedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : 'Updating'}
+            <span className="ar-admin-freshness" title={lastRefreshedAt ? lastRefreshedAt.toLocaleString() : 'Not loaded yet'}>
+              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + lastRefreshedAt.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' }) : 'Updating'}
             </span>
             <button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}>
               <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
@@ -1104,13 +1109,13 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString()}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.source === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.source === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
-    />: tab === 'Email Campaigns' ? <EmailCampaigns adminEmail={email} /> : tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
+    />: tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
@@ -1130,7 +1135,7 @@ export default function AdminPanel({ onLogout }) {
       <div className="admin-card">
         <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
         <div className="admin-mini-list">{announcements.map(item => <div key={item.id}>
-          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString('en-IN')}</small></div></div>
+          <div className="admin-announcement-admin-row">{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString()}</small></div></div>
           <div className="admin-row-actions"><button type="button" onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button type="button" className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
@@ -1139,7 +1144,7 @@ export default function AdminPanel({ onLogout }) {
 
         </div>
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
-          <button type="button" className={tab === 'Control Room' ? 'active' : ''} onClick={() => activateTab('Control Room')}><AdminIcon name="chart" size={16}/><span>Control Room</span></button>
+          <button type="button" className={tab === 'Overview' ? 'active' : ''} onClick={() => activateTab('Overview')}><AdminIcon name="grid" size={16}/><span>Home</span></button>
           <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}><AdminIcon name="book" size={16}/><span>Chapters</span></button>
           <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
           <button type="button" onClick={() => setMobileSidebarOpen(true)}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
@@ -1163,6 +1168,8 @@ export default function AdminPanel({ onLogout }) {
         <AdminGroupChatTools />
         <AdminProTools />
         <CommunityAdmin />
+        <AdminConfirmDialog />
+        {shortcutHelpOpen && <div className="ar-admin-shortcut-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setShortcutHelpOpen(false); }}><section className="ar-admin-shortcut-dialog" role="dialog" aria-modal="true" aria-labelledby="ar-admin-shortcuts-title"><h2 id="ar-admin-shortcuts-title">Keyboard shortcuts</h2><p>Shortcuts pause while you are typing in a field.</p><div className="ar-admin-shortcut-list"><div><span>Open command palette</span><kbd>⌘ K / Ctrl K</kbd></div><div><span>New chapter</span><kbd>N</kbd></div><div><span>Refresh admin data</span><kbd>R</kbd></div><div><span>Show shortcut help</span><kbd>?</kbd></div><div><span>Close dialog</span><kbd>Esc</kbd></div></div><div className="ar-admin-confirm-actions"><button type="button" onClick={() => setShortcutHelpOpen(false)}>Close</button></div></section></div>}
       </div>
     </div>
   </main>;
