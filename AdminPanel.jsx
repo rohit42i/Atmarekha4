@@ -9,7 +9,6 @@ import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminSidebar } from './admin-studio-ui.jsx';
-import './admin-pro-studio.css';
 import './admin-command-center-system.css';
 import './admin-ultimate-ui.css';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
@@ -24,6 +23,7 @@ import AdminGroupChatTools from './AdminGroupChatTools.jsx';
 import AdminProTools from './AdminProTools.jsx';
 import CommunityAdmin from './CommunityAdmin.jsx';
 import './admin-workspace-ux.css';
+import './admin-pro-studio.css';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
