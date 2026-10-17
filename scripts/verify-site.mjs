@@ -360,5 +360,24 @@ if (!tabsDeclaration || missingNavigationTabs.length) {
   console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
   failed = true;
 }
+const moderationQueueSource = await readFile('AdminModerationQueue.jsx', 'utf8');
+if (!moderationQueueSource.includes("resolved: reports.filter(report => normalizeStatus(report) === 'resolved').length") ||
+    !moderationQueueSource.includes("? reportStatus === 'resolved'") ||
+    !moderationQueueSource.includes("['reviewed', 'dismissed'].includes(reportStatus)")) {
+  console.error('CHECK FAILED: report states must not double-count reviewed/dismissed reports as resolved.');
+  failed = true;
+}
+
+if (!adminPanelSource.includes('function safeImagePreviewUrl(value)') ||
+    !adminPanelSource.includes('safeImagePreviewUrl(announcementPreview)') ||
+    adminPanelSource.includes('src={announcementPreview}')) {
+  console.error('CHECK FAILED: announcement preview URLs must pass through the allowed-protocol URL validator.');
+  failed = true;
+}
+if (!adminPanelSource.includes('const safeName = /\\\\.[^.]+$/.test(rawSafeName)')) {
+  console.error('CHECK FAILED: announcement upload filenames must preserve a valid single extension.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
