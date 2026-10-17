@@ -667,9 +667,11 @@ export default function AdminPanel({ onLogout }) {
       await logAdminAction(adminUser, 'report_' + status, 'comment_report', id, patch);
       await load();
       setNotice({ type: 'success', text: 'Report marked ' + status + '.' });
+      return true;
     } catch (error) {
       await logAdminAction(adminUser, 'report_status_failed', 'comment_report', id, { error: error.message });
       setNotice({ type: 'error', text: error.message || 'Report update failed.' });
+      return false;
     } finally {
       setBusy(false);
     }
