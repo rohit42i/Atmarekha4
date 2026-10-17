@@ -15,6 +15,7 @@ import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
 import AdminCardThumbnails from './AdminCardThumbnails.jsx';
+import AdminComments from './AdminComments.jsx';
 import AdminChapterHealth from './AdminChapterHealth.jsx';
 import AdminOperations from './AdminOperations.jsx';
 import AdminManagementTools from './AdminManagementTools.jsx';
@@ -152,6 +153,8 @@ export default function AdminPanel({ onLogout }) {
   const [mediaModalOpen, setMediaModalOpen] = useState(false);
   const [mediaSearch, setMediaSearch] = useState('');
   const [mediaCategoryFilter, setMediaCategoryFilter] = useState('all');
+  const [replyTarget, setReplyTarget] = useState(null);
+  const [replyText, setReplyText] = useState('');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -312,6 +315,7 @@ export default function AdminPanel({ onLogout }) {
         if (mobileSidebarOpen) setMobileSidebarOpen(false);
         if (profileOpen) setProfileOpen(false);
         if (commandOpen) setCommandOpen(false);
+        if (replyTarget) { setReplyTarget(null); setReplyText(''); }
         return;
       }
       if (isTyping(event) || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -647,6 +651,54 @@ export default function AdminPanel({ onLogout }) {
 
   async function clearReport(id) {
     await setReportStatus(id, 'resolved');
+  }
+
+  async function markCommentReportsReviewed(commentId) {
+    const openReports = reports.filter(report => String(report.comment_id) === String(commentId) && (report.status || 'open') === 'open');
+    if (!openReports.length || busy) return;
+    setBusy(true);
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const patch = { status: 'resolved', reviewed_at: new Date().toISOString(), reviewed_by: adminUser.id };
+      const { data, error } = await supabase.from('comment_reports').update(patch).eq('comment_id', commentId).eq('status', 'open').select('id');
+      if (error) throw error;
+      const updatedIds = (data || []).map(row => row.id);
+      for (const reportId of updatedIds) await logAdminAction(adminUser, 'report_resolved', 'comment_report', reportId, { comment_id: commentId, reviewed_from_comments: true });
+      await load();
+      setNotice({ type: 'success', text: updatedIds.length + ' open report(s) marked resolved.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'report_status_failed', 'comment_report', null, { comment_id: commentId, status: 'resolved', error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Could not mark reports reviewed.' });
+    } finally { setBusy(false); }
+  }
+
+  async function replyToComment(event) {
+    event.preventDefault();
+    if (!replyTarget || !replyText.trim() || busy) return;
+    setBusy(true);
+    let adminUser = null;
+    try {
+      adminUser = await requireAdmin();
+      const payload = {
+        user_id: adminUser.id,
+        chapter_id: replyTarget.chapter_id || null,
+        announcement_id: replyTarget.announcement_id || null,
+        parent_comment_id: replyTarget.id,
+        author_name: email || 'Admin',
+        content: replyText.trim(),
+      };
+      const { data, error } = await supabase.from('comments').insert(payload).select('id').single();
+      if (error) throw error;
+      await logAdminAction(adminUser, 'reply_to_comment', 'comment', data?.id || null, { parent_comment_id: replyTarget.id, chapter_id: payload.chapter_id, announcement_id: payload.announcement_id });
+      setReplyTarget(null);
+      setReplyText('');
+      await load();
+      setNotice({ type: 'success', text: 'Reply posted to the thread.' });
+    } catch (error) {
+      await logAdminAction(adminUser, 'reply_to_comment_failed', 'comment', replyTarget.id, { error: error.message });
+      setNotice({ type: 'error', text: error.message || 'Reply could not be posted.' });
+    } finally { setBusy(false); }
   }
 
   function editAnnouncement(item) {
@@ -1195,7 +1247,7 @@ export default function AdminPanel({ onLogout }) {
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); setChapterEditorOpen(true); }}
       editorOpen={chapterEditorOpen}
       onEditorOpenChange={setChapterEditorOpen}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString(undefined)}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.source === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.source === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <AdminComments comments={comments} reports={reports} chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onDeleteComment={deleteComment} onReply={comment => { setReplyTarget(comment); setReplyText(''); }} onReviewReports={markCommentReportsReviewed} /> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.source === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.source === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
@@ -1281,6 +1333,18 @@ export default function AdminPanel({ onLogout }) {
             <button type="button" aria-label="Dismiss notification" onClick={() => setToasts(current => current.filter(item => item.id !== toast.id))}>×</button>
           </div>)}
         </div>
+        {replyTarget && <div className="ar-admin-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) { setReplyTarget(null); setReplyText(''); } }}>
+          <form className="ar-admin-confirm-dialog ar-admin-reply-dialog" role="dialog" aria-modal="true" aria-labelledby="ar-admin-reply-title" onSubmit={replyToComment}>
+            <h2 id="ar-admin-reply-title">Reply to comment</h2>
+            <p>Replying to <strong>{replyTarget.author_display_name || replyTarget.author_name || 'Reader'}</strong>. Your reply will be added to the existing thread.</p>
+            <label htmlFor="ar-admin-reply-content">Reply text</label>
+            <textarea id="ar-admin-reply-content" value={replyText} onChange={event => setReplyText(event.target.value)} rows={5} required maxLength={5000} placeholder="Write a thoughtful response…" />
+            <div className="ar-admin-confirm-actions">
+              <button type="button" className="ar-admin-confirm-cancel" onClick={() => { setReplyTarget(null); setReplyText(''); }}>Cancel</button>
+              <button type="submit" className="ar-admin-confirm-accept" disabled={busy || !replyText.trim()} title={busy ? 'Wait for the current admin operation to finish.' : !replyText.trim() ? 'Enter a reply before posting.' : undefined}>{busy ? 'Posting…' : 'Post reply'}</button>
+            </div>
+          </form>
+        </div>}
         {confirmDialog && <div className="ar-admin-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) { confirmDialog.resolve?.(false); setConfirmDialog(null); } }}>
           <section className="ar-admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="ar-admin-confirm-title" aria-describedby="ar-admin-confirm-message ar-admin-confirm-consequence">
             <div className="ar-admin-confirm-icon"><AdminIcon name="flag" size={20}/></div>
