@@ -212,7 +212,7 @@ export default function AdminPanel({ onLogout }) {
           .from('profiles')
           .select('id, display_name, username')
           .in('id', commenterIds);
-        if (profileError) console.warn('Comment author profile lookup failed:', profileError);
+        if (profileError) { console.warn('Comment author profile lookup failed:', profileError); notifyAdminToast('Comment author names may be incomplete because profile lookup failed: ' + profileError.message, 'warning'); }
         else commenterProfiles = Object.fromEntries((profileRows || []).map(profile => [profile.id, profile]));
       }
       setComments(mergedComments.map(comment => {
