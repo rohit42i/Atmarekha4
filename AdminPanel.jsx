@@ -148,6 +148,10 @@ export default function AdminPanel({ onLogout }) {
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
+  const [chapterEditorOpen, setChapterEditorOpen] = useState(false);
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [mediaSearch, setMediaSearch] = useState('');
+  const [mediaCategoryFilter, setMediaCategoryFilter] = useState('all');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -306,6 +310,7 @@ export default function AdminPanel({ onLogout }) {
         setChapterPublishProject('atma');
         activateTab('Chapters');
         resetForm();
+        setChapterEditorOpen(true);
       } else if (key === 'r') {
         event.preventDefault();
         load();
@@ -483,6 +488,7 @@ export default function AdminPanel({ onLogout }) {
       const wasEditing = Boolean(editing);
       resetForm();
       await load();
+      setChapterEditorOpen(false);
       setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' });
     } catch (error) {
       console.error(error);
@@ -522,7 +528,7 @@ export default function AdminPanel({ onLogout }) {
   const editChapter = chapter => {
     setEditing(chapter);
     setForm({ number: chapter.chapterNumber || '', language: normalizeChapterLanguage(chapter.language), title: chapter.title || '', description: chapter.description || '', status: chapter.status || 'Published', releaseDate: chapter.releaseDate ? new Date(chapter.releaseDate).toISOString().slice(0, 16) : '', cover: null, pages: [] });
-    setTab('Chapters'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTab('Chapters'); setChapterEditorOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   async function deleteChapter(chapter) {
@@ -1155,7 +1161,7 @@ export default function AdminPanel({ onLogout }) {
           </div>
         </header>
         <div className="ar-admin-content">
-          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
+          <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); setChapterEditorOpen(true); }} className="ar-admin-primary-action">New chapter</button></div></div>
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role={notice.type === 'error' ? 'alert' : 'status'} aria-live="polite">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span><button type="button" className="ar-admin-toast-close" aria-label="Dismiss notification" onClick={() => setNotice({ type: '', text: '' })}>×</button></div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
@@ -1173,7 +1179,9 @@ export default function AdminPanel({ onLogout }) {
       onDelete={deleteChapter}
       onReload={load}
       chapterPerformance={chapterPerformance}
-      onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
+      onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); setChapterEditorOpen(true); }}
+      editorOpen={chapterEditorOpen}
+      onEditorOpenChange={setChapterEditorOpen}
     /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString(undefined)}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.source === 'pdpkl' ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.source === 'pdpkl' ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
@@ -1247,7 +1255,7 @@ export default function AdminPanel({ onLogout }) {
           pageCounts={pageCounts}
           onSelectTab={activateTab}
           onOpenTool={openAdminTool}
-          onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
+          onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); setChapterEditorOpen(true); }}
           onRefresh={load}
         />
         {/* Mount event-driven tools once so sidebar, dashboard and command-palette actions share real handlers. */}
