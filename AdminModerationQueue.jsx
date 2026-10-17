@@ -102,7 +102,10 @@ export default function AdminModerationQueue({ reports = [], comments = [], onDe
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !(await getAdminRole(user.id))) throw new Error('Admin access required.');
-      await onSetReportStatus?.(report.id, nextStatus);
+      const updated = await onSetReportStatus?.(report.id, nextStatus);
+      if (updated) {
+        setSelectedReport(current => current?.id === report.id ? { ...current, status: nextStatus } : current);
+      }
     } catch (error) {
       notifyAdminToast(error?.message || 'Could not update report status.', 'error');
     }
