@@ -48,6 +48,22 @@ function imageExtension(file) {
   return Object.entries(IMAGE_MIME_BY_EXT).find(([, mime]) => mime === type)?.[0] || 'jpg';
 }
 
+function safeImagePreviewUrl(value) {
+  const source = String(value || '').trim();
+  if (!source) return '';
+  try {
+    const url = new URL(source, window.location.origin);
+    // Announcement previews only need local files and HTTPS public image URLs.
+    // Reject javascript:, data:, and non-local plaintext HTTP URLs.
+    if (url.protocol === 'blob:' || url.protocol === 'https:' || url.origin === window.location.origin) {
+      return url.href;
+    }
+  } catch (_) {
+    // Ignore malformed preview values instead of rendering them.
+  }
+  return '';
+}
+
 const publicUrl = (bucket, path) => cloudflareR2.from(bucket).getPublicUrl(path).data.publicUrl;
 const pathFromUrl = (url, bucket) => {
   if (!url) return null;
@@ -768,7 +784,7 @@ export default function AdminPanel({ onLogout }) {
       if (announcement.thumbnail) {
         const ext = imageExtension(announcement.thumbnail);
         const rawSafeName = announcement.thumbnail.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80);
-        const safeName = /\\.[^.]+$/.test(rawSafeName) ? rawSafeName : (rawSafeName || 'thumbnail') + '.' + ext;
+const safeName = /\.[^.]+$/.test(rawSafeName) ? rawSafeName : (rawSafeName || 'thumbnail') + '.' + ext;
         const path = 'announcements/' + Date.now() + '-' + safeName;
         imageUrl = await upload(COVER_BUCKET, announcement.thumbnail, path);
         uploadedPaths.push({ bucket: COVER_BUCKET, path });
@@ -1285,7 +1301,7 @@ export default function AdminPanel({ onLogout }) {
         <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
          <aside className="ar-admin-announcement-preview" aria-live="polite" aria-label="Live announcement preview">
            <span>LIVE PREVIEW</span>
-           {announcementPreview && <img src={announcementPreview} alt="Announcement image preview" />}
+           {safeImagePreviewUrl(announcementPreview) && <img src={safeImagePreviewUrl(announcementPreview)} alt="Announcement image preview" />}
            <strong>{announcement.title.trim() || 'Announcement title'}</strong>
            <p>{announcement.content.trim() || 'Your announcement text will appear here as readers see it.'}</p>
            <div><span>{announcement.display_position ? 'Slot ' + announcement.display_position : 'Automatic placement'}</span>{announcement.is_pinned && <span className="ar-admin-pinned-badge">Pinned · {announcement.pin_target === 'pdpkl' ? 'PDPKL' : 'Atma Rekha'}</span>}</div>
@@ -1295,7 +1311,7 @@ export default function AdminPanel({ onLogout }) {
       <div className="admin-card">
         <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
         <div className="admin-mini-list">{announcements.map((item, index) => <div key={item.id}>
-          <div className="admin-announcement-admin-row"><span className="ar-admin-announcement-slot">Slot {item.display_position || index + 1}</span>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString(undefined)}</small></div></div>
+          <div className="admin-announcement-admin-row"><span className="ar-admin-announcement-slot">Slot {item.display_position || index + 1}</span>{safeImagePreviewUrl(item.image_url) && <img src={safeImagePreviewUrl(item.image_url)} alt="" loading="lazy"/>}<div><strong>{item.title?.startsWith('__image_only_') ? 'Image-only announcement' : item.title || 'Announcement'}</strong><p>{item.content || (item.image_url ? 'Image-only announcement' : '')}</p><small>{item.is_pinned ? 'Pinned · ' : ''}{item.display_position ? 'Position ' + item.display_position + ' · ' : ''}{new Date(item.published_at || item.created_at).toLocaleString(undefined)}</small></div></div>
           <div className="admin-row-actions"><button type="button" onClick={() => editAnnouncement(item)} disabled={busy}>Edit</button><button type="button" className="danger-text" onClick={() => deleteAnnouncement(item)} disabled={busy}>Delete</button></div>
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
