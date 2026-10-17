@@ -149,6 +149,8 @@ export function AdminSidebar({
   groups,
   activeKey,
   mobileOpen,
+  collapsed = false,
+  onToggleCollapse,
   onClose,
   onSelect,
   email,
@@ -157,13 +159,16 @@ export function AdminSidebar({
   connectionError = false,
 }) {
   return (
-    <aside className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}`} aria-label="Admin navigation">
+    <aside className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}${collapsed ? ' is-collapsed' : ''}`} aria-label="Admin navigation">
       <div className="ar-admin-brand">
         <div className="ar-admin-brand-mark">AR</div>
         <div>
           <strong>Atma Rekha</strong>
           <span>Admin studio</span>
         </div>
+        <button type="button" className="ar-admin-sidebar-toggle" onClick={onToggleCollapse} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-pressed={collapsed} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+          <AdminIcon name={collapsed ? 'menu' : 'chevron'} size={15} />
+        </button>
         <button type="button" className="ar-admin-mobile-close" onClick={onClose} aria-label="Close navigation">
           <AdminIcon name="close" size={18} />
         </button>
