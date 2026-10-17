@@ -79,6 +79,7 @@ export default function AdminChapterManager({
   const [bulkAction, setBulkAction] = useState(null);
   const [notice, setNotice] = useState('');
   const [focusChapterId, setFocusChapterId] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem(COLUMN_KEY, JSON.stringify(columns)); } catch {
@@ -91,6 +92,34 @@ export default function AdminChapterManager({
       // Saved filters are a convenience; storage failure must not break admin work.
     }
   }, [savedFilters]);
+
+  useEffect(() => {
+    const openNew = () => setFormOpen(true);
+    const closeDrawer = () => setFormOpen(false);
+    window.addEventListener('atma-admin-new-chapter', openNew);
+    window.addEventListener('atma-admin-close-chapter-drawer', closeDrawer);
+    return () => {
+      window.removeEventListener('atma-admin-new-chapter', openNew);
+      window.removeEventListener('atma-admin-close-chapter-drawer', closeDrawer);
+    };
+  }, []);
+
+  useEffect(() => { if (editing) setFormOpen(true); }, [editing]);
+
+  useEffect(() => {
+    if (!formOpen) return undefined;
+    const onKeyDown = event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeForm();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [formOpen]);
+
+  const closeForm = () => { setFormOpen(false); onReset?.(); };
+  const startNew = () => { onNewChapter?.(); setFormOpen(true); };
 
   useEffect(() => {
     const onFocus = event => {
@@ -227,6 +256,13 @@ export default function AdminChapterManager({
 
   return (
     <section className="admin-stack">
+      {formOpen && <div className="ar-chapter-drawer-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) closeForm(); }}>
+        <aside className="ar-chapter-drawer" role="dialog" aria-modal="true" aria-labelledby="ar-chapter-drawer-title">
+          <header className="ar-chapter-drawer-head">
+            <div><h2 id="ar-chapter-drawer-title">{editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : chapterPublishProject === 'pdpkl' ? 'Publish Pal Do Pal Ke Lamhe' : 'New chapter'}</h2><p>Review the details and artwork before saving.</p></div>
+            <button type="button" onClick={closeForm} aria-label="Close chapter editor">Close</button>
+          </header>
+          <div className="ar-chapter-drawer-body">
       <AdminCard
         className="admin-studio-publisher-card"
         eyebrow="PUBLISHER"
@@ -249,7 +285,7 @@ export default function AdminChapterManager({
           className="admin-studio-form-card"
           eyebrow={editing ? 'EDIT CHAPTER' : 'NEW CHAPTER'}
           title={editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Chapter details'}
-          actions={editing ? <AdminButton type="button" icon="close" onClick={onReset}>Cancel</AdminButton> : null}
+          actions={editing ? <AdminButton type="button" icon="close" onClick={closeForm}>Cancel</AdminButton> : null}
         >
           <form onSubmit={onSubmit} className="admin-form">
             <div className="admin-form-grid">
@@ -317,11 +353,15 @@ export default function AdminChapterManager({
               <AdminButton type="submit" variant="primary" size="lg" disabled={busy} icon={busy ? 'refresh' : editing ? 'bookmark' : 'layers'}>
                 {busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}
               </AdminButton>
-              {!editing ? <AdminButton type="button" onClick={onNewChapter}>Clear</AdminButton> : null}
+              {!editing ? <AdminButton type="button" onClick={closeForm}>Cancel</AdminButton> : null}
             </div>
           </form>
         </AdminCard>
       )}
+
+          </div>
+        </aside>
+      </div>}
 
       {notice ? <div className="ar-admin-notice success" role="status">{notice}</div> : null}
 
@@ -330,7 +370,10 @@ export default function AdminChapterManager({
         title="Chapter manager"
         description={`${filtered.length} shown · ${chapters.length} total · ${missingCount} missing pages. Performance analytics remain in the Overview rather than being fabricated here.`}
         actions={
-          <AdminButton type="button" icon="refresh" onClick={onReload} disabled={busy}>Refresh</AdminButton>
+          <div className="admin-row-actions">
+            <AdminButton type="button" variant="primary" onClick={startNew}>New chapter</AdminButton>
+            <AdminButton type="button" icon="refresh" onClick={onReload} disabled={busy}>Refresh</AdminButton>
+          </div>
         }
       >
         <div className="admin-chapter-toolbar">
