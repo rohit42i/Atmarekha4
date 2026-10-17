@@ -24,6 +24,73 @@ main.admin-page.ar-admin-v3 {
   --ar-info-bg: rgba(96, 165, 250, 0.12);
   --ar-chart-cyan: #22D3EE;
   --ar-chart-violet: #A78BFA;
+  /* Compatibility tokens used by existing admin views, all mapped to this palette. */
+  --admin-bg: var(--ar-bg);
+  --admin-surface: var(--ar-surface);
+  --admin-surface-2: var(--ar-raised);
+  --admin-surface-3: var(--ar-raised);
+  --admin-surface-4: var(--ar-raised);
+  --admin-border: var(--ar-border);
+  --admin-border-strong: var(--ar-border-strong);
+  --admin-text: var(--ar-text);
+  --admin-text-2: var(--ar-text-secondary);
+  --admin-muted: var(--ar-text-secondary);
+  --admin-faint: var(--ar-text-muted);
+  --admin-gold: var(--ar-primary);
+  --admin-gold-bright: var(--ar-primary-hover);
+  --admin-gold-soft: rgba(245, 144, 30, 0.12);
+  --ar-admin-primary: var(--ar-primary);
+  --ar-admin-primary-dark: var(--ar-primary-pressed);
+  --ar-admin-primary-light: var(--ar-primary-hover);
+  --ar-admin-primary-lighter: rgba(245, 144, 30, 0.12);
+  --ar-ui-bg: var(--ar-bg);
+  --ar-ui-sidebar: var(--ar-sidebar);
+  --ar-ui-surface: var(--ar-surface);
+  --ar-ui-raised: var(--ar-raised);
+  --ar-ui-border: var(--ar-border-strong);
+  --ar-ui-border-soft: var(--ar-border);
+  --ar-ui-text: var(--ar-text);
+  --ar-ui-muted: var(--ar-text-secondary);
+  --ar-ui-subtle: var(--ar-text-muted);
+  --ar-ui-accent: var(--ar-primary);
+  --ar-ui-accent-strong: var(--ar-primary-hover);
+  --ar-ui-accent-soft: rgba(245, 144, 30, 0.12);
+  --ar-ui-good: var(--ar-success);
+  --ar-ui-warn: var(--ar-warning);
+  --ar-ui-danger: var(--ar-danger);
+  --ov-bg: var(--ar-bg);
+  --ov-surface: var(--ar-surface);
+  --ov-soft: var(--ar-raised);
+  --ov-border: var(--ar-border);
+  --ov-border-strong: var(--ar-border-strong);
+  --ov-text: var(--ar-text);
+  --ov-muted: var(--ar-text-secondary);
+  --ov-faint: var(--ar-text-muted);
+  --ov-accent: var(--ar-primary);
+  --ov-accent-soft: rgba(245, 144, 30, 0.12);
+  --ov-positive: var(--ar-success);
+  --ov-negative: var(--ar-danger);
+  --cr-bg: var(--ar-bg);
+  --cr-card: var(--ar-surface);
+  --cr-card-raised: var(--ar-raised);
+  --cr-border: var(--ar-border-strong);
+  --cr-border-soft: var(--ar-border);
+  --cr-text: var(--ar-text);
+  --cr-muted: var(--ar-text-secondary);
+  --cr-faint: var(--ar-text-muted);
+  --cr-gold: var(--ar-primary);
+  --cr-gold-soft: rgba(245, 144, 30, 0.12);
+  --cr-green: var(--ar-success);
+  --cr-red: var(--ar-danger);
+  --cr-yellow: var(--ar-warning);
+  --ar-work-bg: var(--ar-bg);
+  --ar-work-surface: var(--ar-surface);
+  --ar-work-raised: var(--ar-raised);
+  --ar-work-line: var(--ar-border-strong);
+  --ar-work-text: var(--ar-text);
+  --ar-work-muted: var(--ar-text-secondary);
+  --ar-work-subtle: var(--ar-text-muted);
+  --ar-work-accent: var(--ar-primary);
   --ar-radius-sm: 8px;
   --ar-radius-button: 10px;
   --ar-radius-card: 14px;
@@ -320,4 +387,67 @@ main.admin-page.ar-admin-v3 .ar-admin-shortcut-dialog dd { margin: 0; color: var
   main.admin-page.ar-admin-v3 .ar-admin-notice { top: 70px; right: 12px; }
   main.admin-page.ar-admin-v3 .ar-admin-toast-region { right: 12px; bottom: 78px; }
   main.admin-page.ar-admin-v3 .ar-admin-confirm-dialog { padding: 20px; }
+}
+
+/* Chapter create/edit drawer */
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.68);
+}
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer {
+  width: min(680px, 100%);
+  height: 100dvh;
+  overflow-y: auto;
+  padding: 24px;
+  border-left: 1px solid var(--ar-border-strong);
+  background: var(--ar-bg);
+  color: var(--ar-text);
+  overscroll-behavior: contain;
+}
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-head {
+  position: sticky;
+  top: -24px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -24px -24px 20px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--ar-border);
+  background: var(--ar-bg);
+}
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-head span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ar-primary-hover);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-head h2 { margin: 0; font-size: 22px; font-weight: 650; line-height: 1.3; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-head p { margin: 6px 0 0; color: var(--ar-text-secondary); font-size: 13px; line-height: 1.5; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--ar-border-strong);
+  border-radius: var(--ar-radius-button);
+  background: var(--ar-raised);
+  color: var(--ar-text);
+  font-size: 24px;
+  cursor: pointer;
+}
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer .admin-studio-form-card,
+main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer .admin-studio-publisher-card { margin-bottom: 16px; }
+@media (max-width: 760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-backdrop { padding: 0; }
+  main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer { width: 100%; padding: 16px; border-left: 0; }
+  main.admin-page.ar-admin-v3 .ar-admin-chapter-drawer-head { top: -16px; margin: -16px -16px 16px; padding: 16px; }
 }
