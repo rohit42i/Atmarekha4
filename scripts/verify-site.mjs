@@ -267,8 +267,8 @@ if (!adminControlRoom.includes("onClick={item.run}") || !adminControlRoom.includ
   console.error('CHECK FAILED: admin workbench actions are not connected to the rendered interface.');
   failed = true;
 }
-if (!adminPanelSource.includes("{ key: 'Email Campaigns'") || !adminPanelSource.includes("'Community Posts', 'Membership & Earnings'")) {
-  console.error('CHECK FAILED: admin sidebar links and tab allow-list are out of sync.');
+if (adminPanelSource.includes("{ key: 'Email Campaigns'") || adminPanelSource.includes("tab === 'Email Campaigns'") || !adminPanelSource.includes("'Community Posts', 'Membership & Earnings'")) {
+  console.error('CHECK FAILED: admin sidebar must not expose Email Campaigns without an implementation, and its tab allow-list must match the active views.');
   failed = true;
 }
 
