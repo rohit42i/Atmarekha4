@@ -29,6 +29,17 @@ function formatDate(value) {
     : '—';
 }
 
+function LocalImagePreview({ file, alt = '' }) {
+  const [src, setSrc] = useState('');
+  useEffect(() => {
+    if (!file) { setSrc(''); return undefined; }
+    const url = URL.createObjectURL(file);
+    setSrc(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+  return src ? <img src={src} alt={alt} loading="lazy" /> : null;
+}
+
 function normalizedStatus(status) {
   return String(status || 'Draft').trim().toLowerCase();
 }
@@ -84,6 +95,7 @@ export default function AdminChapterManager({
   const [bulkAction, setBulkAction] = useState(null);
   const [notice, setNotice] = useState('');
   const [focusChapterId, setFocusChapterId] = useState(null);
+  const [draggingPageIndex, setDraggingPageIndex] = useState(null);
 
   useEffect(() => {
     try { localStorage.setItem(COLUMN_KEY, JSON.stringify(columns)); } catch {
@@ -214,6 +226,20 @@ export default function AdminChapterManager({
   };
 
   const updateForm = (key, value) => setForm(current => ({ ...current, [key]: value }));
+  const reorderChosenPage = (fromIndex, toIndex) => {
+    if (fromIndex === null || fromIndex === toIndex || toIndex < 0 || toIndex >= form.pages.length) return;
+    setForm(current => {
+      const pages = [...current.pages];
+      const [page] = pages.splice(fromIndex, 1);
+      pages.splice(toIndex, 0, page);
+      return { ...current, pages };
+    });
+    setDraggingPageIndex(null);
+  };
+  const removeChosenPage = index => {
+    setForm(current => ({ ...current, pages: current.pages.filter((_, pageIndex) => pageIndex !== index) }));
+    setDraggingPageIndex(null);
+  };
   const choosePages = event => {
     const selectedFiles = Array.from(event.target.files || []);
     const files = selectedFiles.filter(isSupportedImageFile);
@@ -264,73 +290,84 @@ export default function AdminChapterManager({
           title={editing ? `Edit ${editing.chapterNumber ? `Chapter ${editing.chapterNumber}` : 'Unnumbered Entry'}` : 'Chapter details'}
           actions={editing ? <AdminButton type="button" icon="close" onClick={() => { onReset?.(); onEditorOpenChange(false); }}>Cancel</AdminButton> : null}
         >
-          <form onSubmit={onSubmit} className="admin-form">
-            <div className="admin-form-grid">
-              <label>
-                <span>Chapter number</span>
-                <input type="number" min="1" value={form.number} onChange={event => updateForm('number', event.target.value)} placeholder="Optional" />
-              </label>
-              <label>
-                <span>Language</span>
-                <select value={form.language} onChange={event => updateForm('language', event.target.value)} disabled={Boolean(editing)}>
-                  <option value="hi">Hindi</option>
-                  <option value="en">English</option>
-                </select>
-              </label>
-              <label>
-                <span>Status</span>
-                <select value={form.status} onChange={event => updateForm('status', event.target.value)}>
-                  <option>Published</option>
-                  <option>Scheduled</option>
-                  <option>Pre-uploaded</option>
-                  <option>Draft</option>
-                </select>
-              </label>
-              <label>
-                <span>Release date</span>
-                <input type="datetime-local" value={form.releaseDate} onChange={event => updateForm('releaseDate', event.target.value)} />
-              </label>
-              <label className="wide">
-                <span>Title</span>
-                <input value={form.title} onChange={event => updateForm('title', event.target.value)} placeholder="Chapter title" required />
-              </label>
-              <label className="wide">
-                <span>Description</span>
-                <textarea value={form.description} onChange={event => updateForm('description', event.target.value)} placeholder="Description shown with the chapter" rows="3" />
-              </label>
-              <label>
-                <span>Cover image</span>
-                <input type="file" accept={SUPPORTED_IMAGE_ACCEPT} onChange={event => {
-                  const file = event.target.files?.[0] || null;
-                  if (file && !isSupportedImageFile(file)) {
-                    event.target.value = '';
-                    setNotice('Unsupported cover image. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
-                    return;
-                  }
-                  updateForm('cover', file);
-                }} />
-              </label>
-            </div>
-
-            <label className="admin-dropzone">
-              <strong>Manga pages</strong>
-              <span>Select pages in the exact order you want them published. Existing upload validation and R2 paths are unchanged.</span>
-              <input type="file" multiple accept={SUPPORTED_IMAGE_ACCEPT} onChange={choosePages} />
-              {form.pages.length > 0 ? <em>{form.pages.length} pages ready · selected order preserved</em> : null}
-            </label>
-
-            {progress?.total > 0 ? (
-              <div className="admin-progress" aria-live="polite">
-                <div><span>{progress.text}</span><b>{progress.current}/{progress.total}</b></div>
-                <i><span style={{ width: `${(progress.current / progress.total) * 100}%` }} /></i>
+          <form onSubmit={onSubmit} className="admin-form ar-admin-chapter-form">
+            <section className="ar-admin-chapter-form-section">
+              <div className="ar-admin-chapter-section-heading"><span>01</span><div><h3>Basics</h3><p>Identify this chapter for readers.</p></div></div>
+              <div className="admin-form-grid">
+                <label><span>Chapter number</span><input type="number" min="1" value={form.number} onChange={event => updateForm('number', event.target.value)} placeholder="Optional" /></label>
+                <label className="wide"><span>Title</span><input value={form.title} onChange={event => updateForm('title', event.target.value)} placeholder="Chapter title" required /></label>
+                <label className="wide"><span>Description</span><textarea value={form.description} onChange={event => updateForm('description', event.target.value)} placeholder="Description shown with the chapter" rows="3" /></label>
               </div>
-            ) : null}
+            </section>
 
-            <div className="admin-form-actions">
-              <AdminButton type="submit" variant="primary" size="lg" disabled={busy} icon={busy ? 'refresh' : editing ? 'bookmark' : 'layers'}>
-                {busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}
+            <section className="ar-admin-chapter-form-section">
+              <div className="ar-admin-chapter-section-heading"><span>02</span><div><h3>Language and status</h3><p>Choose where and when this chapter appears.</p></div></div>
+              <div className="admin-form-grid">
+                <label><span>Language</span><select value={form.language} onChange={event => updateForm('language', event.target.value)} disabled={Boolean(editing)} title={editing ? 'Language is locked after a chapter is created.' : undefined}><option value="hi">Hindi</option><option value="en">English</option></select></label>
+                <label><span>Status</span><select value={form.status} onChange={event => updateForm('status', event.target.value)}><option>Published</option><option>Scheduled</option><option>Pre-uploaded</option><option>Draft</option></select></label>
+                <label className="wide"><span>Release date and time</span><input type="datetime-local" value={form.releaseDate} onChange={event => updateForm('releaseDate', event.target.value)} /></label>
+              </div>
+            </section>
+
+            <section className="ar-admin-chapter-form-section">
+              <div className="ar-admin-chapter-section-heading"><span>03</span><div><h3>Cover</h3><p>Choose the artwork used as this chapter's fallback thumbnail.</p></div></div>
+              <label className="admin-file-field ar-admin-cover-select"><span>Cover image · JPG, PNG, WEBP, GIF, BMP or AVIF</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} disabled={busy} onChange={event => {
+                const file = event.target.files?.[0] || null;
+                event.target.value = '';
+                if (file && !isSupportedImageFile(file)) { setNotice('Unsupported cover image. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.'); notifyAdminToast('Unsupported cover image. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.', 'error'); return; }
+                updateForm('cover', file);
+              }} />{form.cover && <em>{form.cover.name}</em>}</label>
+              {form.cover && <div className="ar-admin-cover-preview"><LocalImagePreview file={form.cover} alt="Selected cover preview" /><span>New cover selected</span><button type="button" onClick={() => updateForm('cover', null)} disabled={busy} title={busy ? 'Wait for the current upload to finish.' : 'Remove the selected replacement cover'}>Remove cover</button></div>}
+              {editing?.cover && !form.cover && <div className="ar-admin-current-cover"><img src={editing.cover} alt="Current chapter cover" loading="lazy" /><span>Current cover remains in place unless you select a replacement.</span></div>}
+            </section>
+
+            <section className="ar-admin-chapter-form-section">
+              <div className="ar-admin-chapter-section-heading"><span>04</span><div><h3>Pages</h3><p>Drag thumbnails to reorder, or use the move controls. Removing a file only removes it from this unsaved selection.</p></div></div>
+              <label className="admin-dropzone ar-admin-pages-dropzone">
+                <strong>Select manga pages</strong>
+                <span>Choose JPG, PNG, WEBP, GIF, BMP or AVIF images. The order you set below is the upload order.</span>
+                <input type="file" multiple accept={SUPPORTED_IMAGE_ACCEPT} disabled={busy} onChange={choosePages} />
+              </label>
+              {form.pages.length > 0 ? <div className="ar-admin-selected-pages" aria-label="Selected page images">
+                {form.pages.map((file, index) => <article key={file.name + ':' + file.size + ':' + file.lastModified + ':' + index}
+                  draggable={!busy} onDragStart={() => setDraggingPageIndex(index)}
+                  onDragOver={event => event.preventDefault()}
+                  onDrop={event => { event.preventDefault(); reorderChosenPage(draggingPageIndex, index); }}
+                  onDragEnd={() => setDraggingPageIndex(null)}
+                  className={draggingPageIndex === index ? 'is-dragging' : ''}>
+                  <div className="ar-admin-selected-page-image"><LocalImagePreview file={file} alt={'Selected page ' + (index + 1)} /><span>{index + 1}</span></div>
+                  <div className="ar-admin-selected-page-info"><strong>Page {index + 1}</strong><span title={file.name}>{file.name}</span><small>{(file.size / (1024 * 1024)).toFixed(2)} MB</small></div>
+                  <div className="ar-admin-selected-page-actions">
+                    <button type="button" onClick={() => reorderChosenPage(index, index - 1)} disabled={busy || index === 0} aria-label={'Move page ' + (index + 1) + ' earlier'} title="Move earlier">↑</button>
+                    <button type="button" onClick={() => reorderChosenPage(index, index + 1)} disabled={busy || index === form.pages.length - 1} aria-label={'Move page ' + (index + 1) + ' later'} title="Move later">↓</button>
+                    <button type="button" className="is-danger" onClick={() => removeChosenPage(index)} disabled={busy} aria-label={'Remove selected page ' + (index + 1)} title="Remove from selection">×</button>
+                  </div>
+                </article>)}
+              </div> : <p className="ar-admin-selected-pages-empty">No new page images selected. When editing an existing chapter, the saved pages remain unchanged unless you choose a new page set.</p>}
+            </section>
+
+            <section className="ar-admin-chapter-form-section">
+              <div className="ar-admin-chapter-section-heading"><span>05</span><div><h3>Review</h3><p>Check the details before saving.</p></div></div>
+              <div className="ar-admin-chapter-review">
+                <div><span>Title</span><strong>{form.title.trim() || 'Untitled chapter'}</strong></div>
+                <div><span>Chapter</span><strong>{form.number ? 'Chapter ' + form.number : 'Special entry'}</strong></div>
+                <div><span>Language</span><strong>{chapterLanguageLabel(form.language)}</strong></div>
+                <div><span>Status</span><strong>{form.status}</strong></div>
+                <div><span>New pages selected</span><strong>{form.pages.length}</strong></div>
+                <div><span>Cover</span><strong>{form.cover ? 'Replacement selected' : editing ? 'Keep current' : 'Not selected'}</strong></div>
+              </div>
+            </section>
+
+            {progress?.total > 0 ? <div className="admin-progress" aria-live="polite">
+              <div><span>{progress.text || 'Uploading chapter assets…'}</span><b>{progress.current}/{progress.total}</b></div>
+              <i><span style={{ width: `${Math.min(100, (progress.current / progress.total) * 100)}%` }} /></i>
+            </div> : null}
+
+            <div className="admin-form-actions ar-admin-chapter-form-actions">
+              <AdminButton type="submit" variant="primary" size="lg" disabled={busy} title={busy ? (progress?.text || 'Wait for the current upload step to finish.') : undefined} icon={busy ? 'refresh' : editing ? 'bookmark' : 'layers'}>
+                {busy ? (progress?.text || 'Working…') : editing ? 'Save chapter changes' : 'Upload chapter'}
               </AdminButton>
-              {!editing ? <AdminButton type="button" onClick={onNewChapter}>Clear</AdminButton> : null}
+              {!editing ? <AdminButton type="button" onClick={onNewChapter} disabled={busy} title={busy ? 'Wait for the current upload step to finish.' : 'Clear the new chapter form'}>Clear</AdminButton> : null}
             </div>
           </form>
         </AdminCard>
