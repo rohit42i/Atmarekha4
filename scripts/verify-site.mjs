@@ -428,6 +428,14 @@ if (!adminPanelSource.includes("import './admin-visual-polish.css';") ||
   console.error('CHECK FAILED: final admin visual layer must be imported and define both theme palettes plus desktop/mobile layout rules.');
   failed = true;
 }
+if (!adminVisualPolish.includes('Bring leftover overview/chart accents into the same warm, semantic palette') ||
+    !adminVisualPolish.includes('body main.admin-page.ar-admin-v3 .admin-studio-table-wrap tbody tr:nth-child(odd)') ||
+    !adminVisualPolish.includes('body main.admin-page.ar-admin-v3 .ar-admin-brand-mark') ||
+    !adminVisualPolish.includes('grid-template-columns: minmax(140px, 1fr) max-content') ||
+    !adminVisualPolish.includes('grid-template-columns: repeat(2, minmax(0, 1fr))')) {
+  console.error('CHECK FAILED: admin charts, tables, brand accent and responsive Control Room button layout must use the unified visual system.');
+  failed = true;
+}
 if (!controlRoom.includes('className="ar-cr-hero-secondary-actions"') ||
     !controlRoomHero.includes('className="ar-cr-btn is-primary"') ||
     (controlRoomHero.match(/className="ar-cr-btn is-primary"/g) || []).length !== 1 ||
