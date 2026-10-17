@@ -83,9 +83,10 @@ async function logAdminAction(user, action, entityType, entityId = null, details
       entity_id: entityId,
       details,
     });
-    if (error) console.warn('Admin activity log failed:', error);
+    if (error) { console.warn('Admin activity log failed:', error); notifyAdminToast('Admin activity log failed: ' + error.message, 'warning'); }
   } catch (error) {
     console.warn('Admin activity log failed:', error);
+    notifyAdminToast('Admin activity log failed: ' + (error?.message || 'unknown error'), 'warning');
   }
 }
 
@@ -491,6 +492,7 @@ export default function AdminPanel({ onLogout }) {
           try { await removeFiles(item.bucket, [item.path]); }
           catch (cleanupError) {
             await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, { bucket: item.bucket, paths: [item.path], error: cleanupError.message });
+            notifyAdminToast('Upload rollback could not remove ' + item.path + ': ' + cleanupError.message, 'warning');
           }
         }
       }
@@ -501,9 +503,9 @@ export default function AdminPanel({ onLogout }) {
           // The new chapter was never valid without its required page set.
           // Mark committed uploads as cleanable so they do not become R2 orphans.
           for (const item of uploadedPaths) {
-            try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
+            try { await removeFiles(item.bucket, [item.path]); } catch (cleanupError) { await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, { bucket: item.bucket, paths: [item.path], error: cleanupError.message }); notifyAdminToast('Upload rollback could not remove ' + item.path + ': ' + cleanupError.message, 'warning'); }
           }
-        } catch (_) {}
+        } catch (rollbackError) { await logAdminAction(adminUser, 'chapter_rollback_failed', 'chapter', chapterId, { error: rollbackError?.message || 'rollback failed' }); notifyAdminToast('Chapter rollback failed: ' + (rollbackError?.message || 'unknown error'), 'warning'); }
       }
 
       if (adminUser) await logAdminAction(adminUser, 'chapter_operation_failed', 'chapter', chapterId, {
@@ -797,7 +799,7 @@ export default function AdminPanel({ onLogout }) {
     } catch (error) {
       for (const item of uploadedPaths) {
         if (!imageCommitted) {
-          try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
+          try { await removeFiles(item.bucket, [item.path]); } catch (cleanupError) { await logAdminAction(adminUser, 'r2_cleanup_failed', 'announcements', editingAnnouncementId || null, { bucket: item.bucket, paths: [item.path], error: cleanupError.message }); notifyAdminToast('Announcement rollback could not remove ' + item.path + ': ' + cleanupError.message, 'warning'); }
         }
       }
       await logAdminAction(adminUser, editingAnnouncementId ? 'update_announcement_failed' : 'create_announcement_failed', 'announcement', editingAnnouncementId || null, {
@@ -858,7 +860,7 @@ export default function AdminPanel({ onLogout }) {
       });
     } catch (error) {
       if (uploadedPath && !committed) {
-        try { await removeFiles(COVER_BUCKET, [uploadedPath]); } catch (_) {}
+        try { await removeFiles(COVER_BUCKET, [uploadedPath]); } catch (cleanupError) { await logAdminAction(adminUser, 'r2_cleanup_failed', 'chapter_card_thumbnail', chapter?.id || null, { bucket: COVER_BUCKET, paths: [uploadedPath], error: cleanupError.message }); notifyAdminToast('Thumbnail upload rollback failed: ' + cleanupError.message, 'warning'); }
       }
       await logAdminAction(adminUser, 'update_chapter_card_thumbnail_failed', 'chapter', chapter?.id || null, {
         error: error.message,
@@ -883,11 +885,11 @@ export default function AdminPanel({ onLogout }) {
       const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: path }).eq('id', chapter.id);
       if (error) throw new Error('PDPKL card thumbnail save failed: ' + error.message);
       committed = true;
-      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { console.warn('PDPKL old thumbnail cleanup failed:', e); } }
+      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_card_thumbnail', chapter.id, { path: oldPath, slot, error: e.message }); notifyAdminToast('Thumbnail saved, but the old PDPKL image could not be removed: ' + e.message, 'warning'); } }
       await logAdminAction(adminUser, 'save_pdpkl_card_thumbnail', 'pdlpl_chapter', chapter.id, { slot, path });
       await load(); setNotice({ type: 'success', text: 'PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail saved.' });
     } catch (error) {
-      if (uploadedPath && !committed) { try { await removePdlplFiles([uploadedPath]); } catch (_) {} }
+      if (uploadedPath && !committed) { try { await removePdlplFiles([uploadedPath]); } catch (cleanupError) { await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_card_thumbnail', chapter?.id || null, { path: uploadedPath, slot, error: cleanupError.message }); notifyAdminToast('PDPKL thumbnail rollback failed: ' + cleanupError.message, 'warning'); } }
       console.error(error); setNotice({ type: 'error', text: error.message || 'PDPKL card thumbnail upload failed.' });
     } finally { setBusy(false); }
   }
@@ -906,7 +908,7 @@ export default function AdminPanel({ onLogout }) {
       const oldPath = slot === 'mobile' ? chapter.cardThumbnailMobilePath : chapter.cardThumbnailDesktopPath;
       const { error } = await supabase.from('pal_do_pal_ke_lamhe_chapters').update({ [column]: null }).eq('id', chapter.id);
       if (error) throw new Error('PDPKL card thumbnail reset failed: ' + error.message);
-      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { console.warn('PDPKL thumbnail cleanup failed:', e); } }
+      if (oldPath) { try { await removePdlplFiles([oldPath]); } catch (e) { notifyAdminToast('PDPKL thumbnail removed from the chapter, but its stored file could not be cleaned up: ' + e.message, 'warning'); } }
       await load(); setNotice({ type: 'success', text: 'PDPKL custom card thumbnail removed.' });
     } catch (error) { console.error(error); setNotice({ type: 'error', text: error.message || 'PDPKL card thumbnail reset failed.' }); }
     finally { setBusy(false); }
