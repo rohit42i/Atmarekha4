@@ -304,6 +304,15 @@ export default function AdminPanel({ onLogout }) {
         setCommandOpen(true);
         return;
       }
+      if (key === 'escape') {
+        if (chapterEditorOpen) setChapterEditorOpen(false);
+        if (mediaModalOpen) setMediaModalOpen(false);
+        if (shortcutHelpOpen) setShortcutHelpOpen(false);
+        if (mobileSidebarOpen) setMobileSidebarOpen(false);
+        if (profileOpen) setProfileOpen(false);
+        if (commandOpen) setCommandOpen(false);
+        return;
+      }
       if (isTyping(event) || event.metaKey || event.ctrlKey || event.altKey) return;
       if (key === 'n') {
         event.preventDefault();
