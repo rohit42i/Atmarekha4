@@ -402,6 +402,13 @@ if (!communitySource.includes('requestAdminConfirm') ||
   failed = true;
 }
 
+if (!communitySource.includes('role="dialog" aria-modal="true" aria-labelledby="community-admin-title"') ||
+    !communitySource.includes('const trapFocus=event=>') ||
+    !adminPanelSource.includes('const keepFocusInside = event =>')) {
+  console.error('CHECK FAILED: admin/community dialogs need accessible labels and keyboard focus containment.');
+  failed = true;
+}
+
 const adminVisualStyles = await Promise.all([
   'admin-command-center-system.css',
   'admin-ultimate-ui.css',
