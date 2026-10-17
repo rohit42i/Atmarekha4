@@ -3,6 +3,7 @@ import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2, isSupportedImag
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
 import { buildPdlplChapters } from './palDoPalKeLamhe.js';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 import { fetchPdlplMedia, removePdlplFiles, uploadPdlplFile } from './pdlplR2';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 
@@ -39,7 +40,12 @@ async function adminUser() {
 }
 
 async function audit(user, action, type, id, details = {}) {
-  try { await supabase.from('admin_activity_log').insert({ admin_user_id: user?.id, action, entity_type: type, entity_id: id, details }); } catch (_) {}
+  try {
+    const { error } = await supabase.from('admin_activity_log').insert({ admin_user_id: user?.id, action, entity_type: type, entity_id: id, details });
+    if (error) notifyAdminToast('Admin activity log could not be saved: ' + error.message, 'warning');
+  } catch (error) {
+    notifyAdminToast('Admin activity log could not be saved: ' + (error?.message || 'unknown error'), 'warning');
+  }
 }
 
 function Artwork({ project, page, className = '', alt = '' }) {
@@ -149,7 +155,7 @@ export default function AdminChapterPages({ chapters = [] }) {
         const { error } = await supabase.rpc('pdlpl_replace_chapter_page', { p_page_id: page.id, p_image_path: uploadedPath });
         if (error) throw error;
         committed = true;
-        if (page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); } }
+        if (page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); notifyAdminToast('Page updated, but the old R2 image could not be removed: ' + err.message, 'warning'); } }
         setPages(rows => rows.map(row => row.id === page.id ? { ...row, image_path: uploadedPath } : row));
       } else {
         const { error } = await cloudflareR2.from(ATMA_BUCKET).upload(uploadedPath, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
@@ -159,7 +165,7 @@ export default function AdminChapterPages({ chapters = [] }) {
         if (updateError) throw updateError;
         committed = true;
         const old = atmaPath(page.image_url);
-        if (old) { try { await cloudflareR2.from(ATMA_BUCKET).remove([old]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); } }
+        if (old) { try { const { error: cleanupError } = await cloudflareR2.from(ATMA_BUCKET).remove([old]); if (cleanupError) throw cleanupError; } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); notifyAdminToast('Page updated, but the old R2 image could not be removed: ' + err.message, 'warning'); } }
         setPages(rows => rows.map(row => row.id === page.id ? { ...row, image_url: nextUrl } : row));
       }
       setRetryFiles(rows => { const next = { ...rows }; delete next[page.id]; return next; });
@@ -170,7 +176,9 @@ export default function AdminChapterPages({ chapters = [] }) {
         try {
           if (project === 'pdpkl') await removePdlplFiles([uploadedPath]);
           else await cloudflareR2.from(ATMA_BUCKET).remove([uploadedPath]);
-        } catch (_) {}
+        } catch (cleanupError) {
+          notifyAdminToast('Upload rollback failed for ' + file.name + ': ' + (cleanupError?.message || 'storage cleanup failed'), 'warning');
+        }
       }
       setRetryFiles(rows => ({ ...rows, [page.id]: file }));
       setDiagnostic(err?.message || 'Page replacement failed.');
@@ -195,15 +203,22 @@ export default function AdminChapterPages({ chapters = [] }) {
   };
 
   const deletePage = async page => {
-    if (!page || busy || !window.confirm(`Delete ${projectName(project)} · Page ${page.page_number}? This cannot be undone.`)) return;
+    if (!page || busy) return;
+    const parentChapter = chapters.find(chapter => String(chapter.id) === String(page.chapter_id));
+    if (!(await requestAdminConfirm({
+      title: 'Delete page permanently?',
+      message: 'Delete ' + projectName(project) + ' · Page ' + page.page_number + (parentChapter ? ' from ' + (parentChapter.title || ('Chapter ' + (parentChapter.chapterNumber ?? 'Special'))) : '') + '?',
+      consequence: 'Removes the page record and attempts to delete its image from storage. This cannot be undone.',
+      confirmLabel: 'Delete page',
+    }))) return;
     setBusy(page.id);
     try {
       const user = await adminUser();
       const rpc = project === 'pdpkl' ? 'pdlpl_delete_chapter_page' : 'delete_chapter_page';
       const { error } = await supabase.rpc(rpc, { p_page_id: page.id });
       if (error) throw error;
-      if (project === 'pdpkl' && page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); } }
-      if (project === 'atma') { const old = atmaPath(page.image_url); if (old) { try { await cloudflareR2.from(ATMA_BUCKET).remove([old]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); } } }
+      if (project === 'pdpkl' && page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); notifyAdminToast('Page deleted, but its R2 image could not be removed: ' + err.message, 'warning'); } }
+      if (project === 'atma') { const old = atmaPath(page.image_url); if (old) { try { const { error: cleanupError } = await cloudflareR2.from(ATMA_BUCKET).remove([old]); if (cleanupError) throw cleanupError; } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); notifyAdminToast('Page deleted, but its R2 image could not be removed: ' + err.message, 'warning'); } } }
       await audit(user, 'delete_page', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, { chapter_id: page.chapter_id, page_number: page.page_number, project });
       await loadPages();
       setNotice('Page deleted.');
