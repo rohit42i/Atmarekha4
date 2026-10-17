@@ -415,7 +415,26 @@ const adminVisualStyles = await Promise.all([
   'admin-workspace-ux.css',
   'admin-control-room.css',
   'admin-pro-studio.css',
+  'admin-visual-polish.css',
 ].map(path => readFile(path, 'utf8')));
+const adminVisualPolish = adminVisualStyles[5];
+const controlRoomHero = controlRoom.split('<header className="ar-cr-hero">')[1]?.split('</header>')[0] || '';
+if (!adminPanelSource.includes("import './admin-visual-polish.css';") ||
+    !adminVisualPolish.includes('--ar-primary: #9D520B') ||
+    !adminVisualPolish.includes('html[data-theme="dark"] main.admin-page.ar-admin-v3') ||
+    !adminVisualPolish.includes('html[data-theme="light"] body main.admin-page.ar-admin-v3') ||
+    !adminVisualPolish.includes('@media (max-width: 1380px)') ||
+    !adminVisualPolish.includes('@media (max-width: 760px)')) {
+  console.error('CHECK FAILED: final admin visual layer must be imported and define both theme palettes plus desktop/mobile layout rules.');
+  failed = true;
+}
+if (!controlRoom.includes('className="ar-cr-hero-secondary-actions"') ||
+    !controlRoomHero.includes('className="ar-cr-btn is-primary"') ||
+    (controlRoomHero.match(/className="ar-cr-btn is-primary"/g) || []).length !== 1 ||
+    controlRoomHero.includes('className="ar-cr-btn is-primary" onClick={load}')) {
+  console.error('CHECK FAILED: Control Room hero actions need a single primary CTA and a separate secondary action group.');
+  failed = true;
+}
 if (adminVisualStyles.some(styles => /(?:linear|radial|repeating-linear)-gradient|backdrop-filter\s*:\s*blur/i.test(styles))) {
   console.error('CHECK FAILED: active admin styles must not use gradients or glass/blur effects.');
   failed = true;
