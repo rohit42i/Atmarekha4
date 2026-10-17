@@ -26,6 +26,7 @@ import './admin-workspace-ux.css';
 import './admin-pro-studio.css';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -95,12 +96,6 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Overview', icon: 'grid', label: 'Dashboard' },
     { key: 'Control Room', icon: 'chart', label: 'Control Room' },
   ]},
-  { label: 'Publishing', items: [
-    { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
-    { key: 'Pages', icon: 'layers', label: 'Page Editor' },
-    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
-    { key: 'Media', icon: 'image', label: 'Media Library' },
-  ]},
   { label: 'Community', items: [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
@@ -110,11 +105,17 @@ const ADMIN_NAV_GROUPS = [
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
     { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
   ]},
-  { label: 'Membership', items: [
+  { label: 'Monetization', items: [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
     { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
   ]},
-  { label: 'System', items: [
+  { label: 'Library', items: [
+    { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
+    { key: 'Pages', icon: 'layers', label: 'Page Editor' },
+    { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
+    { key: 'Media', icon: 'image', label: 'Media Library' },
+  ]},
+  { label: 'Tools', items: [
     { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
@@ -124,7 +125,7 @@ const ADMIN_NAV_GROUPS = [
 ];
 
 export default function AdminPanel({ onLogout }) {
-  const [tab, setTab] = useState('Control Room');
+  const [tab, setTab] = useState('Overview');
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -136,6 +137,9 @@ export default function AdminPanel({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
@@ -237,6 +241,36 @@ export default function AdminPanel({ onLogout }) {
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
+    const onConfirmRequest = event => {
+      event.preventDefault();
+      setConfirmDialog(event.detail || null);
+    };
+    const onToast = event => {
+      if (!event.detail?.message) return;
+      setToasts(current => [...current, event.detail].slice(-5));
+    };
+    window.addEventListener('atma-admin-confirm-request', onConfirmRequest);
+    window.addEventListener('atma-admin-toast', onToast);
+    return () => {
+      window.removeEventListener('atma-admin-confirm-request', onConfirmRequest);
+      window.removeEventListener('atma-admin-toast', onToast);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!confirmDialog) return undefined;
+    const onEscape = event => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      confirmDialog.resolve?.(false);
+      setConfirmDialog(null);
+    };
+    document.addEventListener('keydown', onEscape, true);
+    return () => document.removeEventListener('keydown', onEscape, true);
+  }, [confirmDialog]);
+
+  useEffect(() => {
     const refreshHandler = () => load();
     window.addEventListener('atma-admin-refresh', refreshHandler);
     return () => window.removeEventListener('atma-admin-refresh', refreshHandler);
@@ -274,6 +308,9 @@ export default function AdminPanel({ onLogout }) {
       } else if (key === 'r') {
         event.preventDefault();
         load();
+      } else if (key === '?') {
+        event.preventDefault();
+        setShortcutHelpOpen(true);
       }
     };
     document.addEventListener('keydown', onKeyDown);
@@ -487,7 +524,12 @@ export default function AdminPanel({ onLogout }) {
   };
 
   async function deleteChapter(chapter) {
-    if (!window.confirm('Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this unnumbered entry') + ' permanently?')) return;
+    if (!(await requestAdminConfirm({
+      title: 'Delete chapter permanently?',
+      message: 'Delete ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : (chapter.title || 'this unnumbered entry')) + '?',
+      consequence: 'Removes the chapter record and its ' + (Number(pageCounts[chapter.id] || 0)) + ' page images, cover, and card-thumbnail files. This cannot be undone.',
+      confirmLabel: 'Delete chapter',
+    }))) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -537,7 +579,13 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteComment(id) {
-    if (!window.confirm('Delete this comment and its replies?')) return;
+    const targetComment = comments.find(comment => String(comment.id) === String(id));
+    if (!(await requestAdminConfirm({
+      title: 'Delete comment?',
+      message: 'Delete the comment from ' + (targetComment?.author_display_name || targetComment?.author_name || 'this reader') + '?',
+      consequence: 'Removes this comment from the discussion. Replies associated with it may also be affected by database relationships.',
+      confirmLabel: 'Delete comment',
+    }))) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -846,7 +894,12 @@ export default function AdminPanel({ onLogout }) {
 
   async function clearPdpklCardThumbnail(chapter, slot) {
     if (!chapter?.id || busy) return;
-    if (!window.confirm('Remove the custom PDPKL ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' card thumbnail?')) return;
+    if (!(await requestAdminConfirm({
+      title: 'Remove PDPKL card thumbnail?',
+      message: 'Remove the custom ' + (slot === 'mobile' ? 'mobile' : 'desktop') + ' thumbnail for ' + (chapter.title || ('Chapter ' + (chapter.chapterNumber ?? 'Special'))) + '?',
+      consequence: 'Deletes the custom thumbnail reference and attempts to remove its stored image. The default thumbnail will be used again.',
+      confirmLabel: 'Remove thumbnail',
+    }))) return;
     setBusy(true); setNotice({ type: '', text: '' });
     try {
       const column = slot === 'mobile' ? 'card_thumbnail_mobile_path' : 'card_thumbnail_desktop_path';
@@ -862,7 +915,12 @@ export default function AdminPanel({ onLogout }) {
   async function clearCardThumbnail(chapter, slot) {
     if (!chapter?.id || !['desktop', 'mobile'].includes(slot) || busy) return;
     const label = slot === 'mobile' ? 'mobile' : 'desktop';
-    if (!window.confirm('Remove the custom ' + label + ' card thumbnail for ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : 'this chapter') + '? The normal chapter thumbnail will be used again.')) return;
+    if (!(await requestAdminConfirm({
+      title: 'Remove card thumbnail?',
+      message: 'Remove the custom ' + label + ' thumbnail for ' + (chapter.chapterNumber ? 'Chapter ' + chapter.chapterNumber : (chapter.title || 'this chapter')) + '?',
+      consequence: 'Deletes the custom thumbnail file and falls back to the chapter’s normal thumbnail.',
+      confirmLabel: 'Remove thumbnail',
+    }))) return;
     setBusy(true);
     setNotice({ type: '', text: '' });
     let adminUser = null;
@@ -930,7 +988,12 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteAnnouncement(item) {
-    if (!window.confirm('Delete this announcement permanently?')) return;
+    if (!(await requestAdminConfirm({
+      title: 'Delete announcement?',
+      message: 'Delete “' + (item.title?.startsWith('__image_only_') ? 'Image-only announcement' : (item.title || 'Untitled announcement')) + '”?',
+      consequence: 'Removes this announcement from the public site and attempts to delete its stored image.',
+      confirmLabel: 'Delete announcement',
+    }))) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -968,7 +1031,13 @@ export default function AdminPanel({ onLogout }) {
   }
 
   async function deleteMedia(id) {
-    if (!window.confirm('Delete this media item permanently?')) return;
+    const targetMedia = media.find(item => String(item.id) === String(id));
+    if (!(await requestAdminConfirm({
+      title: 'Delete media item?',
+      message: 'Delete “' + (targetMedia?.title || 'this media item') + '”?',
+      consequence: 'Removes this item from the media library. Any external copies of its image are not affected.',
+      confirmLabel: 'Delete media',
+    }))) return;
     setBusy(true);
     let adminUser = null;
     try {
@@ -1061,8 +1130,8 @@ export default function AdminPanel({ onLogout }) {
             </button>
           </div>
           <div className="ar-admin-top-actions">
-            <span className="ar-admin-freshness" title={lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-IN') : 'Not loaded yet'}>
-              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + lastRefreshedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : 'Updating'}
+            <span className="ar-admin-freshness" title={lastRefreshedAt ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(lastRefreshedAt) : 'Not loaded yet'}>
+              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(lastRefreshedAt) : 'Updating'}
             </span>
             <button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}>
               <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
@@ -1085,7 +1154,7 @@ export default function AdminPanel({ onLogout }) {
         </header>
         <div className="ar-admin-content">
           <div className="ar-admin-command-row"><div><span className="ar-kicker">PUBLISHER · CONTROL CENTER</span><h1>Atma Rekha Admin</h1><p>Publish, maintain and monitor Atma Rekha from one workspace.</p></div><div className="ar-admin-quick-actions"><button type="button" onClick={() => { setChapterPublishProject('atma'); setTab('Chapters'); resetForm(); }} className="ar-admin-primary-action">New chapter</button></div></div>
-          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
+          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role={notice.type === 'error' ? 'alert' : 'status'} aria-live="polite">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span><button type="button" className="ar-admin-toast-close" aria-label="Dismiss notification" onClick={() => setNotice({ type: '', text: '' })}>×</button></div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
@@ -1143,6 +1212,31 @@ export default function AdminPanel({ onLogout }) {
           <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
           <button type="button" onClick={() => setMobileSidebarOpen(true)}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
         </nav>
+        <div className="ar-admin-toast-region" aria-live="polite" aria-relevant="additions text">
+          {toasts.map(toast => <div className={`ar-admin-toast ${toast.type || 'error'}`} role={toast.type === 'error' ? 'alert' : 'status'} key={toast.id}>
+            <span>{toast.message}</span>
+            <button type="button" aria-label="Dismiss notification" onClick={() => setToasts(current => current.filter(item => item.id !== toast.id))}>×</button>
+          </div>)}
+        </div>
+        {confirmDialog && <div className="ar-admin-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) { confirmDialog.resolve?.(false); setConfirmDialog(null); } }}>
+          <section className="ar-admin-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="ar-admin-confirm-title" aria-describedby="ar-admin-confirm-message ar-admin-confirm-consequence">
+            <div className="ar-admin-confirm-icon"><AdminIcon name="flag" size={20}/></div>
+            <h2 id="ar-admin-confirm-title">{confirmDialog.title || 'Confirm action'}</h2>
+            <p id="ar-admin-confirm-message">{confirmDialog.message}</p>
+            {confirmDialog.consequence && <p id="ar-admin-confirm-consequence" className="ar-admin-confirm-consequence">{confirmDialog.consequence}</p>}
+            <div className="ar-admin-confirm-actions">
+              <button type="button" className="ar-admin-confirm-cancel" autoFocus onClick={() => { confirmDialog.resolve?.(false); setConfirmDialog(null); }}>Cancel</button>
+              <button type="button" className="ar-admin-confirm-accept" onClick={() => { confirmDialog.resolve?.(true); setConfirmDialog(null); }}>{confirmDialog.confirmLabel || 'Confirm'}</button>
+            </div>
+          </section>
+        </div>}
+        {shortcutHelpOpen && <div className="ar-admin-confirm-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShortcutHelpOpen(false); }}>
+          <section className="ar-admin-confirm-dialog ar-admin-shortcut-dialog" role="dialog" aria-modal="true" aria-labelledby="ar-admin-shortcuts-title">
+            <h2 id="ar-admin-shortcuts-title">Keyboard shortcuts</h2>
+            <dl><div><dt>⌘K / Ctrl+K</dt><dd>Open command search</dd></div><div><dt>N</dt><dd>Create a new chapter</dd></div><div><dt>R</dt><dd>Refresh admin data</dd></div><div><dt>Esc</dt><dd>Close the open dialog</dd></div><div><dt>?</dt><dd>Show this shortcut list</dd></div></dl>
+            <div className="ar-admin-confirm-actions"><button type="button" className="ar-admin-confirm-cancel" autoFocus onClick={() => setShortcutHelpOpen(false)}>Close</button></div>
+          </section>
+        </div>}
         <AdminCommandPalette
           open={commandOpen}
           onClose={() => setCommandOpen(false)}
