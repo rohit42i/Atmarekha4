@@ -841,3 +841,19 @@ main.admin-page.ar-admin-v3 .admin-announcement-admin-row > div { min-width: 0; 
 @media (max-width: 1020px) {
   main.admin-page.ar-admin-v3 .ar-admin-announcement-workspace { grid-template-columns: minmax(0, 1fr); }
 }
+
+@media (max-width: 760px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-brand > div:nth-child(2),
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-workspace > div,
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav-label,
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav-text,
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav button b,
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-status-card > div { display: initial; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav-label { display: block; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav-text { display: inline; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav button b { display: inline-grid; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-brand { justify-content: flex-start; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-workspace { justify-content: flex-start; padding: 11px; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-nav button { justify-content: flex-start; padding-inline: 10px; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed .ar-admin-status-card { justify-content: flex-start; padding: 12px 10px; }
+}
