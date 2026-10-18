@@ -2,19 +2,6 @@
    Scoped presentation layer. Existing routes, data flows, and admin tools remain intact. */
 
 main.admin-page.ar-admin-v3 {
-  --admin-bg:#0f1115; --admin-surface:#15191f; --admin-surface-2:#1b222b; --admin-surface-3:#202833; --admin-surface-4:#252e39;
-  --admin-border:#2b333e; --admin-border-strong:#3a4552; --admin-border-soft:#242b34;
-  --admin-text:#f2f4f7; --admin-text-2:#d3d8de; --admin-muted:#a2aab5; --admin-faint:#788391;
-  --admin-gold:var(--ar-primary); --admin-gold-bright:var(--ar-primary-hover); --admin-gold-soft:var(--ar-primary-soft); --admin-gold-focus:var(--ar-focus-ring);
-  --admin-success:#9caf85; --admin-success-soft:#202a20; --admin-warning:#d4b36a; --admin-warning-soft:#2c2618;
-  --admin-danger:#e0757e; --admin-danger-soft:#321e23; --admin-shadow:0 10px 28px rgba(0,0,0,.16); --admin-shadow-soft:0 3px 12px rgba(0,0,0,.12);
-  --admin-radius-sm:5px; --admin-radius-md:8px; --admin-radius-lg:11px; --admin-radius-xl:13px;
-  --ar-admin-primary:var(--ar-primary); --ar-admin-primary-dark:var(--ar-primary-hover); --ar-admin-primary-light:var(--ar-primary-hover); --ar-admin-primary-lighter:var(--ar-primary-soft);
-  --ar-admin-success:#9caf85; --ar-admin-warning:#d4b36a; --ar-admin-danger:#e0757e;
-  --ov-bg:#0f1115; --ov-surface:#15191f; --ov-soft:#1b222b; --ov-border:#2b333e; --ov-border-strong:#3a4552;
-  --ov-text:#f2f4f7; --ov-muted:#a2aab5; --ov-faint:#788391; --ov-accent:var(--ar-primary-hover); --ov-accent-soft:var(--ar-primary-soft); --ov-positive:#9caf85; --ov-negative:#e0757e;
-  --cr-bg:#0f1115; --cr-card:#15191f; --cr-card-raised:#1b222b; --cr-border:#2b333e; --cr-border-soft:#242b34;
-  --cr-text:#f2f4f7; --cr-muted:#a2aab5; --cr-faint:#788391; --cr-gold:var(--ar-primary-hover); --cr-gold-soft:var(--ar-primary-soft); --cr-green:#9caf85; --cr-red:#e0757e; --cr-yellow:#d4b36a;
   color:var(--admin-text); background:var(--admin-bg); color-scheme: light;
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-variant-numeric:tabular-nums;
