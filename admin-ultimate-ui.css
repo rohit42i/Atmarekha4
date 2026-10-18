@@ -93,10 +93,10 @@ main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,main.admin-page.ar-ad
 main.admin-page.ar-admin-v3 .admin-studio-button,main.admin-page.ar-admin-v3 .ar-admin-btn{min-height:37px;padding:0 12px;border-radius:8px;box-shadow:none;font-size:11px;font-weight:650;transform:none}
 main.admin-page.ar-admin-v3 :is(.admin-studio-button-secondary,.ar-admin-btn-secondary){border:1px solid var(--admin-border-strong);background:var(--admin-surface-2);color:var(--admin-text)}
 main.admin-page.ar-admin-v3 .ar-admin-notice,main.admin-page.ar-admin-v3 .ar-page-notice{display:flex;align-items:flex-start;gap:9px;margin:0 0 18px;padding:12px 14px;border:1px solid var(--admin-border);border-radius:9px;background:var(--admin-surface-2);color:var(--admin-muted);font-size:12px;line-height:1.5}
-main.admin-page.ar-admin-v3 .ar-admin-notice.success{border-color:#3b5838;background:var(--admin-success-soft);color:#b9c8a9}
-main.admin-page.ar-admin-v3 .ar-admin-notice.error{border-color:#714049;background:var(--admin-danger-soft);color:var(--admin-danger)}
-html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-notice.success{border-color:#c8d7be;color:#3e5837}
-html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-notice.error{border-color:#e7c4c7;color:#a53540}
+main.admin-page.ar-admin-v3 .ar-admin-notice.success{border-color:var(--ar-success-border);background:var(--admin-success-soft);color:var(--ar-success)}
+main.admin-page.ar-admin-v3 .ar-admin-notice.error{border-color:var(--ar-danger-border);background:var(--admin-danger-soft);color:var(--admin-danger)}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-notice.success{border-color:var(--ar-success-border);color:var(--ar-success)}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-notice.error{border-color:var(--ar-danger-border);color:var(--ar-danger)}
 main.admin-page.ar-admin-v3 .admin-loading{padding:56px 16px;color:var(--admin-muted);font-size:13px}
 
 main.admin-page.ar-admin-v3 :is(.admin-card,.admin-header-card,.admin-overview-card,.admin-overview-stat,.performance-card,.ar-stat-card,.ar-glass-card,.admin-studio-modal,.ar-cr-panel,.ar-cr-card,.ar-cr-table-panel,.ar-cr-filter-panel,.ar-overview-panel,.ar-overview-chart-card,.ar-overview-table-card){
@@ -293,9 +293,9 @@ main.admin-page.ar-admin-v3 .ar-overview :is(.ar-section-header,.admin-overview-
 }
 main.admin-page.ar-admin-v3 .ar-chart-legend{gap:13px}
 main.admin-page.ar-admin-v3 .ar-chart-legend .dot.violet{background:var(--ar-primary-hover)}
-main.admin-page.ar-admin-v3 .ar-chart-legend .dot.pink{background:#9caf85}
+main.admin-page.ar-admin-v3 .ar-chart-legend .dot.pink{background:var(--ar-chart-violet)}
 main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i{background:var(--ar-primary-hover);border-radius:3px 3px 0 0}
-main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b{background:#9caf85;border-radius:3px 3px 0 0}
+main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b{background:var(--ar-chart-violet);border-radius:3px 3px 0 0}
 main.admin-page.ar-admin-v3 .ar-top-copy i{height:4px;overflow:hidden;border-radius:3px;background:var(--admin-surface-3)}
 main.admin-page.ar-admin-v3 .ar-top-copy i em{border-radius:3px;background:var(--ar-primary-hover)}
 main.admin-page.ar-admin-v3 .ar-live-grid>div{
@@ -310,7 +310,7 @@ main.admin-page.ar-admin-v3 .ar-rating-mini>div,main.admin-page.ar-admin-v3 .ar-
 main.admin-page.ar-admin-v3 .ar-funnel-list>div>i,main.admin-page.ar-admin-v3 .ar-health-bar{
   overflow:hidden;border-radius:4px;background:var(--admin-surface-3);
 }
-main.admin-page.ar-admin-v3 .ar-funnel-list>div>i em,main.admin-page.ar-admin-v3 .ar-health-bar i{border-radius:4px;background:#9caf85}
+main.admin-page.ar-admin-v3 .ar-funnel-list>div>i em,main.admin-page.ar-admin-v3 .ar-health-bar i{border-radius:4px;background:var(--ar-chart-violet)}
 main.admin-page.ar-admin-v3 .ar-comment-feed article{padding:12px 0;border-bottom:1px solid var(--admin-border)}
 main.admin-page.ar-admin-v3 .ar-comment-feed article:last-child{border-bottom:0}
 main.admin-page.ar-admin-v3 .ar-admin-activity-list article{border-bottom:1px solid var(--admin-border)}
@@ -319,7 +319,7 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-overview :is(.ar-chart-
   background:#fff;
 }
 html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i{background:var(--ar-primary)}
-html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b{background:#648052}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b{background:var(--ar-success)}
 @media(max-width:1180px){
   main.admin-page.ar-admin-v3 .ar-overview-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
   main.admin-page.ar-admin-v3 .ar-overview-secondary>*:first-child{grid-column:1/-1}
