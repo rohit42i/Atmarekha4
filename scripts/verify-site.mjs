@@ -420,12 +420,14 @@ const adminVisualStyles = await Promise.all([
 const adminVisualPolish = adminVisualStyles[5];
 const controlRoomHero = controlRoom.split('<header className="ar-cr-hero">')[1]?.split('</header>')[0] || '';
 if (!adminPanelSource.includes("import './admin-visual-polish.css';") ||
-    !adminVisualPolish.includes('--ar-primary: #9D520B') ||
+    !adminVisualPolish.includes('--ar-bg: #F4F5F7') ||
+    !adminVisualPolish.includes('--ar-primary: #D96D16') ||
     !adminVisualPolish.includes('html[data-theme="dark"] main.admin-page.ar-admin-v3') ||
-    !adminVisualPolish.includes('html[data-theme="light"] body main.admin-page.ar-admin-v3') ||
+    !adminVisualPolish.includes('--ar-primary: #F28C28') ||
+    !adminVisualPolish.includes('html[data-theme="light"] main.admin-page.ar-admin-v3 { color-scheme: light; }') ||
     !adminVisualPolish.includes('@media (max-width: 1380px)') ||
     !adminVisualPolish.includes('@media (max-width: 760px)')) {
-  console.error('CHECK FAILED: final admin visual layer must be imported and define both theme palettes plus desktop/mobile layout rules.');
+  console.error('CHECK FAILED: final admin visual layer must own a single light palette, a dark palette, and desktop/mobile layout rules.');
   failed = true;
 }
 if (!adminVisualPolish.includes('Bring leftover overview/chart accents into the same warm, semantic palette') ||
