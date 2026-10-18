@@ -1,24 +1,24 @@
 /* Atma Rekha admin system — shared, restrained and data-first.
    Scoped to the admin root; existing CRUD, upload and moderation behavior is unchanged. */
 main.admin-page.ar-admin-v3 {
-  --ar-ui-bg:#0f1115;
-  --ar-ui-sidebar:#151820;
-  --ar-ui-surface:#1a1e27;
-  --ar-ui-raised:#252a33;
-  --ar-ui-border:#343a46;
-  --ar-ui-border-soft:#292e38;
-  --ar-ui-text:#f2f5f5;
-  --ar-ui-muted:#a9b2b6;
-  --ar-ui-subtle:#7f8b91;
-  --ar-ui-accent:#ff8a00;
-  --ar-ui-accent-strong:#ffa126;
-  --ar-ui-accent-soft:rgba(255,138,0,.13);
-  --ar-ui-good:#45c98a;
-  --ar-ui-warn:#f2b65d;
-  --ar-ui-danger:#f07878;
-  background:var(--ar-ui-bg);
-  color:var(--ar-ui-text);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  background: var(--ar-bg);
+  color: var(--ar-text);
+  font-family: inherit;
   font-size:13px;
   line-height:1.5;
 }
@@ -33,16 +33,16 @@ main.admin-page.ar-admin-v3 :is(input,select,textarea) {
   border:1px solid var(--ar-ui-border);
   border-radius:7px;
 }
-main.admin-page.ar-admin-v3 :is(input,select,textarea)::placeholder { color:#7f8b91; }
+main.admin-page.ar-admin-v3 :is(input,select,textarea)::placeholder { color:var(--ar-text-muted); }
 main.admin-page.ar-admin-v3 :is(button,a) { -webkit-tap-highlight-color:transparent; }
 main.admin-page.ar-admin-v3 :is(button,a):disabled { opacity:.45;cursor:not-allowed; }
 main.admin-page.ar-admin-v3 .ar-admin-topbar {
-  background:#111315;
+  background:var(--ar-sidebar);
   border-bottom:1px solid var(--ar-ui-border-soft);
 }
 main.admin-page.ar-admin-v3 .ar-admin-search,
 main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
-  background:#1b2029;
+  background:var(--ar-raised);
   border:1px solid var(--ar-ui-border);
   color:var(--ar-ui-muted);
   border-radius:8px;
@@ -62,7 +62,7 @@ main.admin-page.ar-admin-v3 .admin-submit,
 main.admin-page.ar-admin-v3 .ar-admin-btn-primary {
   background:var(--ar-ui-accent);
   border-color:var(--ar-ui-accent);
-  color:#211306;
+  color:var(--ar-on-primary);
   font-weight:750;
 }
 main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,
@@ -89,7 +89,7 @@ main.admin-page.ar-admin-v3 .ar-kicker {
 }
 main.admin-page.ar-admin-v3 .ar-period-switch {
   display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:4px;
-  background:#171b23;border:1px solid var(--ar-ui-border);border-radius:9px;
+  background:var(--ar-raised);border:1px solid var(--ar-ui-border);border-radius:9px;
 }
 main.admin-page.ar-admin-v3 .ar-period-switch button {
   min-height:34px;padding:0 11px;border:1px solid transparent;border-radius:6px;
@@ -97,7 +97,7 @@ main.admin-page.ar-admin-v3 .ar-period-switch button {
 }
 main.admin-page.ar-admin-v3 .ar-period-switch button[aria-selected="true"],
 main.admin-page.ar-admin-v3 .ar-period-switch button.active {
-  background:var(--ar-ui-accent-soft);border-color:rgba(255,138,0,.38);color:#ffc06b;
+  background:var(--ar-ui-accent-soft);border-color:var(--ar-primary-border);color:var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-overview-kpis,
 main.admin-page.ar-admin-v3 .ar-membership-kpis {
@@ -181,7 +181,7 @@ main.admin-page.ar-admin-v3 .admin-filter-control :is(input,select) {
   border-radius:7px;background:#111517;color:var(--ar-ui-text);
 }
 main.admin-page.ar-admin-v3 .admin-filter-control :is(input,select):focus {
-  border-color:var(--ar-ui-accent);outline:2px solid rgba(255,138,0,.16);
+  border-color:var(--ar-ui-accent);outline:2px solid var(--ar-primary-soft);
 }
 main.admin-page.ar-admin-v3 .admin-table-toolbar {
   display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
@@ -232,7 +232,7 @@ main.admin-page.ar-admin-v3 .admin-table-action {
   min-width:34px;min-height:34px;padding:6px 8px;border:1px solid var(--ar-ui-border);
   border-radius:6px;background:#1c2225;color:#d8e0e2;font-size:11px;
 }
-main.admin-page.ar-admin-v3 .admin-table-action:hover { border-color:var(--ar-ui-accent);color:#ffc06b; }
+main.admin-page.ar-admin-v3 .admin-table-action:hover { border-color:var(--ar-ui-accent);color:var(--ar-primary-hover); }
 main.admin-page.ar-admin-v3 .admin-context-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
 main.admin-page.ar-admin-v3 .admin-context-block {
   min-width:0;padding:12px;border:1px solid var(--ar-ui-border-soft);border-radius:8px;background:#171b1e;
@@ -273,7 +273,7 @@ main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric { background:var(--ar
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-btn.is-primary,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary { background:var(--ar-ui-accent);border-color:var(--ar-ui-accent);color:#071918; }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-nav button.active,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-nav button.active { color:#ffc06b;border-color:rgba(32,178,170,.38);background:var(--ar-ui-accent-soft); }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-nav button.active { color:var(--ar-primary-hover);border-color:rgba(32,178,170,.38);background:var(--ar-ui-accent-soft); }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-rank-list>button>b,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-rank-list>button>b,
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-readiness>strong,
@@ -334,7 +334,7 @@ main.admin-page.ar-admin-v3 .admin-view-switch button {
 }
 main.admin-page.ar-admin-v3 .admin-view-switch button:hover { color:var(--ar-ui-text); }
 main.admin-page.ar-admin-v3 .admin-view-switch button.is-active {
-  color:#ffc06b;background:var(--ar-ui-accent-soft);border-color:rgba(255,138,0,.34);
+  color:var(--ar-primary-hover);background:var(--ar-ui-accent-soft);border-color:rgba(255,138,0,.34);
 }
 main.admin-page.ar-admin-v3 .admin-chapter-card-grid {
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0;
@@ -394,53 +394,53 @@ main.admin-page.ar-admin-v3 .admin-chapter-card-page-state.no-pages i { backgrou
 
 /* Actual admin visual refresh: apply to the real rendered CMS surfaces, not just theme tokens. */
 main.admin-page.ar-admin-v3 {
-  --ar-ui-bg:#0d1015;
-  --ar-ui-sidebar:#111720;
-  --ar-ui-surface:#171e28;
-  --ar-ui-raised:#202a37;
-  --ar-ui-border:#303b4a;
-  --ar-ui-border-soft:#242e3b;
-  --ar-ui-text:#f5f7fa;
-  --ar-ui-muted:#a9b4c2;
-  --ar-ui-subtle:#7f8b9b;
-  --ar-ui-accent:#ff8a00;
-  --ar-ui-accent-strong:#ffad42;
-  --ar-ui-accent-soft:rgba(255,138,0,.15);
-  background:#0d1015;
-  color:var(--ar-ui-text);
+
+
+
+
+
+
+
+
+
+
+
+
+  background: var(--ar-bg);
+  color: var(--ar-text);
 }
-main.admin-page.ar-admin-v3 .ar-admin-app { gap:0; background:#0d1015; }
+main.admin-page.ar-admin-v3 .ar-admin-app { gap:0; background:var(--ar-bg); }
 main.admin-page.ar-admin-v3 .ar-admin-sidebar {
-  background:#111720;
-  border:1px solid #27313f;
-  border-right-color:#303b4a;
+  background:var(--ar-sidebar);
+  border:1px solid var(--ar-border);
+  border-right-color:var(--ar-border-strong);
   border-radius:0 16px 16px 0;
   box-shadow:8px 0 30px rgba(0,0,0,.16);
 }
 main.admin-page.ar-admin-v3 .ar-admin-brand {
   padding-bottom:22px;
-  border-bottom:1px solid #26313f;
+  border-bottom:1px solid var(--ar-border);
 }
 main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
-  background:#ff8a00;
-  color:#17100a;
-  border:1px solid #ffb052;
+  background:var(--ar-primary);
+  color:var(--ar-on-primary);
+  border:1px solid var(--ar-primary-hover);
   box-shadow:0 0 0 4px rgba(255,138,0,.09);
 }
 main.admin-page.ar-admin-v3 .ar-admin-workspace {
   margin-top:18px;
-  background:#19222e;
-  border:1px solid #2e3949;
+  background:var(--ar-surface);
+  border:1px solid var(--ar-border-strong);
   border-radius:10px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-avatar-mini,
 main.admin-page.ar-admin-v3 .ar-admin-avatar {
-  background:#332516;
-  color:#ffb45b;
+  background:var(--ar-primary-soft);
+  color:var(--ar-primary-hover);
   border:1px solid rgba(255,138,0,.32);
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav-label {
-  color:#77869a;
+  color:var(--ar-text-muted);
   font-size:10px;
   font-weight:800;
   letter-spacing:.13em;
@@ -450,54 +450,54 @@ main.admin-page.ar-admin-v3 .ar-admin-nav button {
   margin:2px 0;
   border:1px solid transparent;
   border-radius:8px;
-  color:#acb6c4;
+  color:var(--ar-text-secondary);
   transition:background-color .15s ease,border-color .15s ease,color .15s ease;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button:hover {
-  background:#1c2633;
+  background:var(--ar-raised);
   color:#fff;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
   background:rgba(255,138,0,.14);
-  border-color:rgba(255,138,0,.38);
-  color:#ffd3a0;
-  box-shadow:inset 3px 0 0 #ff8a00;
+  border-color:var(--ar-primary-border);
+  color:var(--ar-primary-hover);
+  box-shadow:inset 3px 0 0 var(--ar-primary);
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button.active:before { display:none; }
-main.admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon { color:#ffad42; }
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active .ar-admin-nav-icon { color:var(--ar-primary-hover); }
 main.admin-page.ar-admin-v3 .ar-admin-nav button b {
   background:#3a2817;
   border:1px solid #765025;
-  color:#ffd3a0;
+  color:var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-admin-status-card {
   background:#151e28;
   border:1px solid #2b3847;
   border-radius:10px;
 }
-main.admin-page.ar-admin-v3 .ar-admin-main { background:#0d1015; }
+main.admin-page.ar-admin-v3 .ar-admin-main { background:var(--ar-bg); }
 main.admin-page.ar-admin-v3 .ar-admin-topbar {
   position:sticky;
   top:0;
   z-index:30;
-  background:#0d1015;
-  border-bottom:1px solid #27313f;
+  background:var(--ar-bg);
+  border-bottom:1px solid var(--ar-border);
   box-shadow:0 6px 22px rgba(0,0,0,.12);
 }
 main.admin-page.ar-admin-v3 .ar-admin-page-context span {
-  color:#ffad42;
+  color:var(--ar-primary-hover);
   font-weight:850;
   letter-spacing:.16em;
 }
 main.admin-page.ar-admin-v3 .ar-admin-page-context strong {
-  color:#f5f7fa;
+  color:var(--ar-text);
   font-weight:760;
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
   min-height:40px;
-  background:#171e28;
-  border-color:#303b4a;
-  color:#a9b4c2;
+  background:var(--ar-surface);
+  border-color:var(--ar-border-strong);
+  color:var(--ar-text-secondary);
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-trigger kbd {
   background:#222c39;
@@ -511,7 +511,7 @@ main.admin-page.ar-admin-v3 .ar-admin-profile {
   min-height:40px;
   border:1px solid #2d3847;
   border-radius:8px;
-  background:#171e28;
+  background:var(--ar-surface);
   color:#dce3ec;
 }
 main.admin-page.ar-admin-v3 .ar-admin-icon-button:hover,
@@ -522,7 +522,7 @@ main.admin-page.ar-admin-v3 .ar-admin-profile:hover {
 }
 main.admin-page.ar-admin-v3 .ar-admin-content {
   padding:26px clamp(16px,2.4vw,34px) 48px;
-  color:#f5f7fa;
+  color:var(--ar-text);
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-row {
   display:flex;
@@ -532,13 +532,13 @@ main.admin-page.ar-admin-v3 .ar-admin-command-row {
   margin:0 0 22px;
   padding:22px 24px;
   border:1px solid #3b342b;
-  border-left:4px solid #ff8a00;
+  border-left:4px solid var(--ar-primary);
   border-radius:12px;
   background:#171b21;
   box-shadow:0 10px 26px rgba(0,0,0,.13);
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-row .ar-kicker {
-  color:#ffad42;
+  color:var(--ar-primary-hover);
   font-size:10px;
   font-weight:850;
   letter-spacing:.16em;
@@ -553,7 +553,7 @@ main.admin-page.ar-admin-v3 .ar-admin-command-row h1 {
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-row p {
   margin:8px 0 0;
-  color:#a9b4c2;
+  color:var(--ar-text-secondary);
   font-size:12px;
   line-height:1.6;
 }
@@ -564,17 +564,17 @@ main.admin-page.ar-admin-v3 .ar-admin-btn-primary {
   padding:0 15px;
   border:1px solid #ff9b26;
   border-radius:8px;
-  background:#ff8a00;
+  background:var(--ar-primary);
   color:#1b1208;
   font-weight:850;
-  box-shadow:0 5px 16px rgba(255,138,0,.15);
+  box-shadow:0 5px 16px var(--ar-primary-soft);
 }
 main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,
 main.admin-page.ar-admin-v3 .admin-submit:hover,
 main.admin-page.ar-admin-v3 .ar-admin-btn-primary:hover {
-  background:#ffad42;
+  background:var(--ar-primary-hover);
   border-color:#ffc16f;
-  color:#17100a;
+  color:var(--ar-on-primary);
   transform:translateY(-1px);
 }
 main.admin-page.ar-admin-v3 .ar-overview,
@@ -591,9 +591,9 @@ main.admin-page.ar-admin-v3 .ar-stat-card {
   overflow:hidden;
   min-height:124px;
   padding:17px 17px 20px;
-  border:1px solid #303b4a;
+  border:1px solid var(--ar-border-strong);
   border-radius:11px;
-  background:#171e28;
+  background:var(--ar-surface);
   box-shadow:0 7px 20px rgba(0,0,0,.12);
   transition:transform .16s ease,border-color .16s ease,background-color .16s ease;
 }
@@ -603,7 +603,7 @@ main.admin-page.ar-admin-v3 .ar-stat-card:before {
   inset:0 auto 0 0;
   width:3px;
   height:auto;
-  background:#ff8a00;
+  background:var(--ar-primary);
   content:"";
 }
 main.admin-page.ar-admin-v3 .ar-stat-card:hover {
@@ -614,7 +614,7 @@ main.admin-page.ar-admin-v3 .ar-stat-card:hover {
 }
 main.admin-page.ar-admin-v3 .ar-stat-top { align-items:center; gap:10px; }
 main.admin-page.ar-admin-v3 .ar-stat-top>span:first-child {
-  color:#a9b4c2;
+  color:var(--ar-text-secondary);
   font-size:11px;
   font-weight:700;
 }
@@ -625,8 +625,8 @@ main.admin-page.ar-admin-v3 .ar-stat-icon {
   height:32px;
   border:1px solid rgba(255,138,0,.3);
   border-radius:8px;
-  background:rgba(255,138,0,.12);
-  color:#ffad42;
+  background:var(--ar-primary-soft);
+  color:var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-stat-number,
 main.admin-page.ar-admin-v3 .ar-stat-card>strong {
@@ -644,7 +644,7 @@ main.admin-page.ar-admin-v3 .ar-stat-accent-line {
   left:0;
   width:100%;
   height:2px;
-  background:#ff8a00;
+  background:var(--ar-primary);
   opacity:.85;
 }
 main.admin-page.ar-admin-v3 .admin-card,
@@ -652,9 +652,9 @@ main.admin-page.ar-admin-v3 .ar-glass-card,
 main.admin-page.ar-admin-v3 .ar-chart-card,
 main.admin-page.ar-admin-v3 .ar-activity-card {
   min-width:0;
-  border:1px solid #303b4a;
+  border:1px solid var(--ar-border-strong);
   border-radius:12px;
-  background:#171e28;
+  background:var(--ar-surface);
   box-shadow:0 8px 24px rgba(0,0,0,.13);
   backdrop-filter:none;
 }
@@ -664,32 +664,32 @@ main.admin-page.ar-admin-v3 .admin-card-title {
 }
 main.admin-page.ar-admin-v3 .admin-card-title>div>span,
 main.admin-page.ar-admin-v3 .ar-section-header .eyebrow {
-  color:#ffad42;
+  color:var(--ar-primary-hover);
   font-size:9px;
   font-weight:850;
   letter-spacing:.14em;
 }
 main.admin-page.ar-admin-v3 .admin-card-title h2,
 main.admin-page.ar-admin-v3 .ar-section-header h3 {
-  color:#f5f7fa;
+  color:var(--ar-text);
   font-weight:780;
 }
 main.admin-page.ar-admin-v3 .admin-card-title p,
 main.admin-page.ar-admin-v3 .ar-note,
 main.admin-page.ar-admin-v3 .ar-live-foot {
-  color:#a9b4c2;
+  color:var(--ar-text-secondary);
 }
 main.admin-page.ar-admin-v3 .ar-period-switch {
   background:#121820;
-  border-color:#303b4a;
+  border-color:var(--ar-border-strong);
   border-radius:9px;
 }
 main.admin-page.ar-admin-v3 .ar-period-switch button { border-radius:6px; }
 main.admin-page.ar-admin-v3 .ar-period-switch button[aria-selected="true"],
 main.admin-page.ar-admin-v3 .ar-period-switch button.active {
-  background:rgba(255,138,0,.16);
+  background:var(--ar-primary-soft);
   border-color:rgba(255,138,0,.42);
-  color:#ffd09a;
+  color:var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-chart-track,
 main.admin-page.ar-admin-v3 .ar-health-bar,
@@ -701,20 +701,20 @@ main.admin-page.ar-admin-v3 .ar-chart-track i,
 main.admin-page.ar-admin-v3 .ar-health-bar i,
 main.admin-page.ar-admin-v3 .ar-funnel-list em,
 main.admin-page.ar-admin-v3 .ar-top-copy i em {
-  background:#ff8a00;
+  background:var(--ar-primary);
 }
-main.admin-page.ar-admin-v3 .ar-chart-track b { background:#51b9ad; }
-main.admin-page.ar-admin-v3 .ar-chart-legend .dot.violet { background:#ff8a00; }
-main.admin-page.ar-admin-v3 .ar-chart-legend .dot.pink { background:#51b9ad; }
+main.admin-page.ar-admin-v3 .ar-chart-track b { background:var(--ar-chart-cyan); }
+main.admin-page.ar-admin-v3 .ar-chart-legend .dot.violet { background:var(--ar-primary); }
+main.admin-page.ar-admin-v3 .ar-chart-legend .dot.pink { background:var(--ar-chart-cyan); }
 main.admin-page.ar-admin-v3 .ar-admin-activity-mark,
 main.admin-page.ar-admin-v3 .ar-queue-count {
-  background:rgba(255,138,0,.12);
+  background:var(--ar-primary-soft);
   border:1px solid rgba(255,138,0,.28);
-  color:#ffad42;
+  color:var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-text-action,
-main.admin-page.ar-admin-v3 .ar-top-value { color:#ffad42; }
-main.admin-page.ar-admin-v3 .ar-text-action:hover { color:#ffd09a; }
+main.admin-page.ar-admin-v3 .ar-top-value { color:var(--ar-primary-hover); }
+main.admin-page.ar-admin-v3 .ar-text-action:hover { color:var(--ar-primary-hover); }
 main.admin-page.ar-admin-v3 .ar-top-list>div,
 main.admin-page.ar-admin-v3 .ar-comment-feed article,
 main.admin-page.ar-admin-v3 .ar-admin-activity-list article,
@@ -725,21 +725,21 @@ main.admin-page.ar-admin-v3 .ar-upcoming>button {
 }
 main.admin-page.ar-admin-v3 .ar-comment-feed article:hover,
 main.admin-page.ar-admin-v3 .ar-upcoming>button:hover {
-  background:#202a37;
+  background:var(--ar-raised);
 }
 main.admin-page.ar-admin-v3 .admin-table-wrap,
 main.admin-page.ar-admin-v3 .ar-admin-table-wrapper {
-  border:1px solid #303b4a;
+  border:1px solid var(--ar-border-strong);
   border-radius:10px;
   background:#151c25;
   overflow-x:auto;
 }
 main.admin-page.ar-admin-v3 table { border-collapse:separate; border-spacing:0; }
-main.admin-page.ar-admin-v3 table thead { background:#202a37; }
+main.admin-page.ar-admin-v3 table thead { background:var(--ar-raised); }
 main.admin-page.ar-admin-v3 table th {
   padding-top:12px;
   padding-bottom:12px;
-  background:#202a37;
+  background:var(--ar-raised);
   color:#c0cad7;
   border-bottom:1px solid #354152;
   font-size:10px;
@@ -752,23 +752,23 @@ main.admin-page.ar-admin-v3 table td {
 }
 main.admin-page.ar-admin-v3 table tbody tr:hover { background:#1d2733; }
 main.admin-page.ar-admin-v3 :is(input,select,textarea) {
-  background:#111720;
+  background:var(--ar-sidebar);
   border:1px solid #354253;
   border-radius:8px;
-  color:#f5f7fa;
+  color:var(--ar-text);
 }
 main.admin-page.ar-admin-v3 :is(input,select,textarea):focus {
-  border-color:#ff8a00;
-  box-shadow:0 0 0 3px rgba(255,138,0,.15);
+  border-color:var(--ar-primary);
+  box-shadow:0 0 0 3px var(--ar-primary-soft);
 }
-main.admin-page.ar-admin-v3 :is(input,select,textarea)::placeholder { color:#77869a; }
+main.admin-page.ar-admin-v3 :is(input,select,textarea)::placeholder { color:var(--ar-text-muted); }
 main.admin-page.ar-admin-v3 :is(button,input,select,textarea,[role="button"],a):focus-visible {
-  outline:2px solid #ffad42;
+  outline:2px solid var(--ar-primary-hover);
   outline-offset:3px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-notice {
   border-radius:9px;
-  border-left:3px solid #ff8a00;
+  border-left:3px solid var(--ar-primary);
   background:#1c222b;
 }
 main.admin-page.ar-admin-v3 .ar-admin-notice.success { border-left-color:#45c98a; }
