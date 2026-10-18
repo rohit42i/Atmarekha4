@@ -2669,3 +2669,324 @@ body main.admin-page.ar-admin-v3 .ar-admin-toast.success {
     width: 100%;
   }
 }
+
+
+/* Final reference-alignment pass: consistent controls, predictable action placement,
+   and one theme-aware surface system across every admin workspace. */
+main.admin-page.ar-admin-v3 {
+  --ar-radius-sm: 6px;
+  --ar-radius-button: 7px;
+  --ar-radius-card: 10px;
+  --ar-control-height: 38px;
+  --ar-focus-ring: color-mix(in srgb, var(--ar-primary) 38%, transparent);
+  min-width: 0;
+  overflow-x: clip;
+}
+html[data-theme="light"] main.admin-page.ar-admin-v3 {
+  --ar-bg: #F3F5F7;
+  --ar-sidebar: #FFFFFF;
+  --ar-surface: #FFFFFF;
+  --ar-raised: #F7F8FA;
+  --ar-border: #DDE2E8;
+  --ar-border-strong: #C7CFD8;
+  --ar-text: #202833;
+  --ar-text-secondary: #4D5967;
+  --ar-text-muted: #667383;
+  --ar-text-faint: #778392;
+  --ar-primary: #A75A0A;
+  --ar-primary-hover: #874706;
+  --ar-primary-pressed: #713A03;
+  --ar-on-primary: #FFFFFF;
+  --ar-primary-soft: #FFF0DE;
+  --ar-primary-border: #E8C89F;
+  --ar-success: #216747;
+  --ar-success-bg: #E8F5ED;
+  --ar-warning: #80540A;
+  --ar-warning-bg: #FFF4D9;
+  --ar-danger: #B42332;
+  --ar-danger-bg: #FCEAEC;
+  --ar-info: #315E9F;
+  --ar-info-bg: #EAF1FC;
+  --admin-bg: var(--ar-bg);
+  --admin-surface: var(--ar-surface);
+  --admin-surface-2: #F0F2F5;
+  --admin-surface-3: #E9EDF1;
+  --admin-surface-4: #E1E6EC;
+  --admin-border: var(--ar-border);
+  --admin-border-strong: var(--ar-border-strong);
+  --admin-text: var(--ar-text);
+  --admin-text-2: var(--ar-text-secondary);
+  --admin-muted: var(--ar-text-muted);
+  --admin-faint: var(--ar-text-faint);
+  --admin-gold: var(--ar-primary);
+  --admin-gold-bright: var(--ar-primary-hover);
+  --admin-gold-soft: var(--ar-primary-soft);
+  --ar-admin-primary: var(--ar-primary);
+  --ar-admin-primary-dark: var(--ar-primary-pressed);
+  --ar-admin-primary-light: var(--ar-primary-hover);
+  --ar-admin-primary-lighter: var(--ar-primary-soft);
+  --ov-bg: var(--ar-bg);
+  --ov-surface: var(--ar-surface);
+  --ov-soft: var(--ar-raised);
+  --ov-border: var(--ar-border);
+  --ov-border-strong: var(--ar-border-strong);
+  --ov-text: var(--ar-text);
+  --ov-muted: var(--ar-text-secondary);
+  --ov-faint: var(--ar-text-faint);
+  --ov-accent: var(--ar-primary);
+  --ov-accent-soft: var(--ar-primary-soft);
+  --cr-bg: var(--ar-bg);
+  --cr-card: var(--ar-surface);
+  --cr-card-raised: var(--ar-raised);
+  --cr-border: var(--ar-border);
+  --cr-border-soft: var(--ar-border);
+  --cr-text: var(--ar-text);
+  --cr-muted: var(--ar-text-secondary);
+  --cr-faint: var(--ar-text-faint);
+  --cr-gold: var(--ar-primary);
+  --cr-gold-soft: var(--ar-primary-soft);
+  color-scheme: light;
+}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 {
+  --ar-bg: #0F1216;
+  --ar-sidebar: #12161B;
+  --ar-surface: #181D23;
+  --ar-raised: #20262E;
+  --ar-border: #2C343E;
+  --ar-border-strong: #3D4855;
+  --ar-text: #F0F3F6;
+  --ar-text-secondary: #BEC7D0;
+  --ar-text-muted: #95A1AE;
+  --ar-text-faint: #7E8A98;
+  --ar-primary: #E9A84B;
+  --ar-primary-hover: #F6B85E;
+  --ar-primary-pressed: #CF8A2D;
+  --ar-on-primary: #21170B;
+  --ar-primary-soft: #302518;
+  --ar-primary-border: #72532E;
+  --ar-success: #72D0A0;
+  --ar-success-bg: #172B21;
+  --ar-warning: #EBC16D;
+  --ar-warning-bg: #302716;
+  --ar-danger: #FF8A8D;
+  --ar-danger-bg: #321E22;
+  --ar-info: #94B9F2;
+  --ar-info-bg: #1C293D;
+  --admin-bg: var(--ar-bg);
+  --admin-surface: var(--ar-surface);
+  --admin-surface-2: var(--ar-raised);
+  --admin-surface-3: #252D36;
+  --admin-surface-4: #2B343F;
+  --admin-border: var(--ar-border);
+  --admin-border-strong: var(--ar-border-strong);
+  --admin-text: var(--ar-text);
+  --admin-text-2: var(--ar-text-secondary);
+  --admin-muted: var(--ar-text-muted);
+  --admin-faint: var(--ar-text-faint);
+  --admin-gold: var(--ar-primary);
+  --admin-gold-bright: var(--ar-primary-hover);
+  --admin-gold-soft: var(--ar-primary-soft);
+  --ar-admin-primary: var(--ar-primary);
+  --ar-admin-primary-dark: var(--ar-primary-pressed);
+  --ar-admin-primary-light: var(--ar-primary-hover);
+  --ar-admin-primary-lighter: var(--ar-primary-soft);
+  --ov-bg: var(--ar-bg);
+  --ov-surface: var(--ar-surface);
+  --ov-soft: var(--ar-raised);
+  --ov-border: var(--ar-border);
+  --ov-border-strong: var(--ar-border-strong);
+  --ov-text: var(--ar-text);
+  --ov-muted: var(--ar-text-secondary);
+  --ov-faint: var(--ar-text-faint);
+  --ov-accent: var(--ar-primary);
+  --ov-accent-soft: var(--ar-primary-soft);
+  --cr-bg: var(--ar-bg);
+  --cr-card: var(--ar-surface);
+  --cr-card-raised: var(--ar-raised);
+  --cr-border: var(--ar-border);
+  --cr-border-soft: var(--ar-border);
+  --cr-text: var(--ar-text);
+  --cr-muted: var(--ar-text-secondary);
+  --cr-faint: var(--ar-text-faint);
+  --cr-gold: var(--ar-primary);
+  --cr-gold-soft: var(--ar-primary-soft);
+  color-scheme: dark;
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-app,.ar-admin-main,.ar-admin-content) {
+  min-width: 0;
+  max-width: 100%;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-app {
+  grid-template-columns: 252px minmax(0, 1fr);
+  align-items: stretch;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  min-width: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-content {
+  width: 100%;
+  max-width: 1760px;
+  margin-inline: auto;
+  padding: clamp(16px, 2.2vw, 32px) clamp(14px, 2.3vw, 36px) 52px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-command-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 24px;
+  flex-wrap: wrap;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-command-row > div:first-child {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-quick-actions,
+body main.admin-page.ar-admin-v3 .admin-row-actions,
+body main.admin-page.ar-admin-v3 .ar-admin-report-actions,
+body main.admin-page.ar-admin-v3 .ar-cr-hero-secondary-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+body main.admin-page.ar-admin-v3 :is(button,[role="button"]) {
+  min-width: 0;
+  min-height: 36px;
+  border-radius: var(--ar-radius-button);
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-content :is(
+  button:not(.ar-admin-primary-action):not(.admin-submit):not(.admin-studio-button-primary):not(.ar-admin-btn-primary):not(.ar-cr-btn.is-primary):not(.ar-ops-primary):not(.active),
+  .admin-studio-button-secondary,
+  .admin-studio-button-ghost
+) {
+  color: var(--ar-text);
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-primary-action,.admin-submit,.admin-studio-button-primary,.ar-admin-btn-primary,.ar-cr-btn.is-primary,.ar-ops-primary) {
+  background: var(--ar-primary) !important;
+  border: 1px solid var(--ar-primary) !important;
+  color: var(--ar-on-primary) !important;
+  font-weight: 700;
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-primary-action,.admin-submit,.admin-studio-button-primary,.ar-admin-btn-primary,.ar-cr-btn.is-primary,.ar-ops-primary):hover:not(:disabled) {
+  background: var(--ar-primary-hover) !important;
+  border-color: var(--ar-primary-hover) !important;
+  color: var(--ar-on-primary) !important;
+}
+body main.admin-page.ar-admin-v3 :is(button.danger-text,.danger-text,.ar-ops-actions button.danger) {
+  color: var(--ar-danger) !important;
+}
+body main.admin-page.ar-admin-v3 :is(button,input,select,textarea,a,[tabindex]):focus-visible {
+  outline: 2px solid var(--ar-primary) !important;
+  outline-offset: 2px;
+}
+body main.admin-page.ar-admin-v3 :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea) {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 7px;
+  color: var(--ar-text);
+}
+body main.admin-page.ar-admin-v3 :is(.admin-card,.ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-cr-card,.ar-cr-table-panel,.ar-cr-filter-panel,.ar-mgmt-panel,.ar-ops-panel,.ar-health-panel,.ar-pro-panel,.community-admin-modal) {
+  min-width: 0;
+  border-radius: var(--ar-radius-card);
+  box-shadow: none;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-section-header,.ar-admin-report-card-head) {
+  min-width: 0;
+  gap: 12px;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-section-header) > :last-child:not(:first-child) {
+  max-width: 100%;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-table-wrap,.ar-admin-table-wrap,.admin-studio-table-wrap) {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-studio-table,table) {
+  max-width: 100%;
+}
+@media (max-width: 1180px) and (min-width: 761px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-app {
+    grid-template-columns: 224px minmax(0, 1fr);
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+    width: 224px;
+    padding-inline: 10px;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding-inline: 18px;
+  }
+}
+@media (max-width: 760px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-app,
+  body main.admin-page.ar-admin-v3 .ar-admin-app.is-sidebar-collapsed {
+    display: block;
+    min-height: 100dvh;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-main,
+  body main.admin-page.ar-admin-v3 .ar-admin-content {
+    width: 100%;
+    min-width: 0;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding: 16px 13px calc(34px + env(safe-area-inset-bottom));
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-command-row {
+    align-items: stretch;
+    gap: 12px;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-quick-actions {
+    width: 100%;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-quick-actions > button {
+    width: 100%;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-topbar {
+    gap: 8px;
+    min-width: 0;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-top-actions {
+    min-width: 0;
+    gap: 6px;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-section-header,.ar-admin-report-card-head) {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-section-header) > :last-child:not(:first-child) {
+    margin-left: 0;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-form-grid,.ar-admin-report-meta) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-form-grid > .wide) {
+    grid-column: 1 / -1;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-row-actions,.ar-admin-report-actions,.ar-admin-quick-actions) {
+    justify-content: flex-start;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-row-actions,.ar-admin-report-actions) button {
+    flex: 0 1 auto;
+  }
+}
+@media (max-width: 420px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding-inline: 10px;
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-top-actions .ar-admin-freshness {
+    display: none;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-row-actions,.ar-admin-report-actions) {
+    gap: 6px;
+  }
+  body main.admin-page.ar-admin-v3 :is(.admin-row-actions,.ar-admin-report-actions) button {
+    flex: 1 1 auto;
+  }
+}
