@@ -2990,3 +2990,264 @@ body main.admin-page.ar-admin-v3 :is(.admin-studio-table,table) {
     flex: 1 1 auto;
   }
 }
+
+
+/* Reference fidelity correction: compact, squared studio UI instead of rounded
+   generic dashboard styling. Keep one spacing scale and restore chart colours. */
+main.admin-page.ar-admin-v3 {
+  --ar-space-1: 4px;
+  --ar-space-2: 8px;
+  --ar-space-3: 12px;
+  --ar-space-4: 16px;
+  --ar-space-5: 20px;
+  --ar-space-6: 24px;
+  --ar-space-7: 32px;
+  --ar-radius-sm: 5px;
+  --ar-radius-button: 6px;
+  --ar-radius-card: 8px;
+  --ar-radius-pill: 999px;
+  --ar-chart-cyan: #20C7D9;
+  --ar-chart-violet: #9B8AFB;
+  --ar-transition: 140ms ease;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+html[data-theme="light"] main.admin-page.ar-admin-v3 {
+  --ar-bg: #F4F5F7;
+  --ar-sidebar: #FFFFFF;
+  --ar-surface: #FFFFFF;
+  --ar-raised: #F8F9FB;
+  --ar-border: #E2E5E9;
+  --ar-border-strong: #CCD2D9;
+  --ar-text: #20242B;
+  --ar-text-secondary: #525B67;
+  --ar-text-muted: #737D89;
+  --ar-text-faint: #929AA4;
+  --ar-primary: #F28C28;
+  --ar-primary-hover: #FFA044;
+  --ar-primary-pressed: #D97413;
+  --ar-on-primary: #17191C;
+  --ar-primary-soft: #FFF1E3;
+  --ar-primary-border: #F4C89F;
+  --ar-chart-cyan: #079EB5;
+  --ar-chart-violet: #7962D8;
+  --admin-surface-3: #EEF0F3;
+  --admin-surface-4: #E6E9ED;
+  --admin-shadow: 0 1px 2px rgb(18 24 32 / 4%);
+  --admin-shadow-soft: none;
+  --ov-accent: var(--ar-primary);
+  --ov-accent-soft: var(--ar-primary-soft);
+  --cr-gold: var(--ar-primary);
+  --cr-gold-soft: var(--ar-primary-soft);
+  color-scheme: light;
+}
+html[data-theme="dark"] main.admin-page.ar-admin-v3 {
+  --ar-bg: #101114;
+  --ar-sidebar: #151619;
+  --ar-surface: #191A1E;
+  --ar-raised: #202126;
+  --ar-border: #2B2D33;
+  --ar-border-strong: #3B3E46;
+  --ar-text: #F3F4F6;
+  --ar-text-secondary: #B4B8C0;
+  --ar-text-muted: #858B95;
+  --ar-text-faint: #686E78;
+  --ar-primary: #F5902D;
+  --ar-primary-hover: #FFA346;
+  --ar-primary-pressed: #D97617;
+  --ar-on-primary: #171717;
+  --ar-primary-soft: #302116;
+  --ar-primary-border: #71451F;
+  --ar-chart-cyan: #20C7D9;
+  --ar-chart-violet: #9B8AFB;
+  --admin-surface-3: #27292F;
+  --admin-surface-4: #30323A;
+  --admin-shadow: none;
+  --admin-shadow-soft: none;
+  --ov-accent: var(--ar-primary);
+  --ov-accent-soft: var(--ar-primary-soft);
+  --cr-gold: var(--ar-primary);
+  --cr-gold-soft: var(--ar-primary-soft);
+  color-scheme: dark;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-app {
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 0;
+  background: var(--ar-bg);
+}
+body main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: 16px 12px;
+  border: 0;
+  border-right: 1px solid var(--ar-border);
+  border-radius: 0;
+  background: var(--ar-sidebar);
+}
+body main.admin-page.ar-admin-v3 .ar-admin-brand {
+  min-height: 44px;
+  padding: 0 8px 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--ar-border);
+}
+body main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-workspace {
+  margin: 0 0 16px;
+  padding: 10px;
+  border: 1px solid var(--ar-border);
+  border-radius: 6px;
+  background: var(--ar-surface);
+}
+body main.admin-page.ar-admin-v3 .ar-admin-nav {
+  gap: 3px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-nav-group {
+  margin-bottom: 18px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-nav-label {
+  padding: 0 10px;
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ar-text-muted);
+}
+body main.admin-page.ar-admin-v3 .ar-admin-nav button {
+  min-height: 36px;
+  padding: 7px 10px;
+  gap: 10px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-weight: 550;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  background: var(--ar-primary-soft);
+  border-color: transparent;
+  color: var(--ar-primary);
+}
+body main.admin-page.ar-admin-v3 .ar-admin-nav button.active::before {
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  min-height: 56px;
+  padding: 9px 24px;
+  grid-template-columns: minmax(130px, auto) minmax(220px, 1fr) auto;
+  gap: 16px;
+  background: var(--ar-bg);
+  border-bottom: 1px solid var(--ar-border) !important;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-content {
+  max-width: 1680px;
+  padding: 24px 26px 40px;
+}
+body main.admin-page.ar-admin-v3 :is(.ar-overview-hero h2,.ar-membership-hero h2,.admin-card-title h2,.ar-section-header h3) {
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 650;
+  letter-spacing: -.015em;
+}
+body main.admin-page.ar-admin-v3 :is(.ar-overview-hero p,.ar-membership-hero p,.admin-card-title p,.ar-section-header p) {
+  font-size: 12px;
+  line-height: 1.5;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-card,.ar-stat-card,.ar-admin-stat-card,.ar-chart-card,.ar-activity-card,.ar-cr-card,.ar-cr-table-panel,.ar-cr-filter-panel,.ar-mgmt-panel,.ar-ops-panel,.ar-health-panel,.ar-pro-panel,.community-admin-modal,.ar-admin-status-card) {
+  border-radius: 8px;
+  box-shadow: none;
+}
+body main.admin-page.ar-admin-v3 .admin-card {
+  padding: 16px;
+}
+body main.admin-page.ar-admin-v3 .admin-card-title {
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--ar-border);
+}
+body main.admin-page.ar-admin-v3 .ar-stat-card {
+  padding: 14px 15px;
+  gap: 8px;
+}
+body main.admin-page.ar-admin-v3 .ar-stat-card strong {
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+}
+body main.admin-page.ar-admin-v3 :is(button,[role="button"]) {
+  min-height: 34px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: none;
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-primary-action,.admin-submit,.admin-studio-button-primary,.ar-admin-btn-primary,.ar-cr-btn.is-primary,.ar-ops-primary) {
+  background: var(--ar-primary) !important;
+  border: 1px solid var(--ar-primary) !important;
+  border-radius: 6px !important;
+  color: var(--ar-on-primary) !important;
+}
+body main.admin-page.ar-admin-v3 :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea) {
+  min-height: 36px;
+  border-radius: 5px;
+  font-size: 12.5px;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-table-wrap,.ar-admin-table-wrap,.admin-studio-table-wrap) {
+  border: 1px solid var(--ar-border);
+  border-radius: 7px;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-studio-table th,table th) {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  color: var(--ar-text-muted);
+}
+body main.admin-page.ar-admin-v3 :is(.admin-studio-table td,table td) {
+  font-size: 12.5px;
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-content .ar-chart-cyan,.ar-admin-content [data-series="cyan"]) {
+  color: var(--ar-chart-cyan);
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-content .ar-chart-violet,.ar-admin-content [data-series="violet"]) {
+  color: var(--ar-chart-violet);
+}
+@media (max-width: 1180px) and (min-width: 761px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-app {
+    grid-template-columns: 218px minmax(0, 1fr);
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding: 20px 18px 34px;
+  }
+}
+@media (max-width: 760px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    min-height: 0;
+    width: min(288px, calc(100vw - 48px));
+    padding: 14px 12px;
+    border-right: 1px solid var(--ar-border);
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-content {
+    padding: 16px 12px calc(28px + env(safe-area-inset-bottom));
+  }
+  body main.admin-page.ar-admin-v3 .ar-admin-topbar {
+    min-height: 52px;
+    padding: 8px 12px;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 8px;
+  }
+}
