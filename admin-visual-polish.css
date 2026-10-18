@@ -3251,3 +3251,121 @@ body main.admin-page.ar-admin-v3 :is(.ar-admin-content .ar-chart-violet,.ar-admi
     gap: 8px;
   }
 }
+
+
+/* Reference-match correction: compact Homeguard-style workspace, not oversized dashboard cards. */
+body main.admin-page.ar-admin-v3 {
+  --ar-chart-cyan: #20C7D9;
+  --ar-chart-violet: #9B8AFB;
+  --ar-radius-sm: 4px;
+  --ar-radius-button: 6px;
+  --ar-radius-card: 8px;
+}
+html[data-theme="dark"] body main.admin-page.ar-admin-v3 {
+  --ar-bg: #0B0D10;
+  --ar-sidebar: #111419;
+  --ar-surface: #171B20;
+  --ar-raised: #20252B;
+  --ar-border: #292F37;
+  --ar-border-strong: #39414B;
+  --ar-text: #F1F3F5;
+  --ar-text-secondary: #B3BBC5;
+  --ar-text-muted: #858F9B;
+  --ar-text-faint: #68727E;
+  --ar-primary: #F28C28;
+  --ar-primary-hover: #FFA344;
+  --ar-primary-pressed: #D96F12;
+  --ar-on-primary: #17110A;
+  --ar-primary-soft: #302115;
+  --ar-primary-border: #74451F;
+  --ar-chart-cyan: #20C7D9;
+  --ar-chart-violet: #9B8AFB;
+  --ar-success: #48C99A;
+  --ar-success-bg: #14271F;
+  --ar-warning: #E8B65C;
+  --ar-warning-bg: #2B2417;
+  --ar-danger: #F0787F;
+  --ar-danger-bg: #2A191D;
+}
+html[data-theme="light"] body main.admin-page.ar-admin-v3 {
+  --ar-primary: #D96D16;
+  --ar-primary-hover: #BC5910;
+  --ar-primary-pressed: #99460B;
+  --ar-on-primary: #FFFFFF;
+  --ar-chart-cyan: #07899B;
+  --ar-chart-violet: #7962D8;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-content {
+  padding: 22px clamp(16px, 1.8vw, 26px) 40px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-command-row {
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-command-row h1 {
+  font-size: clamp(24px, 1.8vw, 30px);
+  letter-spacing: -0.025em;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-card,.admin-header-card,.admin-overview-card,.admin-overview-stat,.performance-card,.ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-glass-card,.ar-cr-panel,.ar-cr-card,.ar-cr-table-panel,.ar-cr-filter-panel,.ar-membership-plan,.ar-membership-activity,.ar-membership-note,.ar-admin-stat-card,.ar-admin-card,.ar-admin-status-card,.ar-admin-workspace) {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+body main.admin-page.ar-admin-v3 .admin-card {
+  padding: 16px;
+}
+body main.admin-page.ar-admin-v3 .admin-card-title {
+  gap: 12px;
+  margin-bottom: 14px;
+}
+body main.admin-page.ar-admin-v3 .ar-stat-card {
+  padding: 14px 15px;
+  min-height: 112px;
+}
+body main.admin-page.ar-admin-v3 .ar-stat-card > strong {
+  font-size: clamp(22px, 1.8vw, 28px);
+  letter-spacing: -0.025em;
+}
+body main.admin-page.ar-admin-v3 :is(button,[role="button"],.admin-studio-button,.ar-cr-btn,.ar-ops-primary,.ar-admin-primary-action,.admin-submit,.admin-studio-button-primary,.ar-admin-btn-primary) {
+  border-radius: 6px;
+}
+body main.admin-page.ar-admin-v3 button:not(.ar-admin-primary-action):not(.admin-submit):not(.admin-studio-button-primary):not(.ar-admin-btn-primary):not(.ar-cr-btn.is-primary):not(.ar-ops-primary) {
+  min-height: 34px;
+}
+body main.admin-page.ar-admin-v3 :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea,.ar-admin-command-trigger) {
+  border-radius: 6px;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-table-wrap,.ar-admin-table-wrap,.admin-studio-table-wrap) {
+  border-radius: 7px;
+  box-shadow: none;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-studio-table th,table th) {
+  font-size: 10px;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+body main.admin-page.ar-admin-v3 :is(.admin-studio-table td,table td) {
+  font-size: 12px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-sidebar {
+  border-right: 1px solid var(--ar-border);
+  box-shadow: none;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-sidebar :is(a,button,[role="button"]) {
+  border-radius: 5px;
+}
+body main.admin-page.ar-admin-v3 .ar-admin-sidebar :is(a[aria-current="page"],a.active,button[aria-current="page"],.is-active) {
+  background-color: var(--ar-primary-soft);
+  color: var(--ar-primary);
+}
+body main.admin-page.ar-admin-v3 :is(.ar-admin-primary-action,.admin-submit,.admin-studio-button-primary,.ar-admin-btn-primary,.ar-cr-btn.is-primary,.ar-ops-primary) {
+  box-shadow: none !important;
+}
+@media (min-width: 1381px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-content { max-width: 1720px; }
+}
+@media (max-width: 760px) {
+  body main.admin-page.ar-admin-v3 .ar-admin-content { padding: 16px 12px 28px; }
+  body main.admin-page.ar-admin-v3 .ar-admin-command-row { gap: 12px; margin-bottom: 14px; padding-bottom: 14px; }
+  body main.admin-page.ar-admin-v3 .admin-card { padding: 12px; }
+}
