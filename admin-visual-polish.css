@@ -48,7 +48,6 @@ main.admin-page.ar-admin-v3 {
   --admin-border: var(--ar-border);
   --admin-border-strong: var(--ar-border-strong);
   --admin-border-soft: var(--ar-border);
-  --admin-border-soft: var(--ar-border);
   --admin-text: var(--ar-text);
   --admin-text-2: var(--ar-text-secondary);
   --admin-muted: var(--ar-text-muted);
@@ -70,6 +69,11 @@ main.admin-page.ar-admin-v3 {
   --admin-radius-lg: var(--ar-radius-card);
   --admin-radius-xl: 10px;
   --admin-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --ar-radius-sm: 4px;
+  --ar-radius-button: 6px;
+  --ar-radius-card: 8px;
+  --ar-radius-pill: 999px;
+  --ar-transition: 140ms ease;
   --ar-control-height: 34px;
   --ar-focus-ring: color-mix(in srgb, var(--ar-primary) 38%, transparent);
   --ar-space-1: 4px;
