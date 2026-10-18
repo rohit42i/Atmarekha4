@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { requestAdminConfirm, notifyAdminToast } from './admin-feedback';
 
 const LIMIT = 250;
 const DEPENDENCY_TABLES = ['group_chat_likes', 'group_chat_reactions', 'group_chat_reads'];
@@ -20,7 +21,7 @@ export default function AdminGroupChatTools() {
   const [selected, setSelected] = useState(new Set()), [loading, setLoading] = useState(false), [deleting, setDeleting] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
 
-  const checkAdmin = async () => { try { const current = await verifyAdmin(); setUser(current); setIsAdmin(true); } catch (_) { setUser(null); setIsAdmin(false); } };
+  const checkAdmin = async () => { try { const current = await verifyAdmin(); setUser(current); setIsAdmin(true); } catch (error) { setUser(null); setIsAdmin(false); if (open) notifyAdminToast('Group chat admin access could not be verified: ' + (error?.message || 'access denied'), 'error'); } };
   useEffect(() => { checkAdmin(); const { data: listener } = supabase.auth.onAuthStateChange(() => checkAdmin()); return () => listener?.subscription?.unsubscribe(); }, []);
 
   useEffect(() => { const handler = () => { setOpen(true); }; window.addEventListener('atma-admin-open-group-chat', handler); return () => window.removeEventListener('atma-admin-open-group-chat', handler); }, [isAdmin]);
@@ -65,8 +66,24 @@ export default function AdminGroupChatTools() {
       setDeleting(false);
     }
   };
-  const deleteOne=async m=>{if(window.confirm('Delete this message permanently? This cannot be undone.'))await deleteIds([m.id]);};
-  const deleteSelected=async()=>{const ids=[...selected];if(ids.length&&window.confirm(`Delete ${ids.length} selected message${ids.length===1?'':'s'} permanently?`))await deleteIds(ids);};
+  const deleteOne = async m => {
+    if (await requestAdminConfirm({
+      title: 'Delete group message?',
+      message: 'Delete this message from ' + (profiles[m.user_id]?.display_name || profiles[m.user_id]?.username || 'this reader') + '?',
+      consequence: 'Permanently removes the selected message from group chat. This cannot be undone.',
+      confirmLabel: 'Delete message',
+    })) await deleteIds([m.id]);
+  };
+  const deleteSelected = async () => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    if (await requestAdminConfirm({
+      title: 'Delete selected messages?',
+      message: 'Delete ' + ids.length + ' selected message' + (ids.length === 1 ? '' : 's') + '?',
+      consequence: 'Permanently removes every selected message from group chat. This cannot be undone.',
+      confirmLabel: 'Delete ' + ids.length + ' message' + (ids.length === 1 ? '' : 's'),
+    })) await deleteIds(ids);
+  };
   if(!isAdmin)return null;
 
   return <>
@@ -75,7 +92,7 @@ export default function AdminGroupChatTools() {
       <header className="ar-gcm-head"><div><h2>Group Chat Moderation</h2><p>Admin controls · review, search and remove community messages</p></div><button className="ar-gcm-close" type="button" onClick={()=>setOpen(false)}>×</button></header>
       <nav className="ar-gcm-tabs"><button className={`ar-gcm-tab ${tab==='messages'?'active':''}`} onClick={()=>setTab('messages')}>Messages</button><button className={`ar-gcm-tab ${tab==='members'?'active':''}`} onClick={()=>setTab('members')}>Members</button></nav>
       <div className="ar-gcm-stats"><div className="ar-gcm-stat"><span>Loaded messages</span><strong>{stats.loaded}</strong></div><div className="ar-gcm-stat"><span>Visible</span><strong>{stats.visible}</strong></div><div className="ar-gcm-stat"><span>Active authors</span><strong>{stats.members}</strong></div><div className="ar-gcm-stat"><span>Replies</span><strong>{stats.replies}</strong></div></div>
-      {tab==='messages'?<><div className="ar-gcm-tools"><input className="ar-gcm-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search messages, usernames or members…"/><select className="ar-gcm-select" value={authorFilter} onChange={e=>setAuthorFilter(e.target.value)}><option value="all">All members</option>{authors.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select><select className="ar-gcm-select" value={sort} onChange={e=>setSort(e.target.value)}><option value="newest">Newest</option><option value="oldest">Oldest</option></select><button className="ar-gcm-action" onClick={selectVisible}>Select visible</button><button className="ar-gcm-action" onClick={clearSelection}>Clear</button><button className="ar-gcm-action" onClick={load} disabled={loading}>{loading?'Loading…':'Refresh'}</button>{selected.size>0&&<button className="ar-gcm-action" onClick={deleteSelected} disabled={deleting}>Delete {selected.size}</button>}</div>{notice.text&&<div className={`ar-gcm-notice ${notice.type}`}>{notice.text}</div>}<div className="ar-gcm-list">{loading&&!messages.length?<div className="ar-gcm-empty">Loading group messages…</div>:!filtered.length?<div className="ar-gcm-empty">No messages match your filters.</div>:filtered.map(m=>{const p=profiles[m.user_id],name=p?.display_name||p?.username||'Reader';return <article className="ar-gcm-row" key={m.id}><input className="ar-gcm-check" type="checkbox" checked={selected.has(m.id)} onChange={()=>toggleSelected(m.id)}/><div className="ar-gcm-avatar">{p?.avatar_url?<img src={p.avatar_url} alt=""/>:name.slice(0,1).toUpperCase()}</div><div className="ar-gcm-body"><div className="ar-gcm-meta"><strong>{name}</strong><span>{p?.username?`@${p.username} · `:''}{new Date(m.created_at).toLocaleString('en-IN')}</span></div>{m.reply_to_message_id&&<span className="ar-gcm-badge">Reply</span>}<div className="ar-gcm-content">{m.content}</div></div><button className="ar-gcm-delete" type="button" onClick={()=>deleteOne(m)} disabled={deleting}>Delete</button></article>})}</div></>:<div className="ar-gcm-members">{authors.length?authors.map(([id,name])=>{const p=profiles[id],count=messages.filter(m=>m.user_id===id).length;return <article className="ar-gcm-member" key={id}><div className="ar-gcm-avatar">{p?.avatar_url?<img src={p.avatar_url} alt=""/>:name.slice(0,1).toUpperCase()}</div><div className="ar-gcm-member-info"><strong>{name}</strong><span>{p?.username?`@${p.username}`:'No username'}</span></div><span className="ar-gcm-badge">{count} message{count===1?'':'s'}</span></article>}):<div className="ar-gcm-empty">No members in the loaded messages.</div>}</div>}
+      {tab==='messages'?<><div className="ar-gcm-tools"><input className="ar-gcm-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search messages, usernames or members…"/><select className="ar-gcm-select" value={authorFilter} onChange={e=>setAuthorFilter(e.target.value)}><option value="all">All members</option>{authors.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select><select className="ar-gcm-select" value={sort} onChange={e=>setSort(e.target.value)}><option value="newest">Newest</option><option value="oldest">Oldest</option></select><button className="ar-gcm-action" onClick={selectVisible}>Select visible</button><button className="ar-gcm-action" onClick={clearSelection}>Clear</button><button className="ar-gcm-action" onClick={load} disabled={loading}>{loading?'Loading…':'Refresh'}</button>{selected.size>0&&<button className="ar-gcm-action" onClick={deleteSelected} disabled={deleting}>Delete {selected.size}</button>}</div>{notice.text&&<div className={`ar-gcm-notice ${notice.type}`}>{notice.text}</div>}<div className="ar-gcm-list">{loading&&!messages.length?<div className="ar-gcm-empty">Loading group messages…</div>:!filtered.length?<div className="ar-gcm-empty">No messages match your filters.</div>:filtered.map(m=>{const p=profiles[m.user_id],name=p?.display_name||p?.username||'Reader';return <article className="ar-gcm-row" key={m.id}><input className="ar-gcm-check" type="checkbox" checked={selected.has(m.id)} onChange={()=>toggleSelected(m.id)}/><div className="ar-gcm-avatar">{p?.avatar_url?<img src={p.avatar_url} alt=""/>:name.slice(0,1).toUpperCase()}</div><div className="ar-gcm-body"><div className="ar-gcm-meta"><strong>{name}</strong><span>{p?.username?`@${p.username} · `:''}{new Date(m.created_at).toLocaleString(undefined)}</span></div>{m.reply_to_message_id&&<span className="ar-gcm-badge">Reply</span>}<div className="ar-gcm-content">{m.content}</div></div><button className="ar-gcm-delete" type="button" onClick={()=>deleteOne(m)} disabled={deleting}>Delete</button></article>})}</div></>:<div className="ar-gcm-members">{authors.length?authors.map(([id,name])=>{const p=profiles[id],count=messages.filter(m=>m.user_id===id).length;return <article className="ar-gcm-member" key={id}><div className="ar-gcm-avatar">{p?.avatar_url?<img src={p.avatar_url} alt=""/>:name.slice(0,1).toUpperCase()}</div><div className="ar-gcm-member-info"><strong>{name}</strong><span>{p?.username?`@${p.username}`:'No username'}</span></div><span className="ar-gcm-badge">{count} message{count===1?'':'s'}</span></article>}):<div className="ar-gcm-empty">No members in the loaded messages.</div>}</div>}
     </section></div>}
   </>;
 }

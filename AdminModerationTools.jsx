@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
+import { notifyAdminToast } from './admin-feedback';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -88,7 +89,7 @@ export default function AdminModerationTools() {
           entity_id: report.id,
           details: { status, error: error.message },
         });
-      } catch (_) {}
+      } catch (auditError) { notifyAdminToast('Could not write the report failure log: ' + (auditError?.message || 'unknown error'), 'warning'); }
       setNotice(error?.message || 'Unable to update the report.');
     } finally {
       setBusy(null);

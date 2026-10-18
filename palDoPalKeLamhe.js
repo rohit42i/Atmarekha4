@@ -13,6 +13,7 @@ export function published(chapter) {
 export function mapChapter(row) {
   return {
     id: row.id,
+    source: 'pdpkl',
     chapterNumber: row.chapter_number,
     title: row.title || '',
     description: row.description || '',

@@ -27,8 +27,8 @@ const SECTIONS = [
 ];
 const NUMBER = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const asNumber = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
-const fmtNum = value => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 1 });
-const fmtMoney = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN');
+const fmtNum = value => Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 });
+const fmtMoney = value => '₹' + Math.round(Number(value) || 0).toLocaleString(undefined);
 const dateOf = value => {
   if (!value) return null;
   const date = new Date(value);
@@ -36,7 +36,7 @@ const dateOf = value => {
 };
 const fmtDate = value => {
   const date = dateOf(value);
-  return date ? date.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+  return date ? date.toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
 };
 const ago = value => {
   const date = dateOf(value);
@@ -865,15 +865,17 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           <span className={'ar-cr-status-dot' + (loading || statusCount ? ' is-warning' : ' is-ok')}/>
           <span>{loading ? 'Connecting to data sources…' : statusCount ? statusCount + ' source(s) need attention' : 'All checked sources responded'}</span>
           <i/>
-          <span>{lastRefresh ? 'Updated ' + lastRefresh.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Not refreshed yet'}</span>
+          <span>{lastRefresh ? 'Updated ' + lastRefresh.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : 'Not refreshed yet'}</span>
           <span className="ar-cr-status-detail">{availableMetricCount}/{allMetrics.length} metrics available</span>
         </div>
       </div>
       <div className="ar-cr-hero-actions">
         <label><span>Reporting window</span><select value={days} onChange={event => setDays(Number(event.target.value))}>{WINDOWS.map(row => <option key={row.value} value={row.value}>{row.label}</option>)}</select></label>
-        <button type="button" className="ar-cr-btn is-primary" onClick={load} disabled={refreshing}><AdminIcon name="refresh" size={15}/>{refreshing ? 'Refreshing…' : 'Refresh all'}</button>
-        <button type="button" className="ar-cr-btn" onClick={exportMetrics}><AdminIcon name="chart" size={15}/>Export CSV</button>
-        <button type="button" className="ar-cr-btn" onClick={exportSnapshot}><AdminIcon name="layers" size={15}/>Export JSON</button>
+        <div className="ar-cr-hero-secondary-actions" aria-label="Secondary analytics actions">
+          <button type="button" className="ar-cr-btn" onClick={exportMetrics}><AdminIcon name="chart" size={15}/>Export CSV</button>
+          <button type="button" className="ar-cr-btn" onClick={exportSnapshot}><AdminIcon name="layers" size={15}/>Export JSON</button>
+          <button type="button" className="ar-cr-btn" onClick={load} disabled={refreshing}><AdminIcon name="refresh" size={15}/>{refreshing ? 'Refreshing…' : 'Refresh data'}</button>
+        </div>
         <button type="button" className="ar-cr-btn is-primary" onClick={() => { setSection('Feature Workbench'); setFeatureSearch(''); }}><AdminIcon name="settings" size={15}/>Open {featureCatalog.length} tools</button>
       </div>
     </header>

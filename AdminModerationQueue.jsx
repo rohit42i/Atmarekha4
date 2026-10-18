@@ -1,34 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
-import { AdminButton, AdminCard, AdminEmptyState, AdminModal, AdminTable } from './admin-studio-ui.jsx';
+import { notifyAdminToast } from './admin-feedback';
+import { AdminButton, AdminCard, AdminEmptyState, AdminModal } from './admin-studio-ui.jsx';
 
 const severityRank = { high: 3, medium: 2, low: 1 };
-
-function classifySeverity(reason) {
+const normalizeStatus = report => String(report?.status || 'open').toLowerCase();
+const classifySeverity = reason => {
   const value = String(reason || '').toLowerCase();
   if (/threat|violence|hate|sexual|self[- ]harm|dox|terror/.test(value)) return 'high';
   if (/harass|abuse|bully|scam|spam|imperson/.test(value)) return 'medium';
   return 'low';
-}
-
-function ageLabel(value) {
+};
+const ageLabel = value => {
   const time = new Date(value).getTime();
   if (!Number.isFinite(time)) return 'Unknown age';
   const hours = Math.max(0, Math.floor((Date.now() - time) / 3600000));
   if (hours < 1) return 'Under 1h';
   if (hours < 24) return `${hours}h old`;
-  const days = Math.floor(hours / 24);
-  return `${days}d old`;
-}
+  return `${Math.floor(hours / 24)}d old`;
+};
+const localDate = value => {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date) : '—';
+};
+const statusText = value => value === 'reviewed' ? 'Dismissed' : value ? value[0].toUpperCase() + value.slice(1) : 'Open';
 
-export default function AdminModerationQueue({
-  reports = [],
-  comments = [],
-  onDeleteComment,
-  onSetReportStatus,
-  reportCount = 0,
-}) {
+export default function AdminModerationQueue({ reports = [], comments = [], onDeleteComment, onSetReportStatus, reportCount = 0 }) {
   const [status, setStatus] = useState('open');
   const [severity, setSeverity] = useState('all');
   const [sort, setSort] = useState('severity');
@@ -37,21 +35,27 @@ export default function AdminModerationQueue({
   const [warningProfile, setWarningProfile] = useState(null);
   const [warningLoading, setWarningLoading] = useState(false);
 
-  const commentById = useMemo(() => new Map(comments.map(comment => [comment.id, comment])), [comments]);
+  const commentById = useMemo(() => new Map(comments.map(comment => [String(comment.id), comment])), [comments]);
+  const counts = useMemo(() => ({
+    open: reports.filter(report => normalizeStatus(report) === 'open').length,
+    resolved: reports.filter(report => normalizeStatus(report) === 'resolved').length,
+    dismissed: reports.filter(report => ['reviewed', 'dismissed'].includes(normalizeStatus(report))).length,
+  }), [reports]);
 
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase();
     const result = reports.filter(report => {
-      const comment = commentById.get(report.comment_id);
-      const reportStatus = String(report.status || 'open').toLowerCase();
-      const reportSeverity = classifySeverity(report.reason);
-      const haystack = `${report.reason || ''} ${comment?.author_name || ''} ${comment?.content || ''}`.toLowerCase();
-      return (status === 'all' || reportStatus === status)
-        && (severity === 'all' || reportSeverity === severity)
-        && (!query || haystack.includes(query));
+      const comment = commentById.get(String(report.comment_id));
+      const reportStatus = normalizeStatus(report);
+      const bucketMatch = status === 'resolved'
+        ? reportStatus === 'resolved'
+        : (status === 'dismissed' ? ['reviewed', 'dismissed'].includes(reportStatus) : status === reportStatus);
+      const matchesSeverity = severity === 'all' || classifySeverity(report.reason) === severity;
+      const haystack = `${report.reason || ''} ${comment?.author_display_name || comment?.author_name || ''} ${comment?.content || ''}`.toLowerCase();
+      return bucketMatch && matchesSeverity && (!query || haystack.includes(query));
     });
     return [...result].sort((a, b) => {
-      if (sort === 'age') return new Date(a.created_at) - new Date(b.created_at);
+      if (sort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
       if (sort === 'newest') return new Date(b.created_at) - new Date(a.created_at);
       return severityRank[classifySeverity(b.reason)] - severityRank[classifySeverity(a.reason)]
         || new Date(a.created_at) - new Date(b.created_at);
@@ -64,20 +68,25 @@ export default function AdminModerationQueue({
       setWarningProfile(null);
       return undefined;
     }
-    const comment = commentById.get(selectedReport.comment_id);
+    const comment = commentById.get(String(selectedReport.comment_id));
     if (!comment?.user_id) {
       setWarningProfile(null);
       return undefined;
     }
     setWarningLoading(true);
-    supabase
-      .from('user_moderation')
+    supabase.from('user_moderation')
       .select('user_id,offense_count,recent_offense_count,recent_window_start,flag_color,flagged_until,auto_reported_at,comment_banned_until,group_banned_until,updated_at')
       .eq('user_id', comment.user_id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (!alive) return;
-        setWarningProfile(error ? null : data);
+        if (error) {
+          notifyAdminToast('Could not load the reader moderation profile: ' + error.message, 'warning');
+          setWarningProfile(null);
+        } else setWarningProfile(data);
+      })
+      .catch(error => {
+        if (alive) notifyAdminToast('Could not load the reader moderation profile: ' + (error?.message || 'unknown error'), 'warning');
       })
       .finally(() => { if (alive) setWarningLoading(false); });
     return () => { alive = false; };
@@ -85,7 +94,7 @@ export default function AdminModerationQueue({
 
   const openReport = selectedReport ? {
     ...selectedReport,
-    comment: commentById.get(selectedReport.comment_id),
+    comment: commentById.get(String(selectedReport.comment_id)),
     severity: classifySeverity(selectedReport.reason),
   } : null;
 
@@ -93,142 +102,61 @@ export default function AdminModerationQueue({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !(await getAdminRole(user.id))) throw new Error('Admin access required.');
-      await onSetReportStatus?.(report.id, nextStatus);
+      const updated = await onSetReportStatus?.(report.id, nextStatus);
+      if (updated) {
+        setSelectedReport(current => current?.id === report.id ? { ...current, status: nextStatus } : current);
+      }
     } catch (error) {
-      // Preserve the parent panel's existing error/notice handling.
-      throw error;
+      notifyAdminToast(error?.message || 'Could not update report status.', 'error');
     }
   };
 
   return (
-    <section className="admin-stack">
-      <AdminCard
-        eyebrow="MODERATION"
-        title="Report queue"
-        description={`${reportCount} open report${reportCount === 1 ? '' : 's'} · severity and age are derived from existing report reason/date data.`}
-        actions={<AdminButton type="button" icon="refresh" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-refresh'))}>Refresh</AdminButton>}
-      >
-        <div className="admin-chapter-toolbar admin-moderation-toolbar">
-          <div className="admin-filter-control">
-            <label htmlFor="moderation-search">Search queue</label>
-            <input id="moderation-search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Reason, reader, comment text…" />
-          </div>
-          <div className="admin-filter-control">
-            <label htmlFor="moderation-status">Status</label>
-            <select id="moderation-status" value={status} onChange={event => setStatus(event.target.value)}>
-              <option value="open">Open</option>
-              <option value="reviewed">Reviewed</option>
-              <option value="resolved">Resolved</option>
-              <option value="all">All reports</option>
-            </select>
-          </div>
-          <div className="admin-filter-control">
-            <label htmlFor="moderation-severity">Severity</label>
-            <select id="moderation-severity" value={severity} onChange={event => setSeverity(event.target.value)}>
-              <option value="all">All severities</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-          <div className="admin-filter-control">
-            <label htmlFor="moderation-sort">Sort</label>
-            <select id="moderation-sort" value={sort} onChange={event => setSort(event.target.value)}>
-              <option value="severity">Severity first</option>
-              <option value="newest">Newest first</option>
-              <option value="age">Oldest first</option>
-            </select>
-          </div>
+    <section className="admin-stack ar-admin-report-queue">
+      <AdminCard eyebrow="MODERATION" title="Report queue" description={`${reportCount} open report${reportCount === 1 ? '' : 's'} · reader identity is not stored for anonymous reports.`} actions={<AdminButton type="button" icon="refresh" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-refresh'))}>Refresh</AdminButton>}>
+        <div className="ar-admin-report-tabs" role="tablist" aria-label="Report status">
+          {[['open', 'Open'], ['resolved', 'Resolved'], ['dismissed', 'Dismissed']].map(([key, label]) => <button key={key} type="button" role="tab" aria-selected={status === key} className={status === key ? 'active' : ''} onClick={() => setStatus(key)}>{label}<b>{counts[key]}</b></button>)}
         </div>
-
-        <AdminTable>
-          <thead>
-            <tr>
-              <th>Severity</th>
-              <th>Reader / context</th>
-              <th>Reason</th>
-              <th>Age</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(report => {
-              const comment = commentById.get(report.comment_id);
-              const level = classifySeverity(report.reason);
-              const reportStatus = report.status || 'open';
-              return (
-                <tr key={report.id}>
-                  <td><span className={`admin-status-badge ${level === 'high' ? 'admin-health-missing' : level === 'medium' ? 'admin-status-scheduled' : 'admin-health-neutral'}`}>{level}</span></td>
-                  <td className="admin-chapter-cell">
-                    <strong>{comment?.author_name || 'Reader'}</strong>
-                    <span>{comment?.content || 'Comment unavailable'}</span>
-                  </td>
-                  <td className="admin-table-muted">{report.reason || 'No reason supplied'}</td>
-                  <td className="admin-table-muted">{ageLabel(report.created_at)}</td>
-                  <td><span className="admin-status-badge">{reportStatus}</span></td>
-                  <td>
-                    <div className="admin-row-actions">
-                      <AdminButton size="sm" className="admin-table-action" type="button" onClick={() => setSelectedReport(report)}>Context</AdminButton>
-                      {reportStatus === 'open' ? <AdminButton size="sm" className="admin-table-action" type="button" onClick={() => setReportStatus(report, 'reviewed')}>Review</AdminButton> : null}
-                      {reportStatus !== 'resolved' ? <AdminButton size="sm" className="admin-table-action" type="button" onClick={() => setReportStatus(report, 'resolved')}>Resolve</AdminButton> : null}
-                      {reportStatus !== 'open' ? <AdminButton size="sm" className="admin-table-action" type="button" onClick={() => setReportStatus(report, 'open')}>Reopen</AdminButton> : null}
-                      {comment ? <AdminButton size="sm" className="admin-table-action" variant="danger" type="button" onClick={() => onDeleteComment?.(comment.id)}>Delete comment</AdminButton> : null}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </AdminTable>
-
-        {!rows.length ? (
-          <AdminEmptyState
-            icon="pulse"
-            title="No reports match this view"
-            description={reports.length ? 'The queue may be filtered or already cleared. Change the status/severity filters to widen the view.' : 'No reports are currently available.'}
-            action={reports.length ? <AdminButton size="sm" type="button" onClick={() => { setStatus('all'); setSeverity('all'); setSearch(''); }}>Clear filters</AdminButton> : null}
-          />
-        ) : null}
+        <div className="admin-chapter-toolbar admin-moderation-toolbar">
+          <div className="admin-filter-control"><label htmlFor="moderation-search">Search reports</label><input id="moderation-search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Reason, reader, comment text…" /></div>
+          <div className="admin-filter-control"><label htmlFor="moderation-severity">Severity</label><select id="moderation-severity" value={severity} onChange={event => setSeverity(event.target.value)}><option value="all">All severities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
+          <div className="admin-filter-control"><label htmlFor="moderation-sort">Sort</label><select id="moderation-sort" value={sort} onChange={event => setSort(event.target.value)}><option value="severity">Severity first</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></div>
+        </div>
+        {rows.length ? <div className="ar-admin-report-cards">
+          {rows.map(report => {
+            const comment = commentById.get(String(report.comment_id));
+            const level = classifySeverity(report.reason);
+            const reportStatus = normalizeStatus(report);
+            const author = comment?.author_display_name || comment?.author_name || 'Reader';
+            return <article key={report.id} className="ar-admin-report-card">
+              <header className="ar-admin-report-card-head">
+                <div><span className={`ar-admin-report-severity is-${level}`}>{level} severity</span><span className={`ar-admin-report-status is-${reportStatus}`}>{statusText(reportStatus)}</span></div>
+                <time dateTime={report.created_at} title={localDate(report.created_at)}>{ageLabel(report.created_at)}</time>
+              </header>
+              <div className="ar-admin-report-comment"><small>COMMENT BY</small><strong>{author}</strong><p>{comment?.content || 'Comment unavailable or deleted'}</p></div>
+              <div className="ar-admin-report-meta"><div><small>REASON</small><span>{report.reason || 'No reason supplied'}</span></div><div><small>REPORTED BY</small><span>Anonymous reader</span></div><div><small>REPORTED AT</small><span>{localDate(report.created_at)}</span></div></div>
+              <footer className="ar-admin-report-actions">
+                <AdminButton size="sm" type="button" onClick={() => setSelectedReport(report)}>Context</AdminButton>
+                {reportStatus !== 'resolved' && <AdminButton size="sm" type="button" variant="primary" onClick={() => setReportStatus(report, 'resolved')}>Resolve</AdminButton>}
+                {!['reviewed', 'dismissed'].includes(reportStatus) && <AdminButton size="sm" type="button" onClick={() => setReportStatus(report, 'reviewed')}>Dismiss</AdminButton>}
+                {reportStatus !== 'open' && <AdminButton size="sm" type="button" onClick={() => setReportStatus(report, 'open')}>Reopen</AdminButton>}
+                {comment && <AdminButton size="sm" variant="danger" type="button" onClick={() => onDeleteComment?.(comment.id)}>Delete comment</AdminButton>}
+              </footer>
+            </article>;
+          })}
+        </div> : <AdminEmptyState icon="pulse" title="No reports in this view" description={reports.length ? 'No reports match the selected status and filters.' : 'No reports are currently available.'} action={reports.length && (severity !== 'all' || search) ? <AdminButton size="sm" type="button" onClick={() => { setSeverity('all'); setSearch(''); }}>Clear filters</AdminButton> : null} />}
       </AdminCard>
-
-      <AdminModal
-        open={Boolean(openReport)}
-        onClose={() => setSelectedReport(null)}
-        title="Report context"
-        description={openReport ? `${openReport.severity.toUpperCase()} severity · ${ageLabel(openReport.created_at)} · status ${openReport.status || 'open'}` : ''}
-        footer={
-          openReport ? (
-            <>
-              <AdminButton type="button" onClick={() => setSelectedReport(null)}>Close</AdminButton>
-              {openReport.status === 'open' ? <AdminButton type="button" onClick={() => setReportStatus(openReport, 'reviewed')}>Mark reviewed</AdminButton> : null}
-              {openReport.status !== 'resolved' ? <AdminButton type="button" variant="primary" onClick={() => setReportStatus(openReport, 'resolved')}>Resolve report</AdminButton> : null}
-            </>
-          ) : null
-        }
-      >
-        {openReport ? (
-          <div className="admin-context-grid">
-            <div className="admin-context-block">
-              <span>Reason</span>
-              <strong>{openReport.reason || 'No reason supplied'}</strong>
-            </div>
-            <div className="admin-context-block">
-              <span>Reader comment</span>
-              <p>{openReport.comment?.content || 'Comment unavailable'}</p>
-            </div>
-            <div className="admin-context-block">
-              <span>Member warning profile</span>
-              {warningLoading ? <p>Loading moderation profile…</p> : warningProfile ? (
-                <div className="admin-warning-grid">
-                  <div><strong>{warningProfile.offense_count || 0}</strong><span>Total offenses</span></div>
-                  <div><strong>{warningProfile.recent_offense_count || 0}</strong><span>Recent window</span></div>
-                  <div><strong>{warningProfile.flag_color || '—'}</strong><span>Flag</span></div>
-                </div>
-              ) : <p>No moderation profile found for this reader.</p>}
-            </div>
-          </div>
-        ) : null}
+      <AdminModal open={Boolean(openReport)} onClose={() => setSelectedReport(null)} title="Report context" description={openReport ? `${openReport.severity.toUpperCase()} severity · ${ageLabel(openReport.created_at)} · status ${statusText(normalizeStatus(openReport))}` : ''} footer={openReport ? <>
+        <AdminButton type="button" onClick={() => setSelectedReport(null)}>Close</AdminButton>
+        {normalizeStatus(openReport) !== 'resolved' && <AdminButton type="button" variant="primary" onClick={() => setReportStatus(openReport, 'resolved')}>Resolve report</AdminButton>}
+        {!['reviewed', 'dismissed'].includes(normalizeStatus(openReport)) && <AdminButton type="button" onClick={() => setReportStatus(openReport, 'reviewed')}>Dismiss report</AdminButton>}
+      </> : null}>
+        {openReport ? <div className="admin-context-grid">
+          <div className="admin-context-block"><span>Reason</span><strong>{openReport.reason || 'No reason supplied'}</strong></div>
+          <div className="admin-context-block"><span>Reported by</span><p>Anonymous reader. The current database record does not store the reporter's account identity.</p></div>
+          <div className="admin-context-block"><span>Reader comment</span><p>{openReport.comment?.content || 'Comment unavailable'}</p></div>
+          <div className="admin-context-block"><span>Member warning profile</span>{warningLoading ? <p>Loading moderation profile…</p> : warningProfile ? <div className="admin-warning-grid"><div><strong>{warningProfile.offense_count || 0}</strong><span>Total offenses</span></div><div><strong>{warningProfile.recent_offense_count || 0}</strong><span>Recent window</span></div><div><strong>{warningProfile.flag_color || '—'}</strong><span>Flag</span></div></div> : <p>No moderation profile found for this reader.</p>}</div>
+        </div> : null}
       </AdminModal>
     </section>
   );

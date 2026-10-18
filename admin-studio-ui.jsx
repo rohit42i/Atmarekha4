@@ -155,15 +155,18 @@ export function AdminSidebar({
   reportCount = 0,
   connectionState = 'Operational',
   connectionError = false,
+  collapsed = false,
+  onToggleCollapse,
 }) {
   return (
-    <aside className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}`} aria-label="Admin navigation">
+    <aside className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}${collapsed ? ' is-collapsed' : ''}`} aria-label="Admin navigation">
       <div className="ar-admin-brand">
         <div className="ar-admin-brand-mark">AR</div>
         <div>
           <strong>Atma Rekha</strong>
           <span>Admin studio</span>
         </div>
+        <button type="button" className="ar-admin-collapse-toggle" onClick={onToggleCollapse} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={!collapsed} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}><span aria-hidden="true">{collapsed ? '›' : '‹'}</span></button>
         <button type="button" className="ar-admin-mobile-close" onClick={onClose} aria-label="Close navigation">
           <AdminIcon name="close" size={18} />
         </button>

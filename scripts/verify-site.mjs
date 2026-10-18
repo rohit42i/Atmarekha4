@@ -267,8 +267,8 @@ if (!adminControlRoom.includes("onClick={item.run}") || !adminControlRoom.includ
   console.error('CHECK FAILED: admin workbench actions are not connected to the rendered interface.');
   failed = true;
 }
-if (!adminPanelSource.includes("{ key: 'Email Campaigns'") || !adminPanelSource.includes("'Community Posts', 'Membership & Earnings'")) {
-  console.error('CHECK FAILED: admin sidebar links and tab allow-list are out of sync.');
+if (adminPanelSource.includes("{ key: 'Email Campaigns'") || adminPanelSource.includes("tab === 'Email Campaigns'") || !adminPanelSource.includes("'Community Posts', 'Membership & Earnings'")) {
+  console.error('CHECK FAILED: admin sidebar must not expose Email Campaigns without an implementation, and its tab allow-list must match the active views.');
   failed = true;
 }
 
@@ -360,5 +360,95 @@ if (!tabsDeclaration || missingNavigationTabs.length) {
   console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
   failed = true;
 }
+const moderationQueueSource = await readFile('AdminModerationQueue.jsx', 'utf8');
+if (!moderationQueueSource.includes("resolved: reports.filter(report => normalizeStatus(report) === 'resolved').length") ||
+    !moderationQueueSource.includes("? reportStatus === 'resolved'") ||
+    !moderationQueueSource.includes("['reviewed', 'dismissed'].includes(reportStatus)")) {
+  console.error('CHECK FAILED: report states must not double-count reviewed/dismissed reports as resolved.');
+  failed = true;
+}
+
+if (!adminPanelSource.includes('function safeImagePreviewUrl(value)') ||
+    !adminPanelSource.includes('safeImagePreviewUrl(announcementPreview)') ||
+    adminPanelSource.includes('src={announcementPreview}')) {
+  console.error('CHECK FAILED: announcement preview URLs must pass through the allowed-protocol URL validator.');
+  failed = true;
+}
+if (!adminPanelSource.includes('const safeName = /\\.[^.]+$/.test(rawSafeName)')) {
+  console.error('CHECK FAILED: announcement upload filenames must preserve a valid single extension.');
+  failed = true;
+}
+
+const thumbnailsSource = await readFile('AdminCardThumbnails.jsx', 'utf8');
+if (!thumbnailsSource.includes("import { requestAdminConfirm } from './admin-feedback';") ||
+    !thumbnailsSource.includes('const clearOverride = async (chapter, slot)') ||
+    !thumbnailsSource.includes('onClick={() => clearOverride(chapter, slot)}')) {
+  console.error('CHECK FAILED: clearing a custom card thumbnail must require explicit confirmation.');
+  failed = true;
+}
+
+if (!moderationQueueSource.includes('const updated = await onSetReportStatus?.(report.id, nextStatus)') ||
+    !moderationQueueSource.includes('status: nextStatus } : current')) {
+  console.error('CHECK FAILED: report context status must update after a successful report action.');
+  failed = true;
+}
+
+const communitySource = await readFile('CommunityAdmin.jsx', 'utf8');
+if (!communitySource.includes('requestAdminConfirm') ||
+    !communitySource.includes('supabase.storage.from(\'community\').remove(paths)') ||
+    !communitySource.includes("if(role!=='owner'&&role!=='admin')throw Error('Admin access required.')") ||
+    !communitySource.includes("URL.revokeObjectURL(preview)")) {
+  console.error('CHECK FAILED: community deletion must be confirmed, role-checked, and clean up storage/preview resources.');
+  failed = true;
+}
+
+if (!communitySource.includes('role="dialog" aria-modal="true" aria-labelledby="community-admin-title"') ||
+    !communitySource.includes('const trapFocus=event=>') ||
+    !adminPanelSource.includes('const keepFocusInside = event =>')) {
+  console.error('CHECK FAILED: admin/community dialogs need accessible labels and keyboard focus containment.');
+  failed = true;
+}
+
+const adminVisualStyles = await Promise.all([
+  'admin-command-center-system.css',
+  'admin-ultimate-ui.css',
+  'admin-workspace-ux.css',
+  'admin-control-room.css',
+  'admin-pro-studio.css',
+  'admin-visual-polish.css',
+].map(path => readFile(path, 'utf8')));
+const adminVisualPolish = adminVisualStyles[5];
+const controlRoomHero = controlRoom.split('<header className="ar-cr-hero">')[1]?.split('</header>')[0] || '';
+if (!adminPanelSource.includes("import './admin-visual-polish.css';") ||
+    !adminVisualPolish.includes('--ar-bg: #F4F5F7') ||
+    !adminVisualPolish.includes('--ar-primary: #D96D16') ||
+    !adminVisualPolish.includes('html[data-theme="dark"] main.admin-page.ar-admin-v3') ||
+    !adminVisualPolish.includes('--ar-primary: #F28C28') ||
+    !adminVisualPolish.includes('html[data-theme="light"] main.admin-page.ar-admin-v3 { color-scheme: light; }') ||
+    !adminVisualPolish.includes('@media (max-width: 1380px)') ||
+    !adminVisualPolish.includes('@media (max-width: 760px)')) {
+  console.error('CHECK FAILED: final admin visual layer must own a single light palette, a dark palette, and desktop/mobile layout rules.');
+  failed = true;
+}
+if (!adminVisualPolish.includes('Bring leftover overview/chart accents into the same warm, semantic palette') ||
+    !adminVisualPolish.includes('body main.admin-page.ar-admin-v3 .admin-studio-table-wrap tbody tr:nth-child(odd)') ||
+    !adminVisualPolish.includes('body main.admin-page.ar-admin-v3 .ar-admin-brand-mark') ||
+    !adminVisualPolish.includes('grid-template-columns: minmax(140px, 1fr) max-content') ||
+    !adminVisualPolish.includes('grid-template-columns: repeat(2, minmax(0, 1fr))')) {
+  console.error('CHECK FAILED: admin charts, tables, brand accent and responsive Control Room button layout must use the unified visual system.');
+  failed = true;
+}
+if (!controlRoom.includes('className="ar-cr-hero-secondary-actions"') ||
+    !controlRoomHero.includes('className="ar-cr-btn is-primary"') ||
+    (controlRoomHero.match(/className="ar-cr-btn is-primary"/g) || []).length !== 1 ||
+    controlRoomHero.includes('className="ar-cr-btn is-primary" onClick={load}')) {
+  console.error('CHECK FAILED: Control Room hero actions need a single primary CTA and a separate secondary action group.');
+  failed = true;
+}
+if (adminVisualStyles.some(styles => /(?:linear|radial|repeating-linear)-gradient|backdrop-filter\s*:\s*blur/i.test(styles))) {
+  console.error('CHECK FAILED: active admin styles must not use gradients or glass/blur effects.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');

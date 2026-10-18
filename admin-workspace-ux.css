@@ -1,133 +1,125 @@
 /* Admin workspace usability pass: one navigation system, one control scale,
    and consistent responsive tool dialogs. Scoped to the admin root only. */
 main.admin-page.ar-admin-v3 {
-  --ar-work-bg:var(--ar-ref-shell-bg,#11161d);
-  --ar-work-surface:var(--ar-ref-shell-surface,#181f28);
-  --ar-work-raised:var(--ar-ref-shell-raised,#202a35);
-  --ar-work-line:var(--ar-ref-shell-line,#303b48);
-  --ar-work-text:var(--ar-ref-shell-text,#edf1f5);
-  --ar-work-muted:var(--ar-ref-shell-muted,#a9b4c1);
-  --ar-work-subtle:var(--ar-ref-shell-subtle,#7f8c99);
-  --ar-work-accent:var(--ar-admin-primary,#ff8a00);
+
+
+
+
+
+
+
+
   color:var(--ar-work-text);
   -webkit-text-size-adjust:100%;
   text-size-adjust:100%;
 }
-html[data-theme="light"] main.admin-page.ar-admin-v3 {
-  --ar-work-bg:#f5f7fa;
-  --ar-work-surface:#fff;
-  --ar-work-raised:#edf1f6;
-  --ar-work-line:#d9e0e8;
-  --ar-work-text:#18212b;
-  --ar-work-muted:#586777;
-  --ar-work-subtle:#718091;
-}
+
 
 /* Keep the desktop shell aligned and let long tool navigation scroll independently. */
 main.admin-page.ar-admin-v3 .ar-admin-app {
-  grid-template-columns:256px minmax(0,1fr)!important;
-  gap:0!important;
-  align-items:stretch!important;
-  min-width:0!important;
+  grid-template-columns:256px minmax(0,1fr);
+  gap:0;
+  align-items:stretch;
+  min-width:0;
 }
 main.admin-page.ar-admin-v3 .ar-admin-sidebar {
-  width:256px!important;
-  min-width:0!important;
-  height:100dvh!important;
-  max-height:100dvh!important;
-  padding:17px 12px 12px!important;
-  overflow:hidden!important;
-  border-right:1px solid var(--ar-work-line)!important;
-  background:var(--ar-work-surface)!important;
+  width:256px;
+  min-width:0;
+  height:100dvh;
+  max-height:100dvh;
+  padding:17px 12px 12px;
+  overflow:hidden;
+  border-right:1px solid var(--ar-work-line);
+  background:var(--ar-work-surface);
 }
 main.admin-page.ar-admin-v3 .ar-admin-brand,
 main.admin-page.ar-admin-v3 .ar-admin-workspace,
 main.admin-page.ar-admin-v3 .ar-admin-status-card {
-  flex-shrink:0!important;
+  flex-shrink:0;
 }
 main.admin-page.ar-admin-v3 .admin-tabs.ar-admin-nav {
-  flex:1 1 auto!important;
-  min-height:0!important;
-  margin:0!important;
-  padding:2px 3px 12px 0!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
+  flex:1 1 auto;
+  min-height:0;
+  margin:0;
+  padding:2px 3px 12px 0;
+  overflow-x:hidden;
+  overflow-y:auto;
   overscroll-behavior:contain;
   scrollbar-width:thin;
   scrollbar-color:var(--ar-work-line) transparent;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav-group {
-  gap:3px!important;
-  margin:0 0 14px!important;
+  gap:3px;
+  margin:0 0 14px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav-label {
-  padding:5px 9px 7px!important;
-  color:var(--ar-work-subtle)!important;
-  font-size:10px!important;
-  font-weight:750!important;
-  line-height:1.3!important;
-  letter-spacing:.1em!important;
+  padding:5px 9px 7px;
+  color:var(--ar-work-subtle);
+  font-size:10px;
+  font-weight:750;
+  line-height:1.3;
+  letter-spacing:.1em;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button {
-  min-height:40px!important;
-  padding:8px 9px!important;
-  gap:9px!important;
-  border-radius:7px!important;
-  font-size:12px!important;
-  line-height:1.35!important;
+  min-height:40px;
+  padding:8px 9px;
+  gap:9px;
+  border-radius:7px;
+  font-size:12px;
+  line-height:1.35;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button .ar-admin-nav-text {
-  min-width:0!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
-  box-shadow:inset 3px 0 0 var(--ar-work-accent)!important;
+  box-shadow:inset 3px 0 0 var(--ar-work-accent);
 }
 main.admin-page.ar-admin-v3 .ar-admin-status-card {
-  margin-top:5px!important;
+  margin-top:5px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-main {
-  min-width:0!important;
-  width:100%!important;
+  min-width:0;
+  width:100%;
 }
 main.admin-page.ar-admin-v3 .ar-admin-topbar {
-  min-width:0!important;
-  gap:13px!important;
+  min-width:0;
+  gap:13px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-content {
-  width:100%!important;
-  max-width:1680px!important;
-  min-width:0!important;
-  padding:24px clamp(16px,2.4vw,34px) 56px!important;
+  width:100%;
+  max-width:1680px;
+  min-width:0;
+  padding:24px clamp(16px,2.4vw,34px) 56px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-row {
-  align-items:flex-end!important;
-  flex-wrap:wrap!important;
-  gap:14px 20px!important;
-  margin-bottom:18px!important;
-  padding-bottom:17px!important;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:14px 20px;
+  margin-bottom:18px;
+  padding-bottom:17px;
 }
 main.admin-page.ar-admin-v3 .ar-admin-command-row > div:first-child {
-  flex:1 1 280px!important;
-  min-width:0!important;
+  flex:1 1 280px;
+  min-width:0;
 }
 main.admin-page.ar-admin-v3 .ar-admin-quick-actions {
-  flex:0 0 auto!important;
+  flex:0 0 auto;
 }
 main.admin-page.ar-admin-v3 .ar-admin-quick-actions button,
 main.admin-page.ar-admin-v3 .ar-admin-refresh,
 main.admin-page.ar-admin-v3 .ar-admin-icon-button,
 main.admin-page.ar-admin-v3 .ar-admin-profile,
 main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
-  box-shadow:none!important;
+  box-shadow:none;
 }
 main.admin-page.ar-admin-v3 .ar-admin-quick-actions button,
 main.admin-page.ar-admin-v3 .ar-admin-refresh {
-  min-height:38px!important;
-  border-radius:7px!important;
-  padding:0 12px!important;
-  font-size:12px!important;
+  min-height:38px;
+  border-radius:7px;
+  padding:0 12px;
+  font-size:12px;
 }
 
 /* Standard button, field, table and keyboard-focus geometry across admin views. */
@@ -151,19 +143,19 @@ main.admin-page.ar-admin-v3 .ar-admin-content button {
   padding:8px 11px;
 }
 main.admin-page.ar-admin-v3 :is(button,input,select,textarea,a,[tabindex]):focus-visible {
-  outline:2px solid var(--ar-work-accent)!important;
-  outline-offset:2px!important;
+  outline:2px solid var(--ar-work-accent);
+  outline-offset:2px;
 }
 main.admin-page.ar-admin-v3 :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea) {
   min-width:0;
   max-width:100%;
-  border-color:var(--ar-work-line)!important;
-  border-radius:7px!important;
-  background:var(--ar-work-bg)!important;
-  color:var(--ar-work-text)!important;
+  border-color:var(--ar-work-line);
+  border-radius:7px;
+  background:var(--ar-work-bg);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 :is(input,textarea)::placeholder {
-  color:var(--ar-work-subtle)!important;
+  color:var(--ar-work-subtle);
   opacity:1;
 }
 main.admin-page.ar-admin-v3 .ar-admin-content :is(table,.admin-table-wrap,.admin-table,.admin-media-grid) {
@@ -172,8 +164,8 @@ main.admin-page.ar-admin-v3 .ar-admin-content :is(table,.admin-table-wrap,.admin
 }
 main.admin-page.ar-admin-v3 :is(.admin-card,.ar-stat-card,.ar-admin-status-card,.ar-admin-workspace) {
   min-width:0;
-  border-color:var(--ar-work-line)!important;
-  box-shadow:none!important;
+  border-color:var(--ar-work-line);
+  box-shadow:none;
 }
 main.admin-page.ar-admin-v3 .ar-admin-content :is(.admin-card-title,.admin-row-actions,.ar-admin-top-actions) {
   gap:8px;
@@ -200,14 +192,14 @@ main.admin-page.ar-admin-v3 :is(
   .ar-pro-backdrop,
   .community-admin-backdrop
 ) {
-  position:fixed!important;
-  inset:0!important;
-  display:grid!important;
-  place-items:center!important;
-  padding:18px!important;
-  background:rgba(4,7,11,.76)!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
+  position:fixed;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(4,7,11,.76);
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-panel,
@@ -218,299 +210,299 @@ main.admin-page.ar-admin-v3 :is(
   .ar-pro-panel,
   .community-admin-modal
 ) {
-  width:min(1120px,calc(100vw - 36px))!important;
-  max-width:1120px!important;
-  max-height:min(90dvh,920px)!important;
-  min-width:0!important;
-  border:1px solid var(--ar-work-line)!important;
-  border-radius:14px!important;
-  background:var(--ar-work-surface)!important;
-  color:var(--ar-work-text)!important;
-  box-shadow:0 24px 72px rgba(0,0,0,.38)!important;
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  width:min(1120px,calc(100vw - 36px));
+  max-width:1120px;
+  max-height:min(90dvh,920px);
+  min-width:0;
+  border:1px solid var(--ar-work-line);
+  border-radius:14px;
+  background:var(--ar-work-surface);
+  color:var(--ar-work-text);
+  box-shadow:0 24px 72px rgba(0,0,0,.38);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-panel {
-  height:min(86dvh,850px)!important;
-  display:flex!important;
-  flex-direction:column!important;
-  overflow:hidden!important;
+  height:min(86dvh,850px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-body {
-  flex:1 1 auto!important;
-  min-height:0!important;
-  overflow:auto!important;
-  background:var(--ar-work-surface)!important;
-  color:var(--ar-work-text)!important;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  background:var(--ar-work-surface);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 .ar-ops-panel {
-  overflow:auto!important;
+  overflow:auto;
 }
 main.admin-page.ar-admin-v3 .ar-ops-body {
-  padding:18px clamp(14px,2vw,24px) 24px!important;
+  padding:18px clamp(14px,2vw,24px) 24px;
 }
 main.admin-page.ar-admin-v3 .ar-health-panel {
-  overflow:hidden!important;
-  display:flex!important;
-  flex-direction:column!important;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
 main.admin-page.ar-admin-v3 .ar-health-body {
-  min-height:0!important;
-  overflow:auto!important;
-  padding:18px clamp(14px,2vw,24px) 24px!important;
+  min-height:0;
+  overflow:auto;
+  padding:18px clamp(14px,2vw,24px) 24px;
 }
 main.admin-page.ar-admin-v3 .ar-mod-modal,
 main.admin-page.ar-admin-v3 .ar-gcm-modal,
 main.admin-page.ar-admin-v3 .ar-pro-panel {
-  display:flex!important;
-  flex-direction:column!important;
-  overflow:hidden!important;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 main.admin-page.ar-admin-v3 .ar-gcm-modal {
-  height:min(86dvh,850px)!important;
+  height:min(86dvh,850px);
 }
 main.admin-page.ar-admin-v3 .ar-mod-body,
 main.admin-page.ar-admin-v3 .ar-pro-body {
-  min-height:0!important;
-  flex:1 1 auto!important;
-  overflow:auto!important;
+  min-height:0;
+  flex:1 1 auto;
+  overflow:auto;
 }
 main.admin-page.ar-admin-v3 .community-admin-modal {
-  max-height:min(90dvh,900px)!important;
-  overflow:auto!important;
-  padding:0!important;
+  max-height:min(90dvh,900px);
+  overflow:auto;
+  padding:0;
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-head,.ar-ops-head,.ar-health-head,.ar-mod-head,.ar-gcm-head,.ar-pro-head,.community-admin-head
 ) {
-  flex:0 0 auto!important;
-  gap:12px!important;
-  padding:17px 20px!important;
-  border-bottom:1px solid var(--ar-work-line)!important;
+  flex:0 0 auto;
+  gap:12px;
+  padding:17px 20px;
+  border-bottom:1px solid var(--ar-work-line);
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-head h2,.ar-ops-head h2,.ar-health-head h2,.ar-mod-head h2,.ar-gcm-head h2,.ar-pro-head h2,.community-admin-head h2
 ) {
-  margin:0!important;
-  color:var(--ar-work-text)!important;
-  font-size:clamp(17px,2vw,22px)!important;
-  font-weight:740!important;
-  line-height:1.25!important;
-  letter-spacing:-.025em!important;
+  margin:0;
+  color:var(--ar-work-text);
+  font-size:clamp(17px,2vw,22px);
+  font-weight:740;
+  line-height:1.25;
+  letter-spacing:-.025em;
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-head p,.ar-ops-head p,.ar-health-head p,.ar-mod-head p,.ar-gcm-head p,.ar-pro-head p,.community-admin-sub
 ) {
-  color:var(--ar-work-muted)!important;
-  font-size:12px!important;
-  line-height:1.5!important;
+  color:var(--ar-work-muted);
+  font-size:12px;
+  line-height:1.5;
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-close,.ar-ops-close,.ar-health-close,.ar-mod-close,.ar-gcm-close,.ar-pro-close
 ) {
-  flex:0 0 38px!important;
-  width:38px!important;
-  height:38px!important;
-  min-height:38px!important;
-  margin-left:auto!important;
-  padding:0!important;
-  display:grid!important;
-  place-items:center!important;
-  border:1px solid var(--ar-work-line)!important;
-  border-radius:8px!important;
-  background:var(--ar-work-raised)!important;
-  color:var(--ar-work-text)!important;
+  flex:0 0 38px;
+  width:38px;
+  height:38px;
+  min-height:38px;
+  margin-left:auto;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--ar-work-line);
+  border-radius:8px;
+  background:var(--ar-work-raised);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-tools,.ar-ops-form,.ar-mod-toolbar,.ar-gcm-tools,.ar-push-card
 ) {
-  border-color:var(--ar-work-line)!important;
+  border-color:var(--ar-work-line);
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-tools {
-  flex:0 0 auto!important;
-  padding:12px 16px!important;
-  background:var(--ar-work-surface)!important;
+  flex:0 0 auto;
+  padding:12px 16px;
+  background:var(--ar-work-surface);
 }
 main.admin-page.ar-admin-v3 :is(.ar-mgmt-tools input,.ar-mgmt-tools select,.ar-mgmt-tools button) {
-  min-height:38px!important;
-  border:1px solid var(--ar-work-line)!important;
-  border-radius:7px!important;
-  background:var(--ar-work-bg)!important;
-  color:var(--ar-work-text)!important;
-  font-size:12px!important;
+  min-height:38px;
+  border:1px solid var(--ar-work-line);
+  border-radius:7px;
+  background:var(--ar-work-bg);
+  color:var(--ar-work-text);
+  font-size:12px;
 }
 main.admin-page.ar-admin-v3 :is(.ar-mgmt-table,.ar-mgmt-table thead,.ar-mgmt-table tbody) {
-  background:var(--ar-work-surface)!important;
-  color:var(--ar-work-text)!important;
+  background:var(--ar-work-surface);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-table th {
-  background:var(--ar-work-raised)!important;
-  color:var(--ar-work-muted)!important;
-  border-color:var(--ar-work-line)!important;
+  background:var(--ar-work-raised);
+  color:var(--ar-work-muted);
+  border-color:var(--ar-work-line);
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-table td {
-  color:var(--ar-work-text)!important;
-  border-color:var(--ar-work-line)!important;
+  color:var(--ar-work-text);
+  border-color:var(--ar-work-line);
 }
 main.admin-page.ar-admin-v3 :is(.ar-mgmt-feed,.ar-mgmt-feed article,.ar-mgmt-body) {
-  color:var(--ar-work-text)!important;
-  border-color:var(--ar-work-line)!important;
+  color:var(--ar-work-text);
+  border-color:var(--ar-work-line);
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-feed article {
-  border-bottom:1px solid var(--ar-work-line)!important;
+  border-bottom:1px solid var(--ar-work-line);
 }
 main.admin-page.ar-admin-v3 :is(.ar-mgmt-feed p,.ar-mgmt-feed time,.ar-mgmt-user small,.ar-push-card p,.ar-push-note) {
-  color:var(--ar-work-muted)!important;
+  color:var(--ar-work-muted);
 }
 main.admin-page.ar-admin-v3 .ar-mgmt-type,
 main.admin-page.ar-admin-v3 .ar-mgmt-badge {
-  border:1px solid var(--ar-work-line)!important;
-  background:var(--ar-work-raised)!important;
-  color:var(--ar-work-text)!important;
+  border:1px solid var(--ar-work-line);
+  background:var(--ar-work-raised);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 .ar-push-card {
-  margin:12px!important;
-  padding:14px!important;
-  border:1px solid var(--ar-work-line)!important;
-  border-radius:10px!important;
-  background:var(--ar-work-bg)!important;
+  margin:12px;
+  padding:14px;
+  border:1px solid var(--ar-work-line);
+  border-radius:10px;
+  background:var(--ar-work-bg);
 }
 main.admin-page.ar-admin-v3 :is(.ar-push-grid input,.ar-push-grid select,.ar-push-grid textarea) {
-  min-height:40px!important;
-  border:1px solid var(--ar-work-line)!important;
-  background:var(--ar-work-surface)!important;
-  color:var(--ar-work-text)!important;
+  min-height:40px;
+  border:1px solid var(--ar-work-line);
+  background:var(--ar-work-surface);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 :is(.ar-mod-card,.ar-gcm-stat,.ar-gcm-tools,.ar-pro-card,.ar-pro-kpi,.ar-ops-section,.ar-health-row,.ar-health-stat) {
-  border-color:var(--ar-work-line)!important;
-  background:var(--ar-work-bg)!important;
-  color:var(--ar-work-text)!important;
+  border-color:var(--ar-work-line);
+  background:var(--ar-work-bg);
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 :is(.ar-mod-section h3,.ar-mod-name,.ar-mod-report,.ar-gcm-head h2,.ar-gcm-stat strong,.ar-pro-card h3,.ar-ops-row-main strong,.ar-health-row h3) {
-  color:var(--ar-work-text)!important;
+  color:var(--ar-work-text);
 }
 main.admin-page.ar-admin-v3 :is(.ar-mod-meta,.ar-mod-report small,.ar-gcm-head p,.ar-gcm-stat span,.ar-pro-card-head span,.ar-ops-row-main p,.ar-ops-section header p,.ar-health-row p) {
-  color:var(--ar-work-muted)!important;
+  color:var(--ar-work-muted);
 }
 main.admin-page.ar-admin-v3 :is(
   .ar-mgmt-panel button,.ar-ops-panel button,.ar-health-panel button,.ar-mod-modal button,.ar-gcm-modal button,.ar-pro-panel button,.community-admin-modal button
 ) {
-  min-height:36px!important;
-  padding:8px 11px!important;
-  border:1px solid var(--ar-work-line)!important;
-  border-radius:7px!important;
-  background:var(--ar-work-raised)!important;
-  color:var(--ar-work-text)!important;
-  font-weight:650!important;
+  min-height:36px;
+  padding:8px 11px;
+  border:1px solid var(--ar-work-line);
+  border-radius:7px;
+  background:var(--ar-work-raised);
+  color:var(--ar-work-text);
+  font-weight:650;
 }
 main.admin-page.ar-admin-v3 :is(.ar-push-send,.ar-ops-primary,.community-admin-send) {
-  border-color:var(--ar-work-accent)!important;
-  background:var(--ar-work-accent)!important;
-  color:#1c1309!important;
-  font-weight:800!important;
+  border-color:var(--ar-work-accent);
+  background:var(--ar-work-accent);
+  color:var(--ar-on-primary);
+  font-weight:800;
 }
 main.admin-page.ar-admin-v3 :is(.ar-mgmt-panel button,.ar-ops-panel button,.ar-health-panel button,.ar-mod-modal button,.ar-gcm-modal button,.ar-pro-panel button,.community-admin-modal button):hover:not(:disabled) {
-  border-color:var(--ar-work-accent)!important;
+  border-color:var(--ar-work-accent);
   filter:brightness(1.04);
 }
 main.admin-page.ar-admin-v3 :is(button,input,select,textarea):disabled {
   opacity:.55;
-  cursor:not-allowed!important;
+  cursor:not-allowed;
 }
-main.admin-page.ar-admin-v3 .ar-mod-launch { display:none!important; }
+main.admin-page.ar-admin-v3 .ar-mod-launch { display:none; }
 
 /* Tablet and phone layout: drawer navigation and full-height, scroll-safe tools. */
 @media (max-width:1180px) and (min-width:761px) {
   main.admin-page.ar-admin-v3 .ar-admin-app {
-    grid-template-columns:232px minmax(0,1fr)!important;
+    grid-template-columns:232px minmax(0,1fr);
   }
   main.admin-page.ar-admin-v3 .ar-admin-sidebar {
-    width:232px!important;
-    padding-left:10px!important;
-    padding-right:10px!important;
+    width:232px;
+    padding-left:10px;
+    padding-right:10px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-content {
-    padding-left:20px!important;
-    padding-right:20px!important;
+    padding-left:20px;
+    padding-right:20px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-topbar {
-    gap:8px!important;
+    gap:8px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-freshness {
-    display:none!important;
+    display:none;
   }
 }
 @media (max-width:760px) {
   main.admin-page.ar-admin-v3 .ar-admin-app {
-    display:block!important;
-    min-width:0!important;
+    display:block;
+    min-width:0;
   }
   main.admin-page.ar-admin-v3 .ar-admin-sidebar {
-    width:min(310px,88vw)!important;
-    max-width:calc(100vw - 38px)!important;
-    height:100dvh!important;
-    max-height:100dvh!important;
-    padding:14px 11px max(12px,env(safe-area-inset-bottom))!important;
-    border-right:1px solid var(--ar-work-line)!important;
-    border-radius:0 10px 10px 0!important;
-    overflow:hidden!important;
+    width:min(310px,88vw);
+    max-width:calc(100vw - 38px);
+    height:100dvh;
+    max-height:100dvh;
+    padding:14px 11px max(12px,env(safe-area-inset-bottom));
+    border-right:1px solid var(--ar-work-line);
+    border-radius:0 10px 10px 0;
+    overflow:hidden;
   }
   main.admin-page.ar-admin-v3 .admin-tabs.ar-admin-nav {
-    min-height:0!important;
-    overflow-x:hidden!important;
-    overflow-y:auto!important;
-    padding-bottom:12px!important;
+    min-height:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    padding-bottom:12px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-nav button {
-    min-height:42px!important;
-    padding:9px 10px!important;
+    min-height:42px;
+    padding:9px 10px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-main {
-    grid-column:auto!important;
-    width:100%!important;
-    margin:0!important;
+    grid-column:auto;
+    width:100%;
+    margin:0;
   }
   main.admin-page.ar-admin-v3 .ar-admin-topbar {
-    min-height:58px!important;
-    flex-wrap:wrap!important;
-    padding:9px 12px!important;
-    gap:8px!important;
+    min-height:58px;
+    flex-wrap:wrap;
+    padding:9px 12px;
+    gap:8px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-topbar-left {
-    flex:1 1 auto!important;
-    min-width:0!important;
+    flex:1 1 auto;
+    min-width:0;
   }
   main.admin-page.ar-admin-v3 .ar-admin-search {
-    order:3!important;
-    flex:1 1 100%!important;
-    width:100%!important;
-    max-width:none!important;
-    min-width:0!important;
+    order:3;
+    flex:1 1 100%;
+    width:100%;
+    max-width:none;
+    min-width:0;
   }
   main.admin-page.ar-admin-v3 .ar-admin-top-actions {
-    flex:0 1 auto!important;
-    gap:6px!important;
+    flex:0 1 auto;
+    gap:6px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-content {
-    padding:17px 12px calc(88px + env(safe-area-inset-bottom))!important;
+    padding:17px 12px calc(88px + env(safe-area-inset-bottom));
   }
   main.admin-page.ar-admin-v3 .ar-admin-command-row {
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-    gap:12px!important;
-    padding-bottom:14px!important;
-    margin-bottom:14px!important;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+    padding-bottom:14px;
+    margin-bottom:14px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-quick-actions,
   main.admin-page.ar-admin-v3 .ar-admin-quick-actions button {
-    width:100%!important;
+    width:100%;
   }
   main.admin-page.ar-admin-v3 .ar-admin-content :is(.admin-card,.ar-stat-card) {
-    padding:13px!important;
-    border-radius:9px!important;
+    padding:13px;
+    border-radius:9px;
   }
   main.admin-page.ar-admin-v3 .ar-admin-content :is(.admin-form-grid,.ar-cr-feature-grid) {
-    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-columns:minmax(0,1fr);
   }
   main.admin-page.ar-admin-v3 .ar-admin-content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select,textarea) {
     width:100%;
@@ -520,42 +512,42 @@ main.admin-page.ar-admin-v3 .ar-mod-launch { display:none!important; }
     min-height:100px;
   }
   main.admin-page.ar-admin-v3 .admin-bottom-nav {
-    position:fixed!important;
-    z-index:800!important;
-    left:0!important;
-    right:0!important;
-    bottom:0!important;
-    width:100%!important;
-    min-height:62px!important;
-    padding:6px 6px max(6px,env(safe-area-inset-bottom))!important;
-    display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
-    gap:4px!important;
-    border:0!important;
-    border-top:1px solid var(--ar-work-line)!important;
-    background:var(--ar-work-surface)!important;
-    box-shadow:0 -8px 24px rgba(0,0,0,.12)!important;
+    position:fixed;
+    z-index:800;
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    min-height:62px;
+    padding:6px 6px max(6px,env(safe-area-inset-bottom));
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:4px;
+    border:0;
+    border-top:1px solid var(--ar-work-line);
+    background:var(--ar-work-surface);
+    box-shadow:0 -8px 24px rgba(0,0,0,.12);
   }
   main.admin-page.ar-admin-v3 .admin-bottom-nav button {
-    min-width:0!important;
-    min-height:44px!important;
-    padding:6px 3px!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:4px!important;
-    border:1px solid transparent!important;
-    border-radius:7px!important;
-    background:transparent!important;
-    color:var(--ar-work-muted)!important;
-    font-size:10px!important;
-    line-height:1.15!important;
+    min-width:0;
+    min-height:44px;
+    padding:6px 3px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    border:1px solid transparent;
+    border-radius:7px;
+    background:transparent;
+    color:var(--ar-work-muted);
+    font-size:10px;
+    line-height:1.15;
   }
   main.admin-page.ar-admin-v3 .admin-bottom-nav button.active {
-    border-color:var(--ar-work-line)!important;
-    background:var(--ar-work-raised)!important;
-    color:var(--ar-work-text)!important;
+    border-color:var(--ar-work-line);
+    background:var(--ar-work-raised);
+    color:var(--ar-work-text);
   }
   main.admin-page.ar-admin-v3 .admin-bottom-nav button span {
     max-width:100%;
@@ -566,113 +558,113 @@ main.admin-page.ar-admin-v3 .ar-mod-launch { display:none!important; }
   main.admin-page.ar-admin-v3 :is(
     .ar-mgmt-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop
   ) {
-    padding:max(6px,env(safe-area-inset-top)) 6px max(6px,env(safe-area-inset-bottom))!important;
-    place-items:stretch!important;
+    padding:max(6px,env(safe-area-inset-top)) 6px max(6px,env(safe-area-inset-bottom));
+    place-items:stretch;
   }
   main.admin-page.ar-admin-v3 :is(
     .ar-mgmt-panel,.ar-ops-panel,.ar-health-panel,.ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal
   ) {
-    width:100%!important;
-    max-width:100%!important;
-    max-height:100%!important;
-    border-radius:10px!important;
+    width:100%;
+    max-width:100%;
+    max-height:100%;
+    border-radius:10px;
   }
   main.admin-page.ar-admin-v3 .ar-mgmt-panel {
-    height:100%!important;
+    height:100%;
   }
   main.admin-page.ar-admin-v3 .ar-gcm-modal {
-    height:100%!important;
+    height:100%;
   }
   main.admin-page.ar-admin-v3 :is(.ar-mgmt-head,.ar-ops-head,.ar-health-head,.ar-mod-head,.ar-gcm-head,.ar-pro-head,.community-admin-head) {
-    padding:14px!important;
+    padding:14px;
   }
   main.admin-page.ar-admin-v3 :is(.ar-mgmt-tools,.ar-mod-toolbar,.ar-gcm-tools) {
-    padding:10px!important;
-    flex-wrap:wrap!important;
+    padding:10px;
+    flex-wrap:wrap;
   }
   main.admin-page.ar-admin-v3 :is(.ar-mgmt-tools input,.ar-mgmt-tools select,.ar-mgmt-tools button,.ar-mod-search,.ar-gcm-search,.ar-gcm-select) {
-    min-width:0!important;
-    max-width:100%!important;
+    min-width:0;
+    max-width:100%;
   }
   main.admin-page.ar-admin-v3 .ar-mgmt-tools input {
-    flex-basis:100%!important;
+    flex-basis:100%;
   }
   main.admin-page.ar-admin-v3 .ar-ops-body {
-    padding:12px!important;
+    padding:12px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-metrics {
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
   main.admin-page.ar-admin-v3 .ar-ops-row {
-    align-items:flex-start!important;
-    flex-wrap:wrap!important;
-    padding:11px!important;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    padding:11px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-actions {
-    width:100%!important;
-    gap:6px!important;
+    width:100%;
+    gap:6px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-actions button,
   main.admin-page.ar-admin-v3 .ar-ops-actions select {
-    flex:1 1 auto!important;
-    min-width:90px!important;
-    min-height:38px!important;
+    flex:1 1 auto;
+    min-width:90px;
+    min-height:38px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-form-grid {
-    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-columns:minmax(0,1fr);
   }
   main.admin-page.ar-admin-v3 .ar-ops-preview {
-    padding:6px!important;
+    padding:6px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-preview-panel {
-    width:100%!important;
-    max-height:100%!important;
-    border-radius:10px!important;
+    width:100%;
+    max-height:100%;
+    border-radius:10px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-preview-pages {
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    padding:10px!important;
-    gap:8px!important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:10px;
+    gap:8px;
   }
   main.admin-page.ar-admin-v3 .ar-health-summary {
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
   main.admin-page.ar-admin-v3 .ar-health-summary .ar-health-stat:last-child {
     grid-column:1/-1;
   }
   main.admin-page.ar-admin-v3 .ar-pro-body {
-    padding:12px!important;
+    padding:12px;
   }
 }
 @media (max-width:420px) {
   main.admin-page.ar-admin-v3 .ar-admin-top-actions .ar-admin-freshness {
-    display:none!important;
+    display:none;
   }
   main.admin-page.ar-admin-v3 .ar-admin-profile > span:nth-child(2),
   main.admin-page.ar-admin-v3 .ar-admin-profile > svg:last-child {
-    display:none!important;
+    display:none;
   }
   main.admin-page.ar-admin-v3 .ar-admin-profile {
-    width:37px!important;
-    padding:4px!important;
-    justify-content:center!important;
+    width:37px;
+    padding:4px;
+    justify-content:center;
   }
   main.admin-page.ar-admin-v3 .ar-ops-metric {
-    padding:10px!important;
+    padding:10px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-metric strong {
-    font-size:20px!important;
+    font-size:20px;
   }
   main.admin-page.ar-admin-v3 .ar-ops-preview-pages {
-    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-columns:minmax(0,1fr);
   }
 }
 @media (prefers-reduced-motion:reduce) {
   main.admin-page.ar-admin-v3 *,
   main.admin-page.ar-admin-v3 *::before,
   main.admin-page.ar-admin-v3 *::after {
-    animation:none!important;
-    transition:none!important;
-    scroll-behavior:auto!important;
+    animation:none;
+    transition:none;
+    scroll-behavior:auto;
   }
 }
