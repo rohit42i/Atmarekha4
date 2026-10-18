@@ -1,104 +1,104 @@
 /* Atma Rekha publishing studio design system.
    All theme tokens and overrides are scoped to the admin root. */
 main.admin-page.ar-admin-v3 {
-  --ar-bg: #0E0E10;
-  --ar-sidebar: #131316;
-  --ar-surface: #17171B;
-  --ar-raised: #1E1E23;
-  --ar-border: rgba(255, 255, 255, 0.08);
-  --ar-border-strong: rgba(255, 255, 255, 0.14);
-  --ar-text: #F4F4F5;
-  --ar-text-secondary: #A1A1AA;
-  --ar-text-muted: #71717A;
-  --ar-primary: #F5901E;
-  --ar-primary-hover: #FF9F3A;
-  --ar-primary-pressed: #E07F0F;
-  --ar-on-primary: #111111;
-  --ar-success: #34D399;
-  --ar-success-bg: rgba(52, 211, 153, 0.12);
-  --ar-warning: #FBBF24;
-  --ar-warning-bg: rgba(251, 191, 36, 0.12);
-  --ar-danger: #F87171;
-  --ar-danger-bg: rgba(248, 113, 113, 0.12);
-  --ar-info: #60A5FA;
-  --ar-info-bg: rgba(96, 165, 250, 0.12);
-  --ar-chart-cyan: #22D3EE;
-  --ar-chart-violet: #A78BFA;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /* Compatibility tokens used by existing admin views, all mapped to this palette. */
-  --admin-bg: var(--ar-bg);
-  --admin-surface: var(--ar-surface);
-  --admin-surface-2: var(--ar-raised);
-  --admin-surface-3: var(--ar-raised);
-  --admin-surface-4: var(--ar-raised);
-  --admin-border: var(--ar-border);
-  --admin-border-strong: var(--ar-border-strong);
-  --admin-text: var(--ar-text);
-  --admin-text-2: var(--ar-text-secondary);
-  --admin-muted: var(--ar-text-secondary);
-  --admin-faint: var(--ar-text-muted);
-  --admin-gold: var(--ar-primary);
-  --admin-gold-bright: var(--ar-primary-hover);
-  --admin-gold-soft: rgba(245, 144, 30, 0.12);
-  --ar-admin-primary: var(--ar-primary);
-  --ar-admin-primary-dark: var(--ar-primary-pressed);
-  --ar-admin-primary-light: var(--ar-primary-hover);
-  --ar-admin-primary-lighter: rgba(245, 144, 30, 0.12);
-  --ar-ui-bg: var(--ar-bg);
-  --ar-ui-sidebar: var(--ar-sidebar);
-  --ar-ui-surface: var(--ar-surface);
-  --ar-ui-raised: var(--ar-raised);
-  --ar-ui-border: var(--ar-border-strong);
-  --ar-ui-border-soft: var(--ar-border);
-  --ar-ui-text: var(--ar-text);
-  --ar-ui-muted: var(--ar-text-secondary);
-  --ar-ui-subtle: var(--ar-text-muted);
-  --ar-ui-accent: var(--ar-primary);
-  --ar-ui-accent-strong: var(--ar-primary-hover);
-  --ar-ui-accent-soft: rgba(245, 144, 30, 0.12);
-  --ar-ui-good: var(--ar-success);
-  --ar-ui-warn: var(--ar-warning);
-  --ar-ui-danger: var(--ar-danger);
-  --ov-bg: var(--ar-bg);
-  --ov-surface: var(--ar-surface);
-  --ov-soft: var(--ar-raised);
-  --ov-border: var(--ar-border);
-  --ov-border-strong: var(--ar-border-strong);
-  --ov-text: var(--ar-text);
-  --ov-muted: var(--ar-text-secondary);
-  --ov-faint: var(--ar-text-muted);
-  --ov-accent: var(--ar-primary);
-  --ov-accent-soft: rgba(245, 144, 30, 0.12);
-  --ov-positive: var(--ar-success);
-  --ov-negative: var(--ar-danger);
-  --cr-bg: var(--ar-bg);
-  --cr-card: var(--ar-surface);
-  --cr-card-raised: var(--ar-raised);
-  --cr-border: var(--ar-border-strong);
-  --cr-border-soft: var(--ar-border);
-  --cr-text: var(--ar-text);
-  --cr-muted: var(--ar-text-secondary);
-  --cr-faint: var(--ar-text-muted);
-  --cr-gold: var(--ar-primary);
-  --cr-gold-soft: rgba(245, 144, 30, 0.12);
-  --cr-green: var(--ar-success);
-  --cr-red: var(--ar-danger);
-  --cr-yellow: var(--ar-warning);
-  --ar-work-bg: var(--ar-bg);
-  --ar-work-surface: var(--ar-surface);
-  --ar-work-raised: var(--ar-raised);
-  --ar-work-line: var(--ar-border-strong);
-  --ar-work-text: var(--ar-text);
-  --ar-work-muted: var(--ar-text-secondary);
-  --ar-work-subtle: var(--ar-text-muted);
-  --ar-work-accent: var(--ar-primary);
-  --ar-radius-sm: 8px;
-  --ar-radius-button: 10px;
-  --ar-radius-card: 14px;
-  --ar-radius-pill: 999px;
-  --ar-transition: 180ms ease;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   color: var(--ar-text);
   background: var(--ar-bg);
-  color-scheme: dark;
+  color-scheme: light;
   min-height: 100dvh;
 }
 main.admin-page.ar-admin-v3,
@@ -127,8 +127,8 @@ main.admin-page.ar-admin-v3 .ar-admin-nav button {
 main.admin-page.ar-admin-v3 .ar-admin-nav button:hover { background: var(--ar-raised); color: var(--ar-text); }
 main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
   position: relative;
-  background: rgba(245, 144, 30, 0.12);
-  border-color: rgba(245, 144, 30, 0.2);
+  background: var(--ar-primary-soft);
+  border-color: var(--ar-primary-border);
   color: var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-admin-nav button.active::before {
@@ -653,7 +653,7 @@ main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop { position: fixed; inset: 
     background: var(--ar-sidebar);
   }
   main.admin-page.ar-admin-v3 .admin-bottom-nav button { min-width: 0; min-height: 48px; display: grid; place-items: center; gap: 3px; border: 0; border-radius: var(--ar-radius-sm); background: transparent; color: var(--ar-text-secondary); font-size: 10px; }
-  main.admin-page.ar-admin-v3 .admin-bottom-nav button.active { background: rgba(245, 144, 30, 0.12); color: var(--ar-primary-hover); }
+  main.admin-page.ar-admin-v3 .admin-bottom-nav button.active { background: var(--ar-primary-soft); color: var(--ar-primary-hover); }
   main.admin-page.ar-admin-v3 .ar-admin-content { padding: 16px 16px 92px; }
 }
 @media (max-width: 420px) {
@@ -698,7 +698,7 @@ main.admin-page.ar-admin-v3 .ar-admin-comment-reply-label,
 main.admin-page.ar-admin-v3 .ar-admin-comment-reported { display: inline-flex; margin-top: 7px; padding: 3px 7px; border-radius: var(--ar-radius-pill); background: var(--ar-info-bg); color: var(--ar-info); font-size: 10px; font-weight: 650; }
 main.admin-page.ar-admin-v3 .ar-admin-comment-reported { margin-left: 5px; background: var(--ar-warning-bg); color: var(--ar-warning); }
 main.admin-page.ar-admin-v3 .ar-admin-comment-target { display: inline-flex; max-width: 220px; padding: 4px 8px; border: 1px solid var(--ar-border); border-radius: var(--ar-radius-pill); color: var(--ar-text-secondary); font-size: 11px; overflow-wrap: anywhere; }
-main.admin-page.ar-admin-v3 .ar-admin-comment-target.is-announcement { border-color: rgba(167, 139, 250, 0.24); color: var(--ar-chart-violet); }
+main.admin-page.ar-admin-v3 .ar-admin-comment-target.is-announcement { border-color: var(--ar-primary-soft); color: var(--ar-chart-violet); }
 main.admin-page.ar-admin-v3 .ar-admin-comment-table time,
 main.admin-page.ar-admin-v3 .ar-admin-comments-table time { color: var(--ar-text-secondary); font-size: 12px; font-variant-numeric: tabular-nums; }
 main.admin-page.ar-admin-v3 .ar-admin-comment-actions { display: flex; flex-wrap: wrap; gap: 6px; min-width: 170px; }
@@ -817,7 +817,7 @@ main.admin-page.ar-admin-v3 .ar-admin-pin-target-control button {
 }
 main.admin-page.ar-admin-v3 .ar-admin-pin-target-control button.active {
   border-color: rgba(245, 144, 30, 0.24);
-  background: rgba(245, 144, 30, 0.12);
+  background: var(--ar-primary-soft);
   color: var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-admin-announcement-slot {
@@ -881,7 +881,7 @@ main.admin-page.ar-admin-v3 .ar-admin-report-tabs button {
 }
 main.admin-page.ar-admin-v3 .ar-admin-report-tabs button.active {
   border-color: rgba(245, 144, 30, 0.32);
-  background: rgba(245, 144, 30, 0.12);
+  background: var(--ar-primary-soft);
   color: var(--ar-primary-hover);
 }
 main.admin-page.ar-admin-v3 .ar-admin-report-tabs button b {
