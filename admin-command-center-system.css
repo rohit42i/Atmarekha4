@@ -29,7 +29,7 @@ main.admin-page.ar-admin-v3 :is(button,input,select,textarea,[role="button"],a):
 }
 main.admin-page.ar-admin-v3 :is(input,select,textarea) {
   color:var(--ar-ui-text);
-  background:#12151c;
+  background:var(--ar-bg);
   border:1px solid var(--ar-ui-border);
   border-radius:7px;
 }
@@ -109,7 +109,7 @@ main.admin-page.ar-admin-v3 .ar-stat-card {
 }
 main.admin-page.ar-admin-v3 .ar-stat-card::before,
 main.admin-page.ar-admin-v3 .ar-stat-card::after { display:none; }
-main.admin-page.ar-admin-v3 .ar-stat-card:hover { transform:none;box-shadow:none;border-color:#485459; }
+main.admin-page.ar-admin-v3 .ar-stat-card:hover { transform:none;box-shadow:none;border-color:var(--ar-border-strong); }
 main.admin-page.ar-admin-v3 .ar-stat-label { color:var(--ar-ui-muted);font-size:11px;font-weight:650; }
 main.admin-page.ar-admin-v3 .ar-stat-number { color:var(--ar-ui-text);font-size:clamp(23px,2.3vw,30px);font-weight:780;letter-spacing:-.045em;font-variant-numeric:tabular-nums; }
 main.admin-page.ar-admin-v3 .ar-stat-foot { color:var(--ar-ui-subtle);font-size:10px; }
@@ -217,20 +217,20 @@ main.admin-page.ar-admin-v3 .admin-status-badge,
 main.admin-page.ar-admin-v3 .admin-studio-status,
 main.admin-page.ar-admin-v3 .ar-membership-live {
   display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid var(--ar-ui-border);
-  border-radius:5px;background:#202629;color:#dbe3e5;font-size:10px;font-weight:750;
+  border-radius:5px;background:var(--ar-raised);color:var(--ar-text-secondary);font-size:10px;font-weight:750;
 }
 main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="published"],
 main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="success"],
-main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="active"] { color:#91e0b6;background:#14241c;border-color:#2b6548; }
+main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="active"] { color:var(--ar-success);background:var(--ar-success-bg);border-color:var(--ar-success-border); }
 main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="draft"],
-main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="pending"] { color:#f0cc87;background:#292215;border-color:#65512c; }
+main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="pending"] { color:var(--ar-warning);background:var(--ar-warning-bg);border-color:var(--ar-warning-border); }
 main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="deleted"],
 main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="failed"],
-main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="danger"] { color:#f5a0a0;background:#2b1719;border-color:#69363b; }
+main.admin-page.ar-admin-v3 :is(.admin-status-badge,.admin-studio-status)[class*="danger"] { color:var(--ar-danger);background:var(--ar-danger-bg);border-color:var(--ar-danger-border); }
 main.admin-page.ar-admin-v3 .admin-row-actions { display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
 main.admin-page.ar-admin-v3 .admin-table-action {
   min-width:34px;min-height:34px;padding:6px 8px;border:1px solid var(--ar-ui-border);
-  border-radius:6px;background:#1c2225;color:#d8e0e2;font-size:11px;
+  border-radius:6px;background:var(--ar-raised);color:var(--ar-text-secondary);font-size:11px;
 }
 main.admin-page.ar-admin-v3 .admin-table-action:hover { border-color:var(--ar-ui-accent);color:var(--ar-primary-hover); }
 main.admin-page.ar-admin-v3 .admin-context-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
@@ -256,13 +256,13 @@ main.admin-page.ar-admin-v3 .ar-ops-grid { display:grid;grid-template-columns:re
 main.admin-page.ar-admin-v3 .ar-ops-list { min-width:0;border:1px solid var(--ar-ui-border);border-radius:9px;background:var(--ar-ui-surface);overflow:hidden; }
 main.admin-page.ar-admin-v3 .ar-ops-row { padding:11px 13px;border-bottom:1px solid var(--ar-ui-border-soft); }
 main.admin-page.ar-admin-v3 .ar-ops-row:last-child { border-bottom:0; }
-main.admin-page.ar-admin-v3 .ar-ops-row:hover { background:#22282b; }
+main.admin-page.ar-admin-v3 .ar-ops-row:hover { background:var(--ar-raised); }
 main.admin-page.ar-admin-v3 .ar-ops-row-main { min-width:0;color:var(--ar-ui-text);overflow-wrap:anywhere; }
 main.admin-page.ar-admin-v3 .ar-ops-actions { display:flex;gap:8px;flex-wrap:wrap; }
 main.admin-page.ar-admin-v3 .ar-ops-actions button,
 main.admin-page.ar-admin-v3 .ar-ops-primary { min-height:38px;border-radius:7px;font-weight:700; }
-main.admin-page.ar-admin-v3 .ar-ops-actions .danger { background:#321b1e;color:#ffb8b8;border:1px solid #713b42; }
-main.admin-page.ar-admin-v3 .ar-ops-panel { background:#15191b;border:1px solid var(--ar-ui-border);border-radius:11px; }
+main.admin-page.ar-admin-v3 .ar-ops-actions .danger { background:var(--ar-danger-bg);color:var(--ar-danger);border:1px solid var(--ar-danger-border); }
+main.admin-page.ar-admin-v3 .ar-ops-panel { background:var(--ar-surface);border:1px solid var(--ar-ui-border);border-radius:11px; }
 main.admin-page.ar-admin-v3 .ar-ops-notice { border-radius:8px; }
 main.admin-page.ar-admin-v3 .ar-ops-backdrop { background:rgba(0,0,0,.72); }
 main.admin-page.ar-admin-v3 .ar-ops-panel :is(input,select,textarea) { min-height:40px;padding:8px 10px; }
@@ -271,9 +271,9 @@ main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-card-head>div>span { colo
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-metric,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric { background:var(--ar-ui-surface);border-color:var(--ar-ui-border); }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-btn.is-primary,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary { background:var(--ar-ui-accent);border-color:var(--ar-ui-accent);color:#071918; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary { background:var(--ar-ui-accent);border-color:var(--ar-ui-accent);color:var(--ar-on-primary); }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-nav button.active,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-nav button.active { color:var(--ar-primary-hover);border-color:rgba(32,178,170,.38);background:var(--ar-ui-accent-soft); }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-nav button.active { color:var(--ar-primary-hover);border-color:var(--ar-primary-border);background:var(--ar-ui-accent-soft); }
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-rank-list>button>b,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-rank-list>button>b,
 main.admin-page.ar-admin-v3 .ar-cr-control-room .ar-cr-readiness>strong,
@@ -326,7 +326,7 @@ main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-daily-bars i.current { backg
 /* Chapter manager: switch between the dense operator table and visual inventory cards. */
 main.admin-page.ar-admin-v3 .admin-view-switch {
   display:inline-flex;align-items:center;gap:3px;padding:3px;
-  border:1px solid var(--ar-ui-border);border-radius:8px;background:#121619;
+  border:1px solid var(--ar-ui-border);border-radius:8px;background:var(--ar-bg);
 }
 main.admin-page.ar-admin-v3 .admin-view-switch button {
   min-height:34px;padding:0 12px;border:1px solid transparent;border-radius:6px;
@@ -334,7 +334,7 @@ main.admin-page.ar-admin-v3 .admin-view-switch button {
 }
 main.admin-page.ar-admin-v3 .admin-view-switch button:hover { color:var(--ar-ui-text); }
 main.admin-page.ar-admin-v3 .admin-view-switch button.is-active {
-  color:var(--ar-primary-hover);background:var(--ar-ui-accent-soft);border-color:rgba(255,138,0,.34);
+  color:var(--ar-primary-hover);background:var(--ar-ui-accent-soft);border-color:var(--ar-primary-border);
 }
 main.admin-page.ar-admin-v3 .admin-chapter-card-grid {
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0;
@@ -343,7 +343,7 @@ main.admin-page.ar-admin-v3 .admin-chapter-card {
   position:relative;display:grid;grid-template-columns:88px minmax(0,1fr);gap:13px;
   min-width:0;padding:14px;border:1px solid var(--ar-ui-border);border-radius:10px;background:var(--ar-ui-surface);
 }
-main.admin-page.ar-admin-v3 .admin-chapter-card:hover { border-color:#4a5b5e; }
+main.admin-page.ar-admin-v3 .admin-chapter-card:hover { border-color:var(--ar-border-strong); }
 main.admin-page.ar-admin-v3 .admin-chapter-card.is-highlighted { border-color:var(--ar-ui-accent);box-shadow:0 0 0 2px rgba(32,178,170,.12); }
 main.admin-page.ar-admin-v3 .admin-chapter-card-select {
   position:absolute;top:8px;left:8px;z-index:1;display:flex;align-items:center;gap:5px;
