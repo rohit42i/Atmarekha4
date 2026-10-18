@@ -210,12 +210,12 @@ main.admin-page.ar-admin-v3 :is(.admin-card-title, .ar-section-header) { border-
 main.admin-page.ar-admin-v3 :is(.ar-admin-notice.error, .ar-admin-notice.is-error) {
   color: var(--ar-danger);
   background: var(--ar-danger-bg);
-  border-color: rgba(248, 113, 113, 0.24);
+  border-color: var(--ar-danger-border);
 }
 main.admin-page.ar-admin-v3 :is(.ar-admin-notice.success, .ar-admin-notice.is-success) {
   color: var(--ar-success);
   background: var(--ar-success-bg);
-  border-color: rgba(52, 211, 153, 0.24);
+  border-color: var(--ar-success-border);
 }
 main.admin-page.ar-admin-v3 :is(.ar-admin-avatar, .ar-admin-avatar-mini) {
   background: var(--ar-raised);
@@ -319,9 +319,9 @@ main.admin-page.ar-admin-v3 .ar-admin-toast {
   pointer-events: auto;
 }
 main.admin-page.ar-admin-v3 .ar-admin-toast span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-main.admin-page.ar-admin-v3 .ar-admin-toast.error { border-color: rgba(248, 113, 113, 0.3); background: var(--ar-danger-bg); color: var(--ar-danger); }
-main.admin-page.ar-admin-v3 .ar-admin-toast.warning { border-color: rgba(251, 191, 36, 0.3); background: var(--ar-warning-bg); color: var(--ar-warning); }
-main.admin-page.ar-admin-v3 .ar-admin-toast.success { border-color: rgba(52, 211, 153, 0.3); background: var(--ar-success-bg); color: var(--ar-success); }
+main.admin-page.ar-admin-v3 .ar-admin-toast.error { border-color: var(--ar-danger-border); background: var(--ar-danger-bg); color: var(--ar-danger); }
+main.admin-page.ar-admin-v3 .ar-admin-toast.warning { border-color: var(--ar-warning-border); background: var(--ar-warning-bg); color: var(--ar-warning); }
+main.admin-page.ar-admin-v3 .ar-admin-toast.success { border-color: var(--ar-success-border); background: var(--ar-success-bg); color: var(--ar-success); }
 main.admin-page.ar-admin-v3 .ar-admin-confirm-backdrop {
   position: fixed;
   inset: 0;
@@ -816,7 +816,7 @@ main.admin-page.ar-admin-v3 .ar-admin-pin-target-control button {
   cursor: pointer;
 }
 main.admin-page.ar-admin-v3 .ar-admin-pin-target-control button.active {
-  border-color: rgba(245, 144, 30, 0.24);
+  border-color: var(--ar-primary-border);
   background: var(--ar-primary-soft);
   color: var(--ar-primary-hover);
 }
@@ -880,7 +880,7 @@ main.admin-page.ar-admin-v3 .ar-admin-report-tabs button {
   cursor: pointer;
 }
 main.admin-page.ar-admin-v3 .ar-admin-report-tabs button.active {
-  border-color: rgba(245, 144, 30, 0.32);
+  border-color: var(--ar-primary-border);
   background: var(--ar-primary-soft);
   color: var(--ar-primary-hover);
 }
@@ -948,7 +948,7 @@ main.admin-page.ar-admin-v3 .ar-admin-chapter-form-section { min-width: 0; paddi
 main.admin-page.ar-admin-v3 .ar-admin-chapter-form-section:first-child { padding-top: 4px; }
 main.admin-page.ar-admin-v3 .ar-admin-chapter-form-section:last-of-type { border-bottom: 0; }
 main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading > span { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid rgba(245, 144, 30, 0.25); border-radius: var(--ar-radius-sm); background: rgba(245, 144, 30, 0.1); color: var(--ar-primary-hover); font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading > span { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border: 1px solid var(--ar-primary-border); border-radius: var(--ar-radius-sm); background: var(--ar-primary-border); color: var(--ar-primary-hover); font-size: 11px; font-weight: 750; font-variant-numeric: tabular-nums; }
 main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading h3 { margin: 0; color: var(--ar-text); font-size: 14px; font-weight: 650; }
 main.admin-page.ar-admin-v3 .ar-admin-chapter-section-heading p { margin: 4px 0 0; color: var(--ar-text-secondary); font-size: 12px; line-height: 1.5; }
 main.admin-page.ar-admin-v3 .ar-admin-cover-select { display: grid; gap: 10px; }
