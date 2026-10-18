@@ -397,7 +397,7 @@ main.admin-page.ar-admin-v3 :is(
 main.admin-page.ar-admin-v3 :is(.ar-push-send,.ar-ops-primary,.community-admin-send) {
   border-color:var(--ar-work-accent);
   background:var(--ar-work-accent);
-  color:#1c1309;
+  color:var(--ar-on-primary);
   font-weight:800;
 }
 main.admin-page.ar-admin-v3 :is(.ar-mgmt-panel button,.ar-ops-panel button,.ar-health-panel button,.ar-mod-modal button,.ar-gcm-modal button,.ar-pro-panel button,.community-admin-modal button):hover:not(:disabled) {
