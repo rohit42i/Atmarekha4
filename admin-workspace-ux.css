@@ -1,27 +1,19 @@
 /* Admin workspace usability pass: one navigation system, one control scale,
    and consistent responsive tool dialogs. Scoped to the admin root only. */
 main.admin-page.ar-admin-v3 {
-  --ar-work-bg:var(--ar-ref-shell-bg,#11161d);
-  --ar-work-surface:var(--ar-ref-shell-surface,#181f28);
-  --ar-work-raised:var(--ar-ref-shell-raised,#202a35);
-  --ar-work-line:var(--ar-ref-shell-line,#303b48);
-  --ar-work-text:var(--ar-ref-shell-text,#edf1f5);
-  --ar-work-muted:var(--ar-ref-shell-muted,#a9b4c1);
-  --ar-work-subtle:var(--ar-ref-shell-subtle,#7f8c99);
-  --ar-work-accent:var(--ar-admin-primary,#ff8a00);
+
+
+
+
+
+
+
+
   color:var(--ar-work-text);
   -webkit-text-size-adjust:100%;
   text-size-adjust:100%;
 }
-html[data-theme="light"] main.admin-page.ar-admin-v3 {
-  --ar-work-bg:#f5f7fa;
-  --ar-work-surface:#fff;
-  --ar-work-raised:#edf1f6;
-  --ar-work-line:#d9e0e8;
-  --ar-work-text:#18212b;
-  --ar-work-muted:#586777;
-  --ar-work-subtle:#718091;
-}
+
 
 /* Keep the desktop shell aligned and let long tool navigation scroll independently. */
 main.admin-page.ar-admin-v3 .ar-admin-app {
