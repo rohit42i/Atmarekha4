@@ -17,7 +17,7 @@ main.admin-page.ar-admin-v3 .ar-admin-sidebar{
   border:0;border-right:1px solid var(--admin-border);border-radius:0;background:var(--admin-surface);box-shadow:none;transform:none;z-index:120;
 }
 main.admin-page.ar-admin-v3 .ar-admin-brand{min-height:58px;padding:0 5px 16px;gap:11px;border-bottom:1px solid var(--admin-border)}
-main.admin-page.ar-admin-v3 .ar-admin-brand-mark{width:38px;height:38px;flex-basis:38px;border:1px solid var(--ar-primary-border);border-radius:9px;background:var(--ar-primary);color:#fff;font-size:11px;letter-spacing:.04em}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark{width:38px;height:38px;flex-basis:38px;border:1px solid var(--ar-primary-border);border-radius:9px;background:var(--ar-primary);color:var(--ar-on-primary);font-size:11px;letter-spacing:.04em}
 main.admin-page.ar-admin-v3 .ar-admin-brand strong{color:var(--admin-text);font-size:14px;font-weight:760;letter-spacing:-.025em}
 main.admin-page.ar-admin-v3 .ar-admin-brand span{margin-top:3px;color:var(--admin-muted);font-size:11px;letter-spacing:0}
 main.admin-page.ar-admin-v3 .ar-admin-mobile-close{display:none}
@@ -69,7 +69,7 @@ main.admin-page.ar-admin-v3 .ar-admin-freshness i{display:inline-block;width:6px
 main.admin-page.ar-admin-v3 .ar-admin-freshness i.is-error{background:var(--admin-danger)}
 main.admin-page.ar-admin-v3 .ar-admin-icon-button,main.admin-page.ar-admin-v3 .ar-admin-refresh,main.admin-page.ar-admin-v3 .ar-admin-profile{min-height:37px;border:1px solid var(--admin-border);border-radius:8px;background:var(--admin-surface);color:var(--admin-text);box-shadow:none;font-size:11px}
 main.admin-page.ar-admin-v3 .ar-admin-icon-button{position:relative;width:37px;flex:0 0 37px;display:grid;place-items:center;padding:0}
-main.admin-page.ar-admin-v3 .ar-admin-icon-button i{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;display:grid;place-items:center;padding:0 4px;border:1px solid var(--admin-bg);border-radius:5px;background:var(--admin-danger);color:#fff;font-size:9px;font-style:normal}
+main.admin-page.ar-admin-v3 .ar-admin-icon-button i{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;display:grid;place-items:center;padding:0 4px;border:1px solid var(--admin-bg);border-radius:5px;background:var(--admin-danger);color:var(--ar-on-primary);font-size:9px;font-style:normal}
 main.admin-page.ar-admin-v3 .ar-admin-refresh{padding:0 11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
 main.admin-page.ar-admin-v3 .ar-admin-profile{max-width:210px;padding:4px 8px 4px 5px;display:flex;align-items:center;gap:8px;text-align:left}
 main.admin-page.ar-admin-v3 .ar-admin-avatar{width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--admin-border-strong);border-radius:7px;background:var(--admin-surface-3);color:var(--admin-text);font-size:10px}
@@ -88,7 +88,7 @@ main.admin-page.ar-admin-v3 .ar-admin-command-row{display:flex;align-items:flex-
 main.admin-page.ar-admin-v3 .ar-admin-command-row .ar-kicker,main.admin-page.ar-admin-v3 .ar-kicker{color:var(--ar-primary);font-size:10px;font-weight:750;letter-spacing:.14em}
 main.admin-page.ar-admin-v3 .ar-admin-command-row h1{margin:6px 0 0;color:var(--admin-text);font-size:clamp(26px,2.6vw,36px);line-height:1.08;font-weight:760;letter-spacing:-.045em}
 main.admin-page.ar-admin-v3 .ar-admin-command-row p{margin:9px 0 0;color:var(--admin-muted);font-size:12px;line-height:1.55}
-main.admin-page.ar-admin-v3 .ar-admin-primary-action,main.admin-page.ar-admin-v3 .admin-submit,main.admin-page.ar-admin-v3 .admin-studio-button-primary{min-height:39px;padding:0 14px;border:1px solid var(--ar-primary);border-radius:8px;background:var(--ar-primary);color:#fff;box-shadow:none;font-size:12px;font-weight:730;letter-spacing:0;text-decoration:none;transition:background-color .14s ease,border-color .14s ease}
+main.admin-page.ar-admin-v3 .ar-admin-primary-action,main.admin-page.ar-admin-v3 .admin-submit,main.admin-page.ar-admin-v3 .admin-studio-button-primary{min-height:39px;padding:0 14px;border:1px solid var(--ar-primary);border-radius:8px;background:var(--ar-primary);color:var(--ar-on-primary);box-shadow:none;font-size:12px;font-weight:730;letter-spacing:0;text-decoration:none;transition:background-color .14s ease,border-color .14s ease}
 main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,main.admin-page.ar-admin-v3 .admin-submit:hover,main.admin-page.ar-admin-v3 .admin-studio-button-primary:hover{background:var(--ar-primary-hover);border-color:var(--ar-primary-hover);transform:none}
 main.admin-page.ar-admin-v3 .admin-studio-button,main.admin-page.ar-admin-v3 .ar-admin-btn{min-height:37px;padding:0 12px;border-radius:8px;box-shadow:none;font-size:11px;font-weight:650;transform:none}
 main.admin-page.ar-admin-v3 :is(.admin-studio-button-secondary,.ar-admin-btn-secondary){border:1px solid var(--admin-border-strong);background:var(--admin-surface-2);color:var(--admin-text)}
@@ -125,7 +125,7 @@ main.admin-page.ar-admin-v3 .ar-delta.negative{color:var(--ov-negative)}
 main.admin-page.ar-admin-v3 .ar-period-switch,main.admin-page.ar-admin-v3 .ar-period-switch button{border-radius:7px;box-shadow:none}
 main.admin-page.ar-admin-v3 .ar-period-switch{border:1px solid var(--admin-border);background:var(--admin-surface)}
 main.admin-page.ar-admin-v3 .ar-period-switch button{min-height:33px;color:var(--admin-muted)}
-main.admin-page.ar-admin-v3 .ar-period-switch button.active{background:var(--admin-gold);border-color:var(--admin-gold);color:#fff}
+main.admin-page.ar-admin-v3 .ar-period-switch button.active{background:var(--admin-gold);border-color:var(--admin-gold);color:var(--ar-on-primary)}
 main.admin-page.ar-admin-v3 .ar-control-room{color:var(--admin-text)}
 main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-panel,.ar-cr-card,.ar-cr-table-panel,.ar-cr-filter-panel){background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:11px;box-shadow:none}
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kicker{color:var(--ar-primary)}
@@ -256,7 +256,7 @@ main.admin-page.ar-admin-v3 .ar-period-switch button{
   font-size:10px;font-weight:650;
 }
 main.admin-page.ar-admin-v3 .ar-period-switch button.active{
-  background:var(--admin-gold);color:#fff;border-color:var(--admin-gold);
+  background:var(--admin-gold);color:var(--ar-on-primary);border-color:var(--admin-gold);
 }
 main.admin-page.ar-admin-v3 .ar-overview-kpis{gap:10px;margin-bottom:18px}
 main.admin-page.ar-admin-v3 .ar-stat-card{
