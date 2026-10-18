@@ -5,35 +5,21 @@ main.admin-page.ar-admin-v3 {
   --admin-bg:#0f1115; --admin-surface:#15191f; --admin-surface-2:#1b222b; --admin-surface-3:#202833; --admin-surface-4:#252e39;
   --admin-border:#2b333e; --admin-border-strong:#3a4552; --admin-border-soft:#242b34;
   --admin-text:#f2f4f7; --admin-text-2:#d3d8de; --admin-muted:#a2aab5; --admin-faint:#788391;
-  --admin-gold:#3255c6; --admin-gold-bright:#5575da; --admin-gold-soft:#1a2749; --admin-gold-focus:rgba(82,118,220,.28);
+  --admin-gold:var(--ar-primary); --admin-gold-bright:var(--ar-primary-hover); --admin-gold-soft:var(--ar-primary-soft); --admin-gold-focus:var(--ar-focus-ring);
   --admin-success:#9caf85; --admin-success-soft:#202a20; --admin-warning:#d4b36a; --admin-warning-soft:#2c2618;
   --admin-danger:#e0757e; --admin-danger-soft:#321e23; --admin-shadow:0 10px 28px rgba(0,0,0,.16); --admin-shadow-soft:0 3px 12px rgba(0,0,0,.12);
   --admin-radius-sm:5px; --admin-radius-md:8px; --admin-radius-lg:11px; --admin-radius-xl:13px;
-  --ar-admin-primary:#3255c6; --ar-admin-primary-dark:#2846aa; --ar-admin-primary-light:#5575da; --ar-admin-primary-lighter:#1a2749;
+  --ar-admin-primary:var(--ar-primary); --ar-admin-primary-dark:var(--ar-primary-hover); --ar-admin-primary-light:var(--ar-primary-hover); --ar-admin-primary-lighter:var(--ar-primary-soft);
   --ar-admin-success:#9caf85; --ar-admin-warning:#d4b36a; --ar-admin-danger:#e0757e;
   --ov-bg:#0f1115; --ov-surface:#15191f; --ov-soft:#1b222b; --ov-border:#2b333e; --ov-border-strong:#3a4552;
-  --ov-text:#f2f4f7; --ov-muted:#a2aab5; --ov-faint:#788391; --ov-accent:#5575da; --ov-accent-soft:#1a2749; --ov-positive:#9caf85; --ov-negative:#e0757e;
+  --ov-text:#f2f4f7; --ov-muted:#a2aab5; --ov-faint:#788391; --ov-accent:var(--ar-primary-hover); --ov-accent-soft:var(--ar-primary-soft); --ov-positive:#9caf85; --ov-negative:#e0757e;
   --cr-bg:#0f1115; --cr-card:#15191f; --cr-card-raised:#1b222b; --cr-border:#2b333e; --cr-border-soft:#242b34;
-  --cr-text:#f2f4f7; --cr-muted:#a2aab5; --cr-faint:#788391; --cr-gold:#5575da; --cr-gold-soft:#1a2749; --cr-green:#9caf85; --cr-red:#e0757e; --cr-yellow:#d4b36a;
-  color:var(--admin-text); background:var(--admin-bg); color-scheme:dark;
+  --cr-text:#f2f4f7; --cr-muted:#a2aab5; --cr-faint:#788391; --cr-gold:var(--ar-primary-hover); --cr-gold-soft:var(--ar-primary-soft); --cr-green:#9caf85; --cr-red:#e0757e; --cr-yellow:#d4b36a;
+  color:var(--admin-text); background:var(--admin-bg); color-scheme: light;
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-variant-numeric:tabular-nums;
 }
-html[data-theme="light"] main.admin-page.ar-admin-v3 {
-  --admin-bg:#f4f6f8; --admin-surface:#fff; --admin-surface-2:#f0f3f6; --admin-surface-3:#e9edf2; --admin-surface-4:#e2e8ef;
-  --admin-border:#d9dfe6; --admin-border-strong:#c3ccd7; --admin-border-soft:#e5e9ee;
-  --admin-text:#171c24; --admin-text-2:#313946; --admin-muted:#5f6b79; --admin-faint:#75808d;
-  --admin-gold:#3255c6; --admin-gold-bright:#2846aa; --admin-gold-soft:#e8eefc; --admin-gold-focus:rgba(50,85,198,.16);
-  --admin-success:#46613a; --admin-success-soft:#edf3e9; --admin-warning:#805e1d; --admin-warning-soft:#faf3df;
-  --admin-danger:#ae414a; --admin-danger-soft:#f9e9eb; --admin-shadow:0 8px 22px rgba(20,32,50,.06); --admin-shadow-soft:0 3px 10px rgba(20,32,50,.04);
-  --ar-admin-primary:#3255c6; --ar-admin-primary-dark:#2846aa; --ar-admin-primary-light:#5575da; --ar-admin-primary-lighter:#e8eefc;
-  --ar-admin-success:#46613a; --ar-admin-warning:#805e1d; --ar-admin-danger:#ae414a;
-  --ov-bg:#f4f6f8; --ov-surface:#fff; --ov-soft:#f0f3f6; --ov-border:#d9dfe6; --ov-border-strong:#c3ccd7;
-  --ov-text:#171c24; --ov-muted:#5f6b79; --ov-faint:#75808d; --ov-accent:#3255c6; --ov-accent-soft:#e8eefc; --ov-positive:#46613a; --ov-negative:#ae414a;
-  --cr-bg:#f4f6f8; --cr-card:#fff; --cr-card-raised:#f0f3f6; --cr-border:#d9dfe6; --cr-border-soft:#e5e9ee;
-  --cr-text:#171c24; --cr-muted:#5f6b79; --cr-faint:#75808d; --cr-gold:#3255c6; --cr-gold-soft:#e8eefc; --cr-green:#46613a; --cr-red:#ae414a; --cr-yellow:#805e1d;
-  color-scheme:light;
-}
+html[data-theme="light"] main.admin-page.ar-admin-v3 { color-scheme: light; }
 main.admin-page.ar-admin-v3,main.admin-page.ar-admin-v3 *,main.admin-page.ar-admin-v3 *::before,main.admin-page.ar-admin-v3 *::after{box-sizing:border-box}
 main.admin-page.ar-admin-v3{width:100%;min-height:100dvh;overflow-x:clip;background-image:none}
 main.admin-page.ar-admin-v3 .ar-admin-app{display:grid;grid-template-columns:252px minmax(0,1fr);gap:0;width:100%;min-height:100dvh;margin:0;padding:0;background:var(--admin-bg)}
@@ -44,7 +30,7 @@ main.admin-page.ar-admin-v3 .ar-admin-sidebar{
   border:0;border-right:1px solid var(--admin-border);border-radius:0;background:var(--admin-surface);box-shadow:none;transform:none;z-index:120;
 }
 main.admin-page.ar-admin-v3 .ar-admin-brand{min-height:58px;padding:0 5px 16px;gap:11px;border-bottom:1px solid var(--admin-border)}
-main.admin-page.ar-admin-v3 .ar-admin-brand-mark{width:38px;height:38px;flex-basis:38px;border:1px solid #496bd0;border-radius:9px;background:#3255c6;color:#fff;font-size:11px;letter-spacing:.04em}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark{width:38px;height:38px;flex-basis:38px;border:1px solid var(--ar-primary-border);border-radius:9px;background:var(--ar-primary);color:#fff;font-size:11px;letter-spacing:.04em}
 main.admin-page.ar-admin-v3 .ar-admin-brand strong{color:var(--admin-text);font-size:14px;font-weight:760;letter-spacing:-.025em}
 main.admin-page.ar-admin-v3 .ar-admin-brand span{margin-top:3px;color:var(--admin-muted);font-size:11px;letter-spacing:0}
 main.admin-page.ar-admin-v3 .ar-admin-mobile-close{display:none}
@@ -112,11 +98,11 @@ main.admin-page.ar-admin-v3 .ar-admin-profile-menu button:hover{background:var(-
 
 main.admin-page.ar-admin-v3 .ar-admin-content{width:100%;max-width:1640px;min-width:0;margin:0 auto;padding:28px clamp(18px,2.6vw,38px) 56px;background:transparent;color:var(--admin-text)}
 main.admin-page.ar-admin-v3 .ar-admin-command-row{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin:0 0 22px;padding:0 0 20px;border-bottom:1px solid var(--admin-border)}
-main.admin-page.ar-admin-v3 .ar-admin-command-row .ar-kicker,main.admin-page.ar-admin-v3 .ar-kicker{color:#9aaa83;font-size:10px;font-weight:750;letter-spacing:.14em}
+main.admin-page.ar-admin-v3 .ar-admin-command-row .ar-kicker,main.admin-page.ar-admin-v3 .ar-kicker{color:var(--ar-primary);font-size:10px;font-weight:750;letter-spacing:.14em}
 main.admin-page.ar-admin-v3 .ar-admin-command-row h1{margin:6px 0 0;color:var(--admin-text);font-size:clamp(26px,2.6vw,36px);line-height:1.08;font-weight:760;letter-spacing:-.045em}
 main.admin-page.ar-admin-v3 .ar-admin-command-row p{margin:9px 0 0;color:var(--admin-muted);font-size:12px;line-height:1.55}
-main.admin-page.ar-admin-v3 .ar-admin-primary-action,main.admin-page.ar-admin-v3 .admin-submit,main.admin-page.ar-admin-v3 .admin-studio-button-primary{min-height:39px;padding:0 14px;border:1px solid #3255c6;border-radius:8px;background:#3255c6;color:#fff;box-shadow:none;font-size:12px;font-weight:730;letter-spacing:0;text-decoration:none;transition:background-color .14s ease,border-color .14s ease}
-main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,main.admin-page.ar-admin-v3 .admin-submit:hover,main.admin-page.ar-admin-v3 .admin-studio-button-primary:hover{background:#2846aa;border-color:#2846aa;transform:none}
+main.admin-page.ar-admin-v3 .ar-admin-primary-action,main.admin-page.ar-admin-v3 .admin-submit,main.admin-page.ar-admin-v3 .admin-studio-button-primary{min-height:39px;padding:0 14px;border:1px solid var(--ar-primary);border-radius:8px;background:var(--ar-primary);color:#fff;box-shadow:none;font-size:12px;font-weight:730;letter-spacing:0;text-decoration:none;transition:background-color .14s ease,border-color .14s ease}
+main.admin-page.ar-admin-v3 .ar-admin-primary-action:hover,main.admin-page.ar-admin-v3 .admin-submit:hover,main.admin-page.ar-admin-v3 .admin-studio-button-primary:hover{background:var(--ar-primary-hover);border-color:var(--ar-primary-hover);transform:none}
 main.admin-page.ar-admin-v3 .admin-studio-button,main.admin-page.ar-admin-v3 .ar-admin-btn{min-height:37px;padding:0 12px;border-radius:8px;box-shadow:none;font-size:11px;font-weight:650;transform:none}
 main.admin-page.ar-admin-v3 :is(.admin-studio-button-secondary,.ar-admin-btn-secondary){border:1px solid var(--admin-border-strong);background:var(--admin-surface-2);color:var(--admin-text)}
 main.admin-page.ar-admin-v3 .ar-admin-notice,main.admin-page.ar-admin-v3 .ar-page-notice{display:flex;align-items:flex-start;gap:9px;margin:0 0 18px;padding:12px 14px;border:1px solid var(--admin-border);border-radius:9px;background:var(--admin-surface-2);color:var(--admin-muted);font-size:12px;line-height:1.5}
@@ -133,13 +119,13 @@ main.admin-page.ar-admin-v3 :is(.admin-card,.admin-overview-card,.admin-overview
 main.admin-page.ar-admin-v3 :is(.admin-card,.admin-overview-card,.admin-overview-stat,.performance-card,.ar-stat-card,.ar-overview-panel,.ar-overview-chart-card,.ar-overview-table-card):hover{border-color:var(--admin-border-strong);box-shadow:none;transform:none}
 main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-section-header,.admin-overview-card-head){gap:14px;border-color:var(--admin-border)}
 main.admin-page.ar-admin-v3 .admin-card-title{margin-bottom:17px}
-main.admin-page.ar-admin-v3 .admin-card-title>div>span,main.admin-page.ar-admin-v3 .ar-section-header>div>span{color:#9aaa83;font-size:10px;font-weight:750;letter-spacing:.12em}
+main.admin-page.ar-admin-v3 .admin-card-title>div>span,main.admin-page.ar-admin-v3 .ar-section-header>div>span{color:var(--ar-primary);font-size:10px;font-weight:750;letter-spacing:.12em}
 main.admin-page.ar-admin-v3 :is(.admin-card-title h2,.admin-overview-card-head h3,.ar-section-header h3){margin:5px 0 0;color:var(--admin-text);font-size:16px;font-weight:730;line-height:1.35;letter-spacing:-.02em}
 main.admin-page.ar-admin-v3 :is(.admin-card-title p,.admin-overview-card-head p,.ar-section-header p){margin:6px 0 0;color:var(--admin-muted);font-size:12px;line-height:1.55}
 main.admin-page.ar-admin-v3 .ar-overview{color:var(--ov-text);font-variant-numeric:tabular-nums}
 main.admin-page.ar-admin-v3 .ar-overview-hero h2{color:var(--ov-text);font-size:clamp(26px,2.6vw,35px);line-height:1.1;font-weight:760;letter-spacing:-.045em}
 main.admin-page.ar-admin-v3 .ar-overview-hero p{color:var(--ov-muted);font-size:12px}
-main.admin-page.ar-admin-v3 .ar-overview .ar-kicker{color:#9aaa83}
+main.admin-page.ar-admin-v3 .ar-overview .ar-kicker{color:var(--ar-primary)}
 main.admin-page.ar-admin-v3 .ar-overview-kpis{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 main.admin-page.ar-admin-v3 .ar-stat-card{position:relative;min-height:122px;padding:16px;border-radius:10px;background:var(--ov-surface)}
 main.admin-page.ar-admin-v3 .ar-stat-card::before,main.admin-page.ar-admin-v3 .ar-stat-card::after{display:none;content:none}
@@ -155,7 +141,7 @@ main.admin-page.ar-admin-v3 .ar-period-switch button{min-height:33px;color:var(-
 main.admin-page.ar-admin-v3 .ar-period-switch button.active{background:var(--admin-gold);border-color:var(--admin-gold);color:#fff}
 main.admin-page.ar-admin-v3 .ar-control-room{color:var(--admin-text)}
 main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-panel,.ar-cr-card,.ar-cr-table-panel,.ar-cr-filter-panel){background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:11px;box-shadow:none}
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kicker{color:#9aaa83}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kicker{color:var(--ar-primary)}
 main.admin-page.ar-admin-v3 .ar-control-room h2,main.admin-page.ar-admin-v3 .ar-control-room h3{color:var(--admin-text)}
 main.admin-page.ar-admin-v3 .ar-control-room p,main.admin-page.ar-admin-v3 .ar-control-room small{color:var(--admin-muted)}
 main.admin-page.ar-admin-v3 .ar-control-room :is(input,select,textarea){background:var(--admin-surface-2);color:var(--admin-text);border-color:var(--admin-border-strong)}
@@ -319,12 +305,12 @@ main.admin-page.ar-admin-v3 .ar-overview :is(.ar-section-header,.admin-overview-
   padding-bottom:13px;margin-bottom:13px;border-bottom:1px solid var(--admin-border);
 }
 main.admin-page.ar-admin-v3 .ar-chart-legend{gap:13px}
-main.admin-page.ar-admin-v3 .ar-chart-legend .dot.violet{background:#5575da}
+main.admin-page.ar-admin-v3 .ar-chart-legend .dot.violet{background:var(--ar-primary-hover)}
 main.admin-page.ar-admin-v3 .ar-chart-legend .dot.pink{background:#9caf85}
-main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i{background:#4167cf;border-radius:3px 3px 0 0}
+main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i{background:var(--ar-primary-hover);border-radius:3px 3px 0 0}
 main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b{background:#9caf85;border-radius:3px 3px 0 0}
 main.admin-page.ar-admin-v3 .ar-top-copy i{height:4px;overflow:hidden;border-radius:3px;background:var(--admin-surface-3)}
-main.admin-page.ar-admin-v3 .ar-top-copy i em{border-radius:3px;background:#4167cf}
+main.admin-page.ar-admin-v3 .ar-top-copy i em{border-radius:3px;background:var(--ar-primary-hover)}
 main.admin-page.ar-admin-v3 .ar-live-grid>div{
   padding:13px;border:1px solid var(--admin-border);border-radius:8px;
   background:var(--admin-surface-2);
@@ -345,7 +331,7 @@ main.admin-page.ar-admin-v3 :is(.ar-cr-panel,.ar-cr-card,.ar-cr-table-panel,.ar-
 html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-overview :is(.ar-chart-card,.ar-activity-card,.ar-overview-secondary>*,.ar-overview-grid-3>*,.ar-overview-grid-2>*){
   background:#fff;
 }
-html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i{background:#3255c6}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track i{background:var(--ar-primary)}
 html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-chart-bars .ar-chart-column .ar-chart-track b{background:#648052}
 @media(max-width:1180px){
   main.admin-page.ar-admin-v3 .ar-overview-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
