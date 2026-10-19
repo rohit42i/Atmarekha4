@@ -181,18 +181,24 @@ Deno.serve(async req => {
         metadata: user.user_metadata || {},
       },
       tables: {},
+      export_warnings: [],
     };
+    const exportWarnings: string[] = [];
 
     for (const table of USER_TABLES) {
       try {
         if (table === "profiles") {
           const { data, error } = await admin.from(table).select("*").eq("id", user.id);
-          if (!error) (output.tables as Record<string, unknown>)[table] = data || [];
+          if (error) exportWarnings.push(`profiles: ${error.message}`);
+          else (output.tables as Record<string, unknown>)[table] = data || [];
         } else {
           const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
-          if (!error) (output.tables as Record<string, unknown>)[table] = data || [];
+          if (error) exportWarnings.push(`${table}: ${error.message}`);
+          else (output.tables as Record<string, unknown>)[table] = data || [];
         }
-      } catch {}
+      } catch (error) {
+        exportWarnings.push(`${table}: ${error instanceof Error ? error.message : "unknown retrieval error"}`);
+      }
     }
 
     const [{ data: consents }, { data: requests }, { data: nomination }] = await Promise.all([
@@ -204,6 +210,7 @@ Deno.serve(async req => {
     output.consents = consents || [];
     output.deletion_requests = requests || [];
     output.nomination = nomination || null;
+    if (exportWarnings.length) (output as Record<string, unknown>).export_warnings = exportWarnings;
     output.rights = ["access","correction","erasure","withdrawal of consent where applicable","objection or restriction where applicable","portability where applicable","grievance or complaint","nomination where applicable"];
     return response(output, 200, origin);
   } catch (error) {
