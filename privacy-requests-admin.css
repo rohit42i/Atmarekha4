@@ -20,3 +20,34 @@
 .privacy-admin-resolution{padding:10px;background:var(--admin-surface-muted,#18191d);border-radius:7px}
 .privacy-admin-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:600px){.privacy-admin-request{padding:12px}.privacy-admin-actions>*{flex:1 1 100%}}
+
+
+main.admin-page.ar-admin-v3 .privacy-requests-admin{min-width:0}
+main.admin-page.ar-admin-v3 .privacy-requests-admin .admin-card-title p{max-width:560px;margin-top:5px;font-size:12px;line-height:1.45}
+main.admin-page.ar-admin-v3 .privacy-admin-list{gap:9px}
+main.admin-page.ar-admin-v3 .privacy-admin-request{padding:13px 14px;border-radius:8px;background:var(--admin-surface,#15191f)}
+main.admin-page.ar-admin-v3 .privacy-admin-request-top{align-items:center}
+main.admin-page.ar-admin-v3 .privacy-admin-request-top>div{gap:4px}
+main.admin-page.ar-admin-v3 .privacy-admin-request-top strong{font-size:13px;color:var(--admin-text,#f2f4f7)}
+main.admin-page.ar-admin-v3 .privacy-admin-request p{margin:8px 0;font-size:12px;line-height:1.45;color:var(--admin-text-2,#d3d8de)}
+main.admin-page.ar-admin-v3 .privacy-admin-request-id{overflow-wrap:anywhere}
+main.admin-page.ar-admin-v3 .privacy-admin-identity{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:3px 6px;border:1px solid var(--admin-border,#2b333e);border-radius:5px;font-size:10px}
+main.admin-page.ar-admin-v3 .privacy-admin-identity.is-verified{color:var(--admin-success,#9caf85);background:var(--admin-success-soft,#202a20)}
+main.admin-page.ar-admin-v3 .privacy-admin-identity.is-unverified{color:var(--admin-warning,#d4b36a);background:var(--admin-warning-soft,#2c2618)}
+main.admin-page.ar-admin-v3 .privacy-admin-actions{margin-top:10px;gap:7px}
+main.admin-page.ar-admin-v3 .privacy-admin-actions button{min-height:34px;padding:7px 10px;border-radius:7px;font-size:11px}
+main.admin-page.ar-admin-v3 .privacy-admin-danger-button{border:1px solid #a33b3b!important;border-radius:7px!important;background:#8f252c!important;color:#fff!important;font-size:11px;font-weight:700;cursor:pointer}
+main.admin-page.ar-admin-v3 .privacy-admin-danger-button:hover{background:#a62b34!important}
+main.admin-page.ar-admin-v3 .privacy-admin-danger-button:disabled{opacity:.55;cursor:wait}
+main.admin-page.ar-admin-v3 .privacy-admin-alert{margin:10px 0;padding:9px 11px;border-radius:7px;font-size:12px;line-height:1.45}
+main.admin-page.ar-admin-v3 .privacy-admin-empty{padding:34px 14px}
+main.admin-page.ar-admin-v3 .privacy-admin-empty h3{font-size:14px;color:var(--admin-text,#f2f4f7)}
+main.admin-page.ar-admin-v3 .privacy-admin-empty p{margin:4px 0;color:var(--admin-muted,#a2aab5);font-size:12px}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .privacy-admin-request{background:#fff}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .privacy-admin-request-top strong{color:#171c24}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .privacy-admin-request p{color:#313946}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .privacy-admin-empty h3{color:#171c24}
+@media(max-width:600px){
+  main.admin-page.ar-admin-v3 .privacy-admin-request{padding:11px}
+  main.admin-page.ar-admin-v3 .privacy-admin-actions button{flex:1 1 calc(50% - 7px)}
+}
