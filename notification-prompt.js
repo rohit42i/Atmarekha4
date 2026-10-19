@@ -39,6 +39,7 @@ function injectStyles() {
   `;
 
   style.textContent += '\n    html[data-theme="light"] #atma-notification-prompt{background:#fff!important;color:#111!important;border-color:#dcdcdc!important;box-shadow:0 20px 60px rgb(0 0 0 / .16)!important;color-scheme:light!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-close{background:#fff!important;color:#111!important;border-color:#e0e0e0!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-icon{background:#f4f4f2!important;color:#111!important;border-color:#dedede!important}\n    html[data-theme="light"] #atma-notification-prompt h3{color:#111!important}\n    html[data-theme="light"] #atma-notification-prompt p{color:#555!important}\n    html[data-theme="light"] #atma-notification-prompt button[data-action]{background:#fff!important;color:#111!important;border-color:#d5d5d5!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-enable{background:#111!important;color:#fff!important;border-color:#111!important}\n    html[data-theme="dark"] #atma-notification-prompt{background:#090909!important;color:#fff!important;border-color:#2b2b2b!important;box-shadow:0 20px 60px rgb(0 0 0 / .5)!important;color-scheme:dark!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-close{background:#111!important;color:#fff!important;border-color:#303030!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-icon{background:#111!important;color:#fff!important;border-color:#2d2d2d!important}\n    html[data-theme="dark"] #atma-notification-prompt h3{color:#fff!important}\n    html[data-theme="dark"] #atma-notification-prompt p{color:#aaa!important}\n    html[data-theme="dark"] #atma-notification-prompt button[data-action]{background:#111!important;color:#fff!important;border-color:#303030!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-enable{background:#fff!important;color:#111!important;border-color:#fff!important}\n';
+  style.textContent += '\\n    #atma-notification-prompt .atma-notif-error{margin:12px 0 0;color:#fda29b;font-size:13px;line-height:1.45}\\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-error{color:#b42318!important}\\n';
   document.head.appendChild(style);
   if (!document.getElementById('atma-notification-prompt-mobile-style')) {
     const mobile = document.createElement('style');
@@ -63,7 +64,8 @@ function buildPrompt() {
     <div class="atma-notif-actions">
       <button class="atma-later" data-action="later" type="button">Maybe later</button>
       <button class="atma-enable" data-action="enable" type="button">Turn on notifications</button>
-    </div>`;
+    </div>
+    <p class="atma-notif-error" role="status" aria-live="polite" hidden></p>`;
   document.body.appendChild(prompt);
   return prompt;
 }
@@ -76,23 +78,29 @@ function showPrompt() {
   prompt.querySelector('.atma-notif-close').onclick = rejectPrompt;
   prompt.querySelector('[data-action="enable"]').onclick = async () => {
     const button = prompt.querySelector('[data-action="enable"]');
+    const status = prompt.querySelector('.atma-notif-error');
     button.disabled = true;
     button.textContent = 'Enabling…';
+    status.hidden = true;
+    status.textContent = '';
     try {
-      const result = await window.__atmaRekhaEnableNotifications?.();
-      if (result || Notification.permission === 'granted') {
-        localStorage.setItem(PROMPT_DONE_KEY, '1');
-        prompt.classList.remove('atma-show');
-      } else {
-        button.disabled = false;
-        button.textContent = 'Turn on notifications';
-        rejectPrompt();
+      const enable = window.__atmaRekhaEnableNotifications;
+      if (typeof enable !== 'function') throw new Error('Notification setup is unavailable. Refresh the page and try again.');
+      const result = await enable();
+      if (!result) {
+        throw new Error(Notification.permission === 'denied'
+          ? 'Notifications are blocked for this site. Enable them in your browser settings, then try again.'
+          : 'Permission was not granted. You can try again whenever you are ready.');
       }
+      localStorage.setItem(PROMPT_DONE_KEY, '1');
+      prompt.classList.remove('atma-show');
     } catch (error) {
       console.warn('[Atma Rekha Push Prompt]', error);
+      status.textContent = error?.message || 'Unable to turn on notifications. Please try again.';
+      status.hidden = false;
+    } finally {
       button.disabled = false;
       button.textContent = 'Turn on notifications';
-      if (Notification.permission === 'denied') prompt.classList.remove('atma-show');
     }
   };
 }
