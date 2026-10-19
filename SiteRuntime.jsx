@@ -153,6 +153,72 @@ function ServiceWorkerManager() {
   return null;
 }
 
+function PageScrollProgress() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const root = document.documentElement;
+        const distance = Math.max(0, root.scrollHeight - window.innerHeight);
+        const next = distance > 0 ? Math.round((window.scrollY / distance) * 1000) / 10 : 0;
+        setProgress(current => current === next ? current : next);
+      });
+    };
+
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('popstate', update);
+    const observer = typeof ResizeObserver !== 'undefined' && document.body
+      ? new ResizeObserver(update)
+      : null;
+    observer?.observe(document.body);
+    update();
+
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+      window.removeEventListener('popstate', update);
+      observer?.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return <div className="site-scroll-progress" aria-hidden="true">
+    <span style={{ transform: `scaleX(${progress / 100})` }} />
+  </div>;
+}
+
+function FloatingContact() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const path = window.location.pathname;
+      const privateRoute = /^\/(?:admin|profile|membership|group-chat|community|chapter)(?:\/|$)/i.test(path);
+      const privateHash = /^#(?:admin|profile|membership|group-chat|community|read-chapter)(?:\/|$)/i.test(window.location.hash);
+      const contactPage = path.replace(/\/+$/, '') === '/info/contact'
+        || window.location.hash.replace(/^#/, '') === 'info/contact';
+      setVisible(!privateRoute && !privateHash && !contactPage);
+    };
+
+    window.addEventListener('popstate', update);
+    window.addEventListener('hashchange', update);
+    update();
+
+    return () => {
+      window.removeEventListener('popstate', update);
+      window.removeEventListener('hashchange', update);
+
+    };
+  }, []);
+
+  return visible ? <a className="floating-contact-button" href="/info/contact" aria-label="Contact Atma Rekha">Contact</a> : null;
+}
+
 export default function SiteRuntime() {
-  return <><ToastHost/><BackToTop/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
+  return <><PageScrollProgress/><ToastHost/><BackToTop/><FloatingContact/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
 }
