@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 
 const required = [
@@ -389,5 +390,32 @@ if (!tabsDeclaration || missingNavigationTabs.length) {
   console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
   failed = true;
 }
+// Source-level accessibility guard: all authored HTML/JSX image elements must
+// state alt explicitly. Use alt="" for decorative images and meaningful text for
+// informative images. Dynamic runtime-generated images still need a browser audit.
+async function collectMarkupSources(directory, output = []) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === 'dist' || entry.name === '.wrangler') continue;
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) await collectMarkupSources(path, output);
+    else if (entry.isFile() && /\.(?:jsx|html)$/i.test(entry.name)) output.push(path);
+  }
+  return output;
+}
+
+const markupSources = await collectMarkupSources('.');
+let imageTagCount = 0;
+for (const file of markupSources) {
+  const source = await readFile(file, 'utf8');
+  for (const match of source.matchAll(/<img\b[\s\S]*?>/gi)) {
+    imageTagCount += 1;
+    if (!/\balt\s*=/.test(match[0])) {
+      console.error('CHECK FAILED: <img> must declare alt (use alt="" for decorative images):', file, match[0].replace(/\s+/g, ' ').slice(0, 180));
+      failed = true;
+    }
+  }
+}
+console.log('Image alt source check: ' + imageTagCount + ' <img> elements across ' + markupSources.length + ' JSX/HTML files.');
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
