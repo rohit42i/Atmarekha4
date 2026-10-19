@@ -5,7 +5,7 @@ const PROMPT_COUNT_KEY = 'atma-notification-prompt-count';
 const SCHEDULE_VERSION_KEY = 'atma-notification-schedule-version';
 const FIRST_PROMPT_SECONDS = 5 * 60;
 const REPEAT_PROMPT_SECONDS = 30 * 60;
-const FIRST_DISMISSAL_DELAY_SECONDS = 30 * 60 * 60;
+const FIRST_REPEAT_AT_TOTAL_SECONDS = 30 * 60 * 60;
 const DONT_SHOW_KEY = 'atma-notification-dont-show-again';
 
 function getNumber(key, fallback) {
@@ -16,19 +16,19 @@ function getNumber(key, fallback) {
 }
 
 function migratePromptSchedule() {
-  if (localStorage.getItem(SCHEDULE_VERSION_KEY) === '2') return;
+  if (localStorage.getItem(SCHEDULE_VERSION_KEY) === '3') return;
   const active = getNumber(ACTIVE_TIME_KEY, 0);
   const shownCount = getNumber(PROMPT_COUNT_KEY, 0);
   const storedNext = localStorage.getItem(NEXT_PROMPT_KEY);
 
   if (shownCount === 1) {
-    localStorage.setItem(NEXT_PROMPT_KEY, String(active + FIRST_DISMISSAL_DELAY_SECONDS));
+    localStorage.setItem(NEXT_PROMPT_KEY, String(Math.max(active, FIRST_REPEAT_AT_TOTAL_SECONDS)));
   } else if (shownCount >= 2) {
     localStorage.setItem(NEXT_PROMPT_KEY, String(active + REPEAT_PROMPT_SECONDS));
   } else if (storedNext === null) {
     localStorage.setItem(NEXT_PROMPT_KEY, String(active + FIRST_PROMPT_SECONDS));
   }
-  localStorage.setItem(SCHEDULE_VERSION_KEY, '2');
+  localStorage.setItem(SCHEDULE_VERSION_KEY, '3');
 }
 
 function isActive() {
@@ -131,8 +131,10 @@ function rejectPrompt() {
   const active = getNumber(ACTIVE_TIME_KEY, 0);
   const shownCount = getNumber(PROMPT_COUNT_KEY, 0) + 1;
   localStorage.setItem(PROMPT_COUNT_KEY, String(shownCount));
-  const delay = shownCount === 1 ? FIRST_DISMISSAL_DELAY_SECONDS : REPEAT_PROMPT_SECONDS;
-  localStorage.setItem(NEXT_PROMPT_KEY, String(active + delay));
+  const nextPromptAt = shownCount === 1
+    ? Math.max(active, FIRST_REPEAT_AT_TOTAL_SECONDS)
+    : active + REPEAT_PROMPT_SECONDS;
+  localStorage.setItem(NEXT_PROMPT_KEY, String(nextPromptAt));
   document.getElementById('atma-notification-prompt')?.classList.remove('atma-show');
 }
 
