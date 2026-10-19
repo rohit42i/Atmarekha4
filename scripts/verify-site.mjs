@@ -53,6 +53,7 @@ const required = [
   ['engagement.js', 'export async function fetchCommunityPostComments'],
   ['engagement.js', 'community_post_id: hasCommunityPost ? communityPostId : null'],
   ['supabase/migrations/20261019084004_community_post_comments_20261019.sql', 'comments_community_post_id_fkey'],
+  ['supabase/migrations/20261019084630_harden_dpdp_table_grants_20261019.sql', 'from anon, authenticated'],
 
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
