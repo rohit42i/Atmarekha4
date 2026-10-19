@@ -39,6 +39,9 @@ const required = [
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export_warnings'],
   ['supabase/migrations/20261019130000_dpdp_privacy_controls.sql', 'auth_user_record_dpdp_signup_consent'],
+  ['InfoPage.jsx', 'within 48 hours'],
+  ['InfoPage.jsx', 'within one month'],
+  ['InfoPage.jsx', 'Effective 19 October 2026.'],
 
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
@@ -61,6 +64,7 @@ const forbidden = [
   ['public/robots.txt', 'Disallow: /membership'],
   ['public/robots.txt', 'Disallow: /group-chat'],
   ['public/robots.txt', 'Disallow: /community'],
+  ['InfoPage.jsx', 'Website & Print (Working)'],
 ];
 
 let failed = false;
