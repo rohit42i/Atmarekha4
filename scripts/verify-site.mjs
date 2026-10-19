@@ -10,8 +10,8 @@ const required = [
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
   ['InfoPage.jsx', "['Age guidance', '15+']"],
-  ['InfoPage.jsx', 'AI tools are part of the creative process'],
-  ['InfoPage.jsx', 'Visual material made with AI tools'],
+  ['InfoPage.jsx', 'I use AI tools in parts of the visual process'],
+  ['InfoPage.jsx', 'AI generated material'],
   ['PrivacyCenter.jsx', 'Why we use it'],
   ['PrivacyCenter.jsx', 'How long we keep information'],
   ['theme-system.css', ':root[data-theme="dark"]'],
@@ -106,7 +106,8 @@ if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
   failed = true;
 }
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
-if (!legalCopyRegression.includes('AI tools are part of the creative process') ||
+if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
+    !legalCopyRegression.includes('AI generated material') ||
     !legalCopyRegression.includes('Membership renews automatically') ||
     !legalCopyRegression.includes('within 48 hours') ||
     !legalCopyRegression.includes('within one month')) {
