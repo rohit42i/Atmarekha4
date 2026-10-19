@@ -178,6 +178,7 @@ async function addServerSeo(request, response, env) {
   // confirms that a syntactically valid chapter URL does not exist.
   let finalStatus = response.status;
   let finalStatusText = response.statusText;
+  let confirmedMissingChapter = false;
   if (isPrivate) headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
 
   const contentType = headers.get("Content-Type") || "";
@@ -228,6 +229,7 @@ async function addServerSeo(request, response, env) {
       if (!chapter) {
         finalStatus = 404;
         finalStatusText = "Not Found";
+        confirmedMissingChapter = true;
         html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
         headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       } else {
@@ -314,7 +316,7 @@ async function addServerSeo(request, response, env) {
   headers.delete("content-length");
   headers.delete("Content-Encoding");
   headers.delete("content-encoding");
-  if (isPrivate || !isKnown) {
+  if (isPrivate || !isKnown || confirmedMissingChapter) {
     headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     headers.set("Cache-Control", "private, no-store, max-age=0");
     headers.delete("CDN-Cache-Control");
