@@ -7,6 +7,8 @@ function routeNow() { return getSiteRoute(); }
 export default function ChapterCompletionPrompt() {
   const [route, setRoute] = useState(routeNow);
   const [open, setOpen] = useState(null);
+  const [notificationBusy, setNotificationBusy] = useState(false);
+  const [notificationError, setNotificationError] = useState('');
   const shown = useRef(new Set());
 
   useEffect(() => {
@@ -47,17 +49,31 @@ export default function ChapterCompletionPrompt() {
 
   if (!open) return null;
   const enableNotifications = async () => {
+    if (notificationBusy) return;
+    setNotificationBusy(true);
+    setNotificationError('');
     try {
-      if (!('Notification' in window)) throw new Error();
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') localStorage.setItem('atma-notifications-enabled', '1');
-    } catch (_) {}
-    setOpen(null);
+      const enable = window.__atmaRekhaEnableNotifications;
+      if (typeof enable !== 'function') {
+        throw new Error('Notification setup is unavailable. Refresh the page and try again.');
+      }
+      const subscription = await enable();
+      if (!subscription) {
+        setNotificationError('Permission was not granted. Allow notifications for this site in your browser settings, then try again.');
+        return;
+      }
+      localStorage.setItem('atma-notifications-enabled', '1');
+      setOpen(null);
+    } catch (error) {
+      setNotificationError(error?.message || 'Unable to turn on notifications. Please try again.');
+    } finally {
+      setNotificationBusy(false);
+    }
   };
   const goLogin = () => {
     setOpen(null); window.location.hash = 'home';
     window.setTimeout(() => Array.from(document.querySelectorAll('button')).find(node => /sign in/i.test(node.textContent || ''))?.click(), 150);
   };
   const login = open === 'login';
-  return <div className="chapter-completion-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setOpen(null); }}><section className="chapter-completion-modal" role="dialog" aria-modal="true"><div className="chapter-completion-icon">{login ? '📖' : '🔔'}</div><p className="section-eyebrow">ATMA REKHA</p><h2>{login ? "You've caught up!" : 'Keep up with new chapters'}</h2><p>{login ? 'Log in to keep your reading history, favourites and ratings synced.' : 'Turn on notifications so you can know when a new chapter is uploaded.'}</p><div className="chapter-completion-actions">{login ? <><button type="button" className="primary-button" onClick={goLogin}>Log In</button><button type="button" className="chapter-completion-secondary" onClick={() => setOpen(null)}>Not Now</button></> : <><button type="button" className="primary-button" onClick={enableNotifications}>Turn On Notifications</button><button type="button" className="chapter-completion-secondary" onClick={() => setOpen(null)}>Not Now</button></>}</div></section></div>;
+  return <div className="chapter-completion-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setOpen(null); }}><section className="chapter-completion-modal" role="dialog" aria-modal="true"><div className="chapter-completion-icon">{login ? '📖' : '🔔'}</div><p className="section-eyebrow">ATMA REKHA</p><h2>{login ? "You've caught up!" : 'Keep up with new chapters'}</h2><p>{login ? 'Log in to keep your reading history, favourites and ratings synced.' : 'Turn on notifications so you can know when a new chapter is uploaded.'}</p>{notificationError && !login && <p className="chapter-completion-error" role="alert" aria-live="assertive">{notificationError}</p>}<div className="chapter-completion-actions">{login ? <><button type="button" className="primary-button" onClick={goLogin}>Log In</button><button type="button" className="chapter-completion-secondary" onClick={() => setOpen(null)}>Not Now</button></> : <><button type="button" className="primary-button" onClick={enableNotifications} disabled={notificationBusy}>{notificationBusy ? 'Turning On…' : 'Turn On Notifications'}</button><button type="button" className="chapter-completion-secondary" onClick={() => setOpen(null)} disabled={notificationBusy}>Not Now</button></>}</div></section></div>;
 }
