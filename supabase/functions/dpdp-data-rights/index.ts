@@ -201,16 +201,23 @@ Deno.serve(async req => {
       }
     }
 
-    const [{ data: consents }, { data: requests }, { data: nomination }] = await Promise.all([
+    const [
+      { data: consents, error: consentsError },
+      { data: requests, error: requestsError },
+      { data: nomination, error: nominationError },
+    ] = await Promise.all([
       admin.from("dpdp_consent_records").select("policy_version,purposes,consented_at,withdrawn_at,source").eq("user_id", user.id).order("consented_at", { ascending: false }),
       admin.from("dpdp_deletion_requests").select("id,status,reason,requested_at,resolved_at").eq("user_id", user.id).order("requested_at", { ascending: false }),
       admin.from("dpdp_nominations").select("nominee_name,nominee_email,nominee_phone,created_at,updated_at").eq("user_id", user.id).maybeSingle(),
     ]);
 
+    if (consentsError) exportWarnings.push(`dpdp_consent_records: ${consentsError.message}`);
+    if (requestsError) exportWarnings.push(`dpdp_deletion_requests: ${requestsError.message}`);
+    if (nominationError) exportWarnings.push(`dpdp_nominations: ${nominationError.message}`);
     output.consents = consents || [];
     output.deletion_requests = requests || [];
     output.nomination = nomination || null;
-    if (exportWarnings.length) (output as Record<string, unknown>).export_warnings = exportWarnings;
+    (output as Record<string, unknown>).export_warnings = exportWarnings;
     output.rights = ["access","correction","erasure","withdrawal of consent where applicable","objection or restriction where applicable","portability where applicable","grievance or complaint","nomination where applicable"];
     return response(output, 200, origin);
   } catch (error) {
