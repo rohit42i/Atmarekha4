@@ -50,7 +50,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | File upload safety | **Partial** | Upload extension/MIME allowlists and size caps exist, with a dedicated media Worker. Server-side file-signature validation, decompression-bomb handling and abuse tests for every upload path are not proven by this audit. |
 | SQL/NoSQL injection | **Partial** | Supabase query-builder calls and parameter binding are used in examined paths. A complete search for raw SQL, dynamic identifiers and unsafe query construction remains outstanding. |
 | Login/signup rate limits | **Partial** | Server-side rate-limit RPCs and endpoint limits exist in the repo, including several public/write flows. Deployed limits for every login/signup/auth recovery endpoint need confirmation. |
-| Git history secret scan | **Missing / follow-up** | Code search is not a full secret scan of all commits. Run a history-aware scanner (for example Gitleaks) and rotate exposed keys; keep a CI scan to prevent regression. |
+| Git history secret scan | **Automated scan configured; first full-history run pending** | .github/workflows/secret-scan.yml uses Gitleaks with fetch-depth: 0 on pull requests, main pushes, manual runs and a weekly schedule. Review its first result. Rotate any confirmed exposed credential; deleting a secret from current source alone does not invalidate its historical copies. |
 | Security headers / CORS | **Present / hardening gap** | Worker and static header rules define CSP, HSTS, nosniff, referrer, frame and permissions policies. CSP still allows inline styles, likely needed by existing UI; tighten only with regression testing. Edge functions have explicit origin allowlists, but every Worker/function should be checked for consistent deny behavior. |
 | Untrusted-user simulation | **Partial / follow-up** | Static regression checks and CodeQL exist. A live authorization/IDOR/rate-limit/file-upload/CORS test suite has not been executed as an untrusted user. |
 | Complete security simulation | **Not complete** | No claim of a full penetration test. Use a staging project with two accounts, normal user, moderator and admin roles, expired sessions, invalid uploads and rate-limit assertions. |
@@ -111,6 +111,6 @@ The implementation changes were validated by successful Build and CodeQL workflo
 1. Build and CodeQL passed for code commit `045a2df` on 19 October 2026. Reverify both on the final PR head before merge.
 2. Review/merge only after checking the diff and runtime behavior (especially consent UI, route handling, print CSS and chapter 404s).
 3. Test the merged deployment using Google Search Console URL Inspection, sitemap status, a crawl of public routes, Lighthouse mobile/desktop and the live response headers.
-4. Run the history-aware secret scanner and live authorization/IDOR/upload/rate-limit tests.
+4. Review the first full-history Gitleaks scan; rotate any confirmed exposed credentials, then run live authorization/IDOR/upload/rate-limit tests.
 5. Run load tests on a non-production staging environment only.
 
