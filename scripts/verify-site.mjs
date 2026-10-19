@@ -57,6 +57,7 @@ const required = [
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
+  ['InfoPage.jsx', 'Grievance Officer: Arkesh, creator.'],
   ['InfoPage.jsx', 'Membership renews automatically'],
   ['Community.jsx', 'Comments for community post'],
   ['Community.jsx', "atma-open-community-comments"],
