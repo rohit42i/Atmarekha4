@@ -1,1 +1,8 @@
 3469f3c58f6b4c70d40c6a56ae3f06f9e654e442:privacyConsent.js:generic-api-key:2
+966c086424890a8fd2396be9447b65eb703a5962:worker.js:generic-api-key:3
+06e8f38674f81e054c335a6f2160e92d2a25aedf:attribution.js:generic-api-key:1
+caa135cd54d22309afe3e406092a83ebc0cd7d58:.github/workflows/build.yml:generic-api-key:73
+3f0d48a57daa5933080e343dd482a6bfde646f37:analytics-worker/wrangler.jsonc:generic-api-key:23
+505d40fba6ac9e6e1ed7840c62be0b49ffee5872:.github/workflows/build.yml:generic-api-key:44
+505d40fba6ac9e6e1ed7840c62be0b49ffee5872:.github/workflows/build.yml:generic-api-key:73
+cae2905c62a63f9fff0a7a85af362e0468515ec4:public/admin-push-test.html:generic-api-key:37
