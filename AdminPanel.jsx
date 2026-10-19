@@ -118,7 +118,6 @@ const ADMIN_NAV_GROUPS = [
   ]},
   { label: 'System', items: [
     { key: 'Privacy Requests', icon: 'settings', label: 'Privacy Requests' },
-    { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
     { key: '__activity', icon: 'calendar', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
