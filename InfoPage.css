@@ -235,3 +235,13 @@ html[data-theme="dark"] .info-page .info-card,html[data-theme="dark"] .info-page
 .info-faq-item summary:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px}
 .info-faq-item p{margin:0;padding:0 16px 16px;line-height:1.7;color:var(--text-secondary,var(--text-color))}
 @media(max-width:600px){.info-faq-item summary{padding:14px 40px 14px 14px}.info-faq-item p{padding:0 14px 14px}}
+
+
+/* Visible, keyboard-accessible breadcrumbs on informational pages. */
+.info-breadcrumbs{margin:0 auto 10px;width:min(1100px,calc(100% - 32px));color:var(--text-secondary,var(--text-color));font-size:.82rem;line-height:1.5}
+.info-breadcrumbs ol{display:flex;align-items:center;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.info-breadcrumbs li+li::before{content:"/";margin-right:8px;opacity:.55}
+.info-breadcrumbs a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.info-breadcrumbs [aria-current="page"]{font-weight:600;color:var(--text-color)}
+.info-breadcrumbs a:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
+@media print{.info-breadcrumbs{color:#111!important}}
