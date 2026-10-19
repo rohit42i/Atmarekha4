@@ -14,6 +14,7 @@ const SECURITY_HEADERS = {
 };
 
 const STATIC_SEO = {
+  "/": ["Atma Rekha | Indian Fantasy Manga Adventure", "Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, traditions, and mysterious powers."],
   "/chapters": ["Chapters | Atma Rekha", "Browse published chapters of Atma Rekha, an original Indian fantasy adventure manga by Arkesh."],
   "/info/about": ["About Atma Rekha | Indian Fantasy Manga", "Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh."],
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
@@ -203,6 +204,32 @@ async function addServerSeo(request, response, env) {
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
     html = setCanonical(html, canonical);
+    if (STATIC_SEO[path]) {
+      const routeTitle = STATIC_SEO[path][0];
+      const routeDescription = STATIC_SEO[path][1];
+      html = setMeta(html, "property", "og:title", routeTitle);
+      html = setMeta(html, "property", "og:description", routeDescription);
+      html = setMeta(html, "property", "og:url", canonical);
+      html = setMeta(html, "name", "twitter:title", routeTitle);
+      html = setMeta(html, "name", "twitter:description", routeDescription);
+      if (path !== "/") {
+        const crumbName = routeTitle.split("|")[0].trim();
+        html = addJsonLd(html, [
+          {
+            "@type": "WebPage", "@id": canonical + "#webpage", url: canonical,
+            name: routeTitle, description: routeDescription,
+            breadcrumb: { "@id": canonical + "#breadcrumb" },
+          },
+          {
+            "@type": "BreadcrumbList", "@id": canonical + "#breadcrumb",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Atma Rekha", item: SITE_ORIGIN + "/" },
+              { "@type": "ListItem", position: 2, name: crumbName, item: canonical },
+            ],
+          },
+        ]);
+      }
+    }
     if (path === "/chapters") {
       html = setAlternates(html, [
         { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
