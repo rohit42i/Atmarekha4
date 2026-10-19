@@ -25,6 +25,8 @@ export default function MorePage() {
   const [user, setUser] = useState(null);
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [readerSettingsOpen, setReaderSettingsOpen] = useState(false);
+  const [readerPreferences, setReaderPreferences] = useState(() => { try { const saved = JSON.parse(localStorage.getItem('atma-reader-preferences-v1') || '{}'); return { background: ['dark','light','system'].includes(saved.background) ? saved.background : 'dark', fit: ['width','screen','original'].includes(saved.fit) ? saved.fit : 'width' }; } catch { return { background: 'dark', fit: 'width' }; } });
   const [prefsLoading, setPrefsLoading] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [prefsNotice, setPrefsNotice] = useState('');
@@ -114,6 +116,14 @@ export default function MorePage() {
         <button type="button" className="more-page-button" onClick={() => { window.location.hash = 'security'; }}>
           <span className="more-page-button-icon" aria-hidden="true">•</span><span><strong>Security</strong><small>Two-step verification and account security.</small></span><b aria-hidden="true">→</b>
         </button>
+        <button type="button" className="more-page-button" aria-expanded={readerSettingsOpen} onClick={() => setReaderSettingsOpen(value => !value)}>
+          <span className="more-page-button-icon" aria-hidden="true">Aa</span><span><strong>Reader customization</strong><small>Adjust the page background and manga image fit.</small></span><b aria-hidden="true">{readerSettingsOpen ? '−' : '→'}</b>
+        </button>
+        {readerSettingsOpen && <section className="more-page-notification-settings" aria-label="Reader customization">
+          <div className="more-page-settings-heading"><h3>Reading appearance</h3><p>Saved on this device and applied when you open a chapter.</p></div>
+          <label className="more-page-pref-row"><span><strong>Reader background</strong><small>Choose the area behind manga pages.</small></span><select value={readerPreferences.background} onChange={event => { const next = {...readerPreferences, background:event.target.value}; setReaderPreferences(next); try { localStorage.setItem('atma-reader-preferences-v1', JSON.stringify(next)); } catch {} window.dispatchEvent(new CustomEvent('atma:reader-preferences-change', {detail:next})); }}><option value="dark">Dark</option><option value="light">Light</option><option value="system">Use site theme</option></select></label>
+          <label className="more-page-pref-row"><span><strong>Page fit</strong><small>Choose how manga pages fit your screen.</small></span><select value={readerPreferences.fit} onChange={event => { const next = {...readerPreferences, fit:event.target.value}; setReaderPreferences(next); try { localStorage.setItem('atma-reader-preferences-v1', JSON.stringify(next)); } catch {} window.dispatchEvent(new CustomEvent('atma:reader-preferences-change', {detail:next})); }}><option value="width">Fit width</option><option value="screen">Fit screen</option><option value="original">Original size</option></select></label>
+        </section>}
         <button type="button" className="more-page-button" aria-expanded={settingsOpen} onClick={() => { setSettingsOpen(value => !value); setPrefsNotice(''); }}>
           <span className="more-page-button-icon" aria-hidden="true">♧</span><span><strong>Notification preferences</strong><small>Choose which updates you want to receive.</small></span><b aria-hidden="true">{settingsOpen ? '−' : '→'}</b>
         </button>
