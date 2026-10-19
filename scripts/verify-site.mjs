@@ -9,7 +9,11 @@ const required = [
   ['atma-media-worker/index.js', 'Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.'],
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
-  ['InfoPage.jsx', "['Accounts', '15+']"],
+  ['InfoPage.jsx', "['Age guidance', '15+']"],
+  ['InfoPage.jsx', 'AI tools are part of the creative process'],
+  ['InfoPage.jsx', 'Visual material made with AI tools'],
+  ['PrivacyCenter.jsx', 'Why we use it'],
+  ['PrivacyCenter.jsx', 'How long we keep information'],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
@@ -35,12 +39,8 @@ const required = [
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
   ['PrivacyCenter.jsx', 'Deletion requests are queued for review'],
   ['PrivacyCenter.jsx', 'some categories may be incomplete or could not be retrieved'],
-  ['PrivacyCenter.jsx', "runAction('nomination'"],
-  ['PrivacyCenter.jsx', "runAction('delete-nomination'"],
-  ['PrivacyCenter.jsx', 'privacy-nomination-form'],
   ['InfoPage.css', '.privacy-controls-grid'],
   ['InfoPage.css', 'html[data-theme="dark"] .privacy-control-button'],
-  ['supabase/functions/dpdp-data-rights/index.ts', 'if (action === "delete-nomination")'],
   ['supabase/migrations/20261019084630_harden_dpdp_table_grants_20261019.sql', 'revoke insert, update, delete, truncate, references, trigger'],
   ['PrivacyCenter.jsx', "deletion?.status === 'pending' || deletion?.status === 'processing'"],
   ['PrivacyRequestsAdmin.jsx', 'admin-list-deletion-requests'],
@@ -57,7 +57,7 @@ const required = [
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
-  ['InfoPage.jsx', 'Effective 19 October 2026.'],
+  ['InfoPage.jsx', 'Membership renews automatically'],
   ['Community.jsx', 'Comments for community post'],
   ['Community.jsx', "atma-open-community-comments"],
   ['Community.jsx', 'community-post-comments'],
@@ -94,6 +94,25 @@ const forbidden = [
 ];
 
 let failed = false;
+
+const simplifiedPrivacySource = await readFile('PrivacyCenter.jsx', 'utf8');
+if (/nominee|nomination|privacy-nomination-form/i.test(simplifiedPrivacySource)) {
+  console.error('CHECK FAILED: nominee controls should be removed from the reader-facing Privacy page.');
+  failed = true;
+}
+const simplifiedRightsHandler = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
+if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
+  console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination actions.');
+  failed = true;
+}
+const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
+if (!legalCopyRegression.includes('AI tools are part of the creative process') ||
+    !legalCopyRegression.includes('Membership renews automatically') ||
+    !legalCopyRegression.includes('within 48 hours') ||
+    !legalCopyRegression.includes('within one month')) {
+  console.error('CHECK FAILED: public About, Terms or complaint copy is missing a required clarification.');
+  failed = true;
+}
 
 const feedbackSourceRegression = await readFile('FeedbackForm.jsx', 'utf8');
 if (/\bflushQueue\s*\(/.test(feedbackSourceRegression) && !/\b(?:function|const|let|var)\s+flushQueue\b/.test(feedbackSourceRegression)) {
