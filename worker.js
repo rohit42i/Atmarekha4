@@ -172,6 +172,10 @@ async function addServerSeo(request, response, env) {
     headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     response = new Response(response.body, { status: 404, statusText: "Not Found", headers });
   }
+  // Preserve an actual 404 for unknown routes and apply one when chapter metadata
+  // confirms that a syntactically valid chapter URL does not exist.
+  let finalStatus = response.status;
+  let finalStatusText = response.statusText;
   if (isPrivate) headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
 
   const contentType = headers.get("Content-Type") || "";
@@ -220,6 +224,8 @@ async function addServerSeo(request, response, env) {
       const chapters = await loadPublishedChapters(env);
       const chapter = findChapter(path, url, chapters);
       if (!chapter) {
+        finalStatus = 404;
+        finalStatusText = "Not Found";
         html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
         headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       } else {
@@ -302,7 +308,7 @@ async function addServerSeo(request, response, env) {
     headers.set("Cache-Control", "public, max-age=0, must-revalidate");
     headers.set("CDN-Cache-Control", "public, max-age=300, stale-while-revalidate=60");
   }
-  return new Response(html, { status: response.status, statusText: response.statusText, headers });
+  return new Response(html, { status: finalStatus, statusText: finalStatusText, headers });
 }
 
 export default {
