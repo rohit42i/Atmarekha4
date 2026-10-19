@@ -117,7 +117,7 @@ const ADMIN_NAV_GROUPS = [
     { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
   ]},
   { label: 'System', items: [
-    { key: 'Privacy Requests', icon: 'shield', label: 'Privacy Requests' },
+    { key: 'Privacy Requests', icon: 'settings', label: 'Privacy Requests' },
     { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
