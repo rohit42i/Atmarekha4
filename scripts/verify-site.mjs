@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 
 const required = [
@@ -75,6 +76,48 @@ const required = [
   ['scripts/generate-sitemap.mjs', 'xmlns:image'],
   ['public/_headers', '/profile*'],
   ['public/_headers', 'X-Robots-Tag: noindex, nofollow, noarchive'],
+  ['public/llms.txt', 'An original Indian fantasy adventure manga and comic by Arkesh'],
+  ['public/robots.txt', 'User-agent: OAI-SearchBot'],
+  ['public/robots.txt', 'User-agent: GPTBot'],
+  ['public/robots.txt', 'User-agent: OAI-SearchBot\\nAllow: /'],
+  ['public/robots.txt', 'User-agent: GPTBot\\nAllow: /'],
+  ['App.jsx', 'original Indian fantasy manga and comic by Arkesh'],
+  ['public/llms.txt', 'AI-assisted manga project'],
+  ['index.html', 'Indian webcomic'],
+  ['index.html', '<noscript>'],
+  ['index.html', 'Original Indian Fantasy Manga and Comic'],
+  ['index.html', 'About the series and creator'],
+  ['public/_headers', '/sw.js'],
+  ['.gitignore', '.env*'],
+  ['worker.js', 'finalStatus = 404'],
+  ['worker.js', '"@type": "FAQPage"'],
+  ['worker.js', 'confirmedMissingChapter'],
+  ['attribution.js', "if (typeof window === 'undefined' || !hasAnalyticsConsent()) return null;"],
+  ['pdlplEngagement.js', "if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };"],
+  ['PalDoPalKeLamhe.jsx', "atma-analytics-consent-changed"],
+  ['SiteRuntime.jsx', 'observer?.disconnect();'],
+  ['.github/workflows/secret-scan.yml', 'gitleaks/gitleaks-action@v3'],
+  ['.github/workflows/secret-scan.yml', 'fetch-depth: 0'],
+  ['App.jsx', "'@type': 'FAQPage'"],
+  ['InfoPage.jsx', 'Frequently asked questions'],
+  ['siteFaqs.js', 'ATMA_REKHA_FAQS'],
+  ['main.jsx', "import './print.css';"],
+  ['print.css', '@media print'],
+  ['main.jsx', "import CookieConsent from './CookieConsent.jsx';"],
+  ['SiteRuntime.jsx', '<PageScrollProgress/>'],
+  ['SiteRuntime.jsx', 'site-scroll-progress'],
+  ['engagement.js', 'if (!hasAnalyticsConsent())'],
+  ['attribution.js', '!hasAnalyticsConsent()'],
+  ['CookieConsent.jsx', 'Essential only'],
+  ['privacyConsent.js', 'atma-analytics-consent-changed'],
+  ['cookie-consent.css', '.privacy-consent-banner'],
+  ['Footer.jsx', 'Privacy choices'],
+  ['PrivacyCenter.jsx', 'Change analytics preferences'],
+  ['SiteRuntime.jsx', '<FloatingContact/>'],
+  ['SiteRuntime.jsx', 'floating-contact-button'],
+  ['CookieConsent.jsx', 'Allow analytics'],
+  ['notification-prompt.js', "const status = prompt.querySelector('.atma-notif-error');"],
+  ['notification-prompt.js', 'if (!result) {'],
 ];
 
 const forbidden = [
@@ -407,5 +450,31 @@ if (!tabsDeclaration || missingNavigationTabs.length) {
   console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
   failed = true;
 }
+// Guard authored HTML/JSX image tags against missing alt attributes. This is a
+// source-level safeguard; dynamic runtime-generated images still require a browser audit.
+async function collectMarkupSources(directory, output = []) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (['.git', 'node_modules', 'dist', '.wrangler'].includes(entry.name)) continue;
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) await collectMarkupSources(path, output);
+    else if (entry.isFile() && /\\.(?:jsx|html)$/i.test(entry.name)) output.push(path);
+  }
+  return output;
+}
+
+const markupSources = await collectMarkupSources('.');
+let imageTagCount = 0;
+for (const file of markupSources) {
+  const source = await readFile(file, 'utf8');
+  for (const match of source.matchAll(/<img\\b[\\s\\S]*?>/gi)) {
+    imageTagCount += 1;
+    if (!/\\balt\\s*=/.test(match[0])) {
+      console.error('CHECK FAILED: <img> must declare alt (use alt="" for decorative images):', file, match[0].replace(/\\s+/g, ' ').slice(0, 180));
+      failed = true;
+    }
+  }
+}
+console.log('Image alt source check: ' + imageTagCount + ' <img> elements across ' + markupSources.length + ' JSX/HTML files.');
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
