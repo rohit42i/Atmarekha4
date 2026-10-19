@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { getViewerKey } from './engagement';
+import { hasAnalyticsConsent } from './privacyConsent.js';
 
 const SUMMARY = 'pdlpl_chapter_engagement_summary';
 const COMMENTS = 'pdlpl_comments';
@@ -39,6 +40,7 @@ export async function fetchPdlplChapterEngagement(chapterId) {
 
 export async function recordPdlplChapterView(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };
   const { error } = await supabase.from('pdlpl_chapter_views').insert({
     chapter_id: chapterId,
     viewer_key: getViewerKey(),
@@ -64,6 +66,7 @@ export async function unlikePdlplChapter(chapterId) {
 
 export async function recordPdlplChapterShare(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };
   const { error } = await supabase.from('pdlpl_chapter_shares').insert({
     chapter_id: chapterId,
     viewer_key: getViewerKey(),
