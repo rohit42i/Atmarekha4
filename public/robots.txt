@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 
+# Allow public-page discovery in ChatGPT Search and other OpenAI browsing products.
+User-agent: OAI-SearchBot
+Allow: /
+
+# Permit both search discovery and potential model-training crawling for this creator-owned public project.
+User-agent: GPTBot
+Allow: /
+
 Sitemap: https://www.atmarekha.in/sitemap.xml
