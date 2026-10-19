@@ -223,9 +223,11 @@ Deno.serve(async req => {
       if (template.active === false) return respond({ ok: false, error: "This template is inactive. Activate or choose another template." }, 422);
     }
 
+    const templateSlug = String(template?.slug || input.templateSlug || "");
     const category = input.category === "marketing" || input.category === "transactional"
       ? input.category : template?.category || "transactional";
-    const subjectSource = cleanText(input.subject || template?.subject, 200);
+    // Chapter-release emails always use the short brand-only subject.
+    const subjectSource = templateSlug === "new-chapter" ? "ATMA REKHA" : cleanText(input.subject || template?.subject, 200);
     const htmlSource = String(input.html_body || template?.html_body || "").slice(0, 50000);
     const textSource = String(input.text_body || template?.text_body || "").slice(0, 20000);
     if (!subjectSource || (!htmlSource.trim() && !textSource.trim())) {
@@ -234,7 +236,9 @@ Deno.serve(async req => {
 
     const variables = input.variables && typeof input.variables === "object" && !Array.isArray(input.variables)
       ? input.variables : {};
-    const templateSlug = String(template?.slug || input.templateSlug || "");
+    if (templateSlug !== "new-chapter" && /\\bchapter\\s*\\d+/i.test(cleanText(input.subject, 200))) {
+      return respond({ ok: false, error: "Chapter announcement blocked: select the New chapter announcement template so the email body matches the chapter details." }, 422);
+    }
     let chapterNumber = "";
     let chapterTitle = "";
     let chapterDescription = "";
