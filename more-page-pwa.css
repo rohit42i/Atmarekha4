@@ -15,3 +15,23 @@
 :root[data-theme="light"] .more-page-modal{background:#fff;color:#111;border-color:#deded9}
 :root[data-theme="dark"] .more-page-modal{background:#050505;color:#fff;border-color:#292929}
 @media(max-width:520px){.more-page-button{padding:14px}.more-page-button-icon{width:32px;height:32px;flex-basis:32px}.more-page-modal-backdrop{padding:10px}.more-page-modal{padding:18px;border-radius:18px}}
+
+.more-page-notification-settings{margin:0 0 12px;padding:18px;border:1px solid var(--border-color);border-radius:16px;background:var(--surface-color);color:var(--text-color)}
+.more-page-settings-heading h3{margin:0 0 6px;font-size:18px}
+.more-page-settings-heading p{margin:0 0 14px;color:var(--muted-color);font-size:13px;line-height:1.5}
+.more-page-pref-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-top:1px solid var(--border-soft-color);cursor:pointer}
+.more-page-pref-row>span{display:grid;gap:4px;min-width:0}
+.more-page-pref-row strong{font-size:14px;font-weight:600}
+.more-page-pref-row small{font-size:12px;line-height:1.45;color:var(--muted-color)}
+.more-page-pref-row input{width:19px;height:19px;flex:0 0 auto;accent-color:var(--accent-color)}
+.more-page-settings-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+.more-page-settings-actions button{min-height:42px;padding:0 15px;border:1px solid var(--border-color);border-radius:9px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.more-page-secondary{background:var(--surface-2-color);color:var(--text-color)}
+.more-page-save{background:var(--text-color);color:var(--surface-color);border-color:var(--text-color)!important}
+.more-page-settings-actions button:disabled{opacity:.6;cursor:wait}
+:root[data-theme="dark"] .more-page-notification-settings{background:#090909;color:#fff;border-color:#292929}
+:root[data-theme="light"] .more-page-notification-settings{background:#fff;color:#111;border-color:#deded9}
+@media(max-width:520px){.more-page-notification-settings{padding:14px}.more-page-pref-row{gap:10px}.more-page-settings-actions button{flex:1}}
+
+.more-page-pref-row select{max-width:150px;min-height:38px;padding:0 9px;border:1px solid var(--border-color);border-radius:8px;background:var(--surface-2-color);color:var(--text-color);font:inherit;font-size:12px}
+.more-page-pref-row select:focus-visible{outline:2px solid var(--accent-color);outline-offset:2px}

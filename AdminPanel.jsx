@@ -446,9 +446,14 @@ export default function AdminPanel({ onLogout }) {
 
       const savedLabel = number === null ? 'Special / unnumbered' : 'Chapter ' + number;
       const wasEditing = Boolean(editing);
+      let notificationText = '';
+      if (String(form.status).toLowerCase() === 'published' && String(editing?.status || '').toLowerCase() !== 'published') {
+        const { data: notification, error: notificationError } = await supabase.functions.invoke('send-reader-event-notification', { body: { eventType: 'new_chapters', eventId: chapterId } });
+        notificationText = notificationError || !notification?.ok ? ' Chapter saved, but reader notifications could not be sent.' : ` ${notification.sent || 0} readers notified.`;
+      }
       resetForm();
       await load();
-      setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' });
+      setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' + notificationText });
     } catch (error) {
       console.error(error);
       for (const item of uploadedPaths) {
