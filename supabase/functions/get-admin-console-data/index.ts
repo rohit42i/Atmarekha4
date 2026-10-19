@@ -103,9 +103,9 @@ Deno.serve(async (req) => {
       };
       const [
         { data: profile, error: profileError },
-        reading, pdlplReading, comments, pdlplComments, ratings, bookmarks, memberships,
+        reading, pdlplReading, comments, pdlplComments, ratings, pdlplRatings, bookmarks, pdlplBookmarks, memberships,
         payments, deletionRequests, groupMessages, communityReactions,
-        readingCount, pdlplReadingCount, commentCount, pdlplCommentCount, ratingCount, bookmarkCount
+        readingCount, pdlplReadingCount, commentCount, pdlplCommentCount, ratingCount, pdlplRatingCount, bookmarkCount, pdlplBookmarkCount
       ] = await Promise.all([
         admin.from("profiles").select("id,username,display_name,bio,avatar_url,public_badge,created_at,updated_at").eq("id", targetId).maybeSingle(),
         fetchRows(admin.from("reading_history").select("chapter_id,page_number,updated_at,chapters(chapter_number,title,language)").eq("user_id", targetId).order("updated_at", { ascending: false }).limit(8)),
@@ -113,13 +113,15 @@ Deno.serve(async (req) => {
         fetchRows(admin.from("comments").select("id,content,created_at,chapter_id,announcement_id,community_post_id").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
         fetchRows(admin.from("pdlpl_comments").select("id,content,created_at,chapter_id").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
         fetchRows(admin.from("chapter_ratings").select("id,rating,created_at,chapter_id,chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("pdlpl_chapter_ratings").select("id,rating,created_at,chapter_id,pal_do_pal_ke_lamhe_chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
         fetchRows(admin.from("bookmarks").select("id,created_at,chapter_id,chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("pdlpl_bookmarks").select("id,created_at,chapter_id,pal_do_pal_ke_lamhe_chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
         fetchRows(admin.from("user_subscriptions").select("id,plan_id,status,current_period_start,current_period_end,cancel_at_period_end,created_at,updated_at").eq("user_id", targetId).order("created_at", { ascending: false }).limit(10)),
         fetchRows(admin.from("payments").select("id,amount,status,created_at").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
         fetchRows(admin.from("dpdp_deletion_requests").select("id,status,reason,requested_at,resolved_at,resolution_note").eq("user_id", targetId).order("requested_at", { ascending: false }).limit(5)),
         fetchRows(admin.from("group_chat_messages").select("id,content,created_at").eq("user_id", targetId).order("created_at", { ascending: false }).limit(5)),
         fetchRows(admin.from("community_post_reactions").select("id,reaction,created_at,post_id").eq("user_id", targetId).order("created_at", { ascending: false }).limit(5)),
-        countRows("reading_history"), countRows("pdlpl_reading_history"), countRows("comments"), countRows("pdlpl_comments"), countRows("chapter_ratings"), countRows("bookmarks")
+        countRows("reading_history"), countRows("pdlpl_reading_history"), countRows("comments"), countRows("pdlpl_comments"), countRows("chapter_ratings"), countRows("pdlpl_chapter_ratings"), countRows("bookmarks"), countRows("pdlpl_bookmarks")
       ]);
       if (profileError) throw profileError;
       return json({
@@ -132,10 +134,10 @@ Deno.serve(async (req) => {
         profile: profile || null,
         stats: {
           reading_history: readingCount, pdlpl_reading_history: pdlplReadingCount,
-          comments: commentCount + pdlplCommentCount, ratings: ratingCount, bookmarks: bookmarkCount,
+          comments: commentCount + pdlplCommentCount, ratings: ratingCount + pdlplRatingCount, bookmarks: bookmarkCount + pdlplBookmarkCount,
           memberships: memberships.length, payments: payments.length
         },
-        activity: { reading, pdlpl_reading: pdlplReading, comments, pdlpl_comments: pdlplComments, ratings, bookmarks, memberships, payments, deletion_requests: deletionRequests, group_messages: groupMessages, community_reactions: communityReactions }
+        activity: { reading, pdlpl_reading: pdlplReading, comments, pdlpl_comments: pdlplComments, ratings, pdlpl_ratings: pdlplRatings, bookmarks, pdlpl_bookmarks: pdlplBookmarks, memberships, payments, deletion_requests: deletionRequests, group_messages: groupMessages, community_reactions: communityReactions }
       }, 200, origin);
     }
 
