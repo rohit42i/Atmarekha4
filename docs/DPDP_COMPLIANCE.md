@@ -71,6 +71,21 @@ Account creation is limited to readers who confirm they are 15 or older. Public 
 
 The website also publishes a grievance mechanism for community/platform complaints and consumer complaints. The current Terms and Report pages disclose membership pricing, recurring billing, cancellation, refund handling, contact details and content-reporting routes. The Consumer Protection (E-Commerce) (Amendment) Rules, 2026 were notified on 9 September 2026 and take effect from 1 January 2027; the product should be re-audited before that date for the new requirements covering legal/operator details, sponsored listings, price-reduction disclosures, dark-pattern self-audits and other applicable e-commerce duties.
 
+## Operational verification added 19 October 2026
+
+- A database migration now creates the consent, deletion-request and nomination tables with row-level security. Apply `supabase/migrations/20261019130000_dpdp_privacy_controls.sql` to the production Supabase project before relying on these controls.
+- Signup consent metadata is copied into a durable consent record by an auth-user trigger, including signups that need email confirmation.
+- Reader deletion requests are tracked and visible in the admin workspace under **Privacy Requests**. This is a review-and-erasure workflow, not instant self-service deletion: an authorised administrator must verify the request, perform erasure in the relevant systems, review lawful retention, and only then record a resolution note. Do not mark a request resolved before the underlying work is complete.
+- Data exports now include explicit warnings for categories that could not be retrieved; a download with warnings must not be described as a complete export.
+- The profile editor saves profile fields independently of Auth email updates and explains that an email change may remain pending until confirmation.
+- Notification opt-in waits for five minutes of active use. After the first dismissal, the next prompt is delayed until 30 additional hours of active use; later dismissals delay it by 30 minutes of active use. Readers can permanently opt out in the prompt.
+
+## India consumer-law release gate
+
+The public grievance page now states the consumer-complaint target of acknowledgement within 48 hours and redress within one month where the Consumer Protection (E-Commerce) Rules apply. The Consumer Protection (E-Commerce) (Amendment) Rules, 2026 are scheduled to commence on 1 January 2027, so review the live website before that date.
+
+**Not complete until the creator confirms it:** the repository does not contain a verified legal operator name beyond “Arkesh” or a principal geographic/postal address to publish. Do not invent or publish a guessed address. Confirm the correct legal name, whether a registered business/entity exists, the address that may lawfully be published, and whether the e-commerce disclosure rules apply to this membership model. The current contact email and grievance-officer designation alone may not satisfy every required operator disclosure.
+
 ## Operational items requiring account/legal administration
 
 Some controls cannot be completed purely in application code:
