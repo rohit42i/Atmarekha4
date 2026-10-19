@@ -60,7 +60,7 @@ Deno.serve(async req => {
     try { body = JSON.parse(rawBody); } catch { return response({ error: "Invalid JSON body." }, 400, origin); }
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
-    const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
+    const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request", "admin-delete-account"];
     if (!["export","delete-request","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
 
     if (adminActions.includes(action)) {
@@ -78,11 +78,86 @@ Deno.serve(async req => {
           .limit(100);
         if (error) throw error;
         const enriched = await Promise.all((requests || []).map(async request => {
-          if (!request.user_id) return { ...request, requester_email: null };
+          if (!request.user_id) return { ...request, requester_email: null, requester_email_confirmed_at: null, requester_created_at: null, requester_last_sign_in_at: null };
           const { data: authData } = await admin.auth.admin.getUserById(request.user_id);
-          return { ...request, requester_email: authData?.user?.email || null };
+          return { ...request, requester_email: authData?.user?.email || null, requester_email_confirmed_at: authData?.user?.email_confirmed_at || null, requester_created_at: authData?.user?.created_at || null, requester_last_sign_in_at: authData?.user?.last_sign_in_at || null };
         }));
         return response({ requests: enriched }, 200, origin);
+      }
+
+
+      if (action === "admin-delete-account") {
+        const requestId = clean(body?.request_id, 80);
+        const confirmationEmail = clean(body?.confirmation_email, 254).toLowerCase();
+        const resolutionNote = clean(body?.resolution_note, 1000);
+        if (!requestId || !confirmationEmail) return response({ error: "Request ID and the reader's current email confirmation are required." }, 400, origin);
+        if (resolutionNote.length < 10) return response({ error: "Add a clear erasure note of at least 10 characters." }, 422, origin);
+        const { data: request, error: requestError } = await admin.from("dpdp_deletion_requests")
+          .select("id,user_id,status,reason").eq("id", requestId).maybeSingle();
+        if (requestError) throw requestError;
+        if (!request) return response({ error: "Deletion request not found." }, 404, origin);
+        if (request.status !== "processing") return response({ error: "Move this request to Processing before deleting the account." }, 409, origin);
+        if (!request.user_id) return response({ error: "This request no longer points to an active account. Refresh the queue and review it manually." }, 409, origin);
+        const { data: targetResult, error: targetError } = await admin.auth.admin.getUserById(request.user_id);
+        if (targetError || !targetResult?.user) return response({ error: "Reader account not found. No data was deleted." }, 404, origin);
+        const target = targetResult.user;
+        const targetEmail = String(target.email || "").trim();
+        if (!targetEmail || targetEmail.toLowerCase() !== confirmationEmail) return response({ error: "The confirmation email does not match the reader's current email. No data was deleted." }, 422, origin);
+        if (!target.email_confirmed_at) return response({ error: "This email is not verified yet. Send a verification email and ask the reader to confirm before erasure." }, 409, origin);
+        if (target.id === user.id) return response({ error: "An administrator cannot delete their own account from this queue." }, 403, origin);
+        const { data: targetAdmin, error: targetAdminError } = await admin.from("admins").select("role").eq("user_id", target.id).maybeSingle();
+        if (targetAdminError) throw targetAdminError;
+        if (targetAdmin) return response({ error: "This account has an admin role. Remove the role and audit ownership first; no data was deleted." }, 409, origin);
+        const { data: activeSubscriptions, error: subscriptionError } = await admin.from("user_subscriptions")
+          .select("id,status,provider_subscription_id,current_period_end").eq("user_id", target.id);
+        if (subscriptionError) throw subscriptionError;
+        const hasLiveProviderSubscription = (activeSubscriptions || []).some((item: any) =>
+          Boolean(item.provider_subscription_id) && ["active", "pending", "created", "authenticated"].includes(String(item.status || "").toLowerCase())
+        );
+        if (hasLiveProviderSubscription) return response({ error: "This account has a live payment-provider subscription. Cancel it through the billing provider first; no data was deleted." }, 409, origin);
+        const { count: paymentCount, error: paymentError } = await admin.from("payments")
+          .select("id", { count: "exact", head: true }).eq("user_id", target.id);
+        if (paymentError) throw paymentError;
+        if (Number(paymentCount || 0) > 0) return response({ error: "This account has payment records. Review lawful financial-record retention before deletion; this action will not erase those records." }, 409, origin);
+        try {
+          const { error: deleteError } = await admin.auth.admin.deleteUser(target.id);
+          if (deleteError) throw deleteError;
+        } catch (deleteError) {
+          console.error("Requested account erasure failed:", deleteError instanceof Error ? deleteError.message : "unknown error");
+          return response({ error: "The account could not be deleted because a linked record may require review. No completion was recorded." }, 409, origin);
+        }
+        const { data: updatedRequest, error: resolveError } = await admin.from("dpdp_deletion_requests")
+          .update({
+            status: "resolved",
+            resolved_at: new Date().toISOString(),
+            resolved_by: user.id,
+            resolution_note: resolutionNote,
+          })
+          .eq("id", request.id)
+          .select("id,user_id,status,requested_at,resolved_at,resolved_by,resolution_note")
+          .single();
+        if (resolveError) {
+          console.error("Account erased but request closure failed:", resolveError.message);
+          return response({ error: "The account was deleted, but the request could not be closed automatically. Refresh the queue and record the completed erasure with this request ID." }, 500, origin);
+        }
+        let noticeEmailSent = false;
+        const resendKey = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+        const fromEmail = Deno.env.get("RESEND_FROM_EMAIL")?.trim() || "Atma Rekha <atmarekhaoffical@gmail.com>";
+        if (resendKey && targetEmail) {
+          const html = "<!doctype html><html><body style=\"margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#171717\"><div style=\"max-width:560px;margin:32px auto;padding:28px;background:#fff;border:1px solid #e5e5e5;border-radius:10px\"><h1 style=\"font-size:22px\">Account deletion completed</h1><p style=\"font-size:15px;line-height:1.6\">Your Atma Rekha account and associated account data have been deleted following your request. Some records may be retained where required by law.</p><p style=\"font-size:12px;color:#777\">Atma Rekha</p></div></body></html>";
+          try {
+            const mail = await fetch("https://api.resend.com/emails", { method: "POST", headers: { "Authorization": "Bearer " + resendKey, "Content-Type": "application/json" }, body: JSON.stringify({ from: fromEmail, to: [targetEmail], subject: "Your Atma Rekha account was deleted", html }) });
+            noticeEmailSent = mail.ok;
+            if (!mail.ok) console.error("Deletion confirmation email failed:", mail.status);
+          } catch { noticeEmailSent = false; }
+        }
+        try {
+          await admin.from("admin_activity_log").insert({
+            admin_user_id: user.id, action: "delete_reader_account", entity_type: "user", entity_id: target.id,
+            details: { request_id: request.id, email_confirmed: true, payment_records_retained: false, notice_email_sent: noticeEmailSent },
+          });
+        } catch { console.warn("Deletion audit log skipped."); }
+        return response({ request: updatedRequest, deleted: true, notice_email_sent: noticeEmailSent, email_delivery_configured: Boolean(resendKey) }, 200, origin);
       }
 
       const requestId = clean(body?.request_id, 80);
@@ -118,7 +193,38 @@ Deno.serve(async req => {
         .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
         .single();
       if (updateError) throw updateError;
-      return response({ request: updated }, 200, origin);
+
+      let noticeEmailSent = false;
+      let noticeEmailError = "";
+      const resendKey = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+      const fromEmail = Deno.env.get("RESEND_FROM_EMAIL")?.trim() || "Atma Rekha <atmarekhaoffical@gmail.com>";
+      if (updated.user_id) {
+        const { data: requesterResult } = await admin.auth.admin.getUserById(updated.user_id);
+        const recipient = requesterResult?.user?.email || "";
+        if (recipient && resendKey) {
+          const mailCopy: Record<string, { subject: string; title: string; message: string }> = {
+            processing: { subject: "Your Atma Rekha deletion request is being reviewed", title: "Request received", message: "Your account deletion request has been received and is being reviewed." },
+            rejected: { subject: "Update on your Atma Rekha deletion request", title: "Request update", message: note || "We could not complete your account deletion request. Please contact support if you need clarification." },
+            resolved: { subject: "Your Atma Rekha deletion request is complete", title: "Request completed", message: "Your deletion request has been marked complete. Some records may be retained where required by law." }
+          };
+          const copy = mailCopy[nextStatus];
+          if (copy) {
+            const html = "<!doctype html><html><body style=\"margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#171717\"><div style=\"max-width:560px;margin:32px auto;padding:28px;background:#fff;border:1px solid #e5e5e5;border-radius:10px\"><h1 style=\"font-size:22px\">" + copy.title + "</h1><p style=\"font-size:15px;line-height:1.6\">" + copy.message.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>") + "</p><p style=\"font-size:12px;color:#777\">Atma Rekha</p></div></body></html>";
+            try {
+              const mail = await fetch("https://api.resend.com/emails", { method: "POST", headers: { "Authorization": "Bearer " + resendKey, "Content-Type": "application/json" }, body: JSON.stringify({ from: fromEmail, to: [recipient], subject: copy.subject, html }) });
+              noticeEmailSent = mail.ok;
+              if (!mail.ok) noticeEmailError = "Status updated, but Resend did not accept the notice.";
+            } catch { noticeEmailError = "Status updated, but the notice could not be delivered."; }
+          }
+        } else if (!resendKey) noticeEmailError = "Status updated. Email provider is not configured.";
+      } else noticeEmailError = "Status updated, but the account no longer has a linked email address.";
+      try {
+        await admin.from("admin_activity_log").insert({
+          admin_user_id: user.id, action: "update_deletion_request_" + nextStatus, entity_type: "privacy_request", entity_id: updated.id,
+          details: { notice_email_sent: noticeEmailSent, requester_account_linked: Boolean(updated.user_id) },
+        });
+      } catch { console.warn("Deletion request audit log skipped."); }
+      return response({ request: updated, notice_email_sent: noticeEmailSent, notice_email_error: noticeEmailError || null }, 200, origin);
     }
 
     if (action === "withdraw-consent") {
