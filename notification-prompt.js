@@ -7,7 +7,9 @@ const FIRST_DISMISSAL_DELAY_SECONDS = 30 * 60 * 60;
 const DONT_SHOW_KEY = 'atma-notification-dont-show-again';
 
 function getNumber(key, fallback) {
-  const value = Number(localStorage.getItem(key));
+  const stored = localStorage.getItem(key);
+  if (stored === null || stored.trim() === '') return fallback;
+  const value = Number(stored);
   return Number.isFinite(value) && value >= 0 ? value : fallback;
 }
 
