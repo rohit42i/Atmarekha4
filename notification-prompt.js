@@ -2,8 +2,9 @@ const ACTIVE_TIME_KEY = 'atma-notification-active-seconds';
 const NEXT_PROMPT_KEY = 'atma-notification-next-prompt-seconds';
 const PROMPT_DONE_KEY = 'atma-notification-prompt-enabled';
 const FIRST_PROMPT_SECONDS = 5 * 60;
-const REPEAT_PROMPT_SECONDS = 60 * 60;
-const SECOND_PROMPT_DELAY_SECONDS = 30 * 60;
+const REPEAT_PROMPT_SECONDS = 30 * 60;
+const FIRST_DISMISSAL_DELAY_SECONDS = 30 * 60 * 60;
+const DONT_SHOW_KEY = 'atma-notification-dont-show-again';
 
 function getNumber(key, fallback) {
   const value = Number(localStorage.getItem(key));
@@ -15,7 +16,7 @@ function isActive() {
 }
 
 function hasNotificationsEnabled() {
-  return Notification.permission === 'granted' || localStorage.getItem(PROMPT_DONE_KEY) === '1';
+  return Notification.permission === 'granted' || localStorage.getItem(PROMPT_DONE_KEY) === '1' || localStorage.getItem(DONT_SHOW_KEY) === '1';
 }
 
 function injectStyles() {
@@ -30,6 +31,8 @@ function injectStyles() {
     #atma-notification-prompt h3{margin:0 44px 8px 0;font-size:20px;font-weight:650;line-height:1.2;letter-spacing:-.025em}
     #atma-notification-prompt p{margin:0 0 20px;max-width:330px;color:#aeb1b8;font-size:14px;line-height:1.55}
     #atma-notification-prompt .atma-notif-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}
+    #atma-notification-prompt .atma-notif-permanent{display:flex;align-items:center;gap:9px;margin:0 0 16px;color:#b9bbc2;font-size:13px;line-height:1.4;cursor:pointer}
+    #atma-notification-prompt .atma-notif-permanent input{width:18px;height:18px;flex:0 0 auto;accent-color:#f5f5f5}
     #atma-notification-prompt button[data-action]{min-height:46px;border:1px solid #303238;border-radius:12px;padding:0 14px;font:inherit;font-size:13px;font-weight:650;line-height:1.2;cursor:pointer}
     #atma-notification-prompt .atma-enable{background:#f5f5f5;color:#111214}
     #atma-notification-prompt .atma-later{background:#1a1c20;color:#f1f2f4}
@@ -60,6 +63,7 @@ function buildPrompt() {
     <div class="atma-notif-icon">🔔</div>
     <h3 id="atma-notification-prompt-title">Don't miss the next chapter</h3>
     <p id="atma-notification-prompt-description">Turn on notifications and we'll let you know when a new Atma Rekha chapter is released.</p>
+    <label class="atma-notif-permanent"><input type="checkbox" data-action="dont-show"><span>Don't show this again</span></label>
     <div class="atma-notif-actions">
       <button class="atma-later" data-action="later" type="button">Maybe later</button>
       <button class="atma-enable" data-action="enable" type="button">Turn on notifications</button>
@@ -74,6 +78,12 @@ function showPrompt() {
   prompt.classList.add('atma-show');
   prompt.querySelector('[data-action="later"]').onclick = rejectPrompt;
   prompt.querySelector('.atma-notif-close').onclick = rejectPrompt;
+  prompt.querySelector('[data-action="dont-show"]').onchange = event => {
+    if (event.target.checked) {
+      localStorage.setItem(DONT_SHOW_KEY, '1');
+      prompt.classList.remove('atma-show');
+    }
+  };
   prompt.querySelector('[data-action="enable"]').onclick = async () => {
     const button = prompt.querySelector('[data-action="enable"]');
     button.disabled = true;
@@ -101,7 +111,7 @@ function rejectPrompt() {
   const active = getNumber(ACTIVE_TIME_KEY, 0);
   const shownCount = getNumber('atma-notification-prompt-count', 0) + 1;
   localStorage.setItem('atma-notification-prompt-count', String(shownCount));
-  const delay = shownCount === 1 ? SECOND_PROMPT_DELAY_SECONDS : REPEAT_PROMPT_SECONDS;
+  const delay = shownCount === 1 ? FIRST_DISMISSAL_DELAY_SECONDS : REPEAT_PROMPT_SECONDS;
   localStorage.setItem(NEXT_PROMPT_KEY, String(active + delay));
   document.getElementById('atma-notification-prompt')?.classList.remove('atma-show');
 }
