@@ -9,7 +9,7 @@ const PAGES = {
     title: 'About Atma Rekha',
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
+      ['Release Schedule', 'New chapters planned for the 14th of each month'], ['Format', 'Digital manga / webcomic'],
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
