@@ -80,7 +80,7 @@ The website also publishes a grievance mechanism for community/platform complain
 - Reader deletion requests are tracked and visible in the admin workspace under **Privacy Requests**. This is a review-and-erasure workflow, not instant self-service deletion: an authorised administrator must verify the request, perform erasure in the relevant systems, review lawful retention, and only then record a resolution note. Do not mark a request resolved before the underlying work is complete.
 - Data exports now include explicit warnings for categories that could not be retrieved; a download with warnings must not be described as a complete export.
 - The profile editor saves profile fields independently of Auth email updates and explains that an email change may remain pending until confirmation.
-- Notification opt-in waits for five minutes of active use. After the first dismissal, the next prompt is delayed until 30 additional hours of active use; later dismissals delay it by 30 minutes of active use. Readers can permanently opt out in the prompt.
+- Notification opt-in waits for five minutes of active use. After the first dismissal, the next prompt waits until cumulative active use reaches 30 hours; later dismissals wait another 30 minutes of active use. Readers can permanently opt out in the prompt.
 
 ## India consumer-law release gate
 
