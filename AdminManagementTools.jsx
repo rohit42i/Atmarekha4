@@ -18,7 +18,8 @@ async function verifyAdmin(){
 export default function AdminManagementTools(){
   const [isAdmin,setIsAdmin]=useState(false),[open,setOpen]=useState(null);
   const [query,setQuery]=useState(''),[status,setStatus]=useState('all'),[loading,setLoading]=useState(false),[error,setError]=useState('');
-  const [users,setUsers]=useState([]),[memberships,setMemberships]=useState(new Map()),[notifications,setNotifications]=useState([]),[activity,setActivity]=useState([]);\n  const [userActionId,setUserActionId]=useState(''),[userActionMessage,setUserActionMessage]=useState('');
+  const [users,setUsers]=useState([]),[memberships,setMemberships]=useState(new Map()),[notifications,setNotifications]=useState([]),[activity,setActivity]=useState([]);
+  const [userActionId,setUserActionId]=useState(''),[userActionMessage,setUserActionMessage]=useState('');
   const [pushForm,setPushForm]=useState({title:'📖 Atma Rekha',body:'A new message is available.',url:'/',audience:'all'}),[pushSending,setPushSending]=useState(false),[pushResult,setPushResult]=useState('');
 
   useEffect(()=>{let active=true; const check=async()=>{try{await verifyAdmin();if(active)setIsAdmin(true)}catch{if(active)setIsAdmin(false)}}; check(); const {data:l}=supabase.auth.onAuthStateChange(()=>check()); return()=>{active=false;l?.subscription?.unsubscribe()}},[]);
