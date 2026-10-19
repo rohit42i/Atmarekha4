@@ -31,7 +31,10 @@ Deno.serve(async req=>{
   if(!admin||!['owner','admin'].includes(String(admin.role||'').trim().toLowerCase())) return response(req, {ok:false,error:'Admin access required'},403);
 const rate=await db.rpc('consume_rate_limit',{p_rate_key:`admin-push:${user.id}`,p_limit:10,p_window_seconds:60});if(rate.error){console.error('Push rate-limit check failed.');return response(req, {ok:false,error:'Notification service temporarily unavailable.'},503)}if(rate.data===false)return response(req, {ok:false,error:'Too many notification sends. Please try again shortly.'},429);
   const rawBody=await readLimitedBody(req,16*1024);if(rawBody===null)return response(req, {ok:false,error:'Request body is too large.'},413);let body:any;try{body=JSON.parse(rawBody)}catch{return response(req, {ok:false,error:'Invalid JSON body.'},400)}if(!body||typeof body!=='object'||Array.isArray(body))return response(req, {ok:false,error:'Invalid request body.'},400);
-  const title=String(body.title||'').trim(), message=String(body.body||'').trim(), target=String(body.target||'all').trim(), dedupeKey=body.dedupeKey?String(body.dedupeKey).trim():null;\n  const notificationType=String(body.notificationType||'announcements').trim();\n  const allowedTypes=new Set(['new_chapters','comments_replies','group_chat','community_posts','announcements','membership_account']);\n  if(!allowedTypes.has(notificationType)) return response(req, {ok:false,error:'Invalid notification category.'},422);
+  const title=String(body.title||'').trim(), message=String(body.body||'').trim(), target=String(body.target||'all').trim(), dedupeKey=body.dedupeKey?String(body.dedupeKey).trim():null;
+  const notificationType=String(body.notificationType||'announcements').trim();
+  const allowedTypes=new Set(['new_chapters','comments_replies','group_chat','community_posts','announcements','membership_account']);
+  if(!allowedTypes.has(notificationType)) return response(req, {ok:false,error:'Invalid notification category.'},422);
   if(!title||!message) return response(req, {ok:false,error:'Notification title and message are required.'},422);
   if(title.length>160||message.length>1000) return response(req, {ok:false,error:'Notification title or message is too long.'},422);
   let selectedUserId:string|null=null;
@@ -56,7 +59,15 @@ const rate=await db.rpc('consume_rate_limit',{p_rate_key:`admin-push:${user.id}`
   }else if(selectedUserId){q=q.eq('user_id',selectedUserId);}
   const {data:subs,error:se}=await q;
   if(se) throw se;
-  let list=subs||[];\n  // Readers without a saved preferences row keep the existing all-enabled behavior.\n  const recipientIds=[...new Set(list.map((s:any)=>s.user_id).filter(Boolean))];\n  if(recipientIds.length){\n   const {data:prefs,error:pe}=await db.from('notification_preferences').select('user_id,preferences').in('user_id',recipientIds);\n   if(pe) throw pe;\n   const prefMap=new Map((prefs||[]).map((row:any)=>[row.user_id,row.preferences||{}]));\n   list=list.filter((s:any)=>{const pref=prefMap.get(s.user_id);return !pref||pref[notificationType]!==false;});\n  }
+  let list=subs||[];
+  // Readers without a saved preferences row keep the existing all-enabled behavior.
+  const recipientIds=[...new Set(list.map((s:any)=>s.user_id).filter(Boolean))];
+  if(recipientIds.length){
+   const {data:prefs,error:pe}=await db.from('notification_preferences').select('user_id,preferences').in('user_id',recipientIds);
+   if(pe) throw pe;
+   const prefMap=new Map((prefs||[]).map((row:any)=>[row.user_id,row.preferences||{}]));
+   list=list.filter((s:any)=>{const pref=prefMap.get(s.user_id);return !pref||pref[notificationType]!==false;});
+  }
   if(!list.length){
    const reason=selectedUserId?'Selected user has no active notification subscription.':'There are no active notification subscriptions for this target.';
    await db.from('admin_notification_log').update({target_count:0,sent_count:0,failed_count:0,removed_count:0,status:'no_subscribers',sent_at:new Date().toISOString(),error:reason}).eq('id',log.id);
