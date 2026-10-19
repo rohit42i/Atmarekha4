@@ -48,6 +48,9 @@ const required = [
   ['cookie-consent.css', '.privacy-consent-banner'],
   ['Footer.jsx', 'Privacy choices'],
   ['PrivacyCenter.jsx', 'Change analytics preferences'],
+  ['SiteRuntime.jsx', '<FloatingContact/>'],
+  ['SiteRuntime.jsx', 'floating-contact-button'],
+  ['CookieConsent.jsx', 'Allow analytics'],
 ];
 
 const forbidden = [
