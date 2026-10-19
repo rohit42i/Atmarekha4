@@ -236,7 +236,7 @@ Deno.serve(async req => {
 
     const variables = input.variables && typeof input.variables === "object" && !Array.isArray(input.variables)
       ? input.variables : {};
-    if (templateSlug !== "new-chapter" && /\\bchapter\\s*\\d+/i.test(cleanText(input.subject, 200))) {
+    if (templateSlug !== "new-chapter" && /\bchapter\s*\d+/i.test(cleanText(input.subject, 200))) {
       return respond({ ok: false, error: "Chapter announcement blocked: select the New chapter announcement template so the email body matches the chapter details." }, 422);
     }
     let chapterNumber = "";
