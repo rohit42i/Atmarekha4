@@ -173,10 +173,15 @@ Deno.serve(async req => {
         return response({ error: "Confirm that erasure was completed and legally required records were reviewed." }, 400, origin);
       }
       const { data: current, error: currentError } = await admin
-        .from("dpdp_deletion_requests").select("id,status")
+        .from("dpdp_deletion_requests").select("id,status,user_id")
         .eq("id", requestId).maybeSingle();
       if (currentError) throw currentError;
       if (!current) return response({ error: "Deletion request not found." }, 404, origin);
+      if (nextStatus === "processing") {
+        if (!current.user_id) return response({ error: "This request has no linked account to verify. Review it manually before processing." }, 409, origin);
+        const { data: requester } = await admin.auth.admin.getUserById(current.user_id);
+        if (!requester?.user?.email_confirmed_at) return response({ error: "The reader email is not verified. Resend verification and ask the reader to confirm before processing." }, 409, origin);
+      }
       const validTransition = nextStatus === "processing"
         ? current.status === "pending"
         : current.status === "processing";
