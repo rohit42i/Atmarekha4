@@ -42,7 +42,7 @@ function AuthPanel({mode,setMode,onClose,onSignedIn}){
     try{
       if(mode==='signup'){
         await validateNewPassword(password);
-        const{data,error:authError}=await supabase.auth.signUp({email:email.trim(),password,options:{data:{full_name:name.trim(),marketing_attribution:getMarketingAttribution(),dpdp_privacy_consent_version:'2026-10-07',dpdp_consent_purposes:'account,reading,community,membership',age_declaration_version:'2026-10-07'},emailRedirectTo:`${window.location.origin}/`}});
+        const{data,error:authError}=await supabase.auth.signUp({email:email.trim(),password,options:{data:{full_name:name.trim(),marketing_attribution:getMarketingAttribution(),dpdp_privacy_consent_version:'2026-10-19',dpdp_consent_purposes:'account,reading,community,membership',age_declaration_version:'2026-10-07'},emailRedirectTo:`${window.location.origin}/`}});
         if(authError)throw authError;
         clearDraft('atma-auth-draft');
         if(data.session)onSignedIn();else setMessage('Check your email to verify your account, then sign in.');
