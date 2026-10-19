@@ -182,7 +182,6 @@ function PageScrollProgress() {
       window.removeEventListener('scroll', update);
       window.removeEventListener('resize', update);
       window.removeEventListener('popstate', update);
-      observer?.disconnect();
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -198,20 +197,15 @@ function FloatingContact() {
   useEffect(() => {
     const update = () => {
       const path = window.location.pathname;
-      const privateRoute = /^\/(?:admin|profile|membership|group-chat|community)(?:\/|$)/i.test(path);
-      const privateHash = /^#(?:admin|profile|membership|group-chat|community)(?:\/|$)/i.test(window.location.hash);
-      const excludedSurface = Boolean(document.querySelector('.reader-page, .profile-v2-overlay, .admin-panel, .admin-control-room'));
+      const privateRoute = /^\/(?:admin|profile|membership|group-chat|community|chapter)(?:\/|$)/i.test(path);
+      const privateHash = /^#(?:admin|profile|membership|group-chat|community|read-chapter)(?:\/|$)/i.test(window.location.hash);
       const contactPage = path.replace(/\\/+$/, '') === '/info/contact'
         || window.location.hash.replace(/^#/, '') === 'info/contact';
-      setVisible(!privateRoute && !privateHash && !excludedSurface && !contactPage);
+      setVisible(!privateRoute && !privateHash && !contactPage);
     };
 
     window.addEventListener('popstate', update);
     window.addEventListener('hashchange', update);
-    const observer = typeof MutationObserver !== 'undefined' && document.body
-      ? new MutationObserver(update)
-      : null;
-    observer?.observe(document.body, { childList: true, subtree: true });
     update();
 
     return () => {
