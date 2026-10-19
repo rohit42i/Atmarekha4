@@ -149,6 +149,10 @@ Deno.serve(async (req) => {
     if (error) throw error;
     const rows = Array.isArray(directory) ? directory : [];
     const ids = rows.map((row) => row.user_id).filter(Boolean);
+    const authStatuses = Object.fromEntries(await Promise.all(ids.map(async (id: string) => {
+      const { data } = await admin.auth.admin.getUserById(id);
+      return [id, data?.user?.email_confirmed_at || null];
+    })));
     let avatars: Record<string, string | null> = {};
     if (ids.length) {
       const { data: profileRows, error: profileError } = await admin
