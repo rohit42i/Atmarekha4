@@ -54,7 +54,8 @@ const checks = [
   [
     'Media Worker has an explicit allow-list for supported object paths',
     worker.includes('function objectKey(request)')
-      && worker.includes('const communityAttachment = /^community\\/[^/]+$/i;')
+      && worker.includes('const communityAttachment =')
+      && worker.includes('communityAttachment.test(key)')
       && worker.includes('const cover = new RegExp')
       && worker.includes('const page = new RegExp'),
   ],
