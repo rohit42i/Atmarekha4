@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import CookieConsent from './CookieConsent.jsx';
 import SiteRuntime from './SiteRuntime.jsx';
 import { installGlobalErrorLogging } from './errorLogger.js';
 import UserAuth from './UserAuth.jsx';
@@ -102,6 +103,7 @@ createRoot(document.getElementById('root')).render(
       <AdminOperations/>
       </Suspense>
       <SiteRuntime/>
+      <CookieConsent/>
   </React.StrictMode>
 );
 
@@ -123,3 +125,7 @@ import './comments-name-send-fix.css';
 import './admin-overview-premium.css';
 import './admin-control-room.css';
 import './admin-reference-integration.css';
+
+// Load audit styles last so print rules and consent controls win intended cascade conflicts.
+import './print.css';
+import './cookie-consent.css';
