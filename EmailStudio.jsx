@@ -11,7 +11,6 @@ const plainTextToHtml = value => {
   return normal.split(/\n{2,}/).map(block => {
     let safe = escapeHtml(block).replace(/\n/g, '<br>');
     safe = safe.replace(/Read the chapter:\s*{{\s*chapter_url\s*}}/i, '<a href="{{chapter_url}}" style="color:#174ea6;text-decoration:underline">Read the chapter</a>');
-    safe = safe.replace(/{{\s*(site_url|action_url|chapter_url)\s*}}/g, (_, key) => '<a href="{{' + key + '}}" style="color:#174ea6;text-decoration:underline">{{' + key + '}}</a>');
     return '<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#222">' + safe + '</p>';
   }).filter(Boolean).join('');
 };
