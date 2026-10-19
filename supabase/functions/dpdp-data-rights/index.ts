@@ -140,9 +140,10 @@ Deno.serve(async req => {
 
     if (action === "delete-request") {
       const reason = clean(body?.reason, 500);
-      const { data: existing } = await admin.from("dpdp_deletion_requests")
+      const { data: existing, error: existingError } = await admin.from("dpdp_deletion_requests")
         .select("id,status,requested_at").eq("user_id", user.id)
         .in("status", ["pending","processing"]).order("requested_at", { ascending: false }).limit(1).maybeSingle();
+      if (existingError) throw existingError;
       if (existing) return response({ request: existing }, 200, origin);
       const { data, error } = await admin.from("dpdp_deletion_requests")
         .insert({ user_id: user.id, reason: reason || null })
