@@ -144,7 +144,7 @@ export default function AdminPanel({ onLogout }) {
   const [progress, setProgress] = useState({ current: 0, total: 0, text: '' });
   const [announcement, setAnnouncement] = useState({ title: '', content: '', thumbnail: null, is_pinned: false, pin_target: 'none', display_position: '' });
   const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
-  const [mediaForm, setMediaForm] = useState({ title: '', image_url: '', category: '' });
+  const [mediaForm, setMediaForm] = useState({ title: '', file: null, category: '' });
   const [chapterPublishProject, setChapterPublishProject] = useState('atma');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -914,24 +914,53 @@ export default function AdminPanel({ onLogout }) {
     if (busy) return;
     setBusy(true);
     let adminUser = null;
+    let uploadedPath = null;
+    let mediaCommitted = false;
+
     try {
       adminUser = await requireAdmin();
-      if (!mediaForm.title.trim() || !mediaForm.image_url.trim() || !mediaForm.category.trim()) {
-        throw new Error('Title, image URL, and category are required.');
+      const file = mediaForm.file;
+      if (!mediaForm.title.trim() || !file || !mediaForm.category.trim()) {
+        throw new Error('Title, image file, and category are required.');
       }
+      if (!isSupportedImageFile(file)) {
+        throw new Error('Unsupported image format. Use JPG, PNG, WEBP, GIF, BMP, or AVIF.');
+      }
+
+      const safeName = String(file.name || 'media-image').replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100);
+      uploadedPath = `media/${crypto.randomUUID()}-${safeName}`;
+      const imageUrl = await upload(COVER_BUCKET, file, uploadedPath);
       const { data, error } = await supabase.from('media').insert({
         title: mediaForm.title.trim(),
-        image_url: mediaForm.image_url.trim(),
+        image_url: imageUrl,
         category: mediaForm.category.trim(),
       }).select('id').single();
       if (error) throw error;
-      await logAdminAction(adminUser, 'create_media', 'media', data?.id || null, { title: mediaForm.title.trim(), category: mediaForm.category.trim() });
-      setMediaForm({ title: '', image_url: '', category: '' });
+      mediaCommitted = true;
+
+      await logAdminAction(adminUser, 'create_media', 'media', data?.id || null, {
+        title: mediaForm.title.trim(),
+        category: mediaForm.category.trim(),
+        storage: 'cloudflare-r2',
+        path: uploadedPath,
+      });
+      setMediaForm({ title: '', file: null, category: '' });
       await load();
-      setNotice({ type: 'success', text: 'Media added.' });
+      setNotice({ type: 'success', text: 'Media uploaded to R2 and added.' });
     } catch (error) {
+      if (uploadedPath && !mediaCommitted) {
+        try {
+          await removeFiles(COVER_BUCKET, [uploadedPath]);
+        } catch (cleanupError) {
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'media', null, {
+            bucket: COVER_BUCKET,
+            paths: [uploadedPath],
+            error: cleanupError.message,
+          });
+        }
+      }
       await logAdminAction(adminUser, 'create_media_failed', 'media', null, { error: error.message });
-      setNotice({ type: 'error', text: error.message || 'Media save failed.' });
+      setNotice({ type: 'error', text: error.message || 'Media upload failed.' });
     } finally {
       setBusy(false);
     }
@@ -975,19 +1004,38 @@ export default function AdminPanel({ onLogout }) {
     }
   }
 
-  async function deleteMedia(id) {
-    if (!window.confirm('Delete this media item permanently?')) return;
+  async function deleteMedia(item) {
+    if (!item?.id || !window.confirm('Delete this media item permanently?')) return;
     setBusy(true);
     let adminUser = null;
     try {
       adminUser = await requireAdmin();
-      const { error } = await supabase.from('media').delete().eq('id', id);
+      const { error } = await supabase.from('media').delete().eq('id', item.id);
       if (error) throw error;
-      await logAdminAction(adminUser, 'delete_media', 'media', id);
+
+      let cleanupPending = false;
+      const oldPath = pathFromUrl(item.image_url, COVER_BUCKET);
+      if (oldPath) {
+        try {
+          await removeFiles(COVER_BUCKET, [oldPath]);
+        } catch (cleanupError) {
+          cleanupPending = true;
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'media', item.id, {
+            bucket: COVER_BUCKET,
+            paths: [oldPath],
+            error: cleanupError.message,
+          });
+        }
+      }
+
+      await logAdminAction(adminUser, 'delete_media', 'media', item.id, { cleanup_pending: cleanupPending });
       await load();
-      setNotice({ type: 'success', text: 'Media deleted.' });
+      setNotice({
+        type: 'success',
+        text: cleanupPending ? 'Media record deleted. R2 cleanup is pending in Operations.' : 'Media deleted.',
+      });
     } catch (error) {
-      await logAdminAction(adminUser, 'delete_media_failed', 'media', id, { error: error.message });
+      await logAdminAction(adminUser, 'delete_media_failed', 'media', item?.id || null, { error: error.message });
       setNotice({ type: 'error', text: error.message || 'Media delete failed.' });
     } finally {
       setBusy(false);
@@ -1142,7 +1190,7 @@ export default function AdminPanel({ onLogout }) {
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
       </div>
-    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><input value={mediaForm.image_url} onChange={e => setMediaForm({ ...mediaForm, image_url: e.target.value })} placeholder="Image URL" required className="wide"/></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item.id)}>Delete</button></div></article>)}</div></section>}
+    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><label className="admin-file-field wide"><span>Image file</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} required onChange={e => { const file = e.target.files?.[0] || null; e.target.value = ''; setMediaForm({ ...mediaForm, file }); }}/>{mediaForm.file && <em>{mediaForm.file.name}</em>}</label></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item)}>Delete</button></div></article>)}</div></section>}
 
         </div>
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">

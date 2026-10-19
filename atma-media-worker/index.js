@@ -167,11 +167,12 @@ function objectKey(request) {
 
   const cover = new RegExp('^covers/chapters/' + UUID_PATTERN + '/[^/]+$', 'i');
   const announcementImage = /^covers\/announcements\/[^/]+$/i;
+  const mediaLibraryImage = /^covers\/media\/[^/]+$/i;
   const page = new RegExp('^chapter-pages/' + UUID_PATTERN + '/[^/]+/[^/]+$', 'i');
   const replacement = new RegExp('^' + UUID_PATTERN + '/replacements/[^/]+$', 'i');
   const communityAttachment = /^community\/[^/]+$/i;
 
-  return cover.test(key) || announcementImage.test(key) || page.test(key)
+  return cover.test(key) || announcementImage.test(key) || mediaLibraryImage.test(key) || page.test(key)
     || replacement.test(key) || communityAttachment.test(key)
     ? key
     : null;
@@ -293,7 +294,7 @@ export default {
       const key = objectKey(request);
       if (!key) return json(request, env, { error: 'Invalid media path.' }, 400);
 
-      const publicCover = /^covers\/(?:chapters\/|announcements\/)/i.test(key);
+      const publicCover = /^covers\/(?:chapters\/|announcements\/|media\/)/i.test(key);
       const communityMedia = /^community\/[^/]+$/i.test(key);
       const publicMedia = publicCover || communityMedia;
 

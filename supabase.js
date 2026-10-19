@@ -189,7 +189,11 @@ export async function fetchAuthenticatedMediaBlobUrl(url, options = {}) {
 
 export const cloudflareR2 = {
   from(bucket) {
-    if (!R2_BUCKETS.has(bucket)) return client.storage.from(bucket);
+    if (!R2_BUCKETS.has(bucket)) {
+      throw new Error(
+        `Unsupported media bucket "${bucket}". Website media must use Cloudflare R2. Add the bucket to R2_BUCKETS and the media Worker allow-list before using it; Supabase Storage fallback is disabled.`,
+      );
+    }
     const publicPath = path => `${R2_WORKER_URL}/storage/v1/object/public/${encodePath(normalizeAtmaR2Path(bucket, path))}`;
     return {
       async upload(path, file, options = {}) {
