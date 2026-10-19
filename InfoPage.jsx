@@ -1,4 +1,5 @@
 import FeedbackForm from './FeedbackForm.jsx';
+import { ATMA_REKHA_FAQS } from './siteFaqs.js';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
@@ -8,14 +9,15 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['New chapters', 'Planned for the 14th of each month'],
-      ['Format', 'Digital manga'], ['Free chapters', '1 to 8'],
+      ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Format', 'Original manga / webcomic'], ['Language', 'Roman Hindi'],
+      ['New chapters', 'Planned for the 14th of each month'], ['Free chapters', '1 to 8'],
       ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
-      'Atma Rekha is an original Indian fantasy adventure manga where traditions and powers become part of an unfolding story.',
-      'The series follows its characters, their experiences, and the mysteries they uncover. It is independently created by Arkesh and is originally published in Roman Hindi.',
+      'Atma Rekha is an original Indian fantasy adventure manga and webcomic where traditions and powers become part of an unfolding story.',
+      'The series follows its characters through mysteries, spiritual concepts, mysterious powers, and mythical beings. It is an independent Indian comic created for readers who enjoy fantasy adventures and original manga-style storytelling.',
+      'Atma Rekha is originally published in Roman Hindi. New chapters are planned for release on the 14th of each month.',
+      'The project is independently created by Arkesh. AI-assisted tools are used for selected production tasks, while the story, characters, direction and final creative decisions remain original to the project.',
     ],
   },
   contact: {
@@ -51,13 +53,16 @@ export default function InfoPage({ type, onBack }) {
   const page = PAGES[type] || PAGES.about;
   const isAbout = type === 'about';
   return <main className="info-page">
+    <nav className="info-breadcrumbs" aria-label="Breadcrumb">
+      <ol><li><a href="#home">Home</a></li><li aria-current="page">{page.title}</li></ol>
+    </nav>
     <header className="subpage-header info-page-header">
       <button className="back-button" onClick={onBack} aria-label="Back">←</button>
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
     </header>
     <section className="info-card info-hero">
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'A few simple rules for using the site.' : 'Let us know if something needs our attention.'}</p>
+      <p className="info-hero-copy">{isAbout ? 'An original Indian fantasy manga and webcomic by Arkesh, with AI-assisted tools used for selected production tasks.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'A few simple rules for using the site.' : 'Let us know if something needs our attention.'}</p>
     </section>
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
       <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
@@ -65,6 +70,16 @@ export default function InfoPage({ type, onBack }) {
     </section> : <section className="info-card info-content-card">
       <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
       {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
+    </section>}
+
+    {isAbout && <section className="info-card info-faq-card" aria-labelledby="info-faq-title">
+      <p className="section-eyebrow">READER GUIDE</p>
+      <h2 id="info-faq-title">Frequently asked questions</h2>
+      <div className="info-faq-list">
+        {ATMA_REKHA_FAQS.map(({ question, answer }) => <details className="info-faq-item" key={question}>
+          <summary>{question}</summary><p>{answer}</p>
+        </details>)}
+      </div>
     </section>}
   </main>;
 }
