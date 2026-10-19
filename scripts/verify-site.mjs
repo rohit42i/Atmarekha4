@@ -38,6 +38,8 @@ const required = [
   ['pdlplEngagement.js', "if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };"],
   ['PalDoPalKeLamhe.jsx', "atma-analytics-consent-changed"],
   ['SiteRuntime.jsx', 'observer?.disconnect();'],
+  ['.github/workflows/secret-scan.yml', 'gitleaks/gitleaks-action@v3'],
+  ['.github/workflows/secret-scan.yml', 'fetch-depth: 0'],
   ['App.jsx', "'@type': 'FAQPage'"],
   ['InfoPage.jsx', 'Frequently asked questions'],
   ['siteFaqs.js', 'ATMA_REKHA_FAQS'],
