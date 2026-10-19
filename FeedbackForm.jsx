@@ -128,7 +128,7 @@ export default function FeedbackForm() {
     <label>Type<select value={type} onChange={e=>setType(e.target.value)}><option value="feedback">Website feedback</option><option value="content-report">Content report</option><option value="privacy">Privacy request</option><option value="other">Other</option></select></label>
     <label>Message<textarea value={message} onChange={e=>{setMessage(e.target.value.slice(0,2000));if(fieldErrors.message)setFieldErrors(v=>({...v,message:undefined}))}} maxLength={2000} rows="5" required aria-invalid={Boolean(fieldErrors.message)} aria-describedby="feedback-message-counter"/><span id="feedback-message-counter" className={'character-counter '+(message.length>=1800?'near-limit ':'')+(message.length>=2000?'at-limit':'')}>{message.length}/2000</span>{fieldErrors.message&&<span className="form-field-error">{fieldErrors.message}</span>}</label>
     <label className="feedback-honeypot" aria-hidden="true">Website<input tabIndex="-1" autoComplete="off" value={honeypot} onChange={e=>setHoneypot(e.target.value)}/></label>
-    <div className="feedback-form-actions"><button type="submit" className="primary-button" disabled={busy}>{busy?<><span className="button-spinner" aria-hidden="true"/> Please wait…</>:'Send message'}</button><span className="feedback-secure-note">⌁ Secure connection · no payment details needed</span></div>
+    <div className="feedback-form-actions"><button type="submit" className="primary-button" disabled={busy}>{busy?<><span className="button-spinner" aria-hidden="true"/> Please wait…</>:'Send message'}</button></div>
     {success&&<p className="form-field-success" role="status" aria-live="polite">{success}</p>}
     {error&&<p className="form-field-error" role="alert">{error}</p>}
   </form>;
