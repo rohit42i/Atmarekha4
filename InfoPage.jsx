@@ -9,13 +9,13 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
+      ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Format', 'Original manga / webcomic'], ['Language', 'Roman Hindi'],
       ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
-      'Atma Rekha Is An Adventure Manga/Comic Where Traditions And Powers Become A Part Of An Unfolding Story.',
-      'The series follows an original story built around its characters, their experiences, and the mysteries they encounter as the world gradually unfolds.',
+      'Atma Rekha is an original Indian fantasy adventure manga and webcomic where traditions and powers become part of an unfolding story.',
+      'The series follows its characters through mysteries, spiritual concepts, mysterious powers, and mythical beings. It is an independent Indian comic created for readers who enjoy fantasy adventures and original manga-style storytelling.',
       'Atma Rekha is originally published in Roman Hindi, with additional language versions available as they are published. New chapters are planned for release on the 14th of each month.',
       'The project is independently created by Arkesh as a solo creator. AI-assisted tools are used only for selected parts of the creative process, while the story, characters, direction, and final creative decisions remain original to the project.',
     ],
