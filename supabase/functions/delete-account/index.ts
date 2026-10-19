@@ -22,18 +22,18 @@ Deno.serve(async (req: Request) => {
   const declaredLength = Number(req.headers.get("content-length") || 0);
   if (Number.isFinite(declaredLength) && declaredLength > 1024) return json({ error: "Request body is too large." }, 413, origin);
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json({ error: "Authentication required." }, 401, origin);
+  const authorization = req.headers.get("Authorization") || "";
+  const token = authorization.replace(/^Bearer\\s+/i, "").trim();
+  if (!token) return json({ error: "Authentication required." }, 401, origin);
   const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
   if (!supabaseUrl || !serviceRoleKey) return json({ error: "Account deletion is temporarily unavailable." }, 503, origin);
 
   try {
-    const userClient = createClient(supabaseUrl, serviceRoleKey, { global: { headers: { Authorization: authHeader } } });
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: { user }, error: userError } = await adminClient.auth.getUser(token);
     if (userError || !user) return json({ error: "Authentication failed." }, 401, origin);
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: rateAllowed, error: rateError } = await adminClient.rpc("consume_rate_limit", {
       p_rate_key: "delete-account:" + user.id,
       p_limit: 3,
@@ -45,14 +45,34 @@ Deno.serve(async (req: Request) => {
     }
     if (rateAllowed === false) return json({ error: "Too many deletion attempts. Please try again later." }, 429, origin);
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
-    if (deleteError) {
-      console.error("Account deletion failed:", deleteError.message);
-      return json({ error: "Unable to delete your account right now." }, 500, origin);
+    // Never hard-delete an account from this endpoint. Queue erasure for identity review,
+    // lawful-retention checks, and coordinated deletion across the database and processors.
+    const { data: existing, error: lookupError } = await adminClient
+      .from("dpdp_deletion_requests")
+      .select("id,status,requested_at")
+      .eq("user_id", user.id)
+      .in("status", ["pending", "processing"])
+      .order("requested_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (lookupError) {
+      console.error("Account-deletion request lookup failed:", lookupError.message);
+      return json({ error: "Unable to submit the deletion request right now." }, 500, origin);
     }
-    return json({ success: true }, 200, origin);
+    if (existing) return json({ success: true, queued: true, request: existing }, 200, origin);
+
+    const { data: request, error: insertError } = await adminClient
+      .from("dpdp_deletion_requests")
+      .insert({ user_id: user.id, reason: "Account deletion requested through account API." })
+      .select("id,status,requested_at")
+      .single();
+    if (insertError) {
+      console.error("Account-deletion request could not be queued:", insertError.message);
+      return json({ error: "Unable to submit the deletion request right now." }, 500, origin);
+    }
+    return json({ success: true, queued: true, request }, 201, origin);
   } catch (error) {
-    console.error("Account deletion request failed:", error instanceof Error ? error.message : "unknown error");
-    return json({ error: "Unable to delete your account right now." }, 500, origin);
+    console.error("Account-deletion request failed:", error instanceof Error ? error.message : "unknown error");
+    return json({ error: "Unable to submit the deletion request right now." }, 500, origin);
   }
 });
