@@ -75,7 +75,9 @@ export default function AdminOperations() {
 
   const updateChapter = async (chapter, patch, action, confirmation = null) => {
     if (busy) return;
-    if (confirmation && !window.confirm(confirmation)) return;
+    const statusChange = Object.prototype.hasOwnProperty.call(patch, 'status') && String(patch.status).toLowerCase() !== String(chapter.status || '').toLowerCase();
+    const safeConfirmation = confirmation || (statusChange && (String(patch.status).toLowerCase() === 'published' || String(chapter.status).toLowerCase() === 'published') ? `Change ${chapter.title || 'this chapter'} from ${chapter.status || 'Draft'} to ${patch.status}? This changes what readers can access.` : null);
+    if (safeConfirmation && !window.confirm(safeConfirmation)) return;
     setBusy(true); setNotice('');
     try {
       const user = await requireAdmin();
@@ -99,6 +101,7 @@ export default function AdminOperations() {
 
   const retryCleanup = async item => {
     if (busy) return;
+    if (!window.confirm('Retry deletion of these stored media files? This removes the listed files from storage.')) return;
     const details = item?.details || {};
     const paths = Array.isArray(details.paths) ? details.paths.filter(Boolean) : [];
     const provider = details.provider === 'pdpl' ? 'pdpl' : 'atma';
@@ -163,7 +166,7 @@ export default function AdminOperations() {
   };
 
   const archive = chapter => updateChapter(chapter, { deleted_at: new Date().toISOString(), deleted_previous_status: chapter.status || 'Draft', status: 'Archived' }, 'archive_chapter', `Archive ${chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : chapter.title || 'this chapter'}? Nothing will be permanently deleted. It will remain in Recovery.`);
-  const restore = chapter => updateChapter(chapter, { deleted_at: null, status: chapter.deleted_previous_status || 'Draft' }, 'restore_chapter');
+  const restore = chapter => updateChapter(chapter, { deleted_at: null, status: chapter.deleted_previous_status || 'Draft' }, 'restore_chapter', `Restore ${chapter.title || 'this chapter'} to the active chapter list?`);
   const unpublish = chapter => updateChapter(chapter, { status: 'Draft' }, 'unpublish_chapter', `Unpublish ${chapter.chapter_number ? `Chapter ${chapter.chapter_number}` : chapter.title || 'this chapter'}? It will remain stored and editable.`);
 
   const send = async test => {
@@ -202,10 +205,10 @@ export default function AdminOperations() {
           <div className="ar-ops-form-grid">
             <select value={accessTest.series} onChange={e=>setAccessTest({...accessTest,series:e.target.value})} aria-label="Series"><option value="atma">Atma Rekha</option><option value="pdpkl">Pal Do Pal Ke Lamhe</option></select>
             <input type="number" min="1" step="1" value={accessTest.chapter} onChange={e=>setAccessTest({...accessTest,chapter:e.target.value})} aria-label="Chapter number" placeholder="Chapter number"/>
-            <select value={accessTest.plan} onChange={e=>setAccessTest({...accessTest,plan:e.target.value})} aria-label="Membership plan"><option value="free">Free reader</option><option value="mini_member">Mini Member</option><option value="supporter">Member</option><option value="premium">Premium Member</option></select>
+            <select value={accessTest.plan} onChange={e=>setAccessTest({...accessTest,plan:e.target.value})} aria-label="Membership plan"><option value="free">Free reader</option><option value="mini_member">Atma-only Supporter ₹19</option><option value="supporter">Premium Supporter ₹29</option><option value="premium">Super Supporter ₹49</option></select>
             <select value={accessTest.role} onChange={e=>setAccessTest({...accessTest,role:e.target.value})} aria-label="Account role"><option value="reader">Reader account</option><option value="admin">Admin account</option></select>
           </div>
-          {(()=>{const n=Number(accessTest.chapter);const valid=Number.isInteger(n)&&n>0;const member=['mini_member','supporter','premium'].includes(accessTest.plan);const free=accessTest.series==='atma'&&valid&&n<=8;const allowed=valid&&(accessTest.role==='admin'||free||member);return <div className="ar-ops-notice" role="status"><strong>{!valid?'Enter a valid chapter number.':allowed?'Access allowed':'Membership required'}</strong><p style={{margin:'5px 0 0',color:'var(--muted-color)',fontSize:9}}>{!valid?'Chapter number must be a positive whole number.':accessTest.role==='admin'?'Admin access bypasses reader membership checks.':free?'Atma Rekha chapters 1–8 are free.':member?'A paid membership grants access under the current rule.':accessTest.series==='pdpkl'?'PDPKL chapters are member-only.':'Atma Rekha chapters after chapter 8 require membership.'}</p></div>})()}
+          {(()=>{const n=Number(accessTest.chapter);const valid=Number.isInteger(n)&&n>0;const atmaMember=['mini_member','supporter','premium'].includes(accessTest.plan);const bothStories=['supporter','premium'].includes(accessTest.plan);const free=accessTest.series==='atma'&&valid&&n<=8;const entitled=accessTest.series==='atma'?atmaMember:bothStories;const allowed=valid&&(accessTest.role==='admin'||free||entitled);return <div className="ar-ops-notice" role="status"><strong>{!valid?'Enter a valid chapter number.':allowed?'Access allowed':'Membership required'}</strong><p style={{margin:'5px 0 0',color:'var(--muted-color)',fontSize:9}}>{!valid?'Chapter number must be a positive whole number.':accessTest.role==='admin'?'Admin access bypasses reader membership checks.':free?'Atma Rekha chapters 1–8 are free.':accessTest.series==='pdpkl'&&bothStories?'The ₹29+ plans include PDPKL.':accessTest.series==='pdpkl'?'PDPKL requires Premium Supporter (₹29) or Super Supporter (₹49).':atmaMember?'Atma Rekha membership includes chapter 9 and later.':'Atma Rekha chapters after chapter 8 require a membership.'}</p></div>})()}
         </div>
       </Section>
       <div className="ar-ops-grid"><div>
