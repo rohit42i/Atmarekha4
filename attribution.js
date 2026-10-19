@@ -32,6 +32,6 @@ export function captureMarketingAttribution() {
 }
 
 export function getMarketingAttribution() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !hasAnalyticsConsent()) return null;
   return readStored();
 }
