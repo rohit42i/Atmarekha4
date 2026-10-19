@@ -62,7 +62,7 @@ Deno.serve(async req => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
     const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
-    if (!["export","delete-request","nomination","delete-nomination","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+    if (!["export","delete-request","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
 
     if (adminActions.includes(action)) {
       const { data: adminRow, error: adminError } = await admin
@@ -152,29 +152,6 @@ Deno.serve(async req => {
       return response({ request: data }, 201, origin);
     }
 
-    if (action === "delete-nomination") {
-      const { error } = await admin.from("dpdp_nominations").delete().eq("user_id", user.id);
-      if (error) throw error;
-      return response({ deleted: true }, 200, origin);
-    }
-
-    if (action === "nomination") {
-      const nomineeName = clean(body?.nominee_name, 120);
-      const nomineeEmail = clean(body?.nominee_email, 254).toLowerCase();
-      const nomineePhone = clean(body?.nominee_phone, 30);
-      if (!nomineeName) return response({ error: "Nominee name is required." }, 400, origin);
-      if (nomineeEmail && !validEmail(nomineeEmail)) return response({ error: "Enter a valid nominee email address." }, 400, origin);
-      const { data, error } = await admin.from("dpdp_nominations").upsert({
-        user_id: user.id,
-        nominee_name: nomineeName,
-        nominee_email: nomineeEmail || null,
-        nominee_phone: nomineePhone || null,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "user_id" }).select("nominee_name,nominee_email,nominee_phone,created_at,updated_at").single();
-      if (error) throw error;
-      return response({ nomination: data }, 200, origin);
-    }
-
     const output: Record<string, unknown> = {
       exported_at: new Date().toISOString(),
       service_operator: "Atma Rekha",
@@ -216,21 +193,17 @@ Deno.serve(async req => {
     const [
       { data: consents, error: consentsError },
       { data: requests, error: requestsError },
-      { data: nomination, error: nominationError },
     ] = await Promise.all([
       admin.from("dpdp_consent_records").select("policy_version,purposes,consented_at,withdrawn_at,source").eq("user_id", user.id).order("consented_at", { ascending: false }),
       admin.from("dpdp_deletion_requests").select("id,status,reason,requested_at,resolved_at").eq("user_id", user.id).order("requested_at", { ascending: false }),
-      admin.from("dpdp_nominations").select("nominee_name,nominee_email,nominee_phone,created_at,updated_at").eq("user_id", user.id).maybeSingle(),
     ]);
 
     if (consentsError) exportWarnings.push(`dpdp_consent_records: ${consentsError.message}`);
     if (requestsError) exportWarnings.push(`dpdp_deletion_requests: ${requestsError.message}`);
-    if (nominationError) exportWarnings.push(`dpdp_nominations: ${nominationError.message}`);
     output.consents = consents || [];
     output.deletion_requests = requests || [];
-    output.nomination = nomination || null;
     (output as Record<string, unknown>).export_warnings = exportWarnings;
-    output.rights = ["access","correction","erasure","withdrawal of consent where applicable","objection or restriction where applicable","portability where applicable","grievance or complaint","nomination where applicable"];
+    output.rights = ["access","correction","erasure","withdrawal of consent where applicable","objection or restriction where applicable","portability where applicable","grievance or complaint"];
     return response(output, 200, origin);
   } catch (error) {
     console.error("Privacy data rights failed:", error);
