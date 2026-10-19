@@ -199,7 +199,7 @@ function FloatingContact() {
       const path = window.location.pathname;
       const privateRoute = /^\/(?:admin|profile|membership|group-chat|community|chapter)(?:\/|$)/i.test(path);
       const privateHash = /^#(?:admin|profile|membership|group-chat|community|read-chapter)(?:\/|$)/i.test(window.location.hash);
-      const contactPage = path.replace(/\\/+$/, '') === '/info/contact'
+      const contactPage = path.replace(/\/+$/, '') === '/info/contact'
         || window.location.hash.replace(/^#/, '') === 'info/contact';
       setVisible(!privateRoute && !privateHash && !contactPage);
     };
@@ -211,7 +211,7 @@ function FloatingContact() {
     return () => {
       window.removeEventListener('popstate', update);
       window.removeEventListener('hashchange', update);
-      observer?.disconnect();
+
     };
   }, []);
 
