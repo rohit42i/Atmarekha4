@@ -146,3 +146,46 @@ main.admin-page.ar-admin-v3 .admin-bottom-nav { display:none!important; }
 @media (prefers-reduced-motion:reduce) {
   main.admin-page.ar-admin-v3 *,main.admin-page.ar-admin-v3 *::before,main.admin-page.ar-admin-v3 *::after { animation-duration:.01ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; transition-duration:.01ms!important; }
 }
+
+
+/* Final refinement: strict monochrome palette, compact controls, no decorative color. */
+main.admin-page.ar-admin-v3 {
+  --admin-bg:#080808; --admin-surface:#101010; --admin-surface-2:#171717; --admin-surface-3:#202020;
+  --admin-border:#303030; --admin-border-strong:#555555; --admin-text:#ffffff; --admin-text-2:#e8e8e8;
+  --admin-muted:#b0b0b0; --admin-faint:#858585; --admin-accent:#ffffff; --admin-accent-strong:#e8e8e8;
+  --admin-accent-soft:#252525; --admin-success:#ffffff; --admin-success-soft:#202020;
+  --admin-warning:#ffffff; --admin-warning-soft:#202020; --admin-danger:#ffffff; --admin-danger-soft:#292929;
+  --admin-info:#ffffff; --admin-shadow:none;
+}
+html[data-theme="light"] main.admin-page.ar-admin-v3 {
+  --admin-bg:#ffffff; --admin-surface:#ffffff; --admin-surface-2:#f5f5f5; --admin-surface-3:#eeeeee;
+  --admin-border:#dedede; --admin-border-strong:#aaaaaa; --admin-text:#080808; --admin-text-2:#222222;
+  --admin-muted:#555555; --admin-faint:#707070; --admin-accent:#080808; --admin-accent-strong:#222222;
+  --admin-accent-soft:#eeeeee; --admin-success:#080808; --admin-success-soft:#eeeeee;
+  --admin-warning:#080808; --admin-warning-soft:#eeeeee; --admin-danger:#080808; --admin-danger-soft:#eeeeee; --admin-info:#080808;
+}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark,
+main.admin-page.ar-admin-v3 :is(.ar-admin-btn,.ar-admin-primary-action,.admin-submit,.ar-admin-content button.primary,.ar-admin-content button[type="submit"]) {
+  background:#ffffff!important; border-color:#ffffff!important; color:#080808!important;
+}
+html[data-theme="light"] main.admin-page.ar-admin-v3 .ar-admin-brand-mark,
+html[data-theme="light"] main.admin-page.ar-admin-v3 :is(.ar-admin-btn,.ar-admin-primary-action,.admin-submit,.ar-admin-content button.primary,.ar-admin-content button[type="submit"]) {
+  background:#080808!important; border-color:#080808!important; color:#ffffff!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-nav button.active,.admin-bottom-nav button.active) {
+  background:#252525!important; color:#ffffff!important; box-shadow:inset 2px 0 0 #ffffff!important;
+}
+html[data-theme="light"] main.admin-page.ar-admin-v3 :is(.ar-admin-nav button.active,.admin-bottom-nav button.active) {
+  background:#eeeeee!important; color:#080808!important; box-shadow:inset 2px 0 0 #080808!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content { padding-top:18px!important; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-card,.ar-admin-stat-card,.admin-card,.ar-stat-card,.ar-admin-status-card,.admin-studio-modal,.ar-admin-workspace) { border-radius:8px!important; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-stat-card,.ar-stat-card) { padding:12px!important; }
+main.admin-page.ar-admin-v3 .ar-admin-content button { min-height:32px!important; padding:7px 10px!important; border-radius:6px!important; font-size:12px!important; font-weight:650!important; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-card,.admin-card) { padding:13px!important; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-nav button,.admin-bottom-nav button) { border-radius:6px!important; }
+@media (max-width:600px) {
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding:12px 10px 82px!important; }
+  main.admin-page.ar-admin-v3 :is(.ar-admin-stat-card,.ar-stat-card,.ar-admin-card,.admin-card) { padding:11px!important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content button { min-height:36px!important; }
+}
