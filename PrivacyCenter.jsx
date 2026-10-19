@@ -59,10 +59,12 @@ export default function PrivacyCenter() {
     }
 
     try {
-      const [{ data: consentRows }, { data: deletionRows }] = await Promise.all([
+      const [{ data: consentRows, error: consentError }, { data: deletionRows, error: deletionError }] = await Promise.all([
         supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
         supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
       ]);
+      if (consentError) throw new Error('Unable to load consent records: ' + consentError.message);
+      if (deletionError) throw new Error('Unable to load deletion request status: ' + deletionError.message);
       setConsent(consentRows?.[0] || null);
       setDeletion(deletionRows?.[0] || null);
     } catch (err) {
@@ -105,8 +107,11 @@ export default function PrivacyCenter() {
   };
 
   const exportData = async () => {
-    const data = await runAction('export', 'Your export has been prepared.');
+    const data = await runAction('export', 'Preparing your available account data export…');
     if (!data) return;
+    setMessage(Array.isArray(data.export_warnings) && data.export_warnings.length
+      ? 'Your export was downloaded, but some categories could not be retrieved. Contact support for a complete review.'
+      : 'Your available account data export has been downloaded.');
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -124,8 +129,8 @@ export default function PrivacyCenter() {
   };
 
   const requestDeletion = async () => {
-    if (busy) return;
-    if (!window.confirm('Request deletion of your eligible Atma Rekha personal data? Some information may be retained where required for security, payment, accounting, dispute or other applicable requirements.')) return;
+    if (busy || deletion?.status === 'pending' || deletion?.status === 'processing') return;
+    if (!window.confirm('Submit a request to erase eligible Atma Rekha personal data? This creates a tracked request for review; it does not instantly erase your account. We will verify the request and retain only records required by applicable law or legitimate security/accounting needs.')) return;
     const data = await runAction('delete-request', 'Your deletion request has been submitted.');
     if (data?.request) setDeletion(data.request);
   };
@@ -150,7 +155,7 @@ export default function PrivacyCenter() {
       <PolicySection heading="Public content">Information you choose to post in public areas, such as comments or your public profile, may be visible to other readers. Do not post passwords, payment details or other private information publicly.</PolicySection>
       <PolicySection heading="Cookies and storage">We use necessary browser storage and similar technologies for site preferences and features. We do not currently use advertising cookies.</PolicySection>
       <PolicySection heading="Security and retention">We use reasonable security measures and keep information only for as long as needed for the purposes described here or where retention is otherwise required.</PolicySection>
-      <PolicySection heading="Your privacy rights">Depending on where you live, you may have rights to access, correct, delete, receive, restrict or object to certain uses of your information, or withdraw consent where applicable. Contact us if you want to make a request.</PolicySection>
+      <PolicySection heading="Your privacy rights">You can export available account data, correct profile information, withdraw consent where consent is the basis for processing, and request erasure. Erasure requests are tracked for review and identity verification; they are not instant account deletion. We may retain limited records where required by law or necessary for payment reconciliation, security or disputes. Contact us if a control fails or you need help.</PolicySection>
       <PolicySection heading="Contact">For privacy questions or requests, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may verify your identity before completing a request.</PolicySection>
     </section>
 
@@ -181,11 +186,11 @@ export default function PrivacyCenter() {
           <strong>{consent?.withdrawn_at ? 'Consent withdrawn' : 'Withdraw consent'}</strong>
           <span>{consent ? (consent.withdrawn_at ? 'This consent record is already withdrawn' : 'Use where consent is the basis for processing') : 'No consent record is available'}</span>
         </button>
-        <button type="button" className="privacy-control-button privacy-control-destructive" onClick={requestDeletion} disabled={busy}>
-          <strong>Request deletion</strong><span>Submit a request for eligible personal data</span>
+        <button type="button" className="privacy-control-button privacy-control-destructive" onClick={requestDeletion} disabled={busy || deletion?.status === 'pending' || deletion?.status === 'processing'}>
+          <strong>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'Deletion request in progress' : 'Request deletion'}</strong><span>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'A request is already being reviewed' : 'Request erasure of eligible personal data'}</span>
         </button>
       </div>
-      <p className="privacy-small-note">Some requests may require identity verification and may be subject to applicable retention requirements.</p>
+      <p className="privacy-small-note">Deletion requests are queued for review, identity verification and erasure by an authorised administrator. They are not completed automatically by pressing the button. We retain only information required by applicable law or necessary for security, accounting or disputes. If you cannot sign in, email {CONTACT_EMAIL} from the account address you control.</p>
       {consent && <div className="privacy-control-status">Consent record: <strong>{consent.withdrawn_at ? 'withdrawn' : 'recorded'}</strong>{consent.consented_at ? <> · {new Date(consent.consented_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</div>}
       <div className="privacy-email-actions">
         <button type="button" className="secondary-button" onClick={() => requestByEmail('Atma Rekha Privacy Request')}>Email a privacy request</button>
@@ -200,7 +205,7 @@ export default function PrivacyCenter() {
         <h2>Your recent privacy request</h2>
       </header>
       <div className="privacy-status">
-        {deletion ? <>Deletion request · <strong>{deletion.status || 'submitted'}</strong>{deletion.requested_at ? <> · submitted {new Date(deletion.requested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.resolved_at ? <> · resolved {new Date(deletion.resolved_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</> : 'No account deletion request is currently recorded.'}
+        {deletion ? <>Deletion request · <strong>{deletion.status || 'submitted'}</strong>{deletion.requested_at ? <> · submitted {new Date(deletion.requested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.resolved_at ? <> · resolved {new Date(deletion.resolved_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.id ? <><br/>Reference: <code>{deletion.id}</code></> : null}</> : 'No account deletion request is currently recorded.'}
       </div>
       <p className="privacy-small-note">Requests sent by email are handled through support and may require additional identity verification before action.</p>
     </section>}
