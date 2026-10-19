@@ -322,6 +322,18 @@ function Reader({ chapterId, onBack, chapters }) {
 
   useEffect(() => { if (progressHydratedRef.current && chapter && pages.length) { window.localStorage.setItem(`atma-reading:${chapter.id}`, String(index)); window.localStorage.setItem('atma-reading-last', JSON.stringify({ chapterId: chapter.id, pageNumber: index + 1 })); } }, [chapter, pages.length, index]);
   useEffect(() => {
+    if (!chapter?.id) return undefined;
+    const onConsentChanged = event => {
+      if (event.detail?.consent !== 'granted') return;
+      recordChapterView(chapter.id).catch(viewError => {
+        console.warn('View tracking skipped:', viewError);
+      });
+    };
+    window.addEventListener('atma-analytics-consent-changed', onConsentChanged);
+    return () => window.removeEventListener('atma-analytics-consent-changed', onConsentChanged);
+  }, [chapter?.id]);
+
+  useEffect(() => {
     if (!pages.length || Number(chapter?.chapterNumber) > 8) return undefined;
     const urls = [pages[index], pages[index + 1], pages[index + 2], pages[index - 1]].filter(Boolean);
     urls.forEach(url => { const image = new Image(); image.decoding = 'async'; image.fetchPriority = 'high'; image.src = url; });
