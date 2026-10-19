@@ -74,13 +74,19 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
     }
 
     const preferencesByUser = new Map<string, Record<string, boolean>>();
+    const marketingPreferences = new Map<string, { marketing_unsubscribed: boolean; unsubscribe_token: string }>();
     for (let i = 0; i < users.length; i += 500) {
       const ids = users.slice(i, i + 500).map(item => item.id);
       const { data: prefs, error } = await db.from("notification_preferences").select("user_id,preferences").in("user_id", ids);
       if (error) throw error;
       for (const row of prefs || []) preferencesByUser.set(row.user_id, row.preferences || {});
+      const { error: ensureError } = await db.from("email_marketing_preferences").upsert(ids.map(user_id => ({ user_id })), { onConflict: "user_id", ignoreDuplicates: true });
+      if (ensureError) throw ensureError;
+      const { data: marketingRows, error: marketingError } = await db.from("email_marketing_preferences").select("user_id,marketing_unsubscribed,unsubscribe_token").in("user_id", ids);
+      if (marketingError) throw marketingError;
+      for (const row of marketingRows || []) marketingPreferences.set(row.user_id, { marketing_unsubscribed: Boolean(row.marketing_unsubscribed), unsubscribe_token: String(row.unsubscribe_token || "") });
     }
-    const recipients = users.filter(item => preferencesByUser.get(item.id)?.new_chapters !== false);
+    const recipients = users.filter(item => preferencesByUser.get(item.id)?.new_chapters !== false && marketingPreferences.get(item.id)?.marketing_unsubscribed !== true);
     if (!recipients.length) {
       await db.from("notification_event_dispatches").update({ status: "skipped", sent_count: 0, failed_count: 0, completed_at: new Date().toISOString() }).eq("id", dispatchId);
       return { sent: 0, failed: 0, reason: "All readers opted out of new-chapter notifications." };
@@ -96,13 +102,19 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
     const safeLabel = escapeHtml(chapterLabel);
     const safeTitle = escapeHtml(chapterTitle);
     const safeUrl = escapeHtml(chapterUrl);
-    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#fff;color:#171717;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#fff"><tr><td align="center" style="padding:32px 18px"><table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px"><tr><td style="padding:12px 0 28px;border-bottom:1px solid #e8e8e8"><p style="margin:0;font-size:13px;letter-spacing:1.8px;font-weight:700;color:#555">ATMA REKHA</p></td></tr><tr><td style="padding:40px 0 24px"><p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#555">A new chapter is ready to read.</p><h1 style="margin:0 0 12px;font-size:32px;line-height:1.2;font-weight:700;color:#111">${safeLabel} is out!</h1><h2 style="margin:0;font-size:22px;line-height:1.4;font-weight:600;color:#333">${safeTitle}</h2></td></tr><tr><td style="padding:0 0 30px;font-size:16px;line-height:1.75;color:#333"><p style="margin:0 0 16px">Whenever you have a little free time, give the new chapter a read. I would love to hear what you think.</p><p style="margin:0">If you enjoy it, leave a comment or share it with a friend. It really helps Atma Rekha grow.</p></td></tr><tr><td style="padding:0 0 38px"><a href="${safeUrl}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:15px 26px;font-size:14px;font-weight:700;letter-spacing:.4px">READ ${safeLabel.toUpperCase()}</a></td></tr><tr><td style="border-top:1px solid #e8e8e8;padding:24px 0 0"><p style="margin:0 0 5px;font-size:16px;font-weight:700;color:#111">Arkesh</p><p style="margin:0;font-size:13px;line-height:1.6;color:#666">Creator of Atma Rekha</p><p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:#777">You are receiving this update because you have an Atma Rekha account. New-chapter notifications follow your saved notification preference.</p></td></tr></table></td></tr></table></body></html>`;
+    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#fff;color:#171717;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#fff"><tr><td align="center" style="padding:32px 18px"><table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px"><tr><td style="padding:12px 0 28px;border-bottom:1px solid #e8e8e8"><p style="margin:0;font-size:13px;letter-spacing:1.8px;font-weight:700;color:#555">ATMA REKHA</p></td></tr><tr><td style="padding:40px 0 24px"><p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#555">A new chapter is ready to read.</p><h1 style="margin:0 0 12px;font-size:32px;line-height:1.2;font-weight:700;color:#111">${safeLabel} is out!</h1><h2 style="margin:0;font-size:22px;line-height:1.4;font-weight:600;color:#333">${safeTitle}</h2></td></tr><tr><td style="padding:0 0 30px;font-size:16px;line-height:1.75;color:#333"><p style="margin:0 0 16px">Whenever you have a little free time, give the new chapter a read. I would love to hear what you think.</p><p style="margin:0">If you enjoy it, leave a comment or share it with a friend. It really helps Atma Rekha grow.</p></td></tr><tr><td style="padding:0 0 38px"><a href="${safeUrl}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:15px 26px;font-size:14px;font-weight:700;letter-spacing:.4px">READ ${safeLabel.toUpperCase()}</a></td></tr><tr><td style="border-top:1px solid #e8e8e8;padding:24px 0 0"><p style="margin:0 0 5px;font-size:16px;font-weight:700;color:#111">Arkesh</p><p style="margin:0;font-size:13px;line-height:1.6;color:#666">Creator of Atma Rekha</p><p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:#777">You are receiving this creator update from Atma Rekha. <a href="{{UNSUBSCRIBE_URL}}" style="color:#555">Unsubscribe from creator emails</a>.</p></td></tr></table></td></tr></table></body></html>`;
     const textBody = `ATMA REKHA ${chapterLabel} is out!\n\n${chapterTitle}\n\nWhenever you have a little free time, give the new chapter a read. I would love to hear what you think.\n\nRead ${chapterLabel}: ${chapterUrl}\n\nArkesh\nCreator of Atma Rekha`;
 
     let sent = 0;
     let failed = 0;
+    const supabaseBaseUrl = (Deno.env.get("SUPABASE_URL") || "").replace(/\/$/, "");
     for (const recipient of recipients) {
       try {
+        const token = marketingPreferences.get(recipient.id)?.unsubscribe_token;
+        if (!token) throw new Error("Missing creator-email unsubscribe token.");
+        const unsubscribeUrl = `${supabaseBaseUrl}/functions/v1/email-unsubscribe?token=${encodeURIComponent(token)}`;
+        const recipientHtml = html.replaceAll("{{UNSUBSCRIBE_URL}}", escapeHtml(unsubscribeUrl));
+        const recipientText = `${textBody}\n\nUnsubscribe from creator emails: ${unsubscribeUrl}`;
         const result = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: "Bearer " + resendKey, "Content-Type": "application/json", "Idempotency-Key": `atma-chapter-release-${chapter.id}-${recipient.id}` },
@@ -111,8 +123,9 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
             reply_to: ["atmarekhasupport@gmail.com"],
             to: [recipient.email],
             subject,
-            html,
-            text: textBody,
+            html: recipientHtml,
+            text: recipientText,
+            headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
             tags: [{ name: "type", value: "chapter_release" }, { name: "chapter_id", value: chapter.id.slice(0, 256) }],
           }),
         });
