@@ -132,18 +132,19 @@ export default function PrivacyCenter() {
 
   return <main className="privacy-center">
     <section className="privacy-hero">
-      
       <h1>Privacy</h1>
-      <p>We collect only the information needed to run Atma Rekha, manage reader accounts and memberships, and keep the site working safely.</p>
+      <p>This page explains what information Atma Rekha uses, why it is needed, and the choices you have.</p>
       <p className="privacy-version">Last updated: 19 October 2026</p>
     </section>
 
     <section className="privacy-policy-card">
-      <PolicySection heading="Information we use">We use account and profile details, reading progress, comments, membership status and payment references to provide reader features, manage memberships, keep the site secure and help when something goes wrong.</PolicySection>
-      <PolicySection heading="Sharing and public comments">We share information when needed to run the site, handle payments, protect readers or meet the law. Comments and profile details you make public can be seen by other readers. We do not sell your personal information.</PolicySection>
-      <PolicySection heading="Storage and security">We use necessary browser storage for site features and preferences. We take reasonable steps to protect information and keep it only as long as needed for the service, support, security or legal requirements.</PolicySection>
-      <PolicySection heading="Your choices">You can update your profile, download available account data, withdraw consent where it applies, or request deletion below. Deletion requests are reviewed before eligible data is erased, and some records may need to be kept for legal or payment reasons.</PolicySection>
-      <PolicySection heading="Contact">Questions about privacy? Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may need to confirm that the request is yours.</PolicySection>
+      <PolicySection heading="Information we use">Depending on how you use the site, this may include your account email and profile details, reading progress, bookmarks, ratings, comments and community activity, membership status and payment references, messages sent to support, and limited technical information used for security and troubleshooting.</PolicySection>
+      <PolicySection heading="Why we use it">We use this information to sign you in, provide reader features, save progress, manage memberships, handle payment issues, deliver notifications you choose, moderate the community, protect the site, and respond to requests.</PolicySection>
+      <PolicySection heading="Who helps run the site">We use service providers for website infrastructure, account and data services, and payments, including Supabase, Cloudflare and Razorpay. They receive information needed for the services they provide. Payment details such as your UPI PIN and full card credentials are handled by the payment provider, not requested by Atma Rekha.</PolicySection>
+      <PolicySection heading="Public content and browser storage">Comments and profile details you choose to make public can be seen by other readers. The site uses necessary browser storage for login, preferences and reader features. We do not use personal information for sale to advertisers.</PolicySection>
+      <PolicySection heading="How long we keep information">We keep information while it is needed to provide the site and its features, and for support, security, payment records or legal obligations where required. We remove eligible data when it is no longer needed, subject to those requirements.</PolicySection>
+      <PolicySection heading="Your choices">You can update your profile, download available account data, withdraw consent where consent is the basis for processing, or request deletion through the controls below. Deletion requests are reviewed and verified before eligible data is erased; they are not instant. Some records may need to be retained for legal, payment or security reasons.</PolicySection>
+      <PolicySection heading="Contact">For a privacy question or request, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may need to verify that the request is yours. If you cannot access your account, contact us from an email address you control.</PolicySection>
     </section>
 
     {user && <section className="privacy-controls-card" aria-labelledby="privacy-controls-title">
