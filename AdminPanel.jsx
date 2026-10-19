@@ -29,6 +29,7 @@ import './admin-workspace-ux.css';
 import './admin-full-redesign.css';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
+import './admin-dashboard-theme.css';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -153,6 +154,13 @@ export default function AdminPanel({ onLogout }) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const [chapterPerformance, setChapterPerformance] = useState({});
+  const [adminTheme, setAdminTheme] = useState(() => {
+    try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
+    catch { return 'dark'; }
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
+  }, [adminTheme]);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -1089,7 +1097,7 @@ export default function AdminPanel({ onLogout }) {
     setProfileOpen(false);
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
-  return <main className="admin-page ar-admin-v3" data-admin-root="true">
+  return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme={adminTheme}>
     <div className="ar-admin-app">
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
@@ -1125,6 +1133,9 @@ export default function AdminPanel({ onLogout }) {
             <button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}>
               <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
             </button>
+            <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => setAdminTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
+              <AdminIcon name={adminTheme === 'dark' ? 'sun' : 'moon'} size={17}/>
+            </button>
             <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}>
               <AdminIcon name="refresh" size={16}/><span>Refresh</span>
             </button>
@@ -1142,7 +1153,7 @@ export default function AdminPanel({ onLogout }) {
           </div>
         </header>
         <div className="ar-admin-content">
-          {          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
+          {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
     {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
