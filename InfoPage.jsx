@@ -31,7 +31,7 @@ const PAGES = {
   report: {
     eyebrow: 'REPORT', title: 'Report a problem',
     sections: [
-      { heading: 'How can we help?', body: 'Tell us what went wrong and where it happened, such as a chapter, page, comment or account feature. For account, membership or privacy help, email us. Complaints are acknowledged within 48 hours and addressed within one month where applicable. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
+      { heading: 'Complaints and support', body: 'For a broken page, comment, account, membership or privacy issue, email us. Grievance contact: Arkesh, creator. Consumer complaints are acknowledged within 48 hours and addressed within one month where applicable. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
     ],
   },
   terms: {
