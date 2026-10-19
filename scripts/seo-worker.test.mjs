@@ -128,6 +128,9 @@ test('includes matching FAQ content and structured data on the About page', asyn
 
   assert.equal(response.status, 200);
   assert.match(body, /"@type":"FAQPage"/);
+  assert.match(body, /"@type":"BreadcrumbList"/);
+  assert.match(body, /property="og:url" content="https:\/\/www\.atmarekha\.in\/info\/about"/);
+  assert.match(body, /property="og:title" content="About Atma Rekha \| Indian Fantasy Manga"/);
   assert.match(body, /What is Atma Rekha\?/);
   assert.match(body, /atmarekhasupport@gmail\.com/);
 });
