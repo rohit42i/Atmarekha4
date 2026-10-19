@@ -1,6 +1,8 @@
 const ACTIVE_TIME_KEY = 'atma-notification-active-seconds';
 const NEXT_PROMPT_KEY = 'atma-notification-next-prompt-seconds';
 const PROMPT_DONE_KEY = 'atma-notification-prompt-enabled';
+const PROMPT_COUNT_KEY = 'atma-notification-prompt-count';
+const SCHEDULE_VERSION_KEY = 'atma-notification-schedule-version';
 const FIRST_PROMPT_SECONDS = 5 * 60;
 const REPEAT_PROMPT_SECONDS = 30 * 60;
 const FIRST_DISMISSAL_DELAY_SECONDS = 30 * 60 * 60;
@@ -11,6 +13,22 @@ function getNumber(key, fallback) {
   if (stored === null || stored.trim() === '') return fallback;
   const value = Number(stored);
   return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function migratePromptSchedule() {
+  if (localStorage.getItem(SCHEDULE_VERSION_KEY) === '2') return;
+  const active = getNumber(ACTIVE_TIME_KEY, 0);
+  const shownCount = getNumber(PROMPT_COUNT_KEY, 0);
+  const storedNext = localStorage.getItem(NEXT_PROMPT_KEY);
+
+  if (shownCount === 1) {
+    localStorage.setItem(NEXT_PROMPT_KEY, String(active + FIRST_DISMISSAL_DELAY_SECONDS));
+  } else if (shownCount >= 2) {
+    localStorage.setItem(NEXT_PROMPT_KEY, String(active + REPEAT_PROMPT_SECONDS));
+  } else if (storedNext === null) {
+    localStorage.setItem(NEXT_PROMPT_KEY, String(active + FIRST_PROMPT_SECONDS));
+  }
+  localStorage.setItem(SCHEDULE_VERSION_KEY, '2');
 }
 
 function isActive() {
@@ -111,8 +129,8 @@ function showPrompt() {
 
 function rejectPrompt() {
   const active = getNumber(ACTIVE_TIME_KEY, 0);
-  const shownCount = getNumber('atma-notification-prompt-count', 0) + 1;
-  localStorage.setItem('atma-notification-prompt-count', String(shownCount));
+  const shownCount = getNumber(PROMPT_COUNT_KEY, 0) + 1;
+  localStorage.setItem(PROMPT_COUNT_KEY, String(shownCount));
   const delay = shownCount === 1 ? FIRST_DISMISSAL_DELAY_SECONDS : REPEAT_PROMPT_SECONDS;
   localStorage.setItem(NEXT_PROMPT_KEY, String(active + delay));
   document.getElementById('atma-notification-prompt')?.classList.remove('atma-show');
@@ -129,6 +147,7 @@ function tick() {
 function start() {
   if (!('Notification' in window)) return;
   injectStyles();
+  migratePromptSchedule();
   if (Notification.permission === 'granted') localStorage.setItem(PROMPT_DONE_KEY, '1');
   setInterval(tick, 1000);
 }
