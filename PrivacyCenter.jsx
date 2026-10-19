@@ -3,7 +3,6 @@ import { supabase } from './supabase';
 
 const PRIVACY_VERSION = '2026-10-19';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
-const EMPTY_NOMINATION = { nominee_name: '', nominee_email: '', nominee_phone: '' };
 
 function backHome() {
   window.history.pushState({}, '', '/');
@@ -19,25 +18,9 @@ function requestByEmail(subject, body = '') {
   window.location.href = url;
 }
 
-const DATA_TABLE = [
-  ['Account', 'Email, account ID and account-security timestamps', 'Account access, security and support'],
-  ['Profile', 'Username, display name, avatar and bio when provided', 'Your public profile and personalisation'],
-  ['Reading', 'Progress, bookmarks, ratings and reading history', 'Save your place and operate reader features'],
-  ['Community', 'Comments, reactions, reports and related moderation records', 'Community features, safety and moderation'],
-  ['Membership', 'Plan, status and membership period', 'Provide paid chapter access and manage membership'],
-  ['Payments', 'Payment/subscription references and transaction status', 'Billing support, reconciliation and refunds'],
-  ['Technical', 'Device/browser, network and limited diagnostic information', 'Security, reliability and troubleshooting'],
-  ['Privacy requests', 'Consent, access and deletion request records', 'Handle your privacy choices and requests'],
-  ['Nomination', 'A nominee’s name and optional contact details', 'Support rights exercise where permitted by applicable law'],
-];
-
-const RETENTION_TABLE = [
-  ['Account data', 'While your account is active and for a limited period afterward where needed for security, support or legal obligations.'],
-  ['Reading and community data', 'While needed to provide the feature, preserve your choices, resolve disputes or meet applicable requirements.'],
-  ['Membership and payment records', 'For as long as needed for billing, accounting, fraud prevention, disputes and applicable legal/tax requirements.'],
-  ['Privacy requests and consent records', 'For as long as needed to evidence and handle the request, consent or withdrawal and meet applicable requirements.'],
-  ['Nominee details', 'Until you update or remove the nomination, or longer only where needed to handle an applicable rights request or meet legal requirements.'],
-];
+function PolicySection({ heading, children }) {
+  return <article className="privacy-policy-section"><h2>{heading}</h2><p>{children}</p></article>;
+}
 
 function PolicySection({ heading, children }) {
   return <article className="privacy-policy-section"><h2>{heading}</h2><p>{children}</p></article>;
@@ -51,16 +34,12 @@ export default function PrivacyCenter() {
   const [error, setError] = useState('');
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
-  const [nomination, setNomination] = useState(null);
-  const [nomineeForm, setNomineeForm] = useState({ ...EMPTY_NOMINATION });
 
   const load = async currentUser => {
     setUser(currentUser);
     if (!currentUser) {
       setConsent(null);
       setDeletion(null);
-      setNomination(null);
-      setNomineeForm({ ...EMPTY_NOMINATION });
       setLoading(false);
       return;
     }
@@ -69,23 +48,14 @@ export default function PrivacyCenter() {
       const [
         { data: consentRows, error: consentError },
         { data: deletionRows, error: deletionError },
-        { data: nominationRow, error: nominationError },
       ] = await Promise.all([
         supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
         supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at,resolution_note').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
-        supabase.from('dpdp_nominations').select('nominee_name,nominee_email,nominee_phone,created_at,updated_at').eq('user_id', currentUser.id).maybeSingle(),
       ]);
       if (consentError) throw new Error('Unable to load consent records: ' + consentError.message);
       if (deletionError) throw new Error('Unable to load deletion request status: ' + deletionError.message);
-      if (nominationError) throw new Error('Unable to load your nomination: ' + nominationError.message);
       setConsent(consentRows?.find(row => !row.withdrawn_at) || consentRows?.[0] || null);
       setDeletion(deletionRows?.[0] || null);
-      setNomination(nominationRow || null);
-      setNomineeForm(nominationRow ? {
-        nominee_name: nominationRow.nominee_name || '',
-        nominee_email: nominationRow.nominee_email || '',
-        nominee_phone: nominationRow.nominee_phone || '',
-      } : { ...EMPTY_NOMINATION });
     } catch (err) {
       setError(err?.message || 'Unable to load privacy controls.');
     } finally {
@@ -161,40 +131,6 @@ export default function PrivacyCenter() {
     if (data?.request) setDeletion(data.request);
   };
 
-  const saveNomination = async event => {
-    event.preventDefault();
-    if (busy) return;
-    const nomineeName = nomineeForm.nominee_name.trim();
-    if (!nomineeName) {
-      setError('Enter your nominee’s full name.');
-      setMessage('');
-      return;
-    }
-    const data = await runAction('nomination', 'Nominee details saved.', {
-      nominee_name: nomineeName,
-      nominee_email: nomineeForm.nominee_email.trim(),
-      nominee_phone: nomineeForm.nominee_phone.trim(),
-    });
-    if (data?.nomination) {
-      setNomination(data.nomination);
-      setNomineeForm({
-        nominee_name: data.nomination.nominee_name || '',
-        nominee_email: data.nomination.nominee_email || '',
-        nominee_phone: data.nomination.nominee_phone || '',
-      });
-    }
-  };
-
-  const removeNomination = async () => {
-    if (!nomination || busy) return;
-    if (!window.confirm('Remove this nominee from your privacy settings?')) return;
-    const data = await runAction('delete-nomination', 'Nomination removed.');
-    if (data?.deleted) {
-      setNomination(null);
-      setNomineeForm({ ...EMPTY_NOMINATION });
-    }
-  };
-
   if (loading) {
     return <main className="privacy-center"><div className="privacy-center-card"><p>Loading privacy controls…</p></div></main>;
   }
@@ -203,31 +139,16 @@ export default function PrivacyCenter() {
     <section className="privacy-hero">
       <p className="section-eyebrow">LEGAL · PRIVACY</p>
       <h1>Privacy</h1>
-      <p>Atma Rekha respects the privacy of readers worldwide. This notice explains what personal data we collect, why we use it, how we protect it, when it may be shared, and the controls available to you.</p>
-      <p className="privacy-applicability"><strong>India:</strong> This notice is prepared with reference to the Digital Personal Data Protection Act, 2023 and the Digital Personal Data Protection Rules, 2025, as their provisions commence, and other applicable Indian consumer and information-technology laws. Rights and obligations may take effect on different dates under the notified phased timeline.</p>
-      <p className="privacy-version">Last updated: 19 October 2026 · Privacy notice version {PRIVACY_VERSION}</p>
+      <p>We collect only the information needed to run Atma Rekha, manage reader accounts and memberships, and keep the site working safely.</p>
+      <p className="privacy-version">Last updated: 19 October 2026</p>
     </section>
 
     <section className="privacy-policy-card">
-      <PolicySection heading="What we collect">We may collect account and profile information, reading activity, community content, membership information, payment-related details, and limited technical information needed to run and protect the service.</PolicySection>
-      <PolicySection heading="How we use it">We use information to provide the website and its features, keep accounts secure, save reading activity, operate community and membership features, provide support, improve the service, and meet applicable requirements.</PolicySection>
-      <PolicySection heading="When information is shared">We share information only when needed to provide a feature, process a transaction, protect the service, comply with applicable requirements, or when you choose to share it. We do not sell personal information for money.</PolicySection>
-      <PolicySection heading="Public content">Information you choose to post in public areas, such as comments or your public profile, may be visible to other readers. Do not post passwords, payment details or other private information publicly.</PolicySection>
-      <PolicySection heading="Cookies and storage">We use necessary browser storage and similar technologies for site preferences and features. We do not currently use advertising cookies.</PolicySection>
-      <PolicySection heading="Security and retention">We use reasonable security measures and keep information only for as long as needed for the purposes described here or where retention is otherwise required.</PolicySection>
-      <PolicySection heading="Your privacy rights">You can export available account data, correct profile information, withdraw consent where consent is the basis for processing, request erasure, and manage a nominee for rights exercise where applicable. Erasure requests are tracked for review and identity verification; they are not instant account deletion. We may retain limited records where required by law or necessary for payment reconciliation, security or disputes. Contact us if a control fails or you need help.</PolicySection>
-      <PolicySection heading="Contact">For privacy questions or requests, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may verify your identity before completing a request.</PolicySection>
-    </section>
-
-    <section className="privacy-policy-card">
-      <header className="privacy-section-heading"><p className="section-eyebrow">DATA GUIDE</p><h2>What data we handle</h2></header>
-      <div className="privacy-table-wrap"><table className="privacy-table"><thead><tr><th>Category</th><th>Examples</th><th>Why we use it</th></tr></thead><tbody>{DATA_TABLE.map(([category, examples, purpose]) => <tr key={category}><td><strong>{category}</strong></td><td>{examples}</td><td>{purpose}</td></tr>)}</tbody></table></div>
-    </section>
-
-    <section className="privacy-policy-card">
-      <header className="privacy-section-heading"><p className="section-eyebrow">RETENTION</p><h2>How long information is kept</h2></header>
-      <div className="privacy-table-wrap"><table className="privacy-table"><thead><tr><th>Data</th><th>Retention approach</th></tr></thead><tbody>{RETENTION_TABLE.map(([category, retention]) => <tr key={category}><td><strong>{category}</strong></td><td>{retention}</td></tr>)}</tbody></table></div>
-      <p className="privacy-small-note">Exact retention periods may differ by record and applicable legal, security, accounting or dispute requirements.</p>
+      <PolicySection heading="Information we use">We use account and profile details, reading progress, comments, membership status and payment references to provide reader features, manage memberships, keep the site secure and help when something goes wrong.</PolicySection>
+      <PolicySection heading="Sharing and public comments">We share information when needed to run the site, handle payments, protect readers or meet the law. Comments and profile details you make public can be seen by other readers. We do not sell your personal information.</PolicySection>
+      <PolicySection heading="Storage and security">We use necessary browser storage for site features and preferences. We take reasonable steps to protect information and keep it only as long as needed for the service, support, security or legal requirements.</PolicySection>
+      <PolicySection heading="Your choices">You can update your profile, download available account data, withdraw consent where it applies, or request deletion below. Deletion requests are reviewed before eligible data is erased, and some records may need to be kept for legal or payment reasons.</PolicySection>
+      <PolicySection heading="Contact">Questions about privacy? Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may need to confirm that the request is yours.</PolicySection>
     </section>
 
     {user && <section className="privacy-controls-card" aria-labelledby="privacy-controls-title">
@@ -255,32 +176,6 @@ export default function PrivacyCenter() {
       <div className="privacy-email-actions">
         <button type="button" className="secondary-button" onClick={() => requestByEmail('Atma Rekha Privacy Request')}>Email a privacy request</button>
       </div>
-    </section>}
-
-    {user && <section className="privacy-policy-card privacy-nomination-card" aria-labelledby="privacy-nomination-title">
-      <header className="privacy-section-heading">
-        <p className="section-eyebrow">DATA RIGHTS</p>
-        <h2 id="privacy-nomination-title">Nominate a representative</h2>
-        <p className="privacy-small-note">Choose who may exercise your data rights on your behalf where Indian law allows, including in the event of death or incapacity. This is optional; you can update or remove it at any time.</p>
-      </header>
-      <form className="privacy-nomination-form" onSubmit={saveNomination}>
-        <div className="privacy-form-grid">
-          <label>Nominee’s full name
-            <input name="nominee_name" value={nomineeForm.nominee_name} onChange={event => setNomineeForm(current => ({ ...current, nominee_name: event.target.value }))} maxLength={120} autoComplete="name" required />
-          </label>
-          <label>Nominee’s email (optional)
-            <input name="nominee_email" type="email" value={nomineeForm.nominee_email} onChange={event => setNomineeForm(current => ({ ...current, nominee_email: event.target.value }))} maxLength={254} autoComplete="email" />
-          </label>
-          <label>Nominee’s phone (optional)
-            <input name="nominee_phone" type="tel" value={nomineeForm.nominee_phone} onChange={event => setNomineeForm(current => ({ ...current, nominee_phone: event.target.value }))} maxLength={30} autoComplete="tel" />
-          </label>
-        </div>
-        <div className="privacy-nomination-actions">
-          <button type="submit" className="primary-button" disabled={busy || !nomineeForm.nominee_name.trim()}>{nomination ? 'Update nominee' : 'Save nominee'}</button>
-          {nomination && <button type="button" className="secondary-button" onClick={removeNomination} disabled={busy}>Remove nominee</button>}
-        </div>
-      </form>
-      {nomination && <p className="privacy-control-status">Saved nominee: <strong>{nomination.nominee_name}</strong>{nomination.updated_at ? <> · last updated {new Date(nomination.updated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</p>}
     </section>}
 
     {(message || error) && <div className={`privacy-status ${error ? 'privacy-status-error' : 'privacy-status-success'}`} role={error ? 'alert' : 'status'} aria-live="polite">{error || message}</div>}
