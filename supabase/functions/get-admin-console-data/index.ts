@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users"].includes(action)) {
+    if (!["analytics", "membership", "users", "send-verification"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
     }
 
@@ -105,6 +105,42 @@ Deno.serve(async (req) => {
         .select("id", { count: "exact", head: true });
       if (countError) throw countError;
       return json({ data: data || {}, registered_users: Number(count || 0) }, 200, origin);
+    }
+
+    if (action === "send-verification") {
+      const targetId = String(body.user_id || "").trim();
+      if (!targetId || targetId.length > 100) return json({ error: "A valid user ID is required." }, 400, origin);
+      const resendKey = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+      const fromEmail = Deno.env.get("RESEND_FROM_EMAIL")?.trim() || "";
+      if (!resendKey || !fromEmail) return json({ error: "Email delivery is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL to the function secrets." }, 503, origin);
+      const { data: targetResult, error: targetError } = await admin.auth.admin.getUserById(targetId);
+      if (targetError || !targetResult?.user) return json({ error: "Reader account not found." }, 404, origin);
+      const target = targetResult.user;
+      if (!target.email) return json({ error: "This account has no email address." }, 400, origin);
+      if (target.email_confirmed_at) return json({ error: "This email is already verified." }, 409, origin);
+      const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({ type: "signup", email: target.email });
+      if (linkError || !linkData?.properties?.action_link) {
+        console.error("Verification link generation failed:", linkError?.message || "missing link");
+        return json({ error: "Could not create a verification link. Please try again." }, 502, origin);
+      }
+      const actionLink = linkData.properties.action_link;
+      const html = `<!doctype html><html><body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#171717"><div style="max-width:560px;margin:32px auto;padding:28px;background:#fff;border:1px solid #e5e5e5;border-radius:10px"><h1 style="font-size:22px;margin:0 0 14px">Verify your Atma Rekha account</h1><p style="font-size:15px;line-height:1.6">Please confirm your email address to finish setting up your Atma Rekha account.</p><p style="margin:24px 0"><a href="${actionLink}" style="display:inline-block;padding:12px 18px;background:#3255c6;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold">Verify email</a></p><p style="font-size:12px;line-height:1.6;color:#666">If you did not create this account, you can ignore this email.</p><p style="font-size:12px;color:#777">Atma Rekha</p></div></body></html>`;
+      const mailResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from: fromEmail, to: [target.email], subject: "Verify your Atma Rekha account", html }),
+      });
+      if (!mailResponse.ok) {
+        console.error("Verification email delivery failed:", mailResponse.status);
+        return json({ error: "The verification email could not be sent. Check the Resend sender and domain configuration." }, 502, origin);
+      }
+      try {
+        await admin.from("admin_activity_log").insert({
+          admin_user_id: user.id, action: "send_verification_email", entity_type: "user", entity_id: target.id,
+          details: { recipient: target.email, provider: "resend" },
+        });
+      } catch {}
+      return json({ ok: true, email: target.email }, 200, origin);
     }
 
     const { data: directory, error } = await admin.rpc("get_admin_user_directory_for_user", {
