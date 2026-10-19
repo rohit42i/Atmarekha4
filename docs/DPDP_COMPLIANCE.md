@@ -86,6 +86,8 @@ The public grievance page now states the consumer-complaint target of acknowledg
 
 **Not complete until the creator confirms it:** the repository does not contain a verified legal operator name beyond “Arkesh” or a principal geographic/postal address to publish. Do not invent or publish a guessed address. Confirm the correct legal name, whether a registered business/entity exists, the address that may lawfully be published, and whether the e-commerce disclosure rules apply to this membership model. The current contact email and grievance-officer designation alone may not satisfy every required operator disclosure.
 
+**Under-18 account decision:** signup currently permits readers aged 15 and over. Under the DPDP framework, a child is generally a person under 18, and verifiable parental consent requirements may apply when the relevant provisions commence. The current age checkbox is not a parental-consent verification system. Before the relevant provisions take effect, either implement a legally reviewed verifiable parental-consent flow for under-18 accounts or change account eligibility to 18+. Public reading age guidance and account eligibility are separate decisions; do not claim this item is complete yet.
+
 ## Operational items requiring account/legal administration
 
 Some controls cannot be completed purely in application code:
