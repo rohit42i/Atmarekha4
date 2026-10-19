@@ -25,6 +25,7 @@ const required = [
   ['MorePage.jsx', 'Notification preferences'],
   ['MorePage.jsx', 'notification_preferences'],
   ['MorePage.jsx', 'comments_replies'],
+  ['MorePage.jsx', 'other_updates'],
   ['supabase/migrations/20261019120000_reader_notification_preferences.sql', 'Readers can view own notification preferences'],
   ['supabase/functions/send-chapter-notification-v2/index.ts', 'notification_preferences'],
   ['supabase/functions/send-chapter-notification-v2/index.ts', 'allowedTypes'],
