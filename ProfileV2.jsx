@@ -48,7 +48,7 @@ export default function ProfileV2() {
 
     const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24);
     const nextEmail = email.trim();
-    const emailChanged = nextEmail !== (user.email || '');
+    const emailChanged = nextEmail.toLowerCase() !== String(user.email || '').toLowerCase();
     const updates = {
       username: cleanUsername || null,
       display_name: displayName.trim().slice(0, 60) || 'Reader',
@@ -73,11 +73,13 @@ export default function ProfileV2() {
 
     setProfile(data);
     clearDraft('atma-profile-draft');
-    setEditing(false);
     setAvatarPicker(false);
 
     if (emailChanged) {
-      const { error: emailError } = await supabase.auth.updateUser({ email: nextEmail });
+      const { error: emailError } = await supabase.auth.updateUser(
+        { email: nextEmail },
+        { emailRedirectTo: window.location.origin + '/#profile' }
+      );
       if (emailError) {
         setEmail(user.email || '');
         setError(`Your profile details were saved, but the email change failed: ${emailError.message}. Your sign-in email has not changed.`);
@@ -90,6 +92,7 @@ export default function ProfileV2() {
       setMessage('Profile saved.');
     }
 
+    setEditing(false);
     setSaving(false);
   };
 
