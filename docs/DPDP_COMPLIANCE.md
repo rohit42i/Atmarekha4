@@ -32,7 +32,6 @@ Implemented in the product:
 - Erasure: account deletion request flow with lawful-retention caveat.
 - Withdrawal of consent where applicable: consent withdrawal action.
 - Grievance redressal: dedicated feedback/privacy form and support email.
-- Nomination: nominee details can be saved, updated and removed in Privacy Center.
 
 Account ownership is verified before sensitive data is exported or changed.
 
@@ -73,7 +72,7 @@ The website also publishes a grievance mechanism for community/platform complain
 
 ## Operational verification added 19 October 2026
 
-- The production Supabase project has the consent, deletion-request and nomination tables with row-level security. The applied migration is tracked as `20261019083955_dpdp_privacy_controls_20261019`; use `supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql` for other environments before relying on these controls.
+- The production Supabase project has the consent and deletion-request tables with row-level security. The applied migration is tracked as `20261019083955_dpdp_privacy_controls_20261019`; use `supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql` for other environments before relying on these controls.
 - Community-post comments are enabled in the production schema through `20261019084004_community_post_comments_20261019`.
 - Direct client writes to privacy-rights tables are revoked; privileged writes run through the JWT-verified `dpdp-data-rights` Edge Function. The grant-hardening migration is `supabase/migrations/20261019084630_harden_dpdp_table_grants_20261019.sql`.
 - Signup consent metadata is copied into a durable consent record by an auth-user trigger, including signups that need email confirmation.
