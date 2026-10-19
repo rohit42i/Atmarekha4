@@ -34,6 +34,7 @@ const required = [
   ['supabase/functions/dpdp-data-rights/index.ts', 'if (existingError) throw existingError;'],
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
   ['PrivacyCenter.jsx', 'Deletion requests are queued for review'],
+  ['PrivacyCenter.jsx', 'some categories may be incomplete or could not be retrieved'],
   ['PrivacyCenter.jsx', "runAction('nomination'"],
   ['PrivacyCenter.jsx', "runAction('delete-nomination'"],
   ['PrivacyCenter.jsx', 'privacy-nomination-form'],
