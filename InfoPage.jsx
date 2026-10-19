@@ -1,4 +1,5 @@
 import FeedbackForm from './FeedbackForm.jsx';
+import { ATMA_REKHA_FAQS } from './siteFaqs.js';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
@@ -87,5 +88,15 @@ export default function InfoPage({ type, onBack }) {
       </section>
       {type === 'report' && <section className="info-card info-feedback-card"><FeedbackForm/></section>}
     </>}
+    {isAbout && <section className="info-card info-faq-card" aria-labelledby="info-faq-title">
+      <p className="section-eyebrow">READER GUIDE</p>
+      <h2 id="info-faq-title">Frequently asked questions</h2>
+      <div className="info-faq-list">
+        {ATMA_REKHA_FAQS.map(({ question, answer }) => <details className="info-faq-item" key={question}>
+          <summary>{question}</summary>
+          <p>{answer}</p>
+        </details>)}
+      </div>
+    </section>}
   </main>;
 }
