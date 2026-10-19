@@ -8,6 +8,7 @@ Audit date: 19 October 2026
 - Atma Rekha manga pages, chapter covers, thumbnails and community uploads use Cloudflare R2 bucket `atma-rekha-manga` through the `tiny-pond-c959` media Worker.
 - Pal Do Pal Ke Lamhe artwork uses the separate `pdlpl-manga` R2 bucket through the `pdlpl-media` Worker.
 - The browser adapter supports only the explicit Atma media buckets `chapter-pages`, `covers` and `community`. Any unknown bucket must fail with an error; it must not silently switch to Supabase Storage.
+- The admin media library uploads image files to R2 under `covers/media/`; it does not accept arbitrary external image URLs. Deleting a media item removes its R2 object and records cleanup failures for follow-up.
 - Bundled files under `public/` (for example, fixed UI icons and the preset avatar images) are static website assets deployed with the site, not user uploads or Supabase Storage objects.
 
 ## Live database URL audit
