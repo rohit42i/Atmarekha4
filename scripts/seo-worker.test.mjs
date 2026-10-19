@@ -1,14 +1,18 @@
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../worker.js';
+import { getAnalyticsConsent, hasAnalyticsConsent, setAnalyticsConsent } from '../privacyConsent.js';
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
+const originalWindow = globalThis.window;
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
   if (originalCaches === undefined) delete globalThis.caches;
   else globalThis.caches = originalCaches;
+  if (originalWindow === undefined) delete globalThis.window;
+  else globalThis.window = originalWindow;
 });
 
 function mockRuntime(chapters = []) {
@@ -46,6 +50,39 @@ function mockRuntime(chapters = []) {
     },
   };
 }
+
+test('analytics stays off until affirmative opt-in and denial clears optional identifiers', () => {
+  const values = new Map([
+    ['atma-rekha-marketing-attribution-v1', '{"utm_source":"example"}'],
+    ['atma-rekha-viewer-key-v1', 'browser-key-example'],
+    ['atma-rekha-view-recorded-v2:chapter-1', '1'],
+  ]);
+  const events = [];
+  const localStorage = {
+    get length() { return values.size; },
+    getItem: key => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, String(value)),
+    removeItem: key => values.delete(key),
+    key: index => [...values.keys()][index] ?? null,
+  };
+  globalThis.window = {
+    localStorage,
+    dispatchEvent: event => { events.push(event); return true; },
+  };
+
+  assert.equal(getAnalyticsConsent(), null);
+  assert.equal(hasAnalyticsConsent(), false);
+  assert.equal(setAnalyticsConsent('granted'), true);
+  assert.equal(hasAnalyticsConsent(), true);
+  assert.equal(events.at(-1)?.detail?.consent, 'granted');
+
+  assert.equal(setAnalyticsConsent('denied'), true);
+  assert.equal(hasAnalyticsConsent(), false);
+  assert.equal(values.has('atma-rekha-marketing-attribution-v1'), false);
+  assert.equal(values.has('atma-rekha-viewer-key-v1'), false);
+  assert.equal(values.has('atma-rekha-view-recorded-v2:chapter-1'), false);
+  assert.equal(events.at(-1)?.detail?.consent, 'denied');
+});
 
 test('returns HTTP 404 and noindex for a chapter URL confirmed missing by metadata', async () => {
   const env = mockRuntime([]);
