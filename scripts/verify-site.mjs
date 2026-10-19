@@ -97,6 +97,8 @@ const required = [
   ['AdminChapterHealth.jsx', 'View failed image URLs'],
   ['AdminChapterHealth.jsx', 'runSiteLinkCheck'],
   ['AdminOperations.jsx', 'PDPKL requires Premium Supporter'],
+  ['AdminPanel.jsx', 'eventType: \'new_chapters\''],
+  ['AdminChapterManager.jsx', 'Readers with new-chapter notifications enabled will be notified.'],
   ['AdminOperations.jsx', 'Retry deletion of these stored media files'],
   ['engagement.js', "eventType: 'comments_replies'"],
   ['GroupChat.jsx', "eventType:'group_chat'"],
