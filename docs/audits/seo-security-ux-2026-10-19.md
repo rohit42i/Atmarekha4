@@ -2,7 +2,7 @@
 
 ## Scope and evidence
 
-Reviewed the active React/Vite application, Cloudflare Workers Static Assets Worker, response-header rules, sitemap generator, authentication/storage wrappers, analytics Worker, public feedback flow, Supabase migration/function samples, verification script and GitHub Actions build workflow. This is a source-code audit, not a penetration test or a live crawl of Googlebot. The production Supabase policies, Cloudflare zone settings, Search Console account, DNS, real-user Core Web Vitals and historical secret exposure were not accessible as verified runtime evidence.
+Reviewed the active React/Vite application, Cloudflare Workers Static Assets Worker, response-header rules, sitemap generator, authentication/storage wrappers, analytics Worker, public feedback flow, Supabase migration/function samples, verification script and GitHub Actions build workflow. This is a source-code audit, not a penetration test or a live crawl of Googlebot. The production Supabase policies, Cloudflare zone settings, Search Console account, DNS and real-user Core Web Vitals were not accessible as verified runtime evidence. A history-aware Gitleaks scan was run separately and its findings are documented below.
 
 **Deployment decision:** keep GitHub Actions + Cloudflare Workers/Static Assets + R2 + Supabase. Do not migrate to Vercel or add Redis/Kubernetes without evidence that the present platform is the bottleneck.
 
@@ -20,7 +20,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | robots.txt / Googlebot access | **Present** | `public/robots.txt` allows crawling and advertises the sitemap. Private/admin URLs are intentionally marked `noindex` by response headers; do not remove those directives globally. Production edge/DNS behavior still needs live verification. |
 | Remove `noindex` | **Intentional exceptions** | Public routes should be indexable; admin, profile, membership, community and error routes should stay out of indexes. A blanket removal would be a security/privacy regression. |
 | Redirect chains | **Partial** | Worker code canonicalizes HTTP and the bare domain to HTTPS + `www` in one 301. Redirects configured outside this Worker (DNS/Cloudflare rules/other paths) have not been crawled end-to-end. |
-| Correct 404s | **Implemented; Build and CodeQL passed at code commit `045a2df`; live verification remains open** | Unknown SPA routes already return 404. The PR makes a syntactically valid chapter URL return a real 404 when published-chapter metadata confirms it does not exist, instead of serving a soft 404. Metadata-fetch outages remain fail-open so a temporary backend outage does not masquerade as a confirmed missing chapter. |
+| Correct 404s | **Implemented; Build and CodeQL passed at code commit `6491e22`; live verification remains open** | Unknown SPA routes already return 404. The PR makes a syntactically valid chapter URL return a real 404 when published-chapter metadata confirms it does not exist, instead of serving a soft 404. Metadata-fetch outages remain fail-open so a temporary backend outage does not masquerade as a confirmed missing chapter. |
 | Canonical tags | **Present** | Base HTML and Worker/React routing set canonical URLs; chapter and language variants add language alternates. Need a live crawl to find any conflicting query-string or edge rule cases. |
 | Optimized descriptions | **Present / review periodically** | Static routes and chapter pages have route-specific metadata. Search snippets and duplicate descriptions have not been checked against a current full crawl. |
 | One H1 per page | **Partial** | Reviewed About page uses one page-level H1. No automated DOM audit covering every conditional route and modal was run. |
@@ -50,7 +50,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | File upload safety | **Partial** | Upload extension/MIME allowlists and size caps exist, with a dedicated media Worker. Server-side file-signature validation, decompression-bomb handling and abuse tests for every upload path are not proven by this audit. |
 | SQL/NoSQL injection | **Partial** | Supabase query-builder calls and parameter binding are used in examined paths. A complete search for raw SQL, dynamic identifiers and unsafe query construction remains outstanding. |
 | Login/signup rate limits | **Partial** | Server-side rate-limit RPCs and endpoint limits exist in the repo, including several public/write flows. Deployed limits for every login/signup/auth recovery endpoint need confirmation. |
-| Git history secret scan | **Automated scan configured; first full-history run pending** | .github/workflows/secret-scan.yml uses Gitleaks with fetch-depth: 0 on pull requests, main pushes, manual runs and a weekly schedule. Review its first result. Rotate any confirmed exposed credential; deleting a secret from current source alone does not invalidate its historical copies. |
+| Git history secret scan | **Full-history scan passed; ongoing CI guard added** | Gitleaks v8.30.1 scanned 2,085 commits reachable from origin/main. Seven generic-api-key matches were checked: Supabase sb_publishable_ public client keys and the localStorage attribution-key label, not private credentials. Only their exact fingerprints are allowlisted. The PR-commit scan and full-main-history scan both passed on code commit 6491e22. Re-review any new findings and rotate any genuinely exposed credential. |
 | Security headers / CORS | **Present / hardening gap** | Worker and static header rules define CSP, HSTS, nosniff, referrer, frame and permissions policies. CSP still allows inline styles, likely needed by existing UI; tighten only with regression testing. Edge functions have explicit origin allowlists, but every Worker/function should be checked for consistent deny behavior. |
 | Untrusted-user simulation | **Partial / follow-up** | Static regression checks and CodeQL exist. A live authorization/IDOR/rate-limit/file-upload/CORS test suite has not been executed as an untrusted user. |
 | Complete security simulation | **Not complete** | No claim of a full penetration test. Use a staging project with two accounts, normal user, moderator and admin roles, expired sessions, invalid uploads and rate-limit assertions. |
@@ -104,13 +104,13 @@ The listed slash commands are prompt/workflow conventions for an AI assistant, n
 - Site-level scroll progress indicator and a floating public contact link.
 - More static regression checks for these requirements.
 
-The implementation changes were validated by successful Build and CodeQL workflows at code commit `045a2df` on 19 October 2026. Additional edits require fresh checks. PR #89 remains draft and unmerged; no production deployment of these changes is claimed.
+The code changes were validated by successful Build, CodeQL and Gitleaks workflows at commit `6491e22` on 19 October 2026. The full-history scan covered 2,085 commits reachable from main. This report-only update requires fresh workflow runs; PR #89 remains draft and unmerged, and no production deployment is claimed.
 
 ## Release gates
 
-1. Build and CodeQL passed for code commit `045a2df` on 19 October 2026. Reverify both on the final PR head before merge.
+1. Build, CodeQL and Gitleaks passed for code commit `6491e22` on 19 October 2026. Reverify all three on the final PR head before merge.
 2. Review/merge only after checking the diff and runtime behavior (especially consent UI, route handling, print CSS and chapter 404s).
 3. Test the merged deployment using Google Search Console URL Inspection, sitemap status, a crawl of public routes, Lighthouse mobile/desktop and the live response headers.
-4. Review the first full-history Gitleaks scan; rotate any confirmed exposed credentials, then run live authorization/IDOR/upload/rate-limit tests.
+4. Keep the history-aware Gitleaks job green and rotate any genuinely exposed credentials; then run live authorization/IDOR/upload/rate-limit tests.
 5. Run load tests on a non-production staging environment only.
 
