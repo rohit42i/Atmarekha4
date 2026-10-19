@@ -62,7 +62,7 @@ Deno.serve(async req => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
     const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
-    if (!["export","delete-request","nomination","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+    if (!["export","delete-request","nomination","delete-nomination","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
 
     if (adminActions.includes(action)) {
       const { data: adminRow, error: adminError } = await admin
@@ -150,6 +150,12 @@ Deno.serve(async req => {
         .select("id,status,requested_at").single();
       if (error) throw error;
       return response({ request: data }, 201, origin);
+    }
+
+    if (action === "delete-nomination") {
+      const { error } = await admin.from("dpdp_nominations").delete().eq("user_id", user.id);
+      if (error) throw error;
+      return response({ deleted: true }, 200, origin);
     }
 
     if (action === "nomination") {
