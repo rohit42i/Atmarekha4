@@ -68,6 +68,12 @@ export default function InfoPage({ type, onBack }) {
   const page = PAGES[type] || PAGES.about;
   const isAbout = type === 'about';
   return <main className="info-page">
+    <nav className="info-breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">{page.title}</li>
+      </ol>
+    </nav>
     <header className="subpage-header info-page-header">
       <button className="back-button" onClick={onBack} aria-label="Back">←</button>
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
