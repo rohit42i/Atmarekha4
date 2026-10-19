@@ -42,6 +42,10 @@ alter table public.dpdp_consent_records enable row level security;
 alter table public.dpdp_deletion_requests enable row level security;
 alter table public.dpdp_nominations enable row level security;
 
+revoke all on public.dpdp_consent_records, public.dpdp_deletion_requests, public.dpdp_nominations from anon;
+grant select on public.dpdp_consent_records, public.dpdp_deletion_requests, public.dpdp_nominations to authenticated;
+grant all on public.dpdp_consent_records, public.dpdp_deletion_requests, public.dpdp_nominations to service_role;
+
 drop policy if exists "Readers can view own consent records" on public.dpdp_consent_records;
 create policy "Readers can view own consent records"
   on public.dpdp_consent_records for select to authenticated
