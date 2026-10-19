@@ -87,7 +87,8 @@ function buildPrompt() {
     <div class="atma-notif-actions">
       <button class="atma-later" data-action="later" type="button">Maybe later</button>
       <button class="atma-enable" data-action="enable" type="button">Turn on notifications</button>
-    </div>`;
+    </div>
+    <p class="atma-notif-error" role="status" aria-live="polite" style="margin:12px 0 0;color:var(--error-color,#b42318);font-size:13px;line-height:1.45" hidden></p>`;
   document.body.appendChild(prompt);
   return prompt;
 }
@@ -106,23 +107,29 @@ function showPrompt() {
   };
   prompt.querySelector('[data-action="enable"]').onclick = async () => {
     const button = prompt.querySelector('[data-action="enable"]');
+    const status = prompt.querySelector('.atma-notif-error');
     button.disabled = true;
     button.textContent = 'Enabling…';
+    status.hidden = true;
+    status.textContent = '';
     try {
-      const result = await window.__atmaRekhaEnableNotifications?.();
-      if (result || Notification.permission === 'granted') {
-        localStorage.setItem(PROMPT_DONE_KEY, '1');
-        prompt.classList.remove('atma-show');
-      } else {
-        button.disabled = false;
-        button.textContent = 'Turn on notifications';
-        rejectPrompt();
+      const enable = window.__atmaRekhaEnableNotifications;
+      if (typeof enable !== 'function') throw new Error('Notification setup is unavailable. Refresh the page and try again.');
+      const result = await enable();
+      if (!result) {
+        throw new Error(Notification.permission === 'denied'
+          ? 'Notifications are blocked for this site. Enable them in your browser settings, then try again.'
+          : 'Permission was not granted. You can try again whenever you are ready.');
       }
+      localStorage.setItem(PROMPT_DONE_KEY, '1');
+      prompt.classList.remove('atma-show');
     } catch (error) {
       console.warn('[Atma Rekha Push Prompt]', error);
+      status.textContent = error?.message || 'Unable to turn on notifications. Please try again.';
+      status.hidden = false;
+    } finally {
       button.disabled = false;
       button.textContent = 'Turn on notifications';
-      if (Notification.permission === 'denied') prompt.classList.remove('atma-show');
     }
   };
 }
