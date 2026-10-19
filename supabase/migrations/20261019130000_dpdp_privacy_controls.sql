@@ -24,6 +24,23 @@ create table if not exists public.dpdp_deletion_requests (
   resolution_note text
 );
 
+-- The production project already has earlier DPDP tables. CREATE TABLE IF NOT EXISTS
+-- does not add columns or revise old constraints, so explicitly reconcile that schema.
+alter table public.dpdp_deletion_requests
+  add column if not exists resolution_note text;
+alter table public.dpdp_deletion_requests
+  alter column user_id drop not null;
+alter table public.dpdp_deletion_requests
+  drop constraint if exists dpdp_deletion_requests_user_id_fkey;
+alter table public.dpdp_deletion_requests
+  add constraint dpdp_deletion_requests_user_id_fkey
+  foreign key (user_id) references auth.users(id) on delete set null;
+alter table public.dpdp_deletion_requests
+  drop constraint if exists dpdp_deletion_requests_status_check;
+alter table public.dpdp_deletion_requests
+  add constraint dpdp_deletion_requests_status_check
+  check (status in ('pending', 'processing', 'resolved', 'completed', 'rejected'));
+
 create unique index if not exists dpdp_one_open_deletion_request_per_user
   on public.dpdp_deletion_requests (user_id)
   where user_id is not null and status in ('pending', 'processing');
