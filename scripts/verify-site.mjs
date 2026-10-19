@@ -40,7 +40,7 @@ const required = [
   ['AdminPanel.jsx', "key: 'Privacy Requests'"],
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export_warnings'],
-  ['supabase/migrations/20261019130000_dpdp_privacy_controls.sql', 'auth_user_record_dpdp_signup_consent'],
+  ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
   ['InfoPage.jsx', 'Effective 19 October 2026.'],
@@ -52,7 +52,7 @@ const required = [
   ['EnhancedComments.jsx', 'communityPostId))load()'],
   ['engagement.js', 'export async function fetchCommunityPostComments'],
   ['engagement.js', 'community_post_id: hasCommunityPost ? communityPostId : null'],
-  ['supabase/migrations/20261019150000_community_post_comments.sql', 'comments_community_post_id_fkey'],
+  ['supabase/migrations/20261019084004_community_post_comments_20261019.sql', 'comments_community_post_id_fkey'],
 
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
