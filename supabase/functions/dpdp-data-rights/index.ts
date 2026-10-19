@@ -61,7 +61,66 @@ Deno.serve(async req => {
     try { body = JSON.parse(rawBody); } catch { return response({ error: "Invalid JSON body." }, 400, origin); }
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
-    if (!["export","delete-request","nomination","withdraw-consent"].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+    const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
+    if (!["export","delete-request","nomination","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+
+    if (adminActions.includes(action)) {
+      const { data: adminRow, error: adminError } = await admin
+        .from("admins").select("role").eq("user_id", user.id).maybeSingle();
+      if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role))) {
+        return response({ error: "Admin access required." }, 403, origin);
+      }
+
+      if (action === "admin-list-deletion-requests") {
+        const { data: requests, error } = await admin
+          .from("dpdp_deletion_requests")
+          .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
+          .order("requested_at", { ascending: false })
+          .limit(100);
+        if (error) throw error;
+        const enriched = await Promise.all((requests || []).map(async request => {
+          if (!request.user_id) return { ...request, requester_email: null };
+          const { data: authData } = await admin.auth.admin.getUserById(request.user_id);
+          return { ...request, requester_email: authData?.user?.email || null };
+        }));
+        return response({ requests: enriched }, 200, origin);
+      }
+
+      const requestId = clean(body?.request_id, 80);
+      const nextStatus = clean(body?.status, 20);
+      const note = clean(body?.resolution_note, 1000);
+      if (!requestId || !["processing", "resolved", "rejected"].includes(nextStatus)) {
+        return response({ error: "A valid request ID and status are required." }, 400, origin);
+      }
+      if ((nextStatus === "resolved" || nextStatus === "rejected") && note.length < 10) {
+        return response({ error: "Add a resolution note of at least 10 characters." }, 400, origin);
+      }
+      if (nextStatus === "resolved" && body?.confirmed_erasure !== true) {
+        return response({ error: "Confirm that erasure was completed and legally required records were reviewed." }, 400, origin);
+      }
+      const { data: current, error: currentError } = await admin
+        .from("dpdp_deletion_requests").select("id,status")
+        .eq("id", requestId).maybeSingle();
+      if (currentError) throw currentError;
+      if (!current) return response({ error: "Deletion request not found." }, 404, origin);
+      const validTransition = nextStatus === "processing"
+        ? current.status === "pending"
+        : current.status === "processing";
+      if (!validTransition) return response({ error: "This request status has already changed. Refresh the queue and try again." }, 409, origin);
+      const { data: updated, error: updateError } = await admin
+        .from("dpdp_deletion_requests")
+        .update({
+          status: nextStatus,
+          resolution_note: note || null,
+          resolved_at: nextStatus === "processing" ? null : new Date().toISOString(),
+          resolved_by: user.id,
+        })
+        .eq("id", requestId)
+        .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
+        .single();
+      if (updateError) throw updateError;
+      return response({ request: updated }, 200, origin);
+    }
 
     if (action === "withdraw-consent") {
       const policyVersion = clean(body?.policy_version, 80);
