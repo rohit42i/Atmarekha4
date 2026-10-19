@@ -16,9 +16,8 @@ const PAGES = {
     story: [
       'I’m Arkesh, the solo creator of Atma Rekha, an original Indian fantasy adventure manga about people, traditions, and powers connected by a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
       'I create the series independently and publish it first in Roman Hindi. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
-      'I use AI tools in parts of the visual process, including exploring references and creating or developing some backgrounds and other visual elements. The amount of AI assistance varies from page to page and from scene to scene.',
-      'I choose the material that fits each scene and refine or combine it while building the pages with digital drawing and editing tools. Some elements are drawn or adjusted manually, while others may use AI generated material. I do not present the manga as entirely hand drawn or entirely made with AI.',
-      'The story, characters, worldbuilding, dialogue, and creative direction are developed by me for Atma Rekha. AI tools can help with parts of production, but they do not decide the story or replace my creative decisions. I review the finished pages before publishing them.',
+      'Every scene and panel begins with my own rough drawings and design decisions. I determine composition, poses, camera angles, perspective, proportions, shapes, and character placement. I use AI tools in parts of the visual process, including exploring references and developing some backgrounds and other visual elements. The amount of AI assistance varies from page to page and scene to scene.',
+      'I choose and refine material using digital drawing and editing tools. Some elements are drawn or adjusted manually, while others may use AI generated material as a visual aid or background reference. I retain creative control over the story, character designs, panel composition, and final artistic decisions, and review the pages before publication.',
     ],
   },
   contact: {
