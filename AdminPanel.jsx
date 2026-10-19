@@ -450,7 +450,7 @@ export default function AdminPanel({ onLogout }) {
       let notificationText = '';
       if (String(form.status).toLowerCase() === 'published' && String(editing?.status || '').toLowerCase() !== 'published') {
         const { data: notification, error: notificationError } = await supabase.functions.invoke('send-reader-event-notification', { body: { eventType: 'new_chapters', eventId: chapterId } });
-        notificationText = notificationError || !notification?.ok ? ' Chapter saved, but reader notifications could not be sent.' : ` ${notification.sent || 0} readers notified.`;
+        notificationText = notificationError || !notification?.ok ? ' Chapter saved, but notification delivery could not be confirmed.' : ` Email: ${Number(notification.emailSent || 0)} sent${notification.emailFailed ? `, ${Number(notification.emailFailed)} failed` : ''}; push: ${Number(notification.sent || 0)} sent.`;
       }
       resetForm();
       await load();
