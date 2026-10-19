@@ -32,3 +32,6 @@
 :root[data-theme="dark"] .more-page-notification-settings{background:#090909;color:#fff;border-color:#292929}
 :root[data-theme="light"] .more-page-notification-settings{background:#fff;color:#111;border-color:#deded9}
 @media(max-width:520px){.more-page-notification-settings{padding:14px}.more-page-pref-row{gap:10px}.more-page-settings-actions button{flex:1}}
+
+.more-page-pref-row select{max-width:150px;min-height:38px;padding:0 9px;border:1px solid var(--border-color);border-radius:8px;background:var(--surface-2-color);color:var(--text-color);font:inherit;font-size:12px}
+.more-page-pref-row select:focus-visible{outline:2px solid var(--accent-color);outline-offset:2px}
