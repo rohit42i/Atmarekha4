@@ -30,6 +30,8 @@ const required = [
   ['notification-prompt.js', "atma-notification-dont-show-again"],
   ['notification-prompt.js', "Don't show this again"],
   ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin + \'/#profile\''],
+  ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-19'"],
+  ['supabase/functions/dpdp-data-rights/index.ts', 'if (existingError) throw existingError;'],
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
   ['PrivacyCenter.jsx', 'Deletion requests are queued for review'],
   ['PrivacyCenter.jsx', "deletion?.status === 'pending' || deletion?.status === 'processing'"],
