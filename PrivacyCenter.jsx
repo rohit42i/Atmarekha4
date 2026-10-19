@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 
-const PRIVACY_VERSION = '2026-10-19';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
 function backHome() {
@@ -16,10 +15,6 @@ function openProfile() {
 function requestByEmail(subject, body = '') {
   const url = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(subject) + (body ? '&body=' + encodeURIComponent(body) : '');
   window.location.href = url;
-}
-
-function PolicySection({ heading, children }) {
-  return <article className="privacy-policy-section"><h2>{heading}</h2><p>{children}</p></article>;
 }
 
 function PolicySection({ heading, children }) {
@@ -137,7 +132,7 @@ export default function PrivacyCenter() {
 
   return <main className="privacy-center">
     <section className="privacy-hero">
-      <p className="section-eyebrow">LEGAL · PRIVACY</p>
+      
       <h1>Privacy</h1>
       <p>We collect only the information needed to run Atma Rekha, manage reader accounts and memberships, and keep the site working safely.</p>
       <p className="privacy-version">Last updated: 19 October 2026</p>
@@ -191,10 +186,6 @@ export default function PrivacyCenter() {
       <p className="privacy-small-note">Requests sent by email are handled through support and may require additional identity verification before action.</p>
     </section>}
 
-    <section className="privacy-policy-card">
-      <PolicySection heading="Changes to this notice">We may update this notice when Atma Rekha, its data practices or applicable requirements change. The current version and effective date are shown at the top of this page.</PolicySection>
-      
-    </section>
 
     {!user && <section className="privacy-center-card">
       <h2>Manage your personal data</h2>
