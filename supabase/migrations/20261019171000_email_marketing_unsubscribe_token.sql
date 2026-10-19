@@ -1,0 +1,2 @@
+alter table public.email_marketing_preferences add column if not exists unsubscribe_token uuid not null default gen_random_uuid();
+create unique index if not exists email_marketing_preferences_unsubscribe_token_idx on public.email_marketing_preferences(unsubscribe_token);
