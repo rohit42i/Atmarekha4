@@ -78,7 +78,7 @@ export default function ProfileV2() {
     if (emailChanged) {
       const { error: emailError } = await supabase.auth.updateUser(
         { email: nextEmail },
-        { emailRedirectTo: window.location.origin + '/#profile' }
+        { emailRedirectTo: window.location.origin }
       );
       if (emailError) {
         setEmail(user.email || '');
@@ -86,7 +86,7 @@ export default function ProfileV2() {
         setMessage('');
       } else {
         setEmail(nextEmail);
-        setMessage(`Profile saved. A confirmation email may be sent to ${nextEmail}; your sign-in email changes only after you complete the required confirmation.`);
+        setMessage(`Profile saved. Supabase may send confirmation links to your old and new addresses. Complete the requested confirmations; your sign-in email changes only after confirmation. Then reopen Profile to verify it.`);
       }
     } else {
       setMessage('Profile saved.');
