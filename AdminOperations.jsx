@@ -26,7 +26,8 @@ export default function AdminOperations() {
   const [subscriberCount, setSubscriberCount] = useState(0), [today, setToday] = useState({ views: 0, readers: 0, likes: 0 });
   const [selectedChapter, setSelectedChapter] = useState(null), [previewPages, setPreviewPages] = useState([]), [previewLoading, setPreviewLoading] = useState(false);
   const [title, setTitle] = useState(''), [body, setBody] = useState(''), [target, setTarget] = useState('all'), [selectedUser, setSelectedUser] = useState(''), [notificationType, setNotificationType] = useState('announcements');
-  const [busy, setBusy] = useState(false), [notice, setNotice] = useState('');\n  const [accessTest, setAccessTest] = useState({ series: 'atma', chapter: '9', plan: 'free', role: 'reader' });
+  const [busy, setBusy] = useState(false), [notice, setNotice] = useState('');
+  const [accessTest, setAccessTest] = useState({ series: 'atma', chapter: '9', plan: 'free', role: 'reader' });
 
   useEffect(() => { const handler = () => { setOpen(true); }; window.addEventListener('atma-admin-open-operations', handler); return () => window.removeEventListener('atma-admin-open-operations', handler); }, [isAdmin]);
 
