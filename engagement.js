@@ -136,8 +136,16 @@ export async function fetchChapterComments(chapterId) {
 
 export async function fetchAnnouncementComments(announcementId) {
   const { data, error } = await supabase.from('comments')
-    .select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id')
+    .select('id,user_id,chapter_id,announcement_id,community_post_id,author_name,content,created_at,updated_at,parent_comment_id')
     .eq('announcement_id', announcementId).order('created_at', { ascending: true }).limit(500);
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchCommunityPostComments(communityPostId) {
+  const { data, error } = await supabase.from('comments')
+    .select('id,user_id,chapter_id,announcement_id,community_post_id,author_name,content,created_at,updated_at,parent_comment_id')
+    .eq('community_post_id', communityPostId).order('created_at', { ascending: true }).limit(500);
   if (error) throw error;
   return data || [];
 }
@@ -227,11 +235,12 @@ async function getAccountUsername(user) {
   return accountName || 'Reader';
 }
 
-export async function addComment({ chapterId = null, announcementId = null, content, parentCommentId = null }) {
+export async function addComment({ chapterId = null, announcementId = null, communityPostId = null, content, parentCommentId = null }) {
   const user = await requireUser();
   const hasChapter = Boolean(chapterId);
   const hasAnnouncement = Boolean(announcementId);
-  if (hasChapter === hasAnnouncement) throw new Error('Choose exactly one comment destination.');
+  const hasCommunityPost = Boolean(communityPostId);
+  if ([hasChapter, hasAnnouncement, hasCommunityPost].filter(Boolean).length !== 1) throw new Error('Choose exactly one comment destination.');
   const cleanContent = String(content || '').trim();
   if (!cleanContent) throw new Error('Write a comment first.');
   if (cleanContent.length > 2000) throw new Error('Comments are limited to 2000 characters.');
@@ -240,10 +249,11 @@ export async function addComment({ chapterId = null, announcementId = null, cont
     user_id: user.id,
     chapter_id: hasChapter ? chapterId : null,
     announcement_id: hasAnnouncement ? announcementId : null,
+    community_post_id: hasCommunityPost ? communityPostId : null,
     author_name: username,
     content: cleanContent,
     parent_comment_id: parentCommentId,
-  }).select('id,user_id,chapter_id,announcement_id,author_name,content,created_at,updated_at,parent_comment_id').single();
+  }).select('id,user_id,chapter_id,announcement_id,community_post_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
   return data;
 }
