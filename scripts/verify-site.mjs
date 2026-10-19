@@ -29,7 +29,7 @@ const required = [
   ['notification-prompt.js', "localStorage.setItem(SCHEDULE_VERSION_KEY, '2')"],
   ['notification-prompt.js', "atma-notification-dont-show-again"],
   ['notification-prompt.js', "Don't show this again"],
-  ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin + \'/#profile\''],
+  ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin'],
   ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-19'"],
   ['supabase/functions/dpdp-data-rights/index.ts', 'if (existingError) throw existingError;'],
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
