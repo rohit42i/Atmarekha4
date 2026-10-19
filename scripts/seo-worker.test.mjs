@@ -2,6 +2,7 @@ import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../worker.js';
 import { getAnalyticsConsent, hasAnalyticsConsent, setAnalyticsConsent } from '../privacyConsent.js';
+import { getMarketingAttribution } from '../attribution.js';
 
 const originalFetch = globalThis.fetch;
 const originalCaches = globalThis.caches;
@@ -72,6 +73,7 @@ test('analytics stays off until affirmative opt-in and denial clears optional id
 
   assert.equal(getAnalyticsConsent(), null);
   assert.equal(hasAnalyticsConsent(), false);
+  assert.equal(getMarketingAttribution(), null);
   assert.equal(setAnalyticsConsent('granted'), true);
   assert.equal(hasAnalyticsConsent(), true);
   assert.equal(events.at(-1)?.detail?.consent, 'granted');
@@ -82,6 +84,9 @@ test('analytics stays off until affirmative opt-in and denial clears optional id
   assert.equal(values.has('atma-rekha-viewer-key-v1'), false);
   assert.equal(values.has('atma-rekha-view-recorded-v2:chapter-1'), false);
   assert.equal(events.at(-1)?.detail?.consent, 'denied');
+  // Even if an older client version left attribution behind, opt-out must suppress retrieval.
+  values.set('atma-rekha-marketing-attribution-v1', '{"utm_source":"stale"}');
+  assert.equal(getMarketingAttribution(), null);
 });
 
 test('returns HTTP 404 and noindex for a chapter URL confirmed missing by metadata', async () => {
@@ -92,6 +97,8 @@ test('returns HTTP 404 and noindex for a chapter URL confirmed missing by metada
   assert.equal(response.status, 404);
   assert.match(response.headers.get('X-Robots-Tag') || '', /noindex/);
   assert.match(body, /name="robots" content="noindex,nofollow,noarchive"/);
+  assert.equal(response.headers.get('cache-control'), 'private, no-store, max-age=0');
+  assert.equal(response.headers.get('cdn-cache-control'), null);
 });
 
 test('keeps a published chapter indexable and canonicalized', async () => {
