@@ -33,7 +33,7 @@ const rate=await db.rpc('consume_rate_limit',{p_rate_key:`admin-push:${user.id}`
   const rawBody=await readLimitedBody(req,16*1024);if(rawBody===null)return response(req, {ok:false,error:'Request body is too large.'},413);let body:any;try{body=JSON.parse(rawBody)}catch{return response(req, {ok:false,error:'Invalid JSON body.'},400)}if(!body||typeof body!=='object'||Array.isArray(body))return response(req, {ok:false,error:'Invalid request body.'},400);
   const title=String(body.title||'').trim(), message=String(body.body||'').trim(), target=String(body.target||'all').trim(), dedupeKey=body.dedupeKey?String(body.dedupeKey).trim():null;
   const notificationType=String(body.notificationType||'announcements').trim();
-  const allowedTypes=new Set(['new_chapters','comments_replies','group_chat','community_posts','announcements','membership_account']);
+  const allowedTypes=new Set(['new_chapters','comments_replies','group_chat','community_posts','announcements','membership_account','other_updates']);
   if(!allowedTypes.has(notificationType)) return response(req, {ok:false,error:'Invalid notification category.'},422);
   if(!title||!message) return response(req, {ok:false,error:'Notification title and message are required.'},422);
   if(title.length>160||message.length>1000) return response(req, {ok:false,error:'Notification title or message is too long.'},422);
