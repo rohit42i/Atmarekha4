@@ -326,7 +326,7 @@ Deno.serve(async req => {
               } else preference = inserted.data;
             }
             if (preference?.marketing_unsubscribed) return { ok: false, skipped: true, error: "Marketing opt-out" };
-            unsubscribeUrl = SITE_URL.replace(/\/$/, "") + "/functions/v1/email-unsubscribe?token=" + preference.unsubscribe_token;
+            unsubscribeUrl = url.replace(/\/$/, "") + "/functions/v1/email-unsubscribe?token=" + preference.unsubscribe_token;
           }
 
           const plainVars: Record<string, string> = {
