@@ -2,6 +2,8 @@ import React from 'react';
 
 export function AdminIcon({name,size=18,strokeWidth=1.8,className=''}) {
   const paths = {
+    sun:<><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></>,
+    moon:<path d="M20.7 14.1A8.5 8.5 0 0 1 9.9 3.3 8.6 8.6 0 1 0 20.7 14.1Z"/>,
     grid:<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
     book:<><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v12H7a2 2 0 0 1-2-2z"/><path d="M7 4.5v14.5M9 8h7M9 11h7"/></>,
     layers:<><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></>,
