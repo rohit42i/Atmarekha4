@@ -153,6 +153,45 @@ function ServiceWorkerManager() {
   return null;
 }
 
+function PageScrollProgress() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const root = document.documentElement;
+        const distance = Math.max(0, root.scrollHeight - window.innerHeight);
+        const next = distance > 0 ? Math.round((window.scrollY / distance) * 1000) / 10 : 0;
+        setProgress(current => current === next ? current : next);
+      });
+    };
+
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('popstate', update);
+    const observer = typeof ResizeObserver !== 'undefined' && document.body
+      ? new ResizeObserver(update)
+      : null;
+    observer?.observe(document.body);
+    update();
+
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+      window.removeEventListener('popstate', update);
+      observer?.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return <div className="site-scroll-progress" aria-hidden="true">
+    <span style={{ transform: `scaleX(${progress / 100})` }} />
+  </div>;
+}
+
 export default function SiteRuntime() {
-  return <><ToastHost/><BackToTop/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
+  return <><PageScrollProgress/><ToastHost/><BackToTop/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
 }
