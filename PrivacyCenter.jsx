@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 
-const PRIVACY_VERSION = '2026-10-07';
+const PRIVACY_VERSION = '2026-10-19';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
 function backHome() {
@@ -65,7 +65,7 @@ export default function PrivacyCenter() {
       ]);
       if (consentError) throw new Error('Unable to load consent records: ' + consentError.message);
       if (deletionError) throw new Error('Unable to load deletion request status: ' + deletionError.message);
-      setConsent(consentRows?.[0] || null);
+      setConsent(consentRows?.find(row => !row.withdrawn_at) || consentRows?.[0] || null);
       setDeletion(deletionRows?.[0] || null);
     } catch (err) {
       setError(err?.message || 'Unable to load privacy controls.');
@@ -112,13 +112,20 @@ export default function PrivacyCenter() {
     setMessage(Array.isArray(data.export_warnings) && data.export_warnings.length
       ? 'Your export was downloaded, but some categories could not be retrieved. Contact support for a complete review.'
       : 'Your available account data export has been downloaded.');
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'atma-rekha-my-data.json';
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'atma-rekha-my-data.json';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (err) {
+      setError(err?.message || 'Your data was retrieved, but the download could not be started. Please try again.');
+    }
   };
 
   const withdrawConsent = async () => {
@@ -144,8 +151,8 @@ export default function PrivacyCenter() {
       <p className="section-eyebrow">LEGAL · PRIVACY</p>
       <h1>Privacy</h1>
       <p>Atma Rekha respects the privacy of readers worldwide. This notice explains what personal data we collect, why we use it, how we protect it, when it may be shared, and the controls available to you.</p>
-      <p className="privacy-applicability"><strong>Applicable laws:</strong> Depending on where you live and how you interact with Atma Rekha, different privacy laws may apply.</p>
-      <p className="privacy-version">Last updated: 7 October 2026 · Privacy notice version {PRIVACY_VERSION}</p>
+      <p className="privacy-applicability"><strong>India:</strong> This notice is prepared with reference to the Digital Personal Data Protection Act, 2023 and the Digital Personal Data Protection Rules, 2025, as their provisions commence, and other applicable Indian consumer and information-technology laws. Rights and obligations may take effect on different dates under the notified phased timeline.</p>
+      <p className="privacy-version">Last updated: 19 October 2026 · Privacy notice version {PRIVACY_VERSION}</p>
     </section>
 
     <section className="privacy-policy-card">
