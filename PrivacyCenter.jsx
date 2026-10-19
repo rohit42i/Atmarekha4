@@ -129,7 +129,7 @@ export default function PrivacyCenter() {
     const data = await runAction('export', 'Preparing your available account data export…');
     if (!data) return;
     setMessage(Array.isArray(data.export_warnings) && data.export_warnings.length
-      ? 'Your export was downloaded, but some categories could not be retrieved. Contact support for a complete review.'
+      ? 'Your export was downloaded, but some categories may be incomplete or could not be retrieved. Check export_warnings in the file and contact support for a complete review.'
       : 'Your available account data export has been downloaded.');
     try {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
