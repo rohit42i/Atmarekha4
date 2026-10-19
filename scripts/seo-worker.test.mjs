@@ -20,7 +20,7 @@ function mockRuntime(chapters = []) {
   };
 
   globalThis.fetch = async input => {
-    const url = new URL(typeof input === 'string' ? input : input.url);
+    const url = input instanceof URL ? input : new URL(typeof input === 'string' ? input : input.url);
     if (url.pathname === '/rest/v1/chapters') {
       return new Response(JSON.stringify(chapters), {
         status: 200,
