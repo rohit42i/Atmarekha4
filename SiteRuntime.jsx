@@ -198,8 +198,8 @@ function FloatingContact() {
   useEffect(() => {
     const update = () => {
       const path = window.location.pathname;
-      const privateRoute = /^\\/(?:admin|profile|membership|group-chat|community)(?:\\/|$)/i.test(path);
-      const privateHash = /^#(?:profile|membership|group-chat|community)(?:\\/|$)/i.test(window.location.hash);
+      const privateRoute = /^\/(?:admin|profile|membership|group-chat|community)(?:\/|$)/i.test(path);
+      const privateHash = /^#(?:admin|profile|membership|group-chat|community)(?:\/|$)/i.test(window.location.hash);
       const excludedSurface = Boolean(document.querySelector('.reader-page, .profile-v2-overlay, .admin-panel, .admin-control-room'));
       const contactPage = path.replace(/\\/+$/, '') === '/info/contact'
         || window.location.hash.replace(/^#/, '') === 'info/contact';
