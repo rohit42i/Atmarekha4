@@ -29,6 +29,15 @@ const required = [
   ['scripts/generate-sitemap.mjs', 'xmlns:image'],
   ['public/_headers', '/profile*'],
   ['public/_headers', 'X-Robots-Tag: noindex, nofollow, noarchive'],
+  ['public/_headers', '/sw.js'],
+  ['.gitignore', '.env*'],
+  ['worker.js', 'finalStatus = 404'],
+  ['worker.js', '"@type": "FAQPage"'],
+  ['App.jsx', "'@type': 'FAQPage'"],
+  ['InfoPage.jsx', 'Frequently asked questions'],
+  ['siteFaqs.js', 'ATMA_REKHA_FAQS'],
+  ['main.jsx', "import './print.css';"],
+  ['print.css', '@media print'],
 ];
 
 const forbidden = [
