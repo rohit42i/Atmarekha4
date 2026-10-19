@@ -201,7 +201,12 @@ Deno.serve(async req => {
         } else {
           const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
           if (error) exportWarnings.push(`${table}: ${error.message}`);
-          else (output.tables as Record<string, unknown>)[table] = data || [];
+          else {
+            (output.tables as Record<string, unknown>)[table] = data || [];
+            if ((data || []).length >= 5000) {
+              exportWarnings.push(`${table}: export reached the 5,000-row safety limit; this category may be incomplete.`);
+            }
+          }
         }
       } catch (error) {
         exportWarnings.push(`${table}: ${error instanceof Error ? error.message : "unknown retrieval error"}`);
