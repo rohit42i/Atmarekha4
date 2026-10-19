@@ -25,7 +25,7 @@ const required = [
   ['public/robots.txt', 'User-agent: OAI-SearchBot'],
   ['public/robots.txt', 'User-agent: GPTBot'],
   ['public/robots.txt', 'User-agent: OAI-SearchBot\nAllow: /'],
-  ['public/robots.txt', 'User-agent: GPTBot\nDisallow: /'],
+  ['public/robots.txt', 'User-agent: GPTBot\nAllow: /'],
   ['App.jsx', 'original Indian fantasy manga and comic by Arkesh'],
   ['public/llms.txt', 'AI-assisted manga project'],
   ['index.html', 'Indian webcomic'],
