@@ -33,7 +33,7 @@ const required = [
   ['AdminOperations.jsx', 'PUBLISHING CALENDAR'],
   ['AdminOperations.jsx', 'Access simulator'],
   ['AdminOperations.jsx', 'SUSPICIOUS ACTIVITY'],
-  ['AdminOperations.jsx', 'Email delivery'],
+  ['AdminOperations.jsx', 'Email send monitor'],
   ['AdminManagementTools.jsx', 'Joined in last 30 days'],
   ['AdminChapterHealth.jsx', 'function probeImage(url)'],
   ['AdminChapterHealth.jsx', 'View failed image URLs'],
