@@ -31,8 +31,24 @@ function cors(origin: string | null) {
 function json(body: Record<string, unknown>, status: number, origin: string | null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors(origin), "Content-Type": "application/json" },
+    headers: { ...cors(origin), "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
+}
+
+async function collectAuthUsers(admin: any, wantedIds: Set<string>): Promise<Map<string, any>> {
+  const found = new Map<string, any>();
+  let page = 1;
+  while (page <= 20 && found.size < wantedIds.size) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const pageUsers = data?.users || [];
+    for (const authUser of pageUsers) {
+      if (wantedIds.has(authUser.id)) found.set(authUser.id, authUser);
+    }
+    if (pageUsers.length < 1000) break;
+    page += 1;
+  }
+  return found;
 }
 
 Deno.serve(async (req) => {
@@ -80,8 +96,109 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users"].includes(action)) {
+    if (!["analytics", "membership", "users", "email_change_requests"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
+    }
+
+    if (action === "email_change_requests") {
+      const { data: requestRows, error: requestError } = await admin
+        .from("email_change_requests")
+        .select("id,user_id,current_email,requested_email,status,requested_at,verified_at,closed_at,last_admin_resend_at,last_admin_resend_by,resend_count")
+        .order("requested_at", { ascending: false })
+        .limit(100);
+      if (requestError) throw requestError;
+
+      const rows = requestRows || [];
+      const wantedIds = new Set(rows.map((row: any) => row.user_id).filter(Boolean));
+      const authById = await collectAuthUsers(admin, wantedIds);
+      const reconciled = await Promise.all(rows.map(async (request: any) => {
+        if (request.status !== "pending") return request;
+        if (!request.user_id) {
+          const { data: updated, error: updateError } = await admin
+            .from("email_change_requests")
+            .update({ status: "cancelled", closed_at: new Date().toISOString() })
+            .eq("id", request.id)
+            .eq("status", "pending")
+            .select("id,user_id,current_email,requested_email,status,requested_at,verified_at,closed_at,last_admin_resend_at,last_admin_resend_by,resend_count")
+            .maybeSingle();
+          if (updateError) throw updateError;
+          if (updated) {
+            const { error: eventError } = await admin.from("email_change_request_events").insert({
+              request_id: request.id, user_id: null, actor_user_id: user.id,
+              event_type: "cancelled", details: { reason: "account_unavailable" },
+            });
+            if (eventError) throw eventError;
+          }
+          return updated || request;
+        }
+
+        const authUser = authById.get(request.user_id);
+        if (!authUser) return request;
+        const currentEmail = String(authUser.email || "").trim().toLowerCase();
+        const pendingEmail = String(authUser.new_email || "").trim().toLowerCase();
+        const targetEmail = String(request.requested_email || "").trim().toLowerCase();
+        let nextStatus: string | null = null;
+        let reason = "";
+        if (!pendingEmail && currentEmail === targetEmail) {
+          nextStatus = "verified";
+          reason = "auth_email_matches_requested_address";
+        } else if (pendingEmail && pendingEmail !== targetEmail) {
+          nextStatus = "superseded";
+          reason = "a_different_email_change_is_pending";
+        } else if (!pendingEmail && currentEmail !== targetEmail) {
+          nextStatus = "cancelled";
+          reason = "auth_no_longer_has_this_pending_change";
+        }
+        if (!nextStatus) return request;
+
+        const now = new Date().toISOString();
+        const patch: Record<string, unknown> = {
+          status: nextStatus,
+          closed_at: now,
+          ...(nextStatus === "verified" ? { verified_at: now } : {}),
+        };
+        const { data: updated, error: updateError } = await admin
+          .from("email_change_requests")
+          .update(patch)
+          .eq("id", request.id)
+          .eq("status", "pending")
+          .select("id,user_id,current_email,requested_email,status,requested_at,verified_at,closed_at,last_admin_resend_at,last_admin_resend_by,resend_count")
+          .maybeSingle();
+        if (updateError) throw updateError;
+        if (updated) {
+          const { error: eventError } = await admin.from("email_change_request_events").insert({
+            request_id: request.id, user_id: request.user_id, actor_user_id: user.id,
+            event_type: nextStatus, details: { reason },
+          });
+          if (eventError) throw eventError;
+        }
+        return updated || request;
+      }));
+
+      const requestIds = reconciled.map((request: any) => request.id).filter(Boolean);
+      let eventRows: any[] = [];
+      if (requestIds.length) {
+        const { data, error } = await admin
+          .from("email_change_request_events")
+          .select("id,request_id,event_type,actor_user_id,details,created_at")
+          .in("request_id", requestIds)
+          .order("created_at", { ascending: false })
+          .limit(500);
+        if (error) throw error;
+        eventRows = data || [];
+      }
+      const eventsByRequest = new Map<string, any[]>();
+      for (const event of eventRows) {
+        const list = eventsByRequest.get(event.request_id) || [];
+        list.push(event);
+        eventsByRequest.set(event.request_id, list);
+      }
+      return json({
+        requests: reconciled.map((request: any) => ({
+          ...request,
+          events: eventsByRequest.get(request.id) || [],
+        })),
+      }, 200, origin);
     }
 
     if (action === "analytics") {
@@ -123,21 +240,37 @@ Deno.serve(async (req) => {
       avatars = Object.fromEntries((profileRows || []).map((row) => [row.id, row.avatar_url || null]));
     }
 
+    const authById = await collectAuthUsers(admin, new Set(ids));
     return json({
-      users: rows.map((row) => ({
-        id: row.user_id,
-        username: row.username,
-        display_name: row.display_name,
-        email: row.email,
-        avatar_url: avatars[row.user_id] || null,
-        created_at: row.joined_at,
-        subscription_status: row.subscription_status,
-        plan_id: row.plan_id,
-        plan_name: row.plan_name,
-        plan_amount_inr: row.plan_amount_inr,
-        plan_interval: row.plan_interval,
-        current_period_end: row.current_period_end,
-      })),
+      users: rows.map((row) => {
+        const authUser = authById.get(row.user_id);
+        const bannedUntil = authUser?.banned_until ? Date.parse(authUser.banned_until) : NaN;
+        const accountStatus = !authUser
+          ? "unknown"
+          : Number.isFinite(bannedUntil) && bannedUntil > Date.now()
+            ? "suspended"
+            : authUser.email_confirmed_at
+              ? "active"
+              : "unverified";
+        return {
+          id: row.user_id,
+          username: row.username,
+          display_name: row.display_name,
+          email: authUser?.email || row.email,
+          email_confirmed_at: authUser?.email_confirmed_at || null,
+          last_sign_in_at: authUser?.last_sign_in_at || null,
+          new_email: authUser?.new_email || null,
+          account_status: accountStatus,
+          avatar_url: avatars[row.user_id] || null,
+          created_at: row.joined_at,
+          subscription_status: row.subscription_status,
+          plan_id: row.plan_id,
+          plan_name: row.plan_name,
+          plan_amount_inr: row.plan_amount_inr,
+          plan_interval: row.plan_interval,
+          current_period_end: row.current_period_end,
+        };
+      }),
     }, 200, origin);
   } catch (error) {
     console.error("Admin console data failed:", error instanceof Error ? error.message : "unknown error");
