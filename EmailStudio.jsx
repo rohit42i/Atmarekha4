@@ -5,6 +5,16 @@ const SITE_URL = 'https://www.atmarekha.in';
 const initial = { id: '', slug: '', name: '', category: 'transactional', subject: '', html_body: '', text_body: '' };
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const renderPreview = (value, vars) => String(value ?? '').replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_, key) => escapeHtml(vars[key] ?? ''));
+const plainTextToHtml = value => {
+  const normal = String(value ?? '').replace(/\r\n?/g, '\n').trim();
+  if (!normal) return '';
+  return normal.split(/\n{2,}/).map(block => {
+    let safe = escapeHtml(block).replace(/\n/g, '<br>');
+    safe = safe.replace(/Read the chapter:\s*{{\s*chapter_url\s*}}/i, '<a href="{{chapter_url}}" style="color:#174ea6;text-decoration:underline">Read the chapter</a>');
+    safe = safe.replace(/{{\s*(site_url|action_url|chapter_url)\s*}}/g, (_, key) => '<a href="{{' + key + '}}" style="color:#174ea6;text-decoration:underline">{{' + key + '}}</a>');
+    return '<p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#222">' + safe + '</p>';
+  }).filter(Boolean).join('');
+};
 
 export default function EmailStudio() {
   const [templates, setTemplates] = useState([]);
@@ -20,6 +30,7 @@ export default function EmailStudio() {
   const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState(false);
+  const [advancedHtml, setAdvancedHtml] = useState(false);
   const [history, setHistory] = useState([]);
 
   const invoke = async body => {
@@ -78,6 +89,7 @@ export default function EmailStudio() {
     setDraft(found ? { ...found } : initial);
     setChapter({ chapter_number: '', chapter_title: '', chapter_description: '', chapter_url: '' });
     setPreview(false);
+    setAdvancedHtml(false);
     setNotice('');
   };
 
@@ -95,7 +107,7 @@ export default function EmailStudio() {
         name: draft.name,
         category: draft.category,
         subject: draft.subject,
-        html_body: draft.html_body,
+        html_body: isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body,
         text_body: draft.text_body
       });
       setTemplates(previous => {
@@ -131,7 +143,8 @@ export default function EmailStudio() {
     support_message: 'Your support request has been updated.',
     unsubscribe_url: SITE_URL
   };
-  const previewHtml = renderPreview(draft.html_body, previewVars);
+  const htmlBodyForEditor = isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body;
+  const previewHtml = renderPreview(htmlBodyForEditor, previewVars);
   const previewSubject = renderPreview(draft.subject, previewVars);
 
   const targetCount = () => {
@@ -188,7 +201,7 @@ export default function EmailStudio() {
         templateId: draft.id || selectedTemplate || undefined,
         templateSlug: draft.slug,
         subject: draft.subject,
-        html_body: draft.html_body,
+        html_body: isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body,
         text_body: draft.text_body,
         category: draft.category,
         audience: { type: audience, userIds: selectedUsers },
@@ -217,8 +230,8 @@ export default function EmailStudio() {
         <label>Email type<select value={draft.category} onChange={event => setField('category', event.target.value)}><option value="transactional">Transactional</option><option value="marketing">Marketing (opt-outs respected)</option></select></label>
       </div>
       <label style={{ display: 'block', marginTop: 12 }}>Subject<input value={draft.subject} onChange={event => setField('subject', event.target.value)} maxLength={200} placeholder="Email subject" /></label>
-      <label style={{ display: 'block', marginTop: 12 }}>HTML email body<textarea value={draft.html_body} onChange={event => setField('html_body', event.target.value)} rows={9} placeholder="Edit the email HTML. Use the supported variables below." style={{ width: '100%', fontFamily: 'monospace' }} /></label>
-      <label style={{ display: 'block', marginTop: 12 }}>Plain-text version<textarea value={draft.text_body} onChange={event => setField('text_body', event.target.value)} rows={5} placeholder="Edit the text-only version for email apps that do not show HTML." style={{ width: '100%' }} /></label>
+      {(!isChapterTemplate || advancedHtml) && <label style={{ display: 'block', marginTop: 12 }}>HTML email body<textarea value={draft.html_body} onChange={event => setField('html_body', event.target.value)} rows={9} placeholder="Edit the email HTML. Use the supported variables below." style={{ width: '100%', fontFamily: 'monospace' }} /></label>}
+      <label style={{ display: 'block', marginTop: 12 }}>{isChapterTemplate ? 'Email message (editable text)' : 'Plain-text version'}<textarea value={draft.text_body} onChange={event => setField('text_body', event.target.value)} rows={isChapterTemplate ? 9 : 5} placeholder={isChapterTemplate ? 'Write the message in normal text. The email layout is formatted automatically.' : 'Edit the text-only version for email apps that do not show HTML.'} style={{ width: '100%' }} /></label>
       <p className="muted">Variables: <code>{'{{name}}'}</code>, <code>{'{{email}}'}</code>, <code>{'{{site_url}}'}</code>, <code>{'{{action_url}}'}</code>, <code>{'{{chapter_number}}'}</code>, <code>{'{{chapter_title}}'}</code>, <code>{'{{chapter_description}}'}</code>, <code>{'{{chapter_url}}'}</code>.</p>
 
       {isChapterTemplate && <section style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border-color)' }}>
@@ -233,6 +246,7 @@ export default function EmailStudio() {
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
         <button type="button" onClick={() => setPreview(!preview)}>{preview ? 'Hide preview' : 'Preview email'}</button>
+        {isChapterTemplate && <button type="button" onClick={() => setAdvancedHtml(!advancedHtml)}>{advancedHtml ? 'Use editable text' : 'Edit HTML layout'}</button>}
         <button type="button" onClick={saveTemplate} disabled={busy}>{busy ? 'Working…' : 'Save template'}</button>
       </div>
       {preview && <section style={{ marginTop: 14, border: '1px solid var(--border-color)', borderRadius: 12, overflow: 'hidden' }}>
