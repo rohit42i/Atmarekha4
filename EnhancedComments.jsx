@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase, getPublicReaderTiers } from './supabase';
 import SubscriberBadge from './SubscriberBadge.jsx';
-import { fetchChapterComments, fetchAnnouncementComments, fetchCommentLikes, likeComment, unlikeComment, reportComment, addComment } from './engagement';
+import { fetchChapterComments, fetchAnnouncementComments, fetchCommunityPostComments, fetchCommentLikes, likeComment, unlikeComment, reportComment, addComment } from './engagement';
 import { getRenderedChapterId, legacyChapterIdFromHash } from './routes';
 import { fetchPdlplChapterComments, fetchPdlplCommentLikes, likePdlplComment, unlikePdlplComment, reportPdlplComment, addPdlplComment } from './pdlplEngagement';
 
@@ -69,14 +69,27 @@ function getChapterId(button) { const row = button?.closest?.('.chapter-row'); c
 function getAnnouncementId(button) { return button?.closest?.('.home-announcement')?.getAttribute('data-announcement-id') || null; }
 
 export default function EnhancedComments() {
-  const [open,setOpen]=useState(false),[chapterId,setChapterId]=useState(null),[announcementId,setAnnouncementId]=useState(null),[source,setSource]=useState('atma'),[comments,setComments]=useState([]),[profiles,setProfiles]=useState({}),[membershipPlans,setMembershipPlans]=useState(new Map()),[likes,setLikes]=useState({counts:{},liked:{}}),[user,setUser]=useState(null),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[text,setText]=useState(''),[replyTo,setReplyTo]=useState(null),[preview,setPreview]=useState(null),[copied,setCopied]=useState(null),[reporting,setReporting]=useState(null);
+  const [open,setOpen]=useState(false),[chapterId,setChapterId]=useState(null),[announcementId,setAnnouncementId]=useState(null),[communityPostId,setCommunityPostId]=useState(null),[source,setSource]=useState('atma'),[comments,setComments]=useState([]),[profiles,setProfiles]=useState({}),[membershipPlans,setMembershipPlans]=useState(new Map()),[likes,setLikes]=useState({counts:{},liked:{}}),[user,setUser]=useState(null),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[text,setText]=useState(''),[replyTo,setReplyTo]=useState(null),[preview,setPreview]=useState(null),[copied,setCopied]=useState(null),[reporting,setReporting]=useState(null);
   useEffect(()=>{let active=true;supabase.auth.getSession().then(({data})=>{if(active)setUser(data?.session?.user||null)});const {data:listener}=supabase.auth.onAuthStateChange((_e,session)=>setUser(session?.user||null));return()=>{active=false;listener.subscription.unsubscribe()}},[]);
   useEffect(()=>{
+    const openCommunityEvent=event=>{
+      const id=event.detail?.communityPostId;
+      if(!id)return;
+      setSource('community');
+      setAnnouncementId(null);
+      setChapterId(null);
+      setCommunityPostId(String(id));
+      setReplyTo(null);
+      setError('');
+      setOpen(true);
+    };
+    window.addEventListener('atma-open-community-comments',openCommunityEvent);
     const openPdlplEvent=event=>{
       const id=event.detail?.chapterId;
       if(!id)return;
       setSource('pdlpl');
       setAnnouncementId(null);
+      setCommunityPostId(null);
       setChapterId(String(id));
       setOpen(true);
     };
@@ -95,18 +108,20 @@ export default function EnhancedComments() {
       event.stopImmediatePropagation?.();
       setSource(isPdlpl?'pdlpl':'atma');
       setAnnouncementId(announcementIdValue);
+      setCommunityPostId(null);
       setChapterId(id);
       setOpen(true);
     };
     document.addEventListener('click',handler,true);
     return()=>{
       window.removeEventListener('atma-open-pdlpl-comments',openPdlplEvent);
+      window.removeEventListener('atma-open-community-comments',openCommunityEvent);
       document.removeEventListener('click',handler,true);
     };
   },[]);
-  const load=async()=>{if(!chapterId&&!announcementId)return;setLoading(true);setError('');try{const rows=announcementId?await fetchAnnouncementComments(announcementId):source==='pdlpl'?await fetchPdlplChapterComments(chapterId):await fetchChapterComments(chapterId);setComments(rows);const commentIds=rows.map(r=>r.id);try{setLikes(announcementId?await fetchCommentLikes(commentIds):source==='pdlpl'?await fetchPdlplCommentLikes(commentIds):await fetchCommentLikes(commentIds))}catch(likeError){console.warn('Comment likes lookup failed:',likeError);setLikes({counts:{},liked:{}})}const ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];if(user?.id)ids.push(user.id);if(ids.length){const uniqueIds=[...new Set(ids)];const {data,error:e}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,created_at').in('id',uniqueIds);if(e){console.warn('Comment profile lookup failed:',e);setProfiles({})}else setProfiles(Object.fromEntries((data||[]).map(p=>[p.id,p])));try{setMembershipPlans(await getPublicReaderTiers(uniqueIds))}catch(subscriptionError){console.warn('Public membership tier lookup failed:',subscriptionError);setMembershipPlans(new Map())}}else{setProfiles({});setMembershipPlans(new Map())}}catch(e){console.error('Comments load failed:',e);setError(friendlyError(e,'We couldn’t load the comments right now. Please try again.'))}finally{setLoading(false)}};
+  const load=async()=>{if(!chapterId&&!announcementId&&!communityPostId)return;setLoading(true);setError('');try{const rows=communityPostId?await fetchCommunityPostComments(communityPostId):announcementId?await fetchAnnouncementComments(announcementId):source==='pdlpl'?await fetchPdlplChapterComments(chapterId):await fetchChapterComments(chapterId);setComments(rows);const commentIds=rows.map(r=>r.id);try{setLikes(announcementId?await fetchCommentLikes(commentIds):source==='pdlpl'?await fetchPdlplCommentLikes(commentIds):await fetchCommentLikes(commentIds))}catch(likeError){console.warn('Comment likes lookup failed:',likeError);setLikes({counts:{},liked:{}})}const ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];if(user?.id)ids.push(user.id);if(ids.length){const uniqueIds=[...new Set(ids)];const {data,error:e}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,created_at').in('id',uniqueIds);if(e){console.warn('Comment profile lookup failed:',e);setProfiles({})}else setProfiles(Object.fromEntries((data||[]).map(p=>[p.id,p])));try{setMembershipPlans(await getPublicReaderTiers(uniqueIds))}catch(subscriptionError){console.warn('Public membership tier lookup failed:',subscriptionError);setMembershipPlans(new Map())}}else{setProfiles({});setMembershipPlans(new Map())}}catch(e){console.error('Comments load failed:',e);setError(friendlyError(e,'We couldn’t load the comments right now. Please try again.'))}finally{setLoading(false)}};
   useEffect(()=>{if(!open||source!=='pdlpl'||!chapterId)return;const channel=supabase.channel(`pdlpl-comments-${chapterId}`).on('postgres_changes',{event:'*',schema:'public',table:'pdlpl_comments',filter:`chapter_id=eq.${chapterId}`},async payload=>{if(payload.eventType==='INSERT'){setComments(prev=>prev.some(c=>c.id===payload.new.id)?prev:[...prev,payload.new])}else if(payload.eventType==='UPDATE'){setComments(prev=>prev.map(c=>c.id===payload.new.id?payload.new:c))}else if(payload.eventType==='DELETE'){setComments(prev=>prev.filter(c=>c.id!==payload.old.id))}}).subscribe();return()=>{supabase.removeChannel(channel)}},[open,source,chapterId]);
-  useEffect(()=>{if(open&&(chapterId||announcementId))load()},[open,chapterId,announcementId,source,user?.id]);
+  useEffect(()=>{if(open&&(chapterId||announcementId||communityPostId))load()},[open,chapterId,announcementId,communityPostId,source,user?.id]);
   const profilesById = useMemo(() => new Map(Object.entries(profiles)), [profiles]);
   const top=useMemo(
   ()=>sortCommentFeed(comments.filter(c=>!c.parent_comment_id),membershipPlans,likes.counts,profilesById),
@@ -114,7 +129,7 @@ export default function EnhancedComments() {
 ); const child=useMemo(()=>comments.filter(c=>c.parent_comment_id),[comments]); const profile=id=>profiles[id]||null;
   const goProfile=id=>{if(!id)return;setPreview(null);setOpen(false);window.requestAnimationFrame(()=>{window.location.hash=`public-profile/${encodeURIComponent(id)}`})};
   const ensureAuth=()=>{if(user)return true;setError('Please log in to do this action.');window.dispatchEvent(new CustomEvent('atma-open-auth',{detail:{mode:'login'}}));return false};
-  const post=async event=>{event.preventDefault();if(!ensureAuth()||busy)return;const clean=text.trim();if(!clean)return;setBusy(true);setError('');try{const row=source==='pdlpl'?await addPdlplComment({chapterId,content:clean,parentCommentId:replyTo}):await addComment({chapterId: chapterId || null, announcementId: announcementId || null, content:clean,parentCommentId:replyTo});setComments(p=>[...p,row]);setText('');setReplyTo(null)}catch(e){setError(friendlyError(e,'We couldn’t post your comment. Please try again.'))}finally{setBusy(false)}};
+  const post=async event=>{event.preventDefault();if(!ensureAuth()||busy)return;const clean=text.trim();if(!clean)return;setBusy(true);setError('');try{const row=source==='pdlpl'?await addPdlplComment({chapterId,content:clean,parentCommentId:replyTo}):await addComment({chapterId: source==='community'?null:(chapterId||null), announcementId: announcementId || null, communityPostId: communityPostId || null, content:clean,parentCommentId:replyTo});setComments(p=>[...p,row]);setText('');setReplyTo(null)}catch(e){setError(friendlyError(e,'We couldn’t post your comment. Please try again.'))}finally{setBusy(false)}};
   const toggleLike=async comment=>{if(!ensureAuth())return;const liked=!!likes.liked[comment.id];try{if(liked){await (source==='pdlpl'?unlikePdlplComment(comment.id):unlikeComment(comment.id));setLikes(p=>({counts:{...p.counts,[comment.id]:Math.max(0,(p.counts[comment.id]||1)-1)},liked:{...p.liked,[comment.id]:false}}))}else{await (source==='pdlpl'?likePdlplComment(comment.id):likeComment(comment.id));setLikes(p=>({counts:{...p.counts,[comment.id]:(p.counts[comment.id]||0)+1},liked:{...p.liked,[comment.id]:true}}))}}catch(e){setError(friendlyError(e,'We couldn’t update the reaction. Please try again.'))}};
   const copy=async comment=>{try{const shareText=`${comment.content}\n— Atma Rekha Community`;if(navigator.share){await navigator.share({text:shareText})}else{await navigator.clipboard?.writeText(shareText);setCopied(comment.id);setTimeout(()=>setCopied(null),1400)}}catch(e){if(e?.name!=='AbortError')setError('Sharing is unavailable on this device.')}};
   const report=async comment=>{if(reporting===comment.id)return;setReporting(comment.id);try{await (source==='pdlpl'?reportPdlplComment(comment.id):reportComment(comment.id));setError('Thanks. The comment has been reported.')}catch(e){setError(friendlyError(e,'We couldn’t report the comment. Please try again.'))}finally{setReporting(null)}};

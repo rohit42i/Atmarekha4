@@ -61,7 +61,66 @@ Deno.serve(async req => {
     try { body = JSON.parse(rawBody); } catch { return response({ error: "Invalid JSON body." }, 400, origin); }
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
-    if (!["export","delete-request","nomination","withdraw-consent"].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+    const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
+    if (!["export","delete-request","nomination","delete-nomination","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+
+    if (adminActions.includes(action)) {
+      const { data: adminRow, error: adminError } = await admin
+        .from("admins").select("role").eq("user_id", user.id).maybeSingle();
+      if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role))) {
+        return response({ error: "Admin access required." }, 403, origin);
+      }
+
+      if (action === "admin-list-deletion-requests") {
+        const { data: requests, error } = await admin
+          .from("dpdp_deletion_requests")
+          .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
+          .order("requested_at", { ascending: false })
+          .limit(100);
+        if (error) throw error;
+        const enriched = await Promise.all((requests || []).map(async request => {
+          if (!request.user_id) return { ...request, requester_email: null };
+          const { data: authData } = await admin.auth.admin.getUserById(request.user_id);
+          return { ...request, requester_email: authData?.user?.email || null };
+        }));
+        return response({ requests: enriched }, 200, origin);
+      }
+
+      const requestId = clean(body?.request_id, 80);
+      const nextStatus = clean(body?.status, 20);
+      const note = clean(body?.resolution_note, 1000);
+      if (!requestId || !["processing", "resolved", "rejected"].includes(nextStatus)) {
+        return response({ error: "A valid request ID and status are required." }, 400, origin);
+      }
+      if ((nextStatus === "resolved" || nextStatus === "rejected") && note.length < 10) {
+        return response({ error: "Add a resolution note of at least 10 characters." }, 400, origin);
+      }
+      if (nextStatus === "resolved" && body?.confirmed_erasure !== true) {
+        return response({ error: "Confirm that erasure was completed and legally required records were reviewed." }, 400, origin);
+      }
+      const { data: current, error: currentError } = await admin
+        .from("dpdp_deletion_requests").select("id,status")
+        .eq("id", requestId).maybeSingle();
+      if (currentError) throw currentError;
+      if (!current) return response({ error: "Deletion request not found." }, 404, origin);
+      const validTransition = nextStatus === "processing"
+        ? current.status === "pending"
+        : current.status === "processing";
+      if (!validTransition) return response({ error: "This request status has already changed. Refresh the queue and try again." }, 409, origin);
+      const { data: updated, error: updateError } = await admin
+        .from("dpdp_deletion_requests")
+        .update({
+          status: nextStatus,
+          resolution_note: note || null,
+          resolved_at: nextStatus === "processing" ? null : new Date().toISOString(),
+          resolved_by: user.id,
+        })
+        .eq("id", requestId)
+        .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
+        .single();
+      if (updateError) throw updateError;
+      return response({ request: updated }, 200, origin);
+    }
 
     if (action === "withdraw-consent") {
       const policyVersion = clean(body?.policy_version, 80);
@@ -81,15 +140,22 @@ Deno.serve(async req => {
 
     if (action === "delete-request") {
       const reason = clean(body?.reason, 500);
-      const { data: existing } = await admin.from("dpdp_deletion_requests")
+      const { data: existing, error: existingError } = await admin.from("dpdp_deletion_requests")
         .select("id,status,requested_at").eq("user_id", user.id)
         .in("status", ["pending","processing"]).order("requested_at", { ascending: false }).limit(1).maybeSingle();
+      if (existingError) throw existingError;
       if (existing) return response({ request: existing }, 200, origin);
       const { data, error } = await admin.from("dpdp_deletion_requests")
         .insert({ user_id: user.id, reason: reason || null })
         .select("id,status,requested_at").single();
       if (error) throw error;
       return response({ request: data }, 201, origin);
+    }
+
+    if (action === "delete-nomination") {
+      const { error } = await admin.from("dpdp_nominations").delete().eq("user_id", user.id);
+      if (error) throw error;
+      return response({ deleted: true }, 200, origin);
     }
 
     if (action === "nomination") {
@@ -122,29 +188,43 @@ Deno.serve(async req => {
         metadata: user.user_metadata || {},
       },
       tables: {},
+      export_warnings: [],
     };
+    const exportWarnings: string[] = [];
 
     for (const table of USER_TABLES) {
       try {
         if (table === "profiles") {
           const { data, error } = await admin.from(table).select("*").eq("id", user.id);
-          if (!error) (output.tables as Record<string, unknown>)[table] = data || [];
+          if (error) exportWarnings.push(`profiles: ${error.message}`);
+          else (output.tables as Record<string, unknown>)[table] = data || [];
         } else {
           const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
-          if (!error) (output.tables as Record<string, unknown>)[table] = data || [];
+          if (error) exportWarnings.push(`${table}: ${error.message}`);
+          else (output.tables as Record<string, unknown>)[table] = data || [];
         }
-      } catch {}
+      } catch (error) {
+        exportWarnings.push(`${table}: ${error instanceof Error ? error.message : "unknown retrieval error"}`);
+      }
     }
 
-    const [{ data: consents }, { data: requests }, { data: nomination }] = await Promise.all([
+    const [
+      { data: consents, error: consentsError },
+      { data: requests, error: requestsError },
+      { data: nomination, error: nominationError },
+    ] = await Promise.all([
       admin.from("dpdp_consent_records").select("policy_version,purposes,consented_at,withdrawn_at,source").eq("user_id", user.id).order("consented_at", { ascending: false }),
       admin.from("dpdp_deletion_requests").select("id,status,reason,requested_at,resolved_at").eq("user_id", user.id).order("requested_at", { ascending: false }),
       admin.from("dpdp_nominations").select("nominee_name,nominee_email,nominee_phone,created_at,updated_at").eq("user_id", user.id).maybeSingle(),
     ]);
 
+    if (consentsError) exportWarnings.push(`dpdp_consent_records: ${consentsError.message}`);
+    if (requestsError) exportWarnings.push(`dpdp_deletion_requests: ${requestsError.message}`);
+    if (nominationError) exportWarnings.push(`dpdp_nominations: ${nominationError.message}`);
     output.consents = consents || [];
     output.deletion_requests = requests || [];
     output.nomination = nomination || null;
+    (output as Record<string, unknown>).export_warnings = exportWarnings;
     output.rights = ["access","correction","erasure","withdrawal of consent where applicable","objection or restriction where applicable","portability where applicable","grievance or complaint","nomination where applicable"];
     return response(output, 200, origin);
   } catch (error) {

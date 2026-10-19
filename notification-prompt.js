@@ -1,13 +1,34 @@
 const ACTIVE_TIME_KEY = 'atma-notification-active-seconds';
 const NEXT_PROMPT_KEY = 'atma-notification-next-prompt-seconds';
 const PROMPT_DONE_KEY = 'atma-notification-prompt-enabled';
+const PROMPT_COUNT_KEY = 'atma-notification-prompt-count';
+const SCHEDULE_VERSION_KEY = 'atma-notification-schedule-version';
 const FIRST_PROMPT_SECONDS = 5 * 60;
-const REPEAT_PROMPT_SECONDS = 60 * 60;
-const SECOND_PROMPT_DELAY_SECONDS = 30 * 60;
+const REPEAT_PROMPT_SECONDS = 30 * 60;
+const FIRST_REPEAT_AT_TOTAL_SECONDS = 30 * 60 * 60;
+const DONT_SHOW_KEY = 'atma-notification-dont-show-again';
 
 function getNumber(key, fallback) {
-  const value = Number(localStorage.getItem(key));
+  const stored = localStorage.getItem(key);
+  if (stored === null || stored.trim() === '') return fallback;
+  const value = Number(stored);
   return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function migratePromptSchedule() {
+  if (localStorage.getItem(SCHEDULE_VERSION_KEY) === '3') return;
+  const active = getNumber(ACTIVE_TIME_KEY, 0);
+  const shownCount = getNumber(PROMPT_COUNT_KEY, 0);
+  const storedNext = localStorage.getItem(NEXT_PROMPT_KEY);
+
+  if (shownCount === 1) {
+    localStorage.setItem(NEXT_PROMPT_KEY, String(Math.max(active, FIRST_REPEAT_AT_TOTAL_SECONDS)));
+  } else if (shownCount >= 2) {
+    localStorage.setItem(NEXT_PROMPT_KEY, String(active + REPEAT_PROMPT_SECONDS));
+  } else if (storedNext === null) {
+    localStorage.setItem(NEXT_PROMPT_KEY, String(active + FIRST_PROMPT_SECONDS));
+  }
+  localStorage.setItem(SCHEDULE_VERSION_KEY, '3');
 }
 
 function isActive() {
@@ -15,7 +36,7 @@ function isActive() {
 }
 
 function hasNotificationsEnabled() {
-  return Notification.permission === 'granted' || localStorage.getItem(PROMPT_DONE_KEY) === '1';
+  return Notification.permission === 'granted' || localStorage.getItem(PROMPT_DONE_KEY) === '1' || localStorage.getItem(DONT_SHOW_KEY) === '1';
 }
 
 function injectStyles() {
@@ -30,6 +51,8 @@ function injectStyles() {
     #atma-notification-prompt h3{margin:0 44px 8px 0;font-size:20px;font-weight:650;line-height:1.2;letter-spacing:-.025em}
     #atma-notification-prompt p{margin:0 0 20px;max-width:330px;color:#aeb1b8;font-size:14px;line-height:1.55}
     #atma-notification-prompt .atma-notif-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}
+    #atma-notification-prompt .atma-notif-permanent{display:flex;align-items:center;gap:9px;margin:0 0 16px;color:#b9bbc2;font-size:13px;line-height:1.4;cursor:pointer}
+    #atma-notification-prompt .atma-notif-permanent input{width:18px;height:18px;flex:0 0 auto;accent-color:#f5f5f5}
     #atma-notification-prompt button[data-action]{min-height:46px;border:1px solid #303238;border-radius:12px;padding:0 14px;font:inherit;font-size:13px;font-weight:650;line-height:1.2;cursor:pointer}
     #atma-notification-prompt .atma-enable{background:#f5f5f5;color:#111214}
     #atma-notification-prompt .atma-later{background:#1a1c20;color:#f1f2f4}
@@ -38,7 +61,7 @@ function injectStyles() {
     @keyframes atmaNotifIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   `;
 
-  style.textContent += '\n    html[data-theme="light"] #atma-notification-prompt{background:#fff!important;color:#111!important;border-color:#dcdcdc!important;box-shadow:0 20px 60px rgb(0 0 0 / .16)!important;color-scheme:light!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-close{background:#fff!important;color:#111!important;border-color:#e0e0e0!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-icon{background:#f4f4f2!important;color:#111!important;border-color:#dedede!important}\n    html[data-theme="light"] #atma-notification-prompt h3{color:#111!important}\n    html[data-theme="light"] #atma-notification-prompt p{color:#555!important}\n    html[data-theme="light"] #atma-notification-prompt button[data-action]{background:#fff!important;color:#111!important;border-color:#d5d5d5!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-enable{background:#111!important;color:#fff!important;border-color:#111!important}\n    html[data-theme="dark"] #atma-notification-prompt{background:#090909!important;color:#fff!important;border-color:#2b2b2b!important;box-shadow:0 20px 60px rgb(0 0 0 / .5)!important;color-scheme:dark!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-close{background:#111!important;color:#fff!important;border-color:#303030!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-icon{background:#111!important;color:#fff!important;border-color:#2d2d2d!important}\n    html[data-theme="dark"] #atma-notification-prompt h3{color:#fff!important}\n    html[data-theme="dark"] #atma-notification-prompt p{color:#aaa!important}\n    html[data-theme="dark"] #atma-notification-prompt button[data-action]{background:#111!important;color:#fff!important;border-color:#303030!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-enable{background:#fff!important;color:#111!important;border-color:#fff!important}\n';
+  style.textContent += '\n    html[data-theme="light"] #atma-notification-prompt{background:#fff!important;color:#111!important;border-color:#dcdcdc!important;box-shadow:0 20px 60px rgb(0 0 0 / .16)!important;color-scheme:light!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-close{background:#fff!important;color:#111!important;border-color:#e0e0e0!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-icon{background:#f4f4f2!important;color:#111!important;border-color:#dedede!important}\n    html[data-theme="light"] #atma-notification-prompt h3{color:#111!important}\n    html[data-theme="light"] #atma-notification-prompt p{color:#555!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-notif-permanent{color:#555!important}\n    html[data-theme="light"] #atma-notification-prompt button[data-action]{background:#fff!important;color:#111!important;border-color:#d5d5d5!important}\n    html[data-theme="light"] #atma-notification-prompt .atma-enable{background:#111!important;color:#fff!important;border-color:#111!important}\n    html[data-theme="dark"] #atma-notification-prompt{background:#090909!important;color:#fff!important;border-color:#2b2b2b!important;box-shadow:0 20px 60px rgb(0 0 0 / .5)!important;color-scheme:dark!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-close{background:#111!important;color:#fff!important;border-color:#303030!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-icon{background:#111!important;color:#fff!important;border-color:#2d2d2d!important}\n    html[data-theme="dark"] #atma-notification-prompt h3{color:#fff!important}\n    html[data-theme="dark"] #atma-notification-prompt p{color:#aaa!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-notif-permanent{color:#aaa!important}\n    html[data-theme="dark"] #atma-notification-prompt button[data-action]{background:#111!important;color:#fff!important;border-color:#303030!important}\n    html[data-theme="dark"] #atma-notification-prompt .atma-enable{background:#fff!important;color:#111!important;border-color:#fff!important}\n';
   document.head.appendChild(style);
   if (!document.getElementById('atma-notification-prompt-mobile-style')) {
     const mobile = document.createElement('style');
@@ -60,6 +83,7 @@ function buildPrompt() {
     <div class="atma-notif-icon">🔔</div>
     <h3 id="atma-notification-prompt-title">Don't miss the next chapter</h3>
     <p id="atma-notification-prompt-description">Turn on notifications and we'll let you know when a new Atma Rekha chapter is released.</p>
+    <label class="atma-notif-permanent"><input type="checkbox" data-action="dont-show"><span>Don't show this again</span></label>
     <div class="atma-notif-actions">
       <button class="atma-later" data-action="later" type="button">Maybe later</button>
       <button class="atma-enable" data-action="enable" type="button">Turn on notifications</button>
@@ -74,6 +98,12 @@ function showPrompt() {
   prompt.classList.add('atma-show');
   prompt.querySelector('[data-action="later"]').onclick = rejectPrompt;
   prompt.querySelector('.atma-notif-close').onclick = rejectPrompt;
+  prompt.querySelector('[data-action="dont-show"]').onchange = event => {
+    if (event.target.checked) {
+      localStorage.setItem(DONT_SHOW_KEY, '1');
+      prompt.classList.remove('atma-show');
+    }
+  };
   prompt.querySelector('[data-action="enable"]').onclick = async () => {
     const button = prompt.querySelector('[data-action="enable"]');
     button.disabled = true;
@@ -99,10 +129,12 @@ function showPrompt() {
 
 function rejectPrompt() {
   const active = getNumber(ACTIVE_TIME_KEY, 0);
-  const shownCount = getNumber('atma-notification-prompt-count', 0) + 1;
-  localStorage.setItem('atma-notification-prompt-count', String(shownCount));
-  const delay = shownCount === 1 ? SECOND_PROMPT_DELAY_SECONDS : REPEAT_PROMPT_SECONDS;
-  localStorage.setItem(NEXT_PROMPT_KEY, String(active + delay));
+  const shownCount = getNumber(PROMPT_COUNT_KEY, 0) + 1;
+  localStorage.setItem(PROMPT_COUNT_KEY, String(shownCount));
+  const nextPromptAt = shownCount === 1
+    ? Math.max(active, FIRST_REPEAT_AT_TOTAL_SECONDS)
+    : active + REPEAT_PROMPT_SECONDS;
+  localStorage.setItem(NEXT_PROMPT_KEY, String(nextPromptAt));
   document.getElementById('atma-notification-prompt')?.classList.remove('atma-show');
 }
 
@@ -117,6 +149,7 @@ function tick() {
 function start() {
   if (!('Notification' in window)) return;
   injectStyles();
+  migratePromptSchedule();
   if (Notification.permission === 'granted') localStorage.setItem(PROMPT_DONE_KEY, '1');
   setInterval(tick, 1000);
 }

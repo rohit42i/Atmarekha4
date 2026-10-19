@@ -32,7 +32,7 @@ Implemented in the product:
 - Erasure: account deletion request flow with lawful-retention caveat.
 - Withdrawal of consent where applicable: consent withdrawal action.
 - Grievance redressal: dedicated feedback/privacy form and support email.
-- Nomination: nominee details can be saved and updated in Privacy Center.
+- Nomination: nominee details can be saved, updated and removed in Privacy Center.
 
 Account ownership is verified before sensitive data is exported or changed.
 
@@ -70,6 +70,25 @@ Account creation is limited to readers who confirm they are 15 or older. Public 
 ## India consumer / platform compliance readiness
 
 The website also publishes a grievance mechanism for community/platform complaints and consumer complaints. The current Terms and Report pages disclose membership pricing, recurring billing, cancellation, refund handling, contact details and content-reporting routes. The Consumer Protection (E-Commerce) (Amendment) Rules, 2026 were notified on 9 September 2026 and take effect from 1 January 2027; the product should be re-audited before that date for the new requirements covering legal/operator details, sponsored listings, price-reduction disclosures, dark-pattern self-audits and other applicable e-commerce duties.
+
+## Operational verification added 19 October 2026
+
+- The production Supabase project has the consent, deletion-request and nomination tables with row-level security. The applied migration is tracked as `20261019083955_dpdp_privacy_controls_20261019`; use `supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql` for other environments before relying on these controls.
+- Community-post comments are enabled in the production schema through `20261019084004_community_post_comments_20261019`.
+- Direct client writes to privacy-rights tables are revoked; privileged writes run through the JWT-verified `dpdp-data-rights` Edge Function. The grant-hardening migration is `supabase/migrations/20261019084630_harden_dpdp_table_grants_20261019.sql`.
+- Signup consent metadata is copied into a durable consent record by an auth-user trigger, including signups that need email confirmation.
+- Reader deletion requests are tracked and visible in the admin workspace under **Privacy Requests**. This is a review-and-erasure workflow, not instant self-service deletion: an authorised administrator must verify the request, perform erasure in the relevant systems, review lawful retention, and only then record a resolution note. Do not mark a request resolved before the underlying work is complete.
+- Data exports now include explicit warnings for categories that could not be retrieved; a download with warnings must not be described as a complete export.
+- The profile editor saves profile fields independently of Auth email updates and explains that an email change may remain pending until confirmation.
+- Notification opt-in waits for five minutes of active use. After the first dismissal, the next prompt waits until cumulative active use reaches 30 hours; later dismissals wait another 30 minutes of active use. Readers can permanently opt out in the prompt.
+
+## India consumer-law release gate
+
+The public grievance page now states the consumer-complaint target of acknowledgement within 48 hours and redress within one month where the Consumer Protection (E-Commerce) Rules apply. The Consumer Protection (E-Commerce) (Amendment) Rules, 2026 are scheduled to commence on 1 January 2027, so review the live website before that date.
+
+**Not complete until the creator confirms it:** the repository does not contain a verified legal operator name beyond “Arkesh” or a principal geographic/postal address to publish. Do not invent or publish a guessed address. Confirm the correct legal name, whether a registered business/entity exists, the address that may lawfully be published, and whether the e-commerce disclosure rules apply to this membership model. The current contact email and grievance-officer designation alone may not satisfy every required operator disclosure.
+
+**Under-18 account decision:** signup currently permits readers aged 15 and over. Under the DPDP framework, a child is generally a person under 18, and verifiable parental consent requirements may apply when the relevant provisions commence. The current age checkbox is not a parental-consent verification system. Before the relevant provisions take effect, either implement a legally reviewed verifiable parental-consent flow for under-18 accounts or change account eligibility to 18+. Public reading age guidance and account eligibility are separate decisions; do not claim this item is complete yet.
 
 ## Operational items requiring account/legal administration
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 
-const PRIVACY_VERSION = '2026-10-07';
+const PRIVACY_VERSION = '2026-10-19';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
+const EMPTY_NOMINATION = { nominee_name: '', nominee_email: '', nominee_phone: '' };
 
 function backHome() {
   window.history.pushState({}, '', '/');
@@ -27,6 +28,7 @@ const DATA_TABLE = [
   ['Payments', 'Payment/subscription references and transaction status', 'Billing support, reconciliation and refunds'],
   ['Technical', 'Device/browser, network and limited diagnostic information', 'Security, reliability and troubleshooting'],
   ['Privacy requests', 'Consent, access and deletion request records', 'Handle your privacy choices and requests'],
+  ['Nomination', 'A nominee’s name and optional contact details', 'Support rights exercise where permitted by applicable law'],
 ];
 
 const RETENTION_TABLE = [
@@ -34,6 +36,7 @@ const RETENTION_TABLE = [
   ['Reading and community data', 'While needed to provide the feature, preserve your choices, resolve disputes or meet applicable requirements.'],
   ['Membership and payment records', 'For as long as needed for billing, accounting, fraud prevention, disputes and applicable legal/tax requirements.'],
   ['Privacy requests and consent records', 'For as long as needed to evidence and handle the request, consent or withdrawal and meet applicable requirements.'],
+  ['Nominee details', 'Until you update or remove the nomination, or longer only where needed to handle an applicable rights request or meet legal requirements.'],
 ];
 
 function PolicySection({ heading, children }) {
@@ -48,23 +51,41 @@ export default function PrivacyCenter() {
   const [error, setError] = useState('');
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
+  const [nomination, setNomination] = useState(null);
+  const [nomineeForm, setNomineeForm] = useState({ ...EMPTY_NOMINATION });
 
   const load = async currentUser => {
     setUser(currentUser);
     if (!currentUser) {
       setConsent(null);
       setDeletion(null);
+      setNomination(null);
+      setNomineeForm({ ...EMPTY_NOMINATION });
       setLoading(false);
       return;
     }
 
     try {
-      const [{ data: consentRows }, { data: deletionRows }] = await Promise.all([
+      const [
+        { data: consentRows, error: consentError },
+        { data: deletionRows, error: deletionError },
+        { data: nominationRow, error: nominationError },
+      ] = await Promise.all([
         supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
-        supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
+        supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at,resolution_note').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
+        supabase.from('dpdp_nominations').select('nominee_name,nominee_email,nominee_phone,created_at,updated_at').eq('user_id', currentUser.id).maybeSingle(),
       ]);
-      setConsent(consentRows?.[0] || null);
+      if (consentError) throw new Error('Unable to load consent records: ' + consentError.message);
+      if (deletionError) throw new Error('Unable to load deletion request status: ' + deletionError.message);
+      if (nominationError) throw new Error('Unable to load your nomination: ' + nominationError.message);
+      setConsent(consentRows?.find(row => !row.withdrawn_at) || consentRows?.[0] || null);
       setDeletion(deletionRows?.[0] || null);
+      setNomination(nominationRow || null);
+      setNomineeForm(nominationRow ? {
+        nominee_name: nominationRow.nominee_name || '',
+        nominee_email: nominationRow.nominee_email || '',
+        nominee_phone: nominationRow.nominee_phone || '',
+      } : { ...EMPTY_NOMINATION });
     } catch (err) {
       setError(err?.message || 'Unable to load privacy controls.');
     } finally {
@@ -105,15 +126,25 @@ export default function PrivacyCenter() {
   };
 
   const exportData = async () => {
-    const data = await runAction('export', 'Your export has been prepared.');
+    const data = await runAction('export', 'Preparing your available account data export…');
     if (!data) return;
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'atma-rekha-my-data.json';
-    link.click();
-    URL.revokeObjectURL(url);
+    setMessage(Array.isArray(data.export_warnings) && data.export_warnings.length
+      ? 'Your export was downloaded, but some categories could not be retrieved. Contact support for a complete review.'
+      : 'Your available account data export has been downloaded.');
+    try {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'atma-rekha-my-data.json';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (err) {
+      setError(err?.message || 'Your data was retrieved, but the download could not be started. Please try again.');
+    }
   };
 
   const withdrawConsent = async () => {
@@ -124,10 +155,44 @@ export default function PrivacyCenter() {
   };
 
   const requestDeletion = async () => {
-    if (busy) return;
-    if (!window.confirm('Request deletion of your eligible Atma Rekha personal data? Some information may be retained where required for security, payment, accounting, dispute or other applicable requirements.')) return;
+    if (busy || deletion?.status === 'pending' || deletion?.status === 'processing') return;
+    if (!window.confirm('Submit a request to erase eligible Atma Rekha personal data? This creates a tracked request for review; it does not instantly erase your account. We will verify the request and retain only records required by applicable law or legitimate security/accounting needs.')) return;
     const data = await runAction('delete-request', 'Your deletion request has been submitted.');
     if (data?.request) setDeletion(data.request);
+  };
+
+  const saveNomination = async event => {
+    event.preventDefault();
+    if (busy) return;
+    const nomineeName = nomineeForm.nominee_name.trim();
+    if (!nomineeName) {
+      setError('Enter your nominee’s full name.');
+      setMessage('');
+      return;
+    }
+    const data = await runAction('nomination', 'Nominee details saved.', {
+      nominee_name: nomineeName,
+      nominee_email: nomineeForm.nominee_email.trim(),
+      nominee_phone: nomineeForm.nominee_phone.trim(),
+    });
+    if (data?.nomination) {
+      setNomination(data.nomination);
+      setNomineeForm({
+        nominee_name: data.nomination.nominee_name || '',
+        nominee_email: data.nomination.nominee_email || '',
+        nominee_phone: data.nomination.nominee_phone || '',
+      });
+    }
+  };
+
+  const removeNomination = async () => {
+    if (!nomination || busy) return;
+    if (!window.confirm('Remove this nominee from your privacy settings?')) return;
+    const data = await runAction('delete-nomination', 'Nomination removed.');
+    if (data?.deleted) {
+      setNomination(null);
+      setNomineeForm({ ...EMPTY_NOMINATION });
+    }
   };
 
   if (loading) {
@@ -139,8 +204,8 @@ export default function PrivacyCenter() {
       <p className="section-eyebrow">LEGAL · PRIVACY</p>
       <h1>Privacy</h1>
       <p>Atma Rekha respects the privacy of readers worldwide. This notice explains what personal data we collect, why we use it, how we protect it, when it may be shared, and the controls available to you.</p>
-      <p className="privacy-applicability"><strong>Applicable laws:</strong> Depending on where you live and how you interact with Atma Rekha, different privacy laws may apply.</p>
-      <p className="privacy-version">Last updated: 7 October 2026 · Privacy notice version {PRIVACY_VERSION}</p>
+      <p className="privacy-applicability"><strong>India:</strong> This notice is prepared with reference to the Digital Personal Data Protection Act, 2023 and the Digital Personal Data Protection Rules, 2025, as their provisions commence, and other applicable Indian consumer and information-technology laws. Rights and obligations may take effect on different dates under the notified phased timeline.</p>
+      <p className="privacy-version">Last updated: 19 October 2026 · Privacy notice version {PRIVACY_VERSION}</p>
     </section>
 
     <section className="privacy-policy-card">
@@ -150,7 +215,7 @@ export default function PrivacyCenter() {
       <PolicySection heading="Public content">Information you choose to post in public areas, such as comments or your public profile, may be visible to other readers. Do not post passwords, payment details or other private information publicly.</PolicySection>
       <PolicySection heading="Cookies and storage">We use necessary browser storage and similar technologies for site preferences and features. We do not currently use advertising cookies.</PolicySection>
       <PolicySection heading="Security and retention">We use reasonable security measures and keep information only for as long as needed for the purposes described here or where retention is otherwise required.</PolicySection>
-      <PolicySection heading="Your privacy rights">Depending on where you live, you may have rights to access, correct, delete, receive, restrict or object to certain uses of your information, or withdraw consent where applicable. Contact us if you want to make a request.</PolicySection>
+      <PolicySection heading="Your privacy rights">You can export available account data, correct profile information, withdraw consent where consent is the basis for processing, request erasure, and manage a nominee for rights exercise where applicable. Erasure requests are tracked for review and identity verification; they are not instant account deletion. We may retain limited records where required by law or necessary for payment reconciliation, security or disputes. Contact us if a control fails or you need help.</PolicySection>
       <PolicySection heading="Contact">For privacy questions or requests, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may verify your identity before completing a request.</PolicySection>
     </section>
 
@@ -181,15 +246,41 @@ export default function PrivacyCenter() {
           <strong>{consent?.withdrawn_at ? 'Consent withdrawn' : 'Withdraw consent'}</strong>
           <span>{consent ? (consent.withdrawn_at ? 'This consent record is already withdrawn' : 'Use where consent is the basis for processing') : 'No consent record is available'}</span>
         </button>
-        <button type="button" className="privacy-control-button privacy-control-destructive" onClick={requestDeletion} disabled={busy}>
-          <strong>Request deletion</strong><span>Submit a request for eligible personal data</span>
+        <button type="button" className="privacy-control-button privacy-control-destructive" onClick={requestDeletion} disabled={busy || deletion?.status === 'pending' || deletion?.status === 'processing'}>
+          <strong>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'Deletion request in progress' : 'Request deletion'}</strong><span>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'A request is already being reviewed' : 'Request erasure of eligible personal data'}</span>
         </button>
       </div>
-      <p className="privacy-small-note">Some requests may require identity verification and may be subject to applicable retention requirements.</p>
+      <p className="privacy-small-note">Deletion requests are queued for review, identity verification and erasure by an authorised administrator. They are not completed automatically by pressing the button. We retain only information required by applicable law or necessary for security, accounting or disputes. If you cannot sign in, email {CONTACT_EMAIL} from the account address you control.</p>
       {consent && <div className="privacy-control-status">Consent record: <strong>{consent.withdrawn_at ? 'withdrawn' : 'recorded'}</strong>{consent.consented_at ? <> · {new Date(consent.consented_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</div>}
       <div className="privacy-email-actions">
         <button type="button" className="secondary-button" onClick={() => requestByEmail('Atma Rekha Privacy Request')}>Email a privacy request</button>
       </div>
+    </section>}
+
+    {user && <section className="privacy-policy-card privacy-nomination-card" aria-labelledby="privacy-nomination-title">
+      <header className="privacy-section-heading">
+        <p className="section-eyebrow">DATA RIGHTS</p>
+        <h2 id="privacy-nomination-title">Nominate a representative</h2>
+        <p className="privacy-small-note">Choose who may exercise your data rights on your behalf where Indian law allows, including in the event of death or incapacity. This is optional; you can update or remove it at any time.</p>
+      </header>
+      <form className="privacy-nomination-form" onSubmit={saveNomination}>
+        <div className="privacy-form-grid">
+          <label>Nominee’s full name
+            <input name="nominee_name" value={nomineeForm.nominee_name} onChange={event => setNomineeForm(current => ({ ...current, nominee_name: event.target.value }))} maxLength={120} autoComplete="name" required />
+          </label>
+          <label>Nominee’s email (optional)
+            <input name="nominee_email" type="email" value={nomineeForm.nominee_email} onChange={event => setNomineeForm(current => ({ ...current, nominee_email: event.target.value }))} maxLength={254} autoComplete="email" />
+          </label>
+          <label>Nominee’s phone (optional)
+            <input name="nominee_phone" type="tel" value={nomineeForm.nominee_phone} onChange={event => setNomineeForm(current => ({ ...current, nominee_phone: event.target.value }))} maxLength={30} autoComplete="tel" />
+          </label>
+        </div>
+        <div className="privacy-nomination-actions">
+          <button type="submit" className="primary-button" disabled={busy || !nomineeForm.nominee_name.trim()}>{nomination ? 'Update nominee' : 'Save nominee'}</button>
+          {nomination && <button type="button" className="secondary-button" onClick={removeNomination} disabled={busy}>Remove nominee</button>}
+        </div>
+      </form>
+      {nomination && <p className="privacy-control-status">Saved nominee: <strong>{nomination.nominee_name}</strong>{nomination.updated_at ? <> · last updated {new Date(nomination.updated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</p>}
     </section>}
 
     {(message || error) && <div className={`privacy-status ${error ? 'privacy-status-error' : 'privacy-status-success'}`} role={error ? 'alert' : 'status'} aria-live="polite">{error || message}</div>}
@@ -200,7 +291,7 @@ export default function PrivacyCenter() {
         <h2>Your recent privacy request</h2>
       </header>
       <div className="privacy-status">
-        {deletion ? <>Deletion request · <strong>{deletion.status || 'submitted'}</strong>{deletion.requested_at ? <> · submitted {new Date(deletion.requested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.resolved_at ? <> · resolved {new Date(deletion.resolved_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</> : 'No account deletion request is currently recorded.'}
+        {deletion ? <>Deletion request · <strong>{deletion.status || 'submitted'}</strong>{deletion.requested_at ? <> · submitted {new Date(deletion.requested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.resolved_at ? <> · resolved {new Date(deletion.resolved_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.id ? <><br/>Reference: <code>{deletion.id}</code></> : null}{deletion.resolution_note ? <><br/>Update: {deletion.resolution_note}</> : null}</> : 'No account deletion request is currently recorded.'}
       </div>
       <p className="privacy-small-note">Requests sent by email are handled through support and may require additional identity verification before action.</p>
     </section>}

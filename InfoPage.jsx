@@ -9,7 +9,7 @@ const PAGES = {
     title: 'About Atma Rekha',
     details: [
       ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
+      ['Release Schedule', 'New chapters planned for the 14th of each month'], ['Format', 'Digital manga / webcomic'],
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
@@ -30,7 +30,7 @@ const PAGES = {
     eyebrow: 'COMMUNITY', title: 'Report & Feedback',
     sections: [
       { heading: 'Grievance Officer', body: 'Arkesh — Creator & Grievance Officer. Email atmarekhasupport@gmail.com for platform, community, consumer or legal grievances. Complaints can also be submitted through this page.' },
-      { heading: 'Grievance handling', body: 'Complaints are handled according to the nature of the issue and applicable requirements. Where a specific process or timeframe applies, it is determined by the relevant requirements.' },
+      { heading: 'Grievance handling & response times', body: 'For consumer complaints, we aim to acknowledge receipt within 48 hours and resolve the complaint within one month, consistent with the Consumer Protection (E-Commerce) Rules where applicable. For privacy grievances, we aim to respond promptly and within any statutory period that applies, including a reasonable period not exceeding 90 days where required by the DPDP Rules. We will provide a reference or status update where practicable. These timelines do not reduce any stronger right or deadline under applicable law.' },
       { heading: 'Content & community reports', body: 'For incorrect, inappropriate, unlawful, infringing or broken content, tell us the chapter/page, post and what happened. Reports are reviewed according to the nature of the issue and applicable requirements.', links: [{ label: 'Report an Issue', href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Report` }] },
       { heading: 'Consumer support', body: 'For membership billing, cancellation or refund issues, include your account email and Razorpay payment/subscription reference. Never send passwords, UPI PINs, CVV or full card details.' },
       { heading: 'External support', body: 'Depending on your location and the nature of the issue, you may also contact the relevant consumer-protection authority or payment provider.' },
@@ -40,7 +40,7 @@ const PAGES = {
     eyebrow: 'LEGAL', title: 'Terms & Conditions',
     sections: [
       { heading: '1. Acceptance', body: 'By using Atma Rekha, you agree to these Terms & Conditions. If you create an account, purchase membership or participate in the community, these terms apply to that use as well.' },
-      { heading: '2. Operator & contact', body: 'Atma Rekha is an independent creator project by Arkesh. Customer, consumer and grievance contact: ' + CONTACT_EMAIL + '. The current website operator/contact details are published on the Contact and Report pages.' },
+      { heading: '2. Operator & contact', body: 'Atma Rekha is an independent creator project by Arkesh. Customer, consumer and grievance contact: ' + CONTACT_EMAIL + '. This contact identifies the current support and grievance channel; any additional legal-operator disclosures required for the specific business model must also be published when verified.' },
       { heading: '3. Content & Ownership', body: 'Atma Rekha, its manga, artwork, characters, branding, text and original creative material belong to their respective creator or rights holder. You may read and share website links, but may not copy, sell, redistribute or republish the work without permission.' },
       { heading: '4. Personal Use', body: 'Use the website for personal reading and community participation. Do not use it for unlawful, abusive, misleading or unauthorised commercial purposes.' },
       { heading: '5. Comments & Community', body: 'Keep comments and contributions relevant and respectful. Do not post harassment, threats, spam, hate, illegal material, impersonation, malicious links, sexual exploitation, private personal data, or content that violates another person’s rights.' },
@@ -54,7 +54,9 @@ const PAGES = {
       { heading: '13. Availability', body: 'Features, chapter schedules, prices, availability and content may change. We do not guarantee uninterrupted or error-free service.' },
       { heading: '14. Limitation', body: 'To the extent permitted by law, Atma Rekha is not responsible for losses caused by temporary unavailability, technical errors, third-party services or misuse of the website.' },
       { heading: '15. Changes', body: 'These terms may be updated as Atma Rekha grows. The current terms and effective date are shown on this page.' },
-      { heading: '16. Contact', body: `Questions, consumer complaints or legal notices can be sent to ${CONTACT_EMAIL}.` },
+      { heading: '16. Effective date', body: 'Effective 19 October 2026. Please review this page before purchasing or using membership features; changes apply prospectively unless applicable law requires otherwise.' },
+      { heading: '17. Privacy & data rights', body: 'The Privacy page explains personal-data categories, purposes, retention and your available controls. Signed-in readers can request an export, correct profile information, withdraw consent where applicable and submit a tracked erasure request. An erasure request is not an instant deletion; an authorised administrator must verify and process it, subject to legally required retention.' },
+      { heading: '18. Contact', body: `Questions, consumer complaints, privacy requests or legal notices can be sent to ${CONTACT_EMAIL}. Please include a relevant order or request reference, but never send passwords, OTPs, UPI PINs, CVVs or full payment credentials.` },
     ],
   },
 };

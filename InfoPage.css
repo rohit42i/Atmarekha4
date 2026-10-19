@@ -222,3 +222,62 @@ html[data-theme="light"] .privacy-control-button span,html[data-theme="light"] .
 html[data-theme="light"] .info-page .info-card,html[data-theme="light"] .info-page .info-section,html[data-theme="light"] .contact-card{background:#fff!important;color:#111!important;border-color:#e2e2e2!important}
 html[data-theme="light"] .info-page a,.info-page .privacy-control-button{color:#111!important}
 html[data-theme="dark"] .info-page .info-card,html[data-theme="dark"] .info-page .info-section,html[data-theme="dark"] .contact-card{background:#050505!important;color:#fff!important;border-color:#222!important}
+
+/* Accessible controls for the Privacy Center. */
+.privacy-controls-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:18px;
+}
+.privacy-control-button{
+  appearance:none;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  min-height:90px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:7px;
+  padding:16px;
+  border:1px solid var(--border-color);
+  border-radius:12px;
+  background:var(--card-bg);
+  color:var(--text-color);
+  box-shadow:none;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+}
+.privacy-control-button strong{font-weight:650;font-size:.96rem;line-height:1.35}
+.privacy-control-button span{font-size:.86rem;line-height:1.5;color:var(--text-secondary,var(--text-color))}
+.privacy-control-button:hover:not(:disabled){border-color:var(--text-secondary,var(--text-color));background:var(--input-bg)}
+.privacy-control-button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.privacy-control-button:disabled{cursor:not-allowed;opacity:.58}
+.privacy-control-destructive{border-color:rgba(190,75,75,.55)}
+.privacy-control-status{margin:14px 0 0;padding:12px 14px;border:1px solid var(--border-color);border-radius:10px;line-height:1.55;overflow-wrap:anywhere}
+.privacy-email-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.privacy-nomination-form{margin-top:16px}
+.privacy-nomination-form .privacy-form-grid{margin-bottom:14px}
+.privacy-nomination-actions{display:flex;flex-wrap:wrap;gap:10px}
+.privacy-nomination-actions button{max-width:100%}
+.privacy-nomination-actions button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+html[data-theme="dark"] .privacy-control-button,
+html[data-theme="dark"] .privacy-control-status{
+  background:#000!important;color:#fff!important;border-color:#333!important;box-shadow:none!important;
+}
+html[data-theme="dark"] .privacy-control-button span{color:#e6e6e6!important}
+html[data-theme="dark"] .privacy-control-button:hover:not(:disabled){background:#111!important;border-color:#555!important}
+html[data-theme="light"] .privacy-control-button,
+html[data-theme="light"] .privacy-control-status{
+  background:#fff!important;color:#181818!important;border-color:#deded9!important;box-shadow:none!important;
+}
+html[data-theme="light"] .privacy-control-button span{color:#444!important}
+html[data-theme="light"] .privacy-control-button:hover:not(:disabled){background:#f4f4f1!important;border-color:#bdbdb6!important}
+@media(max-width:700px){
+  .privacy-controls-grid{grid-template-columns:1fr;gap:10px;margin-top:15px}
+  .privacy-control-button{min-height:78px;padding:15px}
+  .privacy-nomination-actions button{width:100%}
+}
