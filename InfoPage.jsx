@@ -8,55 +8,37 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
-      ['Release Schedule', 'New chapters planned for the 14th of each month'], ['Format', 'Digital manga / webcomic'],
-      ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
+      ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
+      ['New chapters', 'Planned for the 14th of each month'],
+      ['Format', 'Digital manga'], ['Free chapters', '1 to 8'],
+      ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
-      'Atma Rekha Is An Adventure Manga/Comic Where Traditions And Powers Become A Part Of An Unfolding Story.',
-      'The series follows an original story built around its characters, their experiences, and the mysteries they encounter as the world gradually unfolds.',
-      'Atma Rekha is originally published in Roman Hindi, with additional language versions available as they are published. New chapters are planned for release on the 14th of each month.',
-      'The project is independently created by Arkesh as a solo creator. AI-assisted tools are used only for selected parts of the creative process, while the story, characters, direction, and final creative decisions remain original to the project.',
+      'Atma Rekha is an original Indian fantasy adventure manga where traditions and powers become part of an unfolding story.',
+      'The series follows its characters, their experiences, and the mysteries they uncover. It is independently created by Arkesh and is originally published in Roman Hindi.',
     ],
   },
   contact: {
     eyebrow: 'CONTACT', title: 'Contact',
     sections: [
-      { heading: 'Email', body: 'Questions, feedback, collaboration or publishing enquiries? Email us.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
+      { heading: 'Email', body: 'Have a question or need help with your account or membership? Send us an email.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
       { heading: 'Instagram', body: 'Follow Atma Rekha for updates and previews.', links: [{ label: '@atma.rekha', href: INSTAGRAM_URL }] },
     ],
   },
   report: {
-    eyebrow: 'COMMUNITY', title: 'Report & Feedback',
+    eyebrow: 'REPORT', title: 'Report a problem',
     sections: [
-      { heading: 'Grievance Officer', body: 'Arkesh — Creator & Grievance Officer. Email atmarekhasupport@gmail.com for platform, community, consumer or legal grievances. Complaints can also be submitted through this page.' },
-      { heading: 'Grievance handling & response times', body: 'For consumer complaints, we aim to acknowledge receipt within 48 hours and resolve the complaint within one month, consistent with the Consumer Protection (E-Commerce) Rules where applicable. For privacy grievances, we aim to respond promptly and within any statutory period that applies, including a reasonable period not exceeding 90 days where required by the DPDP Rules. We will provide a reference or status update where practicable. These timelines do not reduce any stronger right or deadline under applicable law.' },
-      { heading: 'Content & community reports', body: 'For incorrect, inappropriate, unlawful, infringing or broken content, tell us the chapter/page, post and what happened. Reports are reviewed according to the nature of the issue and applicable requirements.', links: [{ label: 'Report an Issue', href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Report` }] },
-      { heading: 'Consumer support', body: 'For membership billing, cancellation or refund issues, include your account email and Razorpay payment/subscription reference. Never send passwords, UPI PINs, CVV or full card details.' },
-      { heading: 'External support', body: 'Depending on your location and the nature of the issue, you may also contact the relevant consumer-protection authority or payment provider.' },
+      { heading: 'Tell us what happened', body: 'Let us know if a chapter, page, account feature or comment is not working properly, or if you see something that should be reviewed. Please include enough detail for us to find the issue.' },
+      { heading: 'Membership or account help', body: 'For help with your account or membership, email us using the address below. Never send your password, OTP, UPI PIN or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
     ],
   },
   terms: {
-    eyebrow: 'LEGAL', title: 'Terms & Conditions',
+    eyebrow: 'TERMS', title: 'Terms of use',
     sections: [
-      { heading: '1. Acceptance', body: 'By using Atma Rekha, you agree to these Terms & Conditions. If you create an account, purchase membership or participate in the community, these terms apply to that use as well.' },
-      { heading: '2. Operator & contact', body: 'Atma Rekha is an independent creator project by Arkesh. Customer, consumer and grievance contact: ' + CONTACT_EMAIL + '. This contact identifies the current support and grievance channel; any additional legal-operator disclosures required for the specific business model must also be published when verified.' },
-      { heading: '3. Content & Ownership', body: 'Atma Rekha, its manga, artwork, characters, branding, text and original creative material belong to their respective creator or rights holder. You may read and share website links, but may not copy, sell, redistribute or republish the work without permission.' },
-      { heading: '4. Personal Use', body: 'Use the website for personal reading and community participation. Do not use it for unlawful, abusive, misleading or unauthorised commercial purposes.' },
-      { heading: '5. Comments & Community', body: 'Keep comments and contributions relevant and respectful. Do not post harassment, threats, spam, hate, illegal material, impersonation, malicious links, sexual exploitation, private personal data, or content that violates another person’s rights.' },
-      { heading: '6. Reporting & Moderation', body: 'Atma Rekha may review, restrict, hide or remove content that violates these terms, applicable law or community safety rules. Urgent unlawful-content reports are handled according to their nature and applicable requirements.' },
-      { heading: '7. Membership & pricing', body: 'Current membership prices are shown before payment: ₹19/month Supporter, ₹29/month Premium Supporter and ₹49/month Super Supporter. Chapter access included with each plan is stated on the membership page. Prices and features may change prospectively, subject to applicable law.' },
-      { heading: '8. Billing, cancellation & refunds', body: 'Membership is recurring monthly through Razorpay UPI AutoPay. Cancellation stops future renewals and access remains available through the paid period. Refunds are handled in accordance with applicable law and Razorpay/payment rules; duplicate, unauthorised or incorrect charges should be reported promptly. No refund policy removes a right that cannot lawfully be excluded.' },
-      { heading: '9. Taxes & invoices', body: 'Any applicable taxes, charges and invoice details are shown or handled through the payment flow as required by law. Any GST registration status is stated only where it is applicable.' },
-      { heading: '10. Fair design & consent', body: 'The website does not intentionally use pre-ticked purchase consent, hidden mandatory charges, subscription traps, forced action or misleading urgency. Optional choices are presented as optional, with reversal available where the feature supports it.' },
-      { heading: '11. External services', body: 'Supabase, Cloudflare and Razorpay provide infrastructure or payment services under their own applicable terms and privacy policies. Payment credentials such as UPI PINs and full card details are handled by the payment provider, not requested by Atma Rekha.' },
-      { heading: '12. AI-assisted creation', body: 'Some creative production uses AI-assisted tools for parts of the process such as backgrounds and references. The story, characters, direction and final editorial decisions are original to Atma Rekha.' },
-      { heading: '13. Availability', body: 'Features, chapter schedules, prices, availability and content may change. We do not guarantee uninterrupted or error-free service.' },
-      { heading: '14. Limitation', body: 'To the extent permitted by law, Atma Rekha is not responsible for losses caused by temporary unavailability, technical errors, third-party services or misuse of the website.' },
-      { heading: '15. Changes', body: 'These terms may be updated as Atma Rekha grows. The current terms and effective date are shown on this page.' },
-      { heading: '16. Effective date', body: 'Effective 19 October 2026. Please review this page before purchasing or using membership features; changes apply prospectively unless applicable law requires otherwise.' },
-      { heading: '17. Privacy & data rights', body: 'The Privacy page explains personal-data categories, purposes, retention and your available controls. Signed-in readers can request an export, correct profile information, withdraw consent where applicable and submit a tracked erasure request. An erasure request is not an instant deletion; an authorised administrator must verify and process it, subject to legally required retention.' },
-      { heading: '18. Contact', body: `Questions, consumer complaints, privacy requests or legal notices can be sent to ${CONTACT_EMAIL}. Please include a relevant order or request reference, but never send passwords, OTPs, UPI PINs, CVVs or full payment credentials.` },
+      { heading: 'Using Atma Rekha', body: 'Atma Rekha is a place to read manga and use its reader and membership features. By using the site, you agree to use it lawfully and respectfully. Do not harass others, post harmful or illegal content, misuse accounts, or interfere with the site.' },
+      { heading: 'Stories and community', body: 'The stories, characters, artwork and other original content belong to their respective rights holder. You may read the work and share links to it, but please do not copy, repost or sell it without permission. Comments and other public contributions should be respectful and must not violate anyone’s rights or privacy.' },
+      { heading: 'Membership', body: 'Membership plans and the chapters included in each plan are shown on the membership page before you join. Membership renews according to the terms shown during payment. You can cancel to stop future renewals; access generally continues until the current paid period ends. If a payment looks wrong or you need help, contact us. Refund requests are reviewed under applicable law and the circumstances of the payment.' },
+      { heading: 'Changes and contact', body: 'Chapters, features and release plans may change, and the site may sometimes be unavailable. These terms may also be updated when needed. Nothing here limits rights that cannot be limited under applicable law. For questions about these terms or your membership, email ' + CONTACT_EMAIL + '.' },
     ],
   },
 };
@@ -74,20 +56,15 @@ export default function InfoPage({ type, onBack }) {
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
     </header>
     <section className="info-card info-hero">
-      <p className="section-eyebrow">ATMA REKHA</p>
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions, feedback and collaboration enquiries are welcome.' : 'Use this page to send feedback, report content or raise a grievance.'}</p>
+      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'A few simple rules for using the site.' : 'Let us know if something needs our attention.'}</p>
     </section>
-    {isAbout ? <>
-      <section className="info-card info-content-card" aria-label="Atma Rekha details">
-        <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
-        <div className="about-story" aria-label="About the story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-      </section>
-    </> : <>
-      <section className="info-card info-content-card">
-        <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
-      </section>
-      {type === 'report' && <section className="info-card info-feedback-card"><FeedbackForm/></section>}
-    </>}
+    {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
+      <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
+      <div className="about-story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+    </section> : <section className="info-card info-content-card">
+      <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
+      {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
+    </section>}
   </main>;
 }
