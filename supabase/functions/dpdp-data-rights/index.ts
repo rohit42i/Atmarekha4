@@ -122,29 +122,47 @@ Deno.serve(async req => {
         metadata: user.user_metadata || {},
       },
       tables: {},
+      export_warnings: [],
     };
+    const exportWarnings: string[] = [];
+    const tableOutput = output.tables as Record<string, unknown>;
 
     for (const table of USER_TABLES) {
       try {
-        if (table === "profiles") {
-          const { data, error } = await admin.from(table).select("*").eq("id", user.id);
-          if (!error) (output.tables as Record<string, unknown>)[table] = data || [];
-        } else {
-          const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
-          if (!error) (output.tables as Record<string, unknown>)[table] = data || [];
+        const query = table === "profiles"
+          ? admin.from(table).select("*").eq("id", user.id)
+          : admin.from(table).select("*").eq("user_id", user.id);
+        const { data, error } = await query.limit(5001);
+        if (error) {
+          exportWarnings.push(`${table}: could not be exported (${error.message}). Contact support to request a complete review.`);
+          continue;
         }
-      } catch {}
+        const rows = data || [];
+        if (rows.length > 5000) {
+          tableOutput[table] = rows.slice(0, 5000);
+          exportWarnings.push(`${table}: export reached the 5,000-row safety limit; additional records may exist and were not included.`);
+        } else {
+          tableOutput[table] = rows;
+        }
+      } catch (tableError) {
+        const message = tableError instanceof Error ? tableError.message : "unknown error";
+        exportWarnings.push(`${table}: could not be exported (${message}). Contact support to request a complete review.`);
+      }
     }
 
-    const [{ data: consents }, { data: requests }, { data: nomination }] = await Promise.all([
+    const [consentResult, requestResult, nominationResult] = await Promise.all([
       admin.from("dpdp_consent_records").select("policy_version,purposes,consented_at,withdrawn_at,source").eq("user_id", user.id).order("consented_at", { ascending: false }),
       admin.from("dpdp_deletion_requests").select("id,status,reason,requested_at,resolved_at").eq("user_id", user.id).order("requested_at", { ascending: false }),
       admin.from("dpdp_nominations").select("nominee_name,nominee_email,nominee_phone,created_at,updated_at").eq("user_id", user.id).maybeSingle(),
     ]);
+    if (consentResult.error) exportWarnings.push(`dpdp_consent_records: could not be exported (${consentResult.error.message}).`);
+    if (requestResult.error) exportWarnings.push(`dpdp_deletion_requests: could not be exported (${requestResult.error.message}).`);
+    if (nominationResult.error) exportWarnings.push(`dpdp_nominations: could not be exported (${nominationResult.error.message}).`);
 
-    output.consents = consents || [];
-    output.deletion_requests = requests || [];
-    output.nomination = nomination || null;
+    output.consents = consentResult.data || [];
+    output.deletion_requests = requestResult.data || [];
+    output.nomination = nominationResult.data || null;
+    output.export_warnings = exportWarnings;
     output.rights = ["access","correction","erasure","withdrawal of consent where applicable","objection or restriction where applicable","portability where applicable","grievance or complaint","nomination where applicable"];
     return response(output, 200, origin);
   } catch (error) {
