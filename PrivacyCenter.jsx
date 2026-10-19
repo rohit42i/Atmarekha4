@@ -134,6 +134,7 @@ export default function PrivacyCenter() {
     <section className="privacy-hero">
       
       <h1>Privacy</h1>
+      <button type="button" className="secondary-button" onClick={() => window.dispatchEvent(new CustomEvent('atma:open-privacy-choices'))}>Change analytics preferences</button>
       <p>We collect only the information needed to run Atma Rekha, manage reader accounts and memberships, and keep the site working safely.</p>
       <p className="privacy-version">Last updated: 19 October 2026</p>
     </section>
