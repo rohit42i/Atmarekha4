@@ -260,6 +260,17 @@ function Reader({ chapter, chapters, onBack, onOpenChapter }) {
   }, [chapter.id, onBack]);
 
   useEffect(() => {
+    const onConsentChanged = event => {
+      if (event.detail?.consent !== 'granted') return;
+      recordPdlplChapterView(chapter.id).catch(viewError => {
+        console.warn('PDPKL view tracking skipped:', viewError);
+      });
+    };
+    window.addEventListener('atma-analytics-consent-changed', onConsentChanged);
+    return () => window.removeEventListener('atma-analytics-consent-changed', onConsentChanged);
+  }, [chapter.id]);
+
+  useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(async ({ data }) => {
       const user = data?.session?.user || null;
