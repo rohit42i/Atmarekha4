@@ -1430,3 +1430,161 @@ html[data-theme="light"] .profile-v2-card .profile-group-chat-card:hover>b{
   background:#f7f7f7!important;
   color:#000!important;
 }
+
+/* FINAL DP + membership badge fix: transparent surfaces, no adjacent name, context-sized marks. */
+.user-auth-home-button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+.user-auth-home-button .user-auth-avatar,
+.user-auth-home-button .user-auth-avatar-fallback{
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  min-height:32px!important;
+  flex:0 0 32px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  object-fit:cover!important;
+}
+.user-auth-home-button .user-auth-avatar-fallback{
+  display:grid!important;
+  place-items:center!important;
+  color:var(--text-color,#111)!important;
+  font-size:13px!important;
+  font-weight:700!important;
+}
+.user-auth-home-button .subscriber-badge--home{
+  display:grid!important;
+  place-items:center!important;
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  min-height:32px!important;
+  flex:0 0 32px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  font-size:28px!important;
+  line-height:1!important;
+}
+.user-auth-home-button .subscriber-badge--home .subscriber-badge-mark{
+  font-size:28px!important;
+  line-height:1!important;
+  transform:none!important;
+}
+html[data-theme="light"] .user-auth-home-button,
+html[data-theme="dark"] .user-auth-home-button,
+html[data-theme="light"] .user-auth-home-button:hover,
+html[data-theme="dark"] .user-auth-home-button:hover,
+html[data-theme="light"] .user-auth-home-button:focus-visible,
+html[data-theme="dark"] .user-auth-home-button:focus-visible{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+html[data-theme="light"] .user-auth-home-button .user-auth-avatar,
+html[data-theme="dark"] .user-auth-home-button .user-auth-avatar,
+html[data-theme="light"] .user-auth-home-button .user-auth-avatar-fallback,
+html[data-theme="dark"] .user-auth-home-button .user-auth-avatar-fallback,
+html[data-theme="light"] .user-auth-home-button .subscriber-badge--home,
+html[data-theme="dark"] .user-auth-home-button .subscriber-badge--home{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+.ec-meta .subscriber-badge--inline{
+  width:20px!important;
+  height:20px!important;
+  min-width:20px!important;
+  min-height:20px!important;
+  margin:0 2px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  font-size:17px!important;
+  line-height:1!important;
+}
+.ec-replies .subscriber-badge--inline{
+  width:17px!important;
+  height:17px!important;
+  min-width:17px!important;
+  min-height:17px!important;
+  margin:0 2px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  font-size:15px!important;
+  line-height:1!important;
+}
+.ec-meta .subscriber-badge--inline .subscriber-badge-mark,
+.ec-replies .subscriber-badge--inline .subscriber-badge-mark{
+  font-size:inherit!important;
+  line-height:1!important;
+  transform:none!important;
+}
+.profile-v2-avatar-wrap>img,
+.pp-hero>img{
+  border-radius:10px!important;
+  object-fit:cover!important;
+}
+@media(max-width:600px){
+  .user-auth-home-button .user-auth-avatar,
+  .user-auth-home-button .user-auth-avatar-fallback,
+  .user-auth-home-button .subscriber-badge--home{
+    width:30px!important;
+    height:30px!important;
+    min-width:30px!important;
+    min-height:30px!important;
+    flex-basis:30px!important;
+  }
+  .user-auth-home-button .subscriber-badge--home,
+  .user-auth-home-button .subscriber-badge--home .subscriber-badge-mark{
+    font-size:26px!important;
+  }
+  .ec-meta .subscriber-badge--inline{
+    width:19px!important;
+    height:19px!important;
+    min-width:19px!important;
+    min-height:19px!important;
+    font-size:16px!important;
+  }
+  .ec-replies .subscriber-badge--inline{
+    width:16px!important;
+    height:16px!important;
+    min-width:16px!important;
+    min-height:16px!important;
+    font-size:14px!important;
+  }
+}
+
