@@ -25,6 +25,8 @@ const required = [
   ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
   ['notification-prompt.js', 'if (stored === null || stored.trim() === \'\') return fallback;'],
   ['notification-prompt.js', 'FIRST_DISMISSAL_DELAY_SECONDS = 30 * 60 * 60'],
+  ['notification-prompt.js', 'function migratePromptSchedule()'],
+  ['notification-prompt.js', "localStorage.setItem(SCHEDULE_VERSION_KEY, '2')"],
   ['notification-prompt.js', "atma-notification-dont-show-again"],
   ['notification-prompt.js', "Don't show this again"],
   ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin + \'/#profile\''],
