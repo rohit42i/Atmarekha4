@@ -5,8 +5,8 @@ Allow: /
 User-agent: OAI-SearchBot
 Allow: /
 
-# Keep the training crawler separate from search discovery. This does not block ChatGPT Search.
+# Permit both search discovery and potential model-training crawling for this creator-owned public project.
 User-agent: GPTBot
-Disallow: /
+Allow: /
 
 Sitemap: https://www.atmarekha.in/sitemap.xml
