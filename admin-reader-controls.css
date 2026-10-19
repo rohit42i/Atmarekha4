@@ -1,0 +1,74 @@
+/* Atma Rekha admin reader controls: compact, theme-aware, and mobile friendly. */
+main.admin-page.ar-admin-v3 .ar-mgmt-panel{
+  background:var(--ar-work-surface,#15191f)!important;
+  color:var(--ar-work-text,#f2f4f7)!important;
+  border-color:var(--ar-work-line,#2b333e)!important;
+  border-radius:12px!important;
+  box-shadow:0 20px 64px rgba(0,0,0,.28)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-head,
+main.admin-page.ar-admin-v3 .ar-mgmt-tools{
+  background:var(--ar-work-surface,#15191f)!important;
+  border-color:var(--ar-work-line,#2b333e)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-head small{color:var(--ar-work-muted,#a2aab5)!important;letter-spacing:.08em!important}
+main.admin-page.ar-admin-v3 .ar-mgmt-head h2{color:var(--ar-work-text,#f2f4f7)!important;font-size:19px!important}
+main.admin-page.ar-admin-v3 .ar-mgmt-close,
+main.admin-page.ar-admin-v3 .ar-mgmt-tools button{
+  background:var(--ar-work-raised,#202a35)!important;
+  color:var(--ar-work-text,#f2f4f7)!important;
+  border-color:var(--ar-work-line,#2b333e)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-tools input,
+main.admin-page.ar-admin-v3 .ar-mgmt-tools select,
+main.admin-page.ar-admin-v3 .ar-push-grid input,
+main.admin-page.ar-admin-v3 .ar-push-grid select,
+main.admin-page.ar-admin-v3 .ar-push-grid textarea{
+  background:var(--ar-work-bg,#0f1115)!important;
+  color:var(--ar-work-text,#f2f4f7)!important;
+  border-color:var(--ar-work-line,#2b333e)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-body,
+main.admin-page.ar-admin-v3 .ar-mgmt-table,
+main.admin-page.ar-admin-v3 .ar-mgmt-table tbody{
+  background:var(--ar-work-surface,#15191f)!important;
+  color:var(--ar-work-text,#f2f4f7)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-table th{
+  background:var(--ar-work-raised,#202a35)!important;
+  color:var(--ar-work-muted,#a2aab5)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-table th,
+main.admin-page.ar-admin-v3 .ar-mgmt-table td,
+main.admin-page.ar-admin-v3 .ar-mgmt-feed article{
+  border-color:var(--ar-work-line,#2b333e)!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-user strong,
+main.admin-page.ar-admin-v3 .ar-mgmt-feed strong{color:var(--ar-work-text,#f2f4f7)!important}
+main.admin-page.ar-admin-v3 .ar-mgmt-user small,
+main.admin-page.ar-admin-v3 .ar-mgmt-feed p,
+main.admin-page.ar-admin-v3 .ar-mgmt-feed time,
+main.admin-page.ar-admin-v3 .ar-push-card p{color:var(--ar-work-muted,#a2aab5)!important}
+main.admin-page.ar-admin-v3 .ar-mgmt-avatar{background:var(--ar-work-raised,#202a35)!important;color:var(--ar-work-text,#f2f4f7)!important}
+main.admin-page.ar-admin-v3 .ar-mgmt-badge,
+main.admin-page.ar-admin-v3 .ar-mgmt-type{
+  background:var(--ar-work-raised,#202a35)!important;
+  color:var(--ar-work-text,#f2f4f7)!important;
+  border-color:var(--ar-work-line,#2b333e)!important;
+}
+main.admin-page.ar-admin-v3 .ar-push-card{
+  background:var(--ar-work-bg,#0f1115)!important;
+  border-color:var(--ar-work-line,#2b333e)!important;
+}
+main.admin-page.ar-admin-v3 .ar-push-send{
+  background:var(--ar-admin-primary,#3255c6)!important;
+  color:#fff!important;
+}
+main.admin-page.ar-admin-v3 .ar-mgmt-error{background:var(--admin-danger-soft,#321e23)!important;color:var(--admin-danger,#e0757e)!important;border-color:var(--admin-danger,#e0757e)!important}
+main.admin-page.ar-admin-v3 .ar-mgmt-empty{color:var(--ar-work-muted,#a2aab5)!important}
+@media(max-width:700px){
+  main.admin-page.ar-admin-v3 .ar-mgmt-panel{width:100%!important;border-radius:0!important}
+  main.admin-page.ar-admin-v3 .ar-mgmt-head{padding:14px 16px!important}
+  main.admin-page.ar-admin-v3 .ar-mgmt-tools{padding:10px 12px!important}
+  main.admin-page.ar-admin-v3 .ar-mgmt-table{min-width:660px}
+}
