@@ -73,7 +73,7 @@ The website also publishes a grievance mechanism for community/platform complain
 
 ## Operational verification added 19 October 2026
 
-- A database migration now creates the consent, deletion-request and nomination tables with row-level security. Apply `supabase/migrations/20261019130000_dpdp_privacy_controls.sql` to the production Supabase project before relying on these controls.
+- A database migration now creates the consent, deletion-request and nomination tables with row-level security. Apply `supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql` to the production Supabase project before relying on these controls.
 - Signup consent metadata is copied into a durable consent record by an auth-user trigger, including signups that need email confirmation.
 - Reader deletion requests are tracked and visible in the admin workspace under **Privacy Requests**. This is a review-and-erasure workflow, not instant self-service deletion: an authorised administrator must verify the request, perform erasure in the relevant systems, review lawful retention, and only then record a resolution note. Do not mark a request resolved before the underlying work is complete.
 - Data exports now include explicit warnings for categories that could not be retrieved; a download with warnings must not be described as a complete export.
