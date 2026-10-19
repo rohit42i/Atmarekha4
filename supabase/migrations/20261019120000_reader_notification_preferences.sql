@@ -1,7 +1,7 @@
 -- Per-reader push notification preferences. Missing rows intentionally mean all categories enabled.
 create table if not exists public.notification_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  preferences jsonb not null default '{"new_chapters":true,"comments_replies":true,"group_chat":true,"community_posts":true,"announcements":true,"membership_account":true}'::jsonb,
+  preferences jsonb not null default '{"new_chapters":true,"comments_replies":true,"group_chat":true,"community_posts":true,"announcements":true,"membership_account":true,"other_updates":true}'::jsonb,
   updated_at timestamptz not null default now(),
   constraint notification_preferences_object check (jsonb_typeof(preferences) = 'object')
 );
