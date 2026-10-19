@@ -96,7 +96,12 @@ export default function AdminOperations() {
       const { error } = await supabase.from('chapters').update(safePatch).eq('id', chapter.id);
       if (error) throw error;
       await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action, entity_type: 'chapter', entity_id: chapter.id, details: { chapter_number: chapter.chapter_number, title: chapter.title, ...safePatch } });
-      setNotice('Chapter updated successfully.'); await load();
+      let notificationNotice = '';
+      if (String(safePatch.status || '').toLowerCase() === 'published' && String(chapter.status || '').toLowerCase() !== 'published') {
+        const { data: notification, error: notificationError } = await supabase.functions.invoke('send-reader-event-notification', { body: { eventType: 'new_chapters', eventId: chapter.id } });
+        notificationNotice = notificationError || !notification?.ok ? ' Chapter saved, but reader notifications could not be sent.' : ` ${notification.sent || 0} readers notified.`;
+      }
+      setNotice(`Chapter updated successfully.${notificationNotice}`); await load();
     } catch (error) {
       setNotice(error.message || 'Chapter update failed.');
       try { const user = await requireAdmin(); await supabase.from('admin_activity_log').insert({ admin_user_id: user.id, action: `${action}_failed`, entity_type: 'chapter', entity_id: chapter.id, details: { error: error.message } }); } catch (_) {}
