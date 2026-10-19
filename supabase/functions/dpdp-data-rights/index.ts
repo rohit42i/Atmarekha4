@@ -32,7 +32,6 @@ function response(body: unknown, status: number, origin: string | null) {
   return new Response(JSON.stringify(body), { status, headers: { ...cors(origin), "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
 }
 function clean(value: unknown, max: number) { return String(value ?? "").trim().slice(0, max); }
-function validEmail(value: string) { return /^\S+@\S+\.\S+$/.test(value); }
 
 Deno.serve(async req => {
   const origin = req.headers.get("origin");
