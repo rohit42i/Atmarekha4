@@ -47,6 +47,7 @@ const required = [
   ['AdminPanel.jsx', "key: 'Privacy Requests'"],
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export_warnings'],
+  ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","site_feedback","notification_subscriptions"'],
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
