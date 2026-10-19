@@ -14,9 +14,9 @@ const SECURITY_HEADERS = {
 };
 
 const STATIC_SEO = {
-  "/": ["Atma Rekha | Indian Fantasy Manga Adventure", "Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, traditions, and mysterious powers."],
+  "/": ["Atma Rekha | Indian Fantasy Manga & Comic", "Read Atma Rekha, an original Indian fantasy manga and comic by Arkesh. This creator-led, AI-assisted manga explores Indian traditions, spiritual concepts, mysterious powers, and adventure."],
   "/chapters": ["Chapters | Atma Rekha", "Browse published chapters of Atma Rekha, an original Indian fantasy adventure manga by Arkesh."],
-  "/info/about": ["About Atma Rekha | Indian Fantasy Manga", "Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh."],
+  "/info/about": ["About Atma Rekha | Indian Fantasy Manga & Comic", "Learn about Atma Rekha, an original Indian fantasy manga and comic by Arkesh, with AI-assisted tools used for selected parts of production."],
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
   "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
   "/info/privacy": ["Privacy Policy | Atma Rekha", "Read how Atma Rekha handles account information, site activity, and privacy requests."],
