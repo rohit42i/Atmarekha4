@@ -25,6 +25,7 @@ import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import ExperienceEnhancements from './ExperienceEnhancements.jsx';
 import './index.css';
+import './print.css';
 import './ui-polish.css';
 import './interaction-polish.css';
 import './mihon-reader-polish.css';
