@@ -69,7 +69,8 @@ export default function AdminOperations() {
 
   const activeChapters = useMemo(() => chapters.filter(chapter => !chapter.deleted_at), [chapters]);
   const calendarChapters = useMemo(() => activeChapters.filter(chapter => chapter.release_date || String(chapter.status || '').toLowerCase() === 'scheduled').sort((a,b) => new Date(a.release_date || a.created_at || 0) - new Date(b.release_date || b.created_at || 0)), [activeChapters]);
-  const suspiciousActivity = useMemo(() => logs.filter(row => /login|password|denied|unauthori[sz]ed|rate.?limit|blocked|suspicious/i.test(String(row.action || '') + ' ' + String(row.details?.error || ''))), [logs]);\n  const emailAttempts = useMemo(() => logs.filter(row => /email/i.test(String(row.action || '') + ' ' + String(row.entity_type || ''))), [logs]);
+  const suspiciousActivity = useMemo(() => logs.filter(row => /login|password|denied|unauthori[sz]ed|rate.?limit|blocked|suspicious/i.test(String(row.action || '') + ' ' + String(row.details?.error || ''))), [logs]);
+  const emailAttempts = useMemo(() => logs.filter(row => /email/i.test(String(row.action || '') + ' ' + String(row.entity_type || ''))), [logs]);
   const selectedProfile = users.find(user => user.id === selectedUser);
 
   const updateChapter = async (chapter, patch, action, confirmation = null) => {
