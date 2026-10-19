@@ -14,11 +14,11 @@ const PAGES = {
       ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
-      'Atma Rekha is an original Indian fantasy adventure manga about people, traditions, and powers connected by a mystery that slowly unfolds. The story is told through its characters and the choices they make, with more of the world revealed as the journey continues.',
-      'It is an independent project created by Arkesh and first published in Roman Hindi. Chapters are made one at a time, with a planned release on the 14th of each month. The schedule is a goal rather than a guarantee, because each chapter takes time to prepare.',
-      'AI tools are part of the creative process for selected visual work, including exploring references and developing some backgrounds or other visual elements. Their use can vary from page to page.',
-      'The story, characters, world, dialogue, and overall direction are developed for Atma Rekha by its creator. Visual material made with AI tools is selected, reviewed, edited, and worked into the final pages as part of that process. The series is not presented as entirely hand drawn or entirely made with AI. The workflow can include both digital drawing and AI created visual elements.',
-      'Atma Rekha is made independently by one creator, not a studio team. The aim is to keep building an original story and share it with readers as each chapter is ready.',
+      'I’m Arkesh, the solo creator of Atma Rekha, an original Indian fantasy adventure manga about people, traditions, and powers connected by a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
+      'I create the series independently and publish it first in Roman Hindi. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
+      'I use AI tools in parts of the visual process, including exploring references and creating or developing some backgrounds and other visual elements. The amount of AI assistance varies from page to page and from scene to scene.',
+      'I choose the material that fits each scene and refine or combine it while building the pages with digital drawing and editing tools. Some elements are drawn or adjusted manually, while others may use AI generated material. I do not present the manga as entirely hand drawn or entirely made with AI.',
+      'The story, characters, worldbuilding, dialogue, and creative direction are developed by me for Atma Rekha. AI tools can help with parts of production, but they do not decide the story or replace my creative decisions. I review the finished pages before publishing them.',
     ],
   },
   contact: {
@@ -38,7 +38,7 @@ const PAGES = {
     eyebrow: 'TERMS', title: 'Terms of use',
     sections: [
       { heading: 'Using the site', body: 'Atma Rekha is for reading manga and using its reader and community features. Please use the site lawfully and respectfully. Do not harass others, post illegal or harmful material, impersonate people, share private information, spam, or interfere with the site. We may hide content or restrict accounts when needed to protect readers or the service.' },
-      { heading: 'Stories and artwork', body: 'Atma Rekha’s original story, characters, artwork, text and branding belong to their respective rights holder. You may read the work and share links to it, but may not copy, repost, sell or use it commercially without permission.' },
+      { heading: 'Stories and artwork', body: 'The story, characters, writing, branding and creative material made for Atma Rekha are provided for reading here. You may share links to the site, but do not copy, repost, sell or reuse the pages and materials without permission.' },
       { heading: 'Membership and payments', body: 'Before joining, check the price, billing frequency and chapter access shown on the membership page. Membership renews automatically when that is part of the plan you choose. You can cancel to stop future renewals, and access for the paid period follows the terms shown when you joined. For an incorrect payment or missing access, contact us with the payment or subscription reference. Refund requests are reviewed under applicable law and the transaction details. Never send passwords, OTPs, UPI PINs, CVVs or full card details to support.' },
       { heading: 'Changes and contact', body: 'Chapters, release plans and features may change, and the site may occasionally be unavailable. We may update these terms when needed. Nothing here takes away rights that cannot legally be excluded. For account, membership or other complaints, contact ' + CONTACT_EMAIL + '.' },
     ],
