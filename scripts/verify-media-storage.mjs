@@ -66,7 +66,7 @@ const checks = [
       && worker.includes('communityAttachment.test(key)')
       && worker.includes('const mediaLibraryImage =')
       && worker.includes('mediaLibraryImage.test(key)')
-      && worker.split('\\n').some(line => line.includes('const publicCover =') && line.includes('media'))
+      && worker.split(String.fromCharCode(10)).some(line => line.includes('const publicCover =') && line.includes('media'))
       && worker.includes('const cover = new RegExp')
       && worker.includes('const page = new RegExp'),
   ],
