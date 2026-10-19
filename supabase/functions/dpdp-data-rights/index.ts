@@ -16,7 +16,7 @@ const ALLOWED_ORIGINS = new Set(["https://www.atmarekha.in","https://atmarekha.i
 const USER_TABLES = [
   "profiles","bookmarks","chapter_ratings","comment_likes","comments","community_members","community_post_reactions",
   "feature_login_users","group_chat_likes","group_chat_messages","group_chat_reactions","group_chat_reads","member_messages",
-  "moderation_reports","notification_subscriptions","payments","pdlpl_bookmarks","pdlpl_chapter_ratings","pdlpl_comment_likes",
+  "moderation_reports","site_feedback","notification_subscriptions","payments","pdlpl_bookmarks","pdlpl_chapter_ratings","pdlpl_comment_likes",
   "pdlpl_comments","pdlpl_reading_history","push_subscriptions","reading_history","subscriptions","user_moderation","user_subscriptions"
 ];
 
