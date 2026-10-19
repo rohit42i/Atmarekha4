@@ -1,4 +1,5 @@
 import FeedbackForm from './FeedbackForm.jsx';
+import { ATMA_REKHA_FAQS } from './siteFaqs.js';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
@@ -8,13 +9,13 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
+      ['Name', 'Atma Rekha'], ['Creator', 'Arkesh'], ['Format', 'Original manga / webcomic'], ['Language', 'Roman Hindi'],
       ['Release Schedule', '14th of each month'], ['Read', 'Website & Print (Working)'],
       ['Free', 'Chapters 1–8'], ['Content Rating', '15+'], ['Accounts', '15+'], ['Team', 'Solo Creator'],
     ],
     story: [
-      'Atma Rekha Is An Adventure Manga/Comic Where Traditions And Powers Become A Part Of An Unfolding Story.',
-      'The series follows an original story built around its characters, their experiences, and the mysteries they encounter as the world gradually unfolds.',
+      'Atma Rekha is an original Indian fantasy adventure manga and webcomic where traditions and powers become part of an unfolding story.',
+      'The series follows its characters through mysteries, spiritual concepts, mysterious powers, and mythical beings. It is an independent Indian comic created for readers who enjoy fantasy adventures and original manga-style storytelling.',
       'Atma Rekha is originally published in Roman Hindi, with additional language versions available as they are published. New chapters are planned for release on the 14th of each month.',
       'The project is independently created by Arkesh as a solo creator. AI-assisted tools are used only for selected parts of the creative process, while the story, characters, direction, and final creative decisions remain original to the project.',
     ],
@@ -67,6 +68,12 @@ export default function InfoPage({ type, onBack }) {
   const page = PAGES[type] || PAGES.about;
   const isAbout = type === 'about';
   return <main className="info-page">
+    <nav className="info-breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/">Home</a></li>
+        <li aria-current="page">{page.title}</li>
+      </ol>
+    </nav>
     <header className="subpage-header info-page-header">
       <button className="back-button" onClick={onBack} aria-label="Back">←</button>
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
@@ -74,7 +81,7 @@ export default function InfoPage({ type, onBack }) {
     <section className="info-card info-hero">
       <p className="section-eyebrow">ATMA REKHA</p>
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions, feedback and collaboration enquiries are welcome.' : 'Use this page to send feedback, report content or raise a grievance.'}</p>
+      <p className="info-hero-copy">{isAbout ? 'An original Indian fantasy manga and webcomic by Arkesh, with AI-assisted tools used for selected production tasks.' : type === 'contact' ? 'Questions, feedback and collaboration enquiries are welcome.' : 'Use this page to send feedback, report content or raise a grievance.'}</p>
     </section>
     {isAbout ? <>
       <section className="info-card info-content-card" aria-label="Atma Rekha details">
@@ -87,5 +94,15 @@ export default function InfoPage({ type, onBack }) {
       </section>
       {type === 'report' && <section className="info-card info-feedback-card"><FeedbackForm/></section>}
     </>}
+    {isAbout && <section className="info-card info-faq-card" aria-labelledby="info-faq-title">
+      <p className="section-eyebrow">READER GUIDE</p>
+      <h2 id="info-faq-title">Frequently asked questions</h2>
+      <div className="info-faq-list">
+        {ATMA_REKHA_FAQS.map(({ question, answer }) => <details className="info-faq-item" key={question}>
+          <summary>{question}</summary>
+          <p>{answer}</p>
+        </details>)}
+      </div>
+    </section>}
   </main>;
 }

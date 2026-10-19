@@ -222,3 +222,26 @@ html[data-theme="light"] .privacy-control-button span,html[data-theme="light"] .
 html[data-theme="light"] .info-page .info-card,html[data-theme="light"] .info-page .info-section,html[data-theme="light"] .contact-card{background:#fff!important;color:#111!important;border-color:#e2e2e2!important}
 html[data-theme="light"] .info-page a,.info-page .privacy-control-button{color:#111!important}
 html[data-theme="dark"] .info-page .info-card,html[data-theme="dark"] .info-page .info-section,html[data-theme="dark"] .contact-card{background:#050505!important;color:#fff!important;border-color:#222!important}
+
+
+/* Accessible expandable reader FAQ */
+.info-faq-card h2{margin:6px 0 18px;font-size:clamp(1.25rem,2.5vw,1.65rem);line-height:1.25}
+.info-faq-list{display:grid;gap:10px}
+.info-faq-item{min-width:0;border:1px solid var(--border-color,rgba(255,255,255,.1));border-radius:12px;background:var(--card-bg,transparent);color:var(--text-color)}
+.info-faq-item summary{position:relative;cursor:pointer;list-style:none;padding:16px 44px 16px 16px;font-weight:600;line-height:1.45}
+.info-faq-item summary::-webkit-details-marker{display:none}
+.info-faq-item summary::after{content:'+';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:1.25rem;font-weight:400}
+.info-faq-item[open] summary::after{content:'−'}
+.info-faq-item summary:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px}
+.info-faq-item p{margin:0;padding:0 16px 16px;line-height:1.7;color:var(--text-secondary,var(--text-color))}
+@media(max-width:600px){.info-faq-item summary{padding:14px 40px 14px 14px}.info-faq-item p{padding:0 14px 14px}}
+
+
+/* Visible, keyboard-accessible breadcrumbs on informational pages. */
+.info-breadcrumbs{margin:0 auto 10px;width:min(1100px,calc(100% - 32px));color:var(--text-secondary,var(--text-color));font-size:.82rem;line-height:1.5}
+.info-breadcrumbs ol{display:flex;align-items:center;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.info-breadcrumbs li+li::before{content:"/";margin-right:8px;opacity:.55}
+.info-breadcrumbs a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.info-breadcrumbs [aria-current="page"]{font-weight:600;color:var(--text-color)}
+.info-breadcrumbs a:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
+@media print{.info-breadcrumbs{color:#111!important}}

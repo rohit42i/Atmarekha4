@@ -1,3 +1,5 @@
+import { ATMA_REKHA_FAQS } from "./siteFaqs.js";
+
 const SITE_ORIGIN = "https://www.atmarekha.in";
 const SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E";
@@ -12,8 +14,9 @@ const SECURITY_HEADERS = {
 };
 
 const STATIC_SEO = {
+  "/": ["Atma Rekha | Indian Fantasy Manga & Comic", "Read Atma Rekha, an original Indian fantasy manga and comic by Arkesh. This creator-led, AI-assisted manga explores Indian traditions, spiritual concepts, mysterious powers, and adventure."],
   "/chapters": ["Chapters | Atma Rekha", "Browse published chapters of Atma Rekha, an original Indian fantasy adventure manga by Arkesh."],
-  "/info/about": ["About Atma Rekha | Indian Fantasy Manga", "Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh."],
+  "/info/about": ["About Atma Rekha | Indian Fantasy Manga & Comic", "Learn about Atma Rekha, an original Indian fantasy manga and comic by Arkesh, with AI-assisted tools used for selected parts of production."],
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
   "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
   "/info/privacy": ["Privacy Policy | Atma Rekha", "Read how Atma Rekha handles account information, site activity, and privacy requests."],
@@ -172,6 +175,11 @@ async function addServerSeo(request, response, env) {
     headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     response = new Response(response.body, { status: 404, statusText: "Not Found", headers });
   }
+  // Preserve an actual 404 for unknown routes and apply one when chapter metadata
+  // confirms that a syntactically valid chapter URL does not exist.
+  let finalStatus = response.status;
+  let finalStatusText = response.statusText;
+  let confirmedMissingChapter = false;
   if (isPrivate) headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
 
   const contentType = headers.get("Content-Type") || "";
@@ -196,6 +204,32 @@ async function addServerSeo(request, response, env) {
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
     html = setCanonical(html, canonical);
+    if (STATIC_SEO[path]) {
+      const routeTitle = STATIC_SEO[path][0];
+      const routeDescription = STATIC_SEO[path][1];
+      html = setMeta(html, "property", "og:title", routeTitle);
+      html = setMeta(html, "property", "og:description", routeDescription);
+      html = setMeta(html, "property", "og:url", canonical);
+      html = setMeta(html, "name", "twitter:title", routeTitle);
+      html = setMeta(html, "name", "twitter:description", routeDescription);
+      if (path !== "/") {
+        const crumbName = routeTitle.split("|")[0].trim();
+        html = addJsonLd(html, [
+          {
+            "@type": "WebPage", "@id": canonical + "#webpage", url: canonical,
+            name: routeTitle, description: routeDescription,
+            breadcrumb: { "@id": canonical + "#breadcrumb" },
+          },
+          {
+            "@type": "BreadcrumbList", "@id": canonical + "#breadcrumb",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Atma Rekha", item: SITE_ORIGIN + "/" },
+              { "@type": "ListItem", position: 2, name: crumbName, item: canonical },
+            ],
+          },
+        ]);
+      }
+    }
     if (path === "/chapters") {
       html = setAlternates(html, [
         { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
@@ -220,6 +254,9 @@ async function addServerSeo(request, response, env) {
       const chapters = await loadPublishedChapters(env);
       const chapter = findChapter(path, url, chapters);
       if (!chapter) {
+        finalStatus = 404;
+        finalStatusText = "Not Found";
+        confirmedMissingChapter = true;
         html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
         headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       } else {
@@ -290,11 +327,23 @@ async function addServerSeo(request, response, env) {
     }
   }
 
+  if (path === "/info/about") {
+    html = addJsonLd(html, [{
+      "@type": "FAQPage",
+      "@id": SITE_ORIGIN + "/info/about#faq",
+      mainEntity: ATMA_REKHA_FAQS.map(({ question, answer }) => ({
+        "@type": "Question",
+        name: question,
+        acceptedAnswer: { "@type": "Answer", text: answer },
+      })),
+    }]);
+  }
+
   headers.delete("Content-Length");
   headers.delete("content-length");
   headers.delete("Content-Encoding");
   headers.delete("content-encoding");
-  if (isPrivate || !isKnown) {
+  if (isPrivate || !isKnown || confirmedMissingChapter) {
     headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     headers.set("Cache-Control", "private, no-store, max-age=0");
     headers.delete("CDN-Cache-Control");
@@ -302,7 +351,7 @@ async function addServerSeo(request, response, env) {
     headers.set("Cache-Control", "public, max-age=0, must-revalidate");
     headers.set("CDN-Cache-Control", "public, max-age=300, stale-while-revalidate=60");
   }
-  return new Response(html, { status: response.status, statusText: response.statusText, headers });
+  return new Response(html, { status: finalStatus, statusText: finalStatusText, headers });
 }
 
 export default {

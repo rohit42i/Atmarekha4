@@ -138,6 +138,7 @@ export default function PrivacyCenter() {
     <section className="privacy-hero">
       <p className="section-eyebrow">LEGAL · PRIVACY</p>
       <h1>Privacy</h1>
+      <button type="button" className="secondary-button" onClick={() => window.dispatchEvent(new CustomEvent('atma:open-privacy-choices'))}>Change analytics preferences</button>
       <p>Atma Rekha respects the privacy of readers worldwide. This notice explains what personal data we collect, why we use it, how we protect it, when it may be shared, and the controls available to you.</p>
       <p className="privacy-applicability"><strong>Applicable laws:</strong> Depending on where you live and how you interact with Atma Rekha, different privacy laws may apply.</p>
       <p className="privacy-version">Last updated: 7 October 2026 · Privacy notice version {PRIVACY_VERSION}</p>

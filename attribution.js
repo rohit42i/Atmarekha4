@@ -1,3 +1,5 @@
+import { hasAnalyticsConsent } from './privacyConsent.js';
+
 const STORAGE_KEY = 'atma-rekha-marketing-attribution-v1';
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
 
@@ -11,7 +13,7 @@ function readStored() {
 }
 
 export function captureMarketingAttribution() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !hasAnalyticsConsent()) return null;
   const url = new URL(window.location.href);
   const current = Object.fromEntries(
     UTM_KEYS.map(key => [key, String(url.searchParams.get(key) || '').trim()]).filter(([, value]) => value),
@@ -30,6 +32,6 @@ export function captureMarketingAttribution() {
 }
 
 export function getMarketingAttribution() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !hasAnalyticsConsent()) return null;
   return readStored();
 }

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { hasAnalyticsConsent } from './privacyConsent.js';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
 const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
@@ -268,6 +269,7 @@ export async function deleteComment(commentId) {
 
 export async function recordChapterShare(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };
   const { error } = await supabase.from('chapter_shares').insert({
     chapter_id: chapterId,
     viewer_key: getViewerKey(),
@@ -278,6 +280,7 @@ export async function recordChapterShare(chapterId) {
 
 export async function recordChapterView(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };
   if (wasViewRecorded(chapterId)) return { recorded: false, duplicate: true };
   const viewerKey = getViewerKey();
   try {
