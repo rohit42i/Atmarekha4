@@ -1,3 +1,5 @@
+import { ATMA_REKHA_FAQS } from "./siteFaqs.js";
+
 const SITE_ORIGIN = "https://www.atmarekha.in";
 const SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E";
@@ -294,6 +296,18 @@ async function addServerSeo(request, response, env) {
     } catch (_) {
       // Keep the reader available if the metadata service is temporarily unavailable.
     }
+  }
+
+  if (path === "/info/about") {
+    html = addJsonLd(html, [{
+      "@type": "FAQPage",
+      "@id": SITE_ORIGIN + "/info/about#faq",
+      mainEntity: ATMA_REKHA_FAQS.map(({ question, answer }) => ({
+        "@type": "Question",
+        name: question,
+        acceptedAnswer: { "@type": "Answer", text: answer },
+      })),
+    }]);
   }
 
   headers.delete("Content-Length");
