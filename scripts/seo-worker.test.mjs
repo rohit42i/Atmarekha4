@@ -77,6 +77,17 @@ test('keeps a published chapter indexable and canonicalized', async () => {
   assert.doesNotMatch(response.headers.get('X-Robots-Tag') || '', /noindex/);
 });
 
+test('includes matching FAQ content and structured data on the About page', async () => {
+  const env = mockRuntime([]);
+  const response = await worker.fetch(new Request('https://www.atmarekha.in/info/about'), env);
+  const body = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(body, /"@type":"FAQPage"/);
+  assert.match(body, /What is Atma Rekha\?/);
+  assert.match(body, /atmarekhasupport@gmail\.com/);
+});
+
 test('keeps administrative routes out of search indexes', async () => {
   const env = mockRuntime([]);
   const response = await worker.fetch(new Request('https://www.atmarekha.in/admin'), env);
