@@ -26,8 +26,6 @@ import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import ExperienceEnhancements from './ExperienceEnhancements.jsx';
 import './index.css';
-import './print.css';
-import './cookie-consent.css';
 import './ui-polish.css';
 import './interaction-polish.css';
 import './mihon-reader-polish.css';
@@ -127,3 +125,7 @@ import './comments-name-send-fix.css';
 import './admin-overview-premium.css';
 import './admin-control-room.css';
 import './admin-reference-integration.css';
+
+// Load audit styles last so print rules and consent controls win intended cascade conflicts.
+import './print.css';
+import './cookie-consent.css';
