@@ -6,6 +6,8 @@ Reviewed the active React/Vite application, Cloudflare Workers Static Assets Wor
 
 **Deployment decision:** keep GitHub Actions + Cloudflare Workers/Static Assets + R2 + Supabase. Do not migrate to Vercel or add Redis/Kubernetes without evidence that the present platform is the bottleneck.
 
+**Validation checkpoint:** on implementation revision `96d75b7aa5a4cd0112f7d206dd9f81d6da11f891`, the GitHub Actions production build/regression tests, CodeQL analysis, and historical Gitleaks scan all passed. The PR remains draft and unmerged; deploy steps were skipped for the pull-request event. Documentation and print-style refinements are being added separately, so rerun CI after the latest changes.
+
 ## Findings and status
 
 Legend: **Present** means visible in source; **Partial** means some protections/features exist but broader proof is missing; **Missing / follow-up** means not completed in this change.
@@ -92,7 +94,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 
 The listed slash commands are prompt/workflow conventions for an AI assistant, not website product features or URL routes. They should be used as planning/review modes when appropriate, not implemented as fake controls in the public site. No slash-command parser was added.
 
-## Changes proposed by PR #89
+## Changes implemented by draft PR #89
 
 - Real HTTP 404 for confirmed-missing chapter URLs, with noindex.
 - Worker SEO regression tests wired into `npm run check` and build preflight.
