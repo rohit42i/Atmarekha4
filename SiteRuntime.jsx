@@ -192,6 +192,38 @@ function PageScrollProgress() {
   </div>;
 }
 
+function FloatingContact() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const path = window.location.pathname;
+      const privateRoute = /^\\/(?:admin|profile|membership|group-chat|community)(?:\\/|$)/i.test(path);
+      const privateHash = /^#(?:profile|membership|group-chat|community)(?:\\/|$)/i.test(window.location.hash);
+      const excludedSurface = Boolean(document.querySelector('.reader-page, .profile-v2-overlay, .admin-panel, .admin-control-room'));
+      const contactPage = path.replace(/\\/+$/, '') === '/info/contact'
+        || window.location.hash.replace(/^#/, '') === 'info/contact';
+      setVisible(!privateRoute && !privateHash && !excludedSurface && !contactPage);
+    };
+
+    window.addEventListener('popstate', update);
+    window.addEventListener('hashchange', update);
+    const observer = typeof MutationObserver !== 'undefined' && document.body
+      ? new MutationObserver(update)
+      : null;
+    observer?.observe(document.body, { childList: true, subtree: true });
+    update();
+
+    return () => {
+      window.removeEventListener('popstate', update);
+      window.removeEventListener('hashchange', update);
+      observer?.disconnect();
+    };
+  }, []);
+
+  return visible ? <a className="floating-contact-button" href="/info/contact" aria-label="Contact Atma Rekha">Contact</a> : null;
+}
+
 export default function SiteRuntime() {
-  return <><PageScrollProgress/><ToastHost/><BackToTop/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
+  return <><PageScrollProgress/><ToastHost/><BackToTop/><FloatingContact/><RefreshControl/><PwaInstallManager/><ServiceWorkerManager/></>;
 }
