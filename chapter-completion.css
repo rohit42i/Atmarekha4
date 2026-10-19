@@ -35,3 +35,7 @@ html[data-theme="dark"] .chapter-completion-actions .primary-button{background:#
   .chapter-completion-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
   .chapter-completion-actions button{width:100%!important}
 }
+
+
+.chapter-completion-error{margin:12px 0 0;padding:10px 12px;border:1px solid #b42318;border-radius:8px;color:#b42318;font-size:.9rem;line-height:1.45;text-align:left}
+@media(prefers-color-scheme:dark){.chapter-completion-error{color:#ffb4ab;border-color:#8e3029}}
