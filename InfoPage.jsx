@@ -14,22 +14,22 @@ const PAGES = {
       ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
-      'Atma Rekha is an original Indian fantasy adventure manga where traditions and powers become part of an unfolding story.',
-      'The series follows its characters, their experiences, and the mysteries they uncover. It is independently created by Arkesh and is originally published in Roman Hindi.',
+      'Atma Rekha is an original Indian fantasy adventure manga where traditions and powers become part of an unfolding story. Follow its characters as they face difficult choices, discover hidden truths, and uncover the mysteries behind their world.',
+      'Created independently by Arkesh, the series is originally published in Roman Hindi. Its story, characters, world, and creative direction are developed by the creator, with each chapter shaped into the version shared with readers.',
+      'AI tools are used to assist with parts of the creative and production process, including some visual work. They are tools in the process, not a replacement for the creator: Arkesh guides the story and makes the final creative decisions.',
     ],
   },
   contact: {
     eyebrow: 'CONTACT', title: 'Contact',
     sections: [
-      { heading: 'Email', body: 'Have a question or need help with your account or membership? Send us an email.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
+      { heading: 'Email', body: 'Have a question or need help with your account or membership? Send us an email.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}`] },
       { heading: 'Instagram', body: 'Follow Atma Rekha for updates and previews.', links: [{ label: '@atma.rekha', href: INSTAGRAM_URL }] },
     ],
   },
   report: {
     eyebrow: 'REPORT', title: 'Report a problem',
     sections: [
-      { heading: 'Tell us what happened', body: 'Let us know if a chapter, page, account feature or comment is not working properly, or if you see something that should be reviewed. Please include enough detail for us to find the issue.' },
-      { heading: 'Membership or account help', body: 'For help with your account or membership, email us using the address below. Never send your password, OTP, UPI PIN or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
+      { heading: 'What needs attention?', body: 'Use the form below to report a site problem or content concern. Include the chapter or page, if relevant, and a short description so it can be reviewed.' },
     ],
   },
   terms: {
