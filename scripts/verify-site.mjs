@@ -23,6 +23,7 @@ const required = [
   ['public/llms.txt', 'An original Indian fantasy adventure manga by Arkesh.'],
   ['public/.well-known/security.txt', 'Contact: mailto:atmarekhasupport@gmail.com'],
   ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
+  ['notification-prompt.js', 'if (stored === null || stored.trim() === \'\') return fallback;'],
   ['notification-prompt.js', 'FIRST_DISMISSAL_DELAY_SECONDS = 30 * 60 * 60'],
   ['notification-prompt.js', "atma-notification-dont-show-again"],
   ['notification-prompt.js', "Don't show this again"],
