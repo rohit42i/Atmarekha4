@@ -13,7 +13,7 @@ The current service is not represented as a Significant Data Fiduciary and there
 
 ## Personal data inventory
 
-The application can process account email, display name, username, avatar, bio, account timestamps, reading history, bookmarks, ratings, comments, community activity, notification subscriptions, membership/subscription records, payment-related records, moderation records, and technical identifiers used for security or abuse prevention.
+The application can process account email, display name, username, avatar, bio, account timestamps, reading history, bookmarks, ratings, comments, community activity, site feedback, notification subscriptions, membership/subscription records, payment-related records, moderation records, and technical identifiers used for security or abuse prevention.
 
 Public comments are intentionally visible to other readers. Payment credentials are handled by Razorpay rather than stored as full card/UPI credentials in the application database.
 
