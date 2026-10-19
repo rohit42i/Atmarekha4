@@ -44,7 +44,7 @@ const checks = [
   [
     'Atma chapter and cover uploads use the Cloudflare R2 adapter',
     atmaAdmin.includes('cloudflareR2.from(bucket).upload')
-      && atmaAdmin.includes('cloudflareR2.from(COVER_BUCKET).getPublicUrl'),
+      && atmaAdmin.includes('cloudflareR2.from(bucket).getPublicUrl(path).data.publicUrl'),
   ],
   [
     'Atma chapter-page editing reads and removes media through Cloudflare R2',
