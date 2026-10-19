@@ -4,6 +4,7 @@ const AdminLogin = lazy(() => import('./AdminLogin.jsx'));
 const AdminPanel = lazy(() => import('./AdminPanel.jsx'));
 import Footer from './Footer';
 import InfoPage from './InfoPage';
+import { ATMA_REKHA_FAQS } from './siteFaqs.js';
 import HomeAnnouncement from './HomeAnnouncement';
 import PalDoPalKeLamhe from './PalDoPalKeLamhe';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
@@ -665,6 +666,18 @@ export default function App() { const route = useHashRoute(); const [chapters, s
 
     const breadcrumb = buildBreadcrumbList(type, routeParts, chapter, title, canonicalUrl);
     if (breadcrumb) graph.push(breadcrumb);
+
+    if (type === 'info' && routeParts[1] === 'about') {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': SITE_URL + '/info/about#faq',
+        mainEntity: ATMA_REKHA_FAQS.map(({ question, answer }) => ({
+          '@type': 'Question',
+          name: question,
+          acceptedAnswer: { '@type': 'Answer', text: answer },
+        })),
+      });
+    }
 
     if (chapter) {
       const chapterNumber = chapter.chapterNumber;
