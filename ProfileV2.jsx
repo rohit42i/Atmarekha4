@@ -27,7 +27,71 @@ export default function ProfileV2() {
   const fail=(key,msg)=>{setFieldErrors(current=>({...current,[key]:msg}));setShake(current=>({...current,[key]:false}));requestAnimationFrame(()=>setShake(current=>({...current,[key]:true})))};
   const clearField=key=>{setFieldErrors(current=>{if(!current[key])return current;const next={...current};delete next[key];return next});setError('')};
 
-  const save=async e=>{e.preventDefault();if(!user||saving)return;const nextErrors={};const emailCheck=validateEmail(email);if(!emailCheck.ok)nextErrors.email=emailCheck.message;if(!displayName.trim())nextErrors.displayName='Display name is required.';if(Object.keys(nextErrors).length){setFieldErrors(nextErrors);setError('Please correct the highlighted fields.');setShake(Object.fromEntries(Object.keys(nextErrors).map(k=>[k,true])));return}setSaving(true);setError('');setMessage('');const clean=username.trim().toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,24);const emailChanged=email.trim()!==(user.email||'');if(emailChanged){const{error:ee}=await supabase.auth.updateUser({email:email.trim()});if(ee){setError(ee.message);setSaving(false);return}}const updates={username:clean||null,display_name:displayName.trim().slice(0,60)||'Reader',bio:bio.trim().slice(0,240)||null,avatar_url:avatar||AVATARS[0]};const {data,error}=await supabase.from('profiles').update(updates).eq('id',user.id).select().single();if(error){setError(error.code==='23505'?'That username is already taken.':error.message);setSaving(false);return}setProfile(data);setEditing(false);setAvatarPicker(false);setMessage(emailChanged?'Profile saved. Check the confirmation email if your email change requires verification.':'Profile saved.');clearDraft('atma-profile-draft');setSaving(false)};
+  const save = async event => {
+    event.preventDefault();
+    if (!user || saving) return;
+
+    const nextErrors = {};
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.ok) nextErrors.email = emailCheck.message;
+    if (!displayName.trim()) nextErrors.displayName = 'Display name is required.';
+    if (Object.keys(nextErrors).length) {
+      setFieldErrors(nextErrors);
+      setError('Please correct the highlighted fields.');
+      setShake(Object.fromEntries(Object.keys(nextErrors).map(key => [key, true])));
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24);
+    const nextEmail = email.trim();
+    const emailChanged = nextEmail !== (user.email || '');
+    const updates = {
+      username: cleanUsername || null,
+      display_name: displayName.trim().slice(0, 60) || 'Reader',
+      bio: bio.trim().slice(0, 240) || null,
+      avatar_url: avatar || AVATARS[0],
+    };
+
+    // Save profile fields first. Email changes are a separate Auth operation and
+    // may require confirmation, so a failed email update must not hide a saved profile.
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (profileError) {
+      setError(profileError.code === '23505' ? 'That username is already taken.' : profileError.message);
+      setSaving(false);
+      return;
+    }
+
+    setProfile(data);
+    clearDraft('atma-profile-draft');
+    setEditing(false);
+    setAvatarPicker(false);
+
+    if (emailChanged) {
+      const { error: emailError } = await supabase.auth.updateUser({ email: nextEmail });
+      if (emailError) {
+        setEmail(user.email || '');
+        setError(`Your profile details were saved, but the email change failed: ${emailError.message}. Your sign-in email has not changed.`);
+        setMessage('');
+      } else {
+        setEmail(nextEmail);
+        setMessage(`Profile saved. A confirmation email may be sent to ${nextEmail}; your sign-in email changes only after you complete the required confirmation.`);
+      }
+    } else {
+      setMessage('Profile saved.');
+    }
+
+    setSaving(false);
+  };
 
   const updateApp=()=>{const worker=window.__atmaUpdateWorker;if(!worker)return;setUpdating(true);worker.postMessage({type:'SKIP_WAITING'});window.__atmaUpdateWorker=null;setUpdateAvailable(false)};
   const signOut=async()=>{await supabase.auth.signOut();window.location.hash='home';};
@@ -45,6 +109,8 @@ export default function ProfileV2() {
       <div className="profile-v2-edit-actions"><button type="button" onClick={closeEdit}>Cancel</button><button className="primary-button" type="submit" disabled={saving}>{saving?<><span className="button-spinner" aria-hidden="true"/> Saving…</>:'Save Changes'}</button></div>
       {error&&<p className="profile-v2-error form-field-error" role="alert">{error}</p>}{message&&<p className="profile-v2-message form-field-success" role="status" aria-live="polite">{message}</p>}
     </form>:<div className="profile-v2-bio">{profile?.bio?<p>{profile.bio}</p>:<p className="muted">Add a short bio so your profile feels like yours.</p>}</div>}
+    {!editing&&error&&<p className="profile-v2-error form-field-error" role="alert">{error}</p>}
+    {!editing&&message&&<p className="profile-v2-message form-field-success" role="status" aria-live="polite">{message}</p>}
     {!editing&&<>
     <button type="button" className="profile-app-button profile-more-button" onClick={()=>window.location.hash='more'}><span><strong>More & Settings</strong></span><b>→</b></button><div className="profile-v2-stats"><div><strong>{history.length}</strong><span>Chapters read</span></div><div><strong>{bookmarks.length}</strong><span>Favourites</span></div><div><strong>{ratings.length}</strong><span>Ratings</span></div></div><div className="profile-v2-tabs">{[['history','Reading History'],['bookmarks','Favourites'],['ratings','My Ratings'],['comments','My Comments']].map(([id,label])=><button type="button" key={id} className={tab===id?'active':''} onClick={()=>{setTab(id);localStorage.setItem('atma-profile-tab',id)}}>{label}</button>)}</div><div className="profile-v2-list">{!list.length?<div className="profile-v2-empty"><h3>{tab==='history'?'No reading history yet':tab==='bookmarks'?'No favourites yet':tab==='ratings'?'No ratings yet':'No comments yet'}</h3><p>{tab==='comments'?'Share your thoughts while reading and they will appear here.':'Start reading Atma Rekha and your activity will appear here.'}</p></div>:list.map(row=>{const chapter=row.chapters;return tab==='comments'?<button type="button" key={row.id} className="profile-v2-comment-item" onClick={()=>row.chapter_id&&(window.location.hash=`read-chapter/${encodeURIComponent(row.chapter_id)}`)}><div><strong>{row.content}</strong><small>{relativeTime(row.created_at)}</small></div><b>Open →</b></button>:!chapter?null:<button type="button" key={row.id||row.chapter_id} className="profile-v2-list-item" onClick={()=>window.location.hash=`read-chapter/${encodeURIComponent(chapter.id)}`}><div>{chapter.cover_url?<img src={chapter.cover_url} alt={`${chapter.title||'Chapter'} cover`}/>:<span aria-hidden="true">AR</span>}<div><small>CHAPTER {chapter.chapter_number}</small><strong>{chapter.title}</strong></div></div><b>{tab==='ratings'?`${row.rating}/10 ★`:tab==='history'?`Page ${row.page_number||1} →`:'Read →'}</b></button>})}</div><button type="button" className="profile-signout" onClick={signOut}>Sign out</button></>}
   </section></div></main>;
