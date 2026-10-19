@@ -113,7 +113,22 @@ end;
 $$;
 
 revoke all on function public.record_dpdp_signup_consent() from public, anon, authenticated;
+
+-- Some already-provisioned projects have an equivalent private signup trigger.
+-- Avoid recording consent twice there; create this trigger only when none exists.
 drop trigger if exists auth_user_record_dpdp_signup_consent on auth.users;
-create trigger auth_user_record_dpdp_signup_consent
-  after insert on auth.users
-  for each row execute function public.record_dpdp_signup_consent();
+do $
+begin
+  if not exists (
+    select 1 from pg_trigger
+    where tgrelid = 'auth.users'::regclass
+      and tgname = 'on_auth_user_dpdp_consent'
+      and not tgisinternal
+      and tgenabled <> 'D'
+  ) then
+    create trigger auth_user_record_dpdp_signup_consent
+      after insert on auth.users
+      for each row execute function public.record_dpdp_signup_consent();
+  end if;
+end;
+$;
