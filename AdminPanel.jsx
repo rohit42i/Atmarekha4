@@ -26,6 +26,7 @@ import CommunityAdmin from './CommunityAdmin.jsx';
 import PrivacyRequestsAdmin from './PrivacyRequestsAdmin.jsx';
 import EmailStudio from './EmailStudio.jsx';
 import './admin-workspace-ux.css';
+import './admin-full-redesign.css';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 
