@@ -38,6 +38,16 @@ const required = [
   ['siteFaqs.js', 'ATMA_REKHA_FAQS'],
   ['main.jsx', "import './print.css';"],
   ['print.css', '@media print'],
+  ['main.jsx', "import CookieConsent from './CookieConsent.jsx';"],
+  ['SiteRuntime.jsx', '<PageScrollProgress/>'],
+  ['SiteRuntime.jsx', 'site-scroll-progress'],
+  ['engagement.js', 'if (!hasAnalyticsConsent())'],
+  ['attribution.js', '!hasAnalyticsConsent()'],
+  ['CookieConsent.jsx', 'Essential only'],
+  ['privacyConsent.js', 'atma-analytics-consent-changed'],
+  ['cookie-consent.css', '.privacy-consent-banner'],
+  ['Footer.jsx', 'Privacy choices'],
+  ['PrivacyCenter.jsx', 'Change analytics preferences'],
 ];
 
 const forbidden = [
