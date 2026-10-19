@@ -6,7 +6,7 @@ Reviewed the active React/Vite application, Cloudflare Workers Static Assets Wor
 
 **Deployment decision:** keep GitHub Actions + Cloudflare Workers/Static Assets + R2 + Supabase. Do not migrate to Vercel or add Redis/Kubernetes without evidence that the present platform is the bottleneck.
 
-**Validation checkpoint:** on implementation revision `96d75b7aa5a4cd0112f7d206dd9f81d6da11f891`, the GitHub Actions production build/regression tests, CodeQL analysis, and historical Gitleaks scan all passed. The PR remains draft and unmerged; deploy steps were skipped for the pull-request event. Documentation and print-style refinements are being added separately, so rerun CI after the latest changes.
+**Validation checkpoint:** the production build/regression tests, CodeQL analysis, and historical Gitleaks scan all passed on revision `9ba32c13e8d138e03c565f692a7a0ca4fe78821f`. This audit-document refresh is documentation-only; its new commit still triggers GitHub Actions and must be checked before merge. The PR remains draft and unmerged, and deploy steps were skipped for pull-request events.
 
 ## Findings and status
 
