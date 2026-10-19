@@ -81,7 +81,7 @@ export default function InfoPage({ type, onBack }) {
     <section className="info-card info-hero">
       <p className="section-eyebrow">ATMA REKHA</p>
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions, feedback and collaboration enquiries are welcome.' : 'Use this page to send feedback, report content or raise a grievance.'}</p>
+      <p className="info-hero-copy">{isAbout ? 'An original Indian fantasy manga and webcomic by Arkesh, with AI-assisted tools used for selected production tasks.' : type === 'contact' ? 'Questions, feedback and collaboration enquiries are welcome.' : 'Use this page to send feedback, report content or raise a grievance.'}</p>
     </section>
     {isAbout ? <>
       <section className="info-card info-content-card" aria-label="Atma Rekha details">
