@@ -183,8 +183,15 @@ export default function AdminChapterManager({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !(await getAdminRole(user.id))) throw new Error('Admin access required.');
       const ids = [...selected];
+      const notifyIds = bulkAction.status === 'Published' ? chapters.filter(chapter => ids.includes(chapter.id) && normalizedStatus(chapter.status) !== 'published').map(chapter => chapter.id) : [];
+      if (bulkAction.status === 'Published' && !window.confirm(`Publish ${ids.length} selected chapter(s)? Readers with new-chapter notifications enabled will be notified.`)) return;
       const { error } = await supabase.from('chapters').update({ status: bulkAction.status }).in('id', ids);
       if (error) throw error;
+      const notifyResults = await Promise.all(notifyIds.map(async id => {
+        const { data, error: notificationError } = await supabase.functions.invoke('send-reader-event-notification', { body: { eventType: 'new_chapters', eventId: id } });
+        return { id, ok: !notificationError && Boolean(data?.ok), sent: Number(data?.sent || 0) };
+      }));
+      const notificationSummary = notifyResults.length ? ` ${notifyResults.reduce((sum, item) => sum + item.sent, 0)} readers notified across ${notifyResults.length} new chapter(s).` : '';
       await supabase.from('admin_activity_log').insert({
         admin_user_id: user.id,
         action: `bulk_${action}_chapters`,
@@ -194,7 +201,7 @@ export default function AdminChapterManager({
       });
       setSelected(new Set());
       setBulkAction(null);
-      setNotice(`${ids.length} chapter${ids.length === 1 ? '' : 's'} ${action}ed successfully.`);
+      setNotice(`${ids.length} chapter${ids.length === 1 ? '' : 's'} ${action}ed successfully.${notificationSummary}`);
       await onReload?.();
     } catch (error) {
       setNotice(error?.message || 'Bulk chapter update failed.');
