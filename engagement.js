@@ -255,6 +255,11 @@ export async function addComment({ chapterId = null, announcementId = null, comm
     parent_comment_id: parentCommentId,
   }).select('id,user_id,chapter_id,announcement_id,community_post_id,author_name,content,created_at,updated_at,parent_comment_id').single();
   if (error) throw error;
+  if (parentCommentId) {
+    supabase.functions.invoke('send-reader-event-notification', { body: { eventType: 'comments_replies', eventId: data.id } })
+      .then(({ error: notificationError }) => { if (notificationError) console.warn('Reply notification could not be sent.'); })
+      .catch(() => console.warn('Reply notification could not be sent.'));
+  }
   return data;
 }
 
