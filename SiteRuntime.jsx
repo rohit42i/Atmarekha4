@@ -182,6 +182,7 @@ function PageScrollProgress() {
       window.removeEventListener('scroll', update);
       window.removeEventListener('resize', update);
       window.removeEventListener('popstate', update);
+      observer?.disconnect();
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
