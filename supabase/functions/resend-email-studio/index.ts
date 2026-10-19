@@ -276,7 +276,7 @@ Deno.serve(async req => {
     }
     if (!candidates.length) return respond({ ok: false, error: "No eligible confirmed email accounts were found." }, 422);
 
-    const skippedOptOuts = category === "marketing"
+    let skippedOptOuts = category === "marketing"
       ? candidates.filter((recipient: any) => recipient.marketing_opted_out).length : 0;
     const recipients = category === "marketing"
       ? candidates.filter((recipient: any) => !recipient.marketing_opted_out) : candidates;
@@ -349,7 +349,7 @@ Deno.serve(async req => {
           };
           const htmlVars = Object.fromEntries(Object.entries(plainVars).map(([key, value]) => [key, escapeHtml(value)])) as Record<string, string>;
           const subject = render(subjectSource, plainVars).replace(/[\r\n]+/g, " ").slice(0, 200);
-          const htmlBody = htmlSource ? render(htmlSource, htmlVars).replace(/<p>\s*<\/p>/gi, "") : undefined;
+          const htmlBody = htmlSource ? render(htmlSource, htmlVars).replace(/<p\b[^>]*>\s*<\/p>/gi, "") : undefined;
           const plainBody = textSource ? render(textSource, plainVars) : "";
           const htmlWithFooter = category === "marketing"
             ? (htmlBody || "") + '<hr><p style="font-size:12px;color:#777">Creator updates from Atma Rekha · <a href="' + escapeHtml(unsubscribeUrl) + '">Unsubscribe</a></p>'
@@ -385,7 +385,9 @@ Deno.serve(async req => {
         if (result.ok) {
           sent++;
           if (result.id) resendIds.push(result.id);
-        } else if (!result.skipped) {
+        } else if (result.skipped) {
+          skippedOptOuts++;
+        } else {
           failed++;
           if (errors.length < 5) errors.push(String(result.error || "Send failed"));
         }
