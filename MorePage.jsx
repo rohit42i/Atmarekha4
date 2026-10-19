@@ -14,6 +14,7 @@ const CATEGORIES = [
   ['community_posts', 'Community posts', 'New posts and updates from the community.'],
   ['announcements', 'Announcements', 'Important creator updates and site announcements.'],
   ['membership_account', 'Membership and account', 'Membership, security and account-related updates.'],
+  ['other_updates', 'Other creator updates', 'Other updates you choose to receive.'],
 ];
 const DEFAULT_PREFERENCES = Object.fromEntries(CATEGORIES.map(([key]) => [key, true]));
 
