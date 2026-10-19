@@ -106,6 +106,11 @@ Deno.serve(async (req: Request) => {
     if (!recipientIds.length) return respond(req, { ok: true, sent: 0, reason: "No eligible recipients." });
     const uniqueIds = [...new Set(recipientIds)].filter(id => id !== user.id || eventType === "comments_replies");
     if (!uniqueIds.length) return respond(req, { ok: true, sent: 0, reason: "No eligible recipients." });
+    const { data: dispatch, error: dispatchError } = await db.from("notification_event_dispatches").insert({ event_type: eventType, event_id: eventId, sender_user_id: user.id, status: "sending" }).select("id").single();
+    if (dispatchError) {
+      if ((dispatchError as { code?: string }).code === "23505") return respond(req, { ok: true, duplicate: true, sent: 0 });
+      throw dispatchError;
+    }
     const { data: prefs, error: preferenceError } = await db.from("notification_preferences").select("user_id,preferences").in("user_id", uniqueIds);
     if (preferenceError) throw preferenceError;
     const preferenceMap = new Map((prefs || []).map((row: { user_id: string; preferences: Record<string, boolean> | null }) => [row.user_id, row.preferences || {}]));
@@ -116,7 +121,10 @@ Deno.serve(async (req: Request) => {
       const preferences = preferenceMap.get(row.user_id);
       return !preferences || preferences[category] !== false;
     });
-    if (!eligible.length) return respond(req, { ok: true, sent: 0, reason: "Recipients have no active subscription or disabled this category." });
+    if (!eligible.length) {
+      await db.from("notification_event_dispatches").update({ status: "skipped", completed_at: new Date().toISOString() }).eq("id", dispatch.id);
+      return respond(req, { ok: true, sent: 0, reason: "Recipients have no active subscription or disabled this category." });
+    }
     webpush.setVapidDetails("mailto:atmarekhasupport@gmail.com", publicKey, privateKey);
     let sent = 0;
     let failed = 0;
@@ -133,6 +141,7 @@ Deno.serve(async (req: Request) => {
         if (code === 404 || code === 410) await db.from("push_subscriptions").delete().eq("id", subscription.id);
       }
     }
+    await db.from("notification_event_dispatches").update({ status: sent > 0 && failed === 0 ? "sent" : sent > 0 ? "partial" : "failed", sent_count: sent, failed_count: failed, completed_at: new Date().toISOString() }).eq("id", dispatch.id);
     if (adminOnly) await db.from("admin_activity_log").insert({ admin_user_id: user.id, action: "send_event_notification", entity_type: eventType, entity_id: eventId, details: { category, sent, failed } });
     return respond(req, { ok: true, sent, failed, category });
   } catch (error) {
