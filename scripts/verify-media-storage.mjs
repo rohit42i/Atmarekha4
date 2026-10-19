@@ -47,6 +47,14 @@ const checks = [
       && atmaAdmin.includes('cloudflareR2.from(bucket).getPublicUrl(path).data.publicUrl'),
   ],
   [
+    'Media library accepts image files and stores them in R2',
+    atmaAdmin.includes('mediaForm.file')
+      && atmaAdmin.includes('uploadedPath = `media/${crypto.randomUUID()}-${safeName}`;')
+      && atmaAdmin.includes('image_url: imageUrl')
+      && !atmaAdmin.includes('placeholder="Image URL"')
+      && atmaAdmin.includes('await removeFiles(COVER_BUCKET, [oldPath])'),
+  ],
+  [
     'Atma chapter-page editing reads and removes media through Cloudflare R2',
     pageAdmin.includes('cloudflareR2.from(ATMA_BUCKET).getPublicUrl')
       && pageAdmin.includes('cloudflareR2.from(ATMA_BUCKET).remove'),
@@ -56,6 +64,9 @@ const checks = [
     worker.includes('function objectKey(request)')
       && worker.includes('const communityAttachment =')
       && worker.includes('communityAttachment.test(key)')
+      && worker.includes('const mediaLibraryImage =')
+      && worker.includes('mediaLibraryImage.test(key)')
+      && worker.split('\\n').some(line => line.includes('const publicCover =') && line.includes('media'))
       && worker.includes('const cover = new RegExp')
       && worker.includes('const page = new RegExp'),
   ],
