@@ -17,6 +17,16 @@ const headersFor = (req: Request) => {
 const respond = (req: Request, body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: headersFor(req) });
 
+async function readLimitedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(req.headers.get("content-length") || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return "";
+  const reader = req.body.getReader(); const chunks: Uint8Array[] = []; let total = 0;
+  while (true) { const { done, value } = await reader.read(); if (done) break; total += value.byteLength; if (total > maxBytes) { try { await reader.cancel(); } catch {} return null; } chunks.push(value); }
+  const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: headersFor(req) });
   if (req.method !== "POST") return respond(req, { ok: false, error: "Method not allowed." }, 405);
@@ -31,8 +41,8 @@ Deno.serve(async (req: Request) => {
     const db = createClient(url, serviceKey);
     const { data: { user }, error: authError } = await db.auth.getUser(token);
     if (authError || !user) return respond(req, { ok: false, error: "Invalid authentication." }, 401);
-    const raw = await req.text();
-    if (raw.length > 8192) return respond(req, { ok: false, error: "Request body too large." }, 413);
+    const raw = await readLimitedBody(req, 8192);
+    if (raw === null) return respond(req, { ok: false, error: "Request body too large." }, 413);
     let body: Record<string, unknown>;
     try { body = JSON.parse(raw); } catch { return respond(req, { ok: false, error: "Invalid JSON." }, 400); }
     const eventType = String(body.eventType || "").trim();
