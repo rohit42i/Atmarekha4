@@ -20,11 +20,11 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | robots.txt / Googlebot access | **Present** | `public/robots.txt` allows crawling and advertises the sitemap. Private/admin URLs are intentionally marked `noindex` by response headers; do not remove those directives globally. Production edge/DNS behavior still needs live verification. |
 | Remove `noindex` | **Intentional exceptions** | Public routes should be indexable; admin, profile, membership, community and error routes should stay out of indexes. A blanket removal would be a security/privacy regression. |
 | Redirect chains | **Partial** | Worker code canonicalizes HTTP and the bare domain to HTTPS + `www` in one 301. Redirects configured outside this Worker (DNS/Cloudflare rules/other paths) have not been crawled end-to-end. |
-| Correct 404s | **Fix in this PR; CI pending** | Unknown SPA routes already return 404. The PR makes a syntactically valid chapter URL return a real 404 when published-chapter metadata confirms it does not exist, instead of serving a soft 404. Metadata-fetch outages remain fail-open so a temporary backend outage does not masquerade as a confirmed missing chapter. |
+| Correct 404s | **Implemented; Build and CodeQL passed at code commit `045a2df`; live verification remains open** | Unknown SPA routes already return 404. The PR makes a syntactically valid chapter URL return a real 404 when published-chapter metadata confirms it does not exist, instead of serving a soft 404. Metadata-fetch outages remain fail-open so a temporary backend outage does not masquerade as a confirmed missing chapter. |
 | Canonical tags | **Present** | Base HTML and Worker/React routing set canonical URLs; chapter and language variants add language alternates. Need a live crawl to find any conflicting query-string or edge rule cases. |
 | Optimized descriptions | **Present / review periodically** | Static routes and chapter pages have route-specific metadata. Search snippets and duplicate descriptions have not been checked against a current full crawl. |
 | One H1 per page | **Partial** | Reviewed About page uses one page-level H1. No automated DOM audit covering every conditional route and modal was run. |
-| FAQ schema | **Added in this PR; CI pending** | Shared FAQ content is rendered as accessible expandable HTML and emitted as `FAQPage` JSON-LD on the About page, both at the Worker response layer and the client SEO graph. Structured data does not guarantee a Google rich result. |
+| FAQ schema | **Implemented; Build and CodeQL passed at code commit `045a2df`; runtime/device review remains open** | Shared FAQ content is rendered as accessible expandable HTML and emitted as `FAQPage` JSON-LD on the About page, both at the Worker response layer and the client SEO graph. Structured data does not guarantee a Google rich result. |
 | Breadcrumbs | **Partial / present** | BreadcrumbList structured data is generated for chapter routes and client-side routes. A full check of visible breadcrumb UI and valid breadcrumb items for every route remains open. |
 | Orphan pages / internal links | **Partial** | Public routes are listed in the sitemap and footer navigation exists. No automated link graph/crawler has proven that every indexable URL has a crawlable internal inbound link. A sitemap alone does not fix orphaning. |
 | Alt text | **Partial** | Reader page images and many component images have labels; intentional decorative images use empty alt text. A project-wide rendered-DOM audit is not complete. |
@@ -37,7 +37,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | Checklist item | Status | Finding / action |
 |---|---|---|
 | API keys / secrets | **Partial** | Frontend Supabase publishable/anon keys and service URLs are public client configuration, not service-role secrets. Reviewed Edge Function samples read service-role keys from server environment. This review did not scan all history for every possible secret. |
-| Ignore local `.env` files | **Fix in this PR; CI pending** | `.gitignore` is widened to ignore `.env*` while explicitly allowing `.env.example`. This prevents accidental future tracking but does not remove any historically leaked secret. |
+| Ignore local `.env` files | **Implemented; Build and CodeQL passed at code commit `045a2df`; live verification remains open** | `.gitignore` is widened to ignore `.env*` while explicitly allowing `.env.example`. This prevents accidental future tracking but does not remove any historically leaked secret. |
 | Dependency vulnerabilities | **Follow-up required** | CI reports **0 production dependency vulnerabilities**, but the full development dependency audit reports **7 findings (2 moderate, 5 high)** through the Tailwind CSS v3 toolchain, including `braces` and `postcss-selector-parser`. The automatic fix proposes Tailwind CSS v4 as a breaking change; do not run `npm audit fix --force` blindly. Resolve with safe overrides/upgrade plus build and visual regression tests. |
 | No hardcoded secrets | **Partial** | No service-role key was seen in the sampled active paths. Historical secret scanning and a complete repository-wide credential inventory remain required. Rotate any confirmed exposed credential immediately. |
 | Authentication | **Present / partial proof** | Supabase Auth, session helpers, MFA components and authenticated Edge Function flows exist. The audit did not prove every route through live adversarial requests. |
@@ -69,7 +69,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | Feature | Status | Finding / action |
 |---|---|---|
 | Dark mode toggle | **Present** | Theme toggle and light/dark CSS systems exist. |
-| Cookie/analytics banner | **Added in this PR; CI pending** | Because the reviewed client code uses browser storage and chapter-view/UTM analytics but no `document.cookie` usage was found, the implementation is accurately labelled a privacy/analytics choice banner—not a false claim that cookie files are set. Chapter-view recording and UTM attribution require affirmative consent. |
+| Cookie/analytics banner | **Implemented; Build and CodeQL passed at code commit `045a2df`; runtime/device review remains open** | Because the reviewed client code uses browser storage and chapter-view/UTM analytics but no `document.cookie` usage was found, the implementation is accurately labelled a privacy/analytics choice banner—not a false claim that cookie files are set. Chapter-view recording and UTM attribution require affirmative consent. |
 | Search | **Present / scoped** | Chapter discovery searches chapter title/number; it is not a universal full-site search over all legal and informational copy. |
 | Back-to-top | **Present** | Implemented in SiteRuntime. |
 | Responsive mobile menu | **Partial** | Responsive/mobile navigation styles exist; a device-by-device interaction audit has not been completed. |
@@ -77,7 +77,7 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | Hover states | **Present / partial** | CSS interaction states exist; complete contrast/keyboard-state testing remains. |
 | Scroll progress | **Reader present; page indicator added in this PR** | The reader already showed chapter-page progress. A general document scroll progress indicator is added by this PR. |
 | Copy button | **Partial / present** | Share/copy link behavior exists in the reader and other controls. Not every copyable value in the admin has been audited. |
-| Print stylesheets | **Added in this PR; CI pending** | A dedicated print stylesheet was added. Print preview and manga page breaks still need manual browser verification. |
+| Print stylesheets | **Implemented; Build and CodeQL passed at code commit `045a2df`; runtime/device review remains open** | A dedicated print stylesheet was added. Print preview and manga page breaks still need manual browser verification. |
 | Sticky headers | **Partial** | Reader header is present; site-wide sticky behavior has not been verified on every breakpoint. |
 | Skip-to-content | **Present** | A skip link exists in the base HTML. |
 | Password visibility | **Present / partial** | Reset-password controls have visibility toggles; every auth form should be included in the final accessibility pass. |
@@ -85,8 +85,8 @@ Legend: **Present** means visible in source; **Partial** means some protections/
 | Form success/error states | **Present** | Feedback form tracks validation, errors, success and offline queuing. |
 | Confirmation modals | **Partial / present** | Dialogs exist for several flows; no cross-app inventory confirmed every destructive action requires confirmation. |
 | Last updated date | **Missing / avoid fabricated dates** | A reliable content-update timestamp is not consistently shown to readers. Display it only where a real source/build timestamp exists. |
-| Expandable FAQ | **Added in this PR; CI pending** | Accessible native `details/summary` FAQ is rendered on the About page and paired with structured data. |
-| Floating contact button | **Added in this PR; CI pending** | A mail/contact entry point is added for public pages and is hidden on detected reader, admin and private surfaces. Responsive overlap still needs manual device testing. |
+| Expandable FAQ | **Implemented; Build and CodeQL passed at code commit `045a2df`; runtime/device review remains open** | Accessible native `details/summary` FAQ is rendered on the About page and paired with structured data. |
+| Floating contact button | **Implemented; Build and CodeQL passed at code commit `045a2df`; runtime/device review remains open** | A mail/contact entry point is added for public pages and is hidden on detected reader, admin and private surfaces. Responsive overlap still needs manual device testing. |
 
 ### 5. Slash-command / AI framework context
 
@@ -104,11 +104,11 @@ The listed slash commands are prompt/workflow conventions for an AI assistant, n
 - Site-level scroll progress indicator and a floating public contact link.
 - More static regression checks for these requirements.
 
-These are proposed until the PR's latest GitHub Actions runs pass and the PR is reviewed/merged. No deployment of these changes is claimed.
+The implementation changes were validated by successful Build and CodeQL workflows at code commit `045a2df` on 19 October 2026. Additional edits require fresh checks. PR #89 remains draft and unmerged; no production deployment of these changes is claimed.
 
 ## Release gates
 
-1. Ensure the latest Build workflow and CodeQL checks pass on PR #89.
+1. Build and CodeQL passed for code commit `045a2df` on 19 October 2026. Reverify both on the final PR head before merge.
 2. Review/merge only after checking the diff and runtime behavior (especially consent UI, route handling, print CSS and chapter 404s).
 3. Test the merged deployment using Google Search Console URL Inspection, sitemap status, a crawl of public routes, Lighthouse mobile/desktop and the live response headers.
 4. Run the history-aware secret scanner and live authorization/IDOR/upload/rate-limit tests.
