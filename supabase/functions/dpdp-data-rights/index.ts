@@ -16,7 +16,7 @@ const ALLOWED_ORIGINS = new Set(["https://www.atmarekha.in","https://atmarekha.i
 const USER_TABLES = [
   "profiles","bookmarks","chapter_ratings","comment_likes","comments","community_members","community_post_reactions",
   "feature_login_users","group_chat_likes","group_chat_messages","group_chat_reactions","group_chat_reads","member_messages",
-  "moderation_reports","notification_subscriptions","payments","pdlpl_bookmarks","pdlpl_chapter_ratings","pdlpl_comment_likes",
+  "moderation_reports","site_feedback","notification_subscriptions","payments","pdlpl_bookmarks","pdlpl_chapter_ratings","pdlpl_comment_likes",
   "pdlpl_comments","pdlpl_reading_history","push_subscriptions","reading_history","subscriptions","user_moderation","user_subscriptions"
 ];
 
@@ -201,7 +201,12 @@ Deno.serve(async req => {
         } else {
           const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
           if (error) exportWarnings.push(`${table}: ${error.message}`);
-          else (output.tables as Record<string, unknown>)[table] = data || [];
+          else {
+            (output.tables as Record<string, unknown>)[table] = data || [];
+            if ((data || []).length >= 5000) {
+              exportWarnings.push(`${table}: export reached the 5,000-row safety limit; this category may be incomplete.`);
+            }
+          }
         }
       } catch (error) {
         exportWarnings.push(`${table}: ${error instanceof Error ? error.message : "unknown retrieval error"}`);

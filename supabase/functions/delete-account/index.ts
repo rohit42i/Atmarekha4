@@ -45,12 +45,33 @@ Deno.serve(async (req: Request) => {
     }
     if (rateAllowed === false) return json({ error: "Too many deletion attempts. Please try again later." }, 429, origin);
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
-    if (deleteError) {
-      console.error("Account deletion failed:", deleteError.message);
-      return json({ error: "Unable to delete your account right now." }, 500, origin);
+    // Never hard-delete an account from this endpoint. Immediate auth deletion
+    // cascades into payment/subscription records and can erase records that must
+    // be retained for accounting, disputes, or fraud prevention. Queue the
+    // request for verified, cross-system erasure through the Privacy Center.
+    const { data: existing, error: existingError } = await adminClient
+      .from("dpdp_deletion_requests")
+      .select("id,status,requested_at")
+      .eq("user_id", user.id)
+      .in("status", ["pending", "processing"])
+      .order("requested_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingError) {
+      console.error("Account deletion request lookup failed.");
+      return json({ error: "Account deletion is temporarily unavailable." }, 503, origin);
     }
-    return json({ success: true }, 200, origin);
+    if (existing) return json({ success: true, request: existing, queued: true }, 200, origin);
+    const { data: request, error: requestError } = await adminClient
+      .from("dpdp_deletion_requests")
+      .insert({ user_id: user.id, reason: "Account deletion requested" })
+      .select("id,status,requested_at")
+      .single();
+    if (requestError) {
+      console.error("Account deletion request could not be queued.");
+      return json({ error: "Unable to submit your deletion request right now." }, 500, origin);
+    }
+    return json({ success: true, request, queued: true }, 202, origin);
   } catch (error) {
     console.error("Account deletion request failed:", error instanceof Error ? error.message : "unknown error");
     return json({ error: "Unable to delete your account right now." }, 500, origin);
