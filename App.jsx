@@ -744,6 +744,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
   }, [route, chapters]);
  useEffect(() => {
     captureMarketingAttribution();
+    const onConsentChanged = () => captureMarketingAttribution();
+    window.addEventListener('atma-analytics-consent-changed', onConsentChanged);
+    return () => window.removeEventListener('atma-analytics-consent-changed', onConsentChanged);
   }, [route]);
  useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);   if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
   if (route === 'more') return <MorePage/>;
