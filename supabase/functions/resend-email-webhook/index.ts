@@ -4,6 +4,16 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const json = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
+async function readLimitedBody(req: Request, maxBytes: number): Promise<string | null> {
+  const declared = Number(req.headers.get("content-length") || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return "";
+  const reader = req.body.getReader(); const chunks: Uint8Array[] = []; let total = 0;
+  while (true) { const { done, value } = await reader.read(); if (done) break; total += value.byteLength; if (total > maxBytes) { try { await reader.cancel(); } catch {} return null; } chunks.push(value); }
+  const bytes = new Uint8Array(total); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ ok: false, error: "Method not allowed." }, 405);
   const secret = Deno.env.get("RESEND_WEBHOOK_SECRET") || "";
@@ -12,10 +22,8 @@ Deno.serve(async (req: Request) => {
   if (!secret || !url || !serviceKey) return json({ ok: false, error: "Webhook service is not configured." }, 503);
 
   try {
-    const declared = Number(req.headers.get("content-length") || 0);
-    if (Number.isFinite(declared) && declared > 1024 * 1024) return json({ ok: false, error: "Payload too large." }, 413);
-    const raw = await req.text();
-    if (raw.length > 1024 * 1024) return json({ ok: false, error: "Payload too large." }, 413);
+    const raw = await readLimitedBody(req, 1024 * 1024);
+    if (raw === null) return json({ ok: false, error: "Payload too large." }, 413);
     const headers = {
       "svix-id": req.headers.get("svix-id") || "",
       "svix-timestamp": req.headers.get("svix-timestamp") || "",
