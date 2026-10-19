@@ -40,7 +40,7 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'Is An Adventure Manga/comic Where Traditions And Powers Become A Part Of An Unfolding Story' };
+const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy manga and webcomic where traditions and powers become part of an unfolding story.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Comic';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga and comic by Arkesh. This creator-led, AI-assisted series explores Indian traditions, spiritual concepts, mysterious powers, and adventure.';
@@ -518,7 +518,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       const infoDescriptions = {
-        about: 'Learn about Atma Rekha, its creator Arkesh, the original Indian fantasy adventure manga, and how to read its published chapters.',
+        about: 'Learn about Atma Rekha, an original Indian fantasy manga, comic and webcomic by Arkesh, with AI-assisted tools used for selected production tasks.',
         contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
         report: 'Report an issue with Atma Rekha website content or community activity.',
         privacy: 'Read the Atma Rekha privacy policy and understand how account and website data is handled.',
