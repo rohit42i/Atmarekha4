@@ -326,6 +326,19 @@ export const supabase = new Proxy(client, {
   },
 });
 
+// Keep Resend's contact directory synchronized without blocking authentication.
+// The Edge Function validates the account and applies saved consent/unsubscribe rules.
+client.auth.onAuthStateChange((event, session) => {
+  if (!session?.user || !['INITIAL_SESSION', 'SIGNED_IN'].includes(event)) return;
+  const userId = session.user.id;
+  if (!userId) return;
+  setTimeout(() => {
+    void client.functions.invoke('resend-contact-sync', { body: { userId } })
+      .then(({ error }) => { if (error) console.warn('Resend contact sync will retry on the next sign-in.'); })
+      .catch(() => console.warn('Resend contact sync will retry on the next sign-in.'));
+  }, 0);
+});
+
 export async function secureSignInWithPassword(email, password) {
   const normalizedEmail = String(email || '').trim();
   const value = String(password || '');

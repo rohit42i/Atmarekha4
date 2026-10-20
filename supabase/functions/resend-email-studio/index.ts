@@ -24,6 +24,23 @@ const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, c
 const render = (source: string, vars: Record<string, string>) =>
   source.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_match, key) => vars[key] ?? "");
 
+function emailLayout(source: string, previewText: string) {
+  const bodyMatch = source.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
+  let content = bodyMatch ? bodyMatch[1] : source;
+  content = content.replace(/<head\b[^>]*>[\s\S]*?<\/head>/i, "")
+    .replace(/<!doctype[^>]*>/gi, "")
+    .replace(/<html\b[^>]*>|<\/html>/gi, "");
+  const preheader = escapeHtml(previewText).slice(0, 180);
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>ATMA REKHA</title></head>' +
+    '<body style="margin:0;padding:0;width:100%;background-color:#f3f3f3;font-family:Arial,Helvetica,sans-serif;">' +
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f3f3f3" style="width:100%;background-color:#f3f3f3;"><tr><td align="center" style="padding-top:36px;padding-bottom:36px;padding-left:14px;padding-right:14px;">' +
+    '<table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:560px;background-color:#ffffff;"><tr><td style="padding-top:40px;padding-bottom:38px;padding-left:30px;padding-right:30px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#292929;">' +
+    '<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' + preheader + '</div>' +
+    content +
+    '<p style="margin-top:30px;margin-bottom:0;padding-top:14px;border-top:1px solid #e5e5e5;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#777777;">ATMA REKHA · <a href="https://www.atmarekha.in/" style="color:#555555;text-decoration:underline;">Visit website</a></p>' +
+    '</td></tr></table></td></tr></table></body></html>';
+}
+
 async function limitedBody(req: Request, limit: number) {
   const declared = Number(req.headers.get("content-length") || 0);
   if (declared > limit) return null;
@@ -98,13 +115,15 @@ async function loadRecipientDirectory(db: any) {
   const accounts = await loadAllAuthUsers(db);
   const confirmed = accounts.filter((account: any) => Boolean(account.email && account.email_confirmed_at));
   const ids = confirmed.map((account: any) => account.id);
-  const [profiles, preferences, subscriptions] = await Promise.all([
+  const [profiles, preferences, consentRows, subscriptions] = await Promise.all([
     loadRowsForIds(db, "profiles", "id,username,display_name", ids, "id"),
     loadRowsForIds(db, "email_marketing_preferences", "user_id,marketing_unsubscribed", ids, "user_id"),
+    loadRowsForIds(db, "dpdp_consent_records", "user_id,purposes,withdrawn_at", ids, "user_id"),
     loadActiveSubscriptions(db)
   ]);
   const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
   const optedOut = new Set((preferences || []).filter((item: any) => item.marketing_unsubscribed).map((item: any) => item.user_id));
+  const marketingConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && item.purposes.includes("marketing_email")).map((item: any) => item.user_id));
   const now = Date.now();
   const activeMemberIds = new Set((subscriptions || [])
     .filter((item: any) => !item.current_period_end || new Date(item.current_period_end).getTime() >= now)
@@ -119,7 +138,8 @@ async function loadRecipientDirectory(db: any) {
       display_name: profile.display_name || "",
       created_at: account.created_at,
       membership_active: activeMemberIds.has(account.id),
-      marketing_opted_out: optedOut.has(account.id)
+      marketing_opted_out: optedOut.has(account.id),
+      marketing_consented: marketingConsented.has(account.id)
     };
   });
   const cutoff = now - 30 * 86400000;
@@ -132,7 +152,7 @@ async function loadRecipientDirectory(db: any) {
   const counts: Record<string, number> = {};
   for (const [name, members] of Object.entries(audiences)) {
     counts[name] = members.length;
-    counts[name + "Marketing"] = members.filter((user: any) => !user.marketing_opted_out).length;
+    counts[name + "Marketing"] = members.filter((user: any) => user.marketing_consented && !user.marketing_opted_out).length;
   }
   return { users, counts };
 }
@@ -281,10 +301,10 @@ Deno.serve(async req => {
     if (!candidates.length) return respond({ ok: false, error: "No eligible confirmed email accounts were found." }, 422);
 
     let skippedOptOuts = category === "marketing"
-      ? candidates.filter((recipient: any) => recipient.marketing_opted_out).length : 0;
+      ? candidates.filter((recipient: any) => !recipient.marketing_consented || recipient.marketing_opted_out).length : 0;
     const recipients = category === "marketing"
-      ? candidates.filter((recipient: any) => !recipient.marketing_opted_out) : candidates;
-    if (!recipients.length) return respond({ ok: false, error: "All selected readers opted out of marketing emails." }, 422);
+      ? candidates.filter((recipient: any) => recipient.marketing_consented && !recipient.marketing_opted_out) : candidates;
+    if (!recipients.length) return respond({ ok: false, error: category === "marketing" ? "No recipients have explicit marketing email consent, or all opted-in readers have unsubscribed." : "No eligible recipients were found." }, 422);
     if (!resendKey) return respond({ ok: false, error: "Resend sending is not configured. Add RESEND_API_KEY to Supabase Edge Function secrets." }, 503);
 
     const selectedIds = recipients.map((recipient: any) => recipient.id);
@@ -303,7 +323,7 @@ Deno.serve(async req => {
     let failed = 0;
     const resendIds: string[] = [];
     const errors: string[] = [];
-    const sender = Deno.env.get("RESEND_FROM_EMAIL") || "Atma Rekha <updates@atmarekha.in>";
+    const sender = "Atma Rekha <no-reply@atmarekha.in>";
 
     for (let offset = 0; offset < selectedIds.length; offset += 10) {
       const batch = selectedIds.slice(offset, offset + 10);
@@ -355,12 +375,14 @@ Deno.serve(async req => {
           const subject = render(subjectSource, plainVars).replace(/[\r\n]+/g, " ").slice(0, 200);
           const htmlBody = htmlSource ? render(htmlSource, htmlVars).replace(/<p\b[^>]*>\s*<\/p>/gi, "") : undefined;
           const plainBody = textSource ? render(textSource, plainVars) : "";
-          const htmlWithFooter = category === "marketing"
-            ? (htmlBody || "") + '<hr><p style="font-size:12px;color:#777">Creator updates from Atma Rekha · <a href="' + escapeHtml(unsubscribeUrl) + '">Unsubscribe</a></p>'
-            : htmlBody;
+          const bodyWithFooter = category === "marketing"
+            ? (htmlBody || "") + '<p style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#777">Creator updates from Atma Rekha · <a href="' + escapeHtml(unsubscribeUrl) + '" style="color:#555;text-decoration:underline">Unsubscribe</a></p>'
+            : (htmlBody || "");
+          const htmlWithFooter = bodyWithFooter ? emailLayout(bodyWithFooter, subject) : undefined;
           const text = plainBody + (category === "marketing" ? "\n\nUnsubscribe: " + unsubscribeUrl : "");
           const message = {
             from: sender,
+            reply_to: ["atmarekhasupport@gmail.com"],
             to: [email],
             subject,
             html: htmlWithFooter || undefined,

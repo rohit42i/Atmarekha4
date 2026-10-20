@@ -148,7 +148,7 @@ export default function EmailStudio() {
 
   const targetCount = () => {
     if (audience === 'selected') {
-      return users.filter(user => selectedUsers.includes(user.id) && (draft.category !== 'marketing' || !user.marketing_opted_out)).length;
+      return users.filter(user => selectedUsers.includes(user.id) && (draft.category !== 'marketing' || (user.marketing_consented && !user.marketing_opted_out))).length;
     }
     const key = audience === 'all' ? 'all' : audience;
     return Number(audienceCounts[key + (draft.category === 'marketing' ? 'Marketing' : '')] || 0);
@@ -206,7 +206,7 @@ export default function EmailStudio() {
         audience: { type: audience, userIds: selectedUsers },
         variables: isChapterTemplate ? chapter : {}
       });
-      setNotice('Finished: ' + data.sent + ' accepted by Resend, ' + data.failed + ' failed, ' + data.total + ' eligible recipients' + (data.skippedOptOuts ? ', ' + data.skippedOptOuts + ' marketing opt-outs skipped' : '') + '. Delivery status updates when Resend webhook events arrive.');
+      setNotice('Finished: ' + data.sent + ' accepted by Resend, ' + data.failed + ' failed, ' + data.total + ' eligible recipients' + (data.skippedOptOuts ? ', ' + data.skippedOptOuts + ' marketing opt-outs or missing-consent readers skipped' : '') + '. Delivery status updates when Resend webhook events arrive.');
       await load();
     } catch (error) {
       setNotice(error?.message || 'Email send failed.');
