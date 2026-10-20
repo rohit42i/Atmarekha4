@@ -444,7 +444,7 @@ function AdminRoute({ onExit }) {
   return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin panel…"/></main>}><AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/></Suspense>;
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
-export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [siteLanguage, setSiteLanguage] = useState(() => { try { const query = new URLSearchParams(window.location.search).get('lang'); return query === 'en' || query === 'hi' ? query : (window.localStorage.getItem('atma-language') === 'en' ? 'en' : 'hi'); } catch { return 'hi'; } }); useEffect(() => { const syncLanguage = event => { const next = event?.detail?.language; if (next === 'en' || next === 'hi') setSiteLanguage(next); }; window.addEventListener('atma:site-language-change', syncLanguage); return () => window.removeEventListener('atma:site-language-change', syncLanguage); }, []); useEffect(() => { if (!chapters.length) return; const onLanguage = event => { const next = event?.detail?.language; if (next !== 'en' && next !== 'hi') return; if (!route.startsWith('chapter/')) return; const current = findChapterForPath('/' + route + window.location.search, chapters); if (!current || normalizeChapterLanguage(current.language) === next) return; const sameNumber = chapters.filter(item => String(item.chapterNumber ?? '').trim() === String(current.chapterNumber ?? '').trim()); const sibling = sameNumber.find(item => normalizeChapterLanguage(item.language) === next); if (sibling) { const url = chapterPath(sibling); window.history.pushState({}, '', url); window.dispatchEvent(new PopStateEvent('popstate')); } }; window.addEventListener('atma:site-language-change', onLanguage); return () => window.removeEventListener('atma:site-language-change', onLanguage); }, [route, chapters]);
+export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [siteLanguage, setSiteLanguage] = useState(() => { try { const query = new URLSearchParams(window.location.search).get('lang'); return query === 'en' || query === 'hi' ? query : (window.localStorage.getItem('atma-language') === 'en' ? 'en' : 'hi'); } catch { return 'hi'; } }); useEffect(() => { const syncLanguage = event => { const next = event?.detail?.language; if (next === 'en' || next === 'hi') setSiteLanguage(next); }; window.addEventListener('atma:site-language-change', syncLanguage); return () => window.removeEventListener('atma:site-language-change', syncLanguage); }, []); useEffect(() => { if (!chapters.length) return; const onLanguage = event => { const next = event?.detail?.language; if (next !== 'en' && next !== 'hi') return; if (!route.startsWith('chapter/')) return; const current = findChapterForPath('/' + route, chapters); if (!current || normalizeChapterLanguage(current.language) === next) return; const sameNumber = chapters.filter(item => String(item.chapterNumber ?? '').trim() === String(current.chapterNumber ?? '').trim()); const sibling = sameNumber.find(item => normalizeChapterLanguage(item.language) === next); if (sibling) { const url = chapterPath(sibling); window.history.pushState({}, '', url); window.dispatchEvent(new PopStateEvent('popstate')); } }; window.addEventListener('atma:site-language-change', onLanguage); return () => window.removeEventListener('atma:site-language-change', onLanguage); }, [route, chapters]);
   useEffect(() => {
     const routeUrl = new URL(route === 'home' ? '/' : '/' + route, SITE_URL);
     const pathname = routeUrl.pathname.replace(/^\/+|\/+$/g, '');
@@ -526,6 +526,18 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         terms: 'Read the Atma Rekha terms and conditions for using the website and its reader features.',
       };
       description = infoDescriptions[infoType] || infoDescriptions.about;
+      if (requestedLanguage === 'hi') {
+        const hindiInfo = {
+          about: ['Atma Rekha ke baare mein', 'Atma Rekha, creator Arkesh aur original Indian fantasy adventure manga ke baare mein jaanein.'],
+          contact: ['Sampark', 'Support, feedback ya kisi sawaal ke liye Atma Rekha se sampark karein.'],
+          report: ['Samasya report karein', 'Atma Rekha website, content ya community ki samasya report karein.'],
+          privacy: ['Privacy', 'Atma Rekha ki privacy policy, data controls aur privacy requests ke baare mein jaanein.'],
+          terms: ['Istemaal ki shartein', 'Website aur reader features istemaal karne ki shartein padhein.'],
+        };
+        const localized = hindiInfo[infoType] || hindiInfo.about;
+        title = 'Atma Rekha | ' + localized[0];
+        description = localized[1];
+      }
     } else if (type === 'privacy-center') {
       title = 'Atma Rekha | Privacy';
       description = 'Atma Rekha privacy notice, data controls and privacy requests.';
