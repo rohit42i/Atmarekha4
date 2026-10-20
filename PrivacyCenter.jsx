@@ -134,12 +134,13 @@ export default function PrivacyCenter() {
     <section className="privacy-hero">
       <h1>Privacy</h1>
       <p>This page explains what information Atma Rekha uses, why it is needed, and the choices you have.</p>
-      <p className="privacy-version">Last updated: 19 October 2026</p>
+      <p className="privacy-version">Last updated: 20 October 2026</p>
     </section>
 
     <section className="privacy-policy-card">
       <PolicySection heading="Information we use">Depending on how you use the site, this may include your account email and profile details, reading progress, bookmarks, ratings, comments and community activity, membership status and payment references, messages sent to support, and limited technical information used for security and troubleshooting.</PolicySection>
       <PolicySection heading="Why we use it">We use this information to sign you in, provide reader features, save progress, manage memberships, handle payment issues, deliver notifications you choose, moderate the community, protect the site, and respond to requests.</PolicySection>
+      <PolicySection heading="Chapter announcement emails">We use your account email to send chapter announcements only if you choose “Email updates (optional)” when creating your account or enable “New chapter emails” in Notification preferences. This choice is optional and is not required to create or use an account. Accepting this Privacy Notice or signing in alone does not subscribe you to chapter announcements. You can turn chapter emails off in Notification preferences or use the unsubscribe link in an email. Essential account, verification and security messages are handled separately.</PolicySection>
       <PolicySection heading="Who helps run the site">We use service providers for website infrastructure, account and data services, and payments, including Supabase, Cloudflare and Razorpay. They receive information needed for the services they provide. Payment details such as your UPI PIN and full card credentials are handled by the payment provider, not requested by Atma Rekha.</PolicySection>
       <PolicySection heading="Public content and browser storage">Comments and profile details you choose to make public can be seen by other readers. The site uses necessary browser storage for login, preferences and reader features. We do not sell personal information.</PolicySection>
       <PolicySection heading="How long we keep information">We keep information while it is needed to run the site and its features, and for support, security, payment records or legal obligations where required. We review deletion requests and remove eligible data after verification, subject to those requirements.</PolicySection>
