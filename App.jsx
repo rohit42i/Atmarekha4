@@ -188,10 +188,20 @@ function ChapterList({ chapters, onBack }) {
     const next = normalizeChapterLanguage(nextLanguage);
     setLanguage(next);
     try { window.localStorage.setItem('atma-language', next); } catch {}
+    window.dispatchEvent(new CustomEvent('atma:site-language-change', { detail: { language: next } }));
     const nextUrl = next === 'en' ? '/chapters?lang=en' : '/chapters';
     window.history.replaceState({}, '', nextUrl);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
+  useEffect(() => {
+    const syncLanguage = event => {
+      const next = event?.detail?.language;
+      if (next !== 'en' && next !== 'hi') return;
+      setLanguage(normalizeChapterLanguage(next));
+    };
+    window.addEventListener('atma:site-language-change', syncLanguage);
+    return () => window.removeEventListener('atma:site-language-change', syncLanguage);
+  }, []);
 
   const refresh = async () => {
     if (!languageChapters.length) { setStats({}); setPageCounts({}); setDataError(''); setLoading(false); return; }
