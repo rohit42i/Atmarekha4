@@ -17,6 +17,17 @@ function requestByEmail(subject, body = '') {
   window.location.href = url;
 }
 
+async function privacyErrorMessage(error, fallback) {
+  const context = error?.context;
+  if (context && typeof context.clone === 'function') {
+    try {
+      const payload = await context.clone().json();
+      if (typeof payload?.error === 'string' && payload.error.trim()) return payload.error;
+    } catch {}
+  }
+  return error?.message || fallback;
+}
+
 function PolicySection({ heading, children }) {
   return <article className="privacy-policy-section"><h2>{heading}</h2><p>{children}</p></article>;
 }
@@ -85,7 +96,7 @@ export default function PrivacyCenter() {
       setMessage(successText);
       return data;
     } catch (err) {
-      setError(err?.message || 'Unable to complete the privacy request.');
+      setError(await privacyErrorMessage(err, 'Unable to complete the privacy request.'));
       return null;
     } finally {
       setBusy(false);
