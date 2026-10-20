@@ -188,20 +188,10 @@ function ChapterList({ chapters, onBack }) {
     const next = normalizeChapterLanguage(nextLanguage);
     setLanguage(next);
     try { window.localStorage.setItem('atma-language', next); } catch {}
-    window.dispatchEvent(new CustomEvent('atma:site-language-change', { detail: { language: next } }));
     const nextUrl = next === 'en' ? '/chapters?lang=en' : '/chapters';
     window.history.replaceState({}, '', nextUrl);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
-  useEffect(() => {
-    const syncLanguage = event => {
-      const next = event?.detail?.language;
-      if (next !== 'en' && next !== 'hi') return;
-      setLanguage(normalizeChapterLanguage(next));
-    };
-    window.addEventListener('atma:site-language-change', syncLanguage);
-    return () => window.removeEventListener('atma:site-language-change', syncLanguage);
-  }, []);
 
   const refresh = async () => {
     if (!languageChapters.length) { setStats({}); setPageCounts({}); setDataError(''); setLoading(false); return; }
@@ -444,22 +434,18 @@ function AdminRoute({ onExit }) {
   return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin panel…"/></main>}><AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/></Suspense>;
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
-export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [siteLanguage, setSiteLanguage] = useState(() => { try { const query = new URLSearchParams(window.location.search).get('lang'); return query === 'en' || query === 'hi' ? query : (window.localStorage.getItem('atma-language') === 'en' ? 'en' : 'hi'); } catch { return 'hi'; } }); useEffect(() => { const syncLanguage = event => { const next = event?.detail?.language; if (next === 'en' || next === 'hi') setSiteLanguage(next); }; window.addEventListener('atma:site-language-change', syncLanguage); return () => window.removeEventListener('atma:site-language-change', syncLanguage); }, []); useEffect(() => { if (!chapters.length) return; const onLanguage = event => { const next = event?.detail?.language; if (next !== 'en' && next !== 'hi') return; if (!route.startsWith('chapter/')) return; const current = findChapterForPath('/' + route, chapters); if (!current || normalizeChapterLanguage(current.language) === next) return; const sameNumber = current.chapterNumber !== null && current.chapterNumber !== undefined && String(current.chapterNumber).trim() !== '' ? chapters.filter(item => String(item.chapterNumber ?? '').trim() === String(current.chapterNumber).trim()) : chapters.filter(item => String(item.title || '').trim().toLowerCase() === String(current.title || '').trim().toLowerCase()); const sibling = sameNumber.find(item => normalizeChapterLanguage(item.language) === next); if (sibling) { const url = chapterPath(sibling); window.history.pushState({}, '', url); window.dispatchEvent(new PopStateEvent('popstate')); } }; window.addEventListener('atma:site-language-change', onLanguage); return () => window.removeEventListener('atma:site-language-change', onLanguage); }, [route, chapters]);
+export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
   useEffect(() => {
     const routeUrl = new URL(route === 'home' ? '/' : '/' + route, SITE_URL);
     const pathname = routeUrl.pathname.replace(/^\/+|\/+$/g, '');
     const routeParts = pathname ? pathname.split('/') : [];
     const type = routeParts[0] || 'home';
-    const requestedLanguage = (type === 'chapters' || type === 'home' || type === 'info' || type === 'pal-do-pal-ke-lamhe')
-      ? normalizeChapterLanguage(routeUrl.searchParams.get('lang') || siteLanguage || 'hi')
-      : type === 'chapter' ? normalizeChapterLanguage(findChapterForPath(routeUrl.pathname + routeUrl.search, chapters)?.language) : siteLanguage;
+    const requestedLanguage = type === 'chapters'
+      ? normalizeChapterLanguage(routeUrl.searchParams.get('lang') || 'hi')
+      : 'en';
 
     let title = DEFAULT_SEO_TITLE;
     let description = DEFAULT_SEO_DESCRIPTION;
-    if (type === 'home' && requestedLanguage === 'hi') {
-      title = 'Atma Rekha | Bharatiya Fantasy Adventure Manga';
-      description = 'Arkesh ki original Indian fantasy adventure manga Atma Rekha padhein. Kahani, kirdaar, paramparayein aur rahasyamayi shaktiyon ki duniya explore karein.';
-    }
     let image = DEFAULT_SEO_IMAGE;
     let chapter = null;
 
@@ -526,18 +512,6 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         terms: 'Read the Atma Rekha terms and conditions for using the website and its reader features.',
       };
       description = infoDescriptions[infoType] || infoDescriptions.about;
-      if (requestedLanguage === 'hi') {
-        const hindiInfo = {
-          about: ['Atma Rekha ke baare mein', 'Atma Rekha, creator Arkesh aur original Indian fantasy adventure manga ke baare mein jaanein.'],
-          contact: ['Sampark', 'Support, feedback ya kisi sawaal ke liye Atma Rekha se sampark karein.'],
-          report: ['Samasya report karein', 'Atma Rekha website, content ya community ki samasya report karein.'],
-          privacy: ['Privacy', 'Atma Rekha ki privacy policy, data controls aur privacy requests ke baare mein jaanein.'],
-          terms: ['Istemaal ki shartein', 'Website aur reader features istemaal karne ki shartein padhein.'],
-        };
-        const localized = hindiInfo[infoType] || hindiInfo.about;
-        title = 'Atma Rekha | ' + localized[0];
-        description = localized[1];
-      }
     } else if (type === 'privacy-center') {
       title = 'Atma Rekha | Privacy';
       description = 'Atma Rekha privacy notice, data controls and privacy requests.';
@@ -546,17 +520,15 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
     }
 
-    const publicRoute = type === 'home'
-      ? requestedLanguage === 'en' ? '/?lang=en' : '/'
-      : type === 'chapters'
-        ? requestedLanguage === 'en' ? '/chapters?lang=en' : '/chapters'
-        : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
-          ? '/info/' + routeParts[1] + (requestedLanguage === 'en' ? '?lang=en' : '')
-          : type === 'pal-do-pal-ke-lamhe'
-            ? '/pal-do-pal-ke-lamhe' + (requestedLanguage === 'en' ? '?lang=en' : '')
-            : type === 'privacy-center'
-              ? '/info/privacy'
-              : '/';
+    const publicRoute = type === 'chapters'
+      ? requestedLanguage === 'en' ? '/chapters?lang=en' : '/chapters'
+      : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
+        ? '/info/' + routeParts[1]
+        : type === 'pal-do-pal-ke-lamhe'
+          ? '/pal-do-pal-ke-lamhe'
+          : type === 'privacy-center'
+            ? '/info/privacy'
+            : '/';
 
     const canonicalUrl = chapter
       ? chapterCanonicalUrl(chapter)
@@ -572,8 +544,6 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       'admin',
       'profile',
       'membership',
-      'more',
-      'privacy-center',
       'group-chat',
       'community',
       'not-found',
@@ -593,8 +563,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     clearAlternateLanguages();
 
     if (!isPrivateRoute && type === 'home') {
-      upsertAlternateLanguage('en-IN', SITE_URL + '/?lang=en');
-      upsertAlternateLanguage('hi-Latn-IN', SITE_URL + '/');
+      upsertAlternateLanguage('en-IN', SITE_URL + '/');
       upsertAlternateLanguage('x-default', SITE_URL + '/');
     }
 
@@ -602,18 +571,6 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       upsertAlternateLanguage('en-IN', SITE_URL + '/chapters?lang=en');
       upsertAlternateLanguage('hi-Latn-IN', SITE_URL + '/chapters');
       upsertAlternateLanguage('x-default', SITE_URL + '/chapters');
-    }
-    if (!isPrivateRoute && type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])) {
-      const base = SITE_URL + '/info/' + routeParts[1];
-      upsertAlternateLanguage('en-IN', base + '?lang=en');
-      upsertAlternateLanguage('hi-Latn-IN', base);
-      upsertAlternateLanguage('x-default', base);
-    }
-    if (!isPrivateRoute && type === 'pal-do-pal-ke-lamhe') {
-      const base = SITE_URL + '/pal-do-pal-ke-lamhe';
-      upsertAlternateLanguage('en-IN', base + '?lang=en');
-      upsertAlternateLanguage('hi-Latn-IN', base);
-      upsertAlternateLanguage('x-default', base);
     }
 
     if (chapter && !isPrivateRoute) {
@@ -747,7 +704,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     }
 
     upsertJsonLd({ '@context': 'https://schema.org', '@graph': graph });
-  	}, [route, chapters, siteLanguage]);
+  	}, [route, chapters]);
   useEffect(() => {
     const onChapterLinkClick = event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -785,4 +742,4 @@ export default function App() { const route = useHashRoute(); const [chapters, s
   }
   const returnToAdmin = route === 'membership' && window.location.pathname.replace(/\/+$/, '') === '/admin';
   if (returnToAdmin || route === 'admin') return <AdminRoute onExit={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>
-  if (route.split('?')[0] === 'pal-do-pal-ke-lamhe' || route.startsWith('pal-do-pal-ke-lamhe/')) return <PalDoPalKeLamhe/>; if (route.startsWith('info/')) return <InfoPage type={route.split('/')[1]?.split('?')[0]} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route === 'chapters' || route.startsWith('chapters?')) return <ChapterList chapters={chapters} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route.startsWith('read-chapter/')) return <Reader chapterId={decodeURIComponent(route.slice('read-chapter/'.length))} onBack={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }} chapters={chapters}/>; if (loading) return <main className="home-page"><LoadingState label="Loading Atma Rekha…"/></main>; if (error) return <main className="home-page"><div className="reader-error"><h2>{error}</h2><button className="primary-button" onClick={() => window.location.reload()}>Retry</button></div></main>; return <Home chapters={chapters}/>; }
+  if (route === 'pal-do-pal-ke-lamhe' || route.startsWith('pal-do-pal-ke-lamhe/')) return <PalDoPalKeLamhe/>; if (route.startsWith('info/')) return <InfoPage type={route.split('/')[1]} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route === 'chapters' || route.startsWith('chapters?')) return <ChapterList chapters={chapters} onBack={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}/>; if (route.startsWith('read-chapter/')) return <Reader chapterId={decodeURIComponent(route.slice('read-chapter/'.length))} onBack={() => { window.history.pushState({}, '', '/chapters'); window.dispatchEvent(new PopStateEvent('popstate')); }} chapters={chapters}/>; if (loading) return <main className="home-page"><LoadingState label="Loading Atma Rekha…"/></main>; if (error) return <main className="home-page"><div className="reader-error"><h2>{error}</h2><button className="primary-button" onClick={() => window.location.reload()}>Retry</button></div></main>; return <Home chapters={chapters}/>; }

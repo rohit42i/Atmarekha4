@@ -44,26 +44,8 @@ try {
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
-  assert.match(aboutHtml, /<title>Atma Rekha ke baare mein<\/title>/);
-  assert.match(aboutHtml, /Atma Rekha, creator Arkesh aur original Indian fantasy adventure manga ke baare mein jaanein/);
-  assert.match(aboutHtml, /hreflang="hi-Latn-IN"/);
-  assert.match(aboutHtml, /hreflang="en-IN"/);
-
-  const aboutEnglish = await worker.fetch(new Request("https://www.atmarekha.in/info/about?lang=en"), env);
-  const aboutEnglishHtml = await aboutEnglish.text();
-  assert.match(aboutEnglishHtml, /<title>About Atma Rekha \| Indian Fantasy Manga<\/title>/);
-  assert.match(aboutEnglishHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about\?lang=en"/);
-
-  const homeHindi = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
-  const homeHindiHtml = await homeHindi.text();
-  assert.match(homeHindiHtml, /<title>Atma Rekha \| Bharatiya Fantasy Adventure Manga<\/title>/);
-  assert.match(homeHindiHtml, /hreflang="hi-Latn-IN"/);
-  assert.match(homeHindiHtml, /hreflang="en-IN"/);
-
-  const homeEnglish = await worker.fetch(new Request("https://www.atmarekha.in/?lang=en"), env);
-  const homeEnglishHtml = await homeEnglish.text();
-  assert.match(homeEnglishHtml, /<title>Atma Rekha \| Indian Fantasy Manga &amp; Adventure<\/title>/);
-  assert.match(homeEnglishHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/\?lang=en"/);
+  assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga<\/title>/);
+  assert.match(aboutHtml, /Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh/);
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
 
