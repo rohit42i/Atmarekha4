@@ -47,6 +47,8 @@ export default function MorePage() {
 
       if (!nextUser) {
         setPreferences({ ...DEFAULT_PREFERENCES });
+        setEmailChapterAnnouncements(false);
+        setSavedEmailChapterAnnouncements(false);
         setPrefsLoadFailed(false);
         setPrefsLoading(false);
         return;
@@ -68,8 +70,9 @@ export default function MorePage() {
         const normalized = Object.fromEntries(CATEGORIES.map(([key]) => [key, saved[key] !== false]));
         if (active && request === requestId) setPreferences(normalized);
         const { data: emailChoice, error: emailChoiceError } = await supabase.functions.invoke('update-chapter-email-preference', { body: { action: 'get' } });
+        if (emailChoiceError || emailChoice?.ok !== true) throw new Error('email-preferences-unavailable');
         if (active && request === requestId) {
-          const enabled = !emailChoiceError && emailChoice?.ok === true && emailChoice.enabled === true;
+          const enabled = emailChoice.enabled === true;
           setEmailChapterAnnouncements(enabled);
           setSavedEmailChapterAnnouncements(enabled);
         }
@@ -166,7 +169,9 @@ export default function MorePage() {
       console.warn('Notification preference save failed.');
       setPrefsNotice(saveError?.message === 'session-mismatch'
         ? 'Your sign-in session changed. Sign in again before saving.'
-        : 'Could not save preferences. Check your connection and try again.');
+        : saveError?.message?.includes('chapter email preference could not be updated')
+          ? 'Notification preferences were saved, but the chapter email choice could not be updated. Please retry saving.'
+          : 'Could not save preferences. Check your connection and try again.');
     } finally {
       setPrefsSaving(false);
     }
