@@ -73,14 +73,10 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
       return { sent: 0, failed: 0, reason: "No confirmed reader email addresses." };
     }
 
-    const preferencesByUser = new Map<string, Record<string, boolean>>();
     const marketingPreferences = new Map<string, { marketing_unsubscribed: boolean; unsubscribe_token: string }>();
     const marketingConsentUsers = new Set<string>();
     for (let i = 0; i < users.length; i += 500) {
       const ids = users.slice(i, i + 500).map(item => item.id);
-      const { data: prefs, error } = await db.from("notification_preferences").select("user_id,preferences").in("user_id", ids);
-      if (error) throw error;
-      for (const row of prefs || []) preferencesByUser.set(row.user_id, row.preferences || {});
       const { error: ensureError } = await db.from("email_marketing_preferences").upsert(ids.map(user_id => ({ user_id })), { onConflict: "user_id", ignoreDuplicates: true });
       if (ensureError) throw ensureError;
       const { data: marketingRows, error: marketingError } = await db.from("email_marketing_preferences").select("user_id,marketing_unsubscribed,unsubscribe_token").in("user_id", ids);
@@ -90,14 +86,16 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
         .select("user_id,purposes,withdrawn_at").in("user_id", ids);
       if (consentError) throw consentError;
       for (const row of consentRows || []) {
-        if (!row.withdrawn_at && Array.isArray(row.purposes) && row.purposes.includes("marketing_email")) {
+        if (!row.withdrawn_at && Array.isArray(row.purposes) &&
+            (row.purposes.includes("marketing_email") || row.purposes.includes("chapter_announcements"))) {
           marketingConsentUsers.add(row.user_id);
         }
       }
     }
+    // Email announcements follow email consent and email unsubscribe status.
+    // Browser/push notification preferences are independent and must not block email.
     const recipients = users.filter(item =>
       marketingConsentUsers.has(item.id) &&
-      preferencesByUser.get(item.id)?.new_chapters !== false &&
       marketingPreferences.get(item.id)?.marketing_unsubscribed !== true
     );
     if (!recipients.length) {
@@ -108,7 +106,7 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
     const chapterNumber = chapter.chapter_number == null ? null : Number(chapter.chapter_number);
     const chapterLabel = chapterNumber == null ? "Special Chapter" : `Chapter ${chapterNumber}`;
     const chapterTitle = String(chapter.title || "").trim() || chapterLabel;
-    const subject = `ATMA REKHA ${chapterLabel} — ${chapterTitle} is out!`;
+    const subject = "ATMA REKHA";
     // Keep this email visually unfilled: no body/table/background colors, only text and an outlined link.
     const chapterUrl = "https://www.atmarekha.in/";
     const safeLabel = escapeHtml(chapterLabel);
