@@ -461,12 +461,17 @@ export default function SiteLanguage() {
     window.dispatchEvent(new CustomEvent('atma:site-language-change', { detail: { language: next } }));
     const path = window.location.pathname;
     if (path === '/' || path === '/index.html') {
-      const url = next === 'en' ? '/?lang=en' : '/';
-      if (window.location.pathname + window.location.search !== url) window.history.replaceState({}, '', url);
+      const url = (next === 'en' ? '/?lang=en' : '/') + window.location.hash;
+      if (window.location.pathname + window.location.search + window.location.hash !== url) window.history.replaceState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
     } else if (path.replace(/\/+$/, '') === '/chapters') {
-      const url = next === 'en' ? '/chapters?lang=en' : '/chapters';
-      if (window.location.pathname + window.location.search !== url) window.history.replaceState({}, '', url);
+      const url = (next === 'en' ? '/chapters?lang=en' : '/chapters') + window.location.hash;
+      if (window.location.pathname + window.location.search + window.location.hash !== url) window.history.replaceState({}, '', url);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else if (/^\/info\/(about|contact|report|privacy|terms)\/?$/.test(path) || path.replace(/\/+$/, '') === '/pal-do-pal-ke-lamhe') {
+      const cleanPath = path.replace(/\/+$/, '') || '/';
+      const url = cleanPath + (next === 'en' ? '?lang=en' : '') + window.location.hash;
+      if (window.location.pathname + window.location.search + window.location.hash !== url) window.history.replaceState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
