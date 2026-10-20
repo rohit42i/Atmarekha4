@@ -80,8 +80,9 @@ const required = [
   ['MorePage.jsx', 'notification_preferences'],
   ['MorePage.jsx', 'comments_replies'],
   ['MorePage.jsx', 'other_updates'],
-  ['App.jsx', 'data-reader-background={readerPreferences.background}'],
-  ['reader-performance.css', 'data-reader-fit="screen"'],
+  ['App.jsx', 'data-reader-background="dark"'],
+  ['App.jsx', 'data-reader-fit="width"'],
+  ['reader-performance.css', 'data-reader-fit="width"'],
   ['supabase/migrations/20261019120000_reader_notification_preferences.sql', 'Readers can view own notification preferences'],
   ['supabase/functions/send-chapter-notification-v2/index.ts', 'notification_preferences'],
   ['supabase/functions/send-chapter-notification-v2/index.ts', 'allowedTypes'],
@@ -138,6 +139,13 @@ if (!morePagePreferenceRegression.includes('prefsLoadFailed') ||
     !morePagePreferenceRegression.includes(".select('preferences')") ||
     !morePagePreferenceRegression.includes('Preferences saved. They apply to future notification alerts.')) {
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
+  failed = true;
+}
+const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
+if (appReaderAppearanceRegression.includes('atma-reader-preferences-v1') ||
+    appReaderAppearanceRegression.includes('atma:reader-preferences-change') ||
+    appReaderAppearanceRegression.includes('readerPreferences')) {
+  console.error('CHECK FAILED: Reader appearance must use the standard layout, without hidden per-device customization overrides.');
   failed = true;
 }
 const securitySettingsRegression = await readFile('SecuritySettings.jsx', 'utf8');
