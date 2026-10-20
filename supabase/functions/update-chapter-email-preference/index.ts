@@ -35,11 +35,17 @@ Deno.serve(async (req: Request) => {
     const action = String(raw?.action || "");
     if (action === "get") {
       const [consents, preference] = await Promise.all([
-        db.from("dpdp_consent_records").select("purposes,withdrawn_at").eq("user_id", user.id).eq("policy_version", POLICY_VERSION).maybeSingle(),
+        db.from("dpdp_consent_records").select("purposes,withdrawn_at").eq("user_id", user.id),
         db.from("email_marketing_preferences").select("marketing_unsubscribed").eq("user_id", user.id).maybeSingle()
       ]);
       if (consents.error || preference.error) throw new Error("Could not load email preferences.");
-      return reply(req, { ok: true, enabled: Boolean(consents.data && !consents.data.withdrawn_at && Array.isArray(consents.data.purposes) && consents.data.purposes.includes("chapter_announcements") && preference.data?.marketing_unsubscribed !== true) });
+      // A reader may have opted in at signup before this dedicated preference was added.
+      // Recognize that explicit signup choice as well as the newer chapter-specific consent.
+      const hasActiveEmailConsent = (consents.data || []).some((row: { purposes: string[] | null; withdrawn_at: string | null }) =>
+        !row.withdrawn_at && Array.isArray(row.purposes) &&
+        (row.purposes.includes("chapter_announcements") || row.purposes.includes("marketing_email"))
+      );
+      return reply(req, { ok: true, enabled: hasActiveEmailConsent && preference.data?.marketing_unsubscribed !== true });
     }
     if (action !== "set" || typeof raw?.enabled !== "boolean") return reply(req, { ok: false, error: "Invalid preference request." }, 422);
     const enabled = raw.enabled;
