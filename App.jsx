@@ -434,18 +434,22 @@ function AdminRoute({ onExit }) {
   return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin panel…"/></main>}><AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/></Suspense>;
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
-export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [siteLanguage, setSiteLanguage] = useState(() => { try { const query = new URLSearchParams(window.location.search).get('lang'); return query === 'en' || query === 'hi' ? query : (window.localStorage.getItem('atma-language') === 'en' ? 'en' : 'hi'); } catch { return 'hi'; } }); useEffect(() => { const syncLanguage = event => { const next = event?.detail?.language; if (next === 'en' || next === 'hi') setSiteLanguage(next); }; window.addEventListener('atma:site-language-change', syncLanguage); return () => window.removeEventListener('atma:site-language-change', syncLanguage); }, []); useEffect(() => { if (!chapters.length) return; const onLanguage = event => { const next = event?.detail?.language; if (next !== 'en' && next !== 'hi') return; if (!route.startsWith('chapter/')) return; const current = findChapterForPath('/' + route + window.location.search, chapters); if (!current || normalizeChapterLanguage(current.language) === next) return; const sameNumber = chapters.filter(item => String(item.chapterNumber ?? '').trim() === String(current.chapterNumber ?? '').trim()); const sibling = sameNumber.find(item => normalizeChapterLanguage(item.language) === next); if (sibling) { const url = chapterPath(sibling); window.history.pushState({}, '', url); window.dispatchEvent(new PopStateEvent('popstate')); } }; window.addEventListener('atma:site-language-change', onLanguage); return () => window.removeEventListener('atma:site-language-change', onLanguage); }, [route, chapters]);
   useEffect(() => {
     const routeUrl = new URL(route === 'home' ? '/' : '/' + route, SITE_URL);
     const pathname = routeUrl.pathname.replace(/^\/+|\/+$/g, '');
     const routeParts = pathname ? pathname.split('/') : [];
     const type = routeParts[0] || 'home';
-    const requestedLanguage = type === 'chapters'
-      ? normalizeChapterLanguage(routeUrl.searchParams.get('lang') || 'hi')
-      : 'en';
+    const requestedLanguage = (type === 'chapters' || type === 'home' || type === 'info' || type === 'pal-do-pal-ke-lamhe')
+      ? normalizeChapterLanguage(routeUrl.searchParams.get('lang') || siteLanguage || 'hi')
+      : type === 'chapter' ? normalizeChapterLanguage(findChapterForPath(routeUrl.pathname + routeUrl.search, chapters)?.language) : siteLanguage;
 
     let title = DEFAULT_SEO_TITLE;
     let description = DEFAULT_SEO_DESCRIPTION;
+    if (type === 'home' && requestedLanguage === 'hi') {
+      title = 'Atma Rekha | Bharatiya Fantasy Adventure Manga';
+      description = 'Arkesh ki original Indian fantasy adventure manga Atma Rekha padhein. Kahani, kirdaar, paramparayein aur rahasyamayi shaktiyon ki duniya explore karein.';
+    }
     let image = DEFAULT_SEO_IMAGE;
     let chapter = null;
 
@@ -520,15 +524,17 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       description = 'Pal Do Pal Ke Lamhe is a school life side story from Atma Rekha, starting April 25, 2027.';
     }
 
-    const publicRoute = type === 'chapters'
-      ? requestedLanguage === 'en' ? '/chapters?lang=en' : '/chapters'
-      : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
-        ? '/info/' + routeParts[1]
-        : type === 'pal-do-pal-ke-lamhe'
-          ? '/pal-do-pal-ke-lamhe'
-          : type === 'privacy-center'
-            ? '/info/privacy'
-            : '/';
+    const publicRoute = type === 'home'
+      ? requestedLanguage === 'en' ? '/?lang=en' : '/'
+      : type === 'chapters'
+        ? requestedLanguage === 'en' ? '/chapters?lang=en' : '/chapters'
+        : type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])
+          ? '/info/' + routeParts[1] + (requestedLanguage === 'en' ? '?lang=en' : '')
+          : type === 'pal-do-pal-ke-lamhe'
+            ? '/pal-do-pal-ke-lamhe' + (requestedLanguage === 'en' ? '?lang=en' : '')
+            : type === 'privacy-center'
+              ? '/info/privacy'
+              : '/';
 
     const canonicalUrl = chapter
       ? chapterCanonicalUrl(chapter)
@@ -563,7 +569,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     clearAlternateLanguages();
 
     if (!isPrivateRoute && type === 'home') {
-      upsertAlternateLanguage('en-IN', SITE_URL + '/');
+      upsertAlternateLanguage('en-IN', SITE_URL + '/?lang=en');
+      upsertAlternateLanguage('hi-Latn-IN', SITE_URL + '/');
       upsertAlternateLanguage('x-default', SITE_URL + '/');
     }
 
@@ -571,6 +578,18 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       upsertAlternateLanguage('en-IN', SITE_URL + '/chapters?lang=en');
       upsertAlternateLanguage('hi-Latn-IN', SITE_URL + '/chapters');
       upsertAlternateLanguage('x-default', SITE_URL + '/chapters');
+    }
+    if (!isPrivateRoute && type === 'info' && ['about', 'contact', 'report', 'privacy', 'terms'].includes(routeParts[1])) {
+      const base = SITE_URL + '/info/' + routeParts[1];
+      upsertAlternateLanguage('en-IN', base + '?lang=en');
+      upsertAlternateLanguage('hi-Latn-IN', base);
+      upsertAlternateLanguage('x-default', base);
+    }
+    if (!isPrivateRoute && type === 'pal-do-pal-ke-lamhe') {
+      const base = SITE_URL + '/pal-do-pal-ke-lamhe';
+      upsertAlternateLanguage('en-IN', base + '?lang=en');
+      upsertAlternateLanguage('hi-Latn-IN', base);
+      upsertAlternateLanguage('x-default', base);
     }
 
     if (chapter && !isPrivateRoute) {
@@ -704,7 +723,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     }
 
     upsertJsonLd({ '@context': 'https://schema.org', '@graph': graph });
-  	}, [route, chapters]);
+  	}, [route, chapters, siteLanguage]);
   useEffect(() => {
     const onChapterLinkClick = event => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
