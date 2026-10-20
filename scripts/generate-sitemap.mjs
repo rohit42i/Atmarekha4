@@ -5,14 +5,21 @@ const SITE_URL = 'https://www.atmarekha.in';
 const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
   '/',
+  '/?lang=en',
   '/chapters',
   '/chapters?lang=en',
   '/info/about',
+  '/info/about?lang=en',
   '/info/contact',
+  '/info/contact?lang=en',
   '/info/report',
+  '/info/report?lang=en',
   '/info/privacy',
+  '/info/privacy?lang=en',
   '/info/terms',
+  '/info/terms?lang=en',
   '/pal-do-pal-ke-lamhe',
+  '/pal-do-pal-ke-lamhe?lang=en',
 ];
 
 const env = key => String(process.env[key] || '').trim();
@@ -153,6 +160,20 @@ async function main() {
   }
 
   const alternatesFor = loc => {
+    const localizedStatic = [
+      { paths: ['/', '/?lang=en'], base: '/' },
+      { paths: ['/chapters', '/chapters?lang=en'], base: '/chapters' },
+      ...['about', 'contact', 'report', 'privacy', 'terms'].map(slug => ({ paths: ['/info/' + slug, '/info/' + slug + '?lang=en'], base: '/info/' + slug })),
+      { paths: ['/pal-do-pal-ke-lamhe', '/pal-do-pal-ke-lamhe?lang=en'], base: '/pal-do-pal-ke-lamhe' },
+    ].find(item => item.paths.some(path => SITE_URL + path === loc));
+    if (localizedStatic) {
+      const base = SITE_URL + localizedStatic.base;
+      return [
+        '    <xhtml:link rel="alternate" hreflang="en-IN" href="' + escapeXml(base + '?lang=en') + '" />',
+        '    <xhtml:link rel="alternate" hreflang="hi-Latn-IN" href="' + escapeXml(base) + '" />',
+        '    <xhtml:link rel="alternate" hreflang="x-default" href="' + escapeXml(base) + '" />',
+      ];
+    }
     if (loc === SITE_URL + '/chapters' || loc === SITE_URL + '/chapters?lang=en') {
       return [
         '    <xhtml:link rel="alternate" hreflang="en-IN" href="' + escapeXml(SITE_URL + '/chapters?lang=en') + '" />',
