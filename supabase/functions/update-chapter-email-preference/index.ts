@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
     }
     // Keep the email provider aligned with the reader's explicit choice.
     if (anonKey) {
-      const sync = await fetch(url.replace(/\$/, "") + "/functions/v1/resend-contact-sync", {
+      const sync = await fetch((url.endsWith("/") ? url.slice(0, -1) : url) + "/functions/v1/resend-contact-sync", {
         method: "POST",
         headers: { Authorization: "Bearer " + token, apikey: anonKey, "Content-Type": "application/json" },
         body: "{}"
