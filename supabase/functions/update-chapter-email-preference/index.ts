@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
   if (!url || !serviceKey) return reply(req, { ok: false, error: "Consent service is not configured." }, 503);
-  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "").trim();
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!token) return reply(req, { ok: false, error: "Authentication required." }, 401);
   const db = createClient(url, serviceKey);
   const { data: auth, error: authError } = await db.auth.getUser(token);
@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
     }
     // Keep the email provider aligned with the reader's explicit choice.
     if (anonKey) {
-      const sync = await fetch(url.replace(/\\/$/, "") + "/functions/v1/resend-contact-sync", {
+      const sync = await fetch(url.replace(/\$/, "") + "/functions/v1/resend-contact-sync", {
         method: "POST",
         headers: { Authorization: "Bearer " + token, apikey: anonKey, "Content-Type": "application/json" },
         body: "{}"
