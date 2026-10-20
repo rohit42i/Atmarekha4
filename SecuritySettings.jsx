@@ -19,29 +19,48 @@ export default function SecuritySettings() {
   const [error, setError] = useState('');
 
   const load = useCallback(async currentUser => {
+    setError('');
     if (!currentUser) {
       setUser(null);
       setFactors([]);
+      setAal2(false);
       setLoading(false);
       return;
     }
+
     setUser(currentUser);
-    const { data, error: factorError } = await supabase.auth.mfa.listFactors();
-    if (factorError) {
-      setError(factorError.message);
+    setLoading(true);
+    try {
+      const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
+      if (factorError) throw factorError;
+
+      const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalError) throw aalError;
+
+      setFactors((factorData?.totp || []).filter(factor => factor?.status === 'verified'));
+      setAal2(aal?.currentLevel === 'aal2');
+    } catch {
+      console.warn('Security settings could not be loaded.');
+      setFactors([]);
+      setAal2(false);
+      setError('Could not load security settings. Refresh the page and try again.');
+    } finally {
       setLoading(false);
-      return;
     }
-    setFactors((data?.totp || []).filter(factor => factor?.status === 'verified'));
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    setAal2(aal?.currentLevel === 'aal2');
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     const onHash = () => setRoute(routeNow());
     window.addEventListener('hashchange', onHash);
-    supabase.auth.getSession().then(({ data }) => load(data?.session?.user || null));
+    supabase.auth.getSession()
+      .then(({ data, error: sessionError }) => {
+        if (sessionError) throw sessionError;
+        return load(data?.session?.user || null);
+      })
+      .catch(() => {
+        setError('Could not confirm your sign-in session. Refresh the page and try again.');
+        setLoading(false);
+      });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       load(session?.user || null);
     });
@@ -69,8 +88,9 @@ export default function SecuritySettings() {
       if (factorError) throw factorError;
       setEnrollment(factorData);
       setMessage('Scan this QR code with your authenticator app, then enter the current 6-digit code below.');
-    } catch (enrollError) {
-      setError(enrollError?.message || 'Unable to start two-step verification.');
+    } catch {
+      console.warn('Authenticator enrollment could not start.');
+      setError('Could not start authenticator setup. Check your connection and try again.');
     } finally {
       setBusy(false);
     }
@@ -83,7 +103,7 @@ export default function SecuritySettings() {
     setError('');
     setMessage('');
     try {
-      const cleanCode = enrollCode.replace(/\D/g, '').slice(0, 10);
+      const cleanCode = enrollCode.replace(/\D/g, '').slice(0, 6);
       if (cleanCode.length < 6) throw new Error('Enter the 6-digit code from your authenticator app.');
       const challenge = await supabase.auth.mfa.challenge({ factorId: enrollment.id });
       if (challenge.error) throw challenge.error;
@@ -98,8 +118,8 @@ export default function SecuritySettings() {
       setEnrollCode('');
       setMessage('Two-step verification is now enabled on your account.');
       await refresh();
-    } catch (verifyError) {
-      setError(verifyError?.message || 'The code was not accepted. Check your authenticator and try again.');
+    } catch {
+      setError('The code was not accepted, or verification is temporarily unavailable. Check the code and try again.');
     } finally {
       setBusy(false);
     }
@@ -109,8 +129,15 @@ export default function SecuritySettings() {
     setRemoveFactor(factor);
     setRemoveCode('');
     setError('');
-    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    setAal2(data?.currentLevel === 'aal2');
+    setAal2(false);
+    try {
+      const { data, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalError) throw aalError;
+      setAal2(data?.currentLevel === 'aal2');
+    } catch {
+      console.warn('Could not confirm the current MFA assurance level.');
+      setError('For safety, enter a fresh authenticator code to continue.');
+    }
   };
 
   const confirmRemove = async event => {
@@ -120,7 +147,8 @@ export default function SecuritySettings() {
     setError('');
     setMessage('');
     try {
-      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      const { data: aal, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aalError) throw aalError;
       if (aal?.currentLevel !== 'aal2') {
         await verifyMfaCode(removeFactor.id, removeCode);
       }
@@ -131,16 +159,53 @@ export default function SecuritySettings() {
       setRemoveCode('');
       setMessage('Authenticator removed from your account.');
       await refresh();
-    } catch (removeError) {
-      setError(removeError?.message || 'Unable to remove this authenticator.');
-      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      setAal2(data?.currentLevel === 'aal2');
+    } catch {
+      setError('Could not remove the authenticator. Verify your code and try again.');
+      try {
+        const { data, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        setAal2(!aalError && data?.currentLevel === 'aal2');
+      } catch {
+        setAal2(false);
+      }
     } finally {
       setBusy(false);
     }
   };
 
-  if (route !== 'security' || !user) return null;
+  const cancelEnrollment = async () => {
+    if (!enrollment?.id || busy) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const { error: cleanupError } = await supabase.auth.mfa.unenroll({ factorId: enrollment.id });
+      if (cleanupError) throw cleanupError;
+      setEnrollment(null);
+      setEnrollCode('');
+      setMessage('Authenticator setup cancelled.');
+      await refresh();
+    } catch {
+      setError('Could not cancel the unfinished authenticator setup. Please retry before leaving this screen.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (route !== 'security') return null;
+  if (!user) {
+    return <main className="security-page">
+      <div className="security-shell">
+        <button type="button" className="security-back" onClick={() => { window.location.hash = 'profile'; }}>← Back to profile</button>
+        <section className="security-card">
+          <p className="section-eyebrow">SECURITY</p>
+          <h1>{loading ? 'Checking sign-in status' : 'Sign in to manage security'}</h1>
+          <p className="security-intro">{loading ? 'Confirming your account session…' : 'Sign in to review and manage two-step verification for your Atma Rekha account.'}</p>
+          {!loading && <button type="button" className="primary-button security-action" onClick={() => window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login' } }))}>Sign in</button>}
+          {error && <p className="security-error" role="alert">{error}</p>}
+        </section>
+      </div>
+    </main>;
+  }
 
   return <main className="security-page">
     <div className="security-shell">
@@ -168,9 +233,9 @@ export default function SecuritySettings() {
             {enrollment.totp?.qr_code && <img className="security-qr" src={enrollment.totp.qr_code} alt="QR code for authenticator app setup" />}
             <div className="security-secret"><span>Can’t scan?</span><code>{enrollment.totp?.secret || 'Secret unavailable'}</code></div>
             <form className="security-verify-form" onSubmit={confirmEnrollment}>
-              <label>2. Enter the current 6-digit code<input value={enrollCode} onChange={event => setEnrollCode(event.target.value.replace(/\D/g, '').slice(0, 10))} inputMode="numeric" autoComplete="one-time-code" maxLength={10} placeholder="123456" required/></label>
+              <label>2. Enter the current 6-digit code<input value={enrollCode} onChange={event => setEnrollCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456" required/></label>
               <button type="submit" className="primary-button" disabled={busy || enrollCode.length < 6}>{busy ? 'Verifying…' : 'Enable two-step verification'}</button>
-              <button type="button" className="security-secondary-button" onClick={() => { setEnrollment(null); setEnrollCode(''); setError(''); setMessage(''); }}>Cancel setup</button>
+              <button type="button" className="security-secondary-button" onClick={cancelEnrollment} disabled={busy}>{busy ? 'Cancelling…' : 'Cancel setup'}</button>
             </form>
             <p className="security-warning">Keep your authenticator backup safe. Supabase does not provide recovery codes for MFA.</p>
           </div>}
@@ -189,7 +254,7 @@ export default function SecuritySettings() {
           <button type="button" className="security-modal-close" onClick={() => setRemoveFactor(null)} aria-label="Close">×</button>
           <p className="section-eyebrow">REMOVE AUTHENTICATOR</p><h2 id="security-remove-title">Remove this authenticator?</h2>
           <p>Your verified authenticator will no longer be available for two-step verification.</p>
-          {!aal2 && <label>Authenticator code<input autoFocus value={removeCode} onChange={event => setRemoveCode(event.target.value.replace(/\D/g, '').slice(0, 10))} inputMode="numeric" autoComplete="one-time-code" maxLength={10} placeholder="123456" required/></label>}
+          {!aal2 && <label>Authenticator code<input autoFocus value={removeCode} onChange={event => setRemoveCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456" required/></label>}
           {error && <p className="security-error" role="alert">{error}</p>}
           <div className="security-modal-actions"><button type="button" className="security-secondary-button" onClick={() => setRemoveFactor(null)}>Cancel</button><button type="button" className="security-danger-button" onClick={confirmRemove} disabled={busy || !aal2 && removeCode.length < 6}>{busy ? 'Removing…' : 'Remove authenticator'}</button></div>
         </section></div>}
