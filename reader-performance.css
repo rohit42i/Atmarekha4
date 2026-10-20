@@ -22,12 +22,6 @@
 .reader-page .reader-performance-image.reader-swipe-settle{will-change:transform;transition:transform 160ms cubic-bezier(.22,.8,.2,1)!important;}
 .reader-page .reader-performance-image.reader-swipe-return{will-change:transform;transition:transform 180ms cubic-bezier(.2,.8,.2,1)!important;}
 
-/* Reader appearance preferences configured from More & Settings. */
+/* Standard reader appearance: dark frame and width-fit manga pages. */
 .reader-page[data-reader-background="dark"]{background:#090909;color:#f5f5f5}
-.reader-page[data-reader-background="light"]{background:#f7f7f4;color:#111}
-.reader-page[data-reader-background="system"]{background:var(--page-bg);color:var(--text-color)}
 .reader-page[data-reader-fit="width"] .reader-stage img{width:100%;max-width:100%;height:auto;max-height:none;object-fit:contain}
-.reader-page[data-reader-fit="screen"] .reader-stage img{width:auto;max-width:100%;height:auto;max-height:calc(100dvh - 180px);object-fit:contain}
-.reader-page[data-reader-fit="original"] .reader-stage img{width:auto;max-width:none;height:auto;max-height:none;object-fit:initial}
-.reader-page[data-reader-fit="original"] .reader-stage{overflow:auto;justify-content:flex-start}
-@media(prefers-reduced-motion:reduce){.reader-page .reader-stage img{scroll-behavior:auto}}
