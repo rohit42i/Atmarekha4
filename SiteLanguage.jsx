@@ -238,10 +238,13 @@ function normalize(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+const originalTextNodes = new WeakMap();
+const lastTranslatedTextNodes = new WeakMap();
+
 function SiteLanguageTranslator({ language }) {
   useEffect(() => {
-    const originals = new WeakMap();
-    const lastTranslated = new WeakMap();
+    const originals = originalTextNodes;
+    const lastTranslated = lastTranslatedTextNodes;
     const attributes = ['placeholder', 'aria-label', 'title', 'alt'];
     const translateNode = node => {
       if (!node || node.nodeType !== Node.TEXT_NODE) return;
@@ -265,8 +268,7 @@ function SiteLanguageTranslator({ language }) {
       for (const attribute of attributes) {
         const current = element.getAttribute(attribute);
         if (current === null) continue;
-        const storeKey = 'data-atma-original-' + attribute;
-        if (element.dataset[storeKey.replace(/-([a-z])/g, (_, c) => c.toUpperCase()).replace(/^data-/, '')] === undefined) {
+        if (element.getAttribute('data-atma-i18n-original-' + attribute) === null) {
           element.setAttribute('data-atma-i18n-original-' + attribute, current);
         }
         const original = element.getAttribute('data-atma-i18n-original-' + attribute) ?? current;
