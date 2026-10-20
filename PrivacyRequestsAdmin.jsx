@@ -106,7 +106,7 @@ export default function PrivacyRequestsAdmin() {
           <label className="privacy-admin-resolution-field" htmlFor={`resolution-note-input-${request.id}`}><span>Resolution note or rejection reason</span><textarea id={`resolution-note-input-${request.id}`} value={resolutionNotes[request.id] || ''} onChange={event => setResolutionNotes(current => ({ ...current, [request.id]: event.target.value.slice(0, 1000) }))} rows={3} minLength={10} maxLength={1000} placeholder="Describe the completed erasure and any retained records, or explain why the request must be rejected."/><small>{(resolutionNotes[request.id] || '').trim().length}/1000 characters · at least 10 required</small></label>
           <div className="privacy-admin-actions">
             <button type="button" className="secondary-button" disabled={Boolean(busyId)} onClick={() => update(request, 'rejected')}>Reject with reason</button>
-            <button type="button" className="primary-button" disabled={Boolean(busyId)} onClick={() => update(request, 'resolved')}>{busyId === request.id ? 'Updating…' : 'Mark erased & resolve'}</button>
+            <button type="button" className="primary-button" disabled={Boolean(busyId)} onClick={() => update(request, 'resolved')}>{busyId === request.id ? 'Updating…' : 'Mark erased & resolved'}</button>
           </div>
         </div>}
         {request.resolved_at && <small>Closed {formatDate(request.resolved_at)}</small>}
