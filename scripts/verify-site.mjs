@@ -55,6 +55,7 @@ const required = [
   ['AdminPanel.jsx', "key: 'Privacy Requests'"],
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export_warnings'],
+  ['supabase/functions/dpdp-data-rights/index.ts', '"dpdp_consent_records","dpdp_deletion_requests","notification_preferences"'],
   ['supabase/functions/delete-account/index.ts', 'dpdp_deletion_requests'],
   ['supabase/functions/delete-account/index.ts', 'queued: true'],
   ['supabase/functions/delete-account/index.ts', 'Never hard-delete an account from this endpoint'],
