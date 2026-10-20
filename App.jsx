@@ -473,8 +473,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         const numericChapter = /^\d+(?:\.\d+)?$/.test(chapterPart) ? chapterPart : '';
         title = numericChapter ? 'Atma Rekha Chapter ' + numericChapter : 'Atma Rekha | Chapter';
         description = numericChapter
-          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.'
-          : 'Read an Atma Rekha chapter, an original Indian fantasy manga adventure by Arkesh.';
+          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original Indian fantasy adventure manga available in Hindi (Roman Hindi) and English.'
+          : 'Read Atma Rekha, an original Indian fantasy adventure manga available in Hindi (Roman Hindi) and English.';
       }
     } else if (type === 'read-chapter') {
       const legacyId = legacyChapterIdFromHash('#' + route);
