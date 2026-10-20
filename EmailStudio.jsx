@@ -27,6 +27,7 @@ export default function EmailStudio() {
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
+  const [syncingContacts, setSyncingContacts] = useState(false);
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState(false);
   const [advancedHtml, setAdvancedHtml] = useState(false);
@@ -37,6 +38,23 @@ export default function EmailStudio() {
     if (error) throw error;
     if (!data?.ok) throw new Error(data?.error || 'Email operation failed.');
     return data;
+  };
+
+  const syncContacts = async () => {
+    if (syncingContacts) return;
+    setSyncingContacts(true);
+    setNotice('Syncing confirmed reader accounts to Resend. Readers without marketing consent will remain unsubscribed.');
+    try {
+      const data = await supabase.functions.invoke('resend-contact-backfill', { body: {} });
+      if (data.error) throw data.error;
+      if (!data.data?.ok && !Number.isFinite(data.data?.total)) throw new Error(data.data?.error || 'Contact sync failed.');
+      const result = data.data;
+      setNotice('Resend sync finished: ' + result.total + ' confirmed accounts, ' + result.added + ' added, ' + result.updated + ' updated, ' + result.unsubscribed + ' kept unsubscribed, ' + result.eligibleForMarketing + ' eligible for marketing, ' + result.failed + ' failed.');
+    } catch (error) {
+      setNotice(error?.message || 'Could not sync contacts to Resend.');
+    } finally {
+      setSyncingContacts(false);
+    }
   };
 
   const load = async () => {
@@ -219,7 +237,7 @@ export default function EmailStudio() {
     <section className="admin-card">
       <div className="admin-card-title">
         <div><span>RESEND EMAIL STUDIO</span><h2>Email campaigns</h2><p>Edit messages, preview them, and send to selected readers or an audience.</p></div>
-        <button type="button" onClick={() => { setDraft(initial); setSelectedTemplate(''); setPreview(false); setNotice('New template draft. Enter a unique slug, then save it before sending.'); }}>New template</button>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" onClick={syncContacts} disabled={syncingContacts}>{syncingContacts?'Syncing…':'Sync contacts'}</button><button type="button" onClick={() => { setDraft(initial); setSelectedTemplate(''); setPreview(false); setNotice('New template draft. Enter a unique slug, then save it before sending.'); }}>New template</button></div>
       </div>
       {notice && <div role="status" className="admin-notice" style={{ marginBottom: 14 }}>{notice}</div>}
       <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
