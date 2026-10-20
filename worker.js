@@ -20,6 +20,16 @@ const STATIC_SEO = {
   "/info/terms": ["Terms of Use | Atma Rekha", "Read the terms that apply to using the Atma Rekha website and membership features."],
   "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Discover Pal Do Pal Ke Lamhe, a separate original story from the creator of Atma Rekha."],
 };
+const HINDI_STATIC_SEO = {
+  "/": ["Atma Rekha | Bharatiya Fantasy Adventure Manga", "Arkesh ki original Indian fantasy adventure manga Atma Rekha padhein. Kahani, kirdaar, paramparayein aur rahasyamayi shaktiyon ki duniya explore karein."],
+  "/chapters": ["Atma Rekha | Chapters", "Atma Rekha ke published Hindi chapters padhein. Yeh Arkesh ki original Indian fantasy adventure manga hai."],
+  "/info/about": ["Atma Rekha ke baare mein", "Atma Rekha, creator Arkesh aur original Indian fantasy adventure manga ke baare mein jaanein."],
+  "/info/contact": ["Sampark | Atma Rekha", "Support, feedback ya kisi sawaal ke liye Atma Rekha se sampark karein."],
+  "/info/report": ["Samasya report karein | Atma Rekha", "Atma Rekha website, content ya community ki samasya report karein."],
+  "/info/privacy": ["Privacy | Atma Rekha", "Atma Rekha ki privacy policy, data controls aur privacy requests ke baare mein jaanein."],
+  "/info/terms": ["Istemaal ki shartein | Atma Rekha", "Website aur reader features istemaal karne ki shartein padhein."],
+  "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Atma Rekha creator ki ek alag original story Pal Do Pal Ke Lamhe ke baare mein jaanein."],
+};
 
 function withSecurityHeaders(response) {
   const headers = new Headers(response.headers);
@@ -188,29 +198,26 @@ async function addServerSeo(request, response, env) {
   }
 
   if (path === "/" || STATIC_SEO[path]) {
-    if (STATIC_SEO[path]) {
-      html = setTitle(html, STATIC_SEO[path][0]);
-      html = setMeta(html, "name", "description", STATIC_SEO[path][1]);
+    const language = normalizeLanguage(url.searchParams.get("lang"));
+    const seo = language === "en" ? (STATIC_SEO[path] || STATIC_SEO["/"]) : (HINDI_STATIC_SEO[path] || STATIC_SEO[path] || HINDI_STATIC_SEO["/"]);
+    if (seo) {
+      html = setTitle(html, seo[0]);
+      html = setMeta(html, "name", "description", seo[1]);
+      html = setMeta(html, "property", "og:title", seo[0]);
+      html = setMeta(html, "property", "og:description", seo[1]);
+      html = setMeta(html, "name", "twitter:title", seo[0]);
+      html = setMeta(html, "name", "twitter:description", seo[1]);
+      html = setMeta(html, "property", "og:locale", language === "en" ? "en_IN" : "hi_IN");
     }
-    const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
-      ? SITE_ORIGIN + "/chapters?lang=en"
-      : SITE_ORIGIN + path;
+    const canonicalPath = language === "en" ? path + "?lang=en" : path;
+    const canonical = SITE_ORIGIN + canonicalPath;
     html = setCanonical(html, canonical);
-    if (path === "/chapters") {
+    if (path === "/" || path === "/chapters" || STATIC_SEO[path]) {
+      const base = SITE_ORIGIN + path;
       html = setAlternates(html, [
-        { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
-        { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapters" },
-        { language: "x-default", url: SITE_ORIGIN + "/chapters" },
-      ]);
-    } else if (path === "/") {
-      html = setAlternates(html, [
-        { language: "en-IN", url: SITE_ORIGIN + "/" },
-        { language: "x-default", url: SITE_ORIGIN + "/" },
-      ]);
-    } else {
-      html = setAlternates(html, [
-        { language: "en-IN", url: canonical },
-        { language: "x-default", url: canonical },
+        { language: "en-IN", url: base + "?lang=en" },
+        { language: "hi-Latn-IN", url: base },
+        { language: "x-default", url: base },
       ]);
     }
   }
