@@ -281,3 +281,23 @@ html[data-theme="light"] .privacy-control-button:hover:not(:disabled){background
   .privacy-control-button{min-height:78px;padding:15px}
   .privacy-nomination-actions button{width:100%}
 }
+
+
+/* Privacy request status actions: compact on desktop and full-width on small screens. */
+.privacy-request-status-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.privacy-request-status-heading > div { min-width:0; }
+.privacy-request-status-heading button { min-height:40px; }
+.privacy-control-button:focus-visible,
+.privacy-center button:focus-visible {
+  outline:2px solid currentColor;
+  outline-offset:3px;
+}
+@media(max-width:600px) {
+  .privacy-request-status-heading button { width:100%; }
+}
