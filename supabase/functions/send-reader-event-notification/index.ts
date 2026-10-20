@@ -282,7 +282,7 @@ Deno.serve(async (req: Request) => {
       try {
         await webpush.sendNotification(
           { endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },
-          JSON.stringify({ title, body: message, icon: "/favicon.png", badge: "/favicon.png", url: targetUrl, tag: `atma-${category}-${eventId}`, renotify: false }),
+          JSON.stringify({ title, body: message, icon: "/ishani.png", badge: "/ishani.png", url: targetUrl, tag: `atma-${category}-${eventId}`, renotify: false }),
         );
         sent++;
       } catch (error) {

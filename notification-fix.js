@@ -40,13 +40,39 @@ async function saveSubscription(subscription) {
   return data.data;
 }
 
+let syncExistingSubscriptionPromise = null;
+
 async function syncExistingSubscription() {
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission !== 'granted') return;
+  if (syncExistingSubscriptionPromise) return syncExistingSubscriptionPromise;
+
+  syncExistingSubscriptionPromise = (async () => {
+    try {
+      // Re-register the worker if the browser cleared its registration. Permission
+      // may still be granted, so waiting for navigator.serviceWorker.ready alone
+      // can otherwise leave this device silently unsubscribed.
+      const registration = await registerServiceWorker();
+      let subscription = await registration.pushManager.getSubscription();
+
+      // A granted permission is not the same as an active PushSubscription.
+      // Recreate missing subscriptions and persist them to the server.
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+      await saveSubscription(subscription);
+    } catch (error) {
+      console.warn('[Atma Rekha Push Sync]', error instanceof Error ? error.message : 'Could not restore push subscription.');
+    }
+  })();
+
   try {
-    if (Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-    if (subscription) await saveSubscription(subscription);
-  } catch (_) {}
+    await syncExistingSubscriptionPromise;
+  } finally {
+    syncExistingSubscriptionPromise = null;
+  }
 }
 
 export async function enableAtmaRekhaNotifications() {
