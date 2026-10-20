@@ -24,6 +24,8 @@ export default function MorePage() {
   const [notice, setNotice] = useState('');
   const [user, setUser] = useState(null);
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [emailChapterAnnouncements, setEmailChapterAnnouncements] = useState(false);
+  const [savedEmailChapterAnnouncements, setSavedEmailChapterAnnouncements] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [prefsLoading, setPrefsLoading] = useState(true);
   const [prefsLoadFailed, setPrefsLoadFailed] = useState(false);
@@ -65,6 +67,12 @@ export default function MorePage() {
           : {};
         const normalized = Object.fromEntries(CATEGORIES.map(([key]) => [key, saved[key] !== false]));
         if (active && request === requestId) setPreferences(normalized);
+        const { data: emailChoice, error: emailChoiceError } = await supabase.functions.invoke('update-chapter-email-preference', { body: { action: 'get' } });
+        if (active && request === requestId) {
+          const enabled = !emailChoiceError && emailChoice?.ok === true && emailChoice.enabled === true;
+          setEmailChapterAnnouncements(enabled);
+          setSavedEmailChapterAnnouncements(enabled);
+        }
       } catch (loadError) {
         console.warn('Notification preferences could not be loaded.');
         if (active && request === requestId) {
@@ -146,6 +154,13 @@ export default function MorePage() {
         ? savedRow.preferences
         : normalized;
       setPreferences(Object.fromEntries(CATEGORIES.map(([key]) => [key, saved[key] !== false])));
+      if (emailChapterAnnouncements !== savedEmailChapterAnnouncements) {
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke('update-chapter-email-preference', {
+          body: { action: 'set', enabled: emailChapterAnnouncements },
+        });
+        if (emailError || !emailResult?.ok) throw new Error('Your notification settings were saved, but the chapter email preference could not be updated. Try saving again.');
+        setSavedEmailChapterAnnouncements(emailChapterAnnouncements);
+      }
       setPrefsNotice('Preferences saved. They apply to future notification alerts.');
     } catch (saveError) {
       console.warn('Notification preference save failed.');
@@ -185,6 +200,11 @@ export default function MorePage() {
         {settingsOpen && <form className="more-page-notification-settings" onSubmit={savePreferences}>
           <div className="more-page-settings-heading"><h3>Your notifications</h3><p>Choose the alerts that matter to you. Browser permission is managed separately by your device.</p></div>
           {prefsLoading ? <p className="more-page-notice" role="status">Loading saved notification preferences…</p> : !user ? <p className="more-page-notice" role="status">{prefsNotice || 'Sign in to save your notification choices.'}</p> : prefsLoadFailed ? <p className="more-page-notice" role="alert">{prefsNotice || 'Could not load your saved choices. Refresh the page and try again.'}</p> : <>
+            <label className="more-page-pref-row">
+              <span><strong>New chapter emails</strong><small>Email me when a new chapter is published. You can unsubscribe at any time.</small></span>
+              <input type="checkbox" checked={emailChapterAnnouncements} disabled={prefsSaving || prefsLoading || prefsLoadFailed || !user?.email_confirmed_at} onChange={event => setEmailChapterAnnouncements(event.target.checked)} />
+            </label>
+            {!user?.email_confirmed_at && <p className="more-page-notice">Verify your email address to enable chapter emails.</p>}
             {CATEGORIES.map(([key, title, description]) => <label className="more-page-pref-row" key={key}>
               <span><strong>{title}</strong><small>{description}</small></span>
               <input type="checkbox" checked={Boolean(preferences[key])} disabled={prefsSaving || prefsLoading || prefsLoadFailed} onChange={event => setPreferences(current => ({ ...current, [key]: event.target.checked }))} />
