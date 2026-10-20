@@ -2,6 +2,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import './privacy-requests-admin.css';
 
+async function serviceErrorMessage(error, fallback) {
+  const context = error?.context;
+  if (context && typeof context.clone === 'function') {
+    try {
+      const payload = await context.clone().json();
+      if (typeof payload?.error === 'string' && payload.error.trim()) return payload.error;
+    } catch {}
+  }
+  return error?.message || fallback;
+}
+
 function formatDate(value) {
   if (!value) return '—';
   const date = new Date(value);
@@ -27,7 +38,7 @@ export default function PrivacyRequestsAdmin() {
       if (!Array.isArray(data?.requests)) throw new Error('The privacy request service returned an invalid response.');
       setRequests(data.requests);
     } catch (err) {
-      setError(err?.message || 'Unable to load privacy requests. Check admin access and the deployed privacy function.');
+      setError(await serviceErrorMessage(err, 'Unable to load privacy requests. Check admin access and the deployed privacy function.'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +87,7 @@ export default function PrivacyRequestsAdmin() {
       if (status !== 'processing') setResolutionNotes(current => ({ ...current, [request.id]: '' }));
       setMessage('Privacy request status updated.');
     } catch (err) {
-      setError(err?.message || 'Unable to update this privacy request.');
+      setError(await serviceErrorMessage(err, 'Unable to update this privacy request.'));
     } finally {
       setBusyId('');
     }
