@@ -75,6 +75,7 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
 
     const preferencesByUser = new Map<string, Record<string, boolean>>();
     const marketingPreferences = new Map<string, { marketing_unsubscribed: boolean; unsubscribe_token: string }>();
+    const marketingConsentUsers = new Set<string>();
     for (let i = 0; i < users.length; i += 500) {
       const ids = users.slice(i, i + 500).map(item => item.id);
       const { data: prefs, error } = await db.from("notification_preferences").select("user_id,preferences").in("user_id", ids);
@@ -85,25 +86,36 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
       const { data: marketingRows, error: marketingError } = await db.from("email_marketing_preferences").select("user_id,marketing_unsubscribed,unsubscribe_token").in("user_id", ids);
       if (marketingError) throw marketingError;
       for (const row of marketingRows || []) marketingPreferences.set(row.user_id, { marketing_unsubscribed: Boolean(row.marketing_unsubscribed), unsubscribe_token: String(row.unsubscribe_token || "") });
+      const { data: consentRows, error: consentError } = await db.from("dpdp_consent_records")
+        .select("user_id,purposes,withdrawn_at").in("user_id", ids);
+      if (consentError) throw consentError;
+      for (const row of consentRows || []) {
+        if (!row.withdrawn_at && Array.isArray(row.purposes) && row.purposes.includes("marketing_email")) {
+          marketingConsentUsers.add(row.user_id);
+        }
+      }
     }
-    const recipients = users.filter(item => preferencesByUser.get(item.id)?.new_chapters !== false && marketingPreferences.get(item.id)?.marketing_unsubscribed !== true);
+    const recipients = users.filter(item =>
+      marketingConsentUsers.has(item.id) &&
+      preferencesByUser.get(item.id)?.new_chapters !== false &&
+      marketingPreferences.get(item.id)?.marketing_unsubscribed !== true
+    );
     if (!recipients.length) {
       await db.from("notification_event_dispatches").update({ status: "skipped", sent_count: 0, failed_count: 0, completed_at: new Date().toISOString() }).eq("id", dispatchId);
       return { sent: 0, failed: 0, reason: "All readers opted out of new-chapter notifications." };
     }
 
     const chapterNumber = chapter.chapter_number == null ? null : Number(chapter.chapter_number);
-    const chapterLabel = chapterNumber == null ? "Special Chapter" : `Chapter ${chapterNumber}`;
+    const chapterLabel = chapterNumber == null ? "Special Chapter" : \`Chapter \${chapterNumber}\`;
     const chapterTitle = String(chapter.title || "").trim() || chapterLabel;
-    const subject = `ATMA REKHA ${chapterLabel} — ${chapterTitle} is out!`;
-    const chapterUrl = chapterNumber == null
-      ? "https://www.atmarekha.in/chapters"
-      : `https://www.atmarekha.in/chapter/${encodeURIComponent(String(chapterNumber))}`;
+    const subject = \`ATMA REKHA \${chapterLabel} — \${chapterTitle} is out!\`;
+    // Keep this email visually unfilled: no body/table/background colors, only text and an outlined link.
+    const chapterUrl = "https://www.atmarekha.in/";
     const safeLabel = escapeHtml(chapterLabel);
     const safeTitle = escapeHtml(chapterTitle);
     const safeUrl = escapeHtml(chapterUrl);
-    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#fff;color:#171717;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#fff"><tr><td align="center" style="padding:32px 18px"><table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px"><tr><td style="padding:12px 0 28px;border-bottom:1px solid #e8e8e8"><p style="margin:0;font-size:13px;letter-spacing:1.8px;font-weight:700;color:#555">ATMA REKHA</p></td></tr><tr><td style="padding:40px 0 24px"><p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#555">A new chapter is ready to read.</p><h1 style="margin:0 0 12px;font-size:32px;line-height:1.2;font-weight:700;color:#111">${safeLabel} is out!</h1><h2 style="margin:0;font-size:22px;line-height:1.4;font-weight:600;color:#333">${safeTitle}</h2></td></tr><tr><td style="padding:0 0 30px;font-size:16px;line-height:1.75;color:#333"><p style="margin:0 0 16px">Whenever you have a little free time, give the new chapter a read. I would love to hear what you think.</p><p style="margin:0">If you enjoy it, leave a comment or share it with a friend. It really helps Atma Rekha grow.</p></td></tr><tr><td style="padding:0 0 38px"><a href="${safeUrl}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:15px 26px;font-size:14px;font-weight:700;letter-spacing:.4px">READ ${safeLabel.toUpperCase()}</a></td></tr><tr><td style="border-top:1px solid #e8e8e8;padding:24px 0 0"><p style="margin:0 0 5px;font-size:16px;font-weight:700;color:#111">Arkesh</p><p style="margin:0;font-size:13px;line-height:1.6;color:#666">Creator of Atma Rekha</p><p style="margin:18px 0 0;font-size:12px;line-height:1.6;color:#777">You are receiving this creator update from Atma Rekha. <a href="{{UNSUBSCRIBE_URL}}" style="color:#555">Unsubscribe from creator emails</a>.</p></td></tr></table></td></tr></table></body></html>`;
-    const textBody = `ATMA REKHA ${chapterLabel} is out!\n\n${chapterTitle}\n\nWhenever you have a little free time, give the new chapter a read. I would love to hear what you think.\n\nRead ${chapterLabel}: ${chapterUrl}\n\nArkesh\nCreator of Atma Rekha`;
+    const html = \`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;color:#222;font-family:Roboto,Arial,Helvetica,sans-serif;font-weight:500"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center" style="padding:28px 18px"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px"><tr><td style="padding:8px 0 22px;border-bottom:1px solid #ddd"><p style="margin:0;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;font-weight:600;color:#222">ATMA REKHA</p></td></tr><tr><td style="padding:30px 0 18px"><p style="margin:0 0 12px;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;font-weight:500;color:#222">Hey, hi, hello, namaste!</p><h1 style="margin:0 0 10px;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:27px;line-height:1.3;font-weight:600;color:#222">\${safeLabel} is now out!</h1><h2 style="margin:0;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:20px;line-height:1.5;font-weight:500;color:#222">\${safeTitle}</h2></td></tr><tr><td style="padding:0 0 26px;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:1.8;font-weight:500;color:#222"><p style="margin:0 0 14px">Whenever you get some free time, give it a read and leave a review in the comments. It would be a great help to me. I hope you enjoy it!</p></td></tr><tr><td style="padding:0 0 32px"><a href="\${safeUrl}" style="display:inline-block;border:1px solid #222;border-radius:4px;color:#222;text-decoration:none;padding:11px 22px;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;font-weight:600">Read \${escapeHtml(chapterLabel)} →</a></td></tr><tr><td style="border-top:1px solid #ddd;padding:20px 0 0"><p style="margin:0 0 4px;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;font-weight:600;color:#222">Thank you,</p><p style="margin:0;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;font-weight:500;color:#222">Arkesh</p><p style="margin:16px 0 0;font-family:Roboto,Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;font-weight:500;color:#555">You are receiving this chapter announcement because you opted in to Atma Rekha creator emails. <a href="{{UNSUBSCRIBE_URL}}" style="color:#222;text-decoration:underline">Unsubscribe</a>.</p></td></tr></table></td></tr></table></body></html>\`;
+    const textBody = \`Hey, hi, hello, namaste!\\n\\n\${chapterLabel} is now out!\\n\\n\${chapterTitle}\\n\\nWhenever you get some free time, give it a read and leave a review in the comments. It would be a great help to me. I hope you enjoy it!\\n\\nRead \${chapterLabel}: \${chapterUrl}\\n\\nThank you,\\nArkesh\`;
 
     let sent = 0;
     let failed = 0;
