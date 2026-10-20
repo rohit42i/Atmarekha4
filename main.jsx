@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import SiteRuntime from './SiteRuntime.jsx';
+import SiteLanguage from './SiteLanguage.jsx';
 import { installGlobalErrorLogging } from './errorLogger.js';
 import UserAuth from './UserAuth.jsx';
 import MfaGate from './MfaGate.jsx';
@@ -102,6 +103,7 @@ createRoot(document.getElementById('root')).render(
       <AdminOperations/>
       </Suspense>
       <SiteRuntime/>
+      <SiteLanguage/>
   </React.StrictMode>
 );
 
