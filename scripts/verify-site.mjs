@@ -80,7 +80,6 @@ const required = [
   ['MorePage.jsx', 'notification_preferences'],
   ['MorePage.jsx', 'comments_replies'],
   ['MorePage.jsx', 'other_updates'],
-  ['MorePage.jsx', 'Reader customization'],
   ['App.jsx', 'data-reader-background={readerPreferences.background}'],
   ['reader-performance.css', 'data-reader-fit="screen"'],
   ['supabase/migrations/20261019120000_reader_notification_preferences.sql', 'Readers can view own notification preferences'],
@@ -128,6 +127,27 @@ const forbidden = [
 ];
 
 let failed = false;
+
+const morePagePreferenceRegression = await readFile('MorePage.jsx', 'utf8');
+if (morePagePreferenceRegression.includes('Reader customization') || morePagePreferenceRegression.includes('readerSettingsOpen')) {
+  console.error('CHECK FAILED: Reader customization must not appear in More & Settings.');
+  failed = true;
+}
+if (!morePagePreferenceRegression.includes('prefsLoadFailed') ||
+    !morePagePreferenceRegression.includes("authData?.user?.id !== user.id") ||
+    !morePagePreferenceRegression.includes(".select('preferences')") ||
+    !morePagePreferenceRegression.includes('Preferences saved. They apply to future notification alerts.')) {
+  console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
+  failed = true;
+}
+const securitySettingsRegression = await readFile('SecuritySettings.jsx', 'utf8');
+if (!securitySettingsRegression.includes('Sign in to manage security') ||
+    !securitySettingsRegression.includes('const cancelEnrollment = async () =>') ||
+    !securitySettingsRegression.includes('Could not load security settings. Refresh the page and try again.') ||
+    !securitySettingsRegression.includes('maxLength={6}')) {
+  console.error('CHECK FAILED: Account security must handle signed-out sessions, failed requests and pending MFA cleanup.');
+  failed = true;
+}
 
 const simplifiedPrivacySource = await readFile('PrivacyCenter.jsx', 'utf8');
 if (/nominee|nomination|privacy-nomination-form/i.test(simplifiedPrivacySource)) {
