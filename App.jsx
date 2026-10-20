@@ -39,10 +39,10 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'Is An Adventure Manga/comic Where Traditions And Powers Become A Part Of An Unfolding Story' };
+const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga available in Hindi (Roman Hindi) and English.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, ancient traditions, and mysterious powers.';
+const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
 
 function upsertMeta(attribute, key, content) {
@@ -491,10 +491,10 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     } else if (type === 'chapters') {
       if (requestedLanguage === 'en') {
         title = 'Atma Rekha | English Chapters';
-        description = 'Read the published English chapters of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.';
+        description = 'Read Atma Rekha chapters in English, an original Indian fantasy adventure manga by Arkesh. Hindi chapters are also available.';
       } else {
         title = 'Atma Rekha | Chapters';
-        description = 'Read the published Hindi chapters of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.';
+        description = 'Read Atma Rekha chapters in Hindi (Roman Hindi), an original Indian fantasy adventure manga by Arkesh. English chapters are also available.';
       }
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
