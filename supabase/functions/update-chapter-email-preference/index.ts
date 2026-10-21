@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
       // Recognize that explicit signup choice as well as the newer chapter-specific consent.
       const hasActiveEmailConsent = (consents.data || []).some((row: { purposes: string[] | null; withdrawn_at: string | null }) =>
         !row.withdrawn_at && Array.isArray(row.purposes) &&
-        (row.purposes.includes("chapter_announcements") || row.purposes.includes("marketing_email"))
+        (row.purposes.includes("chapter_announcements") || row.purposes.includes("atma_rekha_updates"))
       );
       return reply(req, { ok: true, enabled: hasActiveEmailConsent && preference.data?.marketing_unsubscribed !== true });
     }
@@ -57,7 +57,7 @@ Deno.serve(async (req: Request) => {
       const { error } = await db.from("dpdp_consent_records").upsert({
         user_id: user.id,
         policy_version: POLICY_VERSION,
-        purposes: ["marketing_email", "chapter_announcements"],
+        purposes: ["atma_rekha_updates", "chapter_announcements"],
         consented_at: now,
         withdrawn_at: null,
         source: "notification_preferences"
