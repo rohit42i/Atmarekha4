@@ -185,6 +185,7 @@ Deno.serve(async req => {
   const url = Deno.env.get("SUPABASE_URL") || "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const resendKey = Deno.env.get("RESEND_API_KEY") || "";
+  const configuredSender = Deno.env.get("RESEND_FROM_EMAIL") || "Atma Rekha <no-reply@atmarekha.in>";
   if (!url || !serviceKey) return respond({ ok: false, error: "Supabase service configuration is missing." }, 503);
 
   try {
@@ -313,7 +314,8 @@ Deno.serve(async req => {
       ? candidates.filter((recipient: any) => recipient.marketing_consented && !recipient.marketing_opted_out)
       : category === "updates" ? candidates.filter((recipient: any) => recipient.updates_consented && !recipient.marketing_opted_out) : candidates;
     if (!recipients.length) return respond({ ok: false, error: category === "marketing" ? "No recipients have marketing consent, or all have opted out." : category === "updates" ? "No readers have Atma Rekha updates enabled, or all have unsubscribed." : "No eligible recipients were found." }, 422);
-    if (!resendKey) return respond({ ok: false, error: "Resend sending is not configured. Add RESEND_API_KEY to Supabase Edge Function secrets." }, 503);
+    if (!resendKey) return respond({ ok: false, error: "Email sending is not configured: add RESEND_API_KEY in Supabase Edge Function secrets." }, 503);
+    if (!configuredSender.includes("@") || !configuredSender.includes("<") || !configuredSender.includes(">")) return respond({ ok: false, error: "RESEND_FROM_EMAIL must be a valid sender such as Atma Rekha <no-reply@atmarekha.in>." }, 503);
 
     const selectedIds = recipients.map((recipient: any) => recipient.id);
     const profileMap = new Map(recipients.map((recipient: any) => [recipient.id, recipient]));
@@ -331,7 +333,7 @@ Deno.serve(async req => {
     let failed = 0;
     const resendIds: string[] = [];
     const errors: string[] = [];
-    const sender = "Atma Rekha <no-reply@atmarekha.in>";
+    const sender = configuredSender;
 
     for (let offset = 0; offset < selectedIds.length; offset += 10) {
       const batch = selectedIds.slice(offset, offset + 10);
