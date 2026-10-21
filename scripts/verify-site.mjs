@@ -130,7 +130,7 @@ const forbidden = [
 let failed = false;
 
 const signupEmailUpdatesRegression = await readFile('UserAuth.jsx', 'utf8');
-if (!signupEmailUpdatesRegression.includes("'atma_rekha_updates','chapter_announcements'") ||
+if (!signupEmailUpdatesRegression.includes("'atma_rekha_updates','chapter_announcements'") || signupEmailUpdatesRegression.includes("'marketing_email','chapter_announcements'") ||
     !signupEmailUpdatesRegression.includes('Email updates are enabled by default when you create an account.') ||
     !signupEmailUpdatesRegression.includes('More &amp; Settings → Notification preferences')) {
   console.error('CHECK FAILED: Signup must enable email updates by default and disclose how readers can turn them off.');
@@ -154,7 +154,7 @@ const emailStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
 const emailStudioFunctionRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
 if (!emailStudioRegression.includes("const effectiveCategory = isChapterTemplate ? 'updates' : draft.category;") ||
     !emailStudioFunctionRegression.includes('const category = templateSlug === "new-chapter" ? "updates" : requestedCategory;') ||
-    !emailStudioFunctionRegression.includes('marketing_opted_out')) {
+    !emailStudioFunctionRegression.includes('marketing_opted_out') || !emailStudioFunctionRegression.includes('updates_consented')) {
   console.error('CHECK FAILED: Chapter announcements must use the reader-updates preference and respect opt-outs.');
   failed = true;
 }
