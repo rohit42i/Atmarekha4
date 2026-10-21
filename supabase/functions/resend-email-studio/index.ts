@@ -123,8 +123,8 @@ async function loadRecipientDirectory(db: any) {
   ]);
   const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
   const optedOut = new Set((preferences || []).filter((item: any) => item.marketing_unsubscribed).map((item: any) => item.user_id));
-  const marketingConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && item.purposes.includes("marketing_email")).map((item: any) => item.user_id));
-  const updatesConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && (item.purposes.includes("atma_rekha_updates") || item.purposes.includes("chapter_announcements"))).map((item: any) => item.user_id));
+  const marketingConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && item.purposes.includes("marketing_promotion")).map((item: any) => item.user_id));
+  const updatesConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && (item.purposes.includes("atma_rekha_updates") || item.purposes.includes("chapter_announcements") || item.purposes.includes("marketing_email"))).map((item: any) => item.user_id));
   const now = Date.now();
   const activeMemberIds = new Set((subscriptions || [])
     .filter((item: any) => !item.current_period_end || new Date(item.current_period_end).getTime() >= now)
