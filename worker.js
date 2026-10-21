@@ -17,7 +17,7 @@ const STATIC_SEO = {
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
   "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
   "/info/privacy": ["Privacy Policy | Atma Rekha", "Read how Atma Rekha handles account information, site activity, and privacy requests."],
-  "/info/terms": ["Terms of Use | Atma Rekha", "Read the terms that apply to using the Atma Rekha website and membership features."],
+  "/info/terms": ["Terms & Privacy | Atma Rekha", "Read Atma Rekha's terms of use and privacy policy, including account data, memberships, and reader features."],
   "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Discover Pal Do Pal Ke Lamhe, a separate original story from the creator of Atma Rekha."],
 };
 

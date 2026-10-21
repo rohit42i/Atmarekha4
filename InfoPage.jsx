@@ -1,4 +1,5 @@
 import FeedbackForm from './FeedbackForm.jsx';
+import PrivacyPolicySections from './PrivacyPolicySections.jsx';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
@@ -34,7 +35,7 @@ const PAGES = {
     ],
   },
   terms: {
-    eyebrow: 'TERMS', title: 'Terms of use',
+    eyebrow: 'LEGAL', title: 'Terms & Privacy',
     sections: [
       { heading: 'Using the site', body: 'Atma Rekha is for reading manga and using its reader and community features. Please use the site lawfully and respectfully. Do not harass others, post illegal or harmful material, impersonate people, share private information, spam, or interfere with the site. We may hide content or restrict accounts when needed to protect readers or the service.' },
       { heading: 'Stories and artwork', body: 'The story, characters, writing, branding and creative material made for Atma Rekha are provided for reading here. You may share links to the site, but do not copy, repost, sell or reuse the pages and materials without permission.' },
@@ -59,14 +60,24 @@ export default function InfoPage({ type, onBack }) {
     </header>
     <section className="info-card info-hero">
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'A few simple rules for using the site.' : 'Let us know if something needs our attention.'}</p>
+      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'The terms of use and privacy policy for Atma Rekha.' : 'Let us know if something needs our attention.'}</p>
     </section>
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
       <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
       <div className="about-story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-    </section> : <section className="info-card info-content-card">
-      <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
-      {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
-    </section>}
+    </section> : <>
+      <section className="info-card info-content-card">
+        <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
+        {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
+      </section>
+      {type === 'terms' && <section className="info-card info-content-card terms-privacy-policy" aria-labelledby="terms-privacy-policy-title">
+        <header className="privacy-section-heading">
+          <p className="section-eyebrow">PRIVACY</p>
+          <h2 id="terms-privacy-policy-title">Privacy policy</h2>
+          <p className="privacy-version">Last updated: 20 October 2026</p>
+        </header>
+        <PrivacyPolicySections />
+      </section>}
+    </>}
   </main>;
 }

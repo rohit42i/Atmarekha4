@@ -315,3 +315,27 @@ html[data-theme="light"] .atma-loader-overlay[data-variant="refresh"] .node{
   .group-bubble,.group-message-bubble{font-size:12.5px!important;padding:8px 10px!important}
   .group-meta{font-size:9px!important}
 }
+
+
+/* Authentication feedback: errors remain unmistakably red in both themes. */
+html[data-theme="light"] .auth-panel .auth-panel-error,
+html[data-theme="light"] .auth-panel .form-field-error { color:#dc2626!important; }
+html[data-theme="dark"] .auth-panel .auth-panel-error,
+html[data-theme="dark"] .auth-panel .form-field-error { color:#f87171!important; }
+.auth-panel .auth-terms-link { text-decoration:underline!important;text-underline-offset:3px;text-decoration-thickness:1px; }
+.auth-panel .auth-terms-link:hover { text-decoration-thickness:2px; }
+.auth-panel .auth-terms-link:focus-visible { outline:2px solid currentColor;outline-offset:3px;border-radius:2px; }
+.auth-panel .password-strength-bars span { transition:background-color .18s ease; }
+.auth-panel .password-strength-bars span.on.weak { background:#ef4444!important; }
+.auth-panel .password-strength-bars span.on.medium { background:#f59e0b!important; }
+.auth-panel .password-strength-bars span.on.strong { background:#84cc16!important; }
+.auth-panel .password-strength-bars span.on.very-strong { background:#22c55e!important; }
+.auth-panel .password-strength-label.weak { color:#dc2626!important; }
+.auth-panel .password-strength-label.medium { color:#b45309!important; }
+.auth-panel .password-strength-label.strong { color:#65a30d!important; }
+.auth-panel .password-strength-label.very-strong { color:#15803d!important; }
+html[data-theme="dark"] .auth-panel .password-strength-label.weak { color:#f87171!important; }
+html[data-theme="dark"] .auth-panel .password-strength-label.medium { color:#fbbf24!important; }
+html[data-theme="dark"] .auth-panel .password-strength-label.strong { color:#a3e635!important; }
+html[data-theme="dark"] .auth-panel .password-strength-label.very-strong { color:#4ade80!important; }
+@media (prefers-reduced-motion:reduce) { .auth-panel .password-strength-bars span { transition:none; } }
