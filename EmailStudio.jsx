@@ -200,7 +200,7 @@ export default function EmailStudio() {
     }
     const count = targetCount();
     if (!count) {
-      setNotice(draft.category === 'marketing' ? 'There are no eligible recipients after marketing opt-outs are applied.' : 'There are no eligible recipients in this audience.');
+      setNotice(effectiveCategory === 'marketing' ? 'There are no eligible recipients after marketing opt-outs are applied.' : 'There are no eligible recipients in this audience.');
       return;
     }
     const audienceLabel = audience === 'selected' ? 'selected reader(s)' : ({
@@ -221,7 +221,7 @@ export default function EmailStudio() {
         subject: draft.subject,
         html_body: isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body,
         text_body: draft.text_body,
-        category: draft.category,
+        category: effectiveCategory
         audience: { type: audience, userIds: selectedUsers },
         variables: isChapterTemplate ? chapter : {}
       });
@@ -285,7 +285,7 @@ export default function EmailStudio() {
         </div>
         <div style={{ maxHeight: 300, overflow: 'auto', border: '1px solid var(--border-color)', borderRadius: 10 }}>
           {loadingRecipients ? <p className="muted" style={{ padding: 12 }}>Loading confirmed accounts…</p> : filteredUsers.map(user => {
-            const optedOut = draft.category === 'marketing' && user.marketing_opted_out;
+            const optedOut = effectiveCategory === 'marketing' && user.marketing_opted_out;
             return <label key={user.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', borderBottom: '1px solid var(--border-soft-color)', opacity: optedOut ? 0.55 : 1 }}>
               <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={event => setSelectedUsers(old => event.target.checked ? [...new Set([...old, user.id])] : old.filter(id => id !== user.id))} />
               <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{user.display_name || user.username || 'Reader'} <small className="muted">{user.username ? '@' + user.username + ' · ' : ''}{user.email}{optedOut ? ' · opted out' : ''}</small></span>
