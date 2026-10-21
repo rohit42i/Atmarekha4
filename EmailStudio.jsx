@@ -49,7 +49,7 @@ export default function EmailStudio() {
       if (data.error) throw data.error;
       if (!data.data?.ok && !Number.isFinite(data.data?.total)) throw new Error(data.data?.error || 'Contact sync failed.');
       const result = data.data;
-      setNotice('Resend sync finished: ' + result.total + ' confirmed accounts, ' + result.added + ' added, ' + result.updated + ' updated, ' + result.unsubscribed + ' kept unsubscribed, ' + result.eligibleForMarketing + ' eligible for marketing, ' + result.failed + ' failed.');
+      setNotice('Resend sync finished: ' + result.total + ' confirmed accounts, ' + result.added + ' added, ' + result.updated + ' updated, ' + result.unsubscribed + ' kept unsubscribed, ' + result.eligibleForMarketing + ' eligible for Atma Rekha updates, ' + result.failed + ' failed.');
     } catch (error) {
       setNotice(error?.message || 'Could not sync contacts to Resend.');
     } finally {
