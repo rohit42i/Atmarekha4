@@ -87,7 +87,7 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
       if (consentError) throw consentError;
       for (const row of consentRows || []) {
         if (!row.withdrawn_at && Array.isArray(row.purposes) &&
-            (row.purposes.includes("atma_rekha_updates") || row.purposes.includes("chapter_announcements"))) {
+            (row.purposes.includes("atma_rekha_updates") || row.purposes.includes("chapter_announcements") || row.purposes.includes("marketing_email"))) {
           marketingConsentUsers.add(row.user_id);
         }
       }
