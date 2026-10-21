@@ -122,7 +122,7 @@ export default function EmailStudio() {
         action: 'save-template',
         slug: draft.slug,
         name: draft.name,
-        category: draft.category,
+        category: effectiveCategory,
         subject: draft.subject,
         html_body: isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body,
         text_body: draft.text_body
@@ -142,6 +142,7 @@ export default function EmailStudio() {
   };
 
   const isChapterTemplate = draft.slug === 'new-chapter';
+  const effectiveCategory = isChapterTemplate ? 'marketing' : draft.category;
   const previewVars = {
     name: 'Reader',
     email: 'reader@example.com',
@@ -166,10 +167,10 @@ export default function EmailStudio() {
 
   const targetCount = () => {
     if (audience === 'selected') {
-      return users.filter(user => selectedUsers.includes(user.id) && (draft.category !== 'marketing' || (user.marketing_consented && !user.marketing_opted_out))).length;
+      return users.filter(user => selectedUsers.includes(user.id) && (effectiveCategory !== 'marketing' || (user.marketing_consented && !user.marketing_opted_out))).length;
     }
     const key = audience === 'all' ? 'all' : audience;
-    return Number(audienceCounts[key + (draft.category === 'marketing' ? 'Marketing' : '')] || 0);
+    return Number(audienceCounts[key + (effectiveCategory === 'marketing' ? 'Marketing' : '')] || 0);
   };
 
   const send = async () => {
@@ -244,7 +245,7 @@ export default function EmailStudio() {
         <label>Saved template<select value={selectedTemplate} onChange={event => chooseTemplate(event.target.value)}><option value="">Custom draft</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name} · {t.category}</option>)}</select></label>
         <label>Template name<input value={draft.name} onChange={event => setField('name', event.target.value)} placeholder="Template name" maxLength={100} /></label>
         <label>Template slug<input value={draft.slug} onChange={event => setField('slug', event.target.value)} placeholder="e.g. new-chapter" maxLength={80} /></label>
-        <label>Email type<select value={draft.category} onChange={event => setField('category', event.target.value)}><option value="transactional">Transactional</option><option value="marketing">Marketing (opt-outs respected)</option></select></label>
+        <label>Email type<select value={effectiveCategory} disabled={isChapterTemplate} onChange={event => setField('category', event.target.value)}><option value="transactional">Transactional</option><option value="marketing">Marketing (opt-outs respected)</option></select>{isChapterTemplate && <small>Chapter announcements always require explicit email opt-in and include unsubscribe.</small>}</label>
       </div>
       <label style={{ display: 'block', marginTop: 12 }}>Subject<input value={draft.subject} onChange={event => setField('subject', event.target.value)} maxLength={200} placeholder="Email subject" /></label>
       {(!isChapterTemplate || advancedHtml) && <label style={{ display: 'block', marginTop: 12 }}>HTML email body<textarea value={draft.html_body} onChange={event => setField('html_body', event.target.value)} rows={9} placeholder="Edit the email HTML. Use the supported variables below." style={{ width: '100%', fontFamily: 'monospace' }} /></label>}
@@ -293,7 +294,7 @@ export default function EmailStudio() {
           {!loadingRecipients && !filteredUsers.length && <p className="muted" style={{ padding: 12 }}>{users.length ? 'No readers match your search.' : 'No eligible reader list is available. Refresh after the Email Studio function update is deployed.'}</p>}
         </div>
       </>}
-      {audience !== 'selected' && <p className="muted" style={{ marginTop: 10 }}>Eligible recipients: <strong>{targetCount().toLocaleString('en-IN')}</strong>{draft.category === 'marketing' ? ' after excluding marketing opt-outs' : ''}.</p>}
+      {audience !== 'selected' && <p className="muted" style={{ marginTop: 10 }}>Eligible recipients: <strong>{targetCount().toLocaleString('en-IN')}</strong>{effectiveCategory === 'marketing' ? ' after excluding marketing opt-outs and readers without consent' : ''}.</p>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
         <button type="button" className="admin-submit" disabled={busy || loadingRecipients || targetCount() < 1} onClick={send}>{busy ? 'Sending…' : 'Send email via Resend'}</button>
       </div>

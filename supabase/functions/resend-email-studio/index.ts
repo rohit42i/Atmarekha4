@@ -244,8 +244,11 @@ Deno.serve(async req => {
     }
 
     const templateSlug = String(template?.slug || input.templateSlug || "");
-    const category = input.category === "marketing" || input.category === "transactional"
+    const requestedCategory = input.category === "marketing" || input.category === "transactional"
       ? input.category : template?.category || "transactional";
+    // New chapter announcements are always marketing email: never allow a client
+    // or misconfigured template to bypass explicit consent and unsubscribe checks.
+    const category = templateSlug === "new-chapter" ? "marketing" : requestedCategory;
     // Chapter-release emails always use the short brand-only subject.
     const subjectSource = templateSlug === "new-chapter" ? "ATMA REKHA" : cleanText(input.subject || template?.subject, 200);
     const htmlSource = String(input.html_body || template?.html_body || "").slice(0, 50000);

@@ -143,6 +143,14 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const emailStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
+const emailStudioFunctionRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
+if (!emailStudioRegression.includes("const effectiveCategory = isChapterTemplate ? 'marketing' : draft.category;") ||
+    !emailStudioFunctionRegression.includes('const category = templateSlug === "new-chapter" ? "marketing" : requestedCategory;') ||
+    !emailStudioFunctionRegression.includes('marketing_opted_out')) {
+  console.error('CHECK FAILED: Chapter announcement emails must always require marketing consent and respect opt-outs.');
+  failed = true;
+}
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
 if (appReaderAppearanceRegression.includes('atma-reader-preferences-v1') ||
     appReaderAppearanceRegression.includes('atma:reader-preferences-change') ||

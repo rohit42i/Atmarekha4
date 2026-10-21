@@ -1,6 +1,6 @@
 # Notification and delivery setup
 
-The production Supabase project was checked on 21 October 2026: the notification-preference migrations and the related Edge Functions are present and active. Recheck deployment status after future changes; a successful website build alone does not deploy Supabase migrations or Edge Functions.
+The production Supabase project was checked on 21 October 2026: the notification-preference migrations and related Edge Functions are present and active. New chapter announcements are forced through the marketing-consent path in both the UI and server function, so a template/category mismatch cannot bypass consent.
 
 ## 1. Apply database migrations
 
