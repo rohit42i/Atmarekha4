@@ -124,6 +124,7 @@ async function loadRecipientDirectory(db: any) {
   const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
   const optedOut = new Set((preferences || []).filter((item: any) => item.marketing_unsubscribed).map((item: any) => item.user_id));
   const marketingConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && item.purposes.includes("marketing_email")).map((item: any) => item.user_id));
+  const updatesConsented = new Set((consentRows || []).filter((item: any) => !item.withdrawn_at && Array.isArray(item.purposes) && (item.purposes.includes("atma_rekha_updates") || item.purposes.includes("chapter_announcements"))).map((item: any) => item.user_id));
   const now = Date.now();
   const activeMemberIds = new Set((subscriptions || [])
     .filter((item: any) => !item.current_period_end || new Date(item.current_period_end).getTime() >= now)
@@ -139,7 +140,8 @@ async function loadRecipientDirectory(db: any) {
       created_at: account.created_at,
       membership_active: activeMemberIds.has(account.id),
       marketing_opted_out: optedOut.has(account.id),
-      marketing_consented: marketingConsented.has(account.id)
+      marketing_consented: marketingConsented.has(account.id),
+      updates_consented: updatesConsented.has(account.id)
     };
   });
   const cutoff = now - 30 * 86400000;
@@ -153,6 +155,7 @@ async function loadRecipientDirectory(db: any) {
   for (const [name, members] of Object.entries(audiences)) {
     counts[name] = members.length;
     counts[name + "Marketing"] = members.filter((user: any) => user.marketing_consented && !user.marketing_opted_out).length;
+    counts[name + "Updates"] = members.filter((user: any) => user.updates_consented && !user.marketing_opted_out).length;
   }
   return { users, counts };
 }
@@ -244,11 +247,11 @@ Deno.serve(async req => {
     }
 
     const templateSlug = String(template?.slug || input.templateSlug || "");
-    const requestedCategory = input.category === "marketing" || input.category === "transactional"
+    const requestedCategory = input.category === "marketing" || input.category === "transactional" || input.category === "updates"
       ? input.category : template?.category || "transactional";
     // New chapter announcements are always marketing email: never allow a client
     // or misconfigured template to bypass explicit consent and unsubscribe checks.
-    const category = templateSlug === "new-chapter" ? "marketing" : requestedCategory;
+    const category = templateSlug === "new-chapter" ? "updates" : requestedCategory;
     // Chapter-release emails always use the short brand-only subject.
     const subjectSource = templateSlug === "new-chapter" ? "ATMA REKHA" : cleanText(input.subject || template?.subject, 200);
     const htmlSource = String(input.html_body || template?.html_body || "").slice(0, 50000);
@@ -304,10 +307,12 @@ Deno.serve(async req => {
     if (!candidates.length) return respond({ ok: false, error: "No eligible confirmed email accounts were found." }, 422);
 
     let skippedOptOuts = category === "marketing"
-      ? candidates.filter((recipient: any) => !recipient.marketing_consented || recipient.marketing_opted_out).length : 0;
+      ? candidates.filter((recipient: any) => !recipient.marketing_consented || recipient.marketing_opted_out).length
+      : category === "updates" ? candidates.filter((recipient: any) => !recipient.updates_consented || recipient.marketing_opted_out).length : 0;
     const recipients = category === "marketing"
-      ? candidates.filter((recipient: any) => recipient.marketing_consented && !recipient.marketing_opted_out) : candidates;
-    if (!recipients.length) return respond({ ok: false, error: category === "marketing" ? "No recipients have explicit marketing email consent, or all opted-in readers have unsubscribed." : "No eligible recipients were found." }, 422);
+      ? candidates.filter((recipient: any) => recipient.marketing_consented && !recipient.marketing_opted_out)
+      : category === "updates" ? candidates.filter((recipient: any) => recipient.updates_consented && !recipient.marketing_opted_out) : candidates;
+    if (!recipients.length) return respond({ ok: false, error: category === "marketing" ? "No recipients have marketing consent, or all have opted out." : category === "updates" ? "No readers have Atma Rekha updates enabled, or all have unsubscribed." : "No eligible recipients were found." }, 422);
     if (!resendKey) return respond({ ok: false, error: "Resend sending is not configured. Add RESEND_API_KEY to Supabase Edge Function secrets." }, 503);
 
     const selectedIds = recipients.map((recipient: any) => recipient.id);
@@ -337,11 +342,11 @@ Deno.serve(async req => {
           if (!email) return { ok: false, error: "Missing email" };
 
           let unsubscribeUrl = "";
-          if (category === "marketing") {
+          if (category === "marketing" || category === "updates") {
             let { data: preference, error: preferenceError } = await db.from("email_marketing_preferences")
               .select("unsubscribe_token,marketing_unsubscribed").eq("user_id", id).maybeSingle();
             if (preferenceError) throw preferenceError;
-            if (preference?.marketing_unsubscribed) return { ok: false, skipped: true, error: "Marketing opt-out" };
+            if (preference?.marketing_unsubscribed) return { ok: false, skipped: true, error: category === "updates" ? "Atma Rekha updates unsubscribed" : "Marketing opt-out" };
             if (!preference) {
               const inserted = await db.from("email_marketing_preferences")
                 .insert({ user_id: id }).select("unsubscribe_token,marketing_unsubscribed").single();
@@ -352,7 +357,7 @@ Deno.serve(async req => {
                 preference = retry.data;
               } else preference = inserted.data;
             }
-            if (preference?.marketing_unsubscribed) return { ok: false, skipped: true, error: "Marketing opt-out" };
+            if (preference?.marketing_unsubscribed) return { ok: false, skipped: true, error: category === "updates" ? "Atma Rekha updates unsubscribed" : "Marketing opt-out" };
             unsubscribeUrl = url.replace(/\/$/, "") + "/functions/v1/email-unsubscribe?token=" + preference.unsubscribe_token;
           }
 
@@ -378,11 +383,11 @@ Deno.serve(async req => {
           const subject = render(subjectSource, plainVars).replace(/[\r\n]+/g, " ").slice(0, 200);
           const htmlBody = htmlSource ? render(htmlSource, htmlVars).replace(/<p\b[^>]*>\s*<\/p>/gi, "") : undefined;
           const plainBody = textSource ? render(textSource, plainVars) : "";
-          const bodyWithFooter = category === "marketing"
+          const bodyWithFooter = category === "marketing" || category === "updates"
             ? (htmlBody || "") + '<p style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#777">Creator updates from Atma Rekha · <a href="' + escapeHtml(unsubscribeUrl) + '" style="color:#555;text-decoration:underline">Unsubscribe</a></p>'
             : (htmlBody || "");
           const htmlWithFooter = bodyWithFooter ? emailLayout(bodyWithFooter, subject) : undefined;
-          const text = plainBody + (category === "marketing" ? "\n\nUnsubscribe: " + unsubscribeUrl : "");
+          const text = plainBody + (category === "marketing" || category === "updates" ? "\n\nUnsubscribe from Atma Rekha emails: " + unsubscribeUrl : "");
           const message = {
             from: sender,
             reply_to: ["atmarekhasupport@gmail.com"],
