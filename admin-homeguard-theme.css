@@ -403,3 +403,51 @@ main.admin-page.ar-admin-v3 option { background:#071225;color:#f1f5f9; }
     width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px;
   }
 }
+
+
+/* Final precedence layer: normalize legacy per-tab button rules, including !important declarations. */
+main.admin-page.ar-admin-v3 .ar-admin-content button:not(.ar-admin-icon-button):not(.ar-admin-menu-button):not(.ar-admin-theme-toggle):not(.ar-admin-refresh):not(.ar-admin-profile):not(.ar-admin-command-trigger):not(.ar-ref-pulse-card):not(.ar-ref-result):not(.studio-page-grid-item),
+main.admin-page.ar-admin-v3 .admin-studio-modal button:not(.admin-studio-modal-close),
+main.admin-page.ar-admin-v3 .ar-admin-topbar button:not(.ar-admin-icon-button):not(.ar-admin-menu-button):not(.ar-admin-theme-toggle):not(.ar-admin-refresh):not(.ar-admin-profile):not(.ar-admin-command-trigger) {
+  min-height:34px!important;
+  height:auto!important;
+  padding:7px 11px!important;
+  border-radius:5px!important;
+  font-family:inherit!important;
+  font-size:12px!important;
+  font-weight:550!important;
+  line-height:1.25!important;
+  letter-spacing:normal!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content button:not(.ar-admin-icon-button):not(.ar-admin-menu-button):not(.ar-admin-theme-toggle):not(.ar-admin-refresh):not(.ar-admin-profile):not(.ar-admin-command-trigger):not(.ar-ref-pulse-card):not(.ar-ref-result):not(.studio-page-grid-item):not(.ar-admin-primary-action):not(.ar-admin-btn-primary):not(.admin-submit):not(.admin-studio-button-primary):not(.ar-ref-export):not([type="submit"]):not(.danger-text):not(.studio-delete-action):not(.admin-studio-button-danger):not(.ar-admin-btn-danger):not(.danger):not(.delete),
+main.admin-page.ar-admin-v3 .admin-studio-modal button:not(.admin-studio-modal-close):not(.ar-admin-primary-action):not(.ar-admin-btn-primary):not(.admin-submit):not(.admin-studio-button-primary):not([type="submit"]):not(.danger-text):not(.studio-delete-action):not(.admin-studio-button-danger):not(.ar-admin-btn-danger):not(.danger):not(.delete) {
+  background:#091528!important;
+  color:#e6edf7!important;
+  border:1px solid #344763!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content button:not(.ar-admin-icon-button):not(.ar-admin-menu-button):not(.ar-admin-theme-toggle):not(.ar-admin-refresh):not(.ar-admin-profile):not(.ar-admin-command-trigger):not(.ar-ref-pulse-card):not(.ar-ref-result):not(.studio-page-grid-item):hover,
+main.admin-page.ar-admin-v3 .admin-studio-modal button:not(.admin-studio-modal-close):hover {
+  background:#13233b!important;border-color:#4a6387!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(.admin-tabs,.ar-period-switch,.admin-view-switch,[role="tablist"]) button,
+main.admin-page.ar-admin-v3 .ar-admin-content button[role="tab"] {
+  min-height:32px!important;padding:6px 10px!important;border-radius:4px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(.admin-tabs,.ar-period-switch,.admin-view-switch,[role="tablist"]) button:is(.active,.is-active,[aria-selected="true"]),
+main.admin-page.ar-admin-v3 .ar-admin-content button[role="tab"][aria-selected="true"] {
+  background:#182842!important;border-color:#3b82f6!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(.ar-admin-primary-action,.ar-admin-btn-primary,.admin-submit,.admin-studio-button-primary,.ar-ref-export,button.primary,button[type="submit"]) {
+  background:#3b82f6!important;border-color:#3b82f6!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(.ar-admin-primary-action,.ar-admin-btn-primary,.admin-submit,.admin-studio-button-primary,.ar-ref-export,button.primary,button[type="submit"]):hover {
+  background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(.danger-text,.studio-delete-action,.admin-studio-button-danger,.ar-admin-btn-danger,button.danger,button.delete) {
+  background:#281016!important;border-color:#6e2936!important;color:#fecaca!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(.danger-text,.studio-delete-action,.admin-studio-button-danger,.ar-admin-btn-danger,button.danger,button.delete):hover {
+  background:#3a141e!important;border-color:#a33a4b!important;color:#fff!important;
+}
