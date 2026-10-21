@@ -1,6 +1,6 @@
 # Notification and delivery setup
 
-The production Supabase project was checked on 21 October 2026: the notification-preference migrations and related Edge Functions are present and active. New chapter announcements are forced through the marketing-consent path in both the UI and server function, so a template/category mismatch cannot bypass consent.
+The production Supabase project was checked on 21 October 2026: the notification-preference migrations and related Edge Functions are present and active. New chapter announcements use the Atma Rekha reader-updates category, with server-side preference and unsubscribe enforcement.
 
 ## 1. Apply database migrations
 
@@ -41,9 +41,9 @@ A successful API response means Resend accepted the send request; it does not pr
 
 ## Email updates preference
 
-In **More & Settings → Notification preferences**, **Email updates** is enabled by default for new accounts and disclosed during signup. Readers can turn it off there or use the unsubscribe link in any marketing email. The preference is based on the signup privacy-consent record, is available only after the account email is verified, and is enforced by the Resend audience/campaign flow. Turning it off withdraws this preference; the email unsubscribe link also marks the address unsubscribed. Essential account and security messages are separate. Default-on marketing email settings may not meet consent requirements in every jurisdiction; confirm applicable rules before relying on this behavior.
+In **More & Settings → Notification preferences**, **Email updates** is enabled by default for new accounts and disclosed during signup. These emails contain new chapter announcements and important Atma Rekha website updates; they are reader updates, not marketing. Readers can turn them off there or use the unsubscribe link in an update email. The preference is recorded as `atma_rekha_updates` and `chapter_announcements`, is available only after the account email is verified, and is enforced by the delivery functions. Turning it off blocks future reader-update emails. Essential account and security messages are separate.
 
-To verify: sign in with a verified test account, turn **Email updates** on, save, reload the page and confirm it remains on. Turn it off, save, reload and confirm it remains off. Check the Resend contact is subscribed only while explicit consent is active. Use a test campaign first; do not send a live campaign to all readers as a test.
+To verify: sign in with a verified test account, turn **Email updates** on, save, reload the page and confirm it remains on. Turn it off, save, reload and confirm it remains off. Check that update delivery follows the saved reader-update preference and unsubscribe status. Use a test campaign first; do not send a live campaign to all readers as a test.
 
 ## Important behavior
 
