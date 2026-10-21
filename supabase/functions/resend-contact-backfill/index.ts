@@ -149,7 +149,7 @@ Deno.serve(async (req: Request) => {
         }
       }
     }
-    return reply(req, { ok: failed === 0, total: targets.length, added, updated, unsubscribed, eligibleForMarketing: targets.filter((t: any) => t.eligible).length, failed, errors });
+    return reply(req, { ok: failed === 0, total: targets.length, added, updated, unsubscribed, eligibleForUpdates: targets.filter((t: any) => t.eligible).length, failed, errors });
   } catch (error) {
     console.error("Resend contact backfill failed.", error);
     return reply(req, { ok: false, error: "Could not sync the contact list. Please retry." }, 500);
