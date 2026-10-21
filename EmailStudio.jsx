@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
+import './email-studio-workspace.css';
 
 const SITE_URL = 'https://www.atmarekha.in';
 const initial = { id: '', slug: '', name: '', category: 'transactional', subject: '', html_body: '', text_body: '' };
@@ -35,7 +36,17 @@ export default function EmailStudio() {
 
   const invoke = async body => {
     const { data, error } = await supabase.functions.invoke('resend-email-studio', { body });
-    if (error) throw error;
+    if (error) {
+      let message = error.message || 'Email request failed.';
+      try {
+        const response = error.context;
+        if (response && typeof response.clone === 'function') {
+          const payload = await response.clone().json();
+          if (payload?.error || payload?.message) message = payload.error || payload.message;
+        }
+      } catch { /* Keep the SDK message when the response has no JSON body. */ }
+      throw new Error(message);
+    }
     if (!data?.ok) throw new Error(data?.error || 'Email operation failed.');
     return data;
   };
