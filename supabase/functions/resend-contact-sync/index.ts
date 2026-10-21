@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
       db.from("profiles").select("display_name,username").eq("id", userId).maybeSingle()
     ]);
     if (consents.error || preference.error || profile.error) return reply(req, { ok: false, error: "Could not verify email preferences." }, 503);
-    const consented = (consents.data || []).some((row: any) => !row.withdrawn_at && Array.isArray(row.purposes) && row.purposes.includes("marketing_email"));
+    const consented = (consents.data || []).some((row: any) => !row.withdrawn_at && Array.isArray(row.purposes) && (row.purposes.includes("atma_rekha_updates") || row.purposes.includes("chapter_announcements")));
     const optedOut = preference.data?.marketing_unsubscribed === true;
     // Contacts without explicit permission stay unsubscribed in Resend, including unverified accounts.
     const subscribed = Boolean(account.email_confirmed_at && consented && !optedOut);
@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
     const contactFields = {
       first_name: firstName,
       unsubscribed: !subscribed,
-      properties: { website: "Atma Rekha", marketing_email_consent: String(subscribed) }
+      properties: { website: "Atma Rekha", atma_rekha_updates_enabled: String(subscribed) }
     };
     if (lookup.ok) {
       const existing: any = await lookup.json();
