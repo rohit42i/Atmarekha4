@@ -207,7 +207,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       task(() => supabase.functions.invoke('get-admin-user-stats')),
       task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } })),
       task(() => supabase.from('chapters').select('id,chapter_number,title,description,status,release_date,cover_url,deleted_at,deleted_previous_status,created_at,language').order('chapter_number', { ascending: true, nullsFirst: false }).limit(1500)),
-      task(() => supabase.from('comments').select('id,user_id,chapter_id,announcement_id,parent_comment_id,created_at').order('created_at', { ascending: false }).limit(1000)),
+      task(() => supabase.from('comments').select('id,user_id,chapter_id,announcement_id,community_post_id,parent_comment_id,created_at').order('created_at', { ascending: false }).limit(1000)),
       task(() => supabase.from('comment_reports').select('id,reason,status,created_at,reviewed_at').order('created_at', { ascending: false }).limit(1000)),
       task(() => supabase.from('moderation_reports').select('id,source_type,reason,offense_count,status,created_at').order('created_at', { ascending: false }).limit(1000)),
       task(() => supabase.from('admin_activity_log').select('id,admin_user_id,action,entity_type,entity_id,details,created_at').order('created_at', { ascending: false }).limit(250)),
@@ -269,14 +269,19 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const data = bundle || {};
   const analytics = data.analytics || {};
   const cloud = data.cloudflare || {};
+  const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
+  const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
+  const cloudReadersAvailable = cloudAnalyticsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
   const membership = data.membership || {};
   const totals = membership.totals || {};
   const revenue = membership.revenue || {};
   const plans = Array.isArray(membership.plans) ? membership.plans : [];
   const membershipTrend = Array.isArray(membership.trend) ? membership.trend : [];
-  const currentViews = asNumber(cloud.current_views ?? analytics.current_views);
-  const previousViews = asNumber(cloud.previous_views ?? analytics.previous_views);
-  const totalViews = asNumber(cloud.total_views ?? analytics.total_views);
+  // Current reads are recorded by Cloudflare Analytics Engine. Do not substitute
+  // legacy Supabase chapter_views totals when Cloudflare analytics is unavailable.
+  const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;
+  const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : null;
+  const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : null;
   const currentLikes = asNumber(analytics.current_likes);
   const previousLikes = asNumber(analytics.previous_likes);
   const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
@@ -285,8 +290,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const previousComments = asNumber(analytics.previous_comments);
   const currentRatings = asNumber(analytics.current_ratings);
   const previousRatings = asNumber(analytics.previous_ratings);
-  const activeReaders = asNumber(cloud.active_readers ?? analytics.period_active_readers ?? analytics.active_readers);
-  const returningReaders = asNumber(cloud.returning_readers ?? analytics.period_returning_readers ?? analytics.returning_readers);
+  // The Worker explicitly flags reader-metric query failures; hide those values rather than showing a false zero.
+  const activeReaders = cloudReadersAvailable ? asNumber(cloud.active_readers) : null;
+  const returningReaders = cloudReadersAvailable ? asNumber(cloud.returning_readers) : null;
   const dailyTrendRows = Array.isArray(cloud.daily_trend) ? cloud.daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
   const previousDailyTrendRows = Array.isArray(cloud.previous_daily_trend) ? cloud.previous_daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
   const dailyViewValues = dailyTrendRows.map(row => row.views);
@@ -321,8 +327,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const cloudStat = (cloud.chapter_stats || []).find(item => String(item.id) === String(row.id));
     return {
       ...row,
-      views: NUMBER(cloudStat?.views ?? row.views),
-      period_views: NUMBER(cloudStat?.period_views ?? row.period_views),
+      views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : null,
+      period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : null,
       likes: NUMBER(cloudStat?.likes ?? row.likes),
       period_likes: NUMBER(cloudStat?.period_likes ?? row.period_likes),
       shares: NUMBER(cloudStat?.shares ?? row.shares),
@@ -352,14 +358,14 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const publishedWithoutPages = published.filter(row => Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) === 0);
   const publishedChapterIds = new Set(published.map(row => String(row.id)));
   const publishedChapterStats = chapterStats.filter(row => publishedChapterIds.has(String(row.id)));
-  const chapterViews = chapterStats.map(row => Number(row.views || 0));
-  const periodChapterViews = chapterStats.map(row => Number(row.period_views || 0));
-  const chaptersWithViews = publishedChapterStats.filter(row => Number(row.views || 0) > 0);
-  const viewlessChapters = publishedChapterStats.filter(row => Number(row.views || 0) === 0);
-  const topChapter = [...chapterStats].sort((a, b) => b.period_views - a.period_views)[0] || null;
-  const top3Views = [...chapterStats].sort((a, b) => b.period_views - a.period_views).slice(0, 3).reduce((sum, row) => sum + row.period_views, 0);
-  const maxChapterViews = chapterStats.length ? Math.max(...chapterViews) : null;
-  const minChapterViews = chapterStats.length ? Math.min(...chapterViews) : null;
+  const chapterViews = chapterStats.map(row => row.views == null ? null : Number(row.views));
+  const periodChapterViews = chapterStats.map(row => row.period_views == null ? null : Number(row.period_views));
+  const chaptersWithViews = cloudViewsAvailable ? publishedChapterStats.filter(row => Number(row.views || 0) > 0) : [];
+  const viewlessChapters = cloudViewsAvailable ? publishedChapterStats.filter(row => Number(row.views || 0) === 0) : [];
+  const topChapter = cloudViewsAvailable ? [...chapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0))[0] || null : null;
+  const top3Views = cloudViewsAvailable ? [...chapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 3).reduce((sum, row) => sum + Number(row.period_views || 0), 0) : null;
+  const maxChapterViews = cloudViewsAvailable && chapterViews.length ? Math.max(...chapterViews) : null;
+  const minChapterViews = cloudViewsAvailable && chapterViews.length ? Math.min(...chapterViews) : null;
   const averageChapterViews = average(chapterViews);
   const ratingPositive = ratingCounts.filter(row => row.rating >= 8).reduce((sum, row) => sum + row.count, 0);
   const ratingLow = ratingCounts.filter(row => row.rating <= 4).reduce((sum, row) => sum + row.count, 0);
@@ -432,12 +438,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const topRatingChapter = [...publishedChapterStats].filter(row => row.rating_count > 0).sort((a, b) => b.rating_average - a.rating_average)[0] || null;
   const ratedChapters = publishedChapterStats.filter(row => row.rating_count > 0);
   const noRatingChapters = publishedChapterStats.filter(row => row.rating_count === 0);
-  const highViewChapters = chapterStats.filter(row => row.views >= 100);
+  const highViewChapters = cloudViewsAvailable ? chapterStats.filter(row => Number(row.views || 0) >= 100) : [];
   const activeLanguages = new Set(activeChapters.map(row => String(row.language || row.mangaLanguage || '').trim()).filter(Boolean));
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
     { name: 'Admin analytics function', ok: data.analytics != null && !data.analyticsError, error: data.analyticsError },
-    { name: 'Cloudflare analytics', ok: data.cloudflare != null && !data.cloudflareError, error: data.cloudflareError },
+    { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
+    ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? 'Analytics Engine could not calculate reader counts; values are hidden instead of shown as zero.' : 'Reader counts were missing or invalid in the analytics response.' }] : []),
     { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
     { name: 'Membership analytics', ok: data.membership != null && !data.membershipError, error: data.membershipError },
     { name: 'Chapter inventory', ok: data.chapters != null && !data.chaptersError, error: data.chaptersError },
@@ -471,9 +478,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Returning readers in window', returningReaders, 'count', 'Distinct readers counted as returning by the analytics source.', 'Cloudflare / admin function'),
         m('Traffic & Reach', 'Returning reader share', ratio(returningReaders, activeReaders), 'percent', 'Returning readers divided by active readers.', 'Derived'),
         m('Traffic & Reach', 'Views per active reader', activeReaders != null && Number(activeReaders) > 0 ? currentViews / Number(activeReaders) : null, 'decimal', 'Period views divided by active readers.', 'Derived'),
-        m('Traffic & Reach', 'Published chapters with reads', chaptersWithViews.length, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
-        m('Traffic & Reach', 'Published chapters with zero reads', viewlessChapters.length, 'count', 'Published chapters represented in analytics with zero lifetime views.', 'Chapter analytics'),
-        m('Traffic & Reach', 'Median lifetime views per published chapter', median(publishedChapterStats.map(row => Number(row.views || 0))), 'decimal', 'Median lifetime views across published chapters represented in analytics.', 'Chapter analytics'),
+        m('Traffic & Reach', 'Published chapters with reads', cloudViewsAvailable ? chaptersWithViews.length : null, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
+        m('Traffic & Reach', 'Published chapters with zero reads', cloudViewsAvailable ? viewlessChapters.length : null, 'count', 'Published chapters represented in analytics with zero lifetime views.', 'Chapter analytics'),
+        m('Traffic & Reach', 'Median lifetime views per published chapter', cloudViewsAvailable ? median(publishedChapterStats.map(row => Number(row.views || 0))) : null, 'decimal', 'Median lifetime views across published chapters represented in analytics.', 'Chapter analytics'),
         m('Traffic & Reach', 'Daily trend buckets returned', cloud.daily_trend ? dailyTrendRows.length : null, 'count', 'Number of UTC calendar buckets in the selected rolling window; boundary buckets may be partial.', 'Cloudflare Analytics Engine and R2 archive'),
         m('Traffic & Reach', 'Days with at least one view', cloud.daily_trend ? activeViewDays : null, 'count', 'Selected-window date buckets with one or more chapter views.', 'Daily trend'),
         m('Traffic & Reach', 'Days with zero views', cloud.daily_trend ? dailyTrendRows.filter(row => row.views === 0).length : null, 'count', 'Selected-window date buckets with no recorded chapter views.', 'Daily trend'),
@@ -608,10 +615,10 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Content Quality', 'Active chapter records', activeChapters.length, 'count', 'Non-archived chapter rows in the loaded inventory.', 'Chapter inventory'),
         m('Content Quality', 'Published chapters without ratings', noRatingChapters.length, 'count', 'Published chapter records in analytics with no rating events.', 'Chapter analytics'),
         m('Content Quality', 'Average rating across rated chapters', average(ratedChapters.map(row => row.rating_average)), 'decimal', 'Mean of published chapter average ratings; unweighted by rating count.', 'Chapter analytics'),
-        m('Content Quality', 'Chapters with 100+ lifetime views', highViewChapters.length, 'count', 'Published chapters with at least 100 lifetime views.', 'Chapter analytics'),
-        m('Content Quality', 'Top three chapters view share', totalViews != null && Number(totalViews) > 0 ? ratio(top3Views, chapterStats.reduce((sum, row) => sum + Number(row.period_views || 0), 0)) : null, 'percent', 'Top three chapter selected-window views divided by all selected-window chapter views. Cloudflare totals may have separate counting rules.', 'Chapter analytics'),
-        m('Content Quality', 'Maximum lifetime chapter views', maxChapterViews, 'count', 'Maximum lifetime views among published chapter analytics rows.', 'Chapter analytics'),
-        m('Content Quality', 'Minimum lifetime chapter views', minChapterViews, 'count', 'Minimum lifetime views among published chapter analytics rows.', 'Chapter analytics'),
+        m('Content Quality', 'Chapters with 100+ lifetime views', cloudViewsAvailable ? highViewChapters.length : null, 'count', 'Published chapters with at least 100 lifetime views.', 'Chapter analytics'),
+        m('Content Quality', 'Top three chapters view share', cloudViewsAvailable && totalViews != null && Number(totalViews) > 0 ? ratio(top3Views, chapterStats.reduce((sum, row) => sum + Number(row.period_views || 0), 0)) : null, 'percent', 'Top three chapter selected-window views divided by all selected-window chapter views. Cloudflare totals may have separate counting rules.', 'Chapter analytics'),
+        m('Content Quality', 'Maximum lifetime chapter views', cloudViewsAvailable ? maxChapterViews : null, 'count', 'Maximum lifetime views among published chapter analytics rows.', 'Chapter analytics'),
+        m('Content Quality', 'Minimum lifetime chapter views', cloudViewsAvailable ? minChapterViews : null, 'count', 'Minimum lifetime views among published chapter analytics rows.', 'Chapter analytics'),
         m('Content Quality', 'Chapters with descriptions', activeChapters.length - missingDescription, 'count', 'Active inventory records with non-empty descriptions.', 'Chapter inventory'),
         m('Content Quality', 'Chapters with missing titles', missingTitle, 'count', 'Active inventory records without a title.', 'Chapter inventory'),
         m('Content Quality', 'Duplicate chapter-number/language keys', duplicateChapterNumbers, 'count', 'Duplicate number/language pairs inside the inventory rows returned.', 'Chapter inventory'),
@@ -646,13 +653,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Deep Analytics', 'Likes per active reader', activeReaders != null && Number(activeReaders) > 0 && currentLikes != null ? Number(currentLikes) / Number(activeReaders) : null, 'decimal', 'Selected-window likes divided by analytics-reported active readers.', 'Period likes / active readers'),
         m('Deep Analytics', 'Shares per active reader', activeReaders != null && Number(activeReaders) > 0 && currentShares != null ? Number(currentShares) / Number(activeReaders) : null, 'decimal', 'Selected-window shares divided by analytics-reported active readers.', 'Period shares / active readers'),
         m('Deep Analytics', 'Comments per active reader', activeReaders != null && Number(activeReaders) > 0 && currentComments != null ? Number(currentComments) / Number(activeReaders) : null, 'decimal', 'Selected-window comments divided by analytics-reported active readers.', 'Period comments / active readers'),
-        m('Deep Analytics', 'Top chapter share of chapter views', publishedPeriodViewTotal > 0 ? Number([...publishedChapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0))[0]?.period_views || 0) / publishedPeriodViewTotal * 100 : null, 'percent', 'Share of summed published-chapter view counts accounted for by the highest-viewed chapter. Uses chapter-level totals to keep the denominator consistent.', 'Published chapter-level analytics'),
-        m('Deep Analytics', 'Top five chapters share of chapter views', publishedPeriodViewTotal > 0 ? [...publishedChapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 5).reduce((sum, row) => sum + Number(row.period_views || 0), 0) / publishedPeriodViewTotal * 100 : null, 'percent', 'Share of summed published-chapter view counts accounted for by the top five chapters.', 'Published chapter-level analytics'),
-        m('Deep Analytics', 'Median period views per published chapter', median(publishedChapterStats.map(row => Number(row.period_views || 0))), 'decimal', 'Median selected-window chapter views across published chapter records returned by analytics.', 'Published chapter-level analytics'),
-        m('Deep Analytics', 'Mean period views per published chapter', average(publishedChapterStats.map(row => Number(row.period_views || 0))), 'decimal', 'Average selected-window chapter views across published chapter records returned by analytics.', 'Published chapter-level analytics'),
-        m('Deep Analytics', 'Period views standard deviation by chapter', standardDeviation(publishedChapterStats.map(row => Number(row.period_views || 0))), 'decimal', 'Population standard deviation of selected-window views across published chapters.', 'Published chapter-level analytics'),
-        m('Deep Analytics', 'Lifetime chapter-view range', chapterViews.length ? Math.max(...chapterViews) - Math.min(...chapterViews) : null, 'count', 'Difference between highest and lowest lifetime chapter views in the loaded analytics rows.', 'Chapter analytics'),
-        m('Deep Analytics', 'Chapters with 1,000+ lifetime views', chapterStats.filter(row => Number(row.views || 0) >= 1000).length, 'count', 'Count of returned chapter analytics rows that have at least 1,000 lifetime views.', 'Chapter analytics'),
+        m('Deep Analytics', 'Top chapter share of chapter views', cloudViewsAvailable && publishedPeriodViewTotal > 0 ? Number([...publishedChapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0))[0]?.period_views || 0) / publishedPeriodViewTotal * 100 : null, 'percent', 'Share of summed published-chapter view counts accounted for by the highest-viewed chapter. Uses chapter-level totals to keep the denominator consistent.', 'Published chapter-level analytics'),
+        m('Deep Analytics', 'Top five chapters share of chapter views', cloudViewsAvailable && publishedPeriodViewTotal > 0 ? [...publishedChapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 5).reduce((sum, row) => sum + Number(row.period_views || 0), 0) / publishedPeriodViewTotal * 100 : null, 'percent', 'Share of summed published-chapter view counts accounted for by the top five chapters.', 'Published chapter-level analytics'),
+        m('Deep Analytics', 'Median period views per published chapter', cloudViewsAvailable ? median(publishedChapterStats.map(row => Number(row.period_views || 0))) : null, 'decimal', 'Median selected-window chapter views across published chapter records returned by analytics.', 'Published chapter-level analytics'),
+        m('Deep Analytics', 'Mean period views per published chapter', cloudViewsAvailable ? average(publishedChapterStats.map(row => Number(row.period_views || 0))) : null, 'decimal', 'Average selected-window chapter views across published chapter records returned by analytics.', 'Published chapter-level analytics'),
+        m('Deep Analytics', 'Period views standard deviation by chapter', cloudViewsAvailable ? standardDeviation(publishedChapterStats.map(row => Number(row.period_views || 0))) : null, 'decimal', 'Population standard deviation of selected-window views across published chapters.', 'Published chapter-level analytics'),
+        m('Deep Analytics', 'Lifetime chapter-view range', cloudViewsAvailable && chapterViews.length ? Math.max(...chapterViews) - Math.min(...chapterViews) : null, 'count', 'Difference between highest and lowest lifetime chapter views in the loaded analytics rows.', 'Chapter analytics'),
+        m('Deep Analytics', 'Chapters with 1,000+ lifetime views', cloudViewsAvailable ? chapterStats.filter(row => Number(row.views || 0) >= 1000).length : null, 'count', 'Count of returned chapter analytics rows that have at least 1,000 lifetime views.', 'Chapter analytics'),
         m('Deep Analytics', 'Latest daily bucket vs daily mean', cloud.daily_trend && dailyMean > 0 && dailyTrendRows.length ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyMean) : null, 'percent', 'Last returned UTC daily bucket compared with the mean for all returned buckets; boundary buckets may be partial.', 'Cloudflare daily trend'),
         m('Deep Analytics', 'Peak day share of selected-window views', cloud.daily_trend && Number(currentViews) > 0 && peakDailyRow ? Number(peakDailyRow.views || 0) / Number(currentViews) * 100 : null, 'percent', 'Peak daily bucket divided by selected-window aggregate views. Daily buckets are UTC and may include partial days.', 'Cloudflare daily trend and period views'),
         m('Deep Analytics', 'First-half to second-half daily view change', cloud.daily_trend && dailyTrendRows.length >= 2 ? (() => { const split = Math.floor(dailyTrendRows.length / 2); const first = dailyTrendRows.slice(0, split).reduce((sum, row) => sum + Number(row.views || 0), 0); const second = dailyTrendRows.slice(split).reduce((sum, row) => sum + Number(row.views || 0), 0); return deltaPercent(second, first); })() : null, 'percent', 'Compares the second half of returned daily buckets with the first half; this is a within-window directional comparison, not a forecast.', 'Cloudflare daily trend'),
@@ -752,7 +759,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     { label: 'Ratings', current: currentRatings, previous: previousRatings },
   ].filter(row => row.current != null && row.previous != null);
   const comparisonMax = Math.max(1, ...comparison.flatMap(row => [NUMBER(row.current), NUMBER(row.previous)]));
-  const chapterRankings = [...chapterStats].sort((a, b) => chapterRank === 'likes' ? b.period_likes - a.period_likes : chapterRank === 'shares' ? b.period_shares - a.period_shares : chapterRank === 'rating' ? b.rating_average - a.rating_average : b.period_views - a.period_views).slice(0, 10);
+  const chapterRankings = chapterRank === 'views' && !cloudViewsAvailable ? [] : [...chapterStats].sort((a, b) => chapterRank === 'likes' ? b.period_likes - a.period_likes : chapterRank === 'shares' ? b.period_shares - a.period_shares : chapterRank === 'rating' ? b.rating_average - a.rating_average : Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 10);
   const filteredChapters = rows.filter(row => chapterStatus === 'all' || String(row.status || '').toLowerCase() === chapterStatus);
   const recentAudit = hasAuditRows ? adminLogs.slice(0, 8) : [];
   const recentNotificationLogs = hasNotificationRows ? notificationLogs.slice(0, 6) : [];
@@ -843,7 +850,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     { id: 'membership-workspace', group: 'Publishing & community', title: 'Open membership workspace', detail: 'Review plans, subscriber activity and earnings', icon: 'chart', run: () => onTab?.('Membership & Earnings') },
     { id: 'export-chapters', group: 'Data exports', title: 'Export chapter inventory CSV', detail: 'Chapter status, release, cover, language and page counts', icon: 'download', run: () => exportRows('atma-rekha-chapter-inventory.csv', ['ID', 'Chapter number', 'Title', 'Status', 'Language', 'Release date', 'Has cover', 'Page count', 'Lifetime views'], rows.map(row => [row.id, row.chapter_number ?? row.chapterNumber, row.title, row.status, row.language || row.mangaLanguage, row.release_date || row.releaseDate, Boolean(row.cover_url || row.coverUrl), pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? '', chapterStats.find(item => String(item.id) === String(row.id))?.views ?? ''])) },
     { id: 'export-content-qa', group: 'Data exports', title: 'Export content QA checklist', detail: 'Missing titles, covers, descriptions and page records', icon: 'download', run: () => exportRows('atma-rekha-content-qa.csv', ['ID', 'Chapter number', 'Title', 'Status', 'Missing fields'], rows.map(row => { const missing = [!String(row.title || '').trim() && 'Title', !String(row.cover_url || row.coverUrl || '').trim() && 'Cover', !String(row.description || '').trim() && 'Description', !(Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) > 0) && 'Pages'].filter(Boolean); return [row.id, row.chapter_number ?? row.chapterNumber, row.title, row.status, missing.join('; ')]; }).filter(row => row[4])) },
-    { id: 'export-comments', group: 'Data exports', title: 'Export loaded comment records', detail: 'Metadata only, limited to the current loaded sample', icon: 'download', run: () => exportRows('atma-rekha-comments-sample.csv', ['ID', 'User ID', 'Chapter ID', 'Announcement ID', 'Parent Comment ID', 'Created at'], rawComments.map(row => [row.id, row.user_id, row.chapter_id, row.announcement_id, row.parent_comment_id, row.created_at])) },
+    { id: 'export-comments', group: 'Data exports', title: 'Export loaded comment records', detail: 'Metadata only, limited to the current loaded sample', icon: 'download', run: () => exportRows('atma-rekha-comments-sample.csv', ['ID', 'User ID', 'Chapter ID', 'Announcement ID', 'Community Post ID', 'Parent Comment ID', 'Created at'], rawComments.map(row => [row.id, row.user_id, row.chapter_id, row.announcement_id, row.community_post_id, row.parent_comment_id, row.created_at])) },
     { id: 'export-comment-reports', group: 'Data exports', title: 'Export comment reports CSV', detail: 'Report reason, status and review timestamps', icon: 'download', run: () => exportRows('atma-rekha-comment-reports.csv', ['ID', 'Reason', 'Status', 'Created at', 'Reviewed at'], commentReportRows.map(row => [row.id, row.reason, row.status, row.created_at, row.reviewed_at])) },
     { id: 'export-notifications', group: 'Data exports', title: 'Export notification logs CSV', detail: 'Delivery counts, status and error fields', icon: 'download', run: () => exportRows('atma-rekha-notification-log.csv', ['ID', 'Title', 'Target', 'Target count', 'Sent', 'Failed', 'Removed', 'Status', 'Scheduled for', 'Sent at', 'Created at', 'Error'], notificationLogs.map(row => [row.id, row.title, row.target, row.target_count, row.sent_count, row.failed_count, row.removed_count, row.status, row.scheduled_for, row.sent_at, row.created_at, row.error])) },
     { id: 'export-audit', group: 'Data exports', title: 'Export admin audit log CSV', detail: 'Recent action records with entity references', icon: 'download', run: () => exportRows('atma-rekha-admin-audit.csv', ['ID', 'Admin user ID', 'Action', 'Entity type', 'Entity ID', 'Created at', 'Details'], adminLogs.map(row => [row.id, row.admin_user_id, row.action, row.entity_type, row.entity_id, row.created_at, JSON.stringify(row.details || {})])) },
@@ -981,7 +988,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         const count = pageCounts[row.id] ?? stat?.pages ?? row.pages_count ?? 0;
         const releaseDate = row.release_date || row.releaseDate;
         const missing = [!String(row.title || '').trim() && 'Title', !String(row.cover_url || row.coverUrl || '').trim() && 'Cover', !String(row.description || '').trim() && 'Description', !Number(count) && 'Pages'].filter(Boolean);
-        return <tr key={row.id}><td><strong>{row.title || 'Untitled'}</strong><small>Ch {row.chapter_number ?? row.chapterNumber ?? '—'} · {String(row.id || '').slice(0, 8)}</small></td><td><span className={'ar-cr-pill ' + (String(row.status).toLowerCase() === 'published' ? 'good' : String(row.status).toLowerCase() === 'scheduled' ? 'warn' : '')}>{row.status || 'Unknown'}</span></td><td>{row.language || row.mangaLanguage || '—'}</td><td>{fmtNum(count)}</td><td>{stat ? fmtNum(stat.views) : '—'}</td><td>{fmtDate(releaseDate)}</td><td>{missing.length ? <span className="ar-cr-issue">{missing.join(', ')}</span> : <span className="ar-cr-pill good">Ready</span>}</td></tr>;
+        return <tr key={row.id}><td><strong>{row.title || 'Untitled'}</strong><small>Ch {row.chapter_number ?? row.chapterNumber ?? '—'} · {String(row.id || '').slice(0, 8)}</small></td><td><span className={'ar-cr-pill ' + (String(row.status).toLowerCase() === 'published' ? 'good' : String(row.status).toLowerCase() === 'scheduled' ? 'warn' : '')}>{row.status || 'Unknown'}</span></td><td>{row.language || row.mangaLanguage || '—'}</td><td>{fmtNum(count)}</td><td>{stat?.views == null ? '—' : fmtNum(stat.views)}</td><td>{fmtDate(releaseDate)}</td><td>{missing.length ? <span className="ar-cr-issue">{missing.join(', ')}</span> : <span className="ar-cr-pill good">Ready</span>}</td></tr>;
       })}</tbody></table></div>
       {filteredChapters.length > 100 && <p className="ar-cr-table-note">Showing first 100 of {filteredChapters.length} matching records. Use Chapter Manager for complete inventory and editing.</p>}
     </Card>}
