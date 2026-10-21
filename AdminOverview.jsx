@@ -5,7 +5,7 @@ import SubscriberBadge from './SubscriberBadge.jsx';
 import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-ui.jsx';
 
 const WINDOWS = { today: 1, week: 7, month: 30, quarter: 90 };
-const WINDOW_LABELS = { today: 'Today', week: '7 Days', month: '30 Days', quarter: '90 Days' };
+const WINDOW_LABELS = { today: '24 Hours', week: '7 Days', month: '30 Days', quarter: '90 Days' };
 const formatNumber = value => value == null || value === '' || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-IN');
 const compactNumber = value => {
   if (value == null || value === '' || !Number.isFinite(Number(value))) return '—';
@@ -290,7 +290,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   const deltaLikes = pct(metrics.currentLikes, metrics.previousLikes);
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
   const deltaShares = pct(metrics.currentShares, metrics.previousShares);
-  const periodUnit = windowKey === 'today' ? 'today' : windowKey === 'week' ? '7d' : windowKey === 'month' ? '30d' : '90d';
+  const periodUnit = windowKey === 'today' ? '24h' : windowKey === 'week' ? '7d' : windowKey === 'month' ? '30d' : '90d';
   const maxTop = Math.max(...metrics.top.map(chapter => chapterSort === 'rating' ? chapter.ratingAverage : chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews), 1);
 
   const insights = useMemo(() => {
