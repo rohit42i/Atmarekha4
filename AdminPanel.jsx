@@ -30,6 +30,7 @@ import './admin-full-redesign.css';
 import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 import './admin-dashboard-theme.css';
+import './admin-homeguard-theme.css';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
