@@ -117,7 +117,7 @@ Deno.serve(async (req: Request) => {
                 first_name: target.firstName,
                 unsubscribed: !target.eligible,
                 segments: [{ id: SEGMENT_ID }],
-                properties: { website: "Atma Rekha", marketing_email_consent: String(target.eligible) }
+                properties: { website: "Atma Rekha", atma_rekha_updates_enabled: String(target.eligible) }
               })
             });
             if (!create.ok) {
