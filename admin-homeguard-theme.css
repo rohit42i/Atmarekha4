@@ -267,3 +267,139 @@ main.admin-page.ar-admin-v3 :is(button,a,[role="button"],input,select,textarea,[
     animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important;
   }
 }
+
+
+/* Global control normalization: cover legacy/native buttons used by every admin tab.
+   Specific component exceptions below retain their required interaction/layout shape. */
+main.admin-page.ar-admin-v3 button,
+main.admin-page.ar-admin-v3 [role="button"]:not(.ar-admin-nav button),
+main.admin-page.ar-admin-v3 input[type="button"],
+main.admin-page.ar-admin-v3 input[type="submit"],
+main.admin-page.ar-admin-v3 input[type="reset"] {
+  appearance:none;
+  -webkit-appearance:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:34px;
+  padding:7px 11px;
+  border:1px solid #344763;
+  border-radius:5px;
+  background:#091528;
+  color:#e6edf7;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:550;
+  line-height:1.25;
+  letter-spacing:normal;
+  text-decoration:none;
+  white-space:normal;
+  box-shadow:none;
+  cursor:pointer;
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease;
+}
+main.admin-page.ar-admin-v3 button:hover,
+main.admin-page.ar-admin-v3 [role="button"]:not(.ar-admin-nav button):hover,
+main.admin-page.ar-admin-v3 input[type="button"]:hover,
+main.admin-page.ar-admin-v3 input[type="submit"]:hover,
+main.admin-page.ar-admin-v3 input[type="reset"]:hover {
+  background:#13233b;
+  border-color:#4a6387;
+  color:#fff;
+  box-shadow:none;
+  transform:none;
+}
+main.admin-page.ar-admin-v3 button:active,
+main.admin-page.ar-admin-v3 [role="button"]:not(.ar-admin-nav button):active {
+  background:#172b48;
+  transform:none;
+}
+main.admin-page.ar-admin-v3 button:disabled,
+main.admin-page.ar-admin-v3 [role="button"][aria-disabled="true"],
+main.admin-page.ar-admin-v3 input:disabled,
+main.admin-page.ar-admin-v3 select:disabled,
+main.admin-page.ar-admin-v3 textarea:disabled {
+  opacity:.48;
+  cursor:not-allowed;
+  transform:none;
+}
+main.admin-page.ar-admin-v3 button :is(svg,i),
+main.admin-page.ar-admin-v3 [role="button"] :is(svg,i) { flex:0 0 auto; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-primary-action,.ar-admin-btn-primary,.admin-submit,.admin-studio-button-primary,.ar-ref-export,button.primary,button[type="submit"]) {
+  background:#3b82f6!important;
+  color:#fff!important;
+  border:1px solid #3b82f6!important;
+  font-weight:650!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-primary-action,.ar-admin-btn-primary,.admin-submit,.admin-studio-button-primary,.ar-ref-export,button.primary,button[type="submit"]):hover {
+  background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 :is(.danger-text,.studio-delete-action,.admin-studio-button-danger,.ar-admin-btn-danger,button.danger,button.delete) {
+  background:#281016!important;border-color:#6e2936!important;color:#fecaca!important;
+}
+main.admin-page.ar-admin-v3 :is(.danger-text,.studio-delete-action,.admin-studio-button-danger,.ar-admin-btn-danger,button.danger,button.delete):hover {
+  background:#3a141e!important;border-color:#a33a4b!important;color:#fff!important;
+}
+/* Compact square icon actions, menu triggers and profile controls. */
+main.admin-page.ar-admin-v3 :is(.ar-admin-icon-button,.ar-admin-menu-button,.ar-admin-theme-toggle,.ar-admin-refresh,.ar-admin-profile,.admin-studio-modal-close,.ar-admin-mobile-close) {
+  display:inline-flex;align-items:center;justify-content:center;gap:0;
+  width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px;
+  padding:0!important;border-radius:5px!important;
+  background:#071225!important;border:1px solid #344763!important;color:#dce7f6!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-icon-button,.ar-admin-menu-button,.ar-admin-theme-toggle,.ar-admin-refresh,.ar-admin-profile,.admin-studio-modal-close,.ar-admin-mobile-close):hover {
+  background:#12213a!important;border-color:#4a6387!important;color:#fff!important;
+}
+/* Sidebar and segmented navigation have their own compact geometry. */
+main.admin-page.ar-admin-v3 .ar-admin-nav button {
+  width:100%;min-width:0;min-height:36px;height:auto;
+  justify-content:flex-start;padding:8px 10px!important;
+  border-radius:5px!important;font-size:12px!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-tabs,.ar-period-switch,.admin-view-switch,[role="tablist"]) button,
+main.admin-page.ar-admin-v3 button[role="tab"] {
+  min-height:32px;height:auto;padding:6px 10px!important;
+  border-radius:4px!important;font-size:12px!important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu button,
+main.admin-page.ar-admin-v3 [role="menu"] button,
+main.admin-page.ar-admin-v3 button[role="menuitem"] {
+  width:100%;justify-content:flex-start;min-height:34px;padding:8px 10px!important;
+}
+/* Large interactive cards and image thumbnails are not ordinary action buttons. */
+main.admin-page.ar-admin-v3 :is(.ar-ref-pulse-card,.ar-ref-result,.studio-page-grid-item,.ar-cr-rank-list>button,.ar-admin-command-trigger) {
+  display:flex;min-height:0;height:auto;max-width:100%;
+  padding:12px!important;text-align:left;white-space:normal;
+  border-radius:6px!important;
+}
+main.admin-page.ar-admin-v3 .studio-page-grid-item {
+  display:block;padding:0!important;overflow:hidden;
+}
+main.admin-page.ar-admin-v3 .ar-admin-command-trigger {
+  width:100%;min-height:36px;justify-content:flex-start;
+  background:#030b1a!important;border-color:#30425e!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-content,.admin-studio-modal,.ar-admin-sidebar) :is(.admin-filter-check,.admin-view-switch button,.studio-two-actions button,.studio-retry) {
+  min-height:32px;border-radius:5px!important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-filter-check[aria-pressed="true"],button[aria-pressed="true"]) {
+  background:#142744!important;border-color:#3b82f6!important;color:#fff!important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-content,.admin-studio-modal) :is(button:not([class*="pulse-card"]):not([class*="page-grid-item"]):not([class*="ref-result"])) {
+  overflow-wrap:anywhere;
+}
+main.admin-page.ar-admin-v3 :is(input[type="checkbox"],input[type="radio"]) {
+  width:15px;height:15px;min-height:15px;padding:0;accent-color:#3b82f6;
+}
+main.admin-page.ar-admin-v3 select { cursor:pointer; }
+main.admin-page.ar-admin-v3 option { background:#071225;color:#f1f5f9; }
+@media (max-width:640px) {
+  main.admin-page.ar-admin-v3 button,
+  main.admin-page.ar-admin-v3 [role="button"]:not(.ar-admin-nav button) {
+    min-height:34px;max-width:100%;
+  }
+  main.admin-page.ar-admin-v3 :is(.ar-admin-icon-button,.ar-admin-menu-button,.ar-admin-theme-toggle,.ar-admin-refresh,.ar-admin-profile) {
+    width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px;
+  }
+}
