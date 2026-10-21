@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
       db.from("profiles").select("display_name,username").eq("id", userId).maybeSingle()
     ]);
     if (consents.error || preference.error || profile.error) return reply(req, { ok: false, error: "Could not verify email preferences." }, 503);
-    const consented = (consents.data || []).some((row: any) => !row.withdrawn_at && Array.isArray(row.purposes) && (row.purposes.includes("atma_rekha_updates") || row.purposes.includes("chapter_announcements")));
+    const consented = (consents.data || []).some((row: any) => !row.withdrawn_at && Array.isArray(row.purposes) && (row.purposes.includes("atma_rekha_updates") || row.purposes.includes("chapter_announcements") || row.purposes.includes("marketing_email")));
     const optedOut = preference.data?.marketing_unsubscribed === true;
     // Contacts without explicit permission stay unsubscribed in Resend, including unverified accounts.
     const subscribed = Boolean(account.email_confirmed_at && consented && !optedOut);
@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
         return reply(req, { ok: false, error: "Contact synced, but audience assignment failed." }, 502);
       }
     }
-    return reply(req, { ok: true, confirmed: Boolean(account.email_confirmed_at), marketingSubscribed: subscribed });
+    return reply(req, { ok: true, confirmed: Boolean(account.email_confirmed_at), updatesSubscribed: subscribed });
   } catch (error) {
     console.error("Resend contact sync failed.", error);
     return reply(req, { ok: false, error: "Contact sync failed. It will retry on a later sign-in." }, 500);
