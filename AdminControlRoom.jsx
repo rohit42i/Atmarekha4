@@ -145,7 +145,7 @@ function MiniBar({ label, current, previous, max }) {
 }
 
 function DailyTrendChart({ current = [], previous = [] }) {
-  if (!current.length) return <Empty>Daily trend data will appear when the updated analytics Worker is available. Totals and chapter comparisons remain available meanwhile.</Empty>;
+  if (!current.length) return <Empty>Daily trends are unavailable. View totals and comparisons stay hidden until the analytics Worker returns valid data.</Empty>;
   const max = Math.max(1, ...current.map(row => NUMBER(row.views)), ...previous.map(row => NUMBER(row.views)));
   return <div className="ar-cr-daily-trend">
     <div className="ar-cr-legend"><span><i className="is-current"/>Selected window</span><span><i/>Previous equal-length window</span><small>UTC day buckets; edges can be partial.</small></div>
