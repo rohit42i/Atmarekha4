@@ -129,6 +129,13 @@ const forbidden = [
 
 let failed = false;
 
+const signupEmailUpdatesRegression = await readFile('UserAuth.jsx', 'utf8');
+if (!signupEmailUpdatesRegression.includes("'marketing_email','chapter_announcements'") ||
+    !signupEmailUpdatesRegression.includes('Email updates are enabled by default when you create an account.') ||
+    !signupEmailUpdatesRegression.includes('More &amp; Settings → Notification preferences')) {
+  console.error('CHECK FAILED: Signup must enable email updates by default and disclose how readers can turn them off.');
+  failed = true;
+}
 const morePagePreferenceRegression = await readFile('MorePage.jsx', 'utf8');
 if (morePagePreferenceRegression.includes('Reader customization') || morePagePreferenceRegression.includes('readerSettingsOpen')) {
   console.error('CHECK FAILED: Reader customization must not appear in More & Settings.');
