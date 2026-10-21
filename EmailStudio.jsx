@@ -221,7 +221,7 @@ export default function EmailStudio() {
         subject: draft.subject,
         html_body: isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body,
         text_body: draft.text_body,
-        category: effectiveCategory
+        category: effectiveCategory,
         audience: { type: audience, userIds: selectedUsers },
         variables: isChapterTemplate ? chapter : {}
       });
