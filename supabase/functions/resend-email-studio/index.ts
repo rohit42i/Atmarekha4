@@ -213,7 +213,7 @@ Deno.serve(async req => {
       const row = {
         slug: cleanText(input.slug, 80).toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-"),
         name: cleanText(input.name, 100),
-        category: input.category === "marketing" ? "marketing" : "transactional",
+        category: input.category === "marketing" ? "marketing" : input.category === "updates" ? "updates" : "transactional",
         subject: cleanText(input.subject, 200),
         html_body: String(input.html_body || "").slice(0, 50000),
         text_body: String(input.text_body || "").slice(0, 20000),
@@ -249,8 +249,8 @@ Deno.serve(async req => {
     const templateSlug = String(template?.slug || input.templateSlug || "");
     const requestedCategory = input.category === "marketing" || input.category === "transactional" || input.category === "updates"
       ? input.category : template?.category || "transactional";
-    // New chapter announcements are always marketing email: never allow a client
-    // or misconfigured template to bypass explicit consent and unsubscribe checks.
+    // New chapter announcements are reader updates: never allow a client
+    // or misconfigured template to bypass saved preferences and unsubscribe checks.
     const category = templateSlug === "new-chapter" ? "updates" : requestedCategory;
     // Chapter-release emails always use the short brand-only subject.
     const subjectSource = templateSlug === "new-chapter" ? "ATMA REKHA" : cleanText(input.subject || template?.subject, 200);
@@ -384,7 +384,7 @@ Deno.serve(async req => {
           const htmlBody = htmlSource ? render(htmlSource, htmlVars).replace(/<p\b[^>]*>\s*<\/p>/gi, "") : undefined;
           const plainBody = textSource ? render(textSource, plainVars) : "";
           const bodyWithFooter = category === "marketing" || category === "updates"
-            ? (htmlBody || "") + '<p style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#777">Creator updates from Atma Rekha · <a href="' + escapeHtml(unsubscribeUrl) + '" style="color:#555;text-decoration:underline">Unsubscribe</a></p>'
+            ? (htmlBody || "") + '<p style="margin-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#777">Atma Rekha updates · <a href="' + escapeHtml(unsubscribeUrl) + '" style="color:#555;text-decoration:underline">Unsubscribe</a></p>'
             : (htmlBody || "");
           const htmlWithFooter = bodyWithFooter ? emailLayout(bodyWithFooter, subject) : undefined;
           const text = plainBody + (category === "marketing" || category === "updates" ? "\n\nUnsubscribe from Atma Rekha emails: " + unsubscribeUrl : "");
