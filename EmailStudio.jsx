@@ -43,7 +43,7 @@ export default function EmailStudio() {
   const syncContacts = async () => {
     if (syncingContacts) return;
     setSyncingContacts(true);
-    setNotice('Syncing confirmed reader accounts to Resend. Readers without marketing consent will remain unsubscribed.');
+    setNotice('Syncing confirmed reader accounts to Resend. Readers who have not enabled Atma Rekha updates will remain unsubscribed from update emails.');
     try {
       const data = await supabase.functions.invoke('resend-contact-backfill', { body: {} });
       if (data.error) throw data.error;
@@ -142,7 +142,7 @@ export default function EmailStudio() {
   };
 
   const isChapterTemplate = draft.slug === 'new-chapter';
-  const effectiveCategory = isChapterTemplate ? 'marketing' : draft.category;
+  const effectiveCategory = isChapterTemplate ? 'updates' : draft.category;
   const previewVars = {
     name: 'Reader',
     email: 'reader@example.com',
@@ -167,10 +167,10 @@ export default function EmailStudio() {
 
   const targetCount = () => {
     if (audience === 'selected') {
-      return users.filter(user => selectedUsers.includes(user.id) && (effectiveCategory !== 'marketing' || (user.marketing_consented && !user.marketing_opted_out))).length;
+      return users.filter(user => selectedUsers.includes(user.id) && (effectiveCategory === 'updates' ? (user.updates_consented && !user.marketing_opted_out) : effectiveCategory !== 'marketing' || (user.marketing_consented && !user.marketing_opted_out))).length;
     }
     const key = audience === 'all' ? 'all' : audience;
-    return Number(audienceCounts[key + (effectiveCategory === 'marketing' ? 'Marketing' : '')] || 0);
+    return Number(audienceCounts[key + (effectiveCategory === 'updates' ? 'Updates' : effectiveCategory === 'marketing' ? 'Marketing' : '')] || 0);
   };
 
   const send = async () => {
@@ -200,7 +200,7 @@ export default function EmailStudio() {
     }
     const count = targetCount();
     if (!count) {
-      setNotice(effectiveCategory === 'marketing' ? 'There are no eligible recipients after marketing opt-outs are applied.' : 'There are no eligible recipients in this audience.');
+      setNotice(effectiveCategory === 'updates' ? 'There are no eligible readers with Atma Rekha updates enabled.' : effectiveCategory === 'marketing' ? 'There are no eligible recipients after marketing opt-outs are applied.' : 'There are no eligible recipients in this audience.');
       return;
     }
     const audienceLabel = audience === 'selected' ? 'selected reader(s)' : ({
@@ -225,7 +225,7 @@ export default function EmailStudio() {
         audience: { type: audience, userIds: selectedUsers },
         variables: isChapterTemplate ? chapter : {}
       });
-      setNotice('Finished: ' + data.sent + ' accepted by Resend, ' + data.failed + ' failed, ' + data.total + ' eligible recipients' + (data.skippedOptOuts ? ', ' + data.skippedOptOuts + ' marketing opt-outs or missing-consent readers skipped' : '') + '. Delivery status updates when Resend webhook events arrive.');
+      setNotice('Finished: ' + data.sent + ' accepted by Resend, ' + data.failed + ' failed, ' + data.total + ' eligible recipients' + (data.skippedOptOuts ? ', ' + data.skippedOptOuts + (effectiveCategory === 'updates' ? ' readers without Atma Rekha updates enabled skipped' : ' marketing opt-outs or missing-consent readers skipped') : '') + '. Delivery status updates when Resend webhook events arrive.');
       await load();
     } catch (error) {
       setNotice(error?.message || 'Email send failed.');
@@ -245,7 +245,7 @@ export default function EmailStudio() {
         <label>Saved template<select value={selectedTemplate} onChange={event => chooseTemplate(event.target.value)}><option value="">Custom draft</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name} · {t.category}</option>)}</select></label>
         <label>Template name<input value={draft.name} onChange={event => setField('name', event.target.value)} placeholder="Template name" maxLength={100} /></label>
         <label>Template slug<input value={draft.slug} onChange={event => setField('slug', event.target.value)} placeholder="e.g. new-chapter" maxLength={80} /></label>
-        <label>Email type<select value={effectiveCategory} disabled={isChapterTemplate} onChange={event => setField('category', event.target.value)}><option value="transactional">Transactional</option><option value="marketing">Marketing (opt-outs respected)</option></select>{isChapterTemplate && <small>Chapter announcements always require explicit email opt-in and include unsubscribe.</small>}</label>
+        <label>Email type<select value={effectiveCategory} disabled={isChapterTemplate} onChange={event => setField('category', event.target.value)}><option value="transactional">Transactional / account</option><option value="updates">Atma Rekha updates (reader preference respected)</option><option value="marketing">Marketing (separate promotional email)</option></select>{isChapterTemplate && <small>Chapter announcements are Atma Rekha updates. Reader preferences and unsubscribe are enforced automatically.</small>}</label>
       </div>
       <label style={{ display: 'block', marginTop: 12 }}>Subject<input value={draft.subject} onChange={event => setField('subject', event.target.value)} maxLength={200} placeholder="Email subject" /></label>
       {(!isChapterTemplate || advancedHtml) && <label style={{ display: 'block', marginTop: 12 }}>HTML email body<textarea value={draft.html_body} onChange={event => setField('html_body', event.target.value)} rows={9} placeholder="Edit the email HTML. Use the supported variables below." style={{ width: '100%', fontFamily: 'monospace' }} /></label>}
@@ -285,7 +285,7 @@ export default function EmailStudio() {
         </div>
         <div style={{ maxHeight: 300, overflow: 'auto', border: '1px solid var(--border-color)', borderRadius: 10 }}>
           {loadingRecipients ? <p className="muted" style={{ padding: 12 }}>Loading confirmed accounts…</p> : filteredUsers.map(user => {
-            const optedOut = effectiveCategory === 'marketing' && user.marketing_opted_out;
+            const optedOut = (effectiveCategory === 'marketing' || effectiveCategory === 'updates') && user.marketing_opted_out;
             return <label key={user.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', borderBottom: '1px solid var(--border-soft-color)', opacity: optedOut ? 0.55 : 1 }}>
               <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={event => setSelectedUsers(old => event.target.checked ? [...new Set([...old, user.id])] : old.filter(id => id !== user.id))} />
               <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{user.display_name || user.username || 'Reader'} <small className="muted">{user.username ? '@' + user.username + ' · ' : ''}{user.email}{optedOut ? ' · opted out' : ''}</small></span>
@@ -294,7 +294,7 @@ export default function EmailStudio() {
           {!loadingRecipients && !filteredUsers.length && <p className="muted" style={{ padding: 12 }}>{users.length ? 'No readers match your search.' : 'No eligible reader list is available. Refresh after the Email Studio function update is deployed.'}</p>}
         </div>
       </>}
-      {audience !== 'selected' && <p className="muted" style={{ marginTop: 10 }}>Eligible recipients: <strong>{targetCount().toLocaleString('en-IN')}</strong>{effectiveCategory === 'marketing' ? ' after excluding marketing opt-outs and readers without consent' : ''}.</p>}
+      {audience !== 'selected' && <p className="muted" style={{ marginTop: 10 }}>Eligible recipients: <strong>{targetCount().toLocaleString('en-IN')}</strong>{effectiveCategory === 'updates' ? ' after excluding readers who disabled Atma Rekha updates' : effectiveCategory === 'marketing' ? ' after excluding marketing opt-outs and readers without consent' : ''}.</p>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
         <button type="button" className="admin-submit" disabled={busy || loadingRecipients || targetCount() < 1} onClick={send}>{busy ? 'Sending…' : 'Send email via Resend'}</button>
       </div>
