@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
     ]);
     const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
     const optOuts = new Set((preferences || []).filter((p: any) => p.marketing_unsubscribed).map((p: any) => p.user_id));
-    const consented = new Set((consentRows || []).filter((r: any) => !r.withdrawn_at && Array.isArray(r.purposes) && r.purposes.includes("marketing_email")).map((r: any) => r.user_id));
+    const consented = new Set((consentRows || []).filter((r: any) => !r.withdrawn_at && Array.isArray(r.purposes) && (r.purposes.includes("atma_rekha_updates") || r.purposes.includes("chapter_announcements"))).map((r: any) => r.user_id));
     const targets = confirmed.map((account: any) => {
       const profile: any = profileMap.get(account.id) || {};
       const name = String(profile.display_name || profile.username || account.user_metadata?.full_name || account.user_metadata?.name || "").trim();
@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
               body: JSON.stringify({
                 first_name: target.firstName,
                 unsubscribed: !target.eligible,
-                properties: { website: "Atma Rekha", marketing_email_consent: String(target.eligible) }
+                properties: { website: "Atma Rekha", atma_rekha_updates_enabled: String(target.eligible) }
               })
             });
             if (!update.ok) throw new Error("Contact update failed (" + update.status + ")");
