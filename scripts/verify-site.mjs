@@ -134,7 +134,9 @@ if (morePagePreferenceRegression.includes('Reader customization') || morePagePre
   console.error('CHECK FAILED: Reader customization must not appear in More & Settings.');
   failed = true;
 }
-if (!morePagePreferenceRegression.includes('prefsLoadFailed') ||
+if (!morePagePreferenceRegression.includes('Email updates') ||
+    !morePagePreferenceRegression.includes('update-chapter-email-preference') ||
+    !morePagePreferenceRegression.includes('prefsLoadFailed') ||
     !morePagePreferenceRegression.includes("authData?.user?.id !== user.id") ||
     !morePagePreferenceRegression.includes(".select('preferences')") ||
     !morePagePreferenceRegression.includes('Preferences saved. They apply to future notification alerts.')) {

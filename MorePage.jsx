@@ -206,7 +206,7 @@ export default function MorePage() {
           <div className="more-page-settings-heading"><h3>Your notifications</h3><p>Choose the alerts that matter to you. Browser permission is managed separately by your device.</p></div>
           {prefsLoading ? <p className="more-page-notice" role="status">Loading saved notification preferences…</p> : !user ? <p className="more-page-notice" role="status">{prefsNotice || 'Sign in to save your notification choices.'}</p> : prefsLoadFailed ? <p className="more-page-notice" role="alert">{prefsNotice || 'Could not load your saved choices. Refresh the page and try again.'}</p> : <>
             <label className="more-page-pref-row">
-              <span><strong>New chapter emails</strong><small>Email me when a new chapter is published. You can unsubscribe at any time.</small></span>
+              <span><strong>Email updates</strong><small>New chapter announcements and important Atma Rekha updates. You can turn these off here or unsubscribe from an email.</small></span>
               <input type="checkbox" checked={emailChapterAnnouncements} disabled={prefsSaving || prefsLoading || prefsLoadFailed || !user?.email_confirmed_at} onChange={event => setEmailChapterAnnouncements(event.target.checked)} />
             </label>
             {!user?.email_confirmed_at && <p className="more-page-notice">Verify your email address to enable chapter emails.</p>}

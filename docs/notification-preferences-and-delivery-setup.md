@@ -1,6 +1,6 @@
 # Notification and delivery setup
 
-These features are implemented in the application branch, but database migrations and Edge Functions must be deployed before they work on the live site.
+The production Supabase project was checked on 21 October 2026: the notification-preference migrations and the related Edge Functions are present and active. Recheck deployment status after future changes; a successful website build alone does not deploy Supabase migrations or Edge Functions.
 
 ## 1. Apply database migrations
 
@@ -38,6 +38,12 @@ A successful API response means Resend accepted the send request; it does not pr
 - Confirm that opted-out categories do not receive the corresponding push alert.
 - Check **Admin → Chapter Health Check → Check site links** and **Check chapter images**.
 - Test membership access for Free, ₹19 Atma-only, ₹29 Premium Supporter, and ₹49 Super Supporter.
+
+## Email updates preference
+
+In **More & Settings → Notification preferences**, the **Email updates** switch is an explicit opt-in for new chapter announcements and important Atma Rekha creator updates. It is available only after the account email is verified. The preference is saved through `update-chapter-email-preference`, recorded as consent, and used by the Resend audience/campaign flow. Turning it off withdraws this preference; the email unsubscribe link also marks the address unsubscribed. Essential account and security messages are separate.
+
+To verify: sign in with a verified test account, turn **Email updates** on, save, reload the page and confirm it remains on. Turn it off, save, reload and confirm it remains off. Check the Resend contact is subscribed only while explicit consent is active. Use a test campaign first; do not send a live campaign to all readers as a test.
 
 ## Important behavior
 
