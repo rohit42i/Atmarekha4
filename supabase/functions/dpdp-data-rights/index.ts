@@ -15,10 +15,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const ALLOWED_ORIGINS = new Set(["https://www.atmarekha.in","https://atmarekha.in","http://localhost:5173"]);
 const USER_TABLES = [
   "profiles","bookmarks","chapter_ratings","comment_likes","comments","community_members","community_post_reactions",
-  "feature_login_users","group_chat_likes","group_chat_messages","group_chat_reactions","group_chat_reads","member_messages",
-  "moderation_reports","site_feedback","notification_subscriptions","payments","pdlpl_bookmarks","pdlpl_chapter_ratings","pdlpl_comment_likes",
+  "dpdp_nominations","email_marketing_preferences","feature_login_users","group_chat_likes","group_chat_messages","group_chat_reactions","group_chat_reads","member_messages",
+  "moderation_reports","notification_preferences","site_feedback","notification_subscriptions","payments","pdlpl_bookmarks","pdlpl_chapter_ratings","pdlpl_comment_likes",
   "pdlpl_comments","pdlpl_reading_history","push_subscriptions","reading_history","subscriptions","user_moderation","user_subscriptions"
 ];
+
+// Export preference state, but never include the per-reader unsubscribe bearer token.
+const USER_TABLE_SELECT_COLUMNS: Record<string, string> = {
+  email_marketing_preferences: "user_id,marketing_unsubscribed,updated_at",
+  notification_preferences: "user_id,preferences,updated_at",
+};
 
 // Stable primary-key ordering is required for offset-based pagination.
 const USER_TABLE_ORDER_BY: Record<string, string[]> = {
@@ -26,6 +32,7 @@ const USER_TABLE_ORDER_BY: Record<string, string[]> = {
   community_members: ["user_id"], community_post_reactions: ["id"], feature_login_users: ["user_id"],
   group_chat_likes: ["message_id", "user_id"], group_chat_messages: ["id"], group_chat_reactions: ["id"],
   group_chat_reads: ["id"], member_messages: ["id"], moderation_reports: ["id"],
+  dpdp_nominations: ["user_id"], email_marketing_preferences: ["user_id"], notification_preferences: ["user_id"],
   site_feedback: ["id"], notification_subscriptions: ["id"], payments: ["id"],
   pdlpl_bookmarks: ["id"], pdlpl_chapter_ratings: ["id"], pdlpl_comment_likes: ["id"],
   pdlpl_comments: ["id"], pdlpl_reading_history: ["id"], push_subscriptions: ["id"],
@@ -209,7 +216,7 @@ Deno.serve(async req => {
         let exportComplete = false;
         while (offset <= maxExportRows) {
           const pageLimit = Math.min(pageSize, maxExportRows + 1 - offset);
-          let query = admin.from(table).select("*").eq("user_id", user.id);
+          let query = admin.from(table).select(USER_TABLE_SELECT_COLUMNS[table] || "*").eq("user_id", user.id);
           for (const column of USER_TABLE_ORDER_BY[table] || ["user_id"]) {
             query = query.order(column, { ascending: true });
           }
