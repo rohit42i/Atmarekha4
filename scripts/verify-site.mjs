@@ -163,6 +163,15 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const razorpayWebhookRetryRegression = await readFile('supabase/functions/razorpay-subscription-webhook/index.ts', 'utf8');
+if (!razorpayWebhookRetryRegression.includes("if (!record) throw new Error('Razorpay subscription record not found for webhook event.')") ||
+    !razorpayWebhookRetryRegression.includes('Razorpay subscription lookup failed:') ||
+    !razorpayWebhookRetryRegression.includes('Could not check Razorpay event idempotency:') ||
+    razorpayWebhookRetryRegression.indexOf("if (!record) throw new Error('Razorpay subscription record not found for webhook event.')") >
+      razorpayWebhookRetryRegression.indexOf("await admin.from('payment_events').insert")) {
+  console.error('CHECK FAILED: Razorpay subscription webhooks must remain retryable until the local subscription is updated.');
+  failed = true;
+}
 const adminNotificationRetryRegression = await readFile('supabase/functions/send-chapter-notification-v2/index.ts', 'utf8');
 if (!adminNotificationRetryRegression.includes("['failed','no_subscribers'].includes(String(existing.status||''))") ||
     !adminNotificationRetryRegression.includes(".in('status',['failed','no_subscribers']).eq('sent_count',0)") ||
