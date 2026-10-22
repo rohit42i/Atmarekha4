@@ -43,7 +43,7 @@ Status meanings: **PASS** = directly verified; **FIX PROPOSED** = prepared in au
 - [ ] **OPEN: Verify media uploads, fetches, and protected chapters.** R2 bucket has no explicit CORS policy; media Worker declares allowed-origin controls. Confirm real upload/fetch routes work from the website and paid/unpublished chapter content cannot be fetched without authorization before deciding whether CORS needs a policy.
 - [ ] **OPEN: Review duplicate legacy Workers.** Cloudflare still lists older `atmarekha`, `atmarekha1`, `atmarekha2`, and `atmarekha3` scripts alongside `atmarekha4`. No deletion is proposed; first inspect routes, traffic and dependencies.
 - [ ] **OPEN: Observe Worker errors/latency.** Worker Logpush is disabled on the inspected scripts. Consider enabling appropriate, privacy-aware logs or rely on bounded live smoke tests.
-- [ ] **OPEN: Review transport-hardening workflow step.** The GitHub workflow marks the HTTPS/TLS/security-header change `continue-on-error: true`; investigate whether it is succeeding and avoid silently treating failure as a hardening success.
+- [ ] **FIX PROPOSED: Cloudflare hardening workflow corrected in the audit PR.** The old request omitted the required `items` wrapper and `continue-on-error` hid the failure. The replacement sends the correct payload, verifies the live settings, and fails deployment if they do not match. Live zone values were also corrected and verified during this audit.
 - [ ] **OPEN: Check origin routing and DNS health from external network.** DNS records and Cloudflare custom-domain settings are configured, but a complete external browser/HTTP crawl could not be performed during this audit.
 
 ## GitHub / CI / code
