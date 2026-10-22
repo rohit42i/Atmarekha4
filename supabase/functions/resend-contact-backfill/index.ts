@@ -70,21 +70,21 @@ Deno.serve(async (req: Request) => {
     const accounts = await loadAllUsers(db);
     const confirmed = accounts.filter((u: any) => u.email && u.email_confirmed_at);
     const ids = confirmed.map((u: any) => u.id);
-    const [profiles, preferences, consentRows] = await Promise.all([
+    const [profiles, preferences] = await Promise.all([
       loadRows(db, "profiles", "id,display_name,username", ids, "id"),
-      loadRows(db, "email_marketing_preferences", "user_id,marketing_unsubscribed", ids),
-      loadRows(db, "dpdp_consent_records", "user_id,purposes,withdrawn_at", ids)
+      loadRows(db, "email_marketing_preferences", "user_id,marketing_unsubscribed", ids)
     ]);
     const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
-    const optOuts = new Set((preferences || []).filter((p: any) => p.marketing_unsubscribed).map((p: any) => p.user_id));
-    const consented = new Set((consentRows || []).filter((r: any) => !r.withdrawn_at && Array.isArray(r.purposes) && (r.purposes.includes("atma_rekha_updates") || r.purposes.includes("chapter_announcements") || r.purposes.includes("marketing_email"))).map((r: any) => r.user_id));
+    const optOuts = new Set((preferences || []).filter((p: any) => p.marketing_unsubscribed === true).map((p: any) => p.user_id));
     const targets = confirmed.map((account: any) => {
       const profile: any = profileMap.get(account.id) || {};
       const name = String(profile.display_name || profile.username || account.user_metadata?.full_name || account.user_metadata?.name || "").trim();
       return {
+        userId: account.id,
         email: String(account.email).trim().toLowerCase(),
         firstName: name.split(/\s+/).filter(Boolean)[0] || "Reader",
-        eligible: consented.has(account.id) && !optOuts.has(account.id)
+        locallyOptedOut: optOuts.has(account.id),
+        eligible: !optOuts.has(account.id)
       };
     });
 
