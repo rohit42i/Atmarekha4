@@ -60,8 +60,7 @@ export default function ProfileV2() {
     // may require confirmation, so a failed email update must not hide a saved profile.
     const { data, error: profileError } = await supabase
       .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
+      .upsert({ id: user.id, ...updates }, { onConflict: 'id' })
       .select()
       .single();
 
@@ -86,7 +85,27 @@ export default function ProfileV2() {
         setMessage('');
       } else {
         setEmail(nextEmail);
-        setMessage(`Profile saved. Supabase may send confirmation links to your old and new addresses. Complete the requested confirmations; your sign-in email changes only after confirmation. Then reopen Profile to verify it.`);
+        const successMessage = "Profile saved. Supabase sends confirmation links to both addresses. Complete both confirmations; your sign-in email changes only after verification.";
+        const { data: pendingRequests, error: requestLookupError } = await supabase
+          .from('email_change_requests')
+          .select('id,requested_email')
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .limit(10);
+        if (requestLookupError) {
+          setMessage(successMessage + ' The admin request history could not be checked; contact support if verification does not complete.');
+        } else if ((pendingRequests || []).some(request => String(request.requested_email || '').trim().toLowerCase() === nextEmail.toLowerCase())) {
+          setMessage(successMessage + ' The pending request is recorded for support if you need another verification email.');
+        } else {
+          const { error: requestInsertError } = await supabase.from('email_change_requests').insert({
+            user_id: user.id,
+            current_email: String(user.email || '').trim(),
+            requested_email: nextEmail,
+          });
+          setMessage(requestInsertError
+            ? successMessage + ' The admin request history could not be recorded; contact support if verification does not complete.'
+            : successMessage + ' Admin support can resend verification links if needed.');
+        }
       }
     } else {
       setMessage('Profile saved.');
