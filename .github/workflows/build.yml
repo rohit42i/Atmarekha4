@@ -77,7 +77,7 @@ jobs:
             -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings" \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
             -H "Content-Type: application/json" \
-            --data '{"items":[{"id":"always_use_https","value":"on"},{"id":"min_tls_version","value":"1.2"},{"id":"automatic_https_rewrites","value":"on"},{"id":"security_header","value":{"strict_transport_security":{"enabled":true,"max_age":15552000,"include_subdomains":false,"preload":false,"nosniff":true}}}]}'
+            --data '{"items":[{"id":"always_use_https","value":"on"},{"id":"min_tls_version","value":"1.2"},{"id":"automatic_https_rewrites","value":"on"}]}'
           settings="$(curl --fail-with-body --silent --show-error \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
             "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings")"
@@ -91,17 +91,17 @@ jobs:
                 process.exit(1);
               }
               const values = Object.fromEntries(response.result.map(item => [item.id, item.value]));
-              const hsts = values.security_header?.strict_transport_security;
-              if (values.always_use_https !== "on" || values.min_tls_version !== "1.2" ||
-                  !hsts?.enabled || hsts.include_subdomains !== false || hsts.nosniff !== true) {
-                console.error("Cloudflare transport security settings did not match the required values.");
+              if (values.always_use_https !== "on" ||
+                  values.min_tls_version !== "1.2" ||
+                  values.automatic_https_rewrites !== "on") {
+                console.error("Cloudflare HTTPS/TLS settings did not match the required values.");
                 process.exit(1);
               }
-              console.log("Cloudflare HTTPS, TLS 1.2, and HSTS settings verified.");
+              console.log("Cloudflare HTTPS redirect and minimum TLS 1.2 settings verified.");
             });
           '
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ZONE_ID: 8dbd4ce15e5916a6c1d95dbb5f1581d0
 
       - name: Ensure PDPL R2 bucket exists
