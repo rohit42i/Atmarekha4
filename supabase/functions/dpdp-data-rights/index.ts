@@ -66,7 +66,7 @@ Deno.serve(async req => {
     if (adminActions.includes(action)) {
       const { data: adminRow, error: adminError } = await admin
         .from("admins").select("role").eq("user_id", user.id).maybeSingle();
-      if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role))) {
+      if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role || "").trim().toLowerCase())) {
         return response({ error: "Admin access required." }, 403, origin);
       }
 
