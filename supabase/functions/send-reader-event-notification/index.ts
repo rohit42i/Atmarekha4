@@ -40,12 +40,22 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
     return { sent: Number(existing.sent_count || 0), failed: Number(existing.failed_count || 0), duplicate: true };
   }
   if (existing?.status === "sending") return { sent: 0, failed: 0, duplicate: true };
+  if (existing?.status === "partial" && Number(existing.sent_count || 0) > 0) {
+    return { sent: Number(existing.sent_count || 0), failed: Number(existing.failed_count || 0), duplicate: true, reason: "Partial sends are not retried automatically to avoid duplicate emails." };
+  }
 
   let dispatchId: number | string;
   if (existing?.id) {
-    const { error } = await db.from("notification_event_dispatches").update({ status: "sending", sender_user_id: actorId }).eq("id", existing.id);
-    if (error) throw error;
-    dispatchId = existing.id;
+    if (existing.status !== "failed" || Number(existing.sent_count || 0) !== 0) {
+      return { sent: Number(existing.sent_count || 0), failed: Number(existing.failed_count || 0), duplicate: true };
+    }
+    const { data: claimed, error: claimError } = await db.from("notification_event_dispatches")
+      .update({ status: "sending", sender_user_id: actorId, sent_count: 0, failed_count: 0, completed_at: null })
+      .eq("id", existing.id).eq("status", "failed").eq("sent_count", 0)
+      .select("id").maybeSingle();
+    if (claimError) throw claimError;
+    if (!claimed) return { sent: 0, failed: 0, duplicate: true };
+    dispatchId = claimed.id;
   } else {
     const { data: dispatch, error } = await db.from("notification_event_dispatches")
       .insert({ event_type: "chapter_release_email", event_id: chapter.id, sender_user_id: actorId, status: "sending" })
