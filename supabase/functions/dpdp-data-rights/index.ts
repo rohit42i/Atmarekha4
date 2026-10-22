@@ -168,21 +168,42 @@ Deno.serve(async req => {
     };
     const exportWarnings: string[] = [];
 
+    // Export in bounded pages so accounts with more than 5,000 records are not
+    // silently truncated. The extra row detects whether the hard safety cap was hit.
+    const pageSize = 1000;
+    const maxExportRows = 100000;
     for (const table of USER_TABLES) {
       try {
         if (table === "profiles") {
           const { data, error } = await admin.from(table).select("*").eq("id", user.id);
           if (error) exportWarnings.push(`profiles: ${error.message}`);
           else (output.tables as Record<string, unknown>)[table] = data || [];
-        } else {
-          const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
-          if (error) exportWarnings.push(`${table}: ${error.message}`);
-          else {
-            (output.tables as Record<string, unknown>)[table] = data || [];
-            if ((data || []).length >= 5000) {
-              exportWarnings.push(`${table}: export reached the 5,000-row safety limit; this category may be incomplete.`);
-            }
+          continue;
+        }
+
+        const exportedRows: Record<string, unknown>[] = [];
+        let offset = 0;
+        let exportComplete = false;
+        while (offset <= maxExportRows) {
+          const pageLimit = Math.min(pageSize, maxExportRows + 1 - offset);
+          const { data, error } = await admin
+            .from(table)
+            .select("*")
+            .eq("user_id", user.id)
+            .range(offset, offset + pageLimit - 1);
+          if (error) throw error;
+          const page = data || [];
+          const remainingCapacity = maxExportRows - exportedRows.length;
+          exportedRows.push(...page.slice(0, remainingCapacity));
+          if (page.length < pageLimit) {
+            exportComplete = true;
+            break;
           }
+          offset += page.length;
+        }
+        (output.tables as Record<string, unknown>)[table] = exportedRows;
+        if (!exportComplete) {
+          exportWarnings.push(`${table}: export reached the 100,000-row safety limit; this category may be incomplete.`);
         }
       } catch (error) {
         exportWarnings.push(`${table}: ${error instanceof Error ? error.message : "unknown retrieval error"}`);
