@@ -1,20 +1,22 @@
 # Chapter 2 announcement
 
-**Subject:** Atma Rekha Chapter 2 is available
+**Subject:** Chapter 2 is now out!
 
 **Plain-text body:**
 
-A new chapter of Atma Rekha is available.
+Hey, hi, hello, namaste!
 
-Chapter 2 is now ready to read.
+Chapter 2 is now out!
+
+Whenever you get some free time, give it a read and leave a review in the comments. It would be a great help to me. I hope you enjoy it!
 
 Read Atma Rekha: https://www.atmarekha.in/
 
-Thank you for reading Atma Rekha.
+Thank you,
+Arkesh
 
-Arkesh  
-Creator of Atma Rekha
+You are receiving this chapter announcement because Atma Rekha updates are enabled for your account.
 
-Unsubscribe from chapter announcements: {{unsubscribe_url}}
+Unsubscribe from Atma Rekha updates: {{unsubscribe_url}}
 
-**Note:** The previous admin send used an incorrect reading URL. This saved copy uses the verified homepage URL. Generate the unsubscribe URL per recipient at send time; never paste a live token into this file.
+**Before sending:** Verify Chapter 2 is published and generate a unique unsubscribe URL for each eligible recipient. Never paste a real token into this file.
