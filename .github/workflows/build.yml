@@ -167,6 +167,26 @@ jobs:
                 console.log("Cloudflare HTTPS redirect and minimum TLS 1.2 settings verified.");
               });
             '
+            curl --fail-with-body --silent --show-error \
+              -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings/security_header" \
+              -H "Authorization: Bearer $CLOUDFLARE_ZONE_SETTINGS_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data '{"value":{"strict_transport_security":{"enabled":false,"max_age":0,"include_subdomains":false,"preload":false,"nosniff":false}}}'
+            security_header="$(curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer $CLOUDFLARE_ZONE_SETTINGS_TOKEN" \
+              "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings/security_header")"
+            printf '%s' "$security_header" | node --input-type=module -e '
+              let input = "";
+              process.stdin.on("data", chunk => input += chunk);
+              process.stdin.on("end", () => {
+                const response = JSON.parse(input);
+                if (!response.success || response.result?.value?.strict_transport_security?.enabled !== false) {
+                  console.error("Cloudflare zone-level HSTS must stay disabled; the Worker owns the HSTS header.");
+                  process.exit(1);
+                }
+                console.log("Cloudflare zone-level HSTS is disabled; Worker HSTS header remains authoritative.");
+              });
+            '
           fi
         env:
           CLOUDFLARE_ZONE_SETTINGS_TOKEN: ${{ secrets.CLOUDFLARE_ZONE_SETTINGS_TOKEN }}
