@@ -237,6 +237,42 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: Contact sync must use the Contacts key, surface permission errors, and preflight backfill before processing users.');
   failed = true;
 }
+const emailChangeSchemaRegression = await readFile('supabase/migrations/20261022155900_admin_email_change_requests.sql', 'utf8');
+if (!emailChangeSchemaRegression.includes('Readers can view own email change requests') ||
+    !emailChangeSchemaRegression.includes('Readers can submit own email change requests') ||
+    !emailChangeSchemaRegression.includes('email_change_request_supersede_previous') ||
+    !emailChangeSchemaRegression.includes('Admins can view email change request history') ||
+    !emailChangeSchemaRegression.includes('email_change_requests_one_pending_per_user_idx')) {
+  console.error('CHECK FAILED: email changes must have owner-scoped requests, superseded-request history and a single pending request.');
+  failed = true;
+}
+const emailChangeProfileRegression = await readFile('ProfileV2.jsx', 'utf8');
+if (!emailChangeProfileRegression.includes("from('email_change_requests').insert") ||
+    !emailChangeProfileRegression.includes("emailRedirectTo: window.location.origin") ||
+    emailChangeProfileRegression.indexOf("supabase.auth.updateUser(") > emailChangeProfileRegression.indexOf("from('email_change_requests').insert")) {
+  console.error('CHECK FAILED: email-change history must only be created after the Supabase Auth request succeeds.');
+  failed = true;
+}
+const emailChangeAdminUiRegression = await readFile('AdminPanel.jsx', 'utf8');
+const emailChangeManagementRegression = await readFile('AdminManagementTools.jsx', 'utf8');
+if (!emailChangeAdminUiRegression.includes("label: 'Email Change Requests'") ||
+    !emailChangeManagementRegression.includes("action:'email_change_requests'") ||
+    !emailChangeManagementRegression.includes("resend_email_change_confirmation") ||
+    !emailChangeManagementRegression.includes('request.events.map')) {
+  console.error('CHECK FAILED: admins must be able to review email-change requests and their delivery history.');
+  failed = true;
+}
+const emailChangeAdminDataRegression = await readFile('supabase/functions/get-admin-console-data/index.ts', 'utf8');
+const emailChangeSendRegression = await readFile('supabase/functions/send-email-to-users/index.ts', 'utf8');
+if (!emailChangeAdminDataRegression.includes('action === "email_change_requests"') ||
+    !emailChangeSendRegression.includes('action === "resend_email_change_confirmation"') ||
+    !emailChangeSendRegression.includes('validActionLink(currentLink)') ||
+    !emailChangeSendRegression.includes('validActionLink(newLink)') ||
+    !emailChangeSendRegression.includes('RESEND_FROM_EMAIL') ||
+    emailChangeSendRegression.includes('atmarekhaoffical@gmail.com')) {
+  console.error('CHECK FAILED: admin resend must validate Supabase action-link origin and use the configured no-reply sender.');
+  failed = true;
+}
 const mfaCodeRegression = await readFile('MfaGate.jsx', 'utf8');
 if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
     !mfaCodeRegression.includes("maxLength={6}") ||
