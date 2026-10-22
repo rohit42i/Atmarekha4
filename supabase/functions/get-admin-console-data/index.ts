@@ -91,8 +91,109 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users"].includes(action)) {
+    if (!["analytics", "membership", "users", "email_change_requests"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
+    }
+
+    if (action === "email_change_requests") {
+      const { data: requestRows, error: requestError } = await admin
+        .from("email_change_requests")
+        .select("id,user_id,current_email,requested_email,status,requested_at,verified_at,closed_at,last_admin_resend_at,last_admin_resend_by,resend_count")
+        .order("requested_at", { ascending: false })
+        .limit(100);
+      if (requestError) throw requestError;
+
+      const rows = requestRows || [];
+      const wantedIds = new Set(rows.map((row: any) => row.user_id).filter(Boolean));
+      const authById = await collectAuthUsers(admin, wantedIds);
+      const reconciled = await Promise.all(rows.map(async (request: any) => {
+        if (request.status !== "pending") return request;
+        if (!request.user_id) {
+          const { data: updated, error: updateError } = await admin
+            .from("email_change_requests")
+            .update({ status: "cancelled", closed_at: new Date().toISOString() })
+            .eq("id", request.id)
+            .eq("status", "pending")
+            .select("id,user_id,current_email,requested_email,status,requested_at,verified_at,closed_at,last_admin_resend_at,last_admin_resend_by,resend_count")
+            .maybeSingle();
+          if (updateError) throw updateError;
+          if (updated) {
+            const { error: eventError } = await admin.from("email_change_request_events").insert({
+              request_id: request.id, user_id: null, actor_user_id: user.id,
+              event_type: "cancelled", details: { reason: "account_unavailable" },
+            });
+            if (eventError) throw eventError;
+          }
+          return updated || request;
+        }
+
+        const authUser = authById.get(request.user_id);
+        if (!authUser) return request;
+        const currentEmail = String(authUser.email || "").trim().toLowerCase();
+        const pendingEmail = String(authUser.new_email || "").trim().toLowerCase();
+        const targetEmail = String(request.requested_email || "").trim().toLowerCase();
+        let nextStatus: string | null = null;
+        let reason = "";
+        if (!pendingEmail && currentEmail === targetEmail) {
+          nextStatus = "verified";
+          reason = "auth_email_matches_requested_address";
+        } else if (pendingEmail && pendingEmail !== targetEmail) {
+          nextStatus = "superseded";
+          reason = "a_different_email_change_is_pending";
+        } else if (!pendingEmail && currentEmail !== targetEmail) {
+          nextStatus = "cancelled";
+          reason = "auth_no_longer_has_this_pending_change";
+        }
+        if (!nextStatus) return request;
+
+        const now = new Date().toISOString();
+        const patch: Record<string, unknown> = {
+          status: nextStatus,
+          closed_at: now,
+          ...(nextStatus === "verified" ? { verified_at: now } : {}),
+        };
+        const { data: updated, error: updateError } = await admin
+          .from("email_change_requests")
+          .update(patch)
+          .eq("id", request.id)
+          .eq("status", "pending")
+          .select("id,user_id,current_email,requested_email,status,requested_at,verified_at,closed_at,last_admin_resend_at,last_admin_resend_by,resend_count")
+          .maybeSingle();
+        if (updateError) throw updateError;
+        if (updated) {
+          const { error: eventError } = await admin.from("email_change_request_events").insert({
+            request_id: request.id, user_id: request.user_id, actor_user_id: user.id,
+            event_type: nextStatus, details: { reason },
+          });
+          if (eventError) throw eventError;
+        }
+        return updated || request;
+      }));
+
+      const requestIds = reconciled.map((request: any) => request.id).filter(Boolean);
+      let eventRows: any[] = [];
+      if (requestIds.length) {
+        const { data, error } = await admin
+          .from("email_change_request_events")
+          .select("id,request_id,event_type,actor_user_id,details,created_at")
+          .in("request_id", requestIds)
+          .order("created_at", { ascending: false })
+          .limit(500);
+        if (error) throw error;
+        eventRows = data || [];
+      }
+      const eventsByRequest = new Map<string, any[]>();
+      for (const event of eventRows) {
+        const list = eventsByRequest.get(event.request_id) || [];
+        list.push(event);
+        eventsByRequest.set(event.request_id, list);
+      }
+      return json({
+        requests: reconciled.map((request: any) => ({
+          ...request,
+          events: eventsByRequest.get(request.id) || [],
+        })),
+      }, 200, origin);
     }
 
     if (action === "analytics") {
