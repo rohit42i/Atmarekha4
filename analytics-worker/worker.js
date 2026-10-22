@@ -112,18 +112,41 @@ function rows(result) {
 }
 
 async function viewRowsForPeriod(env, start, end) {
-  const result = await analyticsQuery(
-    env,
-    `SELECT blob1 AS chapter_id, SUM(_sample_interval) AS views
-     FROM ${DATASET_TABLE}
-     WHERE timestamp >= $start AND timestamp < $end
-     GROUP BY blob1`,
-    { start: start.toISOString(), end: end.toISOString() },
-  );
-  return rows(result).map(row => ({
-    chapterId: String(row.chapter_id),
-    views: Math.max(0, Number(row.views) || 0),
-  }));
+  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return [];
+  const counts = new Map();
+  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+    const day = dayKey(cursor);
+    const nextDay = addDays(cursor, 1);
+    const prefix = `${ARCHIVE_PREFIX}/events/${day}/`;
+    const isFullDay = start <= cursor && end >= nextDay;
+    let pageCursor;
+    do {
+      const page = await env.ANALYTICS_BUCKET.list({
+        prefix,
+        limit: 1000,
+        ...(pageCursor ? { cursor: pageCursor } : {}),
+      });
+      for (const object of page.objects || []) {
+        const chapterId = object.key.slice(prefix.length).split('/')[0];
+        if (!validChapterId(chapterId)) continue;
+        if (!isFullDay) {
+          const stored = await env.ANALYTICS_BUCKET.get(object.key);
+          if (!stored) continue;
+          let event;
+          try { event = await stored.json(); } catch { continue; }
+          const createdAt = new Date(event?.createdAt || 0).getTime();
+          if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
+        }
+        const key = day + ':' + chapterId;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+      pageCursor = page.truncated ? page.cursor : null;
+    } while (pageCursor);
+  }
+  return [...counts.entries()].map(([key, views]) => {
+    const separator = key.indexOf(':');
+    return { day: key.slice(0, separator), chapterId: key.slice(separator + 1), views };
+  });
 }
 
 function mergeChapterCounts(target, source) {
@@ -163,68 +186,56 @@ async function archiveCountsForPeriod(env, start, end) {
 }
 
 async function combinedPeriodCounts(env, start, end) {
-  const now = new Date();
-  const retentionStart = addDays(now, -RETENTION_DAYS);
   const result = {};
-  const archiveEnd = new Date(Math.min(end.getTime(), retentionStart.getTime()));
-  if (start < archiveEnd) {
-    Object.assign(result, await archiveCountsForPeriod(env, start, archiveEnd));
-  }
-  const analyticsStart = new Date(Math.max(start.getTime(), retentionStart.getTime()));
-  if (analyticsStart < end) {
-    mergeChapterCounts(result, await viewRowsForPeriod(env, analyticsStart, end));
+  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
+  const today = dayStart(new Date());
+  const monthCache = new Map();
+  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+    const day = dayKey(cursor);
+    const nextDay = addDays(cursor, 1);
+    const segmentStart = new Date(Math.max(start.getTime(), cursor.getTime()));
+    const segmentEnd = new Date(Math.min(end.getTime(), nextDay.getTime()));
+    let archived = null;
+    if (cursor < today) {
+      const month = monthKey(cursor);
+      if (!monthCache.has(month)) {
+        monthCache.set(month, await readJson(env, monthObjectKey(month), null));
+      }
+      archived = monthCache.get(month)?.days?.[day] || null;
+    }
+    if (archived && archived.chapters && typeof archived.chapters === 'object') {
+      mergeChapterCounts(result, Object.entries(archived.chapters).map(([chapterId, views]) => ({ chapterId, views })));
+      continue;
+    }
+    mergeChapterCounts(result, await viewRowsForPeriod(env, segmentStart, segmentEnd));
   }
   return result;
 }
 
 async function dailyTrendForPeriod(env, start, end) {
-  const now = new Date();
-  const retentionStart = addDays(now, -RETENTION_DAYS);
-  const totalsByDay = {};
-  const archiveEnd = new Date(Math.min(end.getTime(), retentionStart.getTime()));
-
-  // Older Analytics Engine events are rolled into daily R2 archive objects.
-  if (start < archiveEnd) {
-    for (const month of monthRange(start, archiveEnd)) {
-      const archived = await readJson(env, monthObjectKey(month), null);
-      const days = archived?.days || {};
-      for (const [day, record] of Object.entries(days)) {
-        const bucketStart = new Date(`${day}T00:00:00Z`);
-        if (bucketStart < start || bucketStart >= archiveEnd) continue;
-        const chapterCounts = record?.chapters || {};
-        totalsByDay[day] = Math.max(0, Number(record?.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
-      }
-    }
-  }
-
-  // Query retained Analytics Engine events in one aggregate query, not one query per day.
-  const analyticsStart = new Date(Math.max(start.getTime(), retentionStart.getTime()));
-  if (analyticsStart < end) {
-    const result = await analyticsQuery(
-      env,
-      `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS day_start,
-              SUM(_sample_interval) AS views
-       FROM ${DATASET_TABLE}
-       WHERE timestamp >= $start AND timestamp < $end
-       GROUP BY day_start
-       ORDER BY day_start`,
-      { start: analyticsStart.toISOString(), end: end.toISOString() },
-    );
-    for (const row of rows(result)) {
-      const bucket = dateKeyFromAnalytics(row.day_start);
-      if (bucket) totalsByDay[bucket] = Math.max(0, Number(row.views) || 0);
-    }
-  }
-
   const trend = [];
+  const today = dayStart(new Date());
+  const monthCache = new Map();
   for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
     const day = dayKey(cursor);
-    const bucketEnd = addDays(cursor, 1);
-    trend.push({
-      day,
-      views: Math.max(0, Number(totalsByDay[day]) || 0),
-      partial: cursor < start || bucketEnd > end,
-    });
+    const nextDay = addDays(cursor, 1);
+    const segmentStart = new Date(Math.max(start.getTime(), cursor.getTime()));
+    const segmentEnd = new Date(Math.min(end.getTime(), nextDay.getTime()));
+    let views = 0;
+    if (cursor < today) {
+      const month = monthKey(cursor);
+      if (!monthCache.has(month)) monthCache.set(month, await readJson(env, monthObjectKey(month), null));
+      const record = monthCache.get(month)?.days?.[day];
+      if (record) {
+        const chapterCounts = record.chapters || {};
+        views = Math.max(0, Number(record.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
+      } else {
+        views = (await viewRowsForPeriod(env, segmentStart, segmentEnd)).reduce((sum, row) => sum + Number(row.views || 0), 0);
+      }
+    } else {
+      views = (await viewRowsForPeriod(env, segmentStart, segmentEnd)).reduce((sum, row) => sum + Number(row.views || 0), 0);
+    }
+    trend.push({ day, views, partial: cursor < start || nextDay > end });
   }
   return trend;
 }
@@ -379,12 +390,23 @@ async function archiveMissingDays(env, today) {
     const rowsForDay = await viewRowsForPeriod(env, cursor, dayEnd);
     const month = monthKey(cursor);
     const monthObject = await readJson(env, monthObjectKey(month), { version: 1, month, days: {} });
-    const chapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.views]));
+    const day = dayKey(cursor);
+    const existingRecord = monthObject.days[day];
+    const eventChapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.views]));
+    // Preserve older archived counts when the new live-event store has no rows for
+    // a day that was already archived by the previous Analytics Engine pipeline.
+    const chapters = Object.keys(eventChapters).length || !existingRecord
+      ? eventChapters
+      : (existingRecord.chapters || {});
     const total = Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0);
-    monthObject.days[dayKey(cursor)] = { views: total, chapters };
+    monthObject.days[day] = { views: total, chapters };
     await writeJson(env, monthObjectKey(month), monthObject);
-    for (const [chapterId, count] of Object.entries(chapters)) summary.chapterViews[chapterId] = (summary.chapterViews[chapterId] || 0) + Number(count || 0);
-    summary.processedThrough = dayKey(cursor);
+    const oldChapters = existingRecord?.chapters || {};
+    for (const chapterId of new Set([...Object.keys(oldChapters), ...Object.keys(chapters)])) {
+      const delta = Number(chapters[chapterId] || 0) - Number(oldChapters[chapterId] || 0);
+      if (delta) summary.chapterViews[chapterId] = Math.max(0, Number(summary.chapterViews[chapterId] || 0) + delta);
+    }
+    summary.processedThrough = day;
     summary.updatedAt = new Date().toISOString();
     cursor = dayEnd;
   }
@@ -417,11 +439,27 @@ async function handleView(request, env) {
   const viewerKey = payload?.viewerKey;
   if (!validChapterId(chapterId) || !validViewerKey(viewerKey)) return text(request, 'Invalid chapter or viewer key.', 400);
   const viewerHash = await sha256(viewerKey);
-  env.ANALYTICS.writeDataPoint({
-    blobs: [chapterId, viewerHash],
-    doubles: [1],
-    indexes: ['atma-rekha'],
-  });
+  const createdAt = new Date();
+  const eventKey = `${ARCHIVE_PREFIX}/events/${dayKey(createdAt)}/${chapterId}/${viewerHash}.json`;
+  try {
+    // R2 is the immediate source of truth for counts; a stable object key makes
+    // retries idempotent for this browser/chapter/day and avoids counter races.
+    await env.ANALYTICS_BUCKET.put(eventKey, JSON.stringify({
+      chapterId,
+      viewerHash,
+      createdAt: createdAt.toISOString(),
+    }), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+  } catch (error) {
+    return text(request, `Unable to persist view event: ${error?.message || 'storage error'}`, 503);
+  }
+  // Analytics Engine remains a secondary analysis sink, not a dependency for counts.
+  try {
+    env.ANALYTICS?.writeDataPoint({
+      blobs: [chapterId, viewerHash],
+      doubles: [1],
+      indexes: ['atma-rekha'],
+    });
+  } catch { /* The durable R2 event already recorded the view. */ }
   return json(request, { recorded: true });
 }
 
@@ -469,8 +507,8 @@ async function handleAdminAnalytics(request, env) {
   const currentFile = await readJson(env, currentKey(), { day: currentDay, chapterViews: {} });
   const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1));
   const allTime = { ...(summary.chapterViews || {}) };
-  // Use live Analytics Engine counts for today; scheduled R2 snapshots can lag
-  // until the next cron run. Fall back to the snapshot only when live data is empty.
+  // R2 event objects update immediately; the hourly snapshot is only a fallback
+  // while a newly deployed Worker is warming up.
   const todayCounts = Object.values(liveToday).some(value => Number(value) > 0)
     ? liveToday
     : currentFile.day === currentDay ? (currentFile.chapterViews || {}) : {};
