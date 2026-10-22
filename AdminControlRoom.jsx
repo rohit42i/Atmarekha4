@@ -271,7 +271,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const cloud = data.cloudflare || {};
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
-  const fallbackViewsAvailable = ['total_views', 'current_views', 'previous_views'].every(key => asNumber(analytics[key]) != null);
+  const fallbackViewsAvailable = asNumber(analytics.total_views) != null;
   const viewCountsAvailable = cloudViewsAvailable || fallbackViewsAvailable;
   const cloudReadersAvailable = cloudAnalyticsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
   const membership = data.membership || {};
