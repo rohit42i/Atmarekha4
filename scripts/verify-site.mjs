@@ -60,7 +60,7 @@ const required = [
   ['supabase/functions/delete-account/index.ts', 'Never hard-delete an account from this endpoint'],
 
   ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","site_feedback","notification_subscriptions"'],
-  ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 5,000-row safety limit'],
+  ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 100,000-row safety limit'],
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
