@@ -170,12 +170,23 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
   }
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: headersFor(req) });
   if (req.method !== "POST") return respond(req, { ok: false, error: "Method not allowed." }, 405);
   try {
     const url = Deno.env.get("SUPABASE_URL") || "";
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const serviceKey = readSupabaseServiceRoleKey();
     const publicKey = Deno.env.get("VAPID_PUBLIC_KEY") || "";
     const privateKey = Deno.env.get("VAPID_PRIVATE_KEY") || "";
     if (!url || !serviceKey || !publicKey || !privateKey) return respond(req, { ok: false, error: "Notification service is not configured." }, 503);
