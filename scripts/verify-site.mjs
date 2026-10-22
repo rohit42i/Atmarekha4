@@ -242,6 +242,14 @@ if (analyticsReaderMetricsStart < 0 ||
   console.error('CHECK FAILED: active and returning reader counts must fall back to durable R2 events without Analytics Engine SQL.');
   failed = true;
 }
+const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');
+if (!communityShareClipboardRegression.includes('async function copyTextToClipboard(value)') ||
+    !communityShareClipboardRegression.includes("document.execCommand('copy')") ||
+    !communityShareClipboardRegression.includes('Sharing was unavailable, so the message and link were copied.') ||
+    !communityShareClipboardRegression.includes("if(e?.name==='AbortError')return;")) {
+  console.error('CHECK FAILED: community copy/share actions need a clipboard fallback and must respect native-share cancellation.');
+  failed = true;
+}
 const communityReactionAccessibilityRegression = await readFile('Community.jsx', 'utf8');
 if (!communityReactionAccessibilityRegression.includes('className="community-post-react"') ||
     !communityReactionAccessibilityRegression.includes('aria-expanded={pickerPost===post.id}') ||
@@ -381,11 +389,16 @@ if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupCh
   failed = true;
 }
 const communityShareRegression = await readFile('Community.jsx', 'utf8');
-if (!communityShareRegression.includes('const copy=async post=>') || !communityShareRegression.includes('await navigator.clipboard.writeText(post.content)') || !communityShareRegression.includes('Could not copy this message on your device.')) {
+if (!communityShareRegression.includes('const copy=async post=>') ||
+    !communityShareRegression.includes('await copyTextToClipboard(post.content)') ||
+    !communityShareRegression.includes('Could not copy this message on your device.')) {
   console.error('CHECK FAILED: Community Copy must await clipboard success and report failure accurately.');
   failed = true;
 }
-if (!communityShareRegression.includes('Message and link copied.') || !communityShareRegression.includes('if(navigator.share)')) {
+if (!communityShareRegression.includes('if(navigator.share)') ||
+    !communityShareRegression.includes('await navigator.share(') ||
+    !communityShareRegression.includes('await copyTextToClipboard(shareText)') ||
+    !communityShareRegression.includes('Sharing was unavailable, so the message and link were copied.')) {
   console.error('CHECK FAILED: Community Share must use native share or a working link-copy fallback.');
   failed = true;
 }
