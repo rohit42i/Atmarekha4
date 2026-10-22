@@ -187,6 +187,14 @@ if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
   console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
   failed = true;
 }
+const communityReactionAccessibilityRegression = await readFile('Community.jsx', 'utf8');
+if (!communityReactionAccessibilityRegression.includes('className="community-post-react"') ||
+    !communityReactionAccessibilityRegression.includes('aria-expanded={pickerPost===post.id}') ||
+    !communityReactionAccessibilityRegression.includes('Choose a reaction') ||
+    !communityReactionAccessibilityRegression.includes('event.key==="Escape"')) {
+  console.error('CHECK FAILED: community reactions need a keyboard-accessible open button and Escape-to-close behavior.');
+  failed = true;
+}
 const serviceRoleSecretCompatibilityPaths = [
   'supabase/functions/get-admin-console-data/index.ts',
   'supabase/functions/get-admin-user-stats/index.ts',
