@@ -100,14 +100,13 @@ Deno.serve(async (req: Request) => {
           if (lookup.ok) {
             const existing: any = await lookup.json();
             contactId = String(existing.id || "");
-            const update = await resend(path, resendKey, {
-              method: "PATCH",
-              body: JSON.stringify({
-                first_name: target.firstName,
-                unsubscribed: !target.eligible,
-                properties: { website: "Atma Rekha", atma_rekha_updates_enabled: String(target.eligible) }
-              })
-            });
+            if (existing?.unsubscribed === true) target.eligible = false;
+            const updateFields: Record<string, unknown> = {
+              first_name: target.firstName,
+              properties: { website: "Atma Rekha", atma_rekha_updates_enabled: String(target.eligible) }
+            };
+            if (existing?.unsubscribed !== true) updateFields.unsubscribed = !target.eligible;
+            const update = await resend(path, resendKey, { method: "PATCH", body: JSON.stringify(updateFields) });
             if (!update.ok) throw new Error("Contact update failed (" + update.status + ")");
           } else if (lookup.status === 404) {
             const create = await resend("/contacts", resendKey, {
