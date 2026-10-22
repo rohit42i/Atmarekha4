@@ -34,18 +34,14 @@ Deno.serve(async (req: Request) => {
     const raw = await req.json();
     const action = String(raw?.action || "");
     if (action === "get") {
-      const [consents, preference] = await Promise.all([
-        db.from("dpdp_consent_records").select("purposes,withdrawn_at").eq("user_id", user.id),
-        db.from("email_marketing_preferences").select("marketing_unsubscribed").eq("user_id", user.id).maybeSingle()
-      ]);
-      if (consents.error || preference.error) throw new Error("Could not load email preferences.");
-      // A reader may have opted in at signup before this dedicated preference was added.
-      // Recognize that explicit signup choice as well as the newer chapter-specific consent.
-      const hasActiveEmailConsent = (consents.data || []).some((row: { purposes: string[] | null; withdrawn_at: string | null }) =>
-        !row.withdrawn_at && Array.isArray(row.purposes) &&
-        (row.purposes.includes("chapter_announcements") || row.purposes.includes("atma_rekha_updates") || row.purposes.includes("marketing_email"))
-      );
-      return reply(req, { ok: true, enabled: hasActiveEmailConsent && preference.data?.marketing_unsubscribed !== true });
+      const { data: preference, error: preferenceError } = await db.from("email_marketing_preferences")
+        .select("marketing_unsubscribed").eq("user_id", user.id).maybeSingle();
+      if (preferenceError) throw new Error("Could not load email preferences.");
+      // Confirmed accounts receive service updates by default; an explicit unsubscribe wins.
+      return reply(req, {
+        ok: true,
+        enabled: Boolean(user.email_confirmed_at) && preference?.marketing_unsubscribed !== true
+      });
     }
     if (action !== "set" || typeof raw?.enabled !== "boolean") return reply(req, { ok: false, error: "Invalid preference request." }, 422);
     const enabled = raw.enabled;
@@ -76,7 +72,7 @@ Deno.serve(async (req: Request) => {
       const sync = await fetch((url.endsWith("/") ? url.slice(0, -1) : url) + "/functions/v1/resend-contact-sync", {
         method: "POST",
         headers: { Authorization: "Bearer " + token, apikey: anonKey, "Content-Type": "application/json" },
-        body: "{}"
+        body: JSON.stringify({ explicitPreferenceChange: true, enabled })
       });
       if (!sync.ok) console.error("Email contact preference sync deferred.", sync.status);
     }
