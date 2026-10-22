@@ -180,6 +180,26 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: Resend contact operations must not reuse the send-only email API key.');
   failed = true;
 }
+const serviceRoleSecretCompatibilityPaths = [
+  'supabase/functions/get-admin-console-data/index.ts',
+  'supabase/functions/get-admin-user-stats/index.ts',
+  'supabase/functions/dpdp-data-rights/index.ts',
+];
+for (const path of serviceRoleSecretCompatibilityPaths) {
+  const source = await readFile(path, 'utf8');
+  if (!source.includes('function readSupabaseServiceRoleKey()') ||
+      !source.includes('Deno.env.get("SUPABASE_SECRET_KEYS")') ||
+      !source.includes('Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")')) {
+    console.error('CHECK FAILED: critical functions must accept both Supabase secret-key formats: ' + path);
+    failed = true;
+  }
+}
+const contactSyncKeyRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
+if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    contactSyncKeyRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
+  console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
+  failed = true;
+}
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
 if (appReaderAppearanceRegression.includes('atma-reader-preferences-v1') ||
     appReaderAppearanceRegression.includes('atma:reader-preferences-change') ||
