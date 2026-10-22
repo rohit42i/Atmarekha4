@@ -16,6 +16,16 @@ const plainTextToHtml = value => {
   }).filter(Boolean).join('');
 };
 
+const extraVariableFields = [
+  { key: 'announcement_title', label: 'Announcement title', maxLength: 180 },
+  { key: 'announcement_body', label: 'Announcement message', maxLength: 2000, multiline: true },
+  { key: 'expiry_date', label: 'Expiry date', maxLength: 100 },
+  { key: 'amount', label: 'Payment amount', maxLength: 80 },
+  { key: 'payment_reference', label: 'Payment reference', maxLength: 160 },
+  { key: 'maintenance_message', label: 'Maintenance message', maxLength: 1500, multiline: true },
+  { key: 'support_message', label: 'Support message', maxLength: 1500, multiline: true }
+];
+
 export default function EmailStudio() {
   const [templates, setTemplates] = useState([]);
   const [users, setUsers] = useState([]);
@@ -23,6 +33,7 @@ export default function EmailStudio() {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [draft, setDraft] = useState(initial);
   const [chapter, setChapter] = useState({ chapter_number: '', chapter_title: '', chapter_description: '', chapter_url: '' });
+  const [extraVariables, setExtraVariables] = useState({});
   const [audience, setAudience] = useState('selected');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [search, setSearch] = useState('');
@@ -127,6 +138,7 @@ export default function EmailStudio() {
     const found = templates.find(t => t.id === id);
     setDraft(found ? { ...found } : initial);
     setChapter({ chapter_number: '', chapter_title: '', chapter_description: '', chapter_url: '' });
+    setExtraVariables({});
     setPreview(false);
     setAdvancedHtml(false);
     setNotice('');
@@ -183,8 +195,10 @@ export default function EmailStudio() {
     support_message: 'Your support request has been updated.',
     unsubscribe_url: SITE_URL
   };
+  const nonChapterSource = [draft.subject, draft.html_body, draft.text_body].join('\\n');
+  const visibleExtraVariables = isChapterTemplate ? [] : extraVariableFields.filter(field => nonChapterSource.includes('{{' + field.key + '}}'));
   const htmlBodyForEditor = isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body;
-  const previewHtml = renderPreview(htmlBodyForEditor, previewVars);
+  const previewHtml = renderPreview(htmlBodyForEditor, { ...previewVars, ...extraVariables });
   const previewSubject = renderPreview(draft.subject, previewVars);
 
   const targetCount = () => {
@@ -245,7 +259,7 @@ export default function EmailStudio() {
         text_body: draft.text_body,
         category: effectiveCategory,
         audience: { type: audience, userIds: selectedUsers },
-        variables: isChapterTemplate ? chapter : {}
+        variables: isChapterTemplate ? chapter : extraVariables
       });
       setNotice('Finished: ' + data.sent + ' accepted by Resend, ' + data.failed + ' failed, ' + data.total + ' eligible recipients' + (data.skippedOptOuts ? ', ' + data.skippedOptOuts + (effectiveCategory === 'updates' ? ' readers without Atma Rekha updates enabled skipped' : ' marketing opt-outs or missing-consent readers skipped') : '') + '. Delivery status updates when Resend webhook events arrive.');
       await load();
@@ -273,6 +287,18 @@ export default function EmailStudio() {
       {(!isChapterTemplate || advancedHtml) && <label style={{ display: 'block', marginTop: 12 }}>HTML email body<textarea value={draft.html_body} onChange={event => setField('html_body', event.target.value)} rows={9} placeholder="Edit the email HTML. Use the supported variables below." style={{ width: '100%', fontFamily: 'monospace' }} /></label>}
       <label style={{ display: 'block', marginTop: 12 }}>{isChapterTemplate ? 'Email message (editable text)' : 'Plain-text version'}<textarea value={draft.text_body} onChange={event => setField('text_body', event.target.value)} rows={isChapterTemplate ? 9 : 5} placeholder={isChapterTemplate ? 'Write the message in normal text. The email layout is formatted automatically.' : 'Edit the text-only version for email apps that do not show HTML.'} style={{ width: '100%' }} /></label>
       <p className="muted">Variables: <code>{'{{name}}'}</code>, <code>{'{{email}}'}</code>, <code>{'{{site_url}}'}</code>, <code>{'{{action_url}}'}</code>, <code>{'{{chapter_number}}'}</code>, <code>{'{{chapter_title}}'}</code>, <code>{'{{chapter_description}}'}</code>, <code>{'{{chapter_url}}'}</code>.</p>
+
+      {!isChapterTemplate && visibleExtraVariables.length > 0 && <section style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border-color)' }}>
+        <div className="admin-card-title"><div><span>TEMPLATE VALUES</span><h3>Personalize this message</h3><p>Fill the values used by placeholders in this template. Leave a value empty to render it as blank.</p></div></div>
+        <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
+          {visibleExtraVariables.map(field => <label key={field.key} style={{ gridColumn: field.multiline ? '1 / -1' : undefined }}>
+            {field.label}
+            {field.multiline
+              ? <textarea value={extraVariables[field.key] || ''} onChange={event => setExtraVariables(previous => ({ ...previous, [field.key]: event.target.value }))} maxLength={field.maxLength} rows={3} />
+              : <input value={extraVariables[field.key] || ''} onChange={event => setExtraVariables(previous => ({ ...previous, [field.key]: event.target.value }))} maxLength={field.maxLength} />}
+          </label>)}
+        </div>
+      </section>}
 
       {isChapterTemplate && <section style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border-color)' }}>
         <div className="admin-card-title"><div><span>NEW CHAPTER DETAILS</span><h3>What are you announcing?</h3><p>These values are inserted when you send. They do not overwrite your saved template.</p></div></div>
