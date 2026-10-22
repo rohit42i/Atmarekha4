@@ -167,6 +167,10 @@ jobs:
           throw new Error('Chapter view endpoint smoke test failed: ' + (lastError?.message || 'unknown error'));
           NODE
 
+      - name: Verify live site routes, assets, and security headers
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: node scripts/smoke-test-live-site.mjs
+
   deploy-atma-media-worker:
     name: Deploy Atma media Worker (independent hotfix path)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
