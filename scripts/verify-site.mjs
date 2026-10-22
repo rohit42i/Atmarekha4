@@ -143,6 +143,12 @@ if (!signupEmailUpdatesRegression.includes("'atma_rekha_updates','chapter_announ
   console.error('CHECK FAILED: Signup must enable email updates by default and disclose how readers can turn them off.');
   failed = true;
 }
+if (!signupEmailUpdatesRegression.includes('if(data.session?.user?.id)') ||
+    !signupEmailUpdatesRegression.includes("await supabase.functions.invoke('resend-contact-sync')") ||
+    !signupEmailUpdatesRegression.includes('Resend contact sync did not complete; it will retry on a later sign-in.')) {
+  console.error('CHECK FAILED: Contact syncing must wait for an authenticated session and retry after sign-in.');
+  failed = true;
+}
 const morePagePreferenceRegression = await readFile('MorePage.jsx', 'utf8');
 if (morePagePreferenceRegression.includes('Reader customization') || morePagePreferenceRegression.includes('readerSettingsOpen')) {
   console.error('CHECK FAILED: Reader customization must not appear in More & Settings.');
