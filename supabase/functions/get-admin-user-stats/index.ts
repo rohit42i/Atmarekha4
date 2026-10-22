@@ -25,7 +25,7 @@ Deno.serve(async req => {
       .select('role')
       .eq('user_id', user.id)
       .maybeSingle();
-    if (adminError || !adminRow || !['owner', 'admin'].includes(adminRow.role)) {
+    if (adminError || !adminRow || !['owner', 'admin'].includes(String(adminRow.role || '').trim().toLowerCase())) {
       return json({ error: 'Admin access required.' }, 403, origin);
     }
     const { data: rateAllowed, error: rateError } = await admin.rpc('consume_rate_limit', {
