@@ -25,11 +25,11 @@ const render = (source: string, vars: Record<string, string>) =>
   source.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_match, key) => vars[key] ?? "");
 
 function emailLayout(source: string, previewText: string) {
-  const bodyMatch = source.match(/<body\\b[^>]*>([\\s\\S]*?)<\\/body>/i);
+  const bodyMatch = source.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
   let content = bodyMatch ? bodyMatch[1] : source;
-  content = content.replace(/<head\\b[^>]*>[\\s\\S]*?<\\/head>/i, "")
+  content = content.replace(/<head\b[^>]*>[\s\S]*?<\/head>/i, "")
     .replace(/<!doctype[^>]*>/gi, "")
-    .replace(/<html\\b[^>]*>|<\\/html>/gi, "");
+    .replace(/<html\b[^>]*>|<\/html>/gi, "");
   const preheader = escapeHtml(previewText).slice(0, 180);
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>ATMA REKHA</title></head>' +
     '<body style="margin:0;padding:0;width:100%;background-color:#ffffff;font-family:Roboto,Arial,Helvetica,sans-serif;font-weight:500;font-size:16px;line-height:1.6;color:#222222;">' +
