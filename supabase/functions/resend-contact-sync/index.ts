@@ -3,6 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SITE_URL = "https://www.atmarekha.in";
 const SEGMENT_ID = Deno.env.get("RESEND_CONTACT_SEGMENT_ID") || "d48526c4-b3d8-4a13-9c64-25f2756e6b62";
+const CONTACTS_PERMISSION_ERROR = "The Resend API key is missing Contacts API permissions. Set RESEND_CONTACTS_API_KEY to a key with Contacts permissions.";
+const isContactsPermissionError = (status: number) => status === 401 || status === 403;
 const cors = (req: Request) => {
   const origin = req.headers.get("Origin") || SITE_URL;
   return {
@@ -82,6 +84,7 @@ Deno.serve(async (req: Request) => {
       const update = await resend(path, contactKey, { method: "PATCH", body: JSON.stringify(contactFields) });
       if (!update.ok) {
         console.error("Resend contact update failed.", update.status);
+        if (isContactsPermissionError(update.status)) return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
         return reply(req, { ok: false, error: "Resend contact update failed." }, 502);
       }
     } else if (lookup.status === 404) {
@@ -91,16 +94,24 @@ Deno.serve(async (req: Request) => {
       });
       if (!create.ok) {
         const details = await create.text();
+        if (isContactsPermissionError(create.status)) {
+          console.error("Resend Contacts API credential lacks permissions.", create.status);
+          return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
+        }
         if (create.status === 409 || create.status === 422) {
           const retry = await resend(path, contactKey);
           if (!retry.ok) {
             console.error("Resend contact create failed.", create.status, details.slice(0, 160));
+            if (isContactsPermissionError(retry.status)) return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
             return reply(req, { ok: false, error: "Resend contact creation failed." }, 502);
           }
           const existing: any = await retry.json();
           contactId = String(existing.id || existing.data?.id || "");
           const update = await resend(path, contactKey, { method: "PATCH", body: JSON.stringify(contactFields) });
-          if (!update.ok) return reply(req, { ok: false, error: "Resend contact update failed." }, 502);
+          if (!update.ok) {
+            if (isContactsPermissionError(update.status)) return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
+            return reply(req, { ok: false, error: "Resend contact update failed." }, 502);
+          }
         } else {
           console.error("Resend contact create failed.", create.status, details.slice(0, 160));
           return reply(req, { ok: false, error: "Resend contact creation failed." }, 502);
@@ -111,6 +122,7 @@ Deno.serve(async (req: Request) => {
       }
     } else {
       console.error("Resend contact lookup failed.", lookup.status);
+      if (isContactsPermissionError(lookup.status)) return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
       return reply(req, { ok: false, error: "Resend contact lookup failed." }, 502);
     }
 
@@ -118,6 +130,7 @@ Deno.serve(async (req: Request) => {
       const segment = await resend("/contacts/" + encodeURIComponent(contactId) + "/segments/" + encodeURIComponent(SEGMENT_ID), contactKey, { method: "POST" });
       if (!segment.ok && segment.status !== 409 && segment.status !== 422) {
         console.error("Resend segment assignment failed.", segment.status);
+        if (isContactsPermissionError(segment.status)) return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
         return reply(req, { ok: false, error: "Contact synced, but audience assignment failed." }, 502);
       }
     }
