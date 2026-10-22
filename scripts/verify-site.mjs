@@ -165,6 +165,15 @@ if (!emailStudioRegression.includes("const effectiveCategory = isChapterTemplate
   console.error('CHECK FAILED: Chapter announcements must use the reader-updates preference and respect opt-outs.');
   failed = true;
 }
+const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
+const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
+if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    !resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    resendContactSyncRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
+    resendContactBackfillRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
+  console.error('CHECK FAILED: Resend contact operations must not reuse the send-only email API key.');
+  failed = true;
+}
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
 if (appReaderAppearanceRegression.includes('atma-reader-preferences-v1') ||
     appReaderAppearanceRegression.includes('atma:reader-preferences-change') ||
