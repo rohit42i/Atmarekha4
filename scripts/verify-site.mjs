@@ -242,6 +242,14 @@ if (analyticsReaderMetricsStart < 0 ||
   console.error('CHECK FAILED: active and returning reader counts must fall back to durable R2 events without Analytics Engine SQL.');
   failed = true;
 }
+const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');
+if (!communityShareClipboardRegression.includes('async function copyTextToClipboard(value)') ||
+    !communityShareClipboardRegression.includes("document.execCommand('copy')") ||
+    !communityShareClipboardRegression.includes('Sharing was unavailable, so the message and link were copied.') ||
+    !communityShareClipboardRegression.includes("if(e?.name==='AbortError')return;")) {
+  console.error('CHECK FAILED: community copy/share actions need a clipboard fallback and must respect native-share cancellation.');
+  failed = true;
+}
 const communityReactionAccessibilityRegression = await readFile('Community.jsx', 'utf8');
 if (!communityReactionAccessibilityRegression.includes('className="community-post-react"') ||
     !communityReactionAccessibilityRegression.includes('aria-expanded={pickerPost===post.id}') ||
