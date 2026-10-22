@@ -271,17 +271,19 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const cloud = data.cloudflare || {};
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
+  const fallbackViewsAvailable = ['total_views', 'current_views', 'previous_views'].every(key => asNumber(analytics[key]) != null);
+  const viewCountsAvailable = cloudViewsAvailable || fallbackViewsAvailable;
   const cloudReadersAvailable = cloudAnalyticsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
   const membership = data.membership || {};
   const totals = membership.totals || {};
   const revenue = membership.revenue || {};
   const plans = Array.isArray(membership.plans) ? membership.plans : [];
   const membershipTrend = Array.isArray(membership.trend) ? membership.trend : [];
-  // Current reads are recorded by Cloudflare Analytics Engine. Do not substitute
-  // legacy Supabase chapter_views totals when Cloudflare analytics is unavailable.
-  const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;
-  const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : null;
-  const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : null;
+  // Prefer live R2-backed Worker analytics. Keep database totals visible as a fallback
+  // so a temporary Worker/auth/network failure never blanks the views dashboard.
+  const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : asNumber(analytics.current_views);
+  const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : asNumber(analytics.previous_views);
+  const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : asNumber(analytics.total_views);
   const currentLikes = asNumber(analytics.current_likes);
   const previousLikes = asNumber(analytics.previous_likes);
   const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
@@ -327,8 +329,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const cloudStat = (cloud.chapter_stats || []).find(item => String(item.id) === String(row.id));
     return {
       ...row,
-      views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : null,
-      period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : null,
+      views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : asNumber(row.views),
+      period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : asNumber(row.period_views),
       likes: NUMBER(cloudStat?.likes ?? row.likes),
       period_likes: NUMBER(cloudStat?.period_likes ?? row.period_likes),
       shares: NUMBER(cloudStat?.shares ?? row.shares),
@@ -360,12 +362,12 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const publishedChapterStats = chapterStats.filter(row => publishedChapterIds.has(String(row.id)));
   const chapterViews = chapterStats.map(row => row.views == null ? null : Number(row.views));
   const periodChapterViews = chapterStats.map(row => row.period_views == null ? null : Number(row.period_views));
-  const chaptersWithViews = cloudViewsAvailable ? publishedChapterStats.filter(row => Number(row.views || 0) > 0) : [];
-  const viewlessChapters = cloudViewsAvailable ? publishedChapterStats.filter(row => Number(row.views || 0) === 0) : [];
-  const topChapter = cloudViewsAvailable ? [...chapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0))[0] || null : null;
-  const top3Views = cloudViewsAvailable ? [...chapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 3).reduce((sum, row) => sum + Number(row.period_views || 0), 0) : null;
-  const maxChapterViews = cloudViewsAvailable && chapterViews.length ? Math.max(...chapterViews) : null;
-  const minChapterViews = cloudViewsAvailable && chapterViews.length ? Math.min(...chapterViews) : null;
+  const chaptersWithViews = viewCountsAvailable ? publishedChapterStats.filter(row => Number(row.views || 0) > 0) : [];
+  const viewlessChapters = viewCountsAvailable ? publishedChapterStats.filter(row => Number(row.views || 0) === 0) : [];
+  const topChapter = viewCountsAvailable ? [...chapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0))[0] || null : null;
+  const top3Views = viewCountsAvailable ? [...chapterStats].sort((a, b) => Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 3).reduce((sum, row) => sum + Number(row.period_views || 0), 0) : null;
+  const maxChapterViews = viewCountsAvailable && chapterViews.length ? Math.max(...chapterViews) : null;
+  const minChapterViews = viewCountsAvailable && chapterViews.length ? Math.min(...chapterViews) : null;
   const averageChapterViews = average(chapterViews);
   const ratingPositive = ratingCounts.filter(row => row.rating >= 8).reduce((sum, row) => sum + row.count, 0);
   const ratingLow = ratingCounts.filter(row => row.rating <= 4).reduce((sum, row) => sum + row.count, 0);
