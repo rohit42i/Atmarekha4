@@ -142,7 +142,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         ]);
         if (error) throw error;
         if (active) setLast24({
-          // Current reads are sourced from Cloudflare Analytics Engine, not the legacy SQL table.
+          // Prefer live Worker counts, with the existing admin analytics result as a fallback.
           views: cloudflare?.current_views != null && Number.isFinite(Number(cloudflare.current_views))
             ? Number(cloudflare.current_views)
             : data?.current_views != null && Number.isFinite(Number(data.current_views))
