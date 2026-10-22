@@ -389,11 +389,16 @@ if (!groupChatAuthRegression.includes('const promptSignIn=action=>') || !groupCh
   failed = true;
 }
 const communityShareRegression = await readFile('Community.jsx', 'utf8');
-if (!communityShareRegression.includes('const copy=async post=>') || !communityShareRegression.includes('await navigator.clipboard.writeText(post.content)') || !communityShareRegression.includes('Could not copy this message on your device.')) {
+if (!communityShareRegression.includes('const copy=async post=>') ||
+    !communityShareRegression.includes('await copyTextToClipboard(post.content)') ||
+    !communityShareRegression.includes('Could not copy this message on your device.')) {
   console.error('CHECK FAILED: Community Copy must await clipboard success and report failure accurately.');
   failed = true;
 }
-if (!communityShareRegression.includes('Message and link copied.') || !communityShareRegression.includes('if(navigator.share)')) {
+if (!communityShareRegression.includes('if(navigator.share)') ||
+    !communityShareRegression.includes('await navigator.share(') ||
+    !communityShareRegression.includes('await copyTextToClipboard(shareText)') ||
+    !communityShareRegression.includes('Sharing was unavailable, so the message and link were copied.')) {
   console.error('CHECK FAILED: Community Share must use native share or a working link-copy fallback.');
   failed = true;
 }
