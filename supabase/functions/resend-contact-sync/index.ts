@@ -43,30 +43,48 @@ Deno.serve(async (req: Request) => {
     const account = accountData?.user;
     const email = String(account?.email || "").trim().toLowerCase();
     if (accountError || !account || !email) return reply(req, { ok: false, error: "Account not found." }, 404);
+    if (!account.email_confirmed_at) {
+      return reply(req, { ok: true, confirmed: false, updatesSubscribed: false, skipped: "email_unconfirmed" });
+    }
 
-    const [consents, preference, profile] = await Promise.all([
-      db.from("dpdp_consent_records").select("purposes,withdrawn_at").eq("user_id", userId).order("consented_at", { ascending: false }).limit(20),
+    const [preference, profile] = await Promise.all([
       db.from("email_marketing_preferences").select("marketing_unsubscribed").eq("user_id", userId).maybeSingle(),
       db.from("profiles").select("display_name,username").eq("id", userId).maybeSingle()
     ]);
-    if (consents.error || preference.error || profile.error) return reply(req, { ok: false, error: "Could not verify email preferences." }, 503);
-    const consented = (consents.data || []).some((row: any) => !row.withdrawn_at && Array.isArray(row.purposes) && (row.purposes.includes("atma_rekha_updates") || row.purposes.includes("chapter_announcements") || row.purposes.includes("marketing_email")));
-    const optedOut = preference.data?.marketing_unsubscribed === true;
-    // Contacts without explicit permission stay unsubscribed in Resend, including unverified accounts.
-    const subscribed = Boolean(account.email_confirmed_at && consented && !optedOut);
+    if (preference.error || profile.error) return reply(req, { ok: false, error: "Could not verify email preferences." }, 503);
+
+    // Confirmed accounts can receive Atma Rekha service updates by default under the signup terms.
+    // A provider-side unsubscribe is kept unless the reader explicitly re-enables updates in settings.
+    const requestBody = await req.json().catch(() => ({}));
+    const allowResubscribe = requestBody?.explicitPreferenceChange === true &&
+      requestBody?.enabled === true && preference.data?.marketing_unsubscribed === false;
+    let optedOut = preference.data?.marketing_unsubscribed === true;
     const displayName = String(profile.data?.display_name || profile.data?.username || account.user_metadata?.full_name || "").trim();
     const firstName = displayName.split(/\s+/).filter(Boolean)[0] || "Reader";
     const path = "/contacts/" + encodeURIComponent(email);
     const lookup = await resend(path, resendKey);
+    let existing: any = null;
+    if (lookup.ok) {
+      existing = await lookup.json();
+      if (existing?.unsubscribed === true && !allowResubscribe) {
+        optedOut = true;
+        const { error: preferenceUpdateError } = await db.from("email_marketing_preferences").upsert({
+          user_id: userId, marketing_unsubscribed: true, updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+        if (preferenceUpdateError) return reply(req, { ok: false, error: "Could not preserve the existing unsubscribe preference." }, 503);
+      }
+    } else if (lookup.status !== 404) {
+      console.error("Resend contact lookup failed.", lookup.status);
+      return reply(req, { ok: false, error: "Resend contact lookup failed." }, 502);
+    }
+    const subscribed = !optedOut;
     let contactId = "";
-
     const contactFields = {
       first_name: firstName,
-      unsubscribed: !subscribed,
+      ...(existing?.unsubscribed === true && !allowResubscribe ? {} : { unsubscribed: !subscribed }),
       properties: { website: "Atma Rekha", atma_rekha_updates_enabled: String(subscribed) }
     };
     if (lookup.ok) {
-      const existing: any = await lookup.json();
       contactId = String(existing.id || existing.data?.id || "");
       const update = await resend(path, resendKey, { method: "PATCH", body: JSON.stringify(contactFields) });
       if (!update.ok) {
