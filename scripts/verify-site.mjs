@@ -163,6 +163,13 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const adminNotificationRetryRegression = await readFile('supabase/functions/send-chapter-notification-v2/index.ts', 'utf8');
+if (!adminNotificationRetryRegression.includes("['failed','no_subscribers'].includes(String(existing.status||''))") ||
+    !adminNotificationRetryRegression.includes(".in('status',['failed','no_subscribers']).eq('sent_count',0)") ||
+    !adminNotificationRetryRegression.includes("Sent/partial/sending rows remain blocked")) {
+  console.error('CHECK FAILED: admin push notifications must retry only zero-send failures and preserve deduplication.');
+  failed = true;
+}
 const readerEventRetryRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
 if (!readerEventRetryRegression.includes('existingDispatch.status !== "failed"') ||
     !readerEventRetryRegression.includes('.eq("status", "failed").eq("sent_count", 0)') ||
