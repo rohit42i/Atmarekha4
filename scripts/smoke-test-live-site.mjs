@@ -24,6 +24,8 @@ const PUBLIC_ROUTES = [
 
 function siteUrl(input) {
   const candidate = new URL(String(input), ROOT);
+  // The only intentional HTTP request verifies the apex www host's redirect.
+  if (candidate.href === "http://www.atmarekha.in/") return candidate.href;
   if (candidate.origin !== ROOT_URL.origin) {
     throw new Error("Refusing to request a URL outside the Atma Rekha site origin.");
   }
