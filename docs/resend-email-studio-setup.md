@@ -6,10 +6,12 @@ The Admin Panel's **Email Campaigns** tab now hosts the Email Studio. The sendin
 
 In Supabase Dashboard → Project Settings → Edge Functions → Secrets, configure:
 
-- `RESEND_API_KEY`: a restricted Resend API key with permission to send emails.
-- `RESEND_FROM_EMAIL`: a sender address on a domain verified in Resend, e.g. `Atma Rekha <updates@atmarekha.in>`.
+- `RESEND_API_KEY`: a restricted Resend API key with permission to send emails. Keep this key send-only.
+- `RESEND_CONTACTS_API_KEY`: a separate server-side Resend key with Contacts API access, used only by `resend-contact-sync` and `resend-contact-backfill`. Resend's available key modes are `sending_access` and `full_access`; contact management is not supported by `sending_access`, so a key with `full_access` is required for this integration. Treat it as highly sensitive and never expose it to browser code.
+- `RESEND_FROM_EMAIL`: a sender address on a domain verified in Resend, e.g. `Atma Rekha <no-reply@atmarekha.in>`.
+- `RESEND_WEBHOOK_SECRET`: the signing secret for the Resend delivery webhook.
 
-Do not put these values in React, Vite environment variables, GitHub files, or client-accessible tables. The available Supabase connection deployed the functions but cannot set secrets. Sending returns a configuration error until `RESEND_API_KEY` is set.
+Do not put these values in React, Vite environment variables, GitHub files, or client-accessible tables. The site was verified to have a Resend-verified `atmarekha.in` sending domain. The contact-sync functions require `RESEND_CONTACTS_API_KEY`; reusing the send-only key produces Resend `401 restricted_api_key` responses. The available Supabase connection can deploy functions but cannot edit Edge Function secrets, so this secret must be added in Supabase Dashboard → Project Settings → Edge Functions → Secrets.
 
 ## Deployed functions
 
@@ -32,8 +34,8 @@ Subscribe to `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.b
 
 ## Manual production verification still required
 
-1. Add `RESEND_API_KEY` and `RESEND_FROM_EMAIL` secrets.
+1. Add `RESEND_API_KEY`, `RESEND_CONTACTS_API_KEY`, and `RESEND_FROM_EMAIL` secrets in Supabase. Keep the first send-only; use the second only for contact-sync functions.
 2. Configure `RESEND_WEBHOOK_SECRET` and create/verify the Resend webhook.
-3. Send a test transactional email to an internal address; verify delivery in Resend and the admin delivery monitor.
+3. Test contact sync and a single email separately. Verify the email in Resend and the admin delivery monitor before using a reader-wide campaign.
 4. Test a marketing email's unsubscribe link and confirm future marketing sends skip that account.
 5. Test member/free/recent segment counts against current production data before any bulk send.
