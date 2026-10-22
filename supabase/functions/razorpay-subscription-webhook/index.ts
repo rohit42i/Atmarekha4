@@ -54,7 +54,11 @@ Deno.serve(async req => {
     const eventName = String(event?.event || '');
     const headerEventId = req.headers.get('x-razorpay-event-id')?.trim() || '';
     const eventId = headerEventId || `body:${await sha256Hex(raw)}`;
-    const admin = createClient(supabaseUrl, service); const { data: existing } = await admin.from('payment_events').select('id').eq('provider', 'razorpay').eq('event_id', eventId).maybeSingle(); if (existing) return new Response('ok', { status: 200 });
+    const admin = createClient(supabaseUrl, service);
+    const { data: existing, error: existingError } = await admin.from('payment_events').select('id')
+      .eq('provider', 'razorpay').eq('event_id', eventId).maybeSingle();
+    if (existingError) throw new Error(`Could not check Razorpay event idempotency: ${existingError.message}`);
+    if (existing) return new Response('ok', { status: 200 });
     const entity = event?.payload?.subscription?.entity; const subscriptionId = entity?.id ? String(entity.id) : '';
     const mappedStatus: Record<string, string> = { 'subscription.authenticated': 'active', 'subscription.activated': 'active', 'subscription.charged': 'active', 'subscription.updated': String(entity?.status || 'active'), 'subscription.pending': 'pending', 'subscription.completed': 'expired', 'subscription.halted': 'failed', 'subscription.paused': 'paused', 'subscription.resumed': 'active', 'subscription.cancelled': 'cancelled' };
     let incomingStatus = mappedStatus[eventName];
@@ -63,7 +67,13 @@ Deno.serve(async req => {
       incomingStatus = remoteStatus === 'cancelled' ? 'cancelled' : remoteStatus || 'active';
     }
     if (subscriptionId && incomingStatus) {
-      const { data: record } = await admin.from('user_subscriptions').select('id,current_period_start,current_period_end,status').eq('provider', 'razorpay').eq('provider_subscription_id', subscriptionId).maybeSingle();
+      const { data: record, error: recordError } = await admin.from('user_subscriptions')
+        .select('id,current_period_start,current_period_end,status')
+        .eq('provider', 'razorpay').eq('provider_subscription_id', subscriptionId).maybeSingle();
+      if (recordError) throw new Error(`Razorpay subscription lookup failed: ${recordError.message}`);
+      // Do not persist/acknowledge an event before the local subscription row exists.
+      // Returning 500 lets Razorpay retry after subscription creation finishes.
+      if (!record) throw new Error('Razorpay subscription record not found for webhook event.');
       if (record) {
         const incomingStart = iso(entity.current_start) || record.current_period_start || null;
         const incomingEnd = iso(entity.current_end);
