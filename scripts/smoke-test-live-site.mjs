@@ -1,17 +1,32 @@
 import assert from "node:assert/strict";
 
 const ROOT = "https://www.atmarekha.in/";
-const SITE_HOST = new URL(ROOT).host;
+const ROOT_URL = new URL(ROOT);
+const SITE_HOST = ROOT_URL.host;
 const TIMEOUT_MS = 12000;
 const RETRIES = 4;
 
+// These routes are reviewed constants. Never request a destination taken from
+// website response content; remote page data is treated as untrusted.
+const PUBLIC_ROUTES = [
+  "/",
+  "/chapters",
+  "/info/about",
+  "/info/contact",
+  "/info/report",
+  "/info/privacy",
+  "/info/terms",
+  "/pal-do-pal-ke-lamhe",
+  "/privacy-center",
+  "/chapter/1",
+];
+
 function siteUrl(input) {
   const candidate = new URL(String(input), ROOT);
-  if (candidate.origin !== new URL(ROOT).origin) {
+  if (candidate.origin !== ROOT_URL.origin) {
     throw new Error("Refusing to request a URL outside the Atma Rekha site origin.");
   }
   // Reconstruct the request from the fixed production origin and validated path.
-  // A response body can never choose the destination host.
   return new URL(candidate.pathname + candidate.search, ROOT).href;
 }
 
@@ -67,52 +82,50 @@ assert.equal(homepage.headers.get("strict-transport-security"), "max-age=1555200
 assert.equal(homepage.headers.get("x-content-type-options"), "nosniff", "Homepage nosniff header missing.");
 const html = await homepage.text();
 
-// Validate the same-origin script/style/image targets in the HTML shell.
+// Count same-origin shell assets and reject absolute resource URLs pointing
+// away from the production host. Assets are not fetched based on response data.
 const assetRefs = new Set();
-for (const match of html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)) {
+for (const match of html.matchAll(/(?:src|href)\\s*=\\s*["']([^"']+)["']/gi)) {
   const raw = match[1].trim();
   if (!raw || raw.startsWith("#") || /^(?:data:|blob:|mailto:|tel:|javascript:)/i.test(raw)) continue;
   let url;
   try { url = new URL(raw, ROOT); } catch { continue; }
-  if (url.host === SITE_HOST && /\.(?:js|mjs|css|png|jpe?g|svg|webp|ico|woff2?)(?:$|[?#])/i.test(url.pathname + url.search + url.hash)) {
-    assetRefs.add(url.href);
+  if (/^(?:https?:)?\\/\\//i.test(raw)) {
+    assert.equal(url.origin, ROOT_URL.origin, "Page shell contains a cross-origin absolute link or asset: " + raw);
+  }
+  if (url.origin === ROOT_URL.origin && /\\.(?:js|mjs|css|png|jpe?g|svg|webp|ico|woff2?)(?:$|[?#])/i.test(url.pathname + url.search + url.hash)) {
+    assetRefs.add(url.pathname + url.search);
   }
 }
-for (const asset of assetRefs) await assertOk(asset, "Same-origin page asset");
+assert.ok(assetRefs.size > 0, "No same-origin script/style/image assets were found in the homepage shell.");
+
+for (const route of PUBLIC_ROUTES) {
+  const response = await assertOk(new URL(route, ROOT).href, "Public route " + route);
+  assert.equal(response.status, 200, "Public route must return HTTP 200: " + route);
+  assert.match(response.headers.get("content-type") || "", /text\\/html/i, "Public route must return HTML: " + route);
+  await response.body?.cancel().catch(() => {});
+}
 
 const sitemapResponse = await assertOk(new URL("/sitemap.xml", ROOT).href, "Sitemap");
-assert.match(sitemapResponse.headers.get("content-type") || "", /xml|text\/plain/i, "Sitemap response must be XML or plain text.");
+assert.match(sitemapResponse.headers.get("content-type") || "", /xml|text\\/plain/i, "Sitemap response must be XML or plain text.");
 const sitemap = await sitemapResponse.text();
-assert.match(sitemap, /<urlset\b/i, "Sitemap is missing the urlset root.");
-const listedUrls = [...sitemap.matchAll(/<loc>\s*([\s\S]*?)\s*<\/loc>/gi)]
+assert.match(sitemap, /<urlset\\b/i, "Sitemap is missing the urlset root.");
+const listedUrls = [...sitemap.matchAll(/<loc>\\s*([\\s\\S]*?)\\s*<\\/loc>/gi)]
   .map(match => decodeXml(match[1].trim()))
   .filter(Boolean);
 assert.ok(listedUrls.length > 0, "Sitemap contains no URLs.");
 assert.ok(listedUrls.length <= 1000, "Sitemap contains an unexpected number of URLs; review pagination.");
 
-const urlsToCheck = [...new Set(listedUrls.map(value => new URL(value, ROOT).href))];
-for (const url of urlsToCheck) {
-  assert.equal(new URL(url).host, SITE_HOST, "Sitemap URL uses an unexpected hostname: " + url);
+const sitemapPaths = new Set();
+for (const value of listedUrls) {
+  const url = new URL(value, ROOT);
+  assert.equal(url.protocol, "https:", "Sitemap URL must use HTTPS: " + value);
+  assert.equal(url.origin, ROOT_URL.origin, "Sitemap URL uses an unexpected hostname: " + value);
+  assert.equal(url.username, "", "Sitemap URL must not contain user credentials: " + value);
+  assert.equal(url.password, "", "Sitemap URL must not contain user credentials: " + value);
+  sitemapPaths.add(url.pathname + url.search);
 }
 
-let cursor = 0;
-const failures = [];
-const concurrency = Math.min(6, urlsToCheck.length);
-await Promise.all(Array.from({ length: concurrency }, async () => {
-  while (cursor < urlsToCheck.length) {
-    const index = cursor++;
-    const url = urlsToCheck[index];
-    try {
-      const response = await fetchWithRetry(url, { redirect: "follow" });
-      if (response.status < 200 || response.status >= 400) {
-        failures.push(url + " returned HTTP " + response.status);
-      }
-      await response.body?.cancel().catch(() => {});
-    } catch (error) {
-      failures.push(url + " failed: " + (error?.message || "unknown error"));
-    }
-  }
-}));
-assert.deepEqual(failures, [], "One or more sitemap URLs failed:\n" + failures.join("\n"));
 console.log("Live site smoke test passed: HTTPS redirect, homepage security headers, " +
-  urlsToCheck.length + " sitemap URLs, and " + assetRefs.size + " same-origin assets.");
+  PUBLIC_ROUTES.length + " fixed public routes, " + sitemapPaths.size +
+  " HTTPS same-origin sitemap URLs, and " + assetRefs.size + " same-origin shell assets.");
