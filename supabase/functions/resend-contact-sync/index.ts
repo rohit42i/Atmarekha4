@@ -24,11 +24,22 @@ async function resend(path: string, key: string, init: RequestInit = {}) {
   });
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return reply(req, { ok: false, error: "Method not allowed." }, 405);
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const serviceKey = readSupabaseServiceRoleKey();
   const contactKey = Deno.env.get("RESEND_CONTACTS_API_KEY") || "";
   if (!supabaseUrl || !serviceKey || !contactKey) return reply(req, { ok: false, error: "Contact sync is not configured: set RESEND_CONTACTS_API_KEY with Contacts API permissions." }, 503);
   try {
