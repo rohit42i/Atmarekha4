@@ -428,14 +428,23 @@ async function handleView(request, env) {
 async function handlePublicViews(request, env) {
   const ids = [...new Set(new URL(request.url).searchParams.getAll('chapterIds').join(',').split(',').map(value => value.trim()).filter(validChapterId))].slice(0, 100);
   if (!ids.length) return json(request, {});
-  const [summary, current] = await Promise.all([
+  const now = new Date();
+  const today = dayStart(now);
+  const [summary, current, liveToday] = await Promise.all([
     readJson(env, summaryKey(), { chapterViews: {} }),
-    readJson(env, currentKey(), { day: dayKey(new Date()), chapterViews: {} }),
+    readJson(env, currentKey(), { day: dayKey(now), chapterViews: {} }),
+    combinedPeriodCounts(env, today, new Date(now.getTime() + 1)),
   ]);
-  const currentDay = dayKey(new Date());
   const result = {};
-  for (const id of ids) result[id] = Number(summary.chapterViews?.[id] || 0) + (current.day === currentDay ? Number(current.chapterViews?.[id] || 0) : 0);
-  return json(request, result, 200, { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=60' });
+  for (const id of ids) {
+    const archived = Number(summary.chapterViews?.[id] || 0);
+    const cachedToday = current.day === dayKey(now) ? Number(current.chapterViews?.[id] || 0) : 0;
+    // The scheduled R2 snapshot can lag behind fresh reads. Prefer live Analytics Engine
+    // counts for today, and use the cached snapshot only if the live query fails.
+    const liveCount = Number(liveToday[id] || 0);
+    result[id] = archived + (liveCount > 0 ? liveCount : cachedToday);
+  }
+  return json(request, result, 200, { 'Cache-Control': 'public, max-age=10, stale-while-revalidate=20' });
 }
 
 async function handleAdminAnalytics(request, env) {
