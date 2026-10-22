@@ -163,6 +163,18 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const emailStudioLoadRegression = await readFile('EmailStudio.jsx', 'utf8');
+const emailStudioLoadStart = emailStudioLoadRegression.indexOf('const load = async () => {');
+const emailStudioLoadEnd = emailStudioLoadRegression.indexOf('setLoadingRecipients(true);', emailStudioLoadStart);
+const emailStudioLoadBlock = emailStudioLoadRegression.slice(emailStudioLoadStart, emailStudioLoadEnd);
+if (emailStudioLoadStart < 0 ||
+    emailStudioLoadEnd < 0 ||
+    emailStudioLoadBlock.indexOf("setTemplates(nextTemplates)") < 0 ||
+    emailStudioLoadBlock.indexOf("setTemplates(nextTemplates)") > emailStudioLoadBlock.indexOf("const historyResult") ||
+    !emailStudioLoadBlock.includes("Email templates loaded, but campaign history is unavailable:")) {
+  console.error('CHECK FAILED: Email Studio template loading must survive a campaign-history query failure.');
+  failed = true;
+}
 const emailStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
 const emailStudioFunctionRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
 if (!emailStudioRegression.includes("const effectiveCategory = isChapterTemplate ? 'updates' : draft.category;") ||
