@@ -77,6 +77,7 @@ function istTimeString(date = new Date()) {
 }
 
 async function sendSecurityAlert(resendKey: string, to: string, lockedUntil: string) {
+  const sender = Deno.env.get("RESEND_FROM_EMAIL")?.trim() || "Atma Rekha <no-reply@atmarekha.in>";
   const subject = "Security alert: Atma Rekha sign-in blocked";
   const checkedAt = istTimeString();
   const unlockAt = istTimeString(new Date(lockedUntil));
@@ -98,10 +99,11 @@ async function sendSecurityAlert(resendKey: string, to: string, lockedUntil: str
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Atma Rekha <atmarekhaoffical@gmail.com>",
+      from: sender,
       to: [to],
       subject,
       html,
+      text: `We detected repeated unsuccessful password sign-ins on your Atma Rekha account. Your account is temporarily locked for 24 hours. Attempt window: ${checkedAt} IST. Automatic unlock: ${unlockAt} IST. If this was not you, change your password and enable two-step verification after regaining access.`,
     }),
   });
 
