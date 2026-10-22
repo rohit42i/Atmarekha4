@@ -5,7 +5,18 @@ const SITE_HOST = new URL(ROOT).host;
 const TIMEOUT_MS = 12000;
 const RETRIES = 4;
 
-async function fetchWithRetry(url, options = {}) {
+function siteUrl(input) {
+  const candidate = new URL(String(input), ROOT);
+  if (candidate.origin !== new URL(ROOT).origin) {
+    throw new Error("Refusing to request a URL outside the Atma Rekha site origin.");
+  }
+  // Reconstruct the request from the fixed production origin and validated path.
+  // A response body can never choose the destination host.
+  return new URL(candidate.pathname + candidate.search, ROOT).href;
+}
+
+async function fetchWithRetry(input, options = {}) {
+  const url = siteUrl(input);
   let lastError;
   for (let attempt = 1; attempt <= RETRIES; attempt += 1) {
     try {
