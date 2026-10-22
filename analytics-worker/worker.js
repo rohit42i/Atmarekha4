@@ -428,6 +428,14 @@ async function updateCurrent(env, today) {
   });
 }
 
+async function ensureLegacyBootstrapped(env) {
+  const markerKey = `${ARCHIVE_PREFIX}/legacy-imported.json`;
+  if (await env.ANALYTICS_BUCKET.head(markerKey)) return;
+  // Import legacy counts on demand so users do not wait for the next hourly cron.
+  // Once written, the marker prevents repeated imports on subsequent requests.
+  await bootstrapLegacy(env, dayStart(new Date()));
+}
+
 async function handleView(request, env) {
   let payload;
   try {
@@ -466,6 +474,7 @@ async function handleView(request, env) {
 async function handlePublicViews(request, env) {
   const ids = [...new Set(new URL(request.url).searchParams.getAll('chapterIds').join(',').split(',').map(value => value.trim()).filter(validChapterId))].slice(0, 100);
   if (!ids.length) return json(request, {});
+  await ensureLegacyBootstrapped(env);
   const now = new Date();
   const today = dayStart(now);
   const [summary, current, liveToday] = await Promise.all([
@@ -487,6 +496,7 @@ async function handlePublicViews(request, env) {
 
 async function handleAdminAnalytics(request, env) {
   if (!(await verifyAdmin(request, env))) return text(request, 'Admin authorization required.', 403);
+  await ensureLegacyBootstrapped(env);
   const days = Number(new URL(request.url).searchParams.get('days') || 30);
   if (!PERIODS.has(days)) return text(request, 'Analytics period must be 1, 7, 30 or 90 days.', 400);
 
