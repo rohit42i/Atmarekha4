@@ -229,6 +229,19 @@ if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
   console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
   failed = true;
 }
+const analyticsReaderFallbackRegression = await readFile('analytics-worker/worker.js', 'utf8');
+const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end) {');
+const analyticsReaderMetricsEnd = analyticsReaderFallbackRegression.indexOf('async function verifyAdmin', analyticsReaderMetricsStart);
+const analyticsReaderMetricsBlock = analyticsReaderFallbackRegression.slice(analyticsReaderMetricsStart, analyticsReaderMetricsEnd);
+if (analyticsReaderMetricsStart < 0 ||
+    analyticsReaderMetricsEnd < 0 ||
+    !analyticsReaderMetricsBlock.includes('env.ANALYTICS_BUCKET.list({') ||
+    !analyticsReaderMetricsBlock.includes('activeViewers.add(viewerHash)') ||
+    !analyticsReaderMetricsBlock.includes('days.size >= 2') ||
+    analyticsReaderMetricsBlock.includes('ANALYTICS_SQL')) {
+  console.error('CHECK FAILED: active and returning reader counts must fall back to durable R2 events without Analytics Engine SQL.');
+  failed = true;
+}
 const communityReactionAccessibilityRegression = await readFile('Community.jsx', 'utf8');
 if (!communityReactionAccessibilityRegression.includes('className="community-post-react"') ||
     !communityReactionAccessibilityRegression.includes('aria-expanded={pickerPost===post.id}') ||
