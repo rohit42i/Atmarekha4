@@ -215,6 +215,13 @@ if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
   failed = true;
 }
+const homeProfileAvatarRegression = await readFile('App.jsx', 'utf8');
+if (!homeProfileAvatarRegression.includes("select('avatar_url')") ||
+    !homeProfileAvatarRegression.includes('aria-label={homeUser ? "Open your profile" : "Sign in"}') ||
+    !homeProfileAvatarRegression.includes('onError={() => setHomeAvatar("")}')) {
+  console.error('CHECK FAILED: home header must show the current reader avatar with a safe fallback and profile action.');
+  failed = true;
+}
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
 if (appReaderAppearanceRegression.includes('atma-reader-preferences-v1') ||
     appReaderAppearanceRegression.includes('atma:reader-preferences-change') ||
