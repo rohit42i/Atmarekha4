@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
 const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
-const VIEW_RECORDED_STORAGE = 'atma-rekha-view-recorded-v2';
+const VIEW_RECORDED_STORAGE = 'atma-rekha-view-recorded-v3';
 
 function viewRecordKey(chapterId) {
   return `${VIEW_RECORDED_STORAGE}:${String(chapterId || '')}`;
@@ -311,7 +311,8 @@ export async function recordChapterView(chapterId) {
       viewer_key: viewerKey,
     });
     if (error && error.code !== '23505') throw analyticsError;
-    markViewRecorded(chapterId);
+    // Do not mark a fallback-only write as recorded: the analytics service may
+    // become available later, and this browser must retry to populate its live counts.
     return { recorded: !error, fallback: true };
   }
 }
