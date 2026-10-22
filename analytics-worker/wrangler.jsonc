@@ -9,9 +9,6 @@
       "dataset": "atma_rekha_views"
     }
   ],
-  "analytics": {
-    "binding": "ANALYTICS_SQL"
-  },
   "r2_buckets": [
     {
       "binding": "ANALYTICS_BUCKET",
