@@ -102,15 +102,6 @@ async function writeJson(env, key, value) {
   });
 }
 
-async function analyticsQuery(env, query, params = {}) {
-  if (!env.ANALYTICS_SQL) throw new Error('Analytics SQL binding is not configured.');
-  return env.ANALYTICS_SQL.query({ query, params });
-}
-
-function rows(result) {
-  return Array.isArray(result?.data) ? result.data : [];
-}
-
 async function viewRowsForPeriod(env, start, end) {
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return [];
   const counts = new Map();
@@ -254,31 +245,67 @@ async function totalFromMap(map) {
 }
 
 async function readerMetrics(env, start, end) {
+  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) {
+    return { activeReaders: 0, returningReaders: 0, unavailable: false };
+  }
+
+  // R2 is already the durable source of truth for view events. Use the hashed
+  // viewer identity in each event key to calculate reader counts even when
+  // Analytics Engine is disabled or no SQL binding is available.
+  const activeViewers = new Set();
+  const activeDaysByViewer = new Map();
   try {
-    const activeResult = await analyticsQuery(
-      env,
-      `SELECT COUNT(DISTINCT blob2) AS active_readers
-       FROM ${DATASET_TABLE}
-       WHERE timestamp >= $start AND timestamp < $end`,
-      { start: start.toISOString(), end: end.toISOString() },
-    );
-    const returningResult = await analyticsQuery(
-      env,
-      `SELECT blob2 AS viewer_hash,
-              COUNT(DISTINCT toStartOfInterval(timestamp, INTERVAL '1' DAY)) AS active_days
-       FROM ${DATASET_TABLE}
-       WHERE timestamp >= $start AND timestamp < $end
-       GROUP BY blob2
-       HAVING active_days >= 2
-       LIMIT 100000`,
-      { start: start.toISOString(), end: end.toISOString() },
-    );
+    for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+      const day = dayKey(cursor);
+      const nextDay = addDays(cursor, 1);
+      const prefix = `${ARCHIVE_PREFIX}/events/${day}/`;
+      const isFullDay = start.getTime() <= cursor.getTime() && end.getTime() >= nextDay.getTime();
+      let pageCursor;
+      do {
+        const page = await env.ANALYTICS_BUCKET.list({
+          prefix,
+          limit: 1000,
+          ...(pageCursor ? { cursor: pageCursor } : {}),
+        });
+        for (const object of page.objects || []) {
+          const parts = object.key.slice(prefix.length).split('/');
+          const chapterId = parts[0];
+          const viewerHash = String(parts[1] || '').replace(/\.json$/i, '');
+          if (!validChapterId(chapterId) || !/^[a-f0-9]{64}$/i.test(viewerHash)) continue;
+
+          if (!isFullDay) {
+            const stored = await env.ANALYTICS_BUCKET.get(object.key);
+            if (!stored) continue;
+            let event;
+            try { event = await stored.json(); } catch { continue; }
+            const createdAt = new Date(event?.createdAt || 0).getTime();
+            if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
+          }
+
+          activeViewers.add(viewerHash);
+          if (!activeDaysByViewer.has(viewerHash)) activeDaysByViewer.set(viewerHash, new Set());
+          activeDaysByViewer.get(viewerHash).add(day);
+        }
+        pageCursor = page.truncated ? page.cursor : null;
+      } while (pageCursor);
+    }
+
+    let returningReaders = 0;
+    for (const days of activeDaysByViewer.values()) {
+      if (days.size >= 2) returningReaders++;
+    }
     return {
-      activeReaders: Number(rows(activeResult)[0]?.active_readers || 0),
-      returningReaders: rows(returningResult).length,
+      activeReaders: activeViewers.size,
+      returningReaders,
+      source: 'r2',
     };
   } catch (error) {
-    return { activeReaders: 0, returningReaders: 0, unavailable: true, error: error?.message || 'reader metrics unavailable' };
+    return {
+      activeReaders: 0,
+      returningReaders: 0,
+      unavailable: true,
+      error: error?.message || 'R2 reader metrics unavailable',
+    };
   }
 }
 
