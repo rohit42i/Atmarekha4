@@ -54,13 +54,18 @@ async function fetchWithRetry(input, options = {}) {
   throw new Error("Request failed after retries: " + url + " (" + (lastError?.message || "unknown error") + ")");
 }
 
+const XML_ENTITIES = Object.freeze({
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&apos;": "'",
+});
+
 function decodeXml(value) {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'");
+  // Decode exactly one XML entity layer. A single regex pass prevents an
+  // input such as "&amp;lt;" from being decoded twice into "<".
+  return String(value).replace(/&(amp|lt|gt|quot|apos);/g, entity => XML_ENTITIES[entity]);
 }
 
 async function assertOk(url, label) {
