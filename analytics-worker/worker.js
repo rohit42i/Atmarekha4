@@ -203,10 +203,13 @@ async function combinedPeriodCounts(env, start, end) {
       }
       archived = monthCache.get(month)?.days?.[day] || null;
     }
-    if (archived && archived.chapters && typeof archived.chapters === 'object') {
+    const isFullDay = segmentStart.getTime() === cursor.getTime() && segmentEnd.getTime() === nextDay.getTime();
+    if (archived && archived.chapters && typeof archived.chapters === 'object' && isFullDay) {
       mergeChapterCounts(result, Object.entries(archived.chapters).map(([chapterId, views]) => ({ chapterId, views })));
       continue;
     }
+    // Rolling windows often start partway through a UTC day. For those boundary
+    // slices, count timestamped R2 events instead of including a whole daily archive.
     mergeChapterCounts(result, await viewRowsForPeriod(env, segmentStart, segmentEnd));
   }
   return result;
