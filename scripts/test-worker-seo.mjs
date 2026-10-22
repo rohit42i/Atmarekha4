@@ -48,7 +48,7 @@ try {
   assert.match(aboutHtml, /Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh/);
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
-  assert.equal(about.headers.get("strict-transport-security"), "max-age=15552000");
+  assert.equal(about.headers.get("strict-transport-security"), "max-age=31536000; includeSubDomains");
 
   const chaptersEnglish = await worker.fetch(new Request("https://www.atmarekha.in/chapters?lang=en"), env);
   const chaptersEnglishHtml = await chaptersEnglish.text();
