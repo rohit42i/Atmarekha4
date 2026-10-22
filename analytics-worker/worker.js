@@ -467,9 +467,15 @@ async function handleAdminAnalytics(request, env) {
   const summary = await readJson(env, summaryKey(), { chapterViews: {} });
   const currentDay = dayKey(now);
   const currentFile = await readJson(env, currentKey(), { day: currentDay, chapterViews: {} });
+  const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1));
   const allTime = { ...(summary.chapterViews || {}) };
-  if (currentFile.day === currentDay) {
-    for (const [id, count] of Object.entries(currentFile.chapterViews || {})) allTime[id] = Number(allTime[id] || 0) + Number(count || 0);
+  // Use live Analytics Engine counts for today; scheduled R2 snapshots can lag
+  // until the next cron run. Fall back to the snapshot only when live data is empty.
+  const todayCounts = Object.values(liveToday).some(value => Number(value) > 0)
+    ? liveToday
+    : currentFile.day === currentDay ? (currentFile.chapterViews || {}) : {};
+  for (const [id, count] of Object.entries(todayCounts)) {
+    allTime[id] = Number(allTime[id] || 0) + Number(count || 0);
   }
 
   const ids = new Set([...Object.keys(allTime), ...Object.keys(current), ...Object.keys(previous)]);
