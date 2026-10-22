@@ -460,13 +460,15 @@ async function handleView(request, env) {
   } catch (error) {
     return text(request, `Unable to persist view event: ${error?.message || 'storage error'}`, 503);
   }
-  // Analytics Engine remains a secondary analysis sink, not a dependency for counts.
+  // R2 is the source of truth; this optional sink must never block view counts.
   try {
-    env.ANALYTICS?.writeDataPoint({
-      blobs: [chapterId, viewerHash],
-      doubles: [1],
-      indexes: ['atma-rekha'],
-    });
+    if (typeof env.ANALYTICS?.writeDataPoint === 'function') {
+      env.ANALYTICS.writeDataPoint({
+        blobs: [chapterId, viewerHash],
+        doubles: [1],
+        indexes: ['atma-rekha'],
+      });
+    }
   } catch { /* The durable R2 event already recorded the view. */ }
   return json(request, { recorded: true });
 }
