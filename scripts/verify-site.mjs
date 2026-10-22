@@ -191,6 +191,12 @@ if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
   console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination actions.');
   failed = true;
 }
+if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') ||
+    simplifiedRightsHandler.includes('.limit(5000)') ||
+    !simplifiedRightsHandler.includes('100,000-row safety limit')) {
+  console.error('CHECK FAILED: privacy data exports must paginate beyond 5,000 rows and disclose the bounded maximum.');
+  failed = true;
+}
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
 if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
     !legalCopyRegression.includes('AI generated material') ||
