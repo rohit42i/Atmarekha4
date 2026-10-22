@@ -231,7 +231,7 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
     !resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
     resendContactSyncRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
     resendContactBackfillRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
-    !resendContactSyncRegression.includes('isContactsPermissionError(status: number) => status === 401 || status === 403') ||
+    !resendContactSyncRegression.includes('const isContactsPermissionError = (status: number) => status === 401 || status === 403') ||
     !resendContactSyncRegression.includes('return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503)') ||
     !resendContactBackfillRegression.includes('const permissionProbe = await resend("/contacts?limit=1", contactKey);')) {
   console.error('CHECK FAILED: Contact sync must use the Contacts key, surface permission errors, and preflight backfill before processing users.');
