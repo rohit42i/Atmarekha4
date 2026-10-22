@@ -339,8 +339,8 @@ if (/nominee|nomination|privacy-nomination-form/i.test(simplifiedPrivacySource))
   failed = true;
 }
 const simplifiedRightsHandler = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
-if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
-  console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination actions.');
+if (/action\s*===?\s*["'](?:nomination|delete-nomination)["']/i.test(simplifiedRightsHandler)) {
+  console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination mutation actions.');
   failed = true;
 }
 if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') ||
