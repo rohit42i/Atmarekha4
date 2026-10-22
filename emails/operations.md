@@ -8,19 +8,19 @@
 ## Subscription rules
 - Follow the current signup disclosure and recorded account preferences.
 - Never override an explicit unsubscribe during contact sync, import, or backfill.
-- Resend-side unsubscribe events should be reflected in the website preference table.
+- Keep chapter announcements and important Atma Rekha reader updates separate from promotional marketing.
+- Do not send chapter updates to unverified accounts or accounts without recorded update consent.
 - A reader who previously unsubscribed must deliberately re-enable updates before being resubscribed.
-- Chapter announcements and important updates are separate from promotional marketing. Keep promotional email consent separately gated.
-- Do not send to unverified accounts.
+- Do not rely on Resend contact sync as the source of truth for consent; the website preference and consent records control eligibility.
 
 ## Sending checklist
 1. Verify the subject, chapter number, and message content.
 2. Verify the chapter is published.
 3. Use the homepage URL unless a chapter-specific URL is explicitly requested and verified.
-4. Check recipient counts and exclusions before sending.
+4. Check eligible-recipient counts and opt-out exclusions before sending.
 5. Verify delivery events after sending.
 6. Confirm each recipient's unsubscribe link is generated at send time and works.
 7. Never commit secrets, contact exports, real unsubscribe tokens, or delivery logs.
 
 ## Secrets
-Configure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_ANON_KEY` only in Supabase Edge Function secrets. Never store their values in this repository.
+Configure `RESEND_API_KEY` (send-only) and `RESEND_FROM_EMAIL` in Supabase Edge Function secrets. Contact-management functions additionally require a separately configured server-side `RESEND_CONTACTS_API_KEY` with Contacts API permissions. Never put these values in this repository or browser code. 
