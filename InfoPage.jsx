@@ -9,14 +9,14 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Creator', 'Arkesh'], ['Language', 'Roman Hindi'],
+      ['Creator', 'Arkesh'], ['Languages', 'Hindi (Roman Hindi) and English'],
       ['New chapters', 'Planned for the 14th of each month'],
       ['Format', 'Digital manga'], ['Free chapters', '1 to 8'],
       ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
       'I’m Arkesh, the solo creator of Atma Rekha, an original Indian fantasy adventure manga about people, traditions, and powers connected by a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
-      'I create the series independently and publish it first in Roman Hindi. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
+      'I create the series independently. Atma Rekha is available in Hindi (Roman Hindi) and English. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
       'Every scene and panel begins with my own rough drawings and design decisions. I determine the composition, pose, camera angle, perspective, proportions, shapes, and character placement. I use AI tools in parts of the visual process to enhance my rough sketches and help develop characters while following my original designs and direction.',
       'AI generated material is not used directly as finished artwork in the published manga. When AI-assisted imagery is used as a background reference, I manually outline and redraw it as part of the artwork. I retain creative control over the story, character designs, panel composition, and final artistic decisions, and review the pages before publication.',
     ],
