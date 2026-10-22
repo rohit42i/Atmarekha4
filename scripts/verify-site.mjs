@@ -215,6 +215,12 @@ if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
   failed = true;
 }
+const featureLoginGrantMigration = await readFile('supabase/migrations/20261022143000_fix_feature_login_rpc_grant.sql', 'utf8');
+if (!featureLoginGrantMigration.includes('grant execute on function public.record_feature_login() to authenticated, service_role;') ||
+    !featureLoginGrantMigration.includes('revoke execute on function public.record_feature_login() from public, anon;')) {
+  console.error('CHECK FAILED: feature login RPC must work for authenticated readers without allowing anonymous calls.');
+  failed = true;
+}
 const homeProfileAvatarRegression = await readFile('App.jsx', 'utf8');
 if (!homeProfileAvatarRegression.includes("select('avatar_url')") ||
     !homeProfileAvatarRegression.includes('aria-label={homeUser ? "Open your profile" : "Sign in"}') ||
