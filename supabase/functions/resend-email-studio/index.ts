@@ -25,20 +25,18 @@ const render = (source: string, vars: Record<string, string>) =>
   source.replace(/{{\s*([a-zA-Z0-9_]+)\s*}}/g, (_match, key) => vars[key] ?? "");
 
 function emailLayout(source: string, previewText: string) {
-  const bodyMatch = source.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
+  const bodyMatch = source.match(/<body\\b[^>]*>([\\s\\S]*?)<\\/body>/i);
   let content = bodyMatch ? bodyMatch[1] : source;
-  content = content.replace(/<head\b[^>]*>[\s\S]*?<\/head>/i, "")
+  content = content.replace(/<head\\b[^>]*>[\\s\\S]*?<\\/head>/i, "")
     .replace(/<!doctype[^>]*>/gi, "")
-    .replace(/<html\b[^>]*>|<\/html>/gi, "");
+    .replace(/<html\\b[^>]*>|<\\/html>/gi, "");
   const preheader = escapeHtml(previewText).slice(0, 180);
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>ATMA REKHA</title></head>' +
-    '<body style="margin:0;padding:0;width:100%;background-color:#f3f3f3;font-family:Arial,Helvetica,sans-serif;">' +
-    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f3f3f3" style="width:100%;background-color:#f3f3f3;"><tr><td align="center" style="padding-top:36px;padding-bottom:36px;padding-left:14px;padding-right:14px;">' +
-    '<table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:560px;background-color:#ffffff;"><tr><td style="padding-top:40px;padding-bottom:38px;padding-left:30px;padding-right:30px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7;color:#292929;">' +
+    '<body style="margin:0;padding:0;width:100%;background-color:#ffffff;font-family:Roboto,Arial,Helvetica,sans-serif;font-weight:500;font-size:16px;line-height:1.6;color:#222222;">' +
     '<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">' + preheader + '</div>' +
+    '<div style="width:100%;margin:0;padding:0;background-color:#ffffff;font-family:Roboto,Arial,Helvetica,sans-serif;font-weight:500;font-size:16px;line-height:1.6;color:#222222;">' +
     content +
-    '<p style="margin-top:30px;margin-bottom:0;padding-top:14px;border-top:1px solid #e5e5e5;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#777777;">ATMA REKHA · <a href="https://www.atmarekha.in/" style="color:#555555;text-decoration:underline;">Visit website</a></p>' +
-    '</td></tr></table></td></tr></table></body></html>';
+    '</div></body></html>';
 }
 
 async function limitedBody(req: Request, limit: number) {
@@ -265,7 +263,7 @@ Deno.serve(async req => {
     // or misconfigured template to bypass saved preferences and unsubscribe checks.
     const category = templateSlug === "new-chapter" ? "updates" : requestedCategory;
     // Chapter-release emails always use the short brand-only subject.
-    const subjectSource = templateSlug === "new-chapter" ? "ATMA REKHA" : cleanText(input.subject || template?.subject, 200);
+    const subjectSource = cleanText(input.subject || template?.subject, 200);
     const htmlSource = String(input.html_body || template?.html_body || "").slice(0, 50000);
     const textSource = String(input.text_body || template?.text_body || "").slice(0, 20000);
     if (!subjectSource || (!htmlSource.trim() && !textSource.trim())) {
@@ -383,13 +381,13 @@ Deno.serve(async req => {
             chapter_title: chapterTitle,
             chapter_description: chapterDescription,
             chapter_url: chapterUrl || SITE_URL,
-            announcement_title: "Atma Rekha update",
-            announcement_body: "",
-            expiry_date: "",
-            amount: "",
-            payment_reference: "",
-            maintenance_message: "",
-            support_message: "",
+            announcement_title: cleanText(variables.announcement_title || "Atma Rekha update", 180),
+            announcement_body: cleanText(variables.announcement_body, 2000),
+            expiry_date: cleanText(variables.expiry_date, 100),
+            amount: cleanText(variables.amount, 80),
+            payment_reference: cleanText(variables.payment_reference, 160),
+            maintenance_message: cleanText(variables.maintenance_message, 1500),
+            support_message: cleanText(variables.support_message, 1500),
             unsubscribe_url: unsubscribeUrl
           };
           const htmlVars = Object.fromEntries(Object.entries(plainVars).map(([key, value]) => [key, escapeHtml(value)])) as Record<string, string>;
