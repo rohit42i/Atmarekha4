@@ -8,8 +8,8 @@ const getVerifiedTotpFactors = async () => {
 };
 
 export async function verifyMfaCode(factorId, code) {
-  const cleanCode = String(code || '').replace(/\D/g, '').slice(0, 10);
-  if (cleanCode.length < 6) throw new Error('Enter the 6-digit code from your authenticator app.');
+  const cleanCode = String(code || '').trim();
+  if (!/^\d{6}$/.test(cleanCode)) throw new Error('Enter exactly 6 digits from your authenticator app.');
   const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
   if (challengeError) throw challengeError;
   const { error } = await supabase.auth.mfa.verify({
@@ -146,18 +146,18 @@ export default function MfaGate() {
           <input
             ref={inputRef}
             value={code}
-            onChange={event => { setCode(event.target.value.replace(/\D/g, '').slice(0, 10)); setError(''); }}
+            onChange={event => { setCode(event.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
             inputMode="numeric"
             autoComplete="one-time-code"
             pattern="[0-9]*"
-            maxLength={10}
+            maxLength={6}
             placeholder="123456"
             aria-label="Authenticator verification code"
             required
           />
         </label>
         {error && <p className="mfa-gate-error" role="alert">{error}</p>}
-        <button type="submit" className="primary-button" disabled={verifying || code.length < 6}>
+        <button type="submit" className="primary-button" disabled={verifying || !/^\d{6}$/.test(code)}>
           {verifying ? 'Verifying…' : 'Verify and continue'}
         </button>
       </form>}
