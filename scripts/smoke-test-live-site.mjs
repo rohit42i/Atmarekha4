@@ -88,7 +88,7 @@ assert.equal(new URL(redirectLocation, "http://www.atmarekha.in/").protocol, "ht
 const homepage = await assertOk(ROOT, "HTTPS homepage");
 assert.equal(homepage.status, 200, "HTTPS homepage must return 200.");
 assert.match(homepage.headers.get("content-type") || "", /text\/html/i, "Homepage must return HTML.");
-assert.equal(homepage.headers.get("strict-transport-security"), "max-age=15552000", "Homepage HSTS header mismatch.");
+assert.equal(homepage.headers.get("strict-transport-security"), "max-age=31536000; includeSubDomains", "Homepage HSTS header must match the enforced one-year policy.");
 assert.equal(homepage.headers.get("x-content-type-options"), "nosniff", "Homepage nosniff header missing.");
 const html = await homepage.text();
 
