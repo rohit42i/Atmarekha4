@@ -346,6 +346,20 @@ Deno.serve(async req => {
 
           let unsubscribeUrl = "";
           if (category === "marketing" || category === "updates") {
+            // Resend-side unsubscribe decisions are authoritative too, even before local backfill catches up.
+            if (resendKey) {
+              const providerLookup = await fetch("https://api.resend.com/contacts/" + encodeURIComponent(email), {
+                headers: { Authorization: "Bearer " + resendKey }
+              });
+              if (providerLookup.ok) {
+                const providerContact: any = await providerLookup.json();
+                if (providerContact?.unsubscribed === true) {
+                  return { ok: false, skipped: true, error: "Provider unsubscribe" };
+                }
+              } else if (providerLookup.status !== 404) {
+                return { ok: false, error: "Could not verify provider unsubscribe status" };
+              }
+            }
             let { data: preference, error: preferenceError } = await db.from("email_marketing_preferences")
               .select("unsubscribe_token,marketing_unsubscribed").eq("user_id", id).maybeSingle();
             if (preferenceError) throw preferenceError;
