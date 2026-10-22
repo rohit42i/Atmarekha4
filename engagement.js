@@ -5,7 +5,8 @@ const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers
 const VIEW_RECORDED_STORAGE = 'atma-rekha-view-recorded-v3';
 
 function viewRecordKey(chapterId) {
-  return `${VIEW_RECORDED_STORAGE}:${String(chapterId || '')}`;
+  const utcDay = new Date().toISOString().slice(0, 10);
+  return `${VIEW_RECORDED_STORAGE}:${utcDay}:${String(chapterId || '')}`;
 }
 
 function wasViewRecorded(chapterId) {
