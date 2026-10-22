@@ -142,8 +142,12 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         ]);
         if (error) throw error;
         if (active) setLast24({
-          // Current reads are sourced from Cloudflare Analytics Engine, not the legacy SQL table.
-          views: cloudflare?.current_views != null && Number.isFinite(Number(cloudflare.current_views)) ? Number(cloudflare.current_views) : null,
+          // Prefer live Worker counts, with the existing admin analytics result as a fallback.
+          views: cloudflare?.current_views != null && Number.isFinite(Number(cloudflare.current_views))
+            ? Number(cloudflare.current_views)
+            : data?.current_views != null && Number.isFinite(Number(data.current_views))
+              ? Number(data.current_views)
+              : null,
           ratings: data?.current_ratings != null && Number.isFinite(Number(data.current_ratings)) ? Number(data.current_ratings) : null,
           comments: data?.current_comments != null && Number.isFinite(Number(data.current_comments)) ? Number(data.current_comments) : null,
           loading: false,
@@ -178,6 +182,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             ['total_views', 'current_views', 'previous_views'].every(key =>
               cloudflare[key] != null && Number.isFinite(Number(cloudflare[key]))
             );
+          const hasFallbackViews = base.total_views != null && Number.isFinite(Number(base.total_views));
+          const hasViewCounts = hasCloudflareViews || hasFallbackViews;
           const hasCloudflareReaders = hasCloudflareViews &&
             !cloudflare.reader_metrics_limited &&
             cloudflare.active_readers != null && Number.isFinite(Number(cloudflare.active_readers)) &&
@@ -188,21 +194,22 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             return {
               ...row,
               // A missing Worker row means zero only when the views request itself succeeded.
-              views: hasCloudflareViews ? Number(cloud?.views || 0) : null,
-              period_views: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
-              periodViews: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
+              // Prefer live R2 analytics; preserve the existing database count if the Worker is unreachable.
+              views: hasCloudflareViews ? Number(cloud?.views || 0) : (row.views == null || !Number.isFinite(Number(row.views)) ? null : Number(row.views)),
+              period_views: hasCloudflareViews ? Number(cloud?.period_views || 0) : (row.period_views == null || !Number.isFinite(Number(row.period_views)) ? null : Number(row.period_views)),
+              periodViews: hasCloudflareViews ? Number(cloud?.period_views || 0) : (row.period_views == null || !Number.isFinite(Number(row.period_views)) ? null : Number(row.period_views)),
             };
           });
           setAnalytics({
             ...base,
-            total_views: hasCloudflareViews ? Number(cloudflare.total_views) : null,
-            current_views: hasCloudflareViews ? Number(cloudflare.current_views) : null,
-            previous_views: hasCloudflareViews ? Number(cloudflare.previous_views) : null,
+            total_views: hasCloudflareViews ? Number(cloudflare.total_views) : (base.total_views == null ? null : Number(base.total_views)),
+            current_views: hasCloudflareViews ? Number(cloudflare.current_views) : (base.current_views == null ? null : Number(base.current_views)),
+            previous_views: hasCloudflareViews ? Number(cloudflare.previous_views) : (base.previous_views == null ? null : Number(base.previous_views)),
             active_readers: hasCloudflareReaders ? Number(cloudflare.active_readers) : null,
             returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
             period_active_readers: hasCloudflareReaders ? Number(cloudflare.active_readers) : null,
             period_returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
-            views_unavailable: !hasCloudflareViews,
+            views_unavailable: !hasViewCounts,
             reader_metrics_unavailable: !hasCloudflareReaders,
             chapter_stats: chapterStats,
           });
