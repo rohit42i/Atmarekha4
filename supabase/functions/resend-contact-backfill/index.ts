@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SITE_URL = "https://www.atmarekha.in";
 const SEGMENT_ID = Deno.env.get("RESEND_CONTACT_SEGMENT_ID") || "d48526c4-b3d8-4a13-9c64-25f2756e6b62";
+const CONTACTS_PERMISSION_ERROR = "The Resend API key is missing Contacts API permissions. Set RESEND_CONTACTS_API_KEY to a key with Contacts permissions.";
 const cors = (req: Request) => {
   const origin = req.headers.get("Origin") || SITE_URL;
   return {
@@ -77,6 +78,21 @@ Deno.serve(async (req: Request) => {
     const { data: admin, error: adminError } = await db.from("admins").select("role").eq("user_id", auth.user.id).maybeSingle();
     if (adminError) throw adminError;
     if (!admin || !["owner", "admin"].includes(String(admin.role || "").toLowerCase())) return reply(req, { ok: false, error: "Admin access required." }, 403);
+
+    // Probe Contacts permission once before loading accounts or starting batches.
+    // A bad credential must never trigger thousands of guaranteed-failing requests.
+    const permissionProbe = await resend("/contacts?limit=1", contactKey);
+    if (permissionProbe.status === 401 || permissionProbe.status === 403) {
+      await permissionProbe.body?.cancel().catch(() => {});
+      console.error("Resend Contacts API credential lacks permissions.", permissionProbe.status);
+      return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503);
+    }
+    if (!permissionProbe.ok) {
+      await permissionProbe.body?.cancel().catch(() => {});
+      console.error("Could not verify Resend Contacts API access.", permissionProbe.status);
+      return reply(req, { ok: false, error: "Could not verify Resend Contacts API access. Please retry." }, 503);
+    }
+    await permissionProbe.body?.cancel().catch(() => {});
 
     const accounts = await loadAllUsers(db);
     const confirmed = accounts.filter((u: any) => u.email && u.email_confirmed_at);
