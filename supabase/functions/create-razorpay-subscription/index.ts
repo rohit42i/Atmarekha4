@@ -57,6 +57,17 @@ async function findOrCreatePlan(plan: { amount: number; name: string }, keyId: s
   return created.id;
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
@@ -66,7 +77,7 @@ Deno.serve(async req => {
     const keyId = Deno.env.get('RAZORPAY_KEY_ID')?.trim() || '';
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')?.trim() || '';
     const url = Deno.env.get('SUPABASE_URL')?.trim() || '';
-    const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() || '';
+    const service = readSupabaseServiceRoleKey();
     if (!keyId || !keySecret) return json({ error: 'Razorpay server keys are missing.' }, 500, origin);
     if (!url || !service) return json({ error: 'Supabase server configuration is missing.' }, 500, origin);
 
@@ -142,7 +153,19 @@ Deno.serve(async req => {
     const save = existingRow?.id
       ? await admin.from('user_subscriptions').update(row).eq('id', existingRow.id).eq('user_id', user.id)
       : await admin.from('user_subscriptions').insert(row);
-    if (save.error) throw new Error(`Subscription record creation failed: ${save.error.message}`);
+    if (save.error) {
+      // Avoid leaving an untracked subscription in Razorpay when persistence fails.
+      // If compensation also fails, emit the provider ID in server logs for manual recovery.
+      try {
+        await razorpay(`/subscriptions/${encodeURIComponent(subscription.id)}/cancel`, 'POST', keyId, keySecret, { cancel_at_cycle_end: false });
+      } catch (cancelError) {
+        console.error('Could not cancel Razorpay subscription after database persistence failed.', {
+          subscriptionId: subscription.id,
+          error: cancelError instanceof Error ? cancelError.message : 'unknown cancellation error',
+        });
+      }
+      throw new Error(`Subscription record creation failed: ${save.error.message}`);
+    }
 
     return json({ subscription_id: subscription.id, plan_id: planId, key_id: keyId, amount: plan.amount, name: plan.name }, 200, origin);
   } catch (error) {

@@ -20,6 +20,18 @@ const USER_TABLES = [
   "pdlpl_comments","pdlpl_reading_history","push_subscriptions","reading_history","subscriptions","user_moderation","user_subscriptions"
 ];
 
+// Stable primary-key ordering is required for offset-based pagination.
+const USER_TABLE_ORDER_BY: Record<string, string[]> = {
+  bookmarks: ["id"], chapter_ratings: ["id"], comment_likes: ["id"], comments: ["id"],
+  community_members: ["user_id"], community_post_reactions: ["id"], feature_login_users: ["user_id"],
+  group_chat_likes: ["message_id", "user_id"], group_chat_messages: ["id"], group_chat_reactions: ["id"],
+  group_chat_reads: ["id"], member_messages: ["id"], moderation_reports: ["id"],
+  site_feedback: ["id"], notification_subscriptions: ["id"], payments: ["id"],
+  pdlpl_bookmarks: ["id"], pdlpl_chapter_ratings: ["id"], pdlpl_comment_likes: ["id"],
+  pdlpl_comments: ["id"], pdlpl_reading_history: ["id"], push_subscriptions: ["id"],
+  reading_history: ["id"], subscriptions: ["id"], user_moderation: ["user_id"], user_subscriptions: ["id"],
+};
+
 function cors(origin: string | null) {
   return {
     "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://www.atmarekha.in",
@@ -33,6 +45,17 @@ function response(body: unknown, status: number, origin: string | null) {
 }
 function clean(value: unknown, max: number) { return String(value ?? "").trim().slice(0, max); }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(origin) });
@@ -40,7 +63,7 @@ Deno.serve(async req => {
 
   try {
     const url = Deno.env.get("SUPABASE_URL") || "";
-    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const key = readSupabaseServiceRoleKey();
     if (!url || !key) return response({ error: "Server configuration is missing." }, 500, origin);
 
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
@@ -66,7 +89,7 @@ Deno.serve(async req => {
     if (adminActions.includes(action)) {
       const { data: adminRow, error: adminError } = await admin
         .from("admins").select("role").eq("user_id", user.id).maybeSingle();
-      if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role))) {
+      if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role || "").trim().toLowerCase())) {
         return response({ error: "Admin access required." }, 403, origin);
       }
 
@@ -168,21 +191,42 @@ Deno.serve(async req => {
     };
     const exportWarnings: string[] = [];
 
+    // Export in bounded pages so accounts with more than 5,000 records are not
+    // silently truncated. The extra row detects whether the hard safety cap was hit.
+    const pageSize = 1000;
+    const maxExportRows = 100000;
     for (const table of USER_TABLES) {
       try {
         if (table === "profiles") {
           const { data, error } = await admin.from(table).select("*").eq("id", user.id);
           if (error) exportWarnings.push(`profiles: ${error.message}`);
           else (output.tables as Record<string, unknown>)[table] = data || [];
-        } else {
-          const { data, error } = await admin.from(table).select("*").eq("user_id", user.id).limit(5000);
-          if (error) exportWarnings.push(`${table}: ${error.message}`);
-          else {
-            (output.tables as Record<string, unknown>)[table] = data || [];
-            if ((data || []).length >= 5000) {
-              exportWarnings.push(`${table}: export reached the 5,000-row safety limit; this category may be incomplete.`);
-            }
+          continue;
+        }
+
+        const exportedRows: Record<string, unknown>[] = [];
+        let offset = 0;
+        let exportComplete = false;
+        while (offset <= maxExportRows) {
+          const pageLimit = Math.min(pageSize, maxExportRows + 1 - offset);
+          let query = admin.from(table).select("*").eq("user_id", user.id);
+          for (const column of USER_TABLE_ORDER_BY[table] || ["user_id"]) {
+            query = query.order(column, { ascending: true });
           }
+          const { data, error } = await query.range(offset, offset + pageLimit - 1);
+          if (error) throw error;
+          const page = data || [];
+          const remainingCapacity = maxExportRows - exportedRows.length;
+          exportedRows.push(...page.slice(0, remainingCapacity));
+          if (page.length < pageLimit) {
+            exportComplete = true;
+            break;
+          }
+          offset += page.length;
+        }
+        (output.tables as Record<string, unknown>)[table] = exportedRows;
+        if (!exportComplete) {
+          exportWarnings.push(`${table}: export reached the 100,000-row safety limit; this category may be incomplete.`);
         }
       } catch (error) {
         exportWarnings.push(`${table}: ${error instanceof Error ? error.message : "unknown retrieval error"}`);

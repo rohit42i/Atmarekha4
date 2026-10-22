@@ -69,19 +69,30 @@ export default function EmailStudio() {
   };
 
   const load = async () => {
-    const [templatesResult, historyResult] = await Promise.all([
-      supabase.from('email_templates').select('id,slug,name,category,subject,html_body,text_body,active,updated_at').order('category').order('name'),
-      supabase.from('email_campaigns').select('id,subject,audience,status,total_count,sent_count,failed_count,created_at,completed_at,error_summary').order('created_at', { ascending: false }).limit(50)
-    ]);
+    // Template availability must not depend on the campaign-history table.
+    // A history/RLS/network failure previously rejected the whole load before
+    // saved templates reached the editor.
+    const templatesResult = await supabase.from('email_templates')
+      .select('id,slug,name,category,subject,html_body,text_body,active,updated_at')
+      .order('category').order('name');
     if (templatesResult.error) throw templatesResult.error;
-    if (historyResult.error) throw historyResult.error;
     const nextTemplates = templatesResult.data || [];
     setTemplates(nextTemplates);
-    setHistory(historyResult.data || []);
     if (!selectedTemplate && nextTemplates.length) {
       const preferred = nextTemplates.find(t => t.slug === 'new-chapter') || nextTemplates[0];
       setSelectedTemplate(preferred.id);
       setDraft({ ...preferred });
+    }
+
+    try {
+      const historyResult = await supabase.from('email_campaigns')
+        .select('id,subject,audience,status,total_count,sent_count,failed_count,created_at,completed_at,error_summary')
+        .order('created_at', { ascending: false }).limit(50);
+      if (historyResult.error) throw historyResult.error;
+      setHistory(historyResult.data || []);
+    } catch (historyError) {
+      setHistory([]);
+      setNotice('Email templates loaded, but campaign history is unavailable: ' + (historyError?.message || 'unknown error'));
     }
 
     setLoadingRecipients(true);

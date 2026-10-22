@@ -176,6 +176,17 @@ function checkedChapterUrl(value: unknown) {
   }
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get("Origin") || SITE_URL;
   const respond = (body: Record<string, unknown>, status = 200) => reply(body, status, origin);
@@ -183,7 +194,7 @@ Deno.serve(async req => {
   if (req.method !== "POST") return respond({ ok: false, error: "Method not allowed." }, 405);
 
   const url = Deno.env.get("SUPABASE_URL") || "";
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const serviceKey = readSupabaseServiceRoleKey();
   const resendKey = Deno.env.get("RESEND_API_KEY") || "";
   const configuredSender = Deno.env.get("RESEND_FROM_EMAIL") || "Atma Rekha <no-reply@atmarekha.in>";
   if (!url || !serviceKey) return respond({ ok: false, error: "Supabase service configuration is missing." }, 503);
@@ -197,7 +208,7 @@ Deno.serve(async req => {
     if (authError || !user) return respond({ ok: false, error: "Invalid session." }, 401);
     const { data: admin, error: adminError } = await db.from("admins").select("user_id,role").eq("user_id", user.id).maybeSingle();
     if (adminError) throw adminError;
-    if (!admin || !["owner", "admin"].includes(String(admin.role || "").toLowerCase())) {
+    if (!admin || !["owner", "admin"].includes(String(admin.role || "").trim().toLowerCase())) {
       return respond({ ok: false, error: "Admin access required." }, 403);
     }
 

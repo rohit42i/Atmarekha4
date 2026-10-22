@@ -49,13 +49,24 @@ async function loadRows(db: any, table: string, columns: string, ids: string[], 
   return rows;
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return reply(req, { ok: false, error: "Method not allowed." }, 405);
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  const resendKey = Deno.env.get("RESEND_API_KEY") || "";
-  if (!supabaseUrl || !serviceKey || !resendKey) return reply(req, { ok: false, error: "Contact backfill is not configured." }, 503);
+  const serviceKey = readSupabaseServiceRoleKey();
+  const contactKey = Deno.env.get("RESEND_CONTACTS_API_KEY") || "";
+  if (!supabaseUrl || !serviceKey || !contactKey) return reply(req, { ok: false, error: "Contact backfill is not configured: set RESEND_CONTACTS_API_KEY with Contacts API permissions." }, 503);
 
   try {
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
@@ -94,13 +105,13 @@ Deno.serve(async (req: Request) => {
       const results = await Promise.all(targets.slice(offset, offset + 10).map(async (target: any) => {
         try {
           const path = "/contacts/" + encodeURIComponent(target.email);
-          const lookup = await resend(path, resendKey);
+          const lookup = await resend(path, contactKey);
           let contactId = "";
           let wasCreated = false;
           if (lookup.ok) {
             const existing: any = await lookup.json();
             contactId = String(existing.id || "");
-            const update = await resend(path, resendKey, {
+            const update = await resend(path, contactKey, {
               method: "PATCH",
               body: JSON.stringify({
                 first_name: target.firstName,
@@ -110,7 +121,7 @@ Deno.serve(async (req: Request) => {
             });
             if (!update.ok) throw new Error("Contact update failed (" + update.status + ")");
           } else if (lookup.status === 404) {
-            const create = await resend("/contacts", resendKey, {
+            const create = await resend("/contacts", contactKey, {
               method: "POST",
               body: JSON.stringify({
                 email: target.email,
@@ -131,7 +142,7 @@ Deno.serve(async (req: Request) => {
             throw new Error("Contact lookup failed (" + lookup.status + ")");
           }
           if (contactId) {
-            const segment = await resend("/contacts/" + encodeURIComponent(contactId) + "/segments/" + encodeURIComponent(SEGMENT_ID), resendKey, { method: "POST" });
+            const segment = await resend("/contacts/" + encodeURIComponent(contactId) + "/segments/" + encodeURIComponent(SEGMENT_ID), contactKey, { method: "POST" });
             if (!segment.ok && segment.status !== 409 && segment.status !== 422) throw new Error("Audience assignment failed (" + segment.status + ")");
           }
           return { ok: true, added: wasCreated, eligible: target.eligible };

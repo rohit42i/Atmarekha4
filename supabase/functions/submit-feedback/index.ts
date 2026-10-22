@@ -53,6 +53,17 @@ function cleanText(value: unknown, max: number) {
   return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(origin) });
@@ -60,7 +71,7 @@ Deno.serve(async req => {
 
   try {
     const url = Deno.env.get("SUPABASE_URL") || "";
-    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const key = readSupabaseServiceRoleKey();
     if (!url || !key) return json({ error: "Server configuration is missing." }, 500, origin);
 
     const admin = createClient(url, key);

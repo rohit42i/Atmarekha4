@@ -14,11 +14,22 @@ async function readLimitedBody(req: Request, maxBytes: number): Promise<string |
   return new TextDecoder().decode(bytes);
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ ok: false, error: "Method not allowed." }, 405);
   const secret = Deno.env.get("RESEND_WEBHOOK_SECRET") || "";
   const url = Deno.env.get("SUPABASE_URL") || "";
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const serviceKey = readSupabaseServiceRoleKey();
   if (!secret || !url || !serviceKey) return json({ ok: false, error: "Webhook service is not configured." }, 503);
 
   try {

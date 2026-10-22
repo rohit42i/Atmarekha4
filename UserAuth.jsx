@@ -45,11 +45,11 @@ function AuthPanel({mode,setMode,onClose,onSignedIn}){
         await validateNewPassword(password);
         const{data,error:authError}=await supabase.auth.signUp({email:email.trim(),password,options:{data:{full_name:name.trim(),marketing_attribution:getMarketingAttribution(),dpdp_privacy_consent_version:'2026-10-19',dpdp_consent_purposes:['account','reading','community','membership','atma_rekha_updates','chapter_announcements'].join(','),age_declaration_version:'2026-10-07'},emailRedirectTo:`${window.location.origin}/`}});
         if(authError)throw authError;
-        if(data.user?.id){try{const{error:syncError}=await supabase.functions.invoke('resend-contact-sync',{body:{userId:data.user.id}});if(syncError)console.warn('Resend contact sync will retry after verification or sign-in.')}catch{console.warn('Resend contact sync will retry after verification or sign-in.')}}
+        if(data.session?.user?.id){try{const{data:syncData,error:syncError}=await supabase.functions.invoke('resend-contact-sync');if(syncError||syncData?.ok!==true)console.warn('Resend contact sync will retry after the next sign-in.')}catch{console.warn('Resend contact sync will retry after the next sign-in.')}}
         clearDraft('atma-auth-draft');
         if(data.session)onSignedIn();else setMessage('Check your email to verify your account, then sign in.');
       }else if(mode==='login'){
-        await secureSignInWithPassword(email.trim(), password);clearDraft('atma-auth-draft');onSignedIn();
+        await secureSignInWithPassword(email.trim(), password);try{const{data:syncData,error:syncError}=await supabase.functions.invoke('resend-contact-sync');if(syncError||syncData?.ok!==true)console.warn('Resend contact sync did not complete; it will retry on a later sign-in.')}catch{console.warn('Resend contact sync did not complete; it will retry on a later sign-in.')}clearDraft('atma-auth-draft');onSignedIn();
       }else{
         const{error:authError}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:`${window.location.origin}/?reset-password=1`});if(authError)throw authError;setMessage('Password reset link has been sent to your Gmail.');
       }

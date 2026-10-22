@@ -50,7 +50,7 @@ const required = [
   ['AdminControlRoom.jsx', 'const cloudViewsAvailable = cloudAnalyticsAvailable'],
   ['AdminControlRoom.jsx', 'const cloudReadersAvailable = cloudAnalyticsAvailable'],
   ['AdminOverview.jsx', "Number(previous) > 0"],
-  ['AdminOverview.jsx', 'views_unavailable: !hasCloudflareViews'],
+  ['AdminOverview.jsx', 'views_unavailable: !hasViewCounts'],
   ['AdminOverview.jsx', 'Analytics could not be loaded.'],
   ['AdminOverview.jsx', 'viewsAvailable={!metrics.viewsUnavailable}'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
@@ -60,7 +60,7 @@ const required = [
   ['supabase/functions/delete-account/index.ts', 'Never hard-delete an account from this endpoint'],
 
   ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","site_feedback","notification_subscriptions"'],
-  ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 5,000-row safety limit'],
+  ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 100,000-row safety limit'],
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
@@ -143,6 +143,12 @@ if (!signupEmailUpdatesRegression.includes("'atma_rekha_updates','chapter_announ
   console.error('CHECK FAILED: Signup must enable email updates by default and disclose how readers can turn them off.');
   failed = true;
 }
+if (!signupEmailUpdatesRegression.includes('if(data.session?.user?.id)') ||
+    !signupEmailUpdatesRegression.includes("await supabase.functions.invoke('resend-contact-sync')") ||
+    !signupEmailUpdatesRegression.includes('Resend contact sync did not complete; it will retry on a later sign-in.')) {
+  console.error('CHECK FAILED: Contact syncing must wait for an authenticated session and retry after sign-in.');
+  failed = true;
+}
 const morePagePreferenceRegression = await readFile('MorePage.jsx', 'utf8');
 if (morePagePreferenceRegression.includes('Reader customization') || morePagePreferenceRegression.includes('readerSettingsOpen')) {
   console.error('CHECK FAILED: Reader customization must not appear in More & Settings.');
@@ -157,12 +163,111 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const chapterReleaseEmailRetryRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
+if (!chapterReleaseEmailRetryRegression.includes('Partial sends are not retried automatically') ||
+    !chapterReleaseEmailRetryRegression.includes('.eq("status", "failed").eq("sent_count", 0)') ||
+    !chapterReleaseEmailRetryRegression.includes('if (existing.status !== "failed" || Number(existing.sent_count || 0) !== 0)')) {
+  console.error('CHECK FAILED: chapter release emails must retry only failed zero-send dispatches.');
+  failed = true;
+}
+const razorpayWebhookRetryRegression = await readFile('supabase/functions/razorpay-subscription-webhook/index.ts', 'utf8');
+if (!razorpayWebhookRetryRegression.includes("if (!record) throw new Error('Razorpay subscription record not found for webhook event.')") ||
+    !razorpayWebhookRetryRegression.includes('Razorpay subscription lookup failed:') ||
+    !razorpayWebhookRetryRegression.includes('Could not check Razorpay event idempotency:') ||
+    razorpayWebhookRetryRegression.indexOf("if (!record) throw new Error('Razorpay subscription record not found for webhook event.')") >
+      razorpayWebhookRetryRegression.indexOf("await admin.from('payment_events').insert")) {
+  console.error('CHECK FAILED: Razorpay subscription webhooks must remain retryable until the local subscription is updated.');
+  failed = true;
+}
+const adminNotificationRetryRegression = await readFile('supabase/functions/send-chapter-notification-v2/index.ts', 'utf8');
+if (!adminNotificationRetryRegression.includes("['failed','no_subscribers'].includes(String(existing.status||''))") ||
+    !adminNotificationRetryRegression.includes(".in('status',['failed','no_subscribers']).eq('sent_count',0)") ||
+    !adminNotificationRetryRegression.includes("Sent/partial/sending rows remain blocked")) {
+  console.error('CHECK FAILED: admin push notifications must retry only zero-send failures and preserve deduplication.');
+  failed = true;
+}
+const readerEventRetryRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
+if (!readerEventRetryRegression.includes('existingDispatch.status !== "failed"') ||
+    !readerEventRetryRegression.includes('.eq("status", "failed").eq("sent_count", 0)') ||
+    !readerEventRetryRegression.includes('sentDuringDispatch > 0 ? "partial" : "failed"')) {
+  console.error('CHECK FAILED: notification dispatches must safely retry zero-send failures without duplicating partial deliveries.');
+  failed = true;
+}
+const emailStudioLoadRegression = await readFile('EmailStudio.jsx', 'utf8');
+const emailStudioLoadStart = emailStudioLoadRegression.indexOf('const load = async () => {');
+const emailStudioLoadEnd = emailStudioLoadRegression.indexOf('setLoadingRecipients(true);', emailStudioLoadStart);
+const emailStudioLoadBlock = emailStudioLoadRegression.slice(emailStudioLoadStart, emailStudioLoadEnd);
+if (emailStudioLoadStart < 0 ||
+    emailStudioLoadEnd < 0 ||
+    emailStudioLoadBlock.indexOf("setTemplates(nextTemplates)") < 0 ||
+    emailStudioLoadBlock.indexOf("setTemplates(nextTemplates)") > emailStudioLoadBlock.indexOf("const historyResult") ||
+    !emailStudioLoadBlock.includes("Email templates loaded, but campaign history is unavailable:")) {
+  console.error('CHECK FAILED: Email Studio template loading must survive a campaign-history query failure.');
+  failed = true;
+}
 const emailStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
 const emailStudioFunctionRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
 if (!emailStudioRegression.includes("const effectiveCategory = isChapterTemplate ? 'updates' : draft.category;") ||
     !emailStudioFunctionRegression.includes('const category = templateSlug === "new-chapter" ? "updates" : requestedCategory;') ||
     !emailStudioFunctionRegression.includes('marketing_opted_out') || !emailStudioFunctionRegression.includes('updates_consented')) {
   console.error('CHECK FAILED: Chapter announcements must use the reader-updates preference and respect opt-outs.');
+  failed = true;
+}
+const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
+const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
+if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    !resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    resendContactSyncRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
+    resendContactBackfillRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
+  console.error('CHECK FAILED: Resend contact operations must not reuse the send-only email API key.');
+  failed = true;
+}
+const mfaCodeRegression = await readFile('MfaGate.jsx', 'utf8');
+if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
+    !mfaCodeRegression.includes("maxLength={6}") ||
+    !mfaCodeRegression.includes("disabled={verifying || !/^\\d{6}$/.test(code)}")) {
+  console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
+  failed = true;
+}
+const communityReactionAccessibilityRegression = await readFile('Community.jsx', 'utf8');
+if (!communityReactionAccessibilityRegression.includes('className="community-post-react"') ||
+    !communityReactionAccessibilityRegression.includes('aria-expanded={pickerPost===post.id}') ||
+    !communityReactionAccessibilityRegression.includes('Choose a reaction') ||
+    !communityReactionAccessibilityRegression.includes('event.key==="Escape"')) {
+  console.error('CHECK FAILED: community reactions need a keyboard-accessible open button and Escape-to-close behavior.');
+  failed = true;
+}
+const serviceRoleSecretCompatibilityPaths = [
+  'supabase/functions/get-admin-console-data/index.ts',
+  'supabase/functions/get-admin-user-stats/index.ts',
+  'supabase/functions/dpdp-data-rights/index.ts',
+];
+for (const path of serviceRoleSecretCompatibilityPaths) {
+  const source = await readFile(path, 'utf8');
+  if (!source.includes('function readSupabaseServiceRoleKey()') ||
+      !source.includes('Deno.env.get("SUPABASE_SECRET_KEYS")') ||
+      !source.includes('Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")')) {
+    console.error('CHECK FAILED: critical functions must accept both Supabase secret-key formats: ' + path);
+    failed = true;
+  }
+}
+const contactSyncKeyRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
+if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    contactSyncKeyRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
+  console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
+  failed = true;
+}
+const featureLoginGrantMigration = await readFile('supabase/migrations/20261022142628_fix_feature_login_rpc_grant_20261022.sql', 'utf8');
+if (!featureLoginGrantMigration.includes('grant execute on function public.record_feature_login() to authenticated, service_role;') ||
+    !featureLoginGrantMigration.includes('revoke execute on function public.record_feature_login() from public, anon;')) {
+  console.error('CHECK FAILED: feature login RPC must work for authenticated readers without allowing anonymous calls.');
+  failed = true;
+}
+const homeProfileAvatarRegression = await readFile('App.jsx', 'utf8');
+if (!homeProfileAvatarRegression.includes("select('avatar_url')") ||
+    !homeProfileAvatarRegression.includes('aria-label={homeUser ? "Open your profile" : "Sign in"}') ||
+    !homeProfileAvatarRegression.includes('onError={() => setHomeAvatar("")}')) {
+  console.error('CHECK FAILED: home header must show the current reader avatar with a safe fallback and profile action.');
   failed = true;
 }
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
@@ -189,6 +294,14 @@ if (/nominee|nomination|privacy-nomination-form/i.test(simplifiedPrivacySource))
 const simplifiedRightsHandler = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
 if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
   console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination actions.');
+  failed = true;
+}
+if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') ||
+    !simplifiedRightsHandler.includes('USER_TABLE_ORDER_BY') ||
+    !simplifiedRightsHandler.includes('query = query.order(column, { ascending: true })') ||
+    simplifiedRightsHandler.includes('.limit(5000)') ||
+    !simplifiedRightsHandler.includes('100,000-row safety limit')) {
+  console.error('CHECK FAILED: privacy data exports must paginate beyond 5,000 rows and disclose the bounded maximum.');
   failed = true;
 }
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');

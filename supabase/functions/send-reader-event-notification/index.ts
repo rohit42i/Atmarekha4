@@ -40,12 +40,22 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
     return { sent: Number(existing.sent_count || 0), failed: Number(existing.failed_count || 0), duplicate: true };
   }
   if (existing?.status === "sending") return { sent: 0, failed: 0, duplicate: true };
+  if (existing?.status === "partial" && Number(existing.sent_count || 0) > 0) {
+    return { sent: Number(existing.sent_count || 0), failed: Number(existing.failed_count || 0), duplicate: true, reason: "Partial sends are not retried automatically to avoid duplicate emails." };
+  }
 
   let dispatchId: number | string;
   if (existing?.id) {
-    const { error } = await db.from("notification_event_dispatches").update({ status: "sending", sender_user_id: actorId }).eq("id", existing.id);
-    if (error) throw error;
-    dispatchId = existing.id;
+    if (existing.status !== "failed" || Number(existing.sent_count || 0) !== 0) {
+      return { sent: Number(existing.sent_count || 0), failed: Number(existing.failed_count || 0), duplicate: true };
+    }
+    const { data: claimed, error: claimError } = await db.from("notification_event_dispatches")
+      .update({ status: "sending", sender_user_id: actorId, sent_count: 0, failed_count: 0, completed_at: null })
+      .eq("id", existing.id).eq("status", "failed").eq("sent_count", 0)
+      .select("id").maybeSingle();
+    if (claimError) throw claimError;
+    if (!claimed) return { sent: 0, failed: 0, duplicate: true };
+    dispatchId = claimed.id;
   } else {
     const { data: dispatch, error } = await db.from("notification_event_dispatches")
       .insert({ event_type: "chapter_release_email", event_id: chapter.id, sender_user_id: actorId, status: "sending" })
@@ -170,18 +180,34 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
   }
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: headersFor(req) });
   if (req.method !== "POST") return respond(req, { ok: false, error: "Method not allowed." }, 405);
+  let dispatchDb: ReturnType<typeof createClient> | null = null;
+  let activeDispatchId: number | string | null = null;
+  let sentDuringDispatch = 0;
+  let failedDuringDispatch = 0;
   try {
     const url = Deno.env.get("SUPABASE_URL") || "";
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const serviceKey = readSupabaseServiceRoleKey();
     const publicKey = Deno.env.get("VAPID_PUBLIC_KEY") || "";
     const privateKey = Deno.env.get("VAPID_PRIVATE_KEY") || "";
     if (!url || !serviceKey || !publicKey || !privateKey) return respond(req, { ok: false, error: "Notification service is not configured." }, 503);
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
     if (!token) return respond(req, { ok: false, error: "Authentication required." }, 401);
     const db = createClient(url, serviceKey);
+    dispatchDb = db;
     const { data: { user }, error: authError } = await db.auth.getUser(token);
     if (authError || !user) return respond(req, { ok: false, error: "Invalid authentication." }, 401);
     const raw = await readLimitedBody(req, 8192);
@@ -266,11 +292,32 @@ Deno.serve(async (req: Request) => {
     if (!recipientIds.length) return respond(req, { ok: true, sent: 0, reason: "No eligible push recipients.", emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total, emailError: emailResult.error });
     const uniqueIds = [...new Set(recipientIds)].filter(id => id !== user.id || eventType === "comments_replies");
     if (!uniqueIds.length) return respond(req, { ok: true, sent: 0, reason: "No eligible push recipients.", emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total, emailError: emailResult.error });
-    const { data: dispatch, error: dispatchError } = await db.from("notification_event_dispatches").insert({ event_type: eventType, event_id: eventId, sender_user_id: user.id, status: "sending" }).select("id").single();
+    const { data: insertedDispatch, error: dispatchError } = await db.from("notification_event_dispatches")
+      .insert({ event_type: eventType, event_id: eventId, sender_user_id: user.id, status: "sending" })
+      .select("id").single();
+    activeDispatchId = insertedDispatch?.id ?? null;
     if (dispatchError) {
-      if ((dispatchError as { code?: string }).code === "23505") return respond(req, { ok: true, duplicate: true, sent: 0, emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total });
-      throw dispatchError;
+      if ((dispatchError as { code?: string }).code !== "23505") throw dispatchError;
+      const { data: existingDispatch, error: existingDispatchError } = await db.from("notification_event_dispatches")
+        .select("id,status,sent_count,failed_count")
+        .eq("event_type", eventType).eq("event_id", eventId).maybeSingle();
+      if (existingDispatchError) throw existingDispatchError;
+      // Only failed attempts with zero successful sends are safe to retry automatically.
+      // "sending", "sent", "skipped", and partial attempts remain deduplicated.
+      if (!existingDispatch || existingDispatch.status !== "failed" || Number(existingDispatch.sent_count || 0) !== 0) {
+        return respond(req, { ok: true, duplicate: true, sent: 0, emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total });
+      }
+      const { data: claimedDispatch, error: claimError } = await db.from("notification_event_dispatches")
+        .update({ status: "sending", sender_user_id: user.id, sent_count: 0, failed_count: 0, completed_at: null })
+        .eq("id", existingDispatch.id).eq("status", "failed").eq("sent_count", 0)
+        .select("id").maybeSingle();
+      if (claimError) throw claimError;
+      if (!claimedDispatch) {
+        return respond(req, { ok: true, duplicate: true, sent: 0, emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total });
+      }
+      activeDispatchId = claimedDispatch.id;
     }
+    if (activeDispatchId == null) throw new Error("Notification dispatch did not return an ID.");
     const { data: prefs, error: preferenceError } = await db.from("notification_preferences").select("user_id,preferences").in("user_id", uniqueIds);
     if (preferenceError) throw preferenceError;
     const preferenceMap = new Map((prefs || []).map((row: { user_id: string; preferences: Record<string, boolean> | null }) => [row.user_id, row.preferences || {}]));
@@ -282,7 +329,7 @@ Deno.serve(async (req: Request) => {
       return !preferences || preferences[category] !== false;
     });
     if (!eligible.length) {
-      await db.from("notification_event_dispatches").update({ status: "skipped", completed_at: new Date().toISOString() }).eq("id", dispatch.id);
+      await db.from("notification_event_dispatches").update({ status: "skipped", completed_at: new Date().toISOString() }).eq("id", activeDispatchId);
       return respond(req, { ok: true, sent: 0, reason: "Recipients have no active subscription or disabled this category.", emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total, emailError: emailResult.error });
     }
     webpush.setVapidDetails("mailto:atmarekhasupport@gmail.com", publicKey, privateKey);
@@ -295,8 +342,10 @@ Deno.serve(async (req: Request) => {
           JSON.stringify({ title, body: message, icon: "/ishani.png", badge: "/ishani.png", url: targetUrl, tag: `atma-${category}-${eventId}`, renotify: false }),
         );
         sent++;
+        sentDuringDispatch = sent;
       } catch (error) {
         failed++;
+        failedDuringDispatch = failed;
         const code = (error as { statusCode?: number })?.statusCode;
         if (code === 404 || code === 410) await db.from("push_subscriptions").delete().eq("id", subscription.id);
       }
@@ -305,6 +354,21 @@ Deno.serve(async (req: Request) => {
     if (adminOnly) await db.from("admin_activity_log").insert({ admin_user_id: user.id, action: "send_event_notification", entity_type: eventType, entity_id: eventId, details: { category, sent, failed, email_sent: emailResult.sent, email_failed: emailResult.failed, email_total: emailResult.total } });
     return respond(req, { ok: true, sent, failed, category, emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total, emailDuplicate: emailResult.duplicate, emailError: emailResult.error }, 200);
   } catch (error) {
+    if (dispatchDb && activeDispatchId != null) {
+      try {
+        const { error: recoveryError } = await dispatchDb.from("notification_event_dispatches")
+          .update({
+            status: sentDuringDispatch > 0 ? "partial" : "failed",
+            sent_count: sentDuringDispatch,
+            failed_count: failedDuringDispatch,
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", activeDispatchId).eq("status", "sending");
+        if (recoveryError) console.error("Could not recover the failed notification dispatch state.", recoveryError.message);
+      } catch (recoveryError) {
+        console.error("Could not recover the failed notification dispatch state.", recoveryError instanceof Error ? recoveryError.message : "unknown error");
+      }
+    }
     console.error("Reader event notification failed.", error);
     return respond(req, { ok: false, error: "Could not send event notification." }, 500);
   }
