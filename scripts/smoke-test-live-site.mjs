@@ -85,15 +85,15 @@ const html = await homepage.text();
 // Count same-origin shell assets and reject absolute resource URLs pointing
 // away from the production host. Assets are not fetched based on response data.
 const assetRefs = new Set();
-for (const match of html.matchAll(/(?:src|href)\\s*=\\s*["']([^"']+)["']/gi)) {
+for (const match of html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)) {
   const raw = match[1].trim();
   if (!raw || raw.startsWith("#") || /^(?:data:|blob:|mailto:|tel:|javascript:)/i.test(raw)) continue;
   let url;
   try { url = new URL(raw, ROOT); } catch { continue; }
-  if (/^(?:https?:)?\\/\\//i.test(raw)) {
+  if (/^(?:https?:)?\/\//i.test(raw)) {
     assert.equal(url.origin, ROOT_URL.origin, "Page shell contains a cross-origin absolute link or asset: " + raw);
   }
-  if (url.origin === ROOT_URL.origin && /\\.(?:js|mjs|css|png|jpe?g|svg|webp|ico|woff2?)(?:$|[?#])/i.test(url.pathname + url.search + url.hash)) {
+  if (url.origin === ROOT_URL.origin && /\.(?:js|mjs|css|png|jpe?g|svg|webp|ico|woff2?)(?:$|[?#])/i.test(url.pathname + url.search + url.hash)) {
     assetRefs.add(url.pathname + url.search);
   }
 }
@@ -102,15 +102,15 @@ assert.ok(assetRefs.size > 0, "No same-origin script/style/image assets were fou
 for (const route of PUBLIC_ROUTES) {
   const response = await assertOk(new URL(route, ROOT).href, "Public route " + route);
   assert.equal(response.status, 200, "Public route must return HTTP 200: " + route);
-  assert.match(response.headers.get("content-type") || "", /text\\/html/i, "Public route must return HTML: " + route);
+  assert.match(response.headers.get("content-type") || "", /text\/html/i, "Public route must return HTML: " + route);
   await response.body?.cancel().catch(() => {});
 }
 
 const sitemapResponse = await assertOk(new URL("/sitemap.xml", ROOT).href, "Sitemap");
-assert.match(sitemapResponse.headers.get("content-type") || "", /xml|text\\/plain/i, "Sitemap response must be XML or plain text.");
+assert.match(sitemapResponse.headers.get("content-type") || "", /xml|text\/plain/i, "Sitemap response must be XML or plain text.");
 const sitemap = await sitemapResponse.text();
-assert.match(sitemap, /<urlset\\b/i, "Sitemap is missing the urlset root.");
-const listedUrls = [...sitemap.matchAll(/<loc>\\s*([\\s\\S]*?)\\s*<\\/loc>/gi)]
+assert.match(sitemap, /<urlset\b/i, "Sitemap is missing the urlset root.");
+const listedUrls = [...sitemap.matchAll(/<loc>\s*([\s\S]*?)\s*<\/loc>/gi)]
   .map(match => decodeXml(match[1].trim()))
   .filter(Boolean);
 assert.ok(listedUrls.length > 0, "Sitemap contains no URLs.");
