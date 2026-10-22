@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role))) {
+    if (adminError || !adminRow || !["owner", "admin"].includes(String(adminRow.role || "").trim().toLowerCase())) {
       return json({ error: "Admin access required." }, 403, origin);
     }
 
