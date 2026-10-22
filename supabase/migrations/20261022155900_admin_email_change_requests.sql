@@ -76,6 +76,42 @@ CREATE POLICY "Admins can view email change request history"
     )
   );
 
+CREATE OR REPLACE FUNCTION public.supersede_previous_email_change_requests()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $
+DECLARE
+  prior_request record;
+  action_time timestamptz := pg_catalog.now();
+BEGIN
+  FOR prior_request IN
+    UPDATE public.email_change_requests
+    SET status = 'superseded', closed_at = action_time
+    WHERE user_id = NEW.user_id AND status = 'pending'
+    RETURNING id
+  LOOP
+    INSERT INTO public.email_change_request_events
+      (request_id, user_id, actor_user_id, event_type, details)
+    VALUES (
+      prior_request.id,
+      NEW.user_id,
+      NEW.user_id,
+      'superseded',
+      pg_catalog.jsonb_build_object('reason', 'new_email_change_request')
+    );
+  END LOOP;
+  RETURN NEW;
+END;
+$;
+
+REVOKE ALL ON FUNCTION public.supersede_previous_email_change_requests() FROM public, anon, authenticated;
+DROP TRIGGER IF EXISTS email_change_request_supersede_previous ON public.email_change_requests;
+CREATE TRIGGER email_change_request_supersede_previous
+  BEFORE INSERT ON public.email_change_requests
+  FOR EACH ROW EXECUTE FUNCTION public.supersede_previous_email_change_requests();
+
 CREATE OR REPLACE FUNCTION public.log_email_change_request_created()
 RETURNS trigger
 LANGUAGE plpgsql
