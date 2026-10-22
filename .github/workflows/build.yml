@@ -51,6 +51,7 @@ jobs:
         run: |
           node --check worker.js
           node --check atma-media-worker/index.js
+          node --check scripts/smoke-test-live-site.mjs
           node scripts/test-worker-seo.mjs
 
       - name: Build production bundle
@@ -69,19 +70,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Harden Cloudflare zone transport security
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        continue-on-error: true
-        run: |
-          curl --fail-with-body --silent --show-error \
-            -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data '[{"id":"always_use_https","value":"on"},{"id":"min_tls_version","value":"1.2"},{"id":"automatic_https_rewrites","value":"on"},{"id":"security_header","value":{"strict_transport_security":{"enabled":true,"max_age":31536000,"include_subdomains":true,"preload":false,"nosniff":true}}}]'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ZONE_ID: 8dbd4ce15e5916a6c1d95dbb5f1581d0
 
       - name: Ensure PDPL R2 bucket exists
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -145,6 +133,44 @@ jobs:
           }
           throw new Error('Chapter view endpoint smoke test failed: ' + (lastError?.message || 'unknown error'));
           NODE
+
+      - name: Harden Cloudflare zone transport security
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"items":[{"id":"always_use_https","value":"on"},{"id":"min_tls_version","value":"1.2"},{"id":"automatic_https_rewrites","value":"on"}]}'
+          settings="$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/settings")"
+          printf '%s' "$settings" | node --input-type=module -e '
+            let input = "";
+            process.stdin.on("data", chunk => input += chunk);
+            process.stdin.on("end", () => {
+              const response = JSON.parse(input);
+              if (!response.success || !Array.isArray(response.result)) {
+                console.error("Cloudflare settings verification request failed.");
+                process.exit(1);
+              }
+              const values = Object.fromEntries(response.result.map(item => [item.id, item.value]));
+              if (values.always_use_https !== "on" ||
+                  values.min_tls_version !== "1.2" ||
+                  values.automatic_https_rewrites !== "on") {
+                console.error("Cloudflare HTTPS/TLS settings did not match the required values.");
+                process.exit(1);
+              }
+              console.log("Cloudflare HTTPS redirect and minimum TLS 1.2 settings verified.");
+            });
+          '
+        env:
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE_ID: 8dbd4ce15e5916a6c1d95dbb5f1581d0
+
+      - name: Verify live site routes, assets, and security headers
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: node scripts/smoke-test-live-site.mjs
 
   deploy-atma-media-worker:
     name: Deploy Atma media Worker (independent hotfix path)
