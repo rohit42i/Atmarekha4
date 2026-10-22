@@ -195,7 +195,7 @@ export default function EmailStudio() {
     support_message: 'Your support request has been updated.',
     unsubscribe_url: SITE_URL
   };
-  const nonChapterSource = [draft.subject, draft.html_body, draft.text_body].join('\\n');
+  const nonChapterSource = [draft.subject, draft.html_body, draft.text_body].join('\n');
   const visibleExtraVariables = isChapterTemplate ? [] : extraVariableFields.filter(field => nonChapterSource.includes('{{' + field.key + '}}'));
   const htmlBodyForEditor = isChapterTemplate && !advancedHtml ? plainTextToHtml(draft.text_body) : draft.html_body;
   const previewHtml = renderPreview(htmlBodyForEditor, { ...previewVars, ...extraVariables });
