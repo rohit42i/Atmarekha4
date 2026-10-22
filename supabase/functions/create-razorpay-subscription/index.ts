@@ -57,6 +57,17 @@ async function findOrCreatePlan(plan: { amount: number; name: string }, keyId: s
   return created.id;
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
@@ -66,7 +77,7 @@ Deno.serve(async req => {
     const keyId = Deno.env.get('RAZORPAY_KEY_ID')?.trim() || '';
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')?.trim() || '';
     const url = Deno.env.get('SUPABASE_URL')?.trim() || '';
-    const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() || '';
+    const service = readSupabaseServiceRoleKey();
     if (!keyId || !keySecret) return json({ error: 'Razorpay server keys are missing.' }, 500, origin);
     if (!url || !service) return json({ error: 'Supabase server configuration is missing.' }, 500, origin);
 
