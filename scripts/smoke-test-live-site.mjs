@@ -24,11 +24,15 @@ const PUBLIC_ROUTES = [
 
 function siteUrl(input) {
   const candidate = new URL(String(input), ROOT);
-  if (candidate.origin !== ROOT_URL.origin) {
+  const isHttpsSite = candidate.origin === ROOT_URL.origin;
+  const isHttpRedirectProbe = candidate.origin === "http://www.atmarekha.in";
+  if (!isHttpsSite && !isHttpRedirectProbe) {
     throw new Error("Refusing to request a URL outside the Atma Rekha site origin.");
   }
-  // Reconstruct the request from the fixed production origin and validated path.
-  return new URL(candidate.pathname + candidate.search, ROOT).href;
+  // The only HTTP request allowed by this helper is the fixed redirect probe.
+  // Every other request is reconstructed against the fixed HTTPS production origin.
+  const base = isHttpRedirectProbe ? "http://www.atmarekha.in/" : ROOT;
+  return new URL(candidate.pathname + candidate.search, base).href;
 }
 
 async function fetchWithRetry(input, options = {}) {
