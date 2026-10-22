@@ -20,6 +20,18 @@ const USER_TABLES = [
   "pdlpl_comments","pdlpl_reading_history","push_subscriptions","reading_history","subscriptions","user_moderation","user_subscriptions"
 ];
 
+// Stable primary-key ordering is required for offset-based pagination.
+const USER_TABLE_ORDER_BY: Record<string, string[]> = {
+  bookmarks: ["id"], chapter_ratings: ["id"], comment_likes: ["id"], comments: ["id"],
+  community_members: ["user_id"], community_post_reactions: ["id"], feature_login_users: ["user_id"],
+  group_chat_likes: ["message_id", "user_id"], group_chat_messages: ["id"], group_chat_reactions: ["id"],
+  group_chat_reads: ["id"], member_messages: ["id"], moderation_reports: ["id"],
+  site_feedback: ["id"], notification_subscriptions: ["id"], payments: ["id"],
+  pdlpl_bookmarks: ["id"], pdlpl_chapter_ratings: ["id"], pdlpl_comment_likes: ["id"],
+  pdlpl_comments: ["id"], pdlpl_reading_history: ["id"], push_subscriptions: ["id"],
+  reading_history: ["id"], subscriptions: ["id"], user_moderation: ["user_id"], user_subscriptions: ["id"],
+};
+
 function cors(origin: string | null) {
   return {
     "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://www.atmarekha.in",
@@ -186,11 +198,11 @@ Deno.serve(async req => {
         let exportComplete = false;
         while (offset <= maxExportRows) {
           const pageLimit = Math.min(pageSize, maxExportRows + 1 - offset);
-          const { data, error } = await admin
-            .from(table)
-            .select("*")
-            .eq("user_id", user.id)
-            .range(offset, offset + pageLimit - 1);
+          let query = admin.from(table).select("*").eq("user_id", user.id);
+          for (const column of USER_TABLE_ORDER_BY[table] || ["user_id"]) {
+            query = query.order(column, { ascending: true });
+          }
+          const { data, error } = await query.range(offset, offset + pageLimit - 1);
           if (error) throw error;
           const page = data || [];
           const remainingCapacity = maxExportRows - exportedRows.length;
