@@ -51,6 +51,7 @@ jobs:
         run: |
           node --check worker.js
           node --check atma-media-worker/index.js
+          node --check scripts/smoke-test-live-site.mjs
           node scripts/test-worker-seo.mjs
 
       - name: Build production bundle
