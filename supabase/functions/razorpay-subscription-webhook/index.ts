@@ -31,10 +31,21 @@ async function sha256Hex(body: string) { const digest = await crypto.subtle.dige
 function iso(unix: unknown) { const value = Number(unix); return Number.isFinite(value) && value > 0 ? new Date(value * 1000).toISOString() : null; }
 function fallbackPeriodEnd(startIso: string | null) { const base = startIso ? new Date(startIso).getTime() : Date.now(); return new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString(); }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   try {
-    const secret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET')?.trim() || ''; const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim() || ''; const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() || '';
+    const secret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET')?.trim() || ''; const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim() || ''; const service = readSupabaseServiceRoleKey();
     if (!secret || !supabaseUrl || !service) return new Response('Webhook configuration missing', { status: 500 });
     const raw = await readLimitedBody(req, 1024 * 1024); if (raw === null) return new Response('Payload too large', { status: 413 }); const received = req.headers.get('x-razorpay-signature') || ''; const expected = await hmac(raw, secret); const receivedBytes = hexBytes(received);
     if (!receivedBytes || !safeEqual(expected, receivedBytes)) return new Response('Invalid signature', { status: 400 });
