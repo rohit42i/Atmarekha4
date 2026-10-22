@@ -45,7 +45,7 @@ try {
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
   assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga<\/title>/);
-  assert.match(aboutHtml, /Discover Atma Rekha, an original Indian fantasy adventure manga created by Arkesh/);
+  assert.match(aboutHtml, /Discover Atma Rekha, an original Indian fantasy adventure manga by Arkesh, available in Hindi \(Roman Hindi\) and English/);
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
   assert.equal(about.headers.get("strict-transport-security"), "max-age=15552000");
