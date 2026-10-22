@@ -213,6 +213,18 @@ if (!emailStudioRegression.includes("const effectiveCategory = isChapterTemplate
   console.error('CHECK FAILED: Chapter announcements must use the reader-updates preference and respect opt-outs.');
   failed = true;
 }
+if (!emailStudioFunctionRegression.includes('const subjectSource = cleanText(input.subject || template?.subject, 200);') ||
+    !emailStudioFunctionRegression.includes('font-family:Roboto,Arial,Helvetica,sans-serif;font-weight:500') ||
+    emailStudioFunctionRegression.includes('background-color:#f3f3f3') ||
+    emailStudioFunctionRegression.includes('ATMA REKHA · <a href="https://www.atmarekha.in/"') ||
+    !emailStudioFunctionRegression.includes('announcement_body: cleanText(variables.announcement_body, 2000)') ||
+    !emailStudioFunctionRegression.includes('chapterUrl = SITE_URL;') ||
+    !emailStudioRegression.includes('variables: isChapterTemplate ? chapter : extraVariables') ||
+    !emailStudioRegression.includes('visibleExtraVariables.map(field =>') ||
+    emailStudioRegression.includes('placeholder="https://www.atmarekha.in/chapter/1"')) {
+  console.error('CHECK FAILED: Email Studio must honor editable subjects, render custom values, use the clean full-width email layout, and use the homepage for chapter announcements.');
+  failed = true;
+}
 const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
 const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
 if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
