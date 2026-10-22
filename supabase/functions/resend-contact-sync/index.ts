@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const contactKey = Deno.env.get("RESEND_CONTACTS_API_KEY") || "";
-  if (!supabaseUrl || !serviceKey || !contactKey) return reply(req, { ok: false, error: "Contact sync is not configured." }, 503);
+  if (!supabaseUrl || !serviceKey || !contactKey) return reply(req, { ok: false, error: "Contact sync is not configured: set RESEND_CONTACTS_API_KEY with Contacts API permissions." }, 503);
   try {
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
     if (!token) return reply(req, { ok: false, error: "Authentication required." }, 401);
