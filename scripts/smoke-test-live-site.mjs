@@ -11,6 +11,7 @@ const RETRIES = 4;
 const PUBLIC_ROUTES = [
   "/",
   "/chapters",
+  "/chapters?lang=en",
   "/info/about",
   "/info/contact",
   "/info/report",
