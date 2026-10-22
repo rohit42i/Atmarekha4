@@ -78,6 +78,17 @@ function fallbackPeriodEnd(startIso: string | null) {
   return new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString();
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async req => {
   const origin = req.headers.get('origin');
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(origin) });
@@ -87,7 +98,7 @@ Deno.serve(async req => {
     const secret = Deno.env.get('RAZORPAY_KEY_SECRET')?.trim() || '';
     const keyId = Deno.env.get('RAZORPAY_KEY_ID')?.trim() || '';
     const supabaseUrl = Deno.env.get('SUPABASE_URL')?.trim() || '';
-    const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() || '';
+    const service = readSupabaseServiceRoleKey();
     if (!secret || !keyId || !supabaseUrl || !service) return json({ error: 'Payment server configuration is incomplete.' }, 500, origin);
 
     const authHeader = req.headers.get('Authorization') || '';
