@@ -163,6 +163,13 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const readerEventRetryRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
+if (!readerEventRetryRegression.includes('existingDispatch.status !== "failed"') ||
+    !readerEventRetryRegression.includes('.eq("status", "failed").eq("sent_count", 0)') ||
+    !readerEventRetryRegression.includes('sentDuringDispatch > 0 ? "partial" : "failed"')) {
+  console.error('CHECK FAILED: notification dispatches must safely retry zero-send failures without duplicating partial deliveries.');
+  failed = true;
+}
 const emailStudioLoadRegression = await readFile('EmailStudio.jsx', 'utf8');
 const emailStudioLoadStart = emailStudioLoadRegression.indexOf('const load = async () => {');
 const emailStudioLoadEnd = emailStudioLoadRegression.indexOf('setLoadingRecipients(true);', emailStudioLoadStart);
