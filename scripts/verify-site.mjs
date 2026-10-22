@@ -201,6 +201,8 @@ if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
   failed = true;
 }
 if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') ||
+    !simplifiedRightsHandler.includes('USER_TABLE_ORDER_BY') ||
+    !simplifiedRightsHandler.includes('query = query.order(column, { ascending: true })') ||
     simplifiedRightsHandler.includes('.limit(5000)') ||
     !simplifiedRightsHandler.includes('100,000-row safety limit')) {
   console.error('CHECK FAILED: privacy data exports must paginate beyond 5,000 rows and disclose the bounded maximum.');
