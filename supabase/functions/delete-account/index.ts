@@ -15,6 +15,17 @@ function json(body: Record<string, unknown>, status: number, origin: string | nu
   return new Response(JSON.stringify(body), { status, headers: { ...cors(origin), "Content-Type": "application/json; charset=utf-8" } });
 }
 
+function readSupabaseServiceRoleKey() {
+  const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
+  if (configured) {
+    try {
+      const parsed = JSON.parse(configured);
+      if (parsed?.default) return String(parsed.default).trim();
+    } catch (_) {}
+  }
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+}
+
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
@@ -25,7 +36,7 @@ Deno.serve(async (req: Request) => {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json({ error: "Authentication required." }, 401, origin);
   const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+  const serviceRoleKey = readSupabaseServiceRoleKey();
   if (!supabaseUrl || !serviceRoleKey) return json({ error: "Account deletion is temporarily unavailable." }, 503, origin);
 
   try {
