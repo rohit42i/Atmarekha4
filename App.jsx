@@ -39,7 +39,7 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'Is An Adventure Manga/comic Where Traditions And Powers Become A Part Of An Unfolding Story' };
+const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga available in Hindi (Roman Hindi) and English.' };
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, ancient traditions, and mysterious powers.';
