@@ -283,9 +283,10 @@ Deno.serve(async req => {
       chapterNumber = cleanText(variables.chapter_number, 20);
       chapterTitle = cleanText(variables.chapter_title, 180);
       chapterDescription = cleanText(variables.chapter_description, 2000);
-      chapterUrl = checkedChapterUrl(variables.chapter_url) || "";
-      if (!chapterNumber || !chapterTitle || !chapterUrl) {
-        return respond({ ok: false, error: "For a new-chapter email, provide the chapter number, title and a valid HTTPS reading link on atmarekha.in." }, 422);
+      // Official chapter announcements link to the site homepage, not a chapter-specific URL.
+      chapterUrl = SITE_URL;
+      if (!chapterNumber || !chapterTitle) {
+        return respond({ ok: false, error: "For a new-chapter email, provide the chapter number and title." }, 422);
       }
     }
 
