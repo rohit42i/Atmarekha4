@@ -163,6 +163,13 @@ if (!morePagePreferenceRegression.includes('Email updates') ||
   console.error('CHECK FAILED: Notification preferences must handle load errors, verify the signed-in user, and confirm persisted values.');
   failed = true;
 }
+const chapterReleaseEmailRetryRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
+if (!chapterReleaseEmailRetryRegression.includes('Partial sends are not retried automatically') ||
+    !chapterReleaseEmailRetryRegression.includes('.eq("status", "failed").eq("sent_count", 0)') ||
+    !chapterReleaseEmailRetryRegression.includes('if (existing.status !== "failed" || Number(existing.sent_count || 0) !== 0)')) {
+  console.error('CHECK FAILED: chapter release emails must retry only failed zero-send dispatches.');
+  failed = true;
+}
 const razorpayWebhookRetryRegression = await readFile('supabase/functions/razorpay-subscription-webhook/index.ts', 'utf8');
 if (!razorpayWebhookRetryRegression.includes("if (!record) throw new Error('Razorpay subscription record not found for webhook event.')") ||
     !razorpayWebhookRetryRegression.includes('Razorpay subscription lookup failed:') ||
