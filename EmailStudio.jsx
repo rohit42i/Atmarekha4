@@ -181,8 +181,8 @@ export default function EmailStudio() {
     name: 'Reader',
     email: 'reader@example.com',
     site_url: SITE_URL,
-    action_url: chapter.chapter_url || SITE_URL + '/chapter/1',
-    chapter_url: chapter.chapter_url || SITE_URL + '/chapter/1',
+    action_url: SITE_URL,
+    chapter_url: SITE_URL,
     chapter_number: chapter.chapter_number || '1',
     chapter_title: chapter.chapter_title || 'Chapter title',
     chapter_description: chapter.chapter_description || '',
@@ -218,21 +218,9 @@ export default function EmailStudio() {
       setNotice('Select at least one reader.');
       return;
     }
-    if (isChapterTemplate) {
-      if (!chapter.chapter_number.trim() || !chapter.chapter_title.trim() || !chapter.chapter_url.trim()) {
-        setNotice('For a new-chapter email, enter the chapter number, title and reading link.');
-        return;
-      }
-      try {
-        const parsed = new URL(chapter.chapter_url, SITE_URL);
-        if (parsed.protocol !== 'https:' || !['www.atmarekha.in', 'atmarekha.in'].includes(parsed.hostname)) {
-          setNotice('Use a valid HTTPS reading link on atmarekha.in.');
-          return;
-        }
-      } catch {
-        setNotice('Enter a valid chapter reading link.');
-        return;
-      }
+    if (isChapterTemplate && (!chapter.chapter_number.trim() || !chapter.chapter_title.trim())) {
+      setNotice('For a new-chapter email, enter the chapter number and title.');
+      return;
     }
     const count = targetCount();
     if (!count) {
@@ -305,7 +293,6 @@ export default function EmailStudio() {
         <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
           <label>Chapter number<input value={chapter.chapter_number} onChange={event => setChapterField('chapter_number', event.target.value)} placeholder="e.g. 1" maxLength={20} /></label>
           <label>Chapter title<input value={chapter.chapter_title} onChange={event => setChapterField('chapter_title', event.target.value)} placeholder="Exact chapter title" maxLength={180} /></label>
-          <label style={{ gridColumn: '1 / -1' }}>Reading link<input value={chapter.chapter_url} onChange={event => setChapterField('chapter_url', event.target.value)} placeholder="https://www.atmarekha.in/chapter/1" /></label>
           <label style={{ gridColumn: '1 / -1' }}>Optional message<textarea value={chapter.chapter_description} onChange={event => setChapterField('chapter_description', event.target.value)} placeholder="A short personal note about this chapter (optional)" rows={3} maxLength={2000} /></label>
         </div>
       </section>}
