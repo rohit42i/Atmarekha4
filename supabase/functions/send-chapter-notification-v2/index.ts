@@ -40,15 +40,32 @@ const rate=await db.rpc('consume_rate_limit',{p_rate_key:`admin-push:${user.id}`
   let selectedUserId:string|null=null;
   if(target.startsWith('user:')){selectedUserId=target.slice(5).trim();if(!UUID.test(selectedUserId))return response(req, {ok:false,error:'Invalid selected user.'},422);}
   if(!['all','community'].includes(target)&&!selectedUserId) return response(req, {ok:false,error:'Invalid notification target.'},422);
+  let log: { id: string | number } | null = null;
   if(dedupeKey){
-   const {data:existing}=await db.from('admin_notification_log').select('id,status,target_count,sent_count,failed_count').eq('dedupe_key',dedupeKey).maybeSingle();
-   if(existing) return response(req, {ok:false,duplicate:true,error:'Duplicate notification blocked.',log:existing},409);
+   const {data:existing,error:existingError}=await db.from('admin_notification_log').select('id,status,target_count,sent_count,failed_count').eq('dedupe_key',dedupeKey).maybeSingle();
+   if(existingError) throw existingError;
+   if(existing){
+    // Retry only when the earlier dispatch delivered zero notifications.
+    // Sent/partial/sending rows remain blocked to prevent duplicate reader pushes.
+    const retryable=['failed','no_subscribers'].includes(String(existing.status||''))&&Number(existing.sent_count||0)===0;
+    if(!retryable) return response(req, {ok:false,duplicate:true,error:'Duplicate notification blocked.',log:existing},409);
+    const {data:claimed,error:claimError}=await db.from('admin_notification_log')
+     .update({admin_user_id:user.id,title,body:message,target,target_count:0,sent_count:0,failed_count:0,removed_count:0,status:'sending',sent_at:null,error:null})
+     .eq('id',existing.id).in('status',['failed','no_subscribers']).eq('sent_count',0).select('id').maybeSingle();
+    if(claimError) throw claimError;
+    if(!claimed) return response(req, {ok:false,duplicate:true,error:'This notification retry has already been claimed.'},409);
+    log=claimed;
+   }
   }
-  const {data:log,error:le}=await db.from('admin_notification_log').insert({admin_user_id:user.id,title,body:message,target,dedupe_key:dedupeKey,status:'sending'}).select('id').single();
-  if(le){
-   if((le as any).code==='23505') return response(req, {ok:false,duplicate:true,error:'Duplicate notification blocked.'},409);
-   throw le;
+  if(!log){
+   const {data:createdLog,error:le}=await db.from('admin_notification_log').insert({admin_user_id:user.id,title,body:message,target,dedupe_key:dedupeKey,status:'sending'}).select('id').single();
+   if(le){
+    if((le as any).code==='23505') return response(req, {ok:false,duplicate:true,error:'Duplicate notification blocked.'},409);
+    throw le;
+   }
+   log=createdLog;
   }
+  if(!log) throw new Error('Notification dispatch record was not created.');
   webpush.setVapidDetails('mailto:admin@atmarekha.in',publicKey,privateKey);
   let q=db.from('push_subscriptions').select('id,user_id,endpoint,p256dh,auth');
   if(target==='community'){
