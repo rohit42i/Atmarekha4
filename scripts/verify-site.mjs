@@ -180,6 +180,13 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: Resend contact operations must not reuse the send-only email API key.');
   failed = true;
 }
+const mfaCodeRegression = await readFile('MfaGate.jsx', 'utf8');
+if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
+    !mfaCodeRegression.includes("maxLength={6}") ||
+    !mfaCodeRegression.includes("disabled={verifying || !/^\\d{6}$/.test(code)}")) {
+  console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
+  failed = true;
+}
 const serviceRoleSecretCompatibilityPaths = [
   'supabase/functions/get-admin-console-data/index.ts',
   'supabase/functions/get-admin-user-stats/index.ts',
