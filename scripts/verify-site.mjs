@@ -59,7 +59,9 @@ const required = [
   ['supabase/functions/delete-account/index.ts', 'queued: true'],
   ['supabase/functions/delete-account/index.ts', 'Never hard-delete an account from this endpoint'],
 
-  ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","site_feedback","notification_subscriptions"'],
+  ['supabase/functions/dpdp-data-rights/index.ts', '"dpdp_nominations","email_marketing_preferences","feature_login_users"'],
+  ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","notification_preferences","site_feedback"'],
+  ['supabase/functions/dpdp-data-rights/index.ts', 'email_marketing_preferences: "user_id,marketing_unsubscribed,updated_at"'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 100,000-row safety limit'],
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
   ['InfoPage.jsx', 'within 48 hours'],
@@ -237,6 +239,15 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: Contact sync must use the Contacts key, surface permission errors, and preflight backfill before processing users.');
   failed = true;
 }
+const privacyExportPreferencesRegression = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
+if (!privacyExportPreferencesRegression.includes('notification_preferences') ||
+    !privacyExportPreferencesRegression.includes('dpdp_nominations') ||
+    !privacyExportPreferencesRegression.includes('email_marketing_preferences') ||
+    !privacyExportPreferencesRegression.includes('email_marketing_preferences: "user_id,marketing_unsubscribed,updated_at"') ||
+    privacyExportPreferencesRegression.includes('email_marketing_preferences: "user_id,marketing_unsubscribed,updated_at,unsubscribe_token"')) {
+  console.error('CHECK FAILED: data export must include notification and email preference state without exposing unsubscribe bearer tokens.');
+  failed = true;
+}
 const mfaCodeRegression = await readFile('MfaGate.jsx', 'utf8');
 if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
     !mfaCodeRegression.includes("maxLength={6}") ||
@@ -328,8 +339,8 @@ if (/nominee|nomination|privacy-nomination-form/i.test(simplifiedPrivacySource))
   failed = true;
 }
 const simplifiedRightsHandler = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
-if (/nominee|nomination|delete-nomination/i.test(simplifiedRightsHandler)) {
-  console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination actions.');
+if (/action\s*===?\s*["'](?:nomination|delete-nomination)["']/i.test(simplifiedRightsHandler)) {
+  console.error('CHECK FAILED: the privacy data-rights endpoint should not expose nomination mutation actions.');
   failed = true;
 }
 if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') ||
