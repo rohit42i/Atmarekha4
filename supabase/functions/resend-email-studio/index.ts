@@ -197,7 +197,7 @@ Deno.serve(async req => {
     if (authError || !user) return respond({ ok: false, error: "Invalid session." }, 401);
     const { data: admin, error: adminError } = await db.from("admins").select("user_id,role").eq("user_id", user.id).maybeSingle();
     if (adminError) throw adminError;
-    if (!admin || !["owner", "admin"].includes(String(admin.role || "").toLowerCase())) {
+    if (!admin || !["owner", "admin"].includes(String(admin.role || "").trim().toLowerCase())) {
       return respond({ ok: false, error: "Admin access required." }, 403);
     }
 
