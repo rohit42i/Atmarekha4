@@ -149,6 +149,7 @@ set search_path = public, auth, private, pg_temp
 as $$
 declare
   r record;
+  cutoff timestamptz;
   completed_count integer := 0;
 begin
   for r in
@@ -179,6 +180,23 @@ begin
                updated_at = now()
          where id = r.id;
         continue;
+      end if;
+
+      -- Optional retention: with a 7/30/90-day selection, older public comments and
+      -- chat messages survive only as anonymous contributions. Recent contributions
+      -- remain linked and are removed by the auth-user cascade. "Permanent" removes all.
+      if r.user_id is not null then
+        select data_window_days::text into cutoff
+          from public.account_lifecycle_requests where id = r.id;
+        if cutoff is not null then
+          cutoff := now() - make_interval(days => cutoff::integer);
+          update public.comments set user_id = null, author_name = 'Deleted reader'
+            where user_id = r.user_id and created_at < cutoff;
+          update public.pdlpl_comments set user_id = null, author_name = 'Deleted reader'
+            where user_id = r.user_id and created_at < cutoff;
+          update public.group_chat_messages set user_id = null
+            where user_id = r.user_id and created_at < cutoff;
+        end if;
       end if;
 
       -- Keep auditable financial evidence with personal account linkage removed.
