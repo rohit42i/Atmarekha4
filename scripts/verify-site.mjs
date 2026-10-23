@@ -67,7 +67,7 @@ const required = [
   ['supabase/functions/account-deletion-workflow/index.ts', 'invalidateError'],
   ['supabase/functions/account-deletion-workflow/index.ts', 'status: "cancelled"'],
   ['supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', 'account_deletion_one_unused_otp_per_user_purpose'],
-  ['supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', "'cancelled'"]
+  ['supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', "'cancelled'"],
 
   ['supabase/functions/dpdp-data-rights/index.ts', '"dpdp_nominations","email_marketing_preferences","feature_login_users"'],
   ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","notification_preferences","site_feedback"'],
