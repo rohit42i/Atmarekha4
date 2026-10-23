@@ -283,7 +283,7 @@ Deno.serve(async (req) => {
         '<p style="font-size:14px;line-height:1.8;color:#383838">Current address: <strong>' + escapeHtml(currentEmail) + '</strong><br>Requested address: <strong>' + escapeHtml(requestedEmail) + '</strong></p>' +
         '<p style="margin:28px 0"><a href="' + escapeHtml(link) + '" style="display:inline-block;padding:13px 18px;background:#171717;color:#fff;text-decoration:none;font-size:14px;font-weight:700">Confirm email change</a></p>' +
         '<p style="font-size:12px;line-height:1.7;color:#6b6b6b">This verification link expires according to your account security settings. If you did not request this change, do not use the link and secure your account.</p>' +
-        '</div><p style="font-size:11px;color:#777;text-align:center">Atma Rekha · Original Indian fantasy adventure manga</p></div></body></html>';
+        '</div><p style="font-size:11px;color:#777;text-align:center">Atma Rekha</p></div></body></html>';
 
       const sendVerification = async (to: string, heading: string, copy: string, link: string) => {
         try {

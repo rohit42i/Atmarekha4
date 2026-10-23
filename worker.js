@@ -12,8 +12,8 @@ const SECURITY_HEADERS = {
 };
 
 const STATIC_SEO = {
-  "/chapters": ["Chapters | Atma Rekha", "Browse Atma Rekha chapters in Hindi (Roman Hindi) and English, an original Indian fantasy adventure manga by Arkesh."],
-  "/info/about": ["About Atma Rekha | Indian Fantasy Manga", "Discover Atma Rekha, an original Indian fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English."],
+  "/chapters": ["Chapters | Atma Rekha", "Browse Atma Rekha chapters in Hindi (Roman Hindi) and English."],
+  "/info/about": ["About Atma Rekha | Creator and Story", "Meet Arkesh, the solo creator of Atma Rekha, and learn about the story and how it is made."],
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
   "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
   "/info/privacy": ["Privacy Policy | Atma Rekha", "Read how Atma Rekha handles account information, site activity, and privacy requests."],
@@ -225,7 +225,7 @@ async function addServerSeo(request, response, env) {
       } else {
         const name = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number)).trim().slice(0, 180);
         const title = name + " | Atma Rekha";
-        const description = ("Read " + name + " of Atma Rekha, an original Indian fantasy adventure manga by Arkesh.").slice(0, 160);
+        const description = ("Read " + name + " of Atma Rekha, a fantasy adventure manga by Arkesh.").slice(0, 160);
         const canonical = SITE_ORIGIN + chapterPath(chapter);
         const image = safeCover(chapter.cover_url);
         const language = normalizeLanguage(chapter.language);

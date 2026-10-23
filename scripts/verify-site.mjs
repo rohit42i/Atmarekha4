@@ -24,7 +24,7 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
-  ['public/llms.txt', 'An original Indian fantasy adventure manga by Arkesh.'],
+  ['public/llms.txt', 'An original fantasy adventure manga by Arkesh.'],
   ['public/.well-known/security.txt', 'Contact: mailto:atmarekhasupport@gmail.com'],
   ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
   ['notification-prompt.js', 'if (stored === null || stored.trim() === \'\') return fallback;'],
