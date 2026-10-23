@@ -50,7 +50,7 @@ const ADMIN_PAGE_BATCH_SIZE = 1000;
 async function loadAllChapterPageRows() {
   const rows = [];
   let offset = 0;
-  while (offset < 100000) {
+  while (offset <= 100000) {
     const { data, error } = await supabase
       .from(PAGES)
       .select('id, chapter_id, page_number, image_url')
@@ -63,6 +63,24 @@ async function loadAllChapterPageRows() {
     offset += ADMIN_PAGE_BATCH_SIZE;
   }
   throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
+}
+
+async function loadAllCommentReportRows() {
+  const rows = [];
+  let offset = 0;
+  while (offset <= 100000) {
+    const { data, error } = await supabase
+      .from('comment_reports')
+      .select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
+    if (error) throw error;
+    const batch = data || [];
+    rows.push(...batch);
+    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+    offset += ADMIN_PAGE_BATCH_SIZE;
+  }
+  throw new Error('Report queue exceeded the safe 100,000-row refresh limit. Refine the queue in the database before refreshing the complete history.');
 }
 
 async function captureAdminSource(work) {
@@ -233,7 +251,7 @@ export default function AdminPanel({ onLogout }) {
         captureAdminSource(() => buildPdlplChapters()),
         captureAdminSource(() => loadAllChapterPageRows()),
         captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100)),
-        captureAdminSource(() => supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100)),
+        captureAdminSource(() => loadAllCommentReportRows()),
         captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')),
         captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10)),
         captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200)),
@@ -1272,7 +1290,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} recent comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
