@@ -116,7 +116,7 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
     const chapterNumber = chapter.chapter_number == null ? null : Number(chapter.chapter_number);
     const chapterLabel = chapterNumber == null ? "Special Chapter" : `Chapter ${chapterNumber}`;
     const chapterTitle = String(chapter.title || "").trim() || chapterLabel;
-    const subject = "ATMA REKHA";
+    const subject = `${chapterLabel} is now out!`;
     // Keep this email visually unfilled: no body/table/background colors, only text and an outlined link.
     const chapterUrl = "https://www.atmarekha.in/";
     const safeLabel = escapeHtml(chapterLabel);
@@ -350,7 +350,7 @@ Deno.serve(async (req: Request) => {
         if (code === 404 || code === 410) await db.from("push_subscriptions").delete().eq("id", subscription.id);
       }
     }
-    await db.from("notification_event_dispatches").update({ status: sent > 0 && failed === 0 ? "sent" : sent > 0 ? "partial" : "failed", sent_count: sent, failed_count: failed, completed_at: new Date().toISOString() }).eq("id", dispatch.id);
+    await db.from("notification_event_dispatches").update({ status: sent > 0 && failed === 0 ? "sent" : sent > 0 ? "partial" : "failed", sent_count: sent, failed_count: failed, completed_at: new Date().toISOString() }).eq("id", activeDispatchId);
     if (adminOnly) await db.from("admin_activity_log").insert({ admin_user_id: user.id, action: "send_event_notification", entity_type: eventType, entity_id: eventId, details: { category, sent, failed, email_sent: emailResult.sent, email_failed: emailResult.failed, email_total: emailResult.total } });
     return respond(req, { ok: true, sent, failed, category, emailSent: emailResult.sent, emailFailed: emailResult.failed, emailTotal: emailResult.total, emailDuplicate: emailResult.duplicate, emailError: emailResult.error }, 200);
   } catch (error) {
