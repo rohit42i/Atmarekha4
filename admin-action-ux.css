@@ -1,0 +1,83 @@
+/* Shared admin action behavior. Keep each control's existing visual hierarchy intact. */
+main.admin-page.ar-admin-v3 button {
+  box-sizing: border-box;
+  font-family: inherit;
+  line-height: 1.3;
+  touch-action: manipulation;
+}
+main.admin-page.ar-admin-v3 button:not(:disabled) { cursor: pointer; }
+main.admin-page.ar-admin-v3 button:disabled {
+  cursor: not-allowed !important;
+  opacity: .56 !important;
+  filter: saturate(.72);
+}
+main.admin-page.ar-admin-v3 button:focus-visible,
+main.admin-page.ar-admin-v3 [role="button"]:focus-visible {
+  outline: 2px solid #e5a94d !important;
+  outline-offset: 3px !important;
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-admin-content button:not(.ar-admin-icon-button):not(.ar-admin-menu-button),
+  .ar-ops-actions button,
+  .ar-ops-form-actions button,
+  .ar-gcm-tools button,
+  .privacy-requests-admin button,
+  .ar-mgmt-tools button,
+  .ar-push-send,
+  .community-admin-send,
+  .admin-row-actions button,
+  .admin-submit
+) {
+  min-height: 40px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .privacy-admin-resolution-field {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0;
+}
+main.admin-page.ar-admin-v3 .privacy-admin-resolution-field span {
+  font-size: 12px;
+  font-weight: 700;
+}
+main.admin-page.ar-admin-v3 .privacy-admin-resolution-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88px;
+  resize: vertical;
+  padding: 11px 12px;
+  border: 1px solid var(--admin-border, #34363d);
+  border-radius: 8px;
+  background: var(--admin-surface-muted, #18191d);
+  color: var(--admin-text, #f4f4f5);
+  font: inherit;
+  font-size: 13px;
+}
+main.admin-page.ar-admin-v3 .privacy-admin-resolution-field small {
+  color: var(--admin-muted, #a7a9b1);
+  font-size: 11px;
+}
+main.admin-page.ar-admin-v3 .privacy-admin-step {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--admin-border, #34363d);
+}
+main.admin-page.ar-admin-v3 .privacy-admin-step > p {
+  margin: 6px 0 10px;
+  color: var(--admin-muted, #a7a9b1);
+  font-size: 12px;
+  line-height: 1.55;
+}
+main.admin-page.ar-admin-v3 .privacy-request-status-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  main.admin-page.ar-admin-v3 .privacy-admin-actions { display: grid; grid-template-columns: 1fr; }
+  main.admin-page.ar-admin-v3 .privacy-request-status-heading button { width: 100%; }
+}
