@@ -612,14 +612,17 @@ if (adminFixCss.includes('.ar-admin-topbar-actions') || !adminFixCss.includes('.
 }
 
 const appEntry = await readFile('main.jsx', 'utf8');
-const adminPanelSource = await readFile('AdminPanel.jsx', 'utf8');
+const duplicateMountAdminSource = await readFile('AdminPanel.jsx', 'utf8');
+const hasMountedTool = (source, component) =>
+  source.includes('<' + component + ' ') ||
+  source.includes('<' + component + '/>') ||
+  source.includes('<' + component + '>');
 for (const component of ['CommunityAdmin', 'AdminProTools', 'AdminChapterHealth', 'AdminGroupChatTools', 'AdminManagementTools', 'AdminModerationTools', 'AdminOperations']) {
-  const globalMount = new RegExp('\\\\<' + component + '(?:\\\\s|/|>)');
-  if (globalMount.test(appEntry)) {
+  if (hasMountedTool(appEntry, component)) {
     console.error('CHECK FAILED: admin-only tool must not be mounted globally in main.jsx:', component);
     failed = true;
   }
-  if (!globalMount.test(adminPanelSource)) {
+  if (!hasMountedTool(duplicateMountAdminSource, component)) {
     console.error('CHECK FAILED: admin-only tool is not mounted by AdminPanel.jsx:', component);
     failed = true;
   }
