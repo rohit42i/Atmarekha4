@@ -136,8 +136,14 @@ Deno.serve(async req => {
         .eq("id", requestId).maybeSingle();
       if (currentError) throw currentError;
       if (!current) return response({ error: "Deletion request not found." }, 404, origin);
-      if (nextStatus === "processing" && current.scheduled_delete_at && new Date(current.scheduled_delete_at).getTime() > Date.now()) {
-        return response({ error: "This request must remain pending until its scheduled deletion date and recovery window have passed." }, 409, origin);
+      if (nextStatus === "processing" && (
+        (current.scheduled_delete_at && new Date(current.scheduled_delete_at).getTime() > Date.now()) ||
+        (current.recovery_until && new Date(current.recovery_until).getTime() > Date.now())
+      )) {
+        return response({ error: "This request must remain pending until its scheduled deletion date and recovery window have both passed." }, 409, origin);
+      }
+      if (nextStatus === "resolved" && current.scheduled_delete_at) {
+        return response({ error: "Scheduled deletions can only be closed by the verified erasure processor." }, 409, origin);
       }
       const validTransition = nextStatus === "processing"
         ? current.status === "pending"
