@@ -35,6 +35,6 @@ Subscribe to `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.b
 
 1. Add `RESEND_API_KEY` and `RESEND_FROM_EMAIL` secrets in Supabase. Keep the Resend key send-only. Configure `RESEND_WEBHOOK_SECRET` for the delivery webhook.
 2. Configure `RESEND_WEBHOOK_SECRET` and create/verify the Resend webhook.
-3. Test contact sync and a single email separately. Verify the email in Resend and the admin delivery monitor before using a reader-wide campaign.
+3. Use **Check email audience** to verify the live Supabase eligibility counts, then send one test email. Verify delivery in Resend and the admin delivery monitor before using a reader-wide campaign. No Resend Contacts API key or mirrored contact list is required.
 4. Test a marketing email's unsubscribe link and confirm future marketing sends skip that account.
 5. Test member/free/recent segment counts against current production data before any bulk send.
