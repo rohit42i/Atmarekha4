@@ -15,7 +15,7 @@ const PAGES = {
       ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
-      'I’m Arkesh, the solo creator of Atma Rekha, an original Indian fantasy adventure manga about people, traditions, and powers connected by a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
+      'I’m Arkesh, the solo creator of Atma Rekha, a fantasy adventure manga shaped by Indian cultural influences, spiritual ideas, and a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
       'I create the series independently. Atma Rekha is available in Hindi (Roman Hindi) and English. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
       'Every scene and panel begins with my own rough drawings and design decisions. I determine the composition, pose, camera angle, perspective, proportions, shapes, and character placement. I use AI tools in parts of the visual process to enhance my rough sketches and help develop characters while following my original designs and direction.',
       'AI generated material is not used directly as finished artwork in the published manga. When AI-assisted imagery is used as a background reference, I manually outline and redraw it as part of the artwork. I retain creative control over the story, character designs, panel composition, and final artistic decisions, and review the pages before publication.',
@@ -60,7 +60,7 @@ export default function InfoPage({ type, onBack }) {
     </header>
     <section className="info-card info-hero">
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent Indian fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'The terms of use and privacy policy for Atma Rekha.' : 'Let us know if something needs our attention.'}</p>
+      <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'The terms of use and privacy policy for Atma Rekha.' : 'Let us know if something needs our attention.'}</p>
     </section>
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
       <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
