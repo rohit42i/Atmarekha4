@@ -38,6 +38,11 @@ export default function PrivacyCenter() {
   const [error, setError] = useState('');
   const [consent, setConsent] = useState(null);
   const [deletion, setDeletion] = useState(null);
+  const [deletionDialog, setDeletionDialog] = useState('');
+  const [deletionPeriod, setDeletionPeriod] = useState('30_days');
+  const [deletionPassword, setDeletionPassword] = useState('');
+  const [deletionOtp, setDeletionOtp] = useState('');
+  const [deletionStep, setDeletionStep] = useState('password');
 
   const load = async currentUser => {
     setError('');
@@ -55,7 +60,7 @@ export default function PrivacyCenter() {
         { data: deletionRows, error: deletionError },
       ] = await Promise.all([
         supabase.from('dpdp_consent_records').select('policy_version,purposes,consented_at,withdrawn_at,source').eq('user_id', currentUser.id).order('consented_at', { ascending: false }).limit(5),
-        supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at,resolution_note').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
+        supabase.from('dpdp_deletion_requests').select('id,status,requested_at,resolved_at,resolution_note,requested_period,scheduled_delete_at,recovery_until,confirmed_at,cancelled_at').eq('user_id', currentUser.id).order('requested_at', { ascending: false }).limit(1),
       ]);
       if (consentError) throw new Error('Unable to load consent records: ' + consentError.message);
       if (deletionError) throw new Error('Unable to load deletion request status: ' + deletionError.message);
@@ -162,11 +167,90 @@ export default function PrivacyCenter() {
     if (data?.consent) setConsent(data.consent);
   };
 
-  const requestDeletion = async () => {
+  const requestDeletion = () => {
     if (busy || deletion?.status === 'pending' || deletion?.status === 'processing') return;
-    if (!window.confirm('Submit a request to erase eligible Atma Rekha personal data? This creates a tracked request for review; it does not instantly erase your account. We will verify the request and retain only records required by applicable law or legitimate security/accounting needs.')) return;
-    const data = await runAction('delete-request', 'Your deletion request has been submitted.');
-    if (data?.request) setDeletion(data.request);
+    setDeletionPassword('');
+    setDeletionOtp('');
+    setDeletionStep('password');
+    setDeletionDialog('delete');
+    setError('');
+    setMessage('');
+  };
+
+  const startDeletionOtp = async event => {
+    event?.preventDefault();
+    if (!user?.email || busy) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({ email: user.email, password: deletionPassword });
+      if (authError) throw new Error('Password confirmation failed. Check your password and try again.');
+      const { data, error: fnError } = await supabase.functions.invoke('account-deletion-workflow', {
+        body: { action: 'send-delete-otp', period: deletionPeriod },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      setDeletionStep('otp');
+      setMessage(data?.message || 'A verification code has been sent to your email.');
+    } catch (err) {
+      setError(await privacyErrorMessage(err, 'Unable to send the verification code.'));
+    } finally { setBusy(false); }
+  };
+
+  const confirmDeletionOtp = async event => {
+    event?.preventDefault();
+    if (busy) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('account-deletion-workflow', {
+        body: { action: 'confirm-delete-otp', otp: deletionOtp },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      setDeletion(data?.request || null);
+      setDeletionDialog('');
+      setDeletionOtp('');
+      setMessage(data?.message || 'Your deletion request is confirmed. A 14-day recovery window has started.');
+    } catch (err) {
+      setError(await privacyErrorMessage(err, 'Unable to confirm the verification code.'));
+    } finally { setBusy(false); }
+  };
+
+  const startReactivationOtp = async () => {
+    if (busy || !deletion?.recovery_until || new Date(deletion.recovery_until).getTime() < Date.now()) return;
+    setDeletionOtp('');
+    setDeletionStep('otp');
+    setDeletionDialog('reactivate');
+    setError(''); setMessage('');
+    setBusy(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('account-deletion-workflow', {
+        body: { action: 'send-reactivate-otp' },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      setMessage(data?.message || 'A recovery code has been sent to your email.');
+    } catch (err) {
+      setError(await privacyErrorMessage(err, 'Unable to send a recovery code.'));
+    } finally { setBusy(false); }
+  };
+
+  const confirmReactivationOtp = async event => {
+    event?.preventDefault();
+    if (busy) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('account-deletion-workflow', {
+        body: { action: 'confirm-reactivate-otp', otp: deletionOtp },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      setDeletion(data?.request || null);
+      setDeletionDialog('');
+      setDeletionOtp('');
+      setMessage(data?.message || 'Your deletion request has been cancelled.');
+    } catch (err) {
+      setError(await privacyErrorMessage(err, 'Unable to cancel the deletion request.'));
+    } finally { setBusy(false); }
   };
 
   if (loading) {
@@ -204,12 +288,41 @@ export default function PrivacyCenter() {
           <strong>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'Deletion request in progress' : 'Request deletion'}</strong><span>{deletion?.status === 'pending' || deletion?.status === 'processing' ? 'A request is already being reviewed' : 'Request erasure of eligible personal data'}</span>
         </button>
       </div>
-      <p className="privacy-small-note">Deletion requests are queued for review, identity verification and erasure by an authorised administrator. They are not completed automatically by pressing the button. We retain only information required by applicable law or necessary for security, accounting or disputes. If you cannot sign in, email {CONTACT_EMAIL} from the account address you control.</p>
+      <p className="privacy-small-note">Your password and email code confirm the request. A 14-day recovery window starts after email verification. The selected period controls the earliest scheduled deletion, and permanent deletion cannot be undone after processing. Records required by law or necessary for security, accounting or disputes may be retained.</p>
       {consent && <div className="privacy-control-status">Consent record: <strong>{consent.withdrawn_at ? 'withdrawn' : 'recorded'}</strong>{consent.consented_at ? <> · {new Date(consent.consented_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}</div>}
+      {deletion?.status === 'pending' && deletion?.recovery_until && new Date(deletion.recovery_until).getTime() > Date.now() && <div className="privacy-email-actions">
+        <button type="button" className="secondary-button" onClick={startReactivationOtp} disabled={busy}>Cancel deletion and recover account</button>
+      </div>}
       <div className="privacy-email-actions">
         <button type="button" className="secondary-button" onClick={() => requestByEmail('Atma Rekha Privacy Request')}>Email a privacy request</button>
       </div>
     </section>}
+
+
+    {user && deletionDialog && <div className="privacy-modal-backdrop" role="presentation">
+      <section className="privacy-center-card" role="dialog" aria-modal="true" aria-labelledby="deletion-dialog-title">
+        <h2 id="deletion-dialog-title">{deletionDialog === 'reactivate' ? 'Recover your account' : 'Confirm account deletion'}</h2>
+        {deletionDialog === 'delete' && deletionStep === 'password' && <form onSubmit={startDeletionOtp}>
+          <p>Confirm your password first. We will then email a one-time code to {user.email}.</p>
+          <label htmlFor="deletion-period">Deletion period</label>
+          <select id="deletion-period" value={deletionPeriod} onChange={event => setDeletionPeriod(event.target.value)} disabled={busy}>
+            <option value="7_days">7 days, with a minimum 14-day recovery window</option>
+            <option value="30_days">30 days</option>
+            <option value="90_days">90 days</option>
+            <option value="permanent">Permanent deletion after recovery window</option>
+          </select>
+          <label htmlFor="deletion-password">Current password</label>
+          <input id="deletion-password" type="password" autoComplete="current-password" value={deletionPassword} onChange={event => setDeletionPassword(event.target.value)} required disabled={busy}/>
+          <div className="button-row"><button className="primary-button" type="submit" disabled={busy || !deletionPassword}>{busy ? 'Verifying…' : 'Verify password and send code'}</button><button className="secondary-button" type="button" onClick={() => setDeletionDialog('')} disabled={busy}>Cancel</button></div>
+        </form>}
+        {deletionStep === 'otp' && <form onSubmit={deletionDialog === 'reactivate' ? confirmReactivationOtp : confirmDeletionOtp}>
+          <p>Enter the 6-digit code sent to {user.email}. The code expires in 10 minutes.</p>
+          <label htmlFor="deletion-otp">Email verification code</label>
+          <input id="deletion-otp" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" value={deletionOtp} onChange={event => setDeletionOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} required disabled={busy}/>
+          <div className="button-row"><button className="primary-button" type="submit" disabled={busy || deletionOtp.length !== 6}>{busy ? 'Confirming…' : deletionDialog === 'reactivate' ? 'Confirm recovery' : 'Confirm deletion request'}</button><button className="secondary-button" type="button" onClick={() => setDeletionDialog('')} disabled={busy}>Cancel</button></div>
+        </form>}
+      </section>
+    </div>}
 
     {(message || error) && <div className={`privacy-status ${error ? 'privacy-status-error' : 'privacy-status-success'}`} role={error ? 'alert' : 'status'} aria-live="polite">{error || message}</div>}
 
@@ -219,7 +332,7 @@ export default function PrivacyCenter() {
         <button type="button" className="secondary-button" onClick={refreshStatus} disabled={refreshing || busy}>{refreshing ? 'Refreshing…' : 'Refresh status'}</button>
       </header>
       <div className="privacy-status">
-        {deletion ? <>Deletion request · <strong>{String(deletion.status || 'submitted').replaceAll('_', ' ').replace(/^./, character => character.toUpperCase())}</strong>{deletion.requested_at ? <> · submitted {new Date(deletion.requested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.resolved_at ? <> · resolved {new Date(deletion.resolved_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.id ? <><br/>Reference: <code>{deletion.id}</code></> : null}{deletion.resolution_note ? <><br/>Update: {deletion.resolution_note}</> : null}</> : 'No account deletion request is currently recorded.'}
+        {deletion ? <>Deletion request · <strong>{String(deletion.status || 'submitted').replaceAll('_', ' ').replace(/^./, character => character.toUpperCase())}</strong>{deletion.requested_at ? <> · submitted {new Date(deletion.requested_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.requested_period ? <> · option {deletion.requested_period.replaceAll('_', ' ')}</> : null}{deletion.scheduled_delete_at ? <><br/>Scheduled deletion: {new Date(deletion.scheduled_delete_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</> : null}{deletion.recovery_until && deletion.status === 'pending' ? <><br/>Recovery deadline: {new Date(deletion.recovery_until).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</> : null}{deletion.resolved_at ? <> · resolved {new Date(deletion.resolved_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</> : null}{deletion.id ? <><br/>Reference: <code>{deletion.id}</code></> : null}{deletion.resolution_note ? <><br/>Update: {deletion.resolution_note}</> : null}</> : 'No account deletion request is currently recorded.'}
       </div>
       <p className="privacy-small-note">Requests sent by email are handled through support and may require additional identity verification before action.</p>
     </section>}
