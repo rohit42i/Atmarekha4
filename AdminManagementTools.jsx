@@ -101,8 +101,8 @@ export default function AdminManagementTools(){
   useEffect(()=>{const close=e=>{if(e.key==='Escape')setOpen(null)};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[]);
 
   const loadUsers=async()=>{setLoading(true);setError('');try{await verifyAdmin();const {data,error:e}=await supabase.functions.invoke('get-admin-console-data',{body:{action:'users'}});if(e)throw e;const rows=data?.users||[];setUsers(rows);setMemberships(new Map(rows.map(row=>[row.id,row.subscription_status==='active'||row.subscription_status==='cancelled'?row.plan_id:null])))}catch(e){setError(e.message||'Unable to load users.')}finally{setLoading(false)}};
-  const loadUserDetails=async reader=>{
-    setSelectedUser(reader);setUserDetails(null);setUserDetailsLoading(true);setError('');
+  const loadUserDetails=async (reader,preserveMessage=false)=>{
+    setSelectedUser(reader);setUserDetails(null);setUserDetailsLoading(true);setError('');if(!preserveMessage)setUserActionMessage('');
     try{
       await verifyAdmin();
       const {data,error:e}=await supabase.functions.invoke('get-admin-console-data',{body:{action:'user-details',user_id:reader.id}});
@@ -123,7 +123,7 @@ export default function AdminManagementTools(){
       if(e)throw e;
       if(!data?.ok)throw new Error(data?.error||'Verification email could not be sent.');
       setUserActionMessage('Verification email sent to '+(data.email||reader.email)+(data.audit_warning?'. The email was sent, but the admin audit entry could not be saved.':'.'));
-      await loadUserDetails(reader);
+      await loadUserDetails(reader,true);
     }catch(e){setUserActionMessage(e?.message||'Unable to resend verification email.');}
     finally{setUserActionId('');}
   };
@@ -163,7 +163,7 @@ export default function AdminManagementTools(){
     finally{setPushSending(false)}
   };
 
-  const openView=type=>{setQuery('');setStatus('all');setReaderSegment('all');setError('');setPushResult('');setEmailRequestMessage('');setSelectedUser(null);setUserDetails(null);setOpen(type);if(type==='users')loadUsers();if(type==='notifications')loadNotifications();if(type==='activity')loadActivity();if(type==='emailChanges')loadEmailChangeRequests()};
+  const openView=type=>{setQuery('');setStatus('all');setReaderSegment('all');setError('');setPushResult('');setEmailRequestMessage('');setSelectedUser(null);setUserDetails(null);setUserActionMessage('');setOpen(type);if(type==='users')loadUsers();if(type==='notifications')loadNotifications();if(type==='activity')loadActivity();if(type==='emailChanges')loadEmailChangeRequests()};
   const resendEmailChange=async request=>{if(emailRequestBusy)return;if(!window.confirm('Send secure verification links to both '+request.current_email+' and '+request.requested_email+'? The reader must complete verification; this does not change the account email by itself.'))return;setEmailRequestBusy(request.id);setError('');setEmailRequestMessage('');try{await verifyAdmin();const {data,error:invokeError}=await supabase.functions.invoke('send-email-to-users',{body:{action:'resend_email_change_confirmation',request_id:request.id}});if(invokeError)throw invokeError;if(!data?.ok)throw new Error(data?.error||'Verification emails could not be sent.');const delivered=[data.sent_to_current?'current address':'',data.sent_to_new?'new address':''].filter(Boolean);setEmailRequestMessage('Verification sent to '+delivered.join(' and ')+'.'+(data.partial_delivery?' One address was not reached. Check delivery status.':'')+(data.audit_warning?' '+data.audit_warning:''));await loadEmailChangeRequests()}catch(e){setError(e.message||'Unable to resend verification emails.')}finally{setEmailRequestBusy('')}};
   const filteredUsers=useMemo(()=>{const q=query.trim().toLowerCase();return users.filter(u=>{const plan=planLabel(memberships.get(u.id));const text=`${u.username||''} ${u.display_name||''} ${u.id||''} ${u.email||''} ${u.new_email||''} ${plan} ${u.account_status||''}`.toLowerCase();const joined=Date.parse(u.created_at||'');const recent=Number.isFinite(joined)&&Date.now()-joined<=30*24*60*60*1000;const isMember=plan!=='Free';return(!q||text.includes(q))&&(status==='all'||plan===status)&&(readerSegment==='all'||(readerSegment==='free'&&!isMember)||(readerSegment==='members'&&isMember)||(readerSegment==='recent'&&recent))})},[users,memberships,query,status,readerSegment]);
   if(!isAdmin)return null;
