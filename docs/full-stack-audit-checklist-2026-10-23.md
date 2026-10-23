@@ -15,7 +15,7 @@ This is a point-in-time checklist based on the connected GitHub repository, live
 - [x] Made the published automated chapter-release subject dynamic and corrected the Chapter 2 title fallback.
 - [x] Added RFC 8058 `List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers to consent-aware Email Studio and chapter-release messages.
 - [x] Deployed `email-unsubscribe` version 7. Normal GET clicks now show a confirmation page without changing preferences; validated one-click POST updates the saved opt-out.
-- [x] Deployed `resend-email-studio` version 19 and `send-reader-event-notification` version 17 with one-click headers.
+- [x] Deployed `resend-email-studio` version 19 and `send-reader-event-notification` version 18 with one-click headers.
 - [x] Deployed `send-email-to-users` version 17 with non-test bulk sends disabled so the legacy endpoint cannot bypass Email Studio's consent and opt-out checks. Test sends remain available.
 - [x] Confirmed `resend-contact-sync` and `resend-contact-backfill` now use Supabase consent/preferences as the source of truth, with no Resend Contacts API key required.
 - [x] Disabled the duplicate Resend chapter-release automation because the app's publishing handler already performs consent-aware sends and the template was not safely wired to the publishing event.
@@ -48,7 +48,8 @@ This is a point-in-time checklist based on the connected GitHub repository, live
 
 ## Outstanding items requiring configuration or further end-to-end testing
 
-- [ ] **Chapter-view ingestion:** R2 currently shows legacy-imported events through October 21, with no event objects on October 22–23, and legacy Supabase inserts are still allowed in the live database. Keep the fallback intact until a real published-chapter view is observed reaching R2 and appearing in both public and admin counts; then apply the RLS migration and remove the fallback in a coordinated change.
+- [x] **Analytics Worker code-path test:** merged PR #156 adds an in-memory R2 test that confirms invalid IDs are rejected, a valid view event persists, repeated viewer/chapter/day requests are idempotent, and GET `/v1/views` reports that event. The main CI build passed this test alongside the live endpoint smoke test.
+- [ ] **Chapter-view production traffic:** R2 still showed only legacy-imported events through October 21, with no event objects on October 22–23 during the audit. The Worker code path is now unit-tested, but there is no observed real reader event in that window. Keep the Supabase fallback and public insert policy intact until a normal published-chapter view is observed reaching R2 and appearing in both public and admin counts; then migrate to Worker-only writes in a coordinated change.
 
 - [ ] **Automatic Cloudflare zone-setting enforcement:** the live settings have been corrected, but GitHub Actions reports `CLOUDFLARE_ZONE_SETTINGS_TOKEN` is missing. Add a repository Actions secret using a zone-scoped Cloudflare token with Zone Settings Read/Edit, so CI can keep verifying the settings automatically.
 - [ ] **Remaining development-only advisory:** `braces@3.0.3` is pulled transitively through development tooling. Upstream currently lists no patched release for GHSA-vfj7-8cjw-p6xm. Do not force Tailwind CSS 4 merely to suppress it. Recheck when upstream ships a fix or a safe replacement is identified. npm audit also continues to flag the pinned `postcss-selector-parser@6.1.5` because its advisory range says `<7.1.6`; upstream released 6.1.5 as a security backport for the maintained 6.x line. The production-only audit passed with zero vulnerabilities on the latest build.
