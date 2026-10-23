@@ -614,6 +614,12 @@ for (const [name, content, phrase] of [
 }
 
 
+const pdlplAdminSubmitRegression = await readFile('PalDoPalAdmin.jsx', 'utf8');
+if (!pdlplAdminSubmitRegression.includes('<button type="submit" className="pdlpl-primary" disabled={busy}>')) {
+  console.error('CHECK FAILED: PDPKL chapter editing must use an explicit form submit action.');
+  failed = true;
+}
+
 const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'const loadSequence = useRef(0);'],
   ['AdminPanel.jsx', adminPanel, 'async function loadAllChapterPageRows()'],
