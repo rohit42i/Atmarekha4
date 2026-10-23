@@ -131,7 +131,7 @@ async function cancelRazorpayRenewals(admin: any, userId: string) {
     const response = await fetch("https://api.razorpay.com/v1/subscriptions/" + encodeURIComponent(row.provider_subscription_id) + "/cancel", {
       method: "POST",
       headers: { Authorization: "Basic " + btoa(keyId + ":" + secret), "Content-Type": "application/json" },
-      body: JSON.stringify({ cancel_at_cycle_end: true }),
+      body: JSON.stringify({ cancel_at_cycle_end: ["active", "authenticated"].includes(String(row.status || "").toLowerCase()) }),
     });
     const result = await response.json().catch(() => null);
     if (!response.ok) {
@@ -221,20 +221,12 @@ Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: headers(origin) });
   if (req.method !== "POST") return reply(origin, { error: "Method not allowed." }, 405);
-  const cronAction = req.headers.get("x-account-lifecycle-cron");
   const url = Deno.env.get("SUPABASE_URL")?.trim() || "";
   const key = serviceKey();
   if (!url || !key) return reply(origin, { error: "Account security service is not configured." }, 503);
   const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
   try {
     const body = await req.json();
-    if (body?.action === "process-due") {
-      const { data: secretRow, error: secretError } = await admin.schema("private").from("account_lifecycle_cron_secrets").select("secret").eq("name", "finalizer").maybeSingle();
-      if (secretError || !secretRow?.secret || cronAction !== secretRow.secret) return reply(origin, { error: "Not authorized." }, 401);
-      const { data, error } = await admin.rpc("finalize_due_account_deletions");
-      if (error) throw error;
-      return reply(origin, { success: true, finalized: data || 0 });
-    }
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
     if (!token) return reply(origin, { error: "Authentication required." }, 401);
@@ -289,9 +281,18 @@ Deno.serve(async (req: Request) => {
       if (!validEmail(nextEmail)) return reply(origin, { error: "Enter a valid new email address." }, 422);
       if (nextEmail.toLowerCase() === String(user.email || "").toLowerCase()) return reply(origin, { error: "That is already your current email address." }, 422);
       await verifyPassword(admin, url, user, password);
-      const { data: users, error: usersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      if (usersError) throw new Error("Unable to verify the new email address.");
-      if ((users.users || []).some((entry: any) => entry.id !== user.id && String(entry.email || "").toLowerCase() === nextEmail)) return reply(origin, { error: "That email address is already connected to an account." }, 409);
+      let emailInUse = false;
+      for (let page = 1; page <= 100; page++) {
+        const { data: users, error: usersError } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (usersError) throw new Error("Unable to verify the new email address.");
+        const records = users?.users || [];
+        if (records.some((entry: any) => entry.id !== user.id && String(entry.email || "").toLowerCase() === nextEmail)) {
+          emailInUse = true;
+          break;
+        }
+        if (records.length < 1000) break;
+      }
+      if (emailInUse) return reply(origin, { error: "That email address is already connected to an account." }, 409);
       const { data: active, error } = await admin.from("account_lifecycle_requests").select("id,otp_sent_at").eq("user_id", user.id)
         .eq("request_type", "email_change").eq("status", "otp_pending").maybeSingle();
       if (error) throw new Error("Unable to check email-change requests.");
