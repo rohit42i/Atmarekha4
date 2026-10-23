@@ -366,6 +366,8 @@ if (!deletionProcessorSource.includes('.lte("scheduled_delete_at", now)') ||
     !deletionProcessorSource.includes('erase_due_account_personal_data') ||
     !deletionProcessorSource.includes('cancel_at_period_end: true') ||
     !deletionProcessorSource.includes('Legacy subscription expiry date is unknown.') ||
+    !deletionProcessorSource.includes('https://api.resend.com/contacts/') ||
+    !deletionProcessorSource.includes('Email-provider contact cleanup failed.') ||
     !deletionMigrationSource.includes('function public.erase_due_account_personal_data') ||
     !deletionMigrationSource.includes('delete from public.login_password_protection') ||
     !deletionMigrationSource.includes('update public.notification_event_dispatches set sender_user_id = null') ||
