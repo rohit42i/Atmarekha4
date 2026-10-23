@@ -366,9 +366,9 @@ for (const path of serviceRoleSecretCompatibilityPaths) {
   }
 }
 const contactSyncKeyRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
-if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    contactSyncKeyRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
-  console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
+if (contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    contactSyncKeyRegression.includes('api.resend.com/contacts')) {
+  console.error('CHECK FAILED: unsubscribe must persist in Supabase without requiring the Resend Contacts API.');
   failed = true;
 }
 const featureLoginGrantMigration = await readFile('supabase/migrations/20261022142628_fix_feature_login_rpc_grant_20261022.sql', 'utf8');
