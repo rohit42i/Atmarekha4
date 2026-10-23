@@ -20,3 +20,6 @@
 .privacy-admin-resolution{padding:10px;background:var(--admin-surface-muted,#18191d);border-radius:7px}
 .privacy-admin-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:600px){.privacy-admin-request{padding:12px}.privacy-admin-actions>*{flex:1 1 100%}}
+
+.privacy-admin-status.status-cancelled{border-color:#666;color:var(--admin-muted,#b8bbc4)}
+.privacy-admin-request-schedule{padding:10px 12px;border:1px solid var(--admin-border,#34363d);border-radius:8px;background:var(--admin-surface-muted,#18191d);font-size:12px}
