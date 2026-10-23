@@ -91,7 +91,7 @@ Deno.serve(async req => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
     const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
-    if (!["export","delete-request","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+    if (!["export","withdraw-consent", ...adminActions].includes(action)) return response({ error: action === "delete-request" ? "Use the password and email verification flow in Privacy Center to request account deletion." : "Unknown data-rights action." }, 400, origin);
 
     if (adminActions.includes(action)) {
       const { data: adminRow, error: adminError } = await admin
@@ -167,19 +167,6 @@ Deno.serve(async req => {
       return response({ consent: data }, 200, origin);
     }
 
-    if (action === "delete-request") {
-      const reason = clean(body?.reason, 500);
-      const { data: existing, error: existingError } = await admin.from("dpdp_deletion_requests")
-        .select("id,status,requested_at").eq("user_id", user.id)
-        .in("status", ["pending","processing"]).order("requested_at", { ascending: false }).limit(1).maybeSingle();
-      if (existingError) throw existingError;
-      if (existing) return response({ request: existing }, 200, origin);
-      const { data, error } = await admin.from("dpdp_deletion_requests")
-        .insert({ user_id: user.id, reason: reason || null })
-        .select("id,status,requested_at").single();
-      if (error) throw error;
-      return response({ request: data }, 201, origin);
-    }
 
     const output: Record<string, unknown> = {
       exported_at: new Date().toISOString(),
