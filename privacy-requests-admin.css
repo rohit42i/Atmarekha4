@@ -23,3 +23,6 @@
 
 .privacy-admin-status.status-cancelled{border-color:#666;color:var(--admin-muted,#b8bbc4)}
 .privacy-admin-request-schedule{padding:10px 12px;border:1px solid var(--admin-border,#34363d);border-radius:8px;background:var(--admin-surface-muted,#18191d);font-size:12px}
+
+.privacy-admin-header-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+@media(max-width:600px){.privacy-admin-header-actions{width:100%}.privacy-admin-header-actions button{flex:1 1 100%}}
