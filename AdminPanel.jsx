@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, cloudflareR2, isSupportedImageFile } from './supabase';
 import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import AdminOverview from './AdminOverview';
@@ -44,6 +44,62 @@ const IMAGE_MIME_BY_EXT = {
 const PAGE_BUCKET = 'chapter-pages';
 const COVER_BUCKET = 'covers';
 const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif';
+
+const ADMIN_PAGE_BATCH_SIZE = 1000;
+
+async function loadAllChapterPageRows() {
+  const rows = [];
+  let offset = 0;
+  while (offset <= 100000) {
+    const { data, error } = await supabase
+      .from(PAGES)
+      .select('id, chapter_id, page_number, image_url')
+      .order('page_number', { ascending: true })
+      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
+    if (error) throw error;
+    const batch = data || [];
+    rows.push(...batch);
+    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+    offset += ADMIN_PAGE_BATCH_SIZE;
+  }
+  throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
+}
+
+async function loadAllCommentReportRows() {
+  const rows = [];
+  let offset = 0;
+  while (offset <= 100000) {
+    const { data, error } = await supabase
+      .from('comment_reports')
+      .select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
+    if (error) throw error;
+    const batch = data || [];
+    rows.push(...batch);
+    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+    offset += ADMIN_PAGE_BATCH_SIZE;
+  }
+  throw new Error('Report queue exceeded the safe 100,000-row refresh limit. Refine the queue in the database before refreshing the complete history.');
+}
+
+async function captureAdminSource(work) {
+  try {
+    const result = await work();
+    if (result && typeof result === 'object' && Object.prototype.hasOwnProperty.call(result, 'error') &&
+        (Object.prototype.hasOwnProperty.call(result, 'data') || Object.prototype.hasOwnProperty.call(result, 'count'))) {
+      return { data: result.data ?? null, count: result.count ?? null, error: result.error || null };
+    }
+    return { data: result ?? null, count: result?.count ?? null, error: null };
+  } catch (error) {
+    return { data: null, count: null, error };
+  }
+}
+
+function adminSourceError(error) {
+  return String(error?.message || error || 'Unknown error').slice(0, 220);
+}
+
 
 function imageExtension(file) {
   const name = String(file?.name || '');
@@ -140,6 +196,7 @@ export default function AdminPanel({ onLogout }) {
   const [pageCounts, setPageCounts] = useState({});
   const [comments, setComments] = useState([]);
   const [reports, setReports] = useState([]);
+  const [openReportCount, setOpenReportCount] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [media, setMedia] = useState([]);
   const [email, setEmail] = useState('');
@@ -157,6 +214,8 @@ export default function AdminPanel({ onLogout }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
+  const loadSequence = useRef(0);
+  const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
   const [adminTheme, setAdminTheme] = useState(() => {
     try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
@@ -177,63 +236,116 @@ export default function AdminPanel({ onLogout }) {
   const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); };
 
   const load = async () => {
-    setLoading(true); setNotice({ type: '', text: '' });
+    const requestId = ++loadSequence.current;
+    const initialLoad = !hasLoaded.current;
+    if (initialLoad) setLoading(true);
+    setNotice({ type: '', text: '' });
+    const warnings = [];
     try {
       const user = await requireAdmin();
+      if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
-      const [chapterData, pdpklData, pageResult, commentResult, reportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
-        buildChapters(),
-        buildPdlplChapters(),
-        supabase.from(PAGES).select('id, chapter_id, page_number, image_url').order('page_number', { ascending: true }),
-        supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100),
-        supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
-        supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
-        supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200),
-        supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error })).catch(error => ({ data: null, error })),
+
+      const [chapterResult, pdpklResult, pageResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
+        captureAdminSource(() => buildChapters()),
+        captureAdminSource(() => buildPdlplChapters()),
+        captureAdminSource(() => loadAllChapterPageRows()),
+        captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100)),
+        captureAdminSource(() => loadAllCommentReportRows()),
+        captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')),
+        captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10)),
+        captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200)),
+        captureAdminSource(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error }))),
       ]);
-      for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
-      const performanceMap = {};
-      for (const row of performanceResult?.data?.chapter_stats || []) {
-        performanceMap[row.id] = {
-          views: Number(row.period_views ?? row.views ?? 0),
-          likes: Number(row.period_likes ?? row.likes ?? 0),
-          shares: Number(row.period_shares ?? row.shares ?? 0),
-        };
+      if (requestId !== loadSequence.current) return;
+      if (chapterResult.error) throw chapterResult.error;
+      setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+
+      if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
+      else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
+
+      if (pageResult.error) {
+        warnings.push('Page inventory: ' + adminSourceError(pageResult.error));
+      } else {
+        const counts = {};
+        for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+        setPageCounts(counts);
       }
-      const counts = {};
-      for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-      setChapters(chapterData || []);
-      setPdpklChapters(pdpklData || []);
-      setPageCounts(counts);
-      const mergedComments = await mergeReportedComments(reportResult.data || [], commentResult.data || []);
-      const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
-      let commenterProfiles = {};
-      if (commenterIds.length) {
-        const { data: profileRows, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, display_name, username')
-          .in('id', commenterIds);
-        if (profileError) console.warn('Comment author profile lookup failed:', profileError);
-        else commenterProfiles = Object.fromEntries((profileRows || []).map(profile => [profile.id, profile]));
+
+      if (commentResult.error) {
+        warnings.push('Comments: ' + adminSourceError(commentResult.error));
+      } else {
+        let mergedComments = commentResult.data || [];
+        if (!reportResult.error) {
+          try {
+            mergedComments = await mergeReportedComments(reportResult.data || [], mergedComments);
+          } catch (error) {
+            warnings.push('Older reported comments: ' + adminSourceError(error));
+          }
+        }
+        const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
+        let commenterProfiles = {};
+        if (commenterIds.length) {
+          const profileResult = await captureAdminSource(() => supabase
+            .from('profiles')
+            .select('id, display_name, username')
+            .in('id', commenterIds));
+          if (profileResult.error) warnings.push('Comment author profiles: ' + adminSourceError(profileResult.error));
+          else commenterProfiles = Object.fromEntries((profileResult.data || []).map(profile => [profile.id, profile]));
+        }
+        setComments(mergedComments.map(comment => {
+          const profile = commenterProfiles[comment.user_id];
+          const displayName = String(profile?.display_name || '').trim();
+          const username = String(profile?.username || '').trim();
+          const storedName = String(comment.author_name || '').trim();
+          return {
+            ...comment,
+            author_display_name: displayName || username || (storedName && storedName.toLowerCase() !== 'reader' ? storedName : 'Reader'),
+          };
+        }));
       }
-      setComments(mergedComments.map(comment => {
-        const profile = commenterProfiles[comment.user_id];
-        const displayName = String(profile?.display_name || '').trim();
-        const username = String(profile?.username || '').trim();
-        const storedName = String(comment.author_name || '').trim();
-        return {
-          ...comment,
-          author_display_name: displayName || username || (storedName && storedName.toLowerCase() !== 'reader' ? storedName : 'Reader'),
-        };
-      }));
-      setReports(reportResult.data || []);
-      setAnnouncements(announcementResult.data || []);
-      setMedia(mediaResult.data || []);
-      setChapterPerformance(performanceMap);
+
+      if (reportResult.error) warnings.push('Report queue: ' + adminSourceError(reportResult.error));
+      else setReports(reportResult.data || []);
+      if (openReportResult.error) {
+        warnings.push('Open report count: ' + adminSourceError(openReportResult.error));
+        setOpenReportCount(null);
+      } else {
+        setOpenReportCount(Number(openReportResult.count ?? 0));
+      }
+
+      if (announcementResult.error) warnings.push('Announcements: ' + adminSourceError(announcementResult.error));
+      else setAnnouncements(announcementResult.data || []);
+
+      if (mediaResult.error) warnings.push('Media library: ' + adminSourceError(mediaResult.error));
+      else setMedia(mediaResult.data || []);
+
+      if (performanceResult.error) {
+        warnings.push('Chapter performance metrics: ' + adminSourceError(performanceResult.error));
+      } else {
+        const performanceMap = {};
+        for (const row of performanceResult.data?.chapter_stats || []) {
+          performanceMap[row.id] = {
+            views: Number(row.period_views ?? row.views ?? 0),
+            likes: Number(row.period_likes ?? row.likes ?? 0),
+            shares: Number(row.period_shares ?? row.shares ?? 0),
+          };
+        }
+        setChapterPerformance(performanceMap);
+      }
       setLastRefreshedAt(new Date());
+      if (warnings.length) {
+        setNotice({ type: 'error', text: 'Admin panel loaded with limited data: ' + warnings.join(' · ') });
+      }
     } catch (error) {
-      console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
-    } finally { setLoading(false); }
+      console.error(error);
+      setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
+    } finally {
+      if (requestId === loadSequence.current) {
+        hasLoaded.current = true;
+        setLoading(false);
+      }
+    }
   };
 
   // Reports can reference comments outside the latest comments page.
@@ -251,7 +363,10 @@ export default function AdminPanel({ onLogout }) {
     return [...(commentRows || []), ...(data || [])];
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+    return () => { loadSequence.current += 1; };
+  }, []);
 
   useEffect(() => {
     const refreshHandler = () => load();
@@ -1061,7 +1176,7 @@ export default function AdminPanel({ onLogout }) {
   const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media', 'Privacy Requests'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
-  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
+  const reportCount = openReportCount ?? reports.filter(report => (report.status || 'open') === 'open').length;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   useEffect(() => {
@@ -1175,7 +1290,7 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} total comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} recent comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
@@ -1196,7 +1311,7 @@ export default function AdminPanel({ onLogout }) {
           {announcement.is_pinned && <label><span>Pin on</span><select value={announcement.pin_target} onChange={e => setAnnouncement({ ...announcement, pin_target: e.target.value })}><option value="atma">Atma Rekha</option><option value="pdpkl">PDPKL</option></select></label>}
         </div>
         <p className="admin-form-hint">Announcement text is shown in full. Pinning always puts this announcement above the others. Placement controls the position among unpinned announcements; Automatic keeps the normal newest-first order.</p>
-        <button className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
+        <button type="submit" className="admin-submit" disabled={busy}>{busy ? (editingAnnouncementId ? 'Saving…' : 'Publishing…') : (editingAnnouncementId ? 'Save announcement changes' : 'Publish announcement')}</button>
       </form>
       <div className="admin-card">
         <div className="admin-card-title"><div><span>PUBLISHED</span><h2>Announcements <small>Max 10</small></h2></div></div>
@@ -1206,7 +1321,7 @@ export default function AdminPanel({ onLogout }) {
         </div>)}</div>
         {!announcements.length && <p className="muted center">No announcements yet.</p>}
       </div>
-    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><label className="admin-file-field wide"><span>Image file</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} required onChange={e => { const file = e.target.files?.[0] || null; e.target.value = ''; setMediaForm({ ...mediaForm, file }); }}/>{mediaForm.file && <em>{mediaForm.file.name}</em>}</label></div><button className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item)}>Delete</button></div></article>)}</div></section>}
+    </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><label className="admin-file-field wide"><span>Image file</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} required onChange={e => { const file = e.target.files?.[0] || null; e.target.value = ''; setMediaForm({ ...mediaForm, file }); }}/>{mediaForm.file && <em>{mediaForm.file.name}</em>}</label></div><button type="submit" className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item)}>Delete</button></div></article>)}</div></section>}
 
         </div>
         <nav className="admin-bottom-nav" aria-label="Admin quick navigation">

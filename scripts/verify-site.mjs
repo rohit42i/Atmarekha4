@@ -613,6 +613,44 @@ for (const [name, content, phrase] of [
   }
 }
 
+
+const adminPanelReliabilityChecks = [
+  ['AdminPanel.jsx', adminPanel, 'const loadSequence = useRef(0);'],
+  ['AdminPanel.jsx', adminPanel, 'async function loadAllChapterPageRows()'],
+  ['AdminPanel.jsx', adminPanel, 'async function loadAllCommentReportRows()'],
+  ['AdminPanel.jsx', adminPanel, '{comments.length} recent comments · replies included'],
+  ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
+  ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
+];
+const adminOperationsRegressionSource = await readFile('AdminOperations.jsx', 'utf8');
+const groupChatAdminSource = await readFile('AdminGroupChatTools.jsx', 'utf8');
+const communityAdminSource = await readFile('CommunityAdmin.jsx', 'utf8');
+const chapterHealthAdminSource = await readFile('AdminChapterHealth.jsx', 'utf8');
+for (const [name, source, phrase] of adminPanelReliabilityChecks) {
+  if (!source.includes(phrase)) {
+    console.error('CHECK FAILED:', name, 'missing admin reliability safeguard:', phrase);
+    failed = true;
+  }
+}
+for (const [name, source, phrase] of [
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "select('id', { count: 'exact', head: true }).gte('created_at', todayStart())"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "today.views == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "today.readers == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "today.likes == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "subscriberCount == null ? 'Unavailable'"],
+  ['AdminGroupChatTools.jsx', groupChatAdminSource, '<button type="button" className={'],
+  ['AdminGroupChatTools.jsx', groupChatAdminSource, '<button type="button" className="ar-gcm-action" onClick={deleteSelected}'],
+  ['AdminChapterHealth.jsx', chapterHealthAdminSource, '<button type="button" className="ar-health-run" onClick={runCheck}'],
+  ['CommunityAdmin.jsx', communityAdminSource, 'finally{setLoadingPosts(false)}'],
+  ['CommunityAdmin.jsx', communityAdminSource, '<button type="submit" className="community-admin-send"'],
+  ['CommunityAdmin.jsx', communityAdminSource, "throw Error('Admin access required.')"],
+]) {
+  if (!source.includes(phrase)) {
+    console.error('CHECK FAILED:', name, 'missing admin action safeguard:', phrase);
+    failed = true;
+  }
+}
+
 const metricStart = controlRoom.indexOf('const metricGroups = useMemo');
 const metricEnd = controlRoom.indexOf('const metricCategories', metricStart);
 const metricSource = metricStart >= 0 && metricEnd > metricStart ? controlRoom.slice(metricStart, metricEnd) : '';
