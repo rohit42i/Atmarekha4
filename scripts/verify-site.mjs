@@ -240,6 +240,16 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
   failed = true;
 }
 
+
+const legacyBulkEmailRegression = await readFile('supabase/functions/send-email-to-users/index.ts', 'utf8');
+if (!legacyBulkEmailRegression.includes('if (!testEmail)') ||
+    !legacyBulkEmailRegression.includes('Bulk sending through this legacy endpoint is disabled') ||
+    !legacyBulkEmailRegression.includes('}, 410);') ||
+    legacyBulkEmailRegression.includes('Atma Rekha <atmarekhaoffical@gmail.com>')) {
+  console.error('CHECK FAILED: legacy bulk email must not bypass the consent-aware Email Studio sender.');
+  failed = true;
+}
+
 const unsubscribeOneClickRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
 const emailStudioUnsubscribeRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
 const chapterReleaseUnsubscribeRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
