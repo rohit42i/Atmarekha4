@@ -407,6 +407,10 @@ Deno.serve(async req => {
             subject,
             html: htmlWithFooter || undefined,
             text: text || undefined,
+            headers: (category === "marketing" || category === "updates") && unsubscribeUrl ? {
+              "List-Unsubscribe": "<" + unsubscribeUrl + ">",
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+            } : undefined,
             tags: [
               { name: "campaign_id", value: campaign.id },
               { name: "template", value: templateSlug || "custom" },
