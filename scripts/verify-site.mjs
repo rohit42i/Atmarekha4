@@ -227,6 +227,12 @@ if (!emailStudioFunctionRegression.includes('const subjectSource = cleanText(inp
   console.error('CHECK FAILED: Email Studio must honor editable subjects, render custom values, use the clean full-width email layout, and use the homepage for chapter announcements.');
   failed = true;
 }
+const emailPreferencePersistenceRegression = await readFile('supabase/functions/update-chapter-email-preference/index.ts', 'utf8');
+if ((emailPreferencePersistenceRegression.match(/from\("email_marketing_preferences"\)\.upsert/g) || []).length < 2 ||
+    emailPreferencePersistenceRegression.includes('from("email_marketing_preferences").update')) {
+  console.error('CHECK FAILED: enabling and disabling email updates must persist preferences even when no row exists yet.');
+  failed = true;
+}
 const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
 const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
 const emailAudienceStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
