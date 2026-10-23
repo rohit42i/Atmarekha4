@@ -1022,7 +1022,7 @@ export default function PalDoPalAdmin({ embedded = false }) {
             </div>
           </section>
         )}
-        <button className="pdlpl-primary" disabled={busy}>{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
+        <button type="submit" className="pdlpl-primary" disabled={busy}>{busy ? 'Working…' : editing ? 'Save chapter changes' : 'Upload chapter'}</button>
       </form>
 
       <section className="pdlpl-admin-card">
