@@ -102,23 +102,5 @@ Deno.serve(async req => {
   if (updateError) return page("Unable to update preferences", "Please try again later.", 500);
   if (!updated) return page("Link unavailable", "This unsubscribe link is invalid or expired.", 404);
 
-  const contactKey = Deno.env.get("RESEND_CONTACTS_API_KEY") || "";
-  if (contactKey) {
-    try {
-      const { data: userData } = await db.auth.admin.getUserById(data.user_id);
-      const email = String(userData?.user?.email || "").trim();
-      if (email) {
-        const sync = await fetch("https://api.resend.com/contacts/" + encodeURIComponent(email), {
-          method: "PATCH",
-          headers: { Authorization: "Bearer " + contactKey, "Content-Type": "application/json" },
-          body: JSON.stringify({ unsubscribed: true })
-        });
-        if (!sync.ok && sync.status !== 404) console.error("Resend unsubscribe sync failed.", sync.status);
-      }
-    } catch (error) {
-      console.error("Resend unsubscribe sync failed.", error);
-    }
-  }
-
   return page("You’re unsubscribed", "You will no longer receive Atma Rekha chapter updates or promotional emails. Essential account and security emails may still be sent.");
 });
