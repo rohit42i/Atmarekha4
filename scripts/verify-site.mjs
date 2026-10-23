@@ -367,11 +367,17 @@ if (!featureLoginGrantMigration.includes('grant execute on function public.recor
   console.error('CHECK FAILED: feature login RPC must work for authenticated readers without allowing anonymous calls.');
   failed = true;
 }
-const homeProfileAvatarRegression = await readFile('App.jsx', 'utf8');
-if (!homeProfileAvatarRegression.includes("select('avatar_url')") ||
-    !homeProfileAvatarRegression.includes('aria-label={homeUser ? "Open your profile" : "Sign in"}') ||
-    !homeProfileAvatarRegression.includes('onError={() => setHomeAvatar("")}')) {
-  console.error('CHECK FAILED: home header must show the current reader avatar with a safe fallback and profile action.');
+const homeProfileAvatarRegression = await readFile('UserAuth.jsx', 'utf8');
+const profileSaveRegression = await readFile('ProfileV2.jsx', 'utf8');
+const homeShellRegression = await readFile('App.jsx', 'utf8');
+if (!homeProfileAvatarRegression.includes("'/avatars/avatar-01.jpg'") ||
+    !homeProfileAvatarRegression.includes('setAvatarFailed(true)') ||
+    !homeProfileAvatarRegression.includes("window.addEventListener('atma:profile-updated',onProfileUpdated)") ||
+    !profileSaveRegression.includes(".upsert({ id: user.id, ...updates }, { onConflict: 'id' })") ||
+    !profileSaveRegression.includes("atma:profile-updated") ||
+    homeShellRegression.includes('Open your profile') ||
+    homeShellRegression.includes('setHomeAvatar')) {
+  console.error('CHECK FAILED: the single home avatar control must load a fallback, survive failed images, and refresh after profile saves.');
   failed = true;
 }
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
