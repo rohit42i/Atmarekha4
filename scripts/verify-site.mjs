@@ -356,6 +356,31 @@ if (!privacyAdminRegression.includes('resolutionNotes[request.id]') ||
   console.error('CHECK FAILED: privacy deletion resolution must use a validated inline note form, not browser prompts.');
   failed = true;
 }
+
+const deletionRecoveryPromptSource = await readFile('AccountDeletionRecoveryPrompt.jsx', 'utf8');
+const userAuthRecoveryMount = await readFile('UserAuth.jsx', 'utf8');
+if (!userAuthRecoveryMount.includes("import AccountDeletionRecoveryPrompt from './AccountDeletionRecoveryPrompt.jsx';") ||
+    !userAuthRecoveryMount.includes('<AccountDeletionRecoveryPrompt/>') ||
+    !deletionRecoveryPromptSource.includes("event === 'SIGNED_IN'") ||
+    !deletionRecoveryPromptSource.includes("action: 'send-reactivate-otp'") ||
+    !deletionRecoveryPromptSource.includes("action: 'confirm-reactivate-otp'") ||
+    !deletionRecoveryPromptSource.includes('You signed in while a deletion request was still recoverable.')) {
+  console.error('CHECK FAILED: signing in during the recovery window must offer OTP-protected cancellation without blocking login.');
+  failed = true;
+}
+if (!privacyCenterRegression.includes('scheduled_delete_at') ||
+    !privacyCenterRegression.includes('recovery_until') ||
+    !privacyCenterRegression.includes("action: 'confirm-delete-otp'") ||
+    !privacyCenterRegression.includes("action: 'confirm-reactivate-otp'")) {
+  console.error('CHECK FAILED: Privacy Center must show deletion timing and use the OTP-confirmed deletion/recovery flow.');
+  failed = true;
+}
+if (!privacyAdminRegression.includes('Scheduled, not due') ||
+    !privacyAdminRegression.includes('privacy-admin-request-schedule')) {
+  console.error('CHECK FAILED: admin privacy queue must show scheduled deletion details and prevent early processing.');
+  failed = true;
+}
+
 const readerViewKeyRegression = await readFile('engagement.js', 'utf8');
 const viewerKeyStart = readerViewKeyRegression.indexOf('export function getViewerKey() {');
 const viewerKeyEnd = readerViewKeyRegression.indexOf('\n}', viewerKeyStart) + 2;
