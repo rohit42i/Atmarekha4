@@ -88,7 +88,7 @@ async function sendSecurityAlert(resendKey: string, to: string, lockedUntil: str
     "<p><strong>Your account is temporarily locked for 24 hours.</strong></p>",
     "<p>Attempt window: " + checkedAt + " IST<br>Automatic unlock: " + unlockAt + " IST</p>",
     "<p>If this was you, you can sign in again after the lock expires. If it was not you, change your password and enable Two-step verification as soon as you regain access.</p>",
-    "<p style=\"color:#666;font-size:13px\">Atma Rekha — an original Indian fantasy adventure manga.</p>",
+    "<p style=\"color:#666;font-size:13px\">Atma Rekha</p>",
     "</div>",
   ].join("");
 
