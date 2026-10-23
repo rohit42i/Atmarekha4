@@ -39,10 +39,10 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga available in Hindi (Roman Hindi) and English.' };
+const STORY = { title: 'Atma Rekha', description: 'An original fantasy adventure manga available in Hindi (Roman Hindi) and English.' };
 const SITE_URL = 'https://www.atmarekha.in';
-const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Manga & Adventure';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy manga adventure by Arkesh. Explore its story, characters, ancient traditions, and mysterious powers.';
+const DEFAULT_SEO_TITLE = 'Atma Rekha | Fantasy Adventure Manga';
+const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
 
 function upsertMeta(attribute, key, content) {
@@ -478,7 +478,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
         description = shortSeoDescription(
           chapter.description,
-          'Read ' + label + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.',
+          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       } else {
@@ -486,8 +486,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         const numericChapter = /^\d+(?:\.\d+)?$/.test(chapterPart) ? chapterPart : '';
         title = numericChapter ? 'Atma Rekha Chapter ' + numericChapter : 'Atma Rekha | Chapter';
         description = numericChapter
-          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.'
-          : 'Read an Atma Rekha chapter, an original Indian fantasy manga adventure by Arkesh.';
+          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original fantasy adventure manga by Arkesh.'
+          : 'Read an Atma Rekha chapter, an original fantasy adventure manga by Arkesh.';
       }
     } else if (type === 'read-chapter') {
       const legacyId = legacyChapterIdFromHash('#' + route);
@@ -497,17 +497,17 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
         description = shortSeoDescription(
           chapter.description,
-          'Read ' + label + ' of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.',
+          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'chapters') {
       if (requestedLanguage === 'en') {
         title = 'Atma Rekha | English Chapters';
-        description = 'Read the published English chapters of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.';
+        description = 'Read the published English chapters of Atma Rekha, an original fantasy adventure manga by Arkesh.';
       } else {
         title = 'Atma Rekha | Chapters';
-        description = 'Read the published Hindi chapters of Atma Rekha, an original Indian fantasy manga adventure by Arkesh.';
+        description = 'Read the published Hindi chapters of Atma Rekha, an original fantasy adventure manga by Arkesh.';
       }
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
@@ -520,7 +520,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       const infoDescriptions = {
-        about: 'Learn about Atma Rekha, its creator Arkesh, the original Indian fantasy adventure manga, and how to read its published chapters.',
+        about: 'Learn about Atma Rekha, its creator Arkesh, the fantasy adventure manga, and how to read its published chapters.',
         contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
         report: 'Report an issue with Atma Rekha website content or community activity.',
         privacy: 'Read the Atma Rekha privacy policy and understand how account and website data is handled.',
@@ -645,7 +645,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       genre: ['Fantasy', 'Adventure', 'Manga'],
       alternateName: 'Atma Rekha Fantasy Adventure Manga',
       description: DEFAULT_SEO_DESCRIPTION,
-      keywords: 'Indian fantasy manga, Indian comic, fantasy adventure manga, spiritual fantasy, ancient traditions, Roman Hindi manga',
+      keywords: 'fantasy adventure manga, original comic, mysterious powers, Roman Hindi manga',
       author,
       inLanguage: ['en-IN', 'hi-Latn-IN'],
       url: SITE_URL + '/',
@@ -672,7 +672,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         description: DEFAULT_SEO_DESCRIPTION,
         inLanguage: ['en-IN', 'hi-Latn-IN'],
         creator: author,
-        about: ['Indian fantasy manga', 'Indian comic', 'ancient traditions', 'spiritual concepts', 'mysterious powers', 'mythical beings'],
+        about: ['fantasy adventure manga', 'mysterious powers', 'mythical beings'],
       },
       series,
       pageNode,
