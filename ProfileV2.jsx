@@ -86,7 +86,28 @@ export default function ProfileV2() {
         setMessage('');
       } else {
         setEmail(nextEmail);
-        setMessage(`Profile saved. Supabase may send confirmation links to your old and new addresses. Complete the requested confirmations; your sign-in email changes only after confirmation. Then reopen Profile to verify it.`);
+        const successMessage = "Profile saved. Supabase sends confirmation links to the old and new addresses. Complete both confirmations; your sign-in email changes only after verification.";
+        const { data: existingRequests, error: requestLookupError } = await supabase
+          .from('email_change_requests')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('requested_email', nextEmail)
+          .eq('status', 'pending')
+          .limit(1);
+        if (requestLookupError) {
+          setMessage('Profile saved. Your email change is pending Supabase verification, but the admin request history could not be checked. Please contact support if it does not complete.');
+        } else if (!existingRequests?.length) {
+          const { error: requestInsertError } = await supabase.from('email_change_requests').insert({
+            user_id: user.id,
+            current_email: String(user.email || '').trim(),
+            requested_email: nextEmail,
+          });
+          setMessage(requestInsertError
+            ? 'Profile saved. Your email change is pending Supabase verification, but its admin request history could not be recorded. Please contact support if it does not complete.'
+            : successMessage);
+        } else {
+          setMessage(successMessage);
+        }
       }
     } else {
       setMessage('Profile saved.');
