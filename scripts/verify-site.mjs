@@ -357,6 +357,25 @@ if (!privacyAdminRegression.includes('resolutionNotes[request.id]') ||
   failed = true;
 }
 
+const deletionProcessorSource = await readFile('supabase/functions/process-scheduled-account-deletions/index.ts', 'utf8');
+const deletionMigrationSource = await readFile('supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', 'utf8');
+const privacyRightsSource = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
+const privacyAdminQueueSource = await readFile('PrivacyRequestsAdmin.jsx', 'utf8');
+if (!deletionProcessorSource.includes('.lte("scheduled_delete_at", now)') ||
+    !deletionProcessorSource.includes('.lte("recovery_until", now)') ||
+    !deletionProcessorSource.includes('erase_due_account_personal_data') ||
+    !deletionProcessorSource.includes('cancel_at_period_end: true') ||
+    !deletionProcessorSource.includes('Legacy subscription expiry date is unknown.') ||
+    !deletionMigrationSource.includes('function public.erase_due_account_personal_data') ||
+    !deletionMigrationSource.includes('delete from public.login_password_protection') ||
+    !deletionMigrationSource.includes('update public.notification_event_dispatches set sender_user_id = null') ||
+    !privacyRightsSource.includes('Scheduled deletions can only be closed by the verified erasure processor.') ||
+    !privacyAdminQueueSource.includes('process-scheduled-account-deletions') ||
+    !privacyAdminQueueSource.includes('Run due erasures') ||
+    !privacyAdminQueueSource.includes('Automated erasure in progress')) {
+  console.error('CHECK FAILED: scheduled deletion must verify both deadlines, retain billing history, and finalize through the protected processor.');
+  failed = true;
+}
 const deletionRecoveryPromptSource = await readFile('AccountDeletionRecoveryPrompt.jsx', 'utf8');
 const userAuthRecoveryMount = await readFile('UserAuth.jsx', 'utf8');
 if (!userAuthRecoveryMount.includes("import AccountDeletionRecoveryPrompt from './AccountDeletionRecoveryPrompt.jsx';") ||
