@@ -123,6 +123,7 @@ const ADMIN_NAV_GROUPS = [
   ]},
   { label: 'System', items: [
     { key: 'Privacy Requests', icon: 'settings', label: 'Privacy Requests' },
+    { key: '__email-changes', icon: 'user', label: 'Email Change Requests', action: 'atma-admin-open-management', detail: { view: 'emailChanges' } },
     { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
