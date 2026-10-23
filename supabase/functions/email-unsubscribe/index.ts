@@ -21,6 +21,29 @@ const page = (title: string, message: string, status = 200, showConfirmation = f
   );
 };
 
+async function readLimitedBody(req: Request, maxBytes: number) {
+  const declared = Number(req.headers.get("content-length") || 0);
+  if (Number.isFinite(declared) && declared > maxBytes) return null;
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      try { await reader.cancel(); } catch {}
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
 function readSupabaseServiceRoleKey() {
   const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
   if (configured) {
@@ -53,9 +76,9 @@ Deno.serve(async req => {
   if (!contentType.includes("application/x-www-form-urlencoded")) {
     return page("Invalid request", "The unsubscribe request could not be verified.", 400);
   }
-  let body = "";
-  try { body = await req.text(); } catch { return page("Invalid request", "The unsubscribe request could not be read.", 400); }
-  if (body.length > 1024) return page("Invalid request", "The unsubscribe request is too large.", 413);
+  let body: string | null;
+  try { body = await readLimitedBody(req, 1024); } catch { return page("Invalid request", "The unsubscribe request could not be read.", 400); }
+  if (body === null) return page("Invalid request", "The unsubscribe request is too large.", 413);
   if (new URLSearchParams(body).get("List-Unsubscribe") !== "One-Click") {
     return page("Invalid request", "The unsubscribe request could not be verified.", 400);
   }
