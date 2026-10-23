@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, cloudflareR2, isSupportedImageFile } from './supabase';
 import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import AdminOverview from './AdminOverview';
@@ -44,6 +44,44 @@ const IMAGE_MIME_BY_EXT = {
 const PAGE_BUCKET = 'chapter-pages';
 const COVER_BUCKET = 'covers';
 const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif';
+
+const ADMIN_PAGE_BATCH_SIZE = 1000;
+
+async function loadAllChapterPageRows() {
+  const rows = [];
+  let offset = 0;
+  while (offset < 100000) {
+    const { data, error } = await supabase
+      .from(PAGES)
+      .select('id, chapter_id, page_number, image_url')
+      .order('page_number', { ascending: true })
+      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
+    if (error) throw error;
+    const batch = data || [];
+    rows.push(...batch);
+    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+    offset += ADMIN_PAGE_BATCH_SIZE;
+  }
+  throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
+}
+
+async function captureAdminSource(work) {
+  try {
+    const result = await work();
+    if (result && typeof result === 'object' && Object.prototype.hasOwnProperty.call(result, 'error') &&
+        (Object.prototype.hasOwnProperty.call(result, 'data') || Object.prototype.hasOwnProperty.call(result, 'count'))) {
+      return { data: result.data ?? null, count: result.count ?? null, error: result.error || null };
+    }
+    return { data: result ?? null, count: result?.count ?? null, error: null };
+  } catch (error) {
+    return { data: null, count: null, error };
+  }
+}
+
+function adminSourceError(error) {
+  return String(error?.message || error || 'Unknown error').slice(0, 220);
+}
+
 
 function imageExtension(file) {
   const name = String(file?.name || '');
@@ -140,6 +178,7 @@ export default function AdminPanel({ onLogout }) {
   const [pageCounts, setPageCounts] = useState({});
   const [comments, setComments] = useState([]);
   const [reports, setReports] = useState([]);
+  const [openReportCount, setOpenReportCount] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [media, setMedia] = useState([]);
   const [email, setEmail] = useState('');
@@ -157,6 +196,8 @@ export default function AdminPanel({ onLogout }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
+  const loadSequence = useRef(0);
+  const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
   const [adminTheme, setAdminTheme] = useState(() => {
     try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
@@ -177,63 +218,116 @@ export default function AdminPanel({ onLogout }) {
   const resetForm = () => { setEditing(null); setForm(emptyForm()); setProgress({ current: 0, total: 0, text: '' }); };
 
   const load = async () => {
-    setLoading(true); setNotice({ type: '', text: '' });
+    const requestId = ++loadSequence.current;
+    const initialLoad = !hasLoaded.current;
+    if (initialLoad) setLoading(true);
+    setNotice({ type: '', text: '' });
+    const warnings = [];
     try {
       const user = await requireAdmin();
+      if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
-      const [chapterData, pdpklData, pageResult, commentResult, reportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
-        buildChapters(),
-        buildPdlplChapters(),
-        supabase.from(PAGES).select('id, chapter_id, page_number, image_url').order('page_number', { ascending: true }),
-        supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100),
-        supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100),
-        supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10),
-        supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200),
-        supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error })).catch(error => ({ data: null, error })),
+
+      const [chapterResult, pdpklResult, pageResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
+        captureAdminSource(() => buildChapters()),
+        captureAdminSource(() => buildPdlplChapters()),
+        captureAdminSource(() => loadAllChapterPageRows()),
+        captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100)),
+        captureAdminSource(() => supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).limit(100)),
+        captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')),
+        captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10)),
+        captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200)),
+        captureAdminSource(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error }))),
       ]);
-      for (const result of [pageResult, commentResult, reportResult, announcementResult, mediaResult]) if (result.error) throw result.error;
-      const performanceMap = {};
-      for (const row of performanceResult?.data?.chapter_stats || []) {
-        performanceMap[row.id] = {
-          views: Number(row.period_views ?? row.views ?? 0),
-          likes: Number(row.period_likes ?? row.likes ?? 0),
-          shares: Number(row.period_shares ?? row.shares ?? 0),
-        };
+      if (requestId !== loadSequence.current) return;
+      if (chapterResult.error) throw chapterResult.error;
+      setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+
+      if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
+      else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
+
+      if (pageResult.error) {
+        warnings.push('Page inventory: ' + adminSourceError(pageResult.error));
+      } else {
+        const counts = {};
+        for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+        setPageCounts(counts);
       }
-      const counts = {};
-      for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-      setChapters(chapterData || []);
-      setPdpklChapters(pdpklData || []);
-      setPageCounts(counts);
-      const mergedComments = await mergeReportedComments(reportResult.data || [], commentResult.data || []);
-      const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
-      let commenterProfiles = {};
-      if (commenterIds.length) {
-        const { data: profileRows, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, display_name, username')
-          .in('id', commenterIds);
-        if (profileError) console.warn('Comment author profile lookup failed:', profileError);
-        else commenterProfiles = Object.fromEntries((profileRows || []).map(profile => [profile.id, profile]));
+
+      if (commentResult.error) {
+        warnings.push('Comments: ' + adminSourceError(commentResult.error));
+      } else {
+        let mergedComments = commentResult.data || [];
+        if (!reportResult.error) {
+          try {
+            mergedComments = await mergeReportedComments(reportResult.data || [], mergedComments);
+          } catch (error) {
+            warnings.push('Older reported comments: ' + adminSourceError(error));
+          }
+        }
+        const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
+        let commenterProfiles = {};
+        if (commenterIds.length) {
+          const profileResult = await captureAdminSource(() => supabase
+            .from('profiles')
+            .select('id, display_name, username')
+            .in('id', commenterIds));
+          if (profileResult.error) warnings.push('Comment author profiles: ' + adminSourceError(profileResult.error));
+          else commenterProfiles = Object.fromEntries((profileResult.data || []).map(profile => [profile.id, profile]));
+        }
+        setComments(mergedComments.map(comment => {
+          const profile = commenterProfiles[comment.user_id];
+          const displayName = String(profile?.display_name || '').trim();
+          const username = String(profile?.username || '').trim();
+          const storedName = String(comment.author_name || '').trim();
+          return {
+            ...comment,
+            author_display_name: displayName || username || (storedName && storedName.toLowerCase() !== 'reader' ? storedName : 'Reader'),
+          };
+        }));
       }
-      setComments(mergedComments.map(comment => {
-        const profile = commenterProfiles[comment.user_id];
-        const displayName = String(profile?.display_name || '').trim();
-        const username = String(profile?.username || '').trim();
-        const storedName = String(comment.author_name || '').trim();
-        return {
-          ...comment,
-          author_display_name: displayName || username || (storedName && storedName.toLowerCase() !== 'reader' ? storedName : 'Reader'),
-        };
-      }));
-      setReports(reportResult.data || []);
-      setAnnouncements(announcementResult.data || []);
-      setMedia(mediaResult.data || []);
-      setChapterPerformance(performanceMap);
+
+      if (reportResult.error) warnings.push('Report queue: ' + adminSourceError(reportResult.error));
+      else setReports(reportResult.data || []);
+      if (openReportResult.error) {
+        warnings.push('Open report count: ' + adminSourceError(openReportResult.error));
+        setOpenReportCount(null);
+      } else {
+        setOpenReportCount(Number(openReportResult.count ?? 0));
+      }
+
+      if (announcementResult.error) warnings.push('Announcements: ' + adminSourceError(announcementResult.error));
+      else setAnnouncements(announcementResult.data || []);
+
+      if (mediaResult.error) warnings.push('Media library: ' + adminSourceError(mediaResult.error));
+      else setMedia(mediaResult.data || []);
+
+      if (performanceResult.error) {
+        warnings.push('Chapter performance metrics: ' + adminSourceError(performanceResult.error));
+      } else {
+        const performanceMap = {};
+        for (const row of performanceResult.data?.chapter_stats || []) {
+          performanceMap[row.id] = {
+            views: Number(row.period_views ?? row.views ?? 0),
+            likes: Number(row.period_likes ?? row.likes ?? 0),
+            shares: Number(row.period_shares ?? row.shares ?? 0),
+          };
+        }
+        setChapterPerformance(performanceMap);
+      }
       setLastRefreshedAt(new Date());
+      if (warnings.length) {
+        setNotice({ type: 'error', text: 'Admin panel loaded with limited data: ' + warnings.join(' · ') });
+      }
     } catch (error) {
-      console.error(error); setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
-    } finally { setLoading(false); }
+      console.error(error);
+      setNotice({ type: 'error', text: error.message || 'Unable to load admin data.' });
+    } finally {
+      if (requestId === loadSequence.current) {
+        hasLoaded.current = true;
+        setLoading(false);
+      }
+    }
   };
 
   // Reports can reference comments outside the latest comments page.
@@ -251,7 +345,10 @@ export default function AdminPanel({ onLogout }) {
     return [...(commentRows || []), ...(data || [])];
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+    return () => { loadSequence.current += 1; };
+  }, []);
 
   useEffect(() => {
     const refreshHandler = () => load();
@@ -1061,7 +1158,7 @@ export default function AdminPanel({ onLogout }) {
   const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media', 'Privacy Requests'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
-  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
+  const reportCount = openReportCount ?? reports.filter(report => (report.status || 'open') === 'open').length;
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   useEffect(() => {
