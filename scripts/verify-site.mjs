@@ -312,6 +312,14 @@ if (!adminEmailChangeToolsRegression.includes("view==='emailChanges'") ||
   console.error('CHECK FAILED: secure email-change workflow needs tracked requests, dual-address verification and admin audit history.');
   failed = true;
 }
+const signupVerificationAdminRegression = await readFile('supabase/functions/send-email-to-users/index.ts', 'utf8');
+if (!signupVerificationAdminRegression.includes('if (action === "resend_signup_verification")') ||
+    !signupVerificationAdminRegression.includes('authMailer.auth.resend({') ||
+    !signupVerificationAdminRegression.includes('target.email_confirmed_at') ||
+    !signupVerificationAdminRegression.includes('resend_signup_verification')) {
+  console.error('CHECK FAILED: admin resend must use Supabase Auth resend for existing unverified accounts and refuse already-verified users.');
+  failed = true;
+}
 const adminReaderDetailUiRegression = await readFile('AdminManagementTools.jsx', 'utf8');
 const adminReaderDetailApiRegression = await readFile('supabase/functions/get-admin-console-data/index.ts', 'utf8');
 if (!adminReaderDetailUiRegression.includes('function ReaderDetailsPanel') ||

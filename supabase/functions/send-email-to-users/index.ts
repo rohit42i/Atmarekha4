@@ -128,6 +128,47 @@ Deno.serve(async (req) => {
       return response(req, { ok: true, users: matches });
     }
 
+    if (action === "resend_signup_verification") {
+      const targetId = String(body.user_id || "").trim();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId)) {
+        return response(req, { ok: false, error: "A valid reader ID is required." }, 422);
+      }
+
+      const { data: targetResult, error: targetError } = await db.auth.admin.getUserById(targetId);
+      const target = targetResult?.user;
+      if (targetError || !target) return response(req, { ok: false, error: "Reader account not found." }, 404);
+      if (!target.email || !validEmail(target.email)) return response(req, { ok: false, error: "This account has no valid email address." }, 422);
+      if (target.email_confirmed_at) return response(req, { ok: false, error: "This email is already verified." }, 409);
+      if (target.is_anonymous) return response(req, { ok: false, error: "Anonymous accounts cannot receive email verification." }, 409);
+
+      // Use Supabase Auth's supported resend endpoint for an existing unverified account.
+      // admin.generateLink({type:"signup"}) creates a user and is not a safe resend path.
+      const authApiKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
+      if (!authApiKey) return response(req, { ok: false, error: "Authentication email verification is not configured." }, 503);
+      const authMailer = createClient(supabaseUrl, authApiKey, {
+        auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+      });
+      const { error: resendError } = await authMailer.auth.resend({
+        type: "signup",
+        email: target.email,
+        options: { emailRedirectTo: "https://www.atmarekha.in/" },
+      });
+      if (resendError) {
+        console.error("Admin signup verification resend failed.", resendError.message);
+        return response(req, { ok: false, error: "The verification email could not be resent. Check Auth email delivery settings and retry." }, 502);
+      }
+
+      const { error: auditError } = await db.from("admin_activity_log").insert({
+        admin_user_id: authData.user.id,
+        action: "resend_signup_verification",
+        entity_type: "user",
+        entity_id: target.id,
+        details: { recipient: target.email, provider: "supabase_auth" },
+      });
+      if (auditError) console.error("Signup verification resent, but admin audit entry failed.");
+      return response(req, { ok: true, email: target.email, audit_warning: Boolean(auditError) }, 200);
+    }
+
     if (action === "resend_email_change_confirmation") {
       const requestId = String(body.request_id || "").trim();
       if (!/^[0-9a-f-]{36}$/i.test(requestId)) {
