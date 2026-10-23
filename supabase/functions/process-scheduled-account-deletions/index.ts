@@ -87,12 +87,16 @@ async function processOne(admin: ReturnType<typeof createClient>, request: Recor
 
   const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID")?.trim() || "";
   const razorpaySecret = Deno.env.get("RAZORPAY_KEY_SECRET")?.trim() || "";
-  let periodEnd: string | null = null;
   for (const subscription of subscriptions || []) {
     const provider = String(subscription.provider || "").toLowerCase();
     const status = String(subscription.status || "").toLowerCase();
     const active = ACTIVE_STATUSES.has(status);
     if (!active && !isFuture(subscription.current_period_end)) continue;
+
+    if (provider === "razorpay" && active && subscription.cancel_at_period_end === true && !subscription.current_period_end) {
+      await updateNote(admin, requestId, "Erasure paused: a Razorpay subscription is marked to cancel at period end, but its period end is missing. Verify the provider record before erasure.");
+      return { request_id: requestId, status: "pending", reason: "Recurring subscription period end is unknown." };
+    }
 
     if (provider === "razorpay" && active && subscription.cancel_at_period_end !== true) {
       if (!razorpayKeyId || !razorpaySecret || !subscription.provider_subscription_id) {
@@ -147,7 +151,6 @@ async function processOne(admin: ReturnType<typeof createClient>, request: Recor
       await updateNote(admin, requestId, "Deletion deferred until the recorded subscription period ends.", scheduledAt);
       return { request_id: requestId, status: "pending", deferred_until: scheduledAt, reason: "Subscription period has not ended." };
     }
-    periodEnd = [periodEnd, subscription.current_period_end].filter(Boolean).sort().at(-1) || periodEnd;
   }
 
   // Legacy subscriptions have no provider ID. Keep billing records through their
@@ -158,6 +161,10 @@ async function processOne(admin: ReturnType<typeof createClient>, request: Recor
     .eq("user_id", userId);
   if (legacyError) throw new Error("Could not inspect legacy subscription retention requirements.");
   for (const subscription of legacySubscriptions || []) {
+    if (["active", "pending"].includes(String(subscription.status || "").toLowerCase()) && !subscription.expiry_date) {
+      await updateNote(admin, requestId, "Erasure paused: a legacy subscription is active but has no verified expiry date. Review billing before proceeding.");
+      return { request_id: requestId, status: "pending", reason: "Legacy subscription expiry date is unknown." };
+    }
     if (["active", "pending"].includes(String(subscription.status || "").toLowerCase()) && isFuture(subscription.expiry_date)) {
       const scheduledAt = new Date(Math.max(
         new Date(String(request.scheduled_delete_at)).getTime(),
@@ -220,15 +227,21 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Invalid request body." }, 400, origin);
     }
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
-    const { data: { user } } = await admin.auth.getUser(token).catch(() => ({ data: { user: null } } as any));
+    let user: { id: string } | null = null;
+    try {
+      const { data, error } = await admin.auth.getUser(token);
+      if (!error) user = data.user ? { id: data.user.id } : null;
+    } catch {
+      user = null;
+    }
     if (user?.id) {
       const { data: role, error: roleError } = await admin.from("admins").select("role").eq("user_id", user.id).maybeSingle();
       if (roleError || !role || !["owner", "admin"].includes(String(role.role || "").toLowerCase())) {
         return json({ error: "Admin access required." }, 403, origin);
       }
     } else if (rawBody.source !== "cron") {
-      // The scheduled job uses a server-side service invocation tagged as cron.
-      // Only requests that process already-due records are accepted without a user account.
+      // Only the scheduled caller can submit the cron marker. The processor still
+      // independently enforces both deadlines, and cannot advance either deadline.
       return json({ error: "Admin access required." }, 403, origin);
     }
 
