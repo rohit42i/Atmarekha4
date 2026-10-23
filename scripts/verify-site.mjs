@@ -617,6 +617,8 @@ for (const [name, content, phrase] of [
 const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'const loadSequence = useRef(0);'],
   ['AdminPanel.jsx', adminPanel, 'async function loadAllChapterPageRows()'],
+  ['AdminPanel.jsx', adminPanel, 'async function loadAllCommentReportRows()'],
+  ['AdminPanel.jsx', adminPanel, '{comments.length} recent comments · replies included'],
   ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
 ];
