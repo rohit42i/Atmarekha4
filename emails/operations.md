@@ -7,7 +7,7 @@
 
 ## Subscription rules
 - Follow the current signup disclosure and recorded account preferences.
-- Never override an explicit unsubscribe when checking audience eligibility or sending email. Supabase consent and preference records are authoritative.
+- Never override an explicit unsubscribe when checking audience eligibility or sending email. Supabase consent and preference records are authoritative; a mirrored Resend Contacts list is not used.
 - Keep chapter announcements and important Atma Rekha reader updates separate from promotional marketing.
 - Do not send chapter updates to unverified accounts or accounts without recorded update consent.
 - A reader who previously unsubscribed must deliberately re-enable updates before being resubscribed.
@@ -19,7 +19,7 @@
 3. Use the homepage URL unless a chapter-specific URL is explicitly requested and verified.
 4. Check eligible-recipient counts and opt-out exclusions before sending.
 5. Verify delivery events after sending.
-6. Confirm each recipient's unsubscribe link is generated at send time and works.
+6. Confirm each recipient's unsubscribe link and one-click unsubscribe headers are generated at send time. Verify that a saved opt-out excludes the reader from future update sends.
 7. Never commit secrets, contact exports, real unsubscribe tokens, or delivery logs.
 
 ## Secrets

@@ -172,6 +172,11 @@ if (!chapterReleaseEmailRetryRegression.includes('Partial sends are not retried 
   console.error('CHECK FAILED: chapter release emails must retry only failed zero-send dispatches.');
   failed = true;
 }
+if (!chapterReleaseEmailRetryRegression.includes('const subject = `${chapterLabel} is now out!`;') ||
+    chapterReleaseEmailRetryRegression.includes('.eq("id", dispatch.id);')) {
+  console.error('CHECK FAILED: chapter announcements must use a chapter-specific subject and notification dispatch status updates must use the claimed dispatch ID.');
+  failed = true;
+}
 const razorpayWebhookRetryRegression = await readFile('supabase/functions/razorpay-subscription-webhook/index.ts', 'utf8');
 if (!razorpayWebhookRetryRegression.includes("if (!record) throw new Error('Razorpay subscription record not found for webhook event.')") ||
     !razorpayWebhookRetryRegression.includes('Razorpay subscription lookup failed:') ||
