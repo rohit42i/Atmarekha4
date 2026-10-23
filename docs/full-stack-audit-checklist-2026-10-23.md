@@ -19,8 +19,9 @@ This is a point-in-time checklist based on the connected GitHub repository, live
 - [x] Deployed `send-email-to-users` version 17 with non-test bulk sends disabled so the legacy endpoint cannot bypass Email Studio's consent and opt-out checks. Test sends remain available.
 - [x] Confirmed `resend-contact-sync` and `resend-contact-backfill` now use Supabase consent/preferences as the source of truth, with no Resend Contacts API key required.
 - [x] Disabled the duplicate Resend chapter-release automation because the app's publishing handler already performs consent-aware sends and the template was not safely wired to the publishing event.
-- [x] Removed the standalone Gmail SMTP chapter sender and its manual recipient-list workflow in the repair branch.
-- [x] Fixed chapter release subjects to use `Chapter N is now out!` and fixed the notification dispatch status update to use its claimed dispatch ID instead of an undefined variable.
+- [x] Removed the standalone Gmail SMTP chapter sender and its manual recipient-list workflow from `main`.
+- [x] Fixed chapter release subjects to use `Chapter N is now out!` and fixed the notification dispatch status update to use its claimed dispatch ID instead of an undefined variable; deployed `send-reader-event-notification` version 18.
+- [x] Hardened `engagement.js` viewer-key creation so restricted browser storage cannot throw before Cloudflare view tracking or the database fallback is attempted. Added a regression test and merged PR #153.
 - [x] Confirmed recent Resend delivery records included delivered messages and the webhook recorded sent/delivered events.
 
 ### Cloudflare and live site
