@@ -23,4 +23,4 @@
 7. Never commit secrets, contact exports, real unsubscribe tokens, or delivery logs.
 
 ## Secrets
-Configure `RESEND_API_KEY` (send-only) and `RESEND_FROM_EMAIL` in Supabase Edge Function secrets. Contact-management functions additionally require a separately configured server-side `RESEND_CONTACTS_API_KEY` with Contacts API permissions. Never put these values in this repository or browser code. 
+Configure `RESEND_API_KEY` (send-only), `RESEND_FROM_EMAIL`, and `RESEND_WEBHOOK_SECRET` in Supabase Edge Function secrets. Supabase consent and preferences are the source of truth; no Resend Contacts API key is needed for Email Studio's direct-send flow. Never put secrets in this repository or browser code. 
