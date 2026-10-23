@@ -63,14 +63,40 @@ export async function fetchCloudflareAdminAnalytics(days = 30) {
   });
 }
 
+let inMemoryViewerKey = null;
+
+function createViewerKey() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      return [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (_) {}
+  return `viewer-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function getViewerKey() {
   if (typeof window === 'undefined') return 'server-viewer-key';
-  let key = window.localStorage.getItem(VIEWER_KEY_STORAGE);
-  if (!key || key.length < 16 || key.length > 128) {
-    key = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `1790365175770-${Math.random().toString(36).slice(2)}`;
-    window.localStorage.setItem(VIEWER_KEY_STORAGE, key);
+  try {
+    const stored = window.localStorage.getItem(VIEWER_KEY_STORAGE);
+    if (stored && stored.length >= 16 && stored.length <= 128) return stored;
+
+    const key = createViewerKey();
+    try {
+      window.localStorage.setItem(VIEWER_KEY_STORAGE, key);
+      return key;
+    } catch (_) {
+      inMemoryViewerKey ||= key;
+      return inMemoryViewerKey;
+    }
+  } catch (_) {
+    inMemoryViewerKey ||= createViewerKey();
+    return inMemoryViewerKey;
   }
-  return key;
 }
 export function buildRatingSummary(rows = []) {
   const ratings = rows.map(row => Number(row.rating)).filter(Number.isFinite);
