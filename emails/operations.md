@@ -7,11 +7,11 @@
 
 ## Subscription rules
 - Follow the current signup disclosure and recorded account preferences.
-- Never override an explicit unsubscribe during contact sync, import, or backfill.
+- Never override an explicit unsubscribe when checking audience eligibility or sending email. Supabase consent and preference records are authoritative.
 - Keep chapter announcements and important Atma Rekha reader updates separate from promotional marketing.
 - Do not send chapter updates to unverified accounts or accounts without recorded update consent.
 - A reader who previously unsubscribed must deliberately re-enable updates before being resubscribed.
-- Do not rely on Resend contact sync as the source of truth for consent; the website preference and consent records control eligibility.
+- Email Studio calculates eligibility from Supabase at send time. No mirrored Resend Contacts audience is needed.
 
 ## Sending checklist
 1. Verify the subject, chapter number, and message content.
@@ -23,4 +23,4 @@
 7. Never commit secrets, contact exports, real unsubscribe tokens, or delivery logs.
 
 ## Secrets
-Configure `RESEND_API_KEY` (send-only) and `RESEND_FROM_EMAIL` in Supabase Edge Function secrets. Contact-management functions additionally require a separately configured server-side `RESEND_CONTACTS_API_KEY` with Contacts API permissions. Never put these values in this repository or browser code. 
+Configure `RESEND_API_KEY` (send-only), `RESEND_FROM_EMAIL`, and `RESEND_WEBHOOK_SECRET` in Supabase Edge Function secrets. Supabase consent/preferences are the source of truth; no Resend Contacts API key is needed for Email Studio's direct-send flow. Never put secrets in this repository or browser code. 
