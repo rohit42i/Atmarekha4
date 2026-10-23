@@ -394,9 +394,11 @@ if (!privacyCenterRegression.includes('scheduled_delete_at') ||
   console.error('CHECK FAILED: Privacy Center must show deletion timing and use the OTP-confirmed deletion/recovery flow.');
   failed = true;
 }
-if (!privacyAdminRegression.includes('Scheduled, not due') ||
-    !privacyAdminRegression.includes('privacy-admin-request-schedule')) {
-  console.error('CHECK FAILED: admin privacy queue must show scheduled deletion details and prevent early processing.');
+if (!privacyAdminRegression.includes('request.requested_period') ||
+    !privacyAdminRegression.includes('Run due erasures') ||
+    !privacyAdminRegression.includes('Automated erasure in progress') ||
+    !privacyAdminRegression.includes('process-scheduled-account-deletions')) {
+  console.error('CHECK FAILED: admin privacy queue must show schedule details and provide a protected retry for due erasures.');
   failed = true;
 }
 
