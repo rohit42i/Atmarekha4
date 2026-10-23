@@ -54,7 +54,9 @@ async function loadAllChapterPageRows() {
     const { data, error } = await supabase
       .from(PAGES)
       .select('id, chapter_id, page_number, image_url')
+      .order('chapter_id', { ascending: true })
       .order('page_number', { ascending: true })
+      .order('id', { ascending: true })
       .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
     if (error) throw error;
     const batch = data || [];
@@ -73,6 +75,7 @@ async function loadAllCommentReportRows() {
       .from('comment_reports')
       .select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by')
       .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
       .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
     if (error) throw error;
     const batch = data || [];
