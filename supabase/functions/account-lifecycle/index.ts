@@ -158,18 +158,29 @@ async function processOtpVerification(admin: any, user: any, body: any, url: str
   if (error) throw new Error("Unable to load the verification request.");
   if (!row || !["otp_pending", "reactivation_pending"].includes(row.status)) return reply(origin, { error: "This code is no longer active. Start the request again." }, 409);
   if (!row.otp_expires_at || new Date(row.otp_expires_at).getTime() <= Date.now()) {
-    await admin.from("account_lifecycle_requests").update({ status: "expired", otp_hash: null, updated_at: new Date().toISOString() }).eq("id", row.id);
+    const nextStatus = row.status === "reactivation_pending" ? "recovery_period" : "expired";
+    await admin.from("account_lifecycle_requests").update({ status: nextStatus, otp_hash: null, otp_expires_at: null, otp_attempts: 0, updated_at: new Date().toISOString() }).eq("id", row.id);
     return reply(origin, { error: "This code has expired. Request a new one." }, 410);
   }
   if (Number(row.otp_attempts || 0) >= MAX_OTP_ATTEMPTS) {
-    await admin.from("account_lifecycle_requests").update({ status: "expired", otp_hash: null, updated_at: new Date().toISOString() }).eq("id", row.id);
-    return reply(origin, { error: "Too many incorrect codes. Start the request again." }, 429);
+    const nextStatus = row.status === "reactivation_pending" ? "recovery_period" : "expired";
+    await admin.from("account_lifecycle_requests").update({ status: nextStatus, otp_hash: null, otp_expires_at: null, otp_attempts: 0, updated_at: new Date().toISOString() }).eq("id", row.id);
+    return reply(origin, { error: "Too many incorrect codes. Start verification again." }, 429);
   }
   const expected = await hashOtp(row.id, otp, serviceKey());
   if (!await constantTimeEqual(String(row.otp_hash || ""), expected)) {
     const attempts = Number(row.otp_attempts || 0) + 1;
-    await admin.from("account_lifecycle_requests").update({ otp_attempts: attempts, status: attempts >= MAX_OTP_ATTEMPTS ? "expired" : row.status, otp_hash: attempts >= MAX_OTP_ATTEMPTS ? null : row.otp_hash, updated_at: new Date().toISOString() }).eq("id", row.id);
-    return reply(origin, { error: attempts >= MAX_OTP_ATTEMPTS ? "Too many incorrect codes. Start the request again." : "That code is incorrect. Check it and try again." }, attempts >= MAX_OTP_ATTEMPTS ? 429 : 422);
+    const nextStatus = attempts >= MAX_OTP_ATTEMPTS
+      ? (row.status === "reactivation_pending" ? "recovery_period" : "expired")
+      : row.status;
+    await admin.from("account_lifecycle_requests").update({
+      otp_attempts: attempts >= MAX_OTP_ATTEMPTS ? 0 : attempts,
+      status: nextStatus,
+      otp_hash: attempts >= MAX_OTP_ATTEMPTS ? null : row.otp_hash,
+      otp_expires_at: attempts >= MAX_OTP_ATTEMPTS ? null : row.otp_expires_at,
+      updated_at: new Date().toISOString(),
+    }).eq("id", row.id);
+    return reply(origin, { error: attempts >= MAX_OTP_ATTEMPTS ? "Too many incorrect codes. Request a fresh code and try again." : "That code is incorrect. Check it and try again." }, attempts >= MAX_OTP_ATTEMPTS ? 429 : 422);
   }
   const now = new Date().toISOString();
   if (row.request_type === "account_deletion" && row.status === "reactivation_pending") {
@@ -177,7 +188,7 @@ async function processOtpVerification(admin: any, user: any, body: any, url: str
       .update({ status: "cancelled", otp_hash: null, otp_expires_at: null, cancelled_at: now, updated_at: now })
       .eq("id", row.id).eq("status", "reactivation_pending").select("*").single();
     if (updateError) throw new Error("We could not reactivate this account. Please refresh and try again.");
-    await sendEmail(String(user.email), "Your Atma Rekha account is active again", "<p>Your account deletion request was cancelled after email verification. Your account remains active.</p>");
+    await sendEmail(String(user.email), "Your Atma Rekha account is active again", "<p>Your account deletion request was cancelled after email verification. Your account remains active.</p>").catch(() => {});
     return reply(origin, { success: true, request: publicRequest(updated), message: "Your account is active again." });
   }
   if (row.request_type === "account_deletion") {
@@ -187,7 +198,7 @@ async function processOtpVerification(admin: any, user: any, body: any, url: str
       .update({ status: "recovery_period", otp_hash: null, otp_expires_at: null, otp_verified_at: now, recovery_until: recoveryUntil, scheduled_delete_at: recoveryUntil, last_error: null, updated_at: now })
       .eq("id", row.id).eq("status", "otp_pending").select("*").single();
     if (updateError) throw new Error("Your request could not be confirmed. Please retry.");
-    await sendEmail(String(user.email), "Your Atma Rekha account is scheduled for deletion", `<p>Your account is scheduled for permanent deletion after the 14-day recovery period, on ${new Date(recoveryUntil).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })} IST.</p><p>To keep your account, sign in before this deadline and use the Reactivate account option. You must verify a fresh email code. Signing in alone does not cancel deletion.</p>`);
+    await sendEmail(String(user.email), "Your Atma Rekha account is scheduled for deletion", `<p>Your account is scheduled for permanent deletion after the 14-day recovery period, on ${new Date(recoveryUntil).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" })} IST.</p><p>To keep your account, sign in before this deadline and use the Reactivate account option. You must verify a fresh email code. Signing in alone does not cancel deletion.</p>`).catch(() => {});
     return reply(origin, { success: true, request: publicRequest(updated), message: "Deletion is scheduled. You have 14 days to reactivate with a new email code." });
   }
   if (row.request_type === "data_erasure") {
@@ -196,7 +207,7 @@ async function processOtpVerification(admin: any, user: any, body: any, url: str
       .update({ status: "completed", otp_hash: null, otp_expires_at: null, otp_verified_at: now, completed_at: now, last_error: null, updated_at: now })
       .eq("id", row.id).select("*").single();
     if (updateError) throw new Error("Data was erased, but the completion status could not be recorded. Please contact support.");
-    await sendEmail(String(user.email), "Atma Rekha data erasure completed", "<p>Your selected activity data has been erased or redacted. Your sign-in account, profile and billing records were kept. Billing and security records may be retained where required.</p>");
+    await sendEmail(String(user.email), "Atma Rekha data erasure completed", "<p>Your selected activity data has been erased or redacted. Your sign-in account, profile and billing records were kept. Billing and security records may be retained where required.</p>").catch(() => {});
     return reply(origin, { success: true, request: publicRequest(updated), result, message: "Selected activity data was erased. Your account remains active." });
   }
   if (row.request_type === "email_change") {
@@ -233,11 +244,11 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await admin.auth.getUser(token);
     if (authError || !user) return reply(origin, { error: "Authentication failed." }, 401);
     const action = clean(body?.action, 50);
-    await rateLimit(admin, user.id, action, action === "verify-otp" ? 15 : 5);
+    if (action !== "status") await rateLimit(admin, user.id, action, action === "verify-otp" ? 15 : 5);
 
     if (action === "status") {
       const { data, error } = await admin.from("account_lifecycle_requests").select("*").eq("user_id", user.id)
-        .in("status", ["otp_pending","recovery_period","reactivation_pending","processing","completed"])
+        .in("status", ["otp_pending","recovery_period","reactivation_pending","processing","completed","failed"])
         .order("created_at", { ascending: false }).limit(10);
       if (error) throw new Error("Unable to load account security status.");
       return reply(origin, { requests: (data || []).map(publicRequest) });
@@ -267,10 +278,13 @@ Deno.serve(async (req: Request) => {
       const days = body?.data_window_days === null || body?.data_window_days === undefined || body?.data_window_days === "permanent"
         ? null : Number(body.data_window_days);
       if (days !== null && ![7,30,90].includes(days)) return reply(origin, { error: "Choose 7, 30, 90 days, or permanent erasure." }, 422);
-      const { data: active, error } = await admin.from("account_lifecycle_requests").select("id").eq("user_id", user.id)
+      const { data: active, error } = await admin.from("account_lifecycle_requests").select("id,otp_sent_at").eq("user_id", user.id)
         .eq("request_type", "data_erasure").eq("status", "otp_pending").maybeSingle();
       if (error) throw new Error("Unable to check existing data-erasure requests.");
-      if (active) return reply(origin, { error: "A data-erasure verification is already in progress.", request: publicRequest(active) }, 409);
+      if (active?.otp_sent_at && Date.now() - new Date(active.otp_sent_at).getTime() < RESEND_COOLDOWN_MS) {
+        return reply(origin, { error: "A code was just sent. Check your email before requesting another." }, 429);
+      }
+      if (active) await admin.from("account_lifecycle_requests").update({ status: "cancelled", otp_hash: null, otp_expires_at: null, updated_at: new Date().toISOString() }).eq("id", active.id);
       const request = await createOtpRequest(admin, user, "data_erasure", { data_window_days: days }, "data erasure");
       return reply(origin, { success: true, request, message: "A verification code was sent to your current email." }, 201);
     }
