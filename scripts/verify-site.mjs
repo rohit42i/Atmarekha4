@@ -229,14 +229,16 @@ if (!emailStudioFunctionRegression.includes('const subjectSource = cleanText(inp
 }
 const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
 const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
-if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    !resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    resendContactSyncRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
-    resendContactBackfillRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
-    !resendContactSyncRegression.includes('const isContactsPermissionError = (status: number) => status === 401 || status === 403') ||
-    !resendContactSyncRegression.includes('return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503)') ||
-    !resendContactBackfillRegression.includes('const permissionProbe = await resend("/contacts?limit=1", contactKey);')) {
-  console.error('CHECK FAILED: Contact sync must use the Contacts key, surface permission errors, and preflight backfill before processing users.');
+const emailAudienceStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
+if (resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    resendContactSyncRegression.includes('api.resend.com/contacts') ||
+    resendContactBackfillRegression.includes('api.resend.com/contacts') ||
+    !resendContactSyncRegression.includes('sourceOfTruth: "supabase"') ||
+    !resendContactBackfillRegression.includes('mode: "database_source_of_truth"') ||
+    !emailAudienceStudioRegression.includes('Check email audience') ||
+    !emailAudienceStudioRegression.includes('duplicate Resend contacts are not required')) {
+  console.error('CHECK FAILED: email audience eligibility must use Supabase consent/preferences without a privileged Resend Contacts key.');
   failed = true;
 }
 const privacyExportPreferencesRegression = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
