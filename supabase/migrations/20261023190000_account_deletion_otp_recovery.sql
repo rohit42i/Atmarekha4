@@ -17,6 +17,7 @@ create table if not exists public.account_deletion_verifications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   requested_period text not null check (requested_period in ('7_days','30_days','90_days','permanent')),
+  purpose text not null default 'delete' check (purpose in ('delete','reactivate')),
   otp_hash text not null,
   expires_at timestamptz not null,
   attempts integer not null default 0 check (attempts between 0 and 10),
