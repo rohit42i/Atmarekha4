@@ -450,6 +450,40 @@ function AdminRoute({ onExit }) {
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
 export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const routeToRecovery = async currentUser => {
+      if (!active || !currentUser) return;
+      try {
+        const { data, error: invokeError } = await supabase.functions.invoke('account-lifecycle', { body: { action: 'status' } });
+        if (!active || invokeError || data?.error) return;
+        const request = (data?.requests || []).find(item =>
+          item.request_type === 'account_deletion' &&
+          ['recovery_period', 'reactivation_pending'].includes(item.status) &&
+          item.recovery_until && new Date(item.recovery_until).getTime() > Date.now()
+        );
+        if (!request) return;
+        if (window.location.pathname.replace(/\\/+$/, '') !== '/privacy-center') {
+          window.history.pushState({}, '', '/privacy-center');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+      } catch (error) {
+        console.warn('Account recovery status could not be checked right now.');
+      }
+    };
+    supabase.auth.getSession().then(({ data }) => routeToRecovery(data?.session?.user || null));
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        window.setTimeout(() => { void routeToRecovery(session.user); }, 0);
+      }
+    });
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   useEffect(() => {
     const routeUrl = new URL(route === 'home' ? '/' : '/' + route, SITE_URL);
     const pathname = routeUrl.pathname.replace(/^\/+|\/+$/g, '');
