@@ -36,6 +36,9 @@ jobs:
       - name: Validate analytics Worker syntax
         run: node --check analytics-worker/worker.js
 
+      - name: Test analytics Worker view ingestion and counts
+        run: node scripts/test-analytics-worker.mjs
+
       - name: Production dependency security audit
         run: npm audit --omit=dev --audit-level=high
 
