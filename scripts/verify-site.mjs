@@ -35,9 +35,12 @@ const required = [
   ['notification-prompt.js', "Don't show this again"],
   ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin'],
   ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-19'"],
-  ['supabase/functions/dpdp-data-rights/index.ts', 'if (existingError) throw existingError;'],
+  ['supabase/functions/dpdp-data-rights/index.ts', 'Use the password and email verification flow in Privacy Center to request account deletion.'],
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
-  ['PrivacyCenter.jsx', 'Deletion requests are queued for review'],
+  ['PrivacyCenter.jsx', '14-day recovery window starts after email verification.'],
+  ['PrivacyCenter.jsx', 'Confirm your password first.'],
+  ['PrivacyCenter.jsx', 'Confirm deletion request'],
+  ['PrivacyCenter.jsx', 'Cancel deletion and recover account'],
   ['PrivacyCenter.jsx', 'some categories may be incomplete or could not be retrieved'],
   ['InfoPage.css', '.privacy-controls-grid'],
   ['InfoPage.css', 'html[data-theme="dark"] .privacy-control-button'],
@@ -55,9 +58,16 @@ const required = [
   ['AdminOverview.jsx', 'viewsAvailable={!metrics.viewsUnavailable}'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export_warnings'],
-  ['supabase/functions/delete-account/index.ts', 'dpdp_deletion_requests'],
-  ['supabase/functions/delete-account/index.ts', 'queued: true'],
-  ['supabase/functions/delete-account/index.ts', 'Never hard-delete an account from this endpoint'],
+  ['supabase/functions/delete-account/index.ts', 'ACCOUNT_DELETION_VERIFICATION_REQUIRED'],
+  ['supabase/functions/delete-account/index.ts', 'This endpoint is retired.'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'confirm-delete-otp'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'confirm-reactivate-otp'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'otpDigest'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'if (!consumedVerification)'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'invalidateError'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'status: "cancelled"'],
+  ['supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', 'account_deletion_one_unused_otp_per_user_purpose'],
+  ['supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', "'cancelled'"],
 
   ['supabase/functions/dpdp-data-rights/index.ts', '"dpdp_nominations","email_marketing_preferences","feature_login_users"'],
   ['supabase/functions/dpdp-data-rights/index.ts', '"moderation_reports","notification_preferences","site_feedback"'],
@@ -346,6 +356,54 @@ if (!privacyAdminRegression.includes('resolutionNotes[request.id]') ||
   console.error('CHECK FAILED: privacy deletion resolution must use a validated inline note form, not browser prompts.');
   failed = true;
 }
+
+const deletionProcessorSource = await readFile('supabase/functions/process-scheduled-account-deletions/index.ts', 'utf8');
+const deletionMigrationSource = await readFile('supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', 'utf8');
+const privacyRightsSource = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
+const privacyAdminQueueSource = await readFile('PrivacyRequestsAdmin.jsx', 'utf8');
+if (!deletionProcessorSource.includes('.lte("scheduled_delete_at", now)') ||
+    !deletionProcessorSource.includes('.lte("recovery_until", now)') ||
+    !deletionProcessorSource.includes('erase_due_account_personal_data') ||
+    !deletionProcessorSource.includes('cancel_at_period_end: true') ||
+    !deletionProcessorSource.includes('Legacy subscription expiry date is unknown.') ||
+    !deletionProcessorSource.includes('https://api.resend.com/contacts/') ||
+    !deletionProcessorSource.includes('Email-provider contact cleanup failed.') ||
+    !deletionMigrationSource.includes('function public.erase_due_account_personal_data') ||
+    !deletionMigrationSource.includes('delete from public.login_password_protection') ||
+    !deletionMigrationSource.includes('update public.notification_event_dispatches set sender_user_id = null') ||
+    !privacyRightsSource.includes('Scheduled deletions can only be closed by the verified erasure processor.') ||
+    !privacyAdminQueueSource.includes('process-scheduled-account-deletions') ||
+    !privacyAdminQueueSource.includes('Run due erasures') ||
+    !privacyAdminQueueSource.includes('Automated erasure in progress')) {
+  console.error('CHECK FAILED: scheduled deletion must verify both deadlines, retain billing history, and finalize through the protected processor.');
+  failed = true;
+}
+const deletionRecoveryPromptSource = await readFile('AccountDeletionRecoveryPrompt.jsx', 'utf8');
+const userAuthRecoveryMount = await readFile('UserAuth.jsx', 'utf8');
+if (!userAuthRecoveryMount.includes("import AccountDeletionRecoveryPrompt from './AccountDeletionRecoveryPrompt.jsx';") ||
+    !userAuthRecoveryMount.includes('<AccountDeletionRecoveryPrompt/>') ||
+    !deletionRecoveryPromptSource.includes("event === 'SIGNED_IN'") ||
+    !deletionRecoveryPromptSource.includes("action: 'send-reactivate-otp'") ||
+    !deletionRecoveryPromptSource.includes("action: 'confirm-reactivate-otp'") ||
+    !deletionRecoveryPromptSource.includes('You signed in while a deletion request was still recoverable.')) {
+  console.error('CHECK FAILED: signing in during the recovery window must offer OTP-protected cancellation without blocking login.');
+  failed = true;
+}
+if (!privacyCenterRegression.includes('scheduled_delete_at') ||
+    !privacyCenterRegression.includes('recovery_until') ||
+    !privacyCenterRegression.includes("action: 'confirm-delete-otp'") ||
+    !privacyCenterRegression.includes("action: 'confirm-reactivate-otp'")) {
+  console.error('CHECK FAILED: Privacy Center must show deletion timing and use the OTP-confirmed deletion/recovery flow.');
+  failed = true;
+}
+if (!privacyAdminRegression.includes('request.requested_period') ||
+    !privacyAdminRegression.includes('Run due erasures') ||
+    !privacyAdminRegression.includes('Automated erasure in progress') ||
+    !privacyAdminRegression.includes('process-scheduled-account-deletions')) {
+  console.error('CHECK FAILED: admin privacy queue must show schedule details and provide a protected retry for due erasures.');
+  failed = true;
+}
+
 const readerViewKeyRegression = await readFile('engagement.js', 'utf8');
 const viewerKeyStart = readerViewKeyRegression.indexOf('export function getViewerKey() {');
 const viewerKeyEnd = readerViewKeyRegression.indexOf('\n}', viewerKeyStart) + 2;

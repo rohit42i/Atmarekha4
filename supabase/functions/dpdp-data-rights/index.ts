@@ -91,7 +91,11 @@ Deno.serve(async req => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return response({ error: "Invalid request body." }, 400, origin);
     const action = body?.action || "export";
     const adminActions = ["admin-list-deletion-requests", "admin-update-deletion-request"];
-    if (!["export","delete-request","withdraw-consent", ...adminActions].includes(action)) return response({ error: "Unknown data-rights action." }, 400, origin);
+    if (!["export","withdraw-consent", ...adminActions].includes(action)) {
+      return response({ error: action === "delete-request"
+        ? "Use the password and email verification flow in Privacy Center to request account deletion."
+        : "Unknown data-rights action." }, 400, origin);
+    }
 
     if (adminActions.includes(action)) {
       const { data: adminRow, error: adminError } = await admin
@@ -103,7 +107,7 @@ Deno.serve(async req => {
       if (action === "admin-list-deletion-requests") {
         const { data: requests, error } = await admin
           .from("dpdp_deletion_requests")
-          .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
+          .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note,requested_period,scheduled_delete_at,recovery_until,confirmed_at,cancelled_at")
           .order("requested_at", { ascending: false })
           .limit(100);
         if (error) throw error;
@@ -128,10 +132,19 @@ Deno.serve(async req => {
         return response({ error: "Confirm that erasure was completed and legally required records were reviewed." }, 400, origin);
       }
       const { data: current, error: currentError } = await admin
-        .from("dpdp_deletion_requests").select("id,status")
+        .from("dpdp_deletion_requests").select("id,status,scheduled_delete_at,recovery_until")
         .eq("id", requestId).maybeSingle();
       if (currentError) throw currentError;
       if (!current) return response({ error: "Deletion request not found." }, 404, origin);
+      if (nextStatus === "processing" && (
+        (current.scheduled_delete_at && new Date(current.scheduled_delete_at).getTime() > Date.now()) ||
+        (current.recovery_until && new Date(current.recovery_until).getTime() > Date.now())
+      )) {
+        return response({ error: "This request must remain pending until its scheduled deletion date and recovery window have both passed." }, 409, origin);
+      }
+      if (nextStatus === "resolved" && current.scheduled_delete_at) {
+        return response({ error: "Scheduled deletions can only be closed by the verified erasure processor." }, 409, origin);
+      }
       const validTransition = nextStatus === "processing"
         ? current.status === "pending"
         : current.status === "processing";
@@ -145,7 +158,7 @@ Deno.serve(async req => {
           resolved_by: user.id,
         })
         .eq("id", requestId)
-        .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note")
+        .select("id,user_id,reason,status,requested_at,resolved_at,resolved_by,resolution_note,requested_period,scheduled_delete_at,recovery_until,confirmed_at,cancelled_at")
         .single();
       if (updateError) throw updateError;
       return response({ request: updated }, 200, origin);
@@ -165,20 +178,6 @@ Deno.serve(async req => {
       if (error) throw error;
       if (!data) return response({ error: "No active consent record was found for that policy version." }, 404, origin);
       return response({ consent: data }, 200, origin);
-    }
-
-    if (action === "delete-request") {
-      const reason = clean(body?.reason, 500);
-      const { data: existing, error: existingError } = await admin.from("dpdp_deletion_requests")
-        .select("id,status,requested_at").eq("user_id", user.id)
-        .in("status", ["pending","processing"]).order("requested_at", { ascending: false }).limit(1).maybeSingle();
-      if (existingError) throw existingError;
-      if (existing) return response({ request: existing }, 200, origin);
-      const { data, error } = await admin.from("dpdp_deletion_requests")
-        .insert({ user_id: user.id, reason: reason || null })
-        .select("id,status,requested_at").single();
-      if (error) throw error;
-      return response({ request: data }, 201, origin);
     }
 
     const output: Record<string, unknown> = {
