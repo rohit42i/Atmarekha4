@@ -588,6 +588,12 @@ if (metricCount < 100) {
   console.log('Admin control-room metric definitions:', metricCount);
 }
 
+const adminFixCss = await readFile('admin-unified-fix.css', 'utf8');
+if (adminFixCss.includes('.ar-admin-topbar-actions') || !adminFixCss.includes('.ar-admin-top-actions')) {
+  console.error('CHECK FAILED: responsive admin topbar actions must target the real .ar-admin-top-actions class.');
+  failed = true;
+}
+
 const htmlForCsp = await readFile('index.html', 'utf8');
 const themeScriptOpen = htmlForCsp.indexOf('<script>\n    (function()');
 if (themeScriptOpen < 0) {
