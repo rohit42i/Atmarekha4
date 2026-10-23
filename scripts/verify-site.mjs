@@ -255,6 +255,28 @@ if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
   console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
   failed = true;
 }
+const emailChangeRequestsMigration = await readFile('supabase/migrations/20261023120000_admin_email_change_requests.sql', 'utf8');
+if (!emailChangeRequestsMigration.includes('create table if not exists public.email_change_requests') ||
+    !emailChangeRequestsMigration.includes('create table if not exists public.email_change_request_events') ||
+    !emailChangeRequestsMigration.includes('Readers can submit own email change requests') ||
+    !emailChangeRequestsMigration.includes('Admins can view email change request history')) {
+  console.error('CHECK FAILED: email-change tracking must use owner-scoped RLS and server-only audit writes.');
+  failed = true;
+}
+const adminEmailChangeToolsRegression = await readFile('AdminManagementTools.jsx', 'utf8');
+const adminProfileEmailChangeRegression = await readFile('ProfileV2.jsx', 'utf8');
+const adminEmailChangeResendRegression = await readFile('supabase/functions/send-email-to-users/index.ts', 'utf8');
+const adminEmailChangeDataRegression = await readFile('supabase/functions/get-admin-console-data/index.ts', 'utf8');
+if (!adminEmailChangeToolsRegression.includes("view==='emailChanges'") ||
+    !adminEmailChangeToolsRegression.includes('resend_email_change_confirmation') ||
+    !adminProfileEmailChangeRegression.includes("from('email_change_requests')") ||
+    !adminEmailChangeResendRegression.includes('email_change_current') ||
+    !adminEmailChangeResendRegression.includes('email_change_new') ||
+    !adminEmailChangeDataRegression.includes('if (action === "email_change_requests")') ||
+    !adminEmailChangeResendRegression.includes('RESEND_FROM_EMAIL')) {
+  console.error('CHECK FAILED: secure email-change workflow needs tracked requests, dual-address verification and admin audit history.');
+  failed = true;
+}
 const privacyCenterRegression = await readFile('PrivacyCenter.jsx', 'utf8');
 if (!privacyCenterRegression.includes('const refreshStatus = async () =>') ||
     !privacyCenterRegression.includes("setMessage('Privacy request status is up to date.')") ||
