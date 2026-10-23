@@ -150,6 +150,7 @@ as $$
 declare
   r record;
   cutoff timestamptz;
+  window_days integer;
   completed_count integer := 0;
 begin
   for r in
@@ -186,10 +187,10 @@ begin
       -- chat messages survive only as anonymous contributions. Recent contributions
       -- remain linked and are removed by the auth-user cascade. "Permanent" removes all.
       if r.user_id is not null then
-        select data_window_days::text into cutoff
+        select data_window_days into window_days
           from public.account_lifecycle_requests where id = r.id;
-        if cutoff is not null then
-          cutoff := now() - make_interval(days => cutoff::integer);
+        if window_days is not null then
+          cutoff := now() - make_interval(days => window_days);
           update public.comments set user_id = null, author_name = 'Deleted reader'
             where user_id = r.user_id and created_at < cutoff;
           update public.pdlpl_comments set user_id = null, author_name = 'Deleted reader'
