@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import CookieConsent from './CookieConsent.jsx';
 import SiteRuntime from './SiteRuntime.jsx';
 import { installGlobalErrorLogging } from './errorLogger.js';
 import UserAuth from './UserAuth.jsx';
@@ -18,6 +19,7 @@ import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import ExperienceEnhancements from './ExperienceEnhancements.jsx';
 import './index.css';
+import './cookie-consent.css';
 import './ui-polish.css';
 import './interaction-polish.css';
 import './mihon-reader-polish.css';
@@ -88,6 +90,7 @@ createRoot(document.getElementById('root')).render(
       <PublicProfile/>
       </Suspense>
       <SiteRuntime/>
+      <CookieConsent/>
   </React.StrictMode>
 );
 
