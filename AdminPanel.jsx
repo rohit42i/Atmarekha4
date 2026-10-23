@@ -32,6 +32,7 @@ import { getPdlplMediaUrl, uploadPdlplFile, removePdlplFiles } from './pdlplR2';
 import './admin-dashboard-theme.css';
 import './admin-homeguard-theme.css';
 import './admin-action-ux.css';
+import './admin-unified-fix.css';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
