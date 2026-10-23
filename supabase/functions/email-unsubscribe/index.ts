@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-const page=(title:string,message:string,status=200)=>new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><body style="margin:0;background:#101010;color:#f5f5f5;font:16px system-ui;display:grid;min-height:100vh;place-items:center"><main style="max-width:520px;padding:32px"><h1>${title}</h1><p>${message}</p><a style="color:#b6c7ff" href="https://www.atmarekha.in">Return to Atma Rekha</a></main></body></html>`,{status,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
 const escapeHtml = (value: string) => String(value).replace(/[&<>"]/g, char => ({
   "&": "&amp;",
   "<": "&lt;",
