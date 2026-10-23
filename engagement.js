@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { hasAnalyticsConsent } from './privacyConsent.js';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
 const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
@@ -77,6 +78,46 @@ function createViewerKey() {
     }
   } catch (_) {}
   return `viewer-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
+const ANALYTICS_VIEWER_KEY_STORAGE = 'atma-rekha-analytics-viewer-key-v1';
+let inMemoryAnalyticsViewerKey = null;
+
+function createAnalyticsViewerKey() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      return [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (_) {}
+  return `analytics-${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
+export function getAnalyticsViewerKey() {
+  if (typeof window === 'undefined') return 'server-analytics-viewer-key';
+  try {
+    const stored = window.localStorage.getItem(ANALYTICS_VIEWER_KEY_STORAGE);
+    if (stored && stored.length >= 16 && stored.length <= 128) return stored;
+    const key = createAnalyticsViewerKey();
+    try {
+      window.localStorage.setItem(ANALYTICS_VIEWER_KEY_STORAGE, key);
+      return key;
+    } catch (_) {
+      inMemoryAnalyticsViewerKey ||= key;
+      return inMemoryAnalyticsViewerKey;
+    }
+  } catch (_) {
+    inMemoryAnalyticsViewerKey ||= createAnalyticsViewerKey();
+    return inMemoryAnalyticsViewerKey;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('atma-analytics-consent-changed', event => {
+    if (event?.detail?.consent === 'denied') inMemoryAnalyticsViewerKey = null;
+  });
 }
 
 export function getViewerKey() {
@@ -310,9 +351,10 @@ export async function deleteComment(commentId) {
 
 export async function recordChapterShare(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };
   const { error } = await supabase.from('chapter_shares').insert({
     chapter_id: chapterId,
-    viewer_key: getViewerKey(),
+    viewer_key: getAnalyticsViewerKey(),
   });
   if (error) throw error;
   return { recorded: true };
@@ -320,8 +362,9 @@ export async function recordChapterShare(chapterId) {
 
 export async function recordChapterView(chapterId) {
   if (!chapterId) throw new Error('Chapter ID is required.');
+  if (!hasAnalyticsConsent()) return { recorded: false, consentRequired: true };
   if (wasViewRecorded(chapterId)) return { recorded: false, duplicate: true };
-  const viewerKey = getViewerKey();
+  const viewerKey = getAnalyticsViewerKey();
   try {
     await analyticsRequest('/v1/view', {
       method: 'POST',
