@@ -34,7 +34,7 @@ Subscribe to `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.b
 
 ## Manual production verification still required
 
-1. Add `RESEND_API_KEY`, `RESEND_CONTACTS_API_KEY`, and `RESEND_FROM_EMAIL` secrets in Supabase. Keep the first send-only; use the second only for contact-sync functions.
+1. Confirm `RESEND_API_KEY` remains send-only and `RESEND_FROM_EMAIL` uses the verified domain. No Contacts API secret is required by Email Studio.
 2. Configure `RESEND_WEBHOOK_SECRET` and create/verify the Resend webhook.
 3. Use Email Studio's audience check, then test a single email to an internal address. Verify it in Resend and the admin delivery monitor before using a reader-wide campaign.
 4. Test a marketing email's unsubscribe link and confirm future marketing sends skip that account.
