@@ -128,6 +128,80 @@ Deno.serve(async (req) => {
       return response(req, { ok: true, users: matches });
     }
 
+    if (action === "resend_signup_verification") {
+      const targetId = String(body.user_id || "").trim();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId)) {
+        return response(req, { ok: false, error: "A valid reader ID is required." }, 422);
+      }
+
+      const { data: targetResult, error: targetError } = await db.auth.admin.getUserById(targetId);
+      const target = targetResult?.user;
+      if (targetError || !target) return response(req, { ok: false, error: "Reader account not found." }, 404);
+      if (!target.email || !validEmail(target.email)) return response(req, { ok: false, error: "This account has no valid email address." }, 422);
+      if (target.email_confirmed_at) return response(req, { ok: false, error: "This email is already verified." }, 409);
+      if (target.is_anonymous) return response(req, { ok: false, error: "Anonymous accounts cannot receive email verification." }, 409);
+
+      const { data: linkData, error: linkError } = await db.auth.admin.generateLink({
+        type: "signup",
+        email: target.email,
+      });
+      const actionLink = String(linkData?.properties?.action_link || "");
+      if (linkError || !actionLink) {
+        console.error("Admin signup verification link generation failed.", linkError?.message || "missing link");
+        return response(req, { ok: false, error: "Could not create a verification link. Please try again." }, 502);
+      }
+
+      let linkUrl: URL;
+      try {
+        linkUrl = new URL(actionLink);
+      } catch {
+        return response(req, { ok: false, error: "The verification link was invalid. No email was sent." }, 502);
+      }
+      const expectedOrigin = new URL(supabaseUrl).origin;
+      if (linkUrl.origin !== expectedOrigin || linkUrl.pathname !== "/auth/v1/verify") {
+        console.error("Admin signup verification link origin/path did not match the configured Supabase Auth endpoint.");
+        return response(req, { ok: false, error: "The verification link could not be validated. No email was sent." }, 502);
+      }
+
+      const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[char] || char));
+      const safeLink = escapeHtml(actionLink);
+      const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;color:#222;font-family:Roboto,Arial,Helvetica,sans-serif;font-weight:500"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="padding:24px 16px"><p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#222">Hey, hi, hello, namaste!</p><h1 style="margin:0 0 12px;font-size:22px;line-height:1.35;color:#222">Verify your Atma Rekha account</h1><p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#222">Confirm your email address to finish setting up your account.</p><p style="margin:0 0 20px"><a href="${safeLink}" style="display:inline-block;border:1px solid #222;border-radius:4px;color:#222;text-decoration:none;padding:11px 18px;font-size:14px;line-height:1.4;font-weight:600">Verify email</a></p><p style="margin:0;font-size:12px;line-height:1.6;color:#555">If you did not create this account, you can ignore this email.</p><p style="margin:14px 0 0;font-size:12px;line-height:1.6;color:#555">Arkesh</p></td></tr></table></body></html>`;
+      const text = `Hey, hi, hello, namaste!\n\nVerify your Atma Rekha account by opening this link:\n${actionLink}\n\nIf you did not create this account, you can ignore this email.\n\nArkesh`;
+      try {
+        const mail = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + resendKey, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: configuredSender,
+            to: [target.email],
+            subject: "Verify your Atma Rekha account",
+            html,
+            text,
+            tags: [{ name: "type", value: "account_verification" }],
+          }),
+        });
+        if (!mail.ok) {
+          console.error("Admin signup verification email was rejected by Resend.", mail.status);
+          return response(req, { ok: false, error: "Resend could not deliver the verification email. Check delivery logs and try again." }, 502);
+        }
+      } catch (error) {
+        console.error("Admin signup verification email request failed.", error instanceof Error ? error.message : "unknown error");
+        return response(req, { ok: false, error: "The verification email could not be sent. Please try again." }, 502);
+      }
+
+      const { error: auditError } = await db.from("admin_activity_log").insert({
+        admin_user_id: authData.user.id,
+        action: "resend_signup_verification",
+        entity_type: "user",
+        entity_id: target.id,
+        details: { recipient: target.email, provider: "resend" },
+      });
+      if (auditError) console.error("Signup verification sent, but admin audit entry failed.");
+      return response(req, { ok: true, email: target.email, audit_warning: Boolean(auditError) }, 200);
+    }
+
     if (action === "resend_email_change_confirmation") {
       const requestId = String(body.request_id || "").trim();
       if (!/^[0-9a-f-]{36}$/i.test(requestId)) {
