@@ -622,7 +622,7 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
 ];
-const adminOperationsSource = await readFile('AdminOperations.jsx', 'utf8');
+const adminOperationsRegressionSource = await readFile('AdminOperations.jsx', 'utf8');
 const groupChatAdminSource = await readFile('AdminGroupChatTools.jsx', 'utf8');
 const communityAdminSource = await readFile('CommunityAdmin.jsx', 'utf8');
 const chapterHealthAdminSource = await readFile('AdminChapterHealth.jsx', 'utf8');
@@ -633,11 +633,11 @@ for (const [name, source, phrase] of adminPanelReliabilityChecks) {
   }
 }
 for (const [name, source, phrase] of [
-  ['AdminOperations.jsx', adminOperationsSource, "select('id', { count: 'exact', head: true }).gte('created_at', todayStart())"],
-  ['AdminOperations.jsx', adminOperationsSource, "today.views == null ? 'Unavailable'"],
-  ['AdminOperations.jsx', adminOperationsSource, "today.readers == null ? 'Unavailable'"],
-  ['AdminOperations.jsx', adminOperationsSource, "today.likes == null ? 'Unavailable'"],
-  ['AdminOperations.jsx', adminOperationsSource, "subscriberCount == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "select('id', { count: 'exact', head: true }).gte('created_at', todayStart())"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "today.views == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "today.readers == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "today.likes == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, "subscriberCount == null ? 'Unavailable'"],
   ['AdminGroupChatTools.jsx', groupChatAdminSource, '<button type="button" className={'],
   ['AdminGroupChatTools.jsx', groupChatAdminSource, '<button type="button" className="ar-gcm-action" onClick={deleteSelected}'],
   ['AdminChapterHealth.jsx', chapterHealthAdminSource, '<button type="button" className="ar-health-run" onClick={runCheck}'],
