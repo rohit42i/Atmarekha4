@@ -145,7 +145,7 @@ async function sendChapterReleaseEmail(db: ReturnType<typeof createClient>, chap
             subject,
             html: recipientHtml,
             text: recipientText,
-            headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
+            headers: { "List-Unsubscribe": `<${unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
             tags: [{ name: "type", value: "chapter_release" }, { name: "chapter_id", value: chapter.id.slice(0, 256) }],
           }),
         });

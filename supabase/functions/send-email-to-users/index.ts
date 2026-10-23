@@ -326,6 +326,13 @@ Deno.serve(async (req) => {
     if (testEmail && !validEmail(testEmail)) return response(req, { ok: false, error: "Invalid test email address." }, 422);
     if (suppliedRecipients.length > 100) return response(req, { ok: false, error: "You can select up to 100 recipients at once." }, 422);
 
+    if (!testEmail) {
+      return response(req, {
+        ok: false,
+        error: "Bulk sending through this legacy endpoint is disabled. Use Email Studio so reader consent and unsubscribe preferences are enforced."
+      }, 410);
+    }
+
     const recipients: string[] = [];
     if (testEmail) {
       recipients.push(testEmail);
