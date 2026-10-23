@@ -255,6 +255,21 @@ if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
   console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
   failed = true;
 }
+const privacyCenterRegression = await readFile('PrivacyCenter.jsx', 'utf8');
+if (!privacyCenterRegression.includes('const refreshStatus = async () =>') ||
+    !privacyCenterRegression.includes("setMessage('Privacy request status is up to date.')") ||
+    !privacyCenterRegression.includes("requestByEmail(") ||
+    !privacyCenterRegression.includes('Please review my Atma Rekha account')) {
+  console.error('CHECK FAILED: privacy centre must refresh request state and provide a review path when consent is missing.');
+  failed = true;
+}
+const privacyAdminRegression = await readFile('PrivacyRequestsAdmin.jsx', 'utf8');
+if (!privacyAdminRegression.includes('resolutionNotes[request.id]') ||
+    !privacyAdminRegression.includes('privacy-admin-resolution-field') ||
+    privacyAdminRegression.includes('window.prompt(')) {
+  console.error('CHECK FAILED: privacy deletion resolution must use a validated inline note form, not browser prompts.');
+  failed = true;
+}
 const analyticsReaderFallbackRegression = await readFile('analytics-worker/worker.js', 'utf8');
 const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end) {');
 const analyticsReaderMetricsEnd = analyticsReaderFallbackRegression.indexOf('async function verifyAdmin', analyticsReaderMetricsStart);
