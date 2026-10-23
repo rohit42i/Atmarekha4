@@ -637,6 +637,7 @@ for (const [name, source, phrase] of [
   ['AdminOperations.jsx', adminOperationsSource, "today.views == null ? 'Unavailable'"],
   ['AdminOperations.jsx', adminOperationsSource, "today.readers == null ? 'Unavailable'"],
   ['AdminOperations.jsx', adminOperationsSource, "today.likes == null ? 'Unavailable'"],
+  ['AdminOperations.jsx', adminOperationsSource, "subscriberCount == null ? 'Unavailable'"],
   ['AdminGroupChatTools.jsx', groupChatAdminSource, '<button type="button" className={'],
   ['AdminGroupChatTools.jsx', groupChatAdminSource, '<button type="button" className="ar-gcm-action" onClick={deleteSelected}'],
   ['AdminChapterHealth.jsx', chapterHealthAdminSource, '<button type="button" className="ar-health-run" onClick={runCheck}'],
