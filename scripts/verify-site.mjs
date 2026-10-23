@@ -611,6 +611,23 @@ if (adminFixCss.includes('.ar-admin-topbar-actions') || !adminFixCss.includes('.
   failed = true;
 }
 
+const appEntry = await readFile('main.jsx', 'utf8');
+const duplicateMountAdminSource = await readFile('AdminPanel.jsx', 'utf8');
+const hasMountedTool = (source, component) =>
+  source.includes('<' + component + ' ') ||
+  source.includes('<' + component + '/>') ||
+  source.includes('<' + component + '>');
+for (const component of ['CommunityAdmin', 'AdminProTools', 'AdminChapterHealth', 'AdminGroupChatTools', 'AdminManagementTools', 'AdminModerationTools', 'AdminOperations']) {
+  if (hasMountedTool(appEntry, component)) {
+    console.error('CHECK FAILED: admin-only tool must not be mounted globally in main.jsx:', component);
+    failed = true;
+  }
+  if (!hasMountedTool(duplicateMountAdminSource, component)) {
+    console.error('CHECK FAILED: admin-only tool is not mounted by AdminPanel.jsx:', component);
+    failed = true;
+  }
+}
+
 const htmlForCsp = await readFile('index.html', 'utf8');
 const themeScriptOpen = htmlForCsp.indexOf('<script>\n    (function()');
 if (themeScriptOpen < 0) {
