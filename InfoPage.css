@@ -281,3 +281,23 @@ html[data-theme="light"] .privacy-control-button:hover:not(:disabled){background
   .privacy-control-button{min-height:78px;padding:15px}
   .privacy-nomination-actions button{width:100%}
 }
+
+
+/* Account lifecycle verification controls */
+.privacy-security-form{display:grid;gap:12px;margin-top:16px;padding:16px;border:1px solid var(--border-color);border-radius:12px;background:var(--card-bg);color:var(--text-color)}
+.privacy-security-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.privacy-security-heading h3{margin:0;font-size:1rem}
+.privacy-security-form p{margin:0;line-height:1.6;color:var(--text-secondary,var(--text-color));font-size:.9rem}
+.privacy-security-form label{display:grid;gap:6px;font-size:.88rem;font-weight:600}
+.privacy-security-form input,.privacy-security-form select{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--input-bg,var(--card-bg));color:var(--text-color);font:inherit}
+.privacy-security-form input:focus-visible,.privacy-security-form select:focus-visible{outline:2px solid var(--text-color);outline-offset:2px}
+.privacy-security-form button{justify-self:start;max-width:100%}
+.privacy-status-actions{display:grid;gap:10px;margin-top:10px}
+.privacy-status-actions p{margin:0}
+html[data-theme="dark"] .privacy-security-form{background:#000!important;color:#fff!important;border-color:#333!important}
+html[data-theme="dark"] .privacy-security-form p{color:#eee!important}
+html[data-theme="dark"] .privacy-security-form input,html[data-theme="dark"] .privacy-security-form select{background:#000!important;color:#fff!important;border-color:#333!important}
+html[data-theme="light"] .privacy-security-form{background:#fff!important;color:#181818!important;border-color:#deded9!important}
+html[data-theme="light"] .privacy-security-form p{color:#333!important}
+html[data-theme="light"] .privacy-security-form input,html[data-theme="light"] .privacy-security-form select{background:#fff!important;color:#181818!important;border-color:#deded9!important}
+@media(max-width:520px){.privacy-security-form{padding:13px}.privacy-security-heading{align-items:flex-start}.privacy-security-form button{width:100%}}
