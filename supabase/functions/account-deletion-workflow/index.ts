@@ -78,6 +78,12 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await admin.auth.getUser(token);
     if (authError || !user?.id || !user.email) return json({ error: "Your session could not be verified. Please sign in again." }, 401, origin);
 
+    // Administrative identities must never be erased through the reader workflow.
+    const { data: adminIdentity, error: adminIdentityError } = await admin
+      .from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+    if (adminIdentityError) return json({ error: "Account deletion is temporarily unavailable." }, 503, origin);
+    if (adminIdentity) return json({ error: "Admin accounts cannot be deleted through the reader Privacy Center. Transfer admin access first." }, 403, origin);
+
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request." }, 400, origin);
     const action = String(body.action || "");
@@ -144,7 +150,9 @@ Deno.serve(async (req: Request) => {
     }
     const candidate = await otpDigest(user.id, purpose, otp, key);
     if (candidate !== verification.otp_hash) {
-      await admin.from("account_deletion_verifications").update({ attempts: verification.attempts + 1 }).eq("id", verification.id);
+      const { error: attemptUpdateError } = await admin.from("account_deletion_verifications")
+        .update({ attempts: verification.attempts + 1 }).eq("id", verification.id).is("consumed_at", null);
+      if (attemptUpdateError) return json({ error: "Could not record the verification attempt. Request a new code." }, 503, origin);
       return json({ error: "That code is incorrect. Check the email and try again." }, 400, origin);
     }
     const { data: consumedVerification, error: consumeError } = await admin
