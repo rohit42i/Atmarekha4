@@ -227,19 +227,29 @@ if (!emailStudioFunctionRegression.includes('const subjectSource = cleanText(inp
   console.error('CHECK FAILED: Email Studio must honor editable subjects, render custom values, use the clean full-width email layout, and use the homepage for chapter announcements.');
   failed = true;
 }
-const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
-const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
-if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    !resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    resendContactSyncRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
-    resendContactBackfillRegression.includes('Deno.env.get("RESEND_API_KEY")') ||
-    !resendContactSyncRegression.includes('const isContactsPermissionError = (status: number) => status === 401 || status === 403') ||
-    !resendContactSyncRegression.includes('return reply(req, { ok: false, error: CONTACTS_PERMISSION_ERROR }, 503)') ||
-    !resendContactBackfillRegression.includes('const permissionProbe = await resend("/contacts?limit=1", contactKey);')) {
-  console.error('CHECK FAILED: Contact sync must use the Contacts key, surface permission errors, and preflight backfill before processing users.');
+const emailPreferencePersistenceRegression = await readFile('supabase/functions/update-chapter-email-preference/index.ts', 'utf8');
+if ((emailPreferencePersistenceRegression.match(/from\("email_marketing_preferences"\)\.upsert/g) || []).length < 2 ||
+    emailPreferencePersistenceRegression.includes('from("email_marketing_preferences").update')) {
+  console.error('CHECK FAILED: enabling and disabling email updates must persist preferences even when no row exists yet.');
   failed = true;
 }
-
+const resendContactSyncRegression = await readFile('supabase/functions/resend-contact-sync/index.ts', 'utf8');
+const resendContactBackfillRegression = await readFile('supabase/functions/resend-contact-backfill/index.ts', 'utf8');
+const emailAudienceStudioRegression = await readFile('EmailStudio.jsx', 'utf8');
+if (resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    resendContactBackfillRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    resendContactSyncRegression.includes('api.resend.com/contacts') ||
+    resendContactBackfillRegression.includes('api.resend.com/contacts') ||
+    !resendContactSyncRegression.includes('sourceOfTruth: "supabase"') ||
+    !resendContactBackfillRegression.includes('mode: "database_source_of_truth"') ||
+    !emailAudienceStudioRegression.includes('Check email audience') ||
+    !emailAudienceStudioRegression.includes('duplicate Resend contacts are not required') ||
+    !resendContactSyncRegression.includes('replace(/^Bearer\\s+/i') ||
+    !resendContactBackfillRegression.includes('replace(/^Bearer\\s+/i') ||
+    !emailPreferencePersistenceRegression.includes('replace(/^Bearer\\s+/i')) {
+  console.error('CHECK FAILED: email audience eligibility must use Supabase consent/preferences without a privileged Resend Contacts key and must parse bearer tokens correctly.');
+  failed = true;
+}
 const legacyBulkEmailRegression = await readFile('supabase/functions/send-email-to-users/index.ts', 'utf8');
 if (!legacyBulkEmailRegression.includes('if (!testEmail)') ||
     !legacyBulkEmailRegression.includes('Bulk sending through this legacy endpoint is disabled') ||
@@ -356,9 +366,9 @@ for (const path of serviceRoleSecretCompatibilityPaths) {
   }
 }
 const contactSyncKeyRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
-if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    contactSyncKeyRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
-  console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
+if (contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
+    contactSyncKeyRegression.includes('api.resend.com/contacts')) {
+  console.error('CHECK FAILED: unsubscribe must persist in Supabase without requiring the Resend Contacts API.');
   failed = true;
 }
 const featureLoginGrantMigration = await readFile('supabase/migrations/20261022142628_fix_feature_login_rpc_grant_20261022.sql', 'utf8');
