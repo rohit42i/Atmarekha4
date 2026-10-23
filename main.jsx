@@ -10,16 +10,9 @@ import ReadingHistoryTracker from './ReadingHistoryTracker.jsx';
 import AuthGate from './AuthGate.jsx';
 import ChapterCompletionPrompt from './ChapterCompletionPrompt.jsx';
 const CommunityPage = lazy(() => import('./CommunityPage.jsx'));
-const CommunityAdmin = lazy(() => import('./CommunityAdmin.jsx'));
 const EnhancedComments = lazy(() => import('./EnhancedComments.jsx'));
 const PublicProfile = lazy(() => import('./PublicProfile.jsx'));
 import FeatureUnlocks from './FeatureUnlocks.jsx';
-const AdminGroupChatTools = lazy(() => import('./AdminGroupChatTools.jsx'));
-const AdminModerationTools = lazy(() => import('./AdminModerationTools.jsx'));
-const AdminManagementTools = lazy(() => import('./AdminManagementTools.jsx'));
-const AdminProTools = lazy(() => import('./AdminProTools.jsx'));
-const AdminChapterHealth = lazy(() => import('./AdminChapterHealth.jsx'));
-const AdminOperations = lazy(() => import('./AdminOperations.jsx'));
 import ChapterAccessGuard from './ChapterAccessGuard.jsx';
 import AtmaLoader from './AtmaLoader.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -91,15 +84,8 @@ createRoot(document.getElementById('root')).render(
     <ExperienceEnhancements/>
       <Suspense fallback={null}>
       <CommunityPage/>
-      <CommunityAdmin/>
       <EnhancedComments/>
       <PublicProfile/>
-      <AdminProTools/>
-      <AdminChapterHealth/>
-      <AdminGroupChatTools/>
-      <AdminManagementTools/>
-      <AdminModerationTools/>
-      <AdminOperations/>
       </Suspense>
       <SiteRuntime/>
   </React.StrictMode>
