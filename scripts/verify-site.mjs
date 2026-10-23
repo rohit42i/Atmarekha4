@@ -43,6 +43,7 @@ const required = [
   ['PrivacyCenter.jsx', 'Cancel deletion and recover account'],
   ['supabase/functions/account-deletion-workflow/index.ts', 'confirm-delete-otp'],
   ['supabase/functions/account-deletion-workflow/index.ts', 'confirm-reactivate-otp'],
+  ['supabase/functions/account-deletion-workflow/index.ts', 'invalidateError'],
   ['supabase/functions/account-deletion-workflow/index.ts', 'Math.max(14, days)'],
   ['supabase/migrations/20261023190000_account_deletion_otp_recovery.sql', 'account_deletion_verifications'],
   ['PrivacyCenter.jsx', 'some categories may be incomplete or could not be retrieved'],
