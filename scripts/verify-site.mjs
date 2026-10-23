@@ -678,6 +678,12 @@ if (!pdlplAdminSubmitRegression.includes('<button type="submit" className="pdlpl
   failed = true;
 }
 
+const adminStudioButtonSource = await readFile('admin-studio-ui.jsx', 'utf8');
+if (!adminStudioButtonSource.includes('<button type="button" className={classes} {...props}>')) {
+  console.error('CHECK FAILED: shared admin buttons must default to type=button unless a caller explicitly overrides it.');
+  failed = true;
+}
+
 const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'const loadSequence = useRef(0);'],
   ['AdminPanel.jsx', adminPanel, 'async function loadAllChapterPageRows()'],
