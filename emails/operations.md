@@ -7,7 +7,7 @@
 
 ## Subscription rules
 - Follow the current signup disclosure and recorded account preferences.
-- Never override an explicit unsubscribe during contact sync, import, or backfill.
+- Never override an explicit unsubscribe when checking audience eligibility or sending email. The Supabase preference record is authoritative.
 - Keep chapter announcements and important Atma Rekha reader updates separate from promotional marketing.
 - Do not send chapter updates to unverified accounts or accounts without recorded update consent.
 - A reader who previously unsubscribed must deliberately re-enable updates before being resubscribed.
