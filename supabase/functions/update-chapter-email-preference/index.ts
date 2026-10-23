@@ -74,12 +74,18 @@ Deno.serve(async (req: Request) => {
         source: "notification_preferences"
       }, { onConflict: "user_id,policy_version" });
       if (error) throw error;
-      const { error: prefError } = await db.from("email_marketing_preferences").update({ marketing_unsubscribed: false, updated_at: now }).eq("user_id", user.id);
+      const { error: prefError } = await db.from("email_marketing_preferences").upsert(
+        { user_id: user.id, marketing_unsubscribed: false, updated_at: now },
+        { onConflict: "user_id" }
+      );
       if (prefError) throw prefError;
     } else {
       const { error } = await db.from("dpdp_consent_records").update({ withdrawn_at: now }).eq("user_id", user.id).eq("policy_version", POLICY_VERSION);
       if (error) throw error;
-      const { error: prefError } = await db.from("email_marketing_preferences").update({ marketing_unsubscribed: true, updated_at: now }).eq("user_id", user.id);
+      const { error: prefError } = await db.from("email_marketing_preferences").upsert(
+        { user_id: user.id, marketing_unsubscribed: true, updated_at: now },
+        { onConflict: "user_id" }
+      );
       if (prefError) throw prefError;
     }
     // Keep the email provider aligned with the reader's explicit choice.
