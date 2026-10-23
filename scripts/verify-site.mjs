@@ -239,6 +239,19 @@ if (!resendContactSyncRegression.includes('RESEND_CONTACTS_API_KEY') ||
   console.error('CHECK FAILED: Contact sync must use the Contacts key, surface permission errors, and preflight backfill before processing users.');
   failed = true;
 }
+
+const unsubscribeOneClickRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
+const emailStudioUnsubscribeRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
+const chapterReleaseUnsubscribeRegression = await readFile('supabase/functions/send-reader-event-notification/index.ts', 'utf8');
+if (!unsubscribeOneClickRegression.includes('req.method !== "GET" && req.method !== "POST"') ||
+    !unsubscribeOneClickRegression.includes('new URLSearchParams(body).get("List-Unsubscribe") !== "One-Click"') ||
+    !unsubscribeOneClickRegression.includes('marketing_unsubscribed: true') ||
+    !emailStudioUnsubscribeRegression.includes('"List-Unsubscribe-Post": "List-Unsubscribe=One-Click"') ||
+    !chapterReleaseUnsubscribeRegression.includes('"List-Unsubscribe-Post": "List-Unsubscribe=One-Click"')) {
+  console.error('CHECK FAILED: update email one-click unsubscribe must use a validated POST and persist the reader opt-out.');
+  failed = true;
+}
+
 const privacyExportPreferencesRegression = await readFile('supabase/functions/dpdp-data-rights/index.ts', 'utf8');
 if (!privacyExportPreferencesRegression.includes('notification_preferences') ||
     !privacyExportPreferencesRegression.includes('dpdp_nominations') ||
