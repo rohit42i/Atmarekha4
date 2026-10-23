@@ -255,7 +255,7 @@ if (!mfaCodeRegression.includes("/^\\d{6}$/.test(cleanCode)") ||
   console.error('CHECK FAILED: authenticator verification must accept exactly six numeric digits.');
   failed = true;
 }
-const emailChangeRequestsMigration = await readFile('supabase/migrations/20261023120000_admin_email_change_requests.sql', 'utf8');
+const emailChangeRequestsMigration = await readFile('supabase/migrations/20261023071335_admin_email_change_requests.sql', 'utf8');
 if (!emailChangeRequestsMigration.includes('create table if not exists public.email_change_requests') ||
     !emailChangeRequestsMigration.includes('create table if not exists public.email_change_request_events') ||
     !emailChangeRequestsMigration.includes('Readers can submit own email change requests') ||
