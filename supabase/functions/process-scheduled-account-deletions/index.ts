@@ -175,6 +175,31 @@ async function processOne(admin: ReturnType<typeof createClient>, request: Recor
     }
   }
 
+  // Remove an old Resend contact, if one exists, before the auth identity is deleted.
+  // A missing contact is fine; other provider errors pause erasure so the user can be retried.
+  const { data: authRecord, error: authLookupError } = await admin.auth.admin.getUserById(userId);
+  if (authLookupError && !/not found|user not found/i.test(authLookupError.message || "")) {
+    await updateNote(admin, requestId, "Erasure paused: the account email could not be verified for email-provider cleanup.");
+    return { request_id: requestId, status: "pending", reason: "Could not verify account email for provider cleanup." };
+  }
+  const accountEmail = authRecord?.user?.email;
+  if (accountEmail) {
+    const resendKey = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+    if (!resendKey) {
+      await updateNote(admin, requestId, "Erasure paused: email-provider contact cleanup is not configured. Configure Resend before retrying.");
+      return { request_id: requestId, status: "pending", reason: "Email-provider cleanup is not configured." };
+    }
+    const contactResponse = await fetch(`https://api.resend.com/contacts/${encodeURIComponent(accountEmail)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${resendKey}`, Accept: "application/json" },
+    });
+    if (!contactResponse.ok && contactResponse.status !== 404) {
+      console.error("Email-provider contact cleanup failed:", contactResponse.status);
+      await updateNote(admin, requestId, "Erasure paused because the email-provider contact could not be removed. The processor will retry.");
+      return { request_id: requestId, status: "pending", reason: "Email-provider contact cleanup failed." };
+    }
+  }
+
   const { data: erased, error: eraseError } = await admin.rpc("erase_due_account_personal_data", {
     p_request_id: requestId,
     p_admin_id: null,
