@@ -108,9 +108,10 @@ export default function PrivacyRequestsAdmin() {
           <span className={'privacy-admin-status status-' + request.status}>{request.status}</span>
         </div>
         {request.reason && <p>{request.reason}</p>}
+        {request.requested_period && <p className="privacy-admin-request-schedule"><strong>Requested option:</strong> {request.requested_period.replaceAll('_', ' ')}{request.scheduled_delete_at ? <> · <strong>Scheduled deletion:</strong> {formatDate(request.scheduled_delete_at)}</> : null}{request.recovery_until ? <> · <strong>Recovery deadline:</strong> {formatDate(request.recovery_until)}</> : null}</p>}
         <p className="privacy-admin-request-id">Request ID: {request.id}</p>
         {request.resolution_note && <p className="privacy-admin-resolution"><strong>Resolution:</strong> {request.resolution_note}</p>}
-        {request.status === 'pending' && <div className="privacy-admin-step"><strong>Step 1 · Start review</strong><p>Verify the reader’s identity and review the account data and retention requirements before making changes.</p><button type="button" className="secondary-button" disabled={Boolean(busyId)} onClick={() => update(request, 'processing')}>{busyId === request.id ? 'Updating…' : 'Start review'}</button></div>}
+        {request.status === 'pending' && <div className="privacy-admin-step"><strong>Step 1 · Start review</strong><p>Verify the reader’s identity and review the account data and retention requirements before making changes.</p><button type="button" className="secondary-button" disabled={Boolean(busyId) || Boolean(request.scheduled_delete_at && new Date(request.scheduled_delete_at).getTime() > Date.now())} onClick={() => update(request, 'processing')}>{busyId === request.id ? 'Updating…' : request.scheduled_delete_at && new Date(request.scheduled_delete_at).getTime() > Date.now() ? 'Scheduled, not due' : 'Start review'}</button></div>}
         {request.status === 'processing' && <div className="privacy-admin-step">
           <strong>Step 2 · Record the outcome</strong>
           <p>Complete any necessary erasure manually first. This form records what happened; it does not erase database or storage records.</p>
