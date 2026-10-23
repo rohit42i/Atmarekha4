@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceKey = readSupabaseServiceRoleKey();
     const resendKey = Deno.env.get("RESEND_API_KEY") || "";
+    const configuredSender = Deno.env.get("RESEND_FROM_EMAIL")?.trim() || "Atma Rekha <no-reply@atmarekha.in>";
 
     if (!supabaseUrl || !serviceKey) return response(req, { ok: false, error: "Supabase server configuration is missing." }, 503);
     if (!resendKey) return response(req, { ok: false, error: "RESEND_API_KEY is not configured yet." }, 503);
@@ -127,6 +128,192 @@ Deno.serve(async (req) => {
       return response(req, { ok: true, users: matches });
     }
 
+    if (action === "resend_email_change_confirmation") {
+      const requestId = String(body.request_id || "").trim();
+      if (!/^[0-9a-f-]{36}$/i.test(requestId)) {
+        return response(req, { ok: false, error: "A valid email-change request is required." }, 422);
+      }
+
+      const { data: request, error: requestError } = await db
+        .from("email_change_requests")
+        .select("id,user_id,current_email,requested_email,status,resend_count")
+        .eq("id", requestId)
+        .maybeSingle();
+      if (requestError) return response(req, { ok: false, error: "Unable to load the email-change request." }, 503);
+      if (!request || request.status !== "pending" || !request.user_id) {
+        return response(req, { ok: false, error: "This request is no longer pending. Refresh the request list." }, 409);
+      }
+
+      const { data: targetResult, error: targetError } = await db.auth.admin.getUserById(request.user_id);
+      const target = targetResult?.user;
+      if (targetError || !target) return response(req, { ok: false, error: "The account is no longer available." }, 404);
+      const currentEmail = String(target.email || "").trim();
+      const requestedEmail = String(target.new_email || "").trim();
+      if (
+        !validEmail(currentEmail) ||
+        !validEmail(requestedEmail) ||
+        currentEmail.toLowerCase() !== String(request.current_email || "").trim().toLowerCase() ||
+        requestedEmail.toLowerCase() !== String(request.requested_email || "").trim().toLowerCase()
+      ) {
+        return response(req, { ok: false, error: "The verification state changed. Refresh the request list before retrying." }, 409);
+      }
+
+      const redirectTo = "https://www.atmarekha.in/";
+      const [currentLinkResult, newLinkResult] = await Promise.all([
+        db.auth.admin.generateLink({
+          type: "email_change_current",
+          email: currentEmail,
+          newEmail: requestedEmail,
+          options: { redirectTo },
+        }),
+        db.auth.admin.generateLink({
+          type: "email_change_new",
+          email: currentEmail,
+          newEmail: requestedEmail,
+          options: { redirectTo },
+        }),
+      ]);
+      const currentLink = currentLinkResult.data?.properties?.action_link;
+      const newLink = newLinkResult.data?.properties?.action_link;
+      const authOrigin = new URL(supabaseUrl).origin;
+      const validActionLink = (value: unknown) => {
+        if (typeof value !== "string") return false;
+        try {
+          const link = new URL(value);
+          return link.protocol === "https:" && link.origin === authOrigin;
+        } catch {
+          return false;
+        }
+      };
+      if (
+        currentLinkResult.error || newLinkResult.error ||
+        !validActionLink(currentLink) || !validActionLink(newLink)
+      ) {
+        return response(req, {
+          ok: false,
+          error: "Secure verification links could not be generated. Check the Supabase Secure email change setting; no emails were sent.",
+        }, 503);
+      }
+
+      const now = new Date().toISOString();
+      const { data: event, error: eventError } = await db
+        .from("email_change_request_events")
+        .insert({
+          request_id: request.id,
+          user_id: target.id,
+          actor_user_id: authData.user.id,
+          event_type: "verification_resent",
+          details: { attempt_started_at: now },
+        })
+        .select("id")
+        .single();
+      if (eventError || !event) {
+        return response(req, { ok: false, error: "The request history could not be recorded. No emails were sent." }, 503);
+      }
+
+      const { data: activeRequest, error: activeRequestError } = await db
+        .from("email_change_requests")
+        .update({
+          last_admin_resend_at: now,
+          last_admin_resend_by: authData.user.id,
+          resend_count: Number(request.resend_count || 0) + 1,
+        })
+        .eq("id", request.id)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+      if (activeRequestError || !activeRequest) {
+        await db.from("email_change_request_events").update({
+          details: { attempt_started_at: now, outcome: "not_sent_request_state_changed" },
+        }).eq("id", event.id);
+        return response(req, { ok: false, error: "This request changed before it could be sent. Refresh the list." }, 409);
+      }
+
+      const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[char] || char));
+      const makeHtml = (heading: string, copy: string, link: string) =>
+        '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>' +
+        '<body style="margin:0;background:#f4f4f2;color:#191919;font-family:Arial,Helvetica,sans-serif"><div style="max-width:620px;margin:0 auto;padding:32px 16px">' +
+        '<div style="background:#fff;border:1px solid #e1e1de;padding:32px 28px">' +
+        '<p style="margin:0 0 22px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#555">ATMA REKHA</p>' +
+        '<h1 style="margin:0 0 18px;font-size:24px;line-height:1.3;font-weight:700">' + escapeHtml(heading) + '</h1>' +
+        '<p style="font-size:15px;line-height:1.7;color:#383838">' + escapeHtml(copy) + '</p>' +
+        '<p style="font-size:14px;line-height:1.8;color:#383838">Current address: <strong>' + escapeHtml(currentEmail) + '</strong><br>Requested address: <strong>' + escapeHtml(requestedEmail) + '</strong></p>' +
+        '<p style="margin:28px 0"><a href="' + escapeHtml(link) + '" style="display:inline-block;padding:13px 18px;background:#171717;color:#fff;text-decoration:none;font-size:14px;font-weight:700">Confirm email change</a></p>' +
+        '<p style="font-size:12px;line-height:1.7;color:#6b6b6b">This verification link expires according to your account security settings. If you did not request this change, do not use the link and secure your account.</p>' +
+        '</div><p style="font-size:11px;color:#777;text-align:center">Atma Rekha · Original Indian fantasy adventure manga</p></div></body></html>';
+
+      const sendVerification = async (to: string, heading: string, copy: string, link: string) => {
+        try {
+          const result = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + resendKey, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: configuredSender,
+              to: [to],
+              subject: "Confirm your Atma Rekha email change",
+              html: makeHtml(heading, copy, link),
+              text: heading + "\n\n" + copy + "\nCurrent address: " + currentEmail +
+                "\nRequested address: " + requestedEmail + "\n\nConfirm securely: " + link +
+                "\n\nIf you did not request this, do not use the link.",
+            }),
+          });
+          return { ok: result.ok, status: result.status };
+        } catch {
+          return { ok: false, status: 0 };
+        }
+      };
+
+      const [currentDelivery, newDelivery] = await Promise.all([
+        sendVerification(
+          currentEmail,
+          "Approve this email change",
+          "A request was made to change the sign-in email on your Atma Rekha account. Confirm this request only if you initiated it.",
+          currentLink,
+        ),
+        sendVerification(
+          requestedEmail,
+          "Verify your new email address",
+          "Confirm that you can receive email at this address to complete the sign-in email change on your Atma Rekha account.",
+          newLink,
+        ),
+      ]);
+      const deliveryDetails = {
+        current_address: { sent: currentDelivery.ok, status_code: currentDelivery.status },
+        requested_address: { sent: newDelivery.ok, status_code: newDelivery.status },
+        completed_at: new Date().toISOString(),
+      };
+      const { error: eventUpdateError } = await db
+        .from("email_change_request_events")
+        .update({ details: { attempt_started_at: now, delivery: deliveryDetails } })
+        .eq("id", event.id);
+      if (eventUpdateError) console.error("Email-change delivery history update failed.");
+
+      const { error: auditError } = await db.from("admin_activity_log").insert({
+        admin_user_id: authData.user.id,
+        action: "resend_email_change_confirmation",
+        entity_type: "email_change_request",
+        entity_id: request.id,
+        details: {
+          user_id: target.id,
+          current_address_sent: currentDelivery.ok,
+          requested_address_sent: newDelivery.ok,
+        },
+      });
+      if (auditError) console.error("Email-change admin audit event failed.");
+
+      const sent = currentDelivery.ok || newDelivery.ok;
+      return response(req, {
+        ok: sent,
+        sent_to_current: currentDelivery.ok,
+        sent_to_new: newDelivery.ok,
+        partial_delivery: currentDelivery.ok !== newDelivery.ok,
+        ...(!sent ? { error: "Resend could not deliver either verification email. Check delivery logs and try again." } : {}),
+        ...(eventUpdateError || auditError ? { audit_warning: "Email delivery was attempted, but one history record could not be updated. Check admin activity and Resend logs." } : {}),
+      }, sent ? 200 : 502);
+    }
+
     const subject = String(body.subject || "").trim();
     const html = cleanHtml(String(body.html || "").trim());
     const suppliedText = String(body.text || "").trim();
@@ -172,11 +359,11 @@ Deno.serve(async (req) => {
 
     const base = useChapterReleaseTemplate
       ? {
-          from: "Atma Rekha <atmarekhaoffical@gmail.com>",
+          from: configuredSender,
           template: { id: chapterTemplateId },
         }
       : {
-          from: "Atma Rekha <atmarekhaoffical@gmail.com>",
+          from: configuredSender,
           subject,
           html,
           text: textBody,
