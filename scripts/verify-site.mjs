@@ -312,6 +312,17 @@ if (!adminEmailChangeToolsRegression.includes("view==='emailChanges'") ||
   console.error('CHECK FAILED: secure email-change workflow needs tracked requests, dual-address verification and admin audit history.');
   failed = true;
 }
+const adminReaderDetailUiRegression = await readFile('AdminManagementTools.jsx', 'utf8');
+const adminReaderDetailApiRegression = await readFile('supabase/functions/get-admin-console-data/index.ts', 'utf8');
+if (!adminReaderDetailUiRegression.includes('function ReaderDetailsPanel') ||
+    !adminReaderDetailUiRegression.includes("onClick={()=>loadUserDetails(u)}") ||
+    !adminReaderDetailUiRegression.includes("action:'user-details',user_id:reader.id") ||
+    !adminReaderDetailApiRegression.includes('if (action === "user-details")') ||
+    !adminReaderDetailApiRegression.includes('Reader account not found.') ||
+    !adminReaderDetailApiRegression.includes('community_reactions: communityReactions')) {
+  console.error('CHECK FAILED: admin reader details must load through the protected admin data function and show a bounded activity summary.');
+  failed = true;
+}
 const privacyCenterRegression = await readFile('PrivacyCenter.jsx', 'utf8');
 if (!privacyCenterRegression.includes('const refreshStatus = async () =>') ||
     !privacyCenterRegression.includes("setMessage('Privacy request status is up to date.')") ||

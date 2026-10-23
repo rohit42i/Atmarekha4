@@ -107,8 +107,86 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users", "email_change_requests"].includes(action)) {
+    if (!["analytics", "membership", "users", "email_change_requests", "user-details"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
+    }
+
+    if (action === "user-details") {
+      const targetId = String(body.user_id || "").trim();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId)) {
+        return json({ error: "A valid reader ID is required." }, 400, origin);
+      }
+
+      const { data: targetResult, error: targetError } = await admin.auth.admin.getUserById(targetId);
+      if (targetError || !targetResult?.user) return json({ error: "Reader account not found." }, 404, origin);
+      const target = targetResult.user;
+      const fetchRows = async (query: PromiseLike<any>) => {
+        const { data, error } = await query;
+        if (error) throw error;
+        return data || [];
+      };
+      const countRows = async (table: string) => {
+        const { count, error } = await admin.from(table).select("user_id", { count: "exact", head: true }).eq("user_id", targetId);
+        if (error) throw error;
+        return Number(count || 0);
+      };
+
+      const [
+        { data: profile, error: profileError },
+        reading, pdlplReading, comments, pdlplComments, ratings, pdlplRatings, bookmarks, pdlplBookmarks,
+        memberships, payments, deletionRequests, groupMessages, communityReactions, emailChanges,
+        readingCount, pdlplReadingCount, commentCount, pdlplCommentCount, ratingCount, pdlplRatingCount, bookmarkCount, pdlplBookmarkCount
+      ] = await Promise.all([
+        admin.from("profiles").select("id,username,display_name,bio,avatar_url,public_badge,created_at,updated_at").eq("id", targetId).maybeSingle(),
+        fetchRows(admin.from("reading_history").select("chapter_id,page_number,updated_at,chapters(chapter_number,title,language)").eq("user_id", targetId).order("updated_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("pdlpl_reading_history").select("chapter_id,page_number,updated_at,pal_do_pal_ke_lamhe_chapters(chapter_number,title,language)").eq("user_id", targetId).order("updated_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("comments").select("id,content,created_at,chapter_id,announcement_id,community_post_id").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("pdlpl_comments").select("id,content,created_at,chapter_id").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("chapter_ratings").select("id,rating,created_at,chapter_id,chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("pdlpl_chapter_ratings").select("id,rating,created_at,chapter_id,pal_do_pal_ke_lamhe_chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("bookmarks").select("id,created_at,chapter_id,chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("pdlpl_bookmarks").select("id,created_at,chapter_id,pal_do_pal_ke_lamhe_chapters(chapter_number,title)").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("user_subscriptions").select("id,plan_id,status,current_period_start,current_period_end,cancel_at_period_end,created_at,updated_at").eq("user_id", targetId).order("created_at", { ascending: false }).limit(10)),
+        fetchRows(admin.from("payments").select("amount,status,created_at").eq("user_id", targetId).order("created_at", { ascending: false }).limit(8)),
+        fetchRows(admin.from("dpdp_deletion_requests").select("id,status,requested_at,resolved_at,resolution_note").eq("user_id", targetId).order("requested_at", { ascending: false }).limit(5)),
+        fetchRows(admin.from("group_chat_messages").select("id,content,created_at").eq("user_id", targetId).order("created_at", { ascending: false }).limit(5)),
+        fetchRows(admin.from("community_post_reactions").select("id,reaction,created_at,post_id").eq("user_id", targetId).order("created_at", { ascending: false }).limit(5)),
+        fetchRows(admin.from("email_change_requests").select("id,current_email,requested_email,status,requested_at,verified_at,closed_at").eq("user_id", targetId).order("requested_at", { ascending: false }).limit(5)),
+        countRows("reading_history"), countRows("pdlpl_reading_history"), countRows("comments"), countRows("pdlpl_comments"),
+        countRows("chapter_ratings"), countRows("pdlpl_chapter_ratings"), countRows("bookmarks"), countRows("pdlpl_bookmarks")
+      ]);
+      if (profileError) throw profileError;
+
+      return json({
+        user: {
+          id: target.id,
+          email: target.email || null,
+          pending_email: target.new_email || null,
+          email_confirmed_at: target.email_confirmed_at || null,
+          email_change_sent_at: target.email_change_sent_at || null,
+          created_at: target.created_at || null,
+          last_sign_in_at: target.last_sign_in_at || null,
+          banned_until: target.banned_until || null,
+          is_anonymous: Boolean(target.is_anonymous)
+        },
+        profile: profile || null,
+        stats: {
+          reading_history: readingCount,
+          pdlpl_reading_history: pdlplReadingCount,
+          comments: commentCount + pdlplCommentCount,
+          ratings: ratingCount + pdlplRatingCount,
+          bookmarks: bookmarkCount + pdlplBookmarkCount,
+          memberships: memberships.length,
+          payments: payments.length
+        },
+        activity: {
+          reading, pdlpl_reading: pdlplReading, comments, pdlpl_comments: pdlplComments,
+          ratings, pdlpl_ratings: pdlplRatings, bookmarks, pdlpl_bookmarks: pdlplBookmarks,
+          memberships, payments, deletion_requests: deletionRequests,
+          group_messages: groupMessages, community_reactions: communityReactions,
+          email_changes: emailChanges
+        }
+      }, 200, origin);
     }
 
     if (action === "email_change_requests") {
