@@ -282,7 +282,7 @@ main.admin-page.ar-admin-v3 .admin-bottom-nav button.active {
   main.admin-page.ar-admin-v3 :is(.admin-grid,.ar-admin-grid,.ar-cr-grid,.ar-control-room .grid) { gap:9px!important; }
   main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-admin-card-header,.ar-cr-card-header,.ar-ops-card-header) { margin-bottom:12px!important; }
   main.admin-page.ar-admin-v3 :is(.admin-card-title h2,.ar-admin-card-header h2,.ar-cr-card-header h3) { font-size:16px!important; }
-  main.admin-page.ar-admin-v3 :is(.ar-admin-topbar-left,.ar-admin-topbar-actions) { min-width:0; flex-wrap:wrap; gap:8px!important; }
+  main.admin-page.ar-admin-v3 :is(.ar-admin-topbar-left,.ar-admin-top-actions) { min-width:0; flex-wrap:wrap; gap:8px!important; }
   main.admin-page.ar-admin-v3 :is(.ar-admin-command-trigger,.ar-admin-profile) { max-width:100%; }
   main.admin-page.ar-admin-v3 .admin-bottom-nav { display:grid!important; grid-template-columns:repeat(4,minmax(0,1fr))!important; }
   main.admin-page.ar-admin-v3 .admin-bottom-nav button { display:flex!important; flex-direction:column!important; justify-content:center!important; gap:3px!important; font-size:10px!important; }
