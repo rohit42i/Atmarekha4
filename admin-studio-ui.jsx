@@ -29,7 +29,7 @@ export function AdminButton({ children, variant = 'secondary', size = 'md', icon
     className,
   ].filter(Boolean).join(' ');
   return (
-    <button className={classes} {...props}>
+    <button type="button" className={classes} {...props}>
       {icon ? <AdminIcon name={icon} size={14} /> : null}
       <span>{children}</span>
       {shortcut ? <kbd>{shortcut}</kbd> : null}
