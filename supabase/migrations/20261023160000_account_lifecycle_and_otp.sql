@@ -62,7 +62,10 @@ alter table public.user_subscriptions add constraint user_subscriptions_user_id_
 
 -- Activity erasure is deliberately explicit. Auth/profile identity and billing are
 -- retained for the user unless the separate account-deletion workflow is confirmed.
-create or replace function private.erase_user_activity_window(p_user_id uuid, p_days integer default null)
+alter table public.group_chat_messages alter column user_id drop not null;
+alter table public.pdlpl_comments alter column user_id drop not null;
+
+create or replace function public.erase_user_activity_window(p_user_id uuid, p_days integer default null)
 returns jsonb
 language plpgsql
 security definer
@@ -133,12 +136,12 @@ begin
 end;
 $$;
 
-revoke all on function private.erase_user_activity_window(uuid, integer) from public, anon, authenticated;
-grant execute on function private.erase_user_activity_window(uuid, integer) to service_role;
+revoke all on function public.erase_user_activity_window(uuid, integer) from public, anon, authenticated;
+grant execute on function public.erase_user_activity_window(uuid, integer) to service_role;
 
 -- Finalize deletion with a scheduled database job so it still runs if the reader
 -- never signs in again. Eligible billing records are anonymized, not cascaded away.
-create or replace function private.finalize_due_account_deletions()
+create or replace function public.finalize_due_account_deletions()
 returns integer
 language plpgsql
 security definer
@@ -170,7 +173,7 @@ begin
       -- deleting the site's last administrator or creator access.
       if exists (select 1 from public.admins where user_id = r.user_id) then
         update public.account_lifecycle_requests
-           set scheduled_delete_at = now() + interval '1 day',
+           set status = 'failed', scheduled_delete_at = null,
                finalization_attempts = finalization_attempts + 1,
                last_error = 'Administrator account requires manual ownership review.',
                updated_at = now()
@@ -191,8 +194,7 @@ begin
       update public.email_change_request_events
          set details = '{}'::jsonb
        where user_id = r.user_id or actor_user_id = r.user_id;
-      update public.site_feedback set email = null, name = null, message = '[feedback removed]', user_id = null
-       where user_id = r.user_id;
+      delete from public.site_feedback where user_id = r.user_id;
 
       -- Remove the account identity. FK cascades erase profile, comments, likes,
       -- bookmarks, histories, auth identities, notification endpoints and preferences.
@@ -219,8 +221,8 @@ begin
 end;
 $$;
 
-revoke all on function private.finalize_due_account_deletions() from public, anon, authenticated;
-grant execute on function private.finalize_due_account_deletions() to service_role;
+revoke all on function public.finalize_due_account_deletions() from public, anon, authenticated;
+grant execute on function public.finalize_due_account_deletions() to service_role;
 
 create extension if not exists pg_cron with schema pg_catalog;
 create extension if not exists pg_net with schema extensions;
@@ -235,6 +237,6 @@ begin
   perform cron.schedule(
     'account-lifecycle-finalizer',
     '*/10 * * * *',
-    'select private.finalize_due_account_deletions();'
+    'select public.finalize_due_account_deletions();'
   );
 end $$;
