@@ -102,6 +102,11 @@ Deno.serve(async (req: Request) => {
         if (pending) return json({ error: "A deletion request is already active. Use the recovery option to cancel it." }, 409, origin);
       }
 
+      // A newly issued code invalidates every earlier unused code for this user and purpose.
+      const { error: invalidateError } = await admin.from("account_deletion_verifications")
+        .update({ consumed_at: new Date().toISOString() })
+        .eq("user_id", user.id).eq("purpose", purpose).is("consumed_at", null);
+      if (invalidateError) return json({ error: "Could not refresh email verification. Please try again." }, 503, origin);
       const otp = randomOtp();
       const otpHash = await sha256(`${user.id}:${purpose}:${otp}`);
       const { error: insertError } = await admin.from("account_deletion_verifications").insert({
