@@ -66,13 +66,15 @@ export default function EmailStudio() {
   const syncContacts = async () => {
     if (syncingContacts) return;
     setSyncingContacts(true);
-    setNotice('Syncing confirmed reader accounts to Resend. Readers who have not enabled Atma Rekha updates will remain unsubscribed from update emails.');
+    setNotice('Checking confirmed readers, recorded update consent and unsubscribe preferences in Supabase.');
     try {
       const data = await supabase.functions.invoke('resend-contact-backfill', { body: {} });
       if (data.error) throw data.error;
-      if (!data.data?.ok && !Number.isFinite(data.data?.total)) throw new Error(data.data?.error || 'Contact sync failed.');
+      if (!data.data?.ok || data.data?.mode !== 'database_source_of_truth') {
+        throw new Error(data.data?.error || 'Email audience check failed.');
+      }
       const result = data.data;
-      setNotice('Resend sync finished: ' + result.total + ' confirmed accounts, ' + result.added + ' added, ' + result.updated + ' updated, ' + result.unsubscribed + ' kept unsubscribed, ' + result.eligibleForUpdates + ' eligible for Atma Rekha updates, ' + result.failed + ' failed.');
+      setNotice('Audience checked: ' + result.total + ' confirmed accounts, ' + result.eligibleForUpdates + ' eligible for Atma Rekha updates, ' + result.eligibleForMarketing + ' eligible for marketing, ' + result.unsubscribed + ' opted out. Email Studio checks these live Supabase records before sending; duplicate Resend contacts are not required.');
     } catch (error) {
       setNotice(error?.message || 'Could not sync contacts to Resend.');
     } finally {
@@ -263,7 +265,7 @@ export default function EmailStudio() {
     <section className="admin-card">
       <div className="admin-card-title">
         <div><span>RESEND EMAIL STUDIO</span><h2>Email campaigns</h2><p>Edit messages, preview them, and send to selected readers or an audience.</p></div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" onClick={syncContacts} disabled={syncingContacts}>{syncingContacts?'Syncing…':'Sync contacts'}</button><button type="button" onClick={() => { setDraft(initial); setSelectedTemplate(''); setPreview(false); setNotice('New template draft. Enter a unique slug, then save it before sending.'); }}>New template</button></div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" onClick={syncContacts} disabled={syncingContacts}>{syncingContacts?'Checking…':'Check email audience'}</button><button type="button" onClick={() => { setDraft(initial); setSelectedTemplate(''); setPreview(false); setNotice('New template draft. Enter a unique slug, then save it before sending.'); }}>New template</button></div>
       </div>
       {notice && <div role="status" className="admin-notice" style={{ marginBottom: 14 }}>{notice}</div>}
       <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
