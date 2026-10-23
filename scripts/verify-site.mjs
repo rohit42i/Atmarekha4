@@ -322,10 +322,15 @@ for (const path of serviceRoleSecretCompatibilityPaths) {
   }
 }
 const unsubscribePreferenceRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
-if (!unsubscribePreferenceRegression.includes('marketing_unsubscribed:true') ||
+const emailStudioUnsubscribeHeadersRegression = await readFile('supabase/functions/resend-email-studio/index.ts', 'utf8');
+if (!unsubscribePreferenceRegression.includes('marketing_unsubscribed: true') ||
     !unsubscribePreferenceRegression.includes('from("email_marketing_preferences")') ||
-    !unsubscribePreferenceRegression.includes('const contactKey=Deno.env.get("RESEND_CONTACTS_API_KEY")||"";if(contactKey){')) {
-  console.error('CHECK FAILED: unsubscribe must persist the Supabase opt-out and keep provider contact sync optional.');
+    !unsubscribePreferenceRegression.includes('req.method !== "GET" && req.method !== "POST"') ||
+    !unsubscribePreferenceRegression.includes('form.get("List-Unsubscribe") !== "One-Click"') ||
+    !unsubscribePreferenceRegression.includes('if (oneClick) return new Response(null, { status: 204') ||
+    !emailStudioUnsubscribeHeadersRegression.includes('"List-Unsubscribe-Post": "List-Unsubscribe=One-Click"') ||
+    !emailStudioUnsubscribeHeadersRegression.includes('"List-Unsubscribe": "<" + unsubscribeUrl + ">"')) {
+  console.error('CHECK FAILED: email updates need persisted opt-outs plus RFC 8058 one-click unsubscribe headers and POST handling.');
   failed = true;
 }
 const featureLoginGrantMigration = await readFile('supabase/migrations/20261022142628_fix_feature_login_rpc_grant_20261022.sql', 'utf8');
