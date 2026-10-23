@@ -203,6 +203,7 @@ begin
   delete from public.group_chat_reads where user_id = target_user_id;
   delete from public.group_chat_messages where user_id = target_user_id;
   delete from public.member_messages where user_id = target_user_id;
+  delete from public.login_password_protection where user_id = target_user_id;
   delete from public.moderation_reports where user_id = target_user_id;
   delete from public.notification_preferences where user_id = target_user_id;
   delete from public.notification_subscriptions where user_id = target_user_id;
@@ -213,6 +214,7 @@ begin
   delete from public.push_subscriptions where user_id = target_user_id;
   delete from public.reading_history where user_id = target_user_id;
   delete from public.user_moderation where user_id = target_user_id;
+  update public.notification_event_dispatches set sender_user_id = null where sender_user_id = target_user_id;
 
   delete from public.email_change_request_events
   where user_id = target_user_id or actor_user_id = target_user_id;
