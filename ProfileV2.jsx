@@ -12,13 +12,14 @@ export default function ProfileV2() {
   const draft=loadDraft('atma-profile-draft',{displayName:'',username:'',bio:'',email:''});
   const [displayName,setDisplayName]=useState(draft.displayName||''),[username,setUsername]=useState(draft.username||''),[bio,setBio]=useState(draft.bio||''),[email,setEmail]=useState(draft.email||''),[avatar,setAvatar]=useState(AVATARS[0]);
   const [saving,setSaving]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(''),[fieldErrors,setFieldErrors]=useState({}),[shake,setShake]=useState({}),[tab,setTab]=useState(()=>localStorage.getItem('atma-profile-tab')||'history'),[membershipPlan,setMembershipPlan]=useState(null);
+  const [emailChangePassword,setEmailChangePassword]=useState(''),[emailOtpRequest,setEmailOtpRequest]=useState(null),[emailOtp,setEmailOtp]=useState(''),[emailOtpBusy,setEmailOtpBusy]=useState(false),[emailOtpError,setEmailOtpError]=useState('');
   const [history,setHistory]=useState([]),[bookmarks,setBookmarks]=useState([]),[ratings,setRatings]=useState([]),[comments,setComments]=useState([]);
   const cleanSnapshot=useRef('');
   const [updateAvailable,setUpdateAvailable]=useState(()=>Boolean(window.__atmaUpdateWorker)),[updating,setUpdating]=useState(false);
 
   const load=async currentUser=>{if(!currentUser)return;setUser(currentUser);setEmail(currentUser.email||'');const {data}=await supabase.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();const next=data||{};setProfile(next);setDisplayName(next.display_name||currentUser.user_metadata?.full_name||'Reader');setUsername(next.username||'');setBio(next.bio||'');setAvatar(next.avatar_url||AVATARS[0]);clearDraft('atma-profile-draft');try{setMembershipPlan(await getCurrentMembership(currentUser.id))}catch(e){console.warn('Membership lookup failed:',e);setMembershipPlan(null)}const [h,b,r,c]=await Promise.all([supabase.from('reading_history').select('chapter_id,page_number,updated_at,chapters(id,chapter_number,title,cover_url,status)').eq('user_id',currentUser.id).order('updated_at',{ascending:false}).limit(50),supabase.from('bookmarks').select('id,chapter_id,created_at,chapters(id,chapter_number,title,cover_url,status)').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50),supabase.from('chapter_ratings').select('id,chapter_id,rating,created_at,chapters(id,chapter_number,title,cover_url,status)').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50),supabase.from('comments').select('id,content,created_at,chapter_id').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50)]);setHistory(h.data||[]);setBookmarks(b.data||[]);setRatings(r.data||[]);setComments(c.data||[]);};
 
-  useEffect(()=>{const onHash=()=>setRoute(routeNow);window.addEventListener('hashchange',onHash);supabase.auth.getSession().then(({data})=>{if(data?.session?.user)load(data.session.user)});const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{if(s?.user)load(s.user);else{setUser(null);setMembershipPlan(null)}});return()=>{window.removeEventListener('hashchange',onHash);l.subscription.unsubscribe()};},[]);
+  useEffect(()=>{const onHash=()=>setRoute(routeNow);window.addEventListener('hashchange',onHash);supabase.auth.getSession().then(({data})=>{if(data?.session?.user)load(data.session.user)});const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{if(s?.user)load(s.user);else{setUser(null);setMembershipPlan(null);setEmailOtpRequest(null);setEmailOtp('');setEmailChangePassword('')}});return()=>{window.removeEventListener('hashchange',onHash);l.subscription.unsubscribe()};},[]);
   useEffect(()=>{if(!editing)return;rememberDraft('atma-profile-draft',{displayName,username,bio,email})},[editing,displayName,username,bio,email]);
   useEffect(()=>{const update=()=>setUpdateAvailable(Boolean(window.__atmaUpdateWorker));window.addEventListener('atma:update-available',update);return()=>window.removeEventListener('atma:update-available',update)},[]);
 
@@ -30,6 +31,13 @@ export default function ProfileV2() {
   const save = async event => {
     event.preventDefault();
     if (!user || saving) return;
+    const nextEmail = email.trim();
+    const emailChanged = nextEmail.toLowerCase() !== String(user.email || '').toLowerCase();
+    if (emailChanged && !emailChangePassword) {
+      setError('Enter your current password to verify this email change.');
+      setFieldErrors(current => ({ ...current, email: 'Your current password is required to change your sign-in email.' }));
+      return;
+    }
 
     const nextErrors = {};
     const emailCheck = validateEmail(email);
@@ -47,8 +55,6 @@ export default function ProfileV2() {
     setMessage('');
 
     const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24);
-    const nextEmail = email.trim();
-    const emailChanged = nextEmail.toLowerCase() !== String(user.email || '').toLowerCase();
     const updates = {
       username: cleanUsername || null,
       display_name: displayName.trim().slice(0, 60) || 'Reader',
@@ -76,38 +82,30 @@ export default function ProfileV2() {
     setAvatarPicker(false);
 
     if (emailChanged) {
-      const { error: emailError } = await supabase.auth.updateUser(
-        { email: nextEmail },
-        { emailRedirectTo: window.location.origin }
-      );
-      if (emailError) {
-        setEmail(user.email || '');
-        setError(`Your profile details were saved, but the email change failed: ${emailError.message}. Your sign-in email has not changed.`);
-        setMessage('');
-      } else {
-        setEmail(nextEmail);
-        const successMessage = "Profile saved. Supabase sends confirmation links to the old and new addresses. Complete both confirmations; your sign-in email changes only after verification.";
-        const { data: existingRequests, error: requestLookupError } = await supabase
-          .from('email_change_requests')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('requested_email', nextEmail)
-          .eq('status', 'pending')
-          .limit(1);
-        if (requestLookupError) {
-          setMessage('Profile saved. Your email change is pending Supabase verification, but the admin request history could not be checked. Please contact support if it does not complete.');
-        } else if (!existingRequests?.length) {
-          const { error: requestInsertError } = await supabase.from('email_change_requests').insert({
-            user_id: user.id,
-            current_email: String(user.email || '').trim(),
-            requested_email: nextEmail,
-          });
-          setMessage(requestInsertError
-            ? 'Profile saved. Your email change is pending Supabase verification, but its admin request history could not be recorded. Please contact support if it does not complete.'
-            : successMessage);
-        } else {
-          setMessage(successMessage);
+      try {
+        const { data: emailData, error: emailInvokeError } = await supabase.functions.invoke('account-lifecycle', {
+          body: { action: 'start-email-change', requested_email: nextEmail, password: emailChangePassword },
+        });
+        if (emailInvokeError) {
+          let detail = emailInvokeError.message || 'Unable to start email verification.';
+          const context = emailInvokeError.context;
+          if (context && typeof context.clone === 'function') {
+            try { detail = (await context.clone().json())?.error || detail; } catch {}
+          }
+          throw new Error(detail);
         }
+        if (emailData?.error) throw new Error(emailData.error);
+        setEmailOtpRequest(emailData.request);
+        setEmailOtp('');
+        setEmailOtpError('');
+        setEmail(user.email || '');
+        setEmailChangePassword('');
+        setMessage('Profile saved. A verification code was sent to your new email address. Your sign-in email will change only after you confirm the code.');
+      } catch (emailError) {
+        setEmail(user.email || '');
+        setEmailChangePassword('');
+        setError(`Your profile details were saved, but the email change did not start: ${emailError?.message || 'Please try again.'} Your sign-in email has not changed.`);
+        setMessage('');
       }
     } else {
       setMessage('Profile saved.');
@@ -115,6 +113,43 @@ export default function ProfileV2() {
 
     setEditing(false);
     setSaving(false);
+  };
+
+  const verifyEmailChange = async event => {
+    event.preventDefault();
+    if (!emailOtpRequest?.id || !/^\\d{6}$/.test(emailOtp)) {
+      setEmailOtpError('Enter the six-digit code sent to your new email address.');
+      return;
+    }
+    setEmailOtpBusy(true);
+    setEmailOtpError('');
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke('account-lifecycle', {
+        body: { action: 'verify-otp', request_id: emailOtpRequest.id, otp: emailOtp },
+      });
+      if (invokeError) {
+        let detail = invokeError.message || 'Email verification failed.';
+        const context = invokeError.context;
+        if (context && typeof context.clone === 'function') {
+          try { detail = (await context.clone().json())?.error || detail; } catch {}
+        }
+        throw new Error(detail);
+      }
+      if (data?.error || !data?.success) throw new Error(data?.error || 'Email verification failed.');
+      setEmailOtpRequest(null);
+      setEmailOtp('');
+      setMessage('Your new email address is verified and is now your sign-in email.');
+      try {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        if (refreshed?.session?.user) await load(refreshed.session.user);
+      } catch (refreshError) {
+        console.warn('Email changed successfully, but the session refresh will retry on the next sign-in.');
+      }
+    } catch (verifyError) {
+      setEmailOtpError(verifyError?.message || 'Unable to verify this email address.');
+    } finally {
+      setEmailOtpBusy(false);
+    }
   };
 
   const updateApp=()=>{const worker=window.__atmaUpdateWorker;if(!worker)return;setUpdating(true);worker.postMessage({type:'SKIP_WAITING'});window.__atmaUpdateWorker=null;setUpdateAvailable(false)};
@@ -129,6 +164,7 @@ export default function ProfileV2() {
       <label className={shake.displayName?'field-shake':''}>Display name<input id="profile-display-name" value={displayName} onChange={e=>{setDisplayName(e.target.value);clearField('displayName')}} maxLength={60} required aria-invalid={Boolean(fieldErrors.displayName)} aria-describedby={fieldErrors.displayName?'profile-display-error':undefined}/>{fieldErrors.displayName&&<span id="profile-display-error" className="form-field-error">{fieldErrors.displayName}</span>}</label>
       <label>Username<input value={username} onChange={e=>setUsername(e.target.value)} placeholder="your_handle" maxLength={24}/><span className="character-counter">{username.length}/24</span></label>
       <label className={shake.email?'field-shake':''}>Email / Gmail<input type="email" value={email} onChange={e=>{setEmail(e.target.value);clearField('email')}} autoComplete="email" required aria-invalid={Boolean(fieldErrors.email)} aria-describedby="profile-email-feedback"/>{fieldErrors.email?<span id="profile-email-feedback" className="form-field-error">{fieldErrors.email}</span>:email?<span id="profile-email-feedback" className={validateEmail(email).ok?'form-field-success':'form-field-error'}>{validateEmail(email).message}</span>:null}</label>
+      {email.trim().toLowerCase()!==String(user?.email||'').toLowerCase()&&<label>Current password<input type="password" value={emailChangePassword} onChange={e=>setEmailChangePassword(e.target.value)} autoComplete="current-password" required/><span className="muted">Required to verify changes to your sign-in email.</span></label>}
       <label>Bio<textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="Tell readers a little about yourself" maxLength={240} rows="3" aria-describedby="profile-bio-counter"/><span id="profile-bio-counter" className={'character-counter '+(bio.length>=220?'near-limit ':'')+(bio.length>=240?'at-limit':'')}>{bio.length}/240</span></label>
       <div className="profile-v2-edit-actions"><button type="button" onClick={closeEdit}>Cancel</button><button className="primary-button" type="submit" disabled={saving}>{saving?<><span className="button-spinner" aria-hidden="true"/> Saving…</>:'Save Changes'}</button></div>
       {error&&<p className="profile-v2-error form-field-error" role="alert">{error}</p>}{message&&<p className="profile-v2-message form-field-success" role="status" aria-live="polite">{message}</p>}
@@ -137,5 +173,15 @@ export default function ProfileV2() {
     {!editing&&message&&<p className="profile-v2-message form-field-success" role="status" aria-live="polite">{message}</p>}
     {!editing&&<>
     <button type="button" className="profile-app-button profile-more-button" onClick={()=>window.location.hash='more'}><span><strong>More & Settings</strong></span><b>→</b></button><div className="profile-v2-stats"><div><strong>{history.length}</strong><span>Chapters read</span></div><div><strong>{bookmarks.length}</strong><span>Favourites</span></div><div><strong>{ratings.length}</strong><span>Ratings</span></div></div><div className="profile-v2-tabs">{[['history','Reading History'],['bookmarks','Favourites'],['ratings','My Ratings'],['comments','My Comments']].map(([id,label])=><button type="button" key={id} className={tab===id?'active':''} onClick={()=>{setTab(id);localStorage.setItem('atma-profile-tab',id)}}>{label}</button>)}</div><div className="profile-v2-list">{!list.length?<div className="profile-v2-empty"><h3>{tab==='history'?'No reading history yet':tab==='bookmarks'?'No favourites yet':tab==='ratings'?'No ratings yet':'No comments yet'}</h3><p>{tab==='comments'?'Share your thoughts while reading and they will appear here.':'Start reading Atma Rekha and your activity will appear here.'}</p></div>:list.map(row=>{const chapter=row.chapters;return tab==='comments'?<button type="button" key={row.id} className="profile-v2-comment-item" onClick={()=>row.chapter_id&&(window.location.hash=`read-chapter/${encodeURIComponent(row.chapter_id)}`)}><div><strong>{row.content}</strong><small>{relativeTime(row.created_at)}</small></div><b>Open →</b></button>:!chapter?null:<button type="button" key={row.id||row.chapter_id} className="profile-v2-list-item" onClick={()=>window.location.hash=`read-chapter/${encodeURIComponent(chapter.id)}`}><div>{chapter.cover_url?<img src={chapter.cover_url} alt={`${chapter.title||'Chapter'} cover`}/>:<span aria-hidden="true">AR</span>}<div><small>CHAPTER {chapter.chapter_number}</small><strong>{chapter.title}</strong></div></div><b>{tab==='ratings'?`${row.rating}/10 ★`:tab==='history'?`Page ${row.page_number||1} →`:'Read →'}</b></button>})}</div><button type="button" className="profile-signout" onClick={signOut}>Sign out</button></>}
-  </section></div></main>;
+  </section>    {emailOtpRequest&&<div className="auth-panel-backdrop" role="presentation"><section className="auth-panel" role="dialog" aria-modal="true" aria-labelledby="profile-email-otp-title">
+      <button type="button" className="auth-panel-close" onClick={()=>{setEmailOtpRequest(null);setEmailOtp('');setEmailOtpError('');}} aria-label="Close email verification">×</button>
+      <p className="section-eyebrow">ATMA REKHA ACCOUNT SECURITY</p><h2 id="profile-email-otp-title">Verify your new email</h2>
+      <p className="auth-panel-subtitle">Enter the six-digit code sent to <strong>{emailOtpRequest.requested_email}</strong>. Your current sign-in email stays active until verification succeeds.</p>
+      <form className="auth-panel-form" onSubmit={verifyEmailChange}>
+        <label>Email verification code<input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" value={emailOtp} onChange={e=>setEmailOtp(e.target.value.replace(/\\D/g,'').slice(0,6))} required/></label>
+        <button className="primary-button" type="submit" disabled={emailOtpBusy}>{emailOtpBusy?'Verifying…':'Confirm new email'}</button>
+      </form>
+      {emailOtpError&&<p className="auth-panel-error" role="alert">{emailOtpError}</p>}
+    </section></div>}
+</div></main>;
 }
