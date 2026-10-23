@@ -327,6 +327,18 @@ if (!privacyAdminRegression.includes('resolutionNotes[request.id]') ||
   console.error('CHECK FAILED: privacy deletion resolution must use a validated inline note form, not browser prompts.');
   failed = true;
 }
+const readerViewKeyRegression = await readFile('engagement.js', 'utf8');
+const viewerKeyStart = readerViewKeyRegression.indexOf('export function getViewerKey() {');
+const viewerKeyEnd = readerViewKeyRegression.indexOf('\n}', viewerKeyStart) + 2;
+const viewerKeyBlock = readerViewKeyRegression.slice(viewerKeyStart, viewerKeyEnd);
+if (viewerKeyStart < 0 ||
+    viewerKeyEnd < 2 ||
+    !viewerKeyBlock.includes('window.localStorage.getItem(VIEWER_KEY_STORAGE)') ||
+    !viewerKeyBlock.includes('catch (_)') ||
+    !viewerKeyBlock.includes('inMemoryViewerKey ||= createViewerKey()')) {
+  console.error('CHECK FAILED: reader engagement must generate a stable in-memory viewer key when browser storage is unavailable.');
+  failed = true;
+}
 const analyticsReaderFallbackRegression = await readFile('analytics-worker/worker.js', 'utf8');
 const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end) {');
 const analyticsReaderMetricsEnd = analyticsReaderFallbackRegression.indexOf('async function verifyAdmin', analyticsReaderMetricsStart);
