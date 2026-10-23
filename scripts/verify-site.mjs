@@ -321,10 +321,11 @@ for (const path of serviceRoleSecretCompatibilityPaths) {
     failed = true;
   }
 }
-const contactSyncKeyRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
-if (!contactSyncKeyRegression.includes('RESEND_CONTACTS_API_KEY') ||
-    contactSyncKeyRegression.includes('Deno.env.get("RESEND_API_KEY")')) {
-  console.error('CHECK FAILED: unsubscribe contact sync must use the separate Contacts API key.');
+const unsubscribePreferenceRegression = await readFile('supabase/functions/email-unsubscribe/index.ts', 'utf8');
+if (!unsubscribePreferenceRegression.includes('marketing_unsubscribed:true') ||
+    !unsubscribePreferenceRegression.includes('from("email_marketing_preferences")') ||
+    !unsubscribePreferenceRegression.includes('const contactKey=Deno.env.get("RESEND_CONTACTS_API_KEY")||"";if(contactKey){')) {
+  console.error('CHECK FAILED: unsubscribe must persist the Supabase opt-out and keep provider contact sync optional.');
   failed = true;
 }
 const featureLoginGrantMigration = await readFile('supabase/migrations/20261022142628_fix_feature_login_rpc_grant_20261022.sql', 'utf8');
