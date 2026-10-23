@@ -7,7 +7,7 @@
 Status meanings: **PASS** = directly verified; **FIXED** = change applied and rechecked; **BLOCKED** = requires an account/dashboard action not available through the connected tools; **OPEN** = needs further testing or a safe decision.
 
 ## Priority 0: production failures
-- [ ] **BLOCKED: Fix Resend contact sync authentication.** Supabase logs showed repeated `401` Contact API failures that surfaced as HTTP `502`. The contact sync and admin backfill error paths are now fixed and deployed: `resend-contact-sync` v7 returns an explicit `503` for missing Contacts permissions; `resend-contact-backfill` v8 probes Contacts access before loading or processing readers. Static regression checks cover these guards. **Remaining manual step:** in Resend, create a dedicated key with Contacts API access and store it in Supabase Edge Function secrets as `RESEND_CONTACTS_API_KEY`. Resend's available key scopes may only offer send-only or full access; don't paste the key into chat or source code. Keep `RESEND_API_KEY` for sending, server-side only. After the secret is saved, test with a consenting test account and confirm sync succeeds.
+- [x] **FIXED BY REMOVING THE UNNECESSARY CONTACTS DEPENDENCY.** Earlier sign-in and preference-update requests failed because the Resend key was send-only. Email Studio sends directly via Resend and already checks Supabase consent/unsubscribe state server-side, so an external Contacts list is not required for delivery. `resend-contact-sync` is now a compatibility/preference-check endpoint and `resend-contact-backfill` audits live eligible counts from Supabase only. The UI calls this `Check email audience`; it no longer claims to upload contacts to Resend. This avoids a full-access API key and retains Supabase as the source of truth.
 - [ ] **BLOCKED: Enable leaked-password protection.** Supabase security advisor says Auth leaked-password protection is disabled. Enable it in Authentication → Security and test signup/password change. Reference: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - [ ] **OPEN: End-to-end UI test for every action and link.** No full browser click-through has been completed. CI now includes fixed-route, security-header, and sitemap validation after deployment, but that is not a browser test. Still test signup/sign-in/reset, profile changes, comments/reactions/reports, More/notifications, chapter reader, membership/payment, admin tabs/actions, Email Studio, data export/deletion, and external links.
 
@@ -64,7 +64,7 @@ Status meanings: **PASS** = directly verified; **FIXED** = change applied and re
 - [ ] **OPEN: Review full dependency audit.** Production dependency audit is a build gate. The complete development-dependency audit is currently `continue-on-error`; review any warnings before raising strictness.
 
 ## Manual actions needed to finish
-1. Add a dedicated Resend Contacts API key as `RESEND_CONTACTS_API_KEY` in Supabase Edge Function secrets; keep the send key separate. Secret changes are not exposed to the connected management API.
+1. Keep `RESEND_API_KEY` restricted to sending. No Contacts API key is required for the database-authoritative direct-send flow.
 2. Enable Supabase leaked-password protection in Auth security settings.
 3. Add GitHub Actions secret `CLOUDFLARE_ZONE_SETTINGS_TOKEN` with Zone Settings Read/Edit, scoped to the `atmarekha.in` zone.
 4. Run a controlled real-browser test with one test account, covering links and actions listed above.
