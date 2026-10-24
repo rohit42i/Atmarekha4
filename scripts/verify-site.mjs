@@ -48,6 +48,8 @@ const required = [
   ['PrivacyCenter.jsx', "deletion?.status === 'pending' || deletion?.status === 'processing'"],
   ['PrivacyRequestsAdmin.jsx', 'admin-list-deletion-requests'],
   ['PrivacyRequestsAdmin.jsx', 'Mark erased & resolved'],
+  ['AdminPanel.jsx', 'data-admin-theme={adminTheme}'],
+  ['admin-authoritative-monochrome.css', 'main.admin-page.ar-admin-v3[data-admin-theme="dark"]'],
   ['AdminPanel.jsx', "key: 'Privacy Requests'"],
   ['AdminControlRoom.jsx', "community_post_id,parent_comment_id,created_at"],
   ['AdminControlRoom.jsx', 'const cloudViewsAvailable = cloudAnalyticsAvailable'],
