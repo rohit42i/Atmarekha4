@@ -142,12 +142,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         ]);
         if (error) throw error;
         if (active) setLast24({
-          // Prefer live Worker counts, with the existing admin analytics result as a fallback.
+          // Cloudflare R2 is the authoritative view source after the migration.
+          // Never present legacy database counts as live views when the Worker is unavailable.
           views: cloudflare?.current_views != null && Number.isFinite(Number(cloudflare.current_views))
             ? Number(cloudflare.current_views)
-            : data?.current_views != null && Number.isFinite(Number(data.current_views))
-              ? Number(data.current_views)
-              : null,
+            : null,
           ratings: data?.current_ratings != null && Number.isFinite(Number(data.current_ratings)) ? Number(data.current_ratings) : null,
           comments: data?.current_comments != null && Number.isFinite(Number(data.current_comments)) ? Number(data.current_comments) : null,
           loading: false,
