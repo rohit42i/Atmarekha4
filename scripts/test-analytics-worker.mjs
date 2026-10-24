@@ -95,12 +95,21 @@ const todayPrefix = `analytics/views/events/${new Date().toISOString().slice(0, 
 const todaysEvents = await bucket.list({ prefix: todayPrefix });
 assert.equal(todaysEvents.objects.length, 1, 'same viewer/chapter/day retries must be idempotent');
 
+const otherChapterId = 'f3bfec99-d077-43ca-977a-345e7f0b2298';
+// Simulate a stale hourly snapshot that says this chapter had views, despite no R2 event.
+await bucket.put('analytics/views/current.json', JSON.stringify({
+  version: 1,
+  day: new Date().toISOString().slice(0, 10),
+  views: 99,
+  chapterViews: { [otherChapterId]: 99 },
+}));
 const views = await analyticsWorker.fetch(
-  request(`https://analytics.test/v1/views?chapterIds=${chapterId}`, 'GET', origin),
+  request(`https://analytics.test/v1/views?chapterIds=${chapterId},${otherChapterId}`, 'GET', origin),
   env,
 );
 assert.equal(views.status, 200, 'public view counts must be readable after recording');
 const counts = await views.json();
 assert.equal(counts[chapterId], 1, 'recorded R2 event must be included in the public chapter count');
+assert.equal(counts[otherChapterId], 0, 'a successful live zero must not be replaced by a stale hourly snapshot');
 
-console.log('Analytics Worker R2 view flow passed: validation, persistent write, retry idempotency and public count.');
+console.log('Analytics Worker R2 view flow passed: validation, persistence, retry idempotency, live counts and stale-snapshot protection.');
