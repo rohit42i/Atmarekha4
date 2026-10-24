@@ -406,6 +406,18 @@ if (!privacyAdminRegression.includes('request.requested_period') ||
   failed = true;
 }
 
+const adminViewCountRegression = await readFile('AdminOverview.jsx', 'utf8');
+const controlRoomViewCountRegression = await readFile('AdminControlRoom.jsx', 'utf8');
+if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews;') ||
+    !adminViewCountRegression.includes('views: hasCloudflareViews ? Number(cloud?.views || 0) : null') ||
+    !adminViewCountRegression.includes('views_unavailable: !hasCloudflareViews') ||
+    adminViewCountRegression.includes('const hasFallbackViews =') ||
+    !controlRoomViewCountRegression.includes('const viewCountsAvailable = cloudViewsAvailable;') ||
+    !controlRoomViewCountRegression.includes('const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;') ||
+    controlRoomViewCountRegression.includes('const fallbackViewsAvailable =')) {
+  console.error('CHECK FAILED: admin dashboards must use Cloudflare/R2 as the authoritative view source and hide view counts when that source is unavailable.');
+  failed = true;
+}
 const readerViewKeyRegression = await readFile('engagement.js', 'utf8');
 const viewerKeyStart = readerViewKeyRegression.indexOf('export function getViewerKey() {');
 const viewerKeyEnd = readerViewKeyRegression.indexOf('\n}', viewerKeyStart) + 2;
