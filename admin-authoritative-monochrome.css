@@ -21,7 +21,7 @@ main.admin-page.ar-admin-v3 {
   line-height: 1.45;
 }
 
-html[data-theme="dark"] main.admin-page.ar-admin-v3 {
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
   --admin-bg: #000 !important;
   --admin-surface: #080808 !important;
   --admin-surface-2: #111 !important;
