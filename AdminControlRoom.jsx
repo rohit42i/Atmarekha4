@@ -324,22 +324,38 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const totalComments = asNumber(analytics.total_comments);
   const totalRatings = asNumber(analytics.total_ratings);
   const totalBookmarks = asNumber(analytics.bookmarks);
-  const chapterStats = (analytics.chapter_stats || []).map(row => {
-    const cloudStat = (cloud.chapter_stats || []).find(item => String(item.id) === String(row.id));
+  const rows = Array.isArray(data.chapters) ? data.chapters : chapters;
+  const baseChapterStats = Array.isArray(analytics.chapter_stats) ? analytics.chapter_stats : [];
+  const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
+  const cloudChapterStatsById = new Map((cloud.chapter_stats || []).map(row => [String(row.id), row]));
+  // Include every chapter in the catalogue, not only rows returned by the analytics RPC.
+  // A missing Cloudflare row is zero only when the live analytics request succeeded.
+  const chapterIds = new Set([
+    ...baseChapterStats.map(row => String(row.id)),
+    ...rows.map(row => String(row.id)),
+  ].filter(Boolean));
+  const chapterStats = [...chapterIds].map(id => {
+    const chapterMeta = rows.find(row => String(row.id) === id) || {};
+    const row = baseChapterStatsById.get(id) || {};
+    const cloudStat = cloudChapterStatsById.get(id);
     return {
+      ...chapterMeta,
       ...row,
+      id,
+      chapter_number: row.chapter_number ?? chapterMeta.chapter_number ?? chapterMeta.chapterNumber,
+      chapterNumber: row.chapterNumber ?? chapterMeta.chapterNumber ?? row.chapter_number ?? chapterMeta.chapter_number,
+      title: row.title ?? chapterMeta.title ?? 'Untitled chapter',
       views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : null,
       period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : null,
       likes: NUMBER(cloudStat?.likes ?? row.likes),
       period_likes: NUMBER(cloudStat?.period_likes ?? row.period_likes),
       shares: NUMBER(cloudStat?.shares ?? row.shares),
       period_shares: NUMBER(cloudStat?.period_shares ?? row.period_shares),
-      pages: NUMBER(row.pages ?? pageCounts[row.id] ?? 0),
+      pages: NUMBER(row.pages ?? pageCounts[id] ?? chapterMeta.pages_count ?? 0),
       rating_count: NUMBER(row.rating_count),
       rating_average: NUMBER(row.rating_average),
     };
   });
-  const rows = Array.isArray(data.chapters) ? data.chapters : chapters;
   const activeChapters = rows.filter(row => !row.deleted_at);
   const deletedChapters = rows.filter(row => Boolean(row.deleted_at));
   const published = activeChapters.filter(row => String(row.status || '').toLowerCase() === 'published');
