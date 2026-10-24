@@ -55,7 +55,7 @@ const required = [
   ['AdminControlRoom.jsx', 'const cloudViewsAvailable = cloudAnalyticsAvailable'],
   ['AdminControlRoom.jsx', 'const cloudReadersAvailable = cloudAnalyticsAvailable'],
   ['AdminOverview.jsx', "Number(previous) > 0"],
-  ['AdminOverview.jsx', 'views_unavailable: !hasViewCounts'],
+  ['AdminOverview.jsx', 'views_unavailable: !hasCloudflareViews'],
   ['AdminOverview.jsx', 'Analytics could not be loaded.'],
   ['AdminOverview.jsx', 'viewsAvailable={!metrics.viewsUnavailable}'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'admin-update-deletion-request'],
