@@ -489,11 +489,12 @@ if (!featureLoginGrantMigration.includes('grant execute on function public.recor
   console.error('CHECK FAILED: feature login RPC must work for authenticated readers without allowing anonymous calls.');
   failed = true;
 }
-const homeProfileAvatarRegression = await readFile('App.jsx', 'utf8');
-if (!homeProfileAvatarRegression.includes("select('avatar_url')") ||
-    !homeProfileAvatarRegression.includes('aria-label={homeUser ? "Open your profile" : "Sign in"}') ||
-    !homeProfileAvatarRegression.includes('onError={() => setHomeAvatar("")}')) {
-  console.error('CHECK FAILED: home header must show the current reader avatar with a safe fallback and profile action.');
+const homeHeaderProfileRegression = await readFile('App.jsx', 'utf8');
+const homeHeaderStart = homeHeaderProfileRegression.indexOf('function Home({ chapters })');
+const homeHeaderEnd = homeHeaderProfileRegression.indexOf('function AccessDenied', homeHeaderStart);
+const homeHeader = homeHeaderProfileRegression.slice(homeHeaderStart, homeHeaderEnd);
+if (homeHeader.includes('Open your profile') || homeHeader.includes('homeAvatar') || homeHeader.includes('loadHomeProfile')) {
+  console.error('CHECK FAILED: the home header must not add a duplicate profile control; profile access belongs in the existing navigation.');
   failed = true;
 }
 const appReaderAppearanceRegression = await readFile('App.jsx', 'utf8');
