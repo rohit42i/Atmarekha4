@@ -271,19 +271,18 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const cloud = data.cloudflare || {};
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
-  const fallbackViewsAvailable = asNumber(analytics.total_views) != null;
-  const viewCountsAvailable = cloudViewsAvailable || fallbackViewsAvailable;
+  // The database view table is legacy-only after the Cloudflare migration.
+  // Do not display it as a live fallback when the authoritative Worker is unavailable.
+  const viewCountsAvailable = cloudViewsAvailable;
   const cloudReadersAvailable = cloudAnalyticsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
   const membership = data.membership || {};
   const totals = membership.totals || {};
   const revenue = membership.revenue || {};
   const plans = Array.isArray(membership.plans) ? membership.plans : [];
   const membershipTrend = Array.isArray(membership.trend) ? membership.trend : [];
-  // Prefer live R2-backed Worker analytics. Keep database totals visible as a fallback
-  // so a temporary Worker/auth/network failure never blanks the views dashboard.
-  const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : asNumber(analytics.current_views);
-  const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : asNumber(analytics.previous_views);
-  const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : asNumber(analytics.total_views);
+  const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;
+  const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : null;
+  const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : null;
   const currentLikes = asNumber(analytics.current_likes);
   const previousLikes = asNumber(analytics.previous_likes);
   const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
@@ -329,8 +328,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const cloudStat = (cloud.chapter_stats || []).find(item => String(item.id) === String(row.id));
     return {
       ...row,
-      views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : asNumber(row.views),
-      period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : asNumber(row.period_views),
+      views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : null,
+      period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : null,
       likes: NUMBER(cloudStat?.likes ?? row.likes),
       period_likes: NUMBER(cloudStat?.period_likes ?? row.period_likes),
       shares: NUMBER(cloudStat?.shares ?? row.shares),
