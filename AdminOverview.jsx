@@ -186,16 +186,36 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             !cloudflare.reader_metrics_limited &&
             cloudflare.active_readers != null && Number.isFinite(Number(cloudflare.active_readers)) &&
             cloudflare.returning_readers != null && Number.isFinite(Number(cloudflare.returning_readers));
+          const baseChapterStats = Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
+          const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
           const cloudChapterStats = new Map((cloudflare?.chapter_stats || []).map(row => [String(row.id), row]));
-          const chapterStats = (base.chapter_stats || []).map(row => {
-            const cloud = cloudChapterStats.get(String(row.id));
+          // Reconcile analytics rows with the actual chapter catalogue. A missing stats row
+          // must not hide a chapter; only a successful Worker response makes a missing count zero.
+          const chapterIds = new Set([
+            ...baseChapterStats.map(row => String(row.id)),
+            ...chapters.map(chapter => String(chapter.id)),
+          ].filter(Boolean));
+          const chapterStats = [...chapterIds].map(id => {
+            const chapterMeta = chapters.find(chapter => String(chapter.id) === id) || {};
+            const row = baseChapterStatsById.get(id) || {};
+            const cloud = cloudChapterStats.get(id);
             return {
+              ...chapterMeta,
               ...row,
-              // A missing Worker row means zero only when the views request itself succeeded.
-              // If it failed, hide the value instead of showing stale legacy database counts.
+              id,
+              chapterNumber: row.chapterNumber ?? chapterMeta.chapterNumber ?? row.chapter_number ?? chapterMeta.chapter_number,
+              title: row.title ?? chapterMeta.title ?? 'Untitled chapter',
               views: hasCloudflareViews ? Number(cloud?.views || 0) : null,
               period_views: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
               periodViews: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
+              likes: Number(row.likes || 0),
+              period_likes: Number(row.period_likes || 0),
+              periodLikes: Number(row.period_likes || 0),
+              shares: Number(row.shares || 0),
+              period_shares: Number(row.period_shares || 0),
+              rating_count: Number(row.rating_count || 0),
+              rating_average: Number(row.rating_average || 0),
+              pages: Number(row.pages ?? pageCounts[id] ?? 0),
             };
           });
           setAnalytics({
