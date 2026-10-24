@@ -509,19 +509,17 @@ async function handlePublicViews(request, env) {
   await ensureLegacyBootstrapped(env);
   const now = new Date();
   const today = dayStart(now);
-  const [summary, current, liveToday] = await Promise.all([
+  const [summary, liveToday] = await Promise.all([
     readJson(env, summaryKey(), { chapterViews: {} }),
-    readJson(env, currentKey(), { day: dayKey(now), chapterViews: {} }),
     combinedPeriodCounts(env, today, new Date(now.getTime() + 1)),
   ]);
   const result = {};
   for (const id of ids) {
     const archived = Number(summary.chapterViews?.[id] || 0);
-    const cachedToday = current.day === dayKey(now) ? Number(current.chapterViews?.[id] || 0) : 0;
-    // The scheduled R2 snapshot can lag behind fresh reads. Prefer live Analytics Engine
-    // counts for today, and use the cached snapshot only if the live query fails.
+    // A successful R2 query is authoritative even when it returns zero for a chapter.
+    // Never substitute a stale hourly snapshot for an actual zero.
     const liveCount = Number(liveToday[id] || 0);
-    result[id] = archived + (liveCount > 0 ? liveCount : cachedToday);
+    result[id] = archived + liveCount;
   }
   return json(request, result, 200, { 'Cache-Control': 'public, max-age=10, stale-while-revalidate=20' });
 }
@@ -545,16 +543,11 @@ async function handleAdminAnalytics(request, env) {
   ]);
 
   const summary = await readJson(env, summaryKey(), { chapterViews: {} });
-  const currentDay = dayKey(now);
-  const currentFile = await readJson(env, currentKey(), { day: currentDay, chapterViews: {} });
   const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1));
   const allTime = { ...(summary.chapterViews || {}) };
-  // R2 event objects update immediately; the hourly snapshot is only a fallback
-  // while a newly deployed Worker is warming up.
-  const todayCounts = Object.values(liveToday).some(value => Number(value) > 0)
-    ? liveToday
-    : currentFile.day === currentDay ? (currentFile.chapterViews || {}) : {};
-  for (const [id, count] of Object.entries(todayCounts)) {
+  // R2 is the source of truth for today's counts. An empty successful result is zero,
+  // not a reason to resurrect values from a potentially stale hourly snapshot.
+  for (const [id, count] of Object.entries(liveToday)) {
     allTime[id] = Number(allTime[id] || 0) + Number(count || 0);
   }
 
