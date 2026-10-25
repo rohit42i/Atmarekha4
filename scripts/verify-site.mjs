@@ -846,6 +846,12 @@ const adminControlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
 const adminPanelSource = await readFile('AdminPanel.jsx', 'utf8');
 const adminUtilityRailSource = await readFile('AdminUtilityRail.jsx', 'utf8');
 const adminDesignSystemSource = await readFile('admin-console-design-system.css', 'utf8');
+if (!adminControlRoom.includes('const sourceState = (name, settled, ok, error = null)') ||
+    !adminControlRoom.includes('pendingSources') ||
+    !adminControlRoom.includes('row.pending ? \'pending\' : row.ok ? \'ok\' : \'bad\'')) {
+  console.error('CHECK FAILED: pending sources must not be reported as failed while the dashboard is loading.');
+  failed = true;
+}
 const initialAdminLoadStart = adminPanelSource.indexOf('const [chapterResult');
 const initialAdminLoadEnd = adminPanelSource.indexOf(']);', initialAdminLoadStart);
 const initialAdminLoad = initialAdminLoadStart >= 0 && initialAdminLoadEnd >= 0
@@ -971,9 +977,11 @@ const iconRegistryBlock = adminIconRegistrySource.split('const paths = {')[1]?.s
 const registeredAdminIcons = new Set(
   [...iconRegistryBlock.matchAll(/^\s*(?:'([^']+)'|([A-Za-z][\w-]*))\s*:/gm)].map(match => match[1] || match[2])
 );
+const adminUtilityRailSource = await readFile('AdminUtilityRail.jsx', 'utf8');
 const usedAdminIcons = new Set([
   ...[...adminPanelSource.matchAll(/\{ key: '[^']+', icon: '([^']+)'/g)].map(match => match[1]),
   ...[...adminControlRoom.matchAll(/icon:\s*'([^']+)'/g)].map(match => match[1]),
+  ...[...adminUtilityRailSource.matchAll(/AdminIcon name="([^"]+)"/g)].map(match => match[1]),
 ]);
 const unsupportedAdminIcons = [...usedAdminIcons].filter(icon => !registeredAdminIcons.has(icon));
 if (unsupportedAdminIcons.length) {
