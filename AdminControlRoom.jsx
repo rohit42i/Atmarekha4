@@ -196,10 +196,12 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [collapsedMetrics, setCollapsedMetrics] = useState(false);
   const [featureSearch, setFeatureSearch] = useState('');
   const loadSequence = useRef(0);
+  const lastLoadStartedAt = useRef(0);
 
   const load = async () => {
     const requestId = ++loadSequence.current;
     const startedAt = Date.now();
+    lastLoadStartedAt.current = startedAt;
     setRefreshing(true);
     const publishPartial = patch => {
       if (requestId !== loadSequence.current) return;
@@ -300,18 +302,21 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   };
 
   useEffect(() => {
-    const run = async () => { await load(); };
-    run();
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === 'visible') run();
-    }, 60000);
-    const onVisibility = () => { if (document.visibilityState === 'visible') run(); };
-    document.addEventListener('visibilitychange', onVisibility);
+    void load();
+    const refreshIfStale = () => {
+      if (document.visibilityState !== 'visible') return;
+      // Do not double-fetch when the tab becomes visible just after a manual or period refresh.
+      if (Date.now() - lastLoadStartedAt.current < 120000) return;
+      void load();
+    };
+    // The page remains responsive from partial results; polling every minute only adds
+    // five requests at a time without improving operational usefulness. Refresh every 5 minutes.
+    const timer = window.setInterval(refreshIfStale, 300000);
+    document.addEventListener('visibilitychange', refreshIfStale);
     return () => {
-      // Invalidate in-flight work on period changes and unmount.
       loadSequence.current += 1;
       window.clearInterval(timer);
-      document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('visibilitychange', refreshIfStale);
     };
   }, [days]);
 
