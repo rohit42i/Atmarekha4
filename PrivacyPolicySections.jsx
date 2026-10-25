@@ -1,4 +1,5 @@
-const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
+const SUPPORT_EMAIL = 'atmarekhasupport@gmail.com';
+const INFO_EMAIL = 'atmarekhainfo@gmail.com';
 
 function Section({ title, children }) {
   return <article className="privacy-policy-section"><h2>{title}</h2>{children}</article>;
@@ -99,13 +100,13 @@ export default function PrivacyPolicySections() {
         'Grievance: contact us if you believe your data or privacy request has been handled incorrectly.',
         'Data export: request a structured JSON or CSV export as a website feature. The export may identify categories that could not be retrieved and should not be treated as complete if it contains warnings.'
       ]}/>
-      <p>The exact statutory rights and procedures available under the Digital Personal Data Protection Act, 2023 depend on which provisions are in force and apply to the request. The website's export feature is an additional service feature and does not imply an unrestricted statutory portability right in every case.</p>
+      <p>Available controls depend on the data and feature involved. Some records may remain for a limited period where needed to resolve a payment, security issue or dispute.</p>
     </Section>
 
     <Section title="8. How to make a privacy request">
-      <p>Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or use the Privacy Center where the relevant control is available. Explain what you need and provide the account email so we can locate the relevant records. We may verify account ownership before exporting, correcting or deleting information.</p>
+      <p>Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> or use the Privacy Center where the relevant control is available. Explain what you need and provide the account email so we can locate the relevant records. We may verify account ownership before exporting, correcting or deleting information.</p>
       <p>Profile details can be updated in the account settings. The Privacy Center supports data export, consent withdrawal and an account deletion request with password confirmation and email OTP. A deletion request has a 14-day recovery period and is reviewed before eligible data is erased. These controls do not guarantee immediate deletion from every backup or from records required by law.</p>
-      <p>We aim to acknowledge privacy and support complaints within seven days and work to resolve them within 30 days, subject to any different statutory timeline that applies. Where permitted by law, you may escalate a complaint to the competent authority.</p>
+      <p>We will review requests and contact you if we need more information to identify your account or understand the request.</p>
     </Section>
 
     <Section title="9. Cookies and browser storage">
@@ -114,8 +115,7 @@ export default function PrivacyPolicySections() {
     </Section>
 
     <Section title="10. Security measures">
-      <p>Atma Rekha uses HTTPS, authentication controls, database access policies, server-side checks for sensitive privacy and administration actions, and website security headers. Supabase, Cloudflare, Resend and Razorpay provide security controls for their own services. Access and configuration choices also affect security.</p>
-      <p>No online service can guarantee complete security. Keep your password confidential, never share OTPs, and contact us promptly if you suspect unauthorised access. We investigate suspected incidents and take steps appropriate to the issue.</p>
+      <p>Account and site information is handled by the services described in this policy. Keep your password and verification codes private. If you notice suspicious activity, contact <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
     </Section>
 
     <Section title="11. Personal data breaches">
@@ -123,27 +123,27 @@ export default function PrivacyPolicySections() {
     </Section>
 
     <Section title="12. Children's privacy">
-      <p>Atma Rekha is intended for readers aged 15 and above. Account registration currently asks a person to confirm that they are at least 15. This age declaration is not a parental-consent verification process.</p>
-      <p>The DPDP Act and Rules have phased commencement. Atma Rekha will apply the child-related requirements that are in force and applicable, including any required parental-consent or processing safeguards. Account eligibility and public reading access may be subject to change to meet legal requirements.</p>
+      <p>Atma Rekha is intended for readers aged 15 and above. Account registration asks users to confirm they are at least 15 years old. The website does not currently verify this declaration through an identity document.</p>
+      <p>Registration asks users to confirm that they are at least 15. It does not itself verify age or collect parental consent.</p>
     </Section>
 
     <Section title="13. International processing">
       <p>Atma Rekha is accessible globally and uses service providers that operate infrastructure in more than one location. Supabase data location depends on the project's selected region; Cloudflare uses a global network; Resend and Razorpay process data under their respective service configurations. We do not claim that all data is stored only in India.</p>
-      <p>Transfers and access will be handled in accordance with applicable legal restrictions and the relevant provider arrangements.</p>
+      <p>Information may therefore be processed outside India. The precise location depends on the provider and service configuration.</p>
     </Section>
 
     <Section title="14. Changes to this policy">
       <p>We may update this policy when the site, data practices, service providers or applicable law changes. The current version will display its last-updated date. Material changes will be communicated through an appropriate website notice or email where required or appropriate. Where renewed consent is required by law, continued use alone does not replace it.</p>
     </Section>
 
-    <Section title="15. Contact and grievance redressal">
-      <p>For privacy, account or consumer complaints, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. The published grievance contact is Arkesh, creator of Atma Rekha. Please include relevant details, but never send a password, OTP, UPI PIN, CVV or full card number.</p>
-      <p>Consumer complaints are acknowledged within 48 hours and addressed within one month where applicable. Complaints may be escalated to the competent authority where permitted by law.</p>
+    <Section title="15. Contact and complaints">
+      <p>For privacy, account or payment questions, email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. For general questions, email <a href={`mailto:${INFO_EMAIL}`}>{INFO_EMAIL}</a>.</p>
+      <p>Include relevant details, but never send a password, OTP, UPI PIN, CVV or full card number.</p>
     </Section>
 
-    <Section title="16. Indian data-protection law">
-      <p>Atma Rekha intends to handle digital personal data in accordance with applicable Indian law, including the Digital Personal Data Protection Act, 2023, the Digital Personal Data Protection Rules, 2025, the Information Technology Act, 2000 and other applicable consumer and platform requirements.</p>
-      <p>The DPDP Act and Rules have phased commencement. Atma Rekha applies the provisions that are in force and will adjust relevant notices, consent controls and processes as additional provisions become applicable. This policy describes the website's practices and controls; it does not remove rights available under law.</p>
+    <Section title="16. Contact">
+      <p>For privacy requests, account issues or complaints, email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. For general information about Atma Rekha, email <a href={`mailto:${INFO_EMAIL}`}>{INFO_EMAIL}</a>.</p>
+      <p>Include the account email and a short description of the request. Never send passwords, OTPs, UPI PINs, CVVs or full payment-card details.</p>
     </Section>
   </>;
 }
