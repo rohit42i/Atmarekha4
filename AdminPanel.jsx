@@ -329,18 +329,26 @@ export default function AdminPanel({ onLogout }) {
       if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
 
-      const [chapterResult, pdpklResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult] = await Promise.all([
-        captureAdminSource(() => buildChapters()),
-        captureAdminSource(() => buildPdlplChapters()),
-        captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100)),
-        captureAdminSource(() => supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(150)),
-        captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')),
-        captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10)),
-        captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200)),
-      ]);
+      const chapterTask = captureAdminSource(() => buildChapters());
+      const pdpklTask = captureAdminSource(() => buildPdlplChapters());
+      const commentTask = captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100));
+      const reportTask = captureAdminSource(() => supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(150));
+      const openReportTask = captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open'));
+      const announcementTask = captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10));
+      const mediaTask = captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200));
+
+      // Render as soon as the primary Atma Rekha chapter list is available. Legacy
+      // inventory and community data can continue loading without blocking the workspace.
+      const chapterResult = await chapterTask;
       if (requestId !== loadSequence.current) return;
       if (chapterResult.error) throw chapterResult.error;
       setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      setLoading(false);
+
+      const [pdpklResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult] = await Promise.all([
+        pdpklTask, commentTask, reportTask, openReportTask, announcementTask, mediaTask,
+      ]);
+      if (requestId !== loadSequence.current) return;
 
       if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
