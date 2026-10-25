@@ -904,7 +904,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       {SECTIONS.map(item => <button type="button" key={item.id} className={section === item.id ? 'active' : ''} onClick={() => { setSection(item.id); setSearch(''); }}><AdminIcon name={item.icon} size={16}/><span>{item.label}</span>{item.id === 'Metric Explorer' && <b>{allMetrics.length}</b>}</button>)}
     </nav>
 
-    {sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) failed. Metrics from those sources are marked unavailable; the page did not convert errors into zero counts.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
+    {!loading && bundle && sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) failed. Metrics from those sources are marked unavailable; the page did not convert errors into zero counts.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
     {!loading && sourceErrors.length === 0 && <div className="ar-cr-alert is-ok"><AdminIcon name="pulse" size={18}/><div><strong>Data connections responding</strong><p>Analytics and operational tables returned results for this refresh. This checks data endpoints, not full public-site uptime.</p></div></div>}
 
     {section === 'Command Center' && <div className="ar-cr-command">
@@ -925,7 +925,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           {comparison.length ? comparison.map(row => <MiniBar key={row.label} label={row.label} current={row.current} previous={row.previous} max={comparisonMax}/>) : <Empty>Comparisons are unavailable until the analytics service returns both current and previous values.</Empty>}
         </Card>
         <Card eyebrow="SYSTEM CHECKS" title="Data source health" aside={<button className="ar-cr-text-btn" type="button" onClick={() => setSection('Audit & Reliability')}>Details →</button>}>
-          <div className="ar-cr-source-list">{dataSources.map(row => <div key={row.name}><span className={'ar-cr-source-icon ' + (row.ok ? 'ok' : 'bad')}>{row.ok ? '✓' : '!'}</span><div><strong>{row.name}</strong><small>{row.ok ? 'Responded' : row.error || 'No response'}</small></div><b>{row.ok ? 'OK' : 'Issue'}</b></div>)}</div>
+          <div className="ar-cr-source-list">{loading && !bundle ? <p className="ar-cr-source-pending" role="status">Checking data sources…</p> : dataSources.map(row => <div key={row.name}><span className={'ar-cr-source-icon ' + (row.ok ? 'ok' : 'bad')}>{row.ok ? '✓' : '!'}</span><div><strong>{row.name}</strong><small>{row.ok ? 'Responded' : row.error || 'No response'}</small></div><b>{row.ok ? 'OK' : 'Issue'}</b></div>)}</div>
         </Card>
       </div>
 
