@@ -12,8 +12,8 @@ const required = [
   ['InfoPage.jsx', "['Age guidance', '15+']"],
   ['InfoPage.jsx', 'I use AI tools in parts of the visual process'],
   ['InfoPage.jsx', 'AI generated material'],
-  ['PrivacyPolicySections.jsx', '3. Why we use your data'],
-  ['PrivacyPolicySections.jsx', 'How long we keep information'],
+  ['PrivacyPolicySections.jsx', '2. How we use your information'],
+  ['PrivacyPolicySections.jsx', '5. Retention and account deletion'],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
@@ -98,9 +98,7 @@ const required = [
   ['supabase/functions/dpdp-data-rights/index.ts', 'email_marketing_preferences: "user_id,marketing_unsubscribed,updated_at"'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 100,000-row safety limit'],
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
-  ['InfoPage.jsx', 'within 48 hours'],
-  ['InfoPage.jsx', 'within one month'],
-  ['InfoPage.jsx', 'Grievance Officer: Arkesh, creator.'],
+  ['InfoPage.jsx', 'Report a problem'],
   ['TermsOfUseSections.jsx', 'Membership renews automatically'],
   ['Community.jsx', 'Comments for community post'],
   ['Community.jsx', "atma-open-community-comments"],
@@ -558,10 +556,17 @@ if (!legalCopyRegression.includes('I use AI tools in parts of the visual process
     !termsCopyRegression.includes('atmarekhasupport@gmail.com') ||
     !termsCopyRegression.includes('no-reply@atmarekha.in') ||
     !legalCopyRegression.includes("type === 'privacy'") ||
-    !privacyCopyRegression.includes('11. Personal data breaches') ||
     !privacyCopyRegression.includes('atmarekhainfo@gmail.com') ||
-    privacyCopyRegression.includes('16. Indian data-protection law') ||
-    privacyCopyRegression.includes('privacy@atmarekha.in')) {
+    !privacyCopyRegression.includes('atmarekhaoffical@gmail.com') ||
+    !privacyCopyRegression.includes('14-day recovery window') ||
+    privacyCopyRegression.includes('Personal data breaches') ||
+    privacyCopyRegression.includes('Indian data-protection law') ||
+    privacyCopyRegression.includes('within 48 hours') ||
+    privacyCopyRegression.includes('within one month') ||
+    privacyCopyRegression.includes('privacy@atmarekha.in') ||
+    legalCopyRegression.includes('within 48 hours') ||
+    legalCopyRegression.includes('within one month') ||
+    legalCopyRegression.includes('Grievance Officer: Arkesh, creator.')) {
   console.error('CHECK FAILED: public About, Terms or Privacy copy is missing required content or contains an unapproved contact/compliance section.');
   failed = true;
 }
