@@ -201,10 +201,14 @@ export default function AdminPanel({ onLogout }) {
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
   const [pageCountsAvailable, setPageCountsAvailable] = useState(false);
+  const [pageCountsLoading, setPageCountsLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [commentsAvailable, setCommentsAvailable] = useState(false);
   const [reports, setReports] = useState([]);
   const [reportsAvailable, setReportsAvailable] = useState(false);
+  const [reportsLoadedFully, setReportsLoadedFully] = useState(false);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportHistoryAttempted, setReportHistoryAttempted] = useState(false);
   const [openReportCount, setOpenReportCount] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [announcementsAvailable, setAnnouncementsAvailable] = useState(false);
@@ -228,6 +232,7 @@ export default function AdminPanel({ onLogout }) {
   const loadSequence = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
+  const [chapterPerformanceLoaded, setChapterPerformanceLoaded] = useState(false);
   const [adminTheme, setAdminTheme] = useState(() => {
     try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
     catch { return 'dark'; }
@@ -273,22 +278,25 @@ export default function AdminPanel({ onLogout }) {
     const initialLoad = !hasLoaded.current;
     if (initialLoad) setLoading(true);
     setNotice({ type: '', text: '' });
+    setPageCountsLoading(true);
+    setReportsLoadedFully(false);
+    setReportsLoading(false);
+    setReportHistoryAttempted(false);
+    setChapterPerformanceLoaded(false);
     const warnings = [];
     try {
       const user = await requireAdmin();
       if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
 
-      const [chapterResult, pdpklResult, pageResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
+      const [chapterResult, pdpklResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult] = await Promise.all([
         captureAdminSource(() => buildChapters()),
         captureAdminSource(() => buildPdlplChapters()),
-        captureAdminSource(() => loadAllChapterPageRows()),
         captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100)),
-        captureAdminSource(() => loadAllCommentReportRows()),
+        captureAdminSource(() => supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(150)),
         captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')),
         captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10)),
         captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200)),
-        captureAdminSource(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error }))),
       ]);
       if (requestId !== loadSequence.current) return;
       if (chapterResult.error) throw chapterResult.error;
@@ -297,28 +305,11 @@ export default function AdminPanel({ onLogout }) {
       if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
 
-      if (pageResult.error) {
-        setPageCountsAvailable(false);
-        warnings.push('Page inventory: ' + adminSourceError(pageResult.error));
-      } else {
-        const counts = {};
-        for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-        setPageCounts(counts);
-        setPageCountsAvailable(true);
-      }
-
       if (commentResult.error) {
         setCommentsAvailable(false);
         warnings.push('Comments: ' + adminSourceError(commentResult.error));
       } else {
-        let mergedComments = commentResult.data || [];
-        if (!reportResult.error) {
-          try {
-            mergedComments = await mergeReportedComments(reportResult.data || [], mergedComments);
-          } catch (error) {
-            warnings.push('Older reported comments: ' + adminSourceError(error));
-          }
-        }
+        const mergedComments = commentResult.data || [];
         const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
         let commenterProfiles = {};
         if (commenterIds.length) {
@@ -372,20 +363,8 @@ export default function AdminPanel({ onLogout }) {
         setMediaAvailable(true);
       }
 
-      if (performanceResult.error) {
-        warnings.push('Chapter performance metrics: ' + adminSourceError(performanceResult.error));
-      } else {
-        const performanceMap = {};
-        for (const row of performanceResult.data?.chapter_stats || []) {
-          performanceMap[row.id] = {
-            views: Number(row.period_views ?? row.views ?? 0),
-            likes: Number(row.period_likes ?? row.likes ?? 0),
-            shares: Number(row.period_shares ?? row.shares ?? 0),
-          };
-        }
-        setChapterPerformance(performanceMap);
-      }
       setLastRefreshedAt(new Date());
+      // Non-critical inventories are loaded after the first screen paints, so a large history does not block the dashboard.
       if (warnings.length) {
         setNotice({ type: 'error', text: 'Admin panel loaded with limited data: ' + warnings.join(' · ') });
       }
@@ -398,6 +377,7 @@ export default function AdminPanel({ onLogout }) {
         setLoading(false);
       }
     }
+    if (requestId === loadSequence.current) void refreshPageInventory(requestId);
   };
 
   // Reports can reference comments outside the latest comments page.
