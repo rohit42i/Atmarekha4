@@ -58,19 +58,19 @@ const required = [
   ['PrivacyRequestsAdmin.jsx', 'Mark erased & resolved'],
   ['AdminPanel.jsx', 'data-admin-theme={adminTheme}'],
   ['AdminPanel.jsx', 'hasUtilityRail'],
-  ['AdminPanel.jsx', 'ar-admin-poppins-font'],
+  ['AdminPanel.jsx', 'ar-admin-material-icons-sharp'],
   ['AdminPanel.jsx', 'dark-theme-variables'],
   ['AdminUtilityRail.jsx', 'aria-label="Dashboard overview and quick actions"'],
   ['AdminUtilityRail.jsx', 'strokeDashoffset={offset}'],
   ['AdminUtilityRail.jsx', 'Content health'],
-  ['admin-master-system.css', 'grid-template-columns:252px minmax(390px,1fr) 23rem'],
-  ['admin-master-system.css', '@media (max-width: 980px)'],
-  ['admin-master-system.css', 'body.dark-theme-variables main.admin-page.ar-admin-v3'],
+  ['admin-design-system.css', 'grid-template-columns:252px minmax(390px,1fr) 23rem'],
+  ['admin-design-system.css', '@media (max-width: 980px)'],
+  ['admin-design-system.css', 'main.admin-page.ar-admin-v3.dark-theme-variables'],
   ['worker.js', 'https://fonts.googleapis.com'],
   ['worker.js', 'https://fonts.gstatic.com'],
   ['public/_headers', 'https://fonts.googleapis.com'],
   ['public/_headers', 'https://fonts.gstatic.com'],
-  ['admin-master-system.css', 'main.admin-page.ar-admin-v3[data-admin-theme="dark"]'],
+  ['admin-design-system.css', 'main.admin-page.ar-admin-v3[data-admin-theme="dark"]'],
   ['AdminPanel.jsx', "key: 'Privacy Requests'"],
   ['supabase/functions/get-admin-console-data/index.ts', 'community_post_id,parent_comment_id,created_at'],
   ['AdminControlRoom.jsx', "action: 'dashboard-inventory'"],
@@ -706,17 +706,17 @@ for (const phrase of [
 const adminPanel = await readFile('AdminPanel.jsx', 'utf8');
 const controlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
 const chapterManager = await readFile('AdminChapterManager.jsx', 'utf8');
-const adminStyles = await readFile('admin-master-system.css', 'utf8');
+const adminStyles = await readFile('admin-design-system.css', 'utf8');
 
 for (const [name, content, phrase] of [
-  ['AdminPanel.jsx', adminPanel, "import './admin-master-system.css';"],
+  ['AdminPanel.jsx', adminPanel, "import './admin-design-system.css';"],
   ['AdminControlRoom.jsx', controlRoom, "import './admin-control-room.css';"],
   ['AdminControlRoom.jsx', controlRoom, 'const loadSequence = useRef(0);'],
   ['AdminControlRoom.jsx', controlRoom, 'const exportVisibleMetrics = () => exportMetricRows(visibleMetrics'],
   ['AdminControlRoom.jsx', controlRoom, 'onClick={exportVisibleMetrics}'],
   ['AdminChapterManager.jsx', chapterManager, 'admin-chapter-card-grid'],
-  ['admin-master-system.css', adminStyles, ':focus-visible'],
-  ['admin-master-system.css', adminStyles, 'prefers-reduced-motion'],
+  ['admin-design-system.css', adminStyles, ':focus-visible'],
+  ['admin-design-system.css', adminStyles, 'prefers-reduced-motion'],
 ]) {
   if (!content.includes(phrase)) {
     console.error('CHECK FAILED:', name, 'missing admin control-room safeguard:', phrase);
@@ -787,7 +787,7 @@ if (metricCount < 100) {
   console.log('Admin control-room metric definitions:', metricCount);
 }
 
-const adminFixCss = await readFile('admin-master-system.css', 'utf8');
+const adminFixCss = await readFile('admin-design-system.css', 'utf8');
 if (!adminFixCss.includes('.ar-admin-top-actions') || !adminFixCss.includes('.ar-admin-topbar')) {
   console.error('CHECK FAILED: master stylesheet is missing actual admin topbar action/layout selectors.');
   failed = true;
@@ -883,7 +883,7 @@ if (!adminPanelSource.includes("{ key: 'Email Campaigns'") || !adminPanelSource.
 const adminPaletteSource = await readFile('AdminCommandPalette.jsx', 'utf8');
 const adminOperationsSource = await readFile('AdminOperations.jsx', 'utf8');
 const adminHealthSource = await readFile('AdminChapterHealth.jsx', 'utf8');
-const adminWorkspaceCss = await readFile('admin-master-system.css', 'utf8');
+const adminWorkspaceCss = await readFile('admin-design-system.css', 'utf8');
 const adminToolListeners = [
   ['atma-admin-open-health', 'AdminChapterHealth.jsx', '<AdminChapterHealth />'],
   ['atma-admin-open-operations', 'AdminOperations.jsx', '<AdminOperations />'],
@@ -929,7 +929,7 @@ if (!adminHealthSource.includes('chapter.coverUrl || chapter.cover_url || chapte
   console.error('CHECK FAILED: Chapter Health does not recognize normalized chapter cover fields.');
   failed = true;
 }
-if (!adminPanelSource.includes("import './admin-master-system.css';") ||
+if (!adminPanelSource.includes("import './admin-design-system.css';") ||
     !adminWorkspaceCss.includes('@media (max-width: 980px)') ||
     !adminWorkspaceCss.includes('.admin-bottom-nav')) {
   console.error('CHECK FAILED: responsive admin workspace styles are not imported or missing the phone navigation layout.');
