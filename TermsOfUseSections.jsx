@@ -27,10 +27,10 @@ const sections = [
   {
     heading: "4. Membership and payments",
     paragraphs: [
-      "Chapters 1–8 of Atma Rekha are free. Membership is needed from Chapter 9 onward. The current monthly plans are:"
+      "Chapters 1 to 8 of Atma Rekha are free. Membership is needed from Chapter 9 onward. The current monthly plans are:"
     ],
     bullets: [
-      "Free: ₹0. Chapters 1–8, reading progress, bookmarks, ratings and comments.",
+      "Free: ₹0. Chapters 1 to 8, reading progress, bookmarks, ratings and comments.",
       "Supporter: ₹19 per month. Atma Rekha Chapter 9 onward and every Atma Rekha chapter.",
       "Premium Supporter: ₹29 per month. Atma Rekha Chapter 9 onward and every Pal Do Pal Ke Lamhe chapter when available.",
       "Super Supporter: ₹49 per month. Both stories and priority comments."
@@ -38,7 +38,7 @@ const sections = [
     tail: [
       "Pal Do Pal Ke Lamhe is planned to begin on 25 April 2027. The ₹19 Supporter plan does not include it.",
       "Membership renews automatically each month through the Razorpay UPI AutoPay mandate approved at checkout. Cancel from the available membership controls to stop future renewals; access continues until the current paid period ends.",
-      "Membership payments are non-refundable. Cancelling stops future renewals and does not refund a payment already made."
+      "Membership payments are not refundable. Cancelling stops future renewals and does not return a payment already made."
     ]
   },
   {
@@ -52,7 +52,7 @@ const sections = [
   {
     heading: "6. Account deletion",
     paragraphs: [
-      "Use the Privacy Center to request deletion. The flow asks for password confirmation and an email OTP, and a 14-day recovery window starts after email verification.",
+      "Use the Privacy Center to request deletion. The flow asks for password confirmation and an email OTP, and a recovery window of 14 days starts after email verification.",
       "A deletion request is reviewed after the recovery window; it is not an instant erase. Some payment, security, moderation or backup records may remain for a period."
     ]
   },
@@ -71,7 +71,7 @@ const sections = [
     ],
     paragraphs: [
       "For account, membership, payment or privacy questions, contact support. For general questions, use the information address. For official correspondence, use the official Atma Rekha address.",
-      "Do not send passwords, OTPs, UPI PINs, CVVs or full payment-card details by email."
+      "Do not send passwords, OTPs, UPI PINs, CVVs or full payment card details by email."
     ]
   }
 ];
