@@ -345,6 +345,9 @@ export default function AdminPanel({ onLogout }) {
       if (requestId !== loadSequence.current) return;
       if (chapterResult.error) throw chapterResult.error;
       setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      // Start the page-count scan in the background as soon as admin access and
+      // the primary chapter inventory are confirmed. It never blocks first paint.
+      void refreshPageInventory();
       setLoading(false);
 
       const [pdpklResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult] = await Promise.all([
@@ -428,7 +431,6 @@ export default function AdminPanel({ onLogout }) {
         setRefreshingAdminData(false);
       }
     }
-    if (requestId === loadSequence.current) void refreshPageInventory();
   };
 
   const refreshPageInventory = async () => {
