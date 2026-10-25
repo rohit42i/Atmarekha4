@@ -265,6 +265,7 @@ export default function AdminPanel({ onLogout }) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const loadSequence = useRef(0);
+  const pageInventoryRequest = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
   const [chapterPerformanceLoaded, setChapterPerformanceLoaded] = useState(false);
@@ -315,7 +316,7 @@ export default function AdminPanel({ onLogout }) {
     setRefreshingAdminData(true);
     if (initialLoad) setLoading(true);
     setNotice({ type: '', text: '' });
-    setPageCountsLoading(true);
+    if (!pageCountsAvailable) setPageCountsLoading(true);
     setReportsLoadedFully(false);
     setReportsLoading(false);
     setReportHistoryAttempted(false);
@@ -415,12 +416,13 @@ export default function AdminPanel({ onLogout }) {
         setRefreshingAdminData(false);
       }
     }
-    if (requestId === loadSequence.current && !pageCountsAvailable) void refreshPageInventory(requestId);
+    if (requestId === loadSequence.current && !pageCountsAvailable && !pageCountsLoading) void refreshPageInventory();
   };
 
-  const refreshPageInventory = async requestId => {
+  const refreshPageInventory = async () => {
+    const requestId = ++pageInventoryRequest.current;
     const result = await captureAdminSource(() => loadAllChapterPageRows());
-    if (requestId !== loadSequence.current) return;
+    if (requestId !== pageInventoryRequest.current) return;
     if (result.error) {
       setPageCountsLoading(false);
       setPageCountsAvailable(false);
