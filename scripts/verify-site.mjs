@@ -844,6 +844,46 @@ for (const [file, phrase] of [
 
 const adminControlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
 const adminPanelSource = await readFile('AdminPanel.jsx', 'utf8');
+const adminUtilityRailSource = await readFile('AdminUtilityRail.jsx', 'utf8');
+const adminDesignSystemSource = await readFile('admin-console-design-system.css', 'utf8');
+const initialAdminLoadStart = adminPanelSource.indexOf('const [chapterResult');
+const initialAdminLoadEnd = adminPanelSource.indexOf(']);', initialAdminLoadStart);
+const initialAdminLoad = initialAdminLoadStart >= 0 && initialAdminLoadEnd >= 0
+  ? adminPanelSource.slice(initialAdminLoadStart, initialAdminLoadEnd)
+  : '';
+if (!adminPanelSource.includes("import './admin-console-design-system.css';") ||
+    !adminPanelSource.includes("data-admin-theme={adminTheme}") ||
+    !adminPanelSource.includes('void refreshPageInventory()') ||
+    !adminPanelSource.includes('void refreshChapterPerformance()')) {
+  console.error('CHECK FAILED: admin console theme, layout or deferred inventory refresh is not wired.');
+  failed = true;
+}
+if (!adminDesignSystemSource.includes('--admin-bg: #000000 !important;') ||
+    !adminDesignSystemSource.includes('--admin-text: #ffffff !important;') ||
+    !adminDesignSystemSource.includes('--admin-bg: #ffffff !important;') ||
+    !adminDesignSystemSource.includes('--admin-text: #080808 !important;') ||
+    !adminDesignSystemSource.includes('grid-template-columns: 252px minmax(360px,1fr) 23rem !important;') ||
+    !adminDesignSystemSource.includes('@keyframes showMenu') ||
+    !adminDesignSystemSource.includes('.ar-cr-metric>strong')) {
+  console.error('CHECK FAILED: admin light/dark palettes, stable card sizing or responsive drawer rules are missing.');
+  failed = true;
+}
+if (!adminControlRoom.includes("useState('tracked')") ||
+    !adminControlRoom.includes("<option value=\"tracked\">Available data</option>") ||
+    !adminControlRoom.includes("let value = '—';") ||
+    adminControlRoom.includes('Not tracked')) {
+  console.error('CHECK FAILED: admin metric explorer must prioritize usable values and avoid repeated untracked placeholders.');
+  failed = true;
+}
+if (initialAdminLoad.includes('loadAllChapterPageRows') || initialAdminLoad.includes('loadAllCommentReportRows')) {
+  console.error('CHECK FAILED: heavy page/report history scans must not block the initial admin dashboard load.');
+  failed = true;
+}
+if (!adminUtilityRailSource.includes('Counting page records…') ||
+    !adminUtilityRailSource.includes('aria-label="Dashboard overview and quick actions"')) {
+  console.error('CHECK FAILED: the dashboard utility rail must show real inventory-loading state and accessible landmark.');
+  failed = true;
+}
 const declaredMetricCount = [...adminControlRoom.matchAll(/\bm\(['"][^'"]+['"],\s*['"][^'"]+['"]/g)].length;
 const workbenchActionCount = [...adminControlRoom.matchAll(/\{\s*id:\s*'[^']+',\s*group:\s*'[^']+',\s*title:/g)].length;
 if (declaredMetricCount < 200) {
