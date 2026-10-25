@@ -1216,3 +1216,100 @@ main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert :is(svg,i) { color: va
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert.is-ok :is(svg,i) { color: var(--admin-positive) !important; }
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert.is-warning :is(svg,i) { color: var(--admin-negative) !important; }
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-count span { color: var(--admin-muted) !important; }
+
+/* Available and unavailable metric tiles share identical geometry; only the value tone changes. */
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric {
+  display: flex !important;
+  flex-direction: column !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 138px !important;
+  height: 100% !important;
+  padding: 15px !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric.is-untracked {
+  border-style: solid !important;
+  background: var(--admin-surface) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  width: 100%;
+  min-width: 0;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-head>span:first-child {
+  min-width: 0;
+  color: var(--admin-muted) !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric>strong {
+  display: block !important;
+  margin-top: 12px !important;
+  color: var(--admin-text) !important;
+  font-size: clamp(20px,1.5vw,28px) !important;
+  line-height: 1.12 !important;
+  font-weight: 760 !important;
+  letter-spacing: -.025em !important;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric.is-untracked>strong {
+  color: var(--admin-muted) !important;
+  font-size: clamp(20px,1.5vw,28px) !important;
+  letter-spacing: -.025em !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric>p {
+  flex: 1 1 auto;
+  margin: 8px 0 0 !important;
+  min-width: 0;
+  color: var(--admin-muted) !important;
+  font-size: 10.5px !important;
+  line-height: 1.5 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric>small {
+  display: block;
+  margin-top: 12px !important;
+  padding-top: 8px;
+  border-top: 1px solid var(--admin-border);
+  color: var(--admin-faint) !important;
+  font-size: 9px !important;
+  line-height: 1.4 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+  display: grid !important;
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+}
+@media (max-width: 1250px) {
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width: 640px) {
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 10px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric { min-height: 0 !important; height: auto !important; }
+}
