@@ -127,6 +127,7 @@ main.admin-page.ar-admin-v3 {
   --admin-radius-xl: 14px;
   --admin-shadow-soft: var(--shadow-sm);
   --admin-surface-4: var(--admin-bg-tertiary);
+  --admin-surface-muted: var(--admin-bg-secondary);
   --admin-overlay: rgba(0, 0, 0, 0.62);
   --border-radius-1: 8px;
   --border-radius-2: 10px;
