@@ -582,7 +582,7 @@ main.admin-page.ar-admin-v3 .ar-admin-main {
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  overflow: clip;
+  overflow: visible !important;
   background: var(--admin-bg) !important;
   color: var(--admin-text) !important;
 }
@@ -876,4 +876,101 @@ main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
   color: var(--admin-text) !important;
   border-color: var(--admin-border) !important;
   box-shadow: none !important;
+}
+
+
+/* Final surface/text normalization for cards that use older component class names. */
+main.admin-page.ar-admin-v3 :is(
+  .admin-card,.admin-section-card,.admin-tool-card,.admin-overview-card,.admin-metric-card,
+  .admin-studio-card,.admin-studio-modal,.admin-section,.admin-panel,.ar-admin-panel,
+  .ar-admin-section,.ar-cr-card,.ar-cr-metric,.ar-cr-alert,.ar-cr-feature-group,
+  .ar-cr-kpis,.ar-cr-metric-grid,.ar-cr-breakdown,.ar-cr-queue-grid,.ar-cr-category-summary,
+  .ar-cr-source-list,.ar-cr-table-wrap,.ar-cr-revenue-grid,.ar-cr-audit,
+  .ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.ar-health-card,
+  .ar-membership-plan,.ar-membership-activity,.ar-membership-note,.privacy-requests-admin
+) {
+  background-color: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-admin-content p,.ar-admin-content small,.ar-admin-content label,
+  .ar-admin-content summary,.ar-admin-content th,.ar-admin-content td,
+  .ar-admin-content dt,.ar-admin-content dd,.ar-admin-content li,
+  .ar-control-room p,.ar-control-room small,.ar-control-room label,
+  .ar-control-room th,.ar-control-room td,.ar-control-room li,
+  .ar-admin-utility-rail p,.ar-admin-utility-rail small,.ar-admin-utility-rail label
+) {
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-cr-metric>strong,.ar-cr-card-head h3,.ar-cr-hero h2,.ar-cr-explorer-head h3,
+  .ar-admin-content h1,.ar-admin-content h2,.ar-admin-content h3,.ar-admin-content h4,
+  .ar-admin-utility-rail h2,.ar-admin-utility-rail h3
+) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 :is(.success,.status-success,.is-success,.is-ok,.text-success,.ar-status-success) {
+  color: var(--admin-positive) !important;
+}
+main.admin-page.ar-admin-v3 :is(.danger,.error,.status-danger,.is-danger,.text-danger,.ar-status-danger) {
+  color: var(--admin-negative) !important;
+}
+main.admin-page.ar-admin-v3 :is(.success,.status-success,.is-success,.danger,.error,.status-danger,.is-danger,.text-success,.text-danger) {
+  background-color: var(--admin-surface-2);
+}
+main.admin-page.ar-admin-v3 .ar-cr-nav {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+  border-radius: 10px !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-nav button { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head,
+main.admin-page.ar-admin-v3 .ar-cr-metric-head,
+main.admin-page.ar-admin-v3 .ar-utility-section-heading {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+main.admin-page.ar-admin-v3 .ar-cr-kpis,
+main.admin-page.ar-admin-v3 .ar-cr-metric-grid,
+main.admin-page.ar-admin-v3 .ar-cr-two-col,
+main.admin-page.ar-admin-v3 .ar-cr-three-col,
+main.admin-page.ar-admin-v3 .ar-cr-revenue-grid,
+main.admin-page.ar-admin-v3 .ar-cr-audit,
+main.admin-page.ar-admin-v3 .ar-cr-breakdown,
+main.admin-page.ar-admin-v3 .ar-cr-queue-grid,
+main.admin-page.ar-admin-v3 .ar-cr-category-summary {
+  min-width: 0 !important;
+  align-items: stretch;
+}
+main.admin-page.ar-admin-v3 .ar-cr-card,
+main.admin-page.ar-admin-v3 .ar-cr-metric {
+  align-self: stretch;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(input,select,textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(button,.ar-cr-btn) {
+  max-width: 100%;
+}
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu { z-index: 150 !important; }
+main.admin-page.ar-admin-v3 .admin-studio-modal-backdrop,
+main.admin-page.ar-admin-v3 .ar-admin-modal-backdrop { z-index: 1100 !important; }
+@media (max-width: 1360px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns: 252px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail { display: none !important; }
+}
+@media (max-width: 1200px) and (min-width: 981px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app,
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns: 84px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar { width: 84px !important; }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-main { overflow: visible !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content { overflow: visible !important; }
 }
