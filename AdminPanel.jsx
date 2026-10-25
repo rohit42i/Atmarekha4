@@ -266,6 +266,8 @@ export default function AdminPanel({ onLogout }) {
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const loadSequence = useRef(0);
   const pageInventoryRequest = useRef(0);
+  const pageInventoryInFlight = useRef(false);
+  const pageCountsAvailableRef = useRef(false);
   const reportHistoryRequest = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
@@ -317,7 +319,7 @@ export default function AdminPanel({ onLogout }) {
     setRefreshingAdminData(true);
     if (initialLoad) setLoading(true);
     setNotice({ type: '', text: '' });
-    if (!pageCountsAvailable) setPageCountsLoading(true);
+
     reportHistoryRequest.current += 1;
     setReportsLoadedFully(false);
     setReportsLoading(false);
@@ -426,27 +428,35 @@ export default function AdminPanel({ onLogout }) {
         setRefreshingAdminData(false);
       }
     }
-    if (requestId === loadSequence.current && !pageCountsAvailable && !pageCountsLoading) void refreshPageInventory();
+    if (requestId === loadSequence.current) void refreshPageInventory();
   };
 
   const refreshPageInventory = async () => {
+    if (pageInventoryInFlight.current || pageCountsAvailableRef.current) return;
+    pageInventoryInFlight.current = true;
     const requestId = ++pageInventoryRequest.current;
-    const result = await captureAdminSource(() => loadAllChapterPageRows());
-    if (requestId !== pageInventoryRequest.current) return;
-    if (result.error) {
-      setPageCountsLoading(false);
-      setPageCountsAvailable(false);
-      console.warn('Admin page inventory could not be refreshed:', result.error);
-      return;
+    setPageCountsLoading(true);
+    try {
+      const result = await captureAdminSource(() => loadAllChapterPageRows());
+      if (requestId !== pageInventoryRequest.current) return;
+      if (result.error) {
+        pageCountsAvailableRef.current = false;
+        setPageCountsAvailable(false);
+        console.warn('Admin page inventory could not be refreshed:', result.error);
+        return;
+      }
+      const counts = {};
+      for (const row of result.data || []) {
+        if (!row?.chapter_id) continue;
+        counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+      }
+      pageCountsAvailableRef.current = true;
+      setPageCounts(counts);
+      setPageCountsAvailable(true);
+    } finally {
+      if (requestId === pageInventoryRequest.current) setPageCountsLoading(false);
+      pageInventoryInFlight.current = false;
     }
-    const counts = {};
-    for (const row of result.data || []) {
-      if (!row?.chapter_id) continue;
-      counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-    }
-    setPageCounts(counts);
-    setPageCountsAvailable(true);
-    setPageCountsLoading(false);
   };
 
   const refreshChapterPerformance = async () => {
