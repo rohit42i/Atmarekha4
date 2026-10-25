@@ -229,6 +229,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             period_returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
             views_unavailable: !hasCloudflareViews,
             reader_metrics_unavailable: !hasCloudflareReaders,
+            reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason || (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' : null),
             chapter_stats: chapterStats,
           });
         }
@@ -292,6 +293,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       periodReturningReaders: data.reader_metrics_unavailable ? null : Number(data.period_returning_readers ?? data.returning_readers ?? 0),
       viewsUnavailable: data.views_unavailable === true,
       readerMetricsUnavailable: data.reader_metrics_unavailable === true,
+      readerMetricsUnavailableReason: data.reader_metrics_unavailable_reason || null,
       bookmarks: Number(data.bookmarks || 0),
       released: Number(data.released || 0),
       chapterStats,
@@ -495,7 +497,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     {analytics === null && periodLoading ? <SkeletonGrid/> : analytics === null ? <div className="ar-note" role="alert"><strong>Analytics could not be loaded.</strong> {analyticsError || 'Check the analytics data source and retry.'} <button type="button" onClick={() => setAnalyticsRefreshToken(value => value + 1)}>Try again</button></div> : <div className="ar-overview-kpis">
       <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released + ' released in period'} icon="book" accent="blue"/>
       <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? 'Cloudflare analytics unavailable' : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
-      <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note={metrics.readerMetricsUnavailable ? 'Reader analytics unavailable' : 'Unique viewers in selected period'} icon="pulse" accent="green"/>
+      <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note={metrics.readerMetricsUnavailable ? (metrics.readerMetricsUnavailableReason || 'Reader analytics unavailable') : 'Unique viewers in selected period'} icon="pulse" accent="green"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="blue"/>
       <StatCard label="Avg Rating" value={metrics.average ? metrics.average.toFixed(2) + ' / 10' : '—'} note={formatNumber(metrics.totalRatings) + ' ratings · all time'} icon="sparkle" accent="green"/>
       <StatCard label={"Comments · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentComments)} delta={deltaComments} note={deltaComments == null ? 'No valid comparison baseline' : undefined} icon="message" accent="green"/>
