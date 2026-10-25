@@ -487,3 +487,829 @@ main.admin-page.ar-admin-v3 .ar-admin-content :is(.ar-cr-dashboard-grid,.ar-cr-o
     scroll-behavior:auto!important;
   }
 }
+
+
+/* Final layout, colour and sizing corrections for the private admin console.
+   Intentionally loaded last to override legacy layers that previously shifted and recoloured cards. */
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3[data-admin-theme="light"] {
+  --color-background: #ffffff !important;
+  --color-white: #ffffff !important;
+  --color-dark: #080808 !important;
+  --color-dark-variant: #555555 !important;
+  --color-light: rgba(0,0,0,.045) !important;
+  --color-info-light: #e1e1e1 !important;
+  --color-primary: #111111 !important;
+  --color-success: #177245 !important;
+  --color-danger: #b42318 !important;
+  --color-warning: #666666 !important;
+  --admin-bg: #ffffff !important;
+  --admin-sidebar: #ffffff !important;
+  --admin-surface: #ffffff !important;
+  --admin-surface-2: #f7f7f7 !important;
+  --admin-surface-3: #eeeeee !important;
+  --admin-border: #dedede !important;
+  --admin-border-strong: #b8b8b8 !important;
+  --admin-text: #080808 !important;
+  --admin-text-2: #242424 !important;
+  --admin-muted: #555555 !important;
+  --admin-faint: #707070 !important;
+  --admin-primary: #111111 !important;
+  --admin-active: #111111 !important;
+  --admin-primary-soft: rgba(0,0,0,.055) !important;
+  --admin-positive: #177245 !important;
+  --admin-positive-soft: rgba(23,114,69,.09) !important;
+  --admin-negative: #b42318 !important;
+  --admin-negative-soft: rgba(180,35,24,.08) !important;
+  --admin-warning: #666666 !important;
+  background: #ffffff !important;
+  color: #080808 !important;
+  color-scheme: light !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+  --color-background: #000000 !important;
+  --color-white: #0a0a0a !important;
+  --color-dark: #ffffff !important;
+  --color-dark-variant: #bdbdbd !important;
+  --color-light: rgba(255,255,255,.065) !important;
+  --color-info-light: #292929 !important;
+  --color-primary: #ffffff !important;
+  --color-success: #65d695 !important;
+  --color-danger: #ff7777 !important;
+  --color-warning: #bdbdbd !important;
+  --admin-bg: #000000 !important;
+  --admin-sidebar: #070707 !important;
+  --admin-surface: #0b0b0b !important;
+  --admin-surface-2: #141414 !important;
+  --admin-surface-3: #1c1c1c !important;
+  --admin-border: #292929 !important;
+  --admin-border-strong: #484848 !important;
+  --admin-text: #ffffff !important;
+  --admin-text-2: #eeeeee !important;
+  --admin-muted: #bdbdbd !important;
+  --admin-faint: #929292 !important;
+  --admin-primary: #ffffff !important;
+  --admin-active: #ffffff !important;
+  --admin-primary-soft: rgba(255,255,255,.075) !important;
+  --admin-positive: #65d695 !important;
+  --admin-positive-soft: rgba(101,214,149,.11) !important;
+  --admin-negative: #ff7777 !important;
+  --admin-negative-soft: rgba(255,119,119,.10) !important;
+  --admin-warning: #bdbdbd !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  color-scheme: dark !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-app {
+  display: grid !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  grid-template-columns: 252px minmax(0,1fr) !important;
+  align-items: start !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail {
+  grid-template-columns: 252px minmax(360px,1fr) 23rem !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-main {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: var(--admin-bg) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 12px clamp(14px,1.7vw,24px) !important;
+  background: var(--admin-sidebar) !important;
+  color: var(--admin-text) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) !important;
+  align-content: start !important;
+  gap: 16px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: clamp(14px,1.5vw,24px) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 82px 18px 24px 0 !important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-stat-card,.ar-stat-card,.ar-cr-card,.ar-cr-metric,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-glass-card,.ar-admin-status-card,.ar-admin-workspace,.ar-utility-section,.ar-utility-ring-card,.ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.privacy-requests-admin,.admin-studio-card,.admin-tool-card,.admin-section-card,.admin-overview-card,.admin-metric-card) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  transform: none !important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-panel,.ar-admin-section,.ar-admin-stat-card,.ar-stat-card,.ar-cr-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-utility-section,.ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.privacy-requests-admin,.admin-studio-card,.admin-tool-card,.admin-section-card,.admin-overview-card,.admin-metric-card,.ar-membership-plan,.ar-membership-activity,.ar-membership-note) {
+  padding: 16px !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 132px !important;
+  padding: 15px !important;
+  background: var(--admin-surface) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric>strong {
+  margin-top: 12px !important;
+  color: var(--admin-text) !important;
+  font-size: clamp(20px,1.8vw,27px) !important;
+  font-weight: 750 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.025em !important;
+  overflow-wrap: anywhere !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric>p {
+  color: var(--admin-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric>small { color: var(--admin-faint) !important; font-size: 10px !important; }
+main.admin-page.ar-admin-v3 .ar-cr-metric.is-untracked { border-style: dashed !important; background: var(--admin-surface-2) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-metric.is-untracked>strong { color: var(--admin-muted) !important; font-size: 19px !important; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head { border-bottom-color: var(--admin-border) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head h3,
+main.admin-page.ar-admin-v3 .ar-cr-card-head span,
+main.admin-page.ar-admin-v3 .ar-cr-card-head aside,
+main.admin-page.ar-admin-v3 .ar-cr-card-head>small { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head span { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-btn,.ar-cr-nav,.ar-cr-nav button,.ar-cr-alert,.ar-cr-field-row,.ar-cr-explorer-tools,.ar-cr-source-list,.ar-cr-queue-grid,.ar-cr-breakdown,.ar-cr-category-summary) {
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room {
+  --cr-bg: var(--admin-bg) !important;
+  --cr-card: var(--admin-surface) !important;
+  --cr-card-raised: var(--admin-surface-2) !important;
+  --cr-border: var(--admin-border) !important;
+  --cr-border-soft: var(--admin-border) !important;
+  --cr-text: var(--admin-text) !important;
+  --cr-muted: var(--admin-muted) !important;
+  --cr-faint: var(--admin-faint) !important;
+  --cr-gold: var(--admin-text) !important;
+  --cr-gold-soft: var(--admin-primary-soft) !important;
+  --cr-green: var(--admin-positive) !important;
+  --cr-red: var(--admin-negative) !important;
+  --cr-yellow: var(--admin-muted) !important;
+  background: transparent !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-nav,.ar-cr-alert,.ar-cr-source-list,.ar-cr-queue-grid,.ar-cr-breakdown,.ar-cr-category-summary,.ar-cr-feature-group) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-btn,.ar-cr-nav button,.ar-cr-source-list button,.ar-cr-category-summary button,.ar-cr-feature-button) {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-btn:hover,.ar-cr-nav button:hover,.ar-cr-source-list button:hover,.ar-cr-category-summary button:hover,.ar-cr-feature-button:hover) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary {
+  background: var(--admin-text) !important;
+  border-color: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(select,input,textarea) {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-command-trigger,
+main.admin-page.ar-admin-v3 .ar-admin-profile,
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu,
+main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+main.admin-page.ar-admin-v3 .ar-admin-refresh {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 :is(h1,h2,h3,h4,h5,strong,b) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 :is(p,small,.muted,.description,.ar-stat-label,.ar-stat-foot) { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 :is(table,.admin-table,.admin-studio-table) {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-collapse: collapse !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-table-wrap,.admin-table-responsive,.ar-admin-table-wrapper,.ar-cr-table-wrap) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: auto !important;
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  border-radius: 10px !important;
+}
+main.admin-page.ar-admin-v3 table :is(th,td) { color: var(--admin-text) !important; border-color: var(--admin-border) !important; }
+main.admin-page.ar-admin-v3 table thead { background: var(--admin-surface-2) !important; }
+main.admin-page.ar-admin-v3 :is(button,input,textarea,select) { font-family: inherit; }
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle {
+  width: 4.4rem !important;
+  min-width: 4.4rem !important;
+  height: 1.8rem !important;
+  min-height: 1.8rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  padding: 2px !important;
+  background: var(--admin-surface-2) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 999px !important;
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span {
+  display: grid !important;place-items: center !important;
+  flex: 1 1 0 !important;min-width: 0 !important;height: 100% !important;
+  border-radius: 999px !important;color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span.active {
+  background: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span.active svg { color: var(--admin-bg) !important; }
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span.active .material-icons-sharp { color: var(--admin-bg) !important; }
+main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop { z-index: 999 !important; }
+main.admin-page.ar-admin-v3 .ar-admin-utility-rail { width: 100% !important; min-width: 0 !important; }
+@media (min-width: 1500px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app { grid-template-columns:252px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:252px minmax(360px,1fr) 23rem !important; }
+}
+@media (max-width: 1360px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:252px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail { display:none !important; }
+}
+@media (max-width: 1200px) and (min-width: 981px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app,
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:84px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar { width:84px !important; padding:16px 7px !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-main { grid-column:2 !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding:18px !important; }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app,
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { display: block !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-main {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-column: auto !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-topbar {
+    position: fixed !important; inset: 0 0 auto 0 !important; width: 100% !important;
+    height: 4.6rem !important; min-height: 4.6rem !important; z-index: 100 !important;
+    padding: 0 12px !important; margin: 0 !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    width: 100% !important; margin: 4.6rem 0 0 !important;
+    padding: 16px 12px 92px !important; gap: 14px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail { display: none !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-menu-button { display: grid !important; }
+}
+@media (max-width: 640px) {
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding-left: 10px !important; padding-right: 10px !important; }
+  main.admin-page.ar-admin-v3 .ar-cr-kpis,
+  main.admin-page.ar-admin-v3 .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-cr-metric-grid.compact {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    gap: 9px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-cr-three-col { grid-template-columns: minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 :is(.ar-cr-card,.ar-cr-metric,.ar-utility-section,.admin-card,.ar-admin-card) {
+    border-radius: 9px !important;
+    padding: 12px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-cr-metric { min-height: 116px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  main.admin-page.ar-admin-v3 *,main.admin-page.ar-admin-v3 *::before,main.admin-page.ar-admin-v3 *::after {
+    transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important;
+  }
+}
+
+/* Keep the legacy HomeGuard token aliases in the same monochrome theme. */
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3[data-admin-theme="light"] {
+  --ar-ui-bg: #ffffff !important;
+  --ar-ui-sidebar: #ffffff !important;
+  --ar-ui-surface: #ffffff !important;
+  --ar-ui-raised: #f7f7f7 !important;
+  --ar-ui-border: #dedede !important;
+  --ar-ui-border-soft: #ebebeb !important;
+  --ar-ui-text: #080808 !important;
+  --ar-ui-muted: #555555 !important;
+  --ar-ui-subtle: #707070 !important;
+  --ar-ui-accent: #111111 !important;
+  --ar-ui-accent-strong: #111111 !important;
+  --ar-ui-accent-soft: rgba(0,0,0,.055) !important;
+  --ar-ui-good: #177245 !important;
+  --ar-ui-warn: #666666 !important;
+  --ar-ui-danger: #b42318 !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+  --ar-ui-bg: #000000 !important;
+  --ar-ui-sidebar: #070707 !important;
+  --ar-ui-surface: #0b0b0b !important;
+  --ar-ui-raised: #141414 !important;
+  --ar-ui-border: #292929 !important;
+  --ar-ui-border-soft: #202020 !important;
+  --ar-ui-text: #ffffff !important;
+  --ar-ui-muted: #bdbdbd !important;
+  --ar-ui-subtle: #929292 !important;
+  --ar-ui-accent: #ffffff !important;
+  --ar-ui-accent-strong: #ffffff !important;
+  --ar-ui-accent-soft: rgba(255,255,255,.075) !important;
+  --ar-ui-good: #65d695 !important;
+  --ar-ui-warn: #bdbdbd !important;
+  --ar-ui-danger: #ff7777 !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  background: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+  border: 1px solid var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-avatar-mini,.ar-admin-avatar) {
+  background: var(--admin-surface-2) !important;
+  color: var(--admin-text) !important;
+  border: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  background: var(--admin-primary-soft) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+
+/* Final surface/text normalization for cards that use older component class names. */
+main.admin-page.ar-admin-v3 :is(
+  .admin-card,.admin-section-card,.admin-tool-card,.admin-overview-card,.admin-metric-card,
+  .admin-studio-card,.admin-studio-modal,.admin-section,.admin-panel,.ar-admin-panel,
+  .ar-admin-section,.ar-cr-card,.ar-cr-metric,.ar-cr-alert,.ar-cr-feature-group,
+  .ar-cr-table-wrap,
+  .ar-ops-card,.ar-ops-panel,.ar-ops-preview-panel,.ar-ops-section,.ar-mgmt-card,.ar-mgmt-panel,
+  .ar-mod-card,.ar-mod-section,.ar-pro-card,.ar-pro-panel,.ar-health-card,.ar-health-panel,
+  .ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-ref-pulse-card,
+  .ar-membership-processed-card,.ar-membership-revenue-card,.ar-push-card,
+  .ar-card-thumb-card,.studio-page-grid-card,.admin-studio-form-card,.admin-studio-publisher-card,
+  .ar-membership-plan,.ar-membership-activity,.ar-membership-note,.privacy-requests-admin
+) {
+  background-color: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-admin-content p,.ar-admin-content small,.ar-admin-content label,
+  .ar-admin-content summary,.ar-admin-content th,.ar-admin-content td,
+  .ar-admin-content dt,.ar-admin-content dd,.ar-admin-content li,
+  .ar-control-room p,.ar-control-room small,.ar-control-room label,
+  .ar-control-room th,.ar-control-room td,.ar-control-room li,
+  .ar-admin-utility-rail p,.ar-admin-utility-rail small,.ar-admin-utility-rail label
+) {
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-cr-metric>strong,.ar-cr-card-head h3,.ar-cr-hero h2,.ar-cr-explorer-head h3,
+  .ar-admin-content h1,.ar-admin-content h2,.ar-admin-content h3,.ar-admin-content h4,
+  .ar-admin-utility-rail h2,.ar-admin-utility-rail h3
+) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 :is(.success,.status-success,.is-success,.is-ok,.text-success,.ar-status-success) {
+  color: var(--admin-positive) !important;
+}
+main.admin-page.ar-admin-v3 :is(.danger,.error,.status-danger,.is-danger,.text-danger,.ar-status-danger) {
+  color: var(--admin-negative) !important;
+}
+main.admin-page.ar-admin-v3 :is(.success,.status-success,.is-success,.danger,.error,.status-danger,.is-danger,.text-success,.text-danger) {
+  background-color: var(--admin-surface-2);
+}
+main.admin-page.ar-admin-v3 .ar-cr-nav {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+  border-radius: 10px !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-nav button { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head,
+main.admin-page.ar-admin-v3 .ar-cr-metric-head,
+main.admin-page.ar-admin-v3 .ar-utility-section-heading {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+main.admin-page.ar-admin-v3 .ar-cr-kpis,
+main.admin-page.ar-admin-v3 .ar-cr-metric-grid,
+main.admin-page.ar-admin-v3 .ar-cr-two-col,
+main.admin-page.ar-admin-v3 .ar-cr-three-col,
+main.admin-page.ar-admin-v3 .ar-cr-revenue-grid,
+main.admin-page.ar-admin-v3 .ar-cr-audit,
+main.admin-page.ar-admin-v3 .ar-cr-breakdown,
+main.admin-page.ar-admin-v3 .ar-cr-queue-grid,
+main.admin-page.ar-admin-v3 .ar-cr-category-summary {
+  min-width: 0 !important;
+  align-items: stretch;
+}
+main.admin-page.ar-admin-v3 .ar-cr-card,
+main.admin-page.ar-admin-v3 .ar-cr-metric {
+  align-self: stretch;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(input,select,textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(button,.ar-cr-btn) {
+  max-width: 100%;
+}
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu { z-index: 150 !important; }
+main.admin-page.ar-admin-v3 .admin-studio-modal-backdrop,
+main.admin-page.ar-admin-v3 .ar-admin-modal-backdrop { z-index: 1100 !important; }
+@media (max-width: 1360px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns: 252px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail { display: none !important; }
+}
+@media (max-width: 1200px) and (min-width: 981px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app,
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns: 84px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar { width: 84px !important; }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-main { overflow: visible !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content { overflow: visible !important; }
+}
+
+main.admin-page.ar-admin-v3 .ar-cr-source-icon.pending {
+  color: var(--admin-muted) !important;
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-source-list>div {
+  min-width: 0;
+  grid-template-columns: 28px minmax(0,1fr) auto !important;
+  gap: 10px !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-source-list>div>div { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-cr-source-list>div>div small {
+  display: block;
+  color: var(--admin-muted) !important;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+main.admin-page.ar-admin-v3 .ar-cr-status-line { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-warning {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-ok {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-warning :is(strong,p) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-ok :is(strong,p) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.ok,.ar-cr-status-dot.is-ok) { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.bad,.ar-cr-status-dot.is-warning) { color: var(--admin-negative) !important; }
+
+/* Final audit layer: normalize known admin card components without boxing card headers or grid wrappers. */
+main.admin-page.ar-admin-v3 :is(
+  .admin-card,.admin-section-card,.admin-tool-card,.admin-overview-card,.admin-metric-card,
+  .admin-studio-card,.admin-studio-form-card,.admin-studio-publisher-card,.admin-studio-modal,
+  .ar-admin-card,.ar-admin-panel,.ar-admin-stat-card,.ar-admin-section,
+  .ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-health-panel,.ar-ref-pulse-card,
+  .ar-cr-card,.ar-cr-metric,.ar-cr-alert,.ar-cr-feature-group,
+  .ar-ops-card,.ar-ops-panel,.ar-ops-preview-panel,.ar-ops-section,
+  .ar-mgmt-card,.ar-mgmt-panel,.ar-mod-card,.ar-mod-section,.ar-pro-card,.ar-pro-panel,
+  .ar-membership-plan,.ar-membership-activity,.ar-membership-note,
+  .ar-membership-processed-card,.ar-membership-revenue-card,.ar-push-card,
+  .ar-card-thumb-card,.studio-page-grid-card,.privacy-requests-admin
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background-color: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-hero,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-group {
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: clamp(16px,2vw,24px) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero-copy { min-width: 0; flex: 1 1 320px; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero h2 {
+  color: var(--admin-text) !important;
+  font-size: clamp(22px,2.2vw,30px) !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero p,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-hero p {
+  max-width: 74ch;
+  color: var(--admin-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kicker {
+  color: var(--admin-muted) !important;
+  letter-spacing: .08em !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-line {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center;
+  gap: 8px 10px !important;
+  max-width: 100%;
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-line :is(span,i) { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-btn,.ar-cr-action-strip button,.ar-cr-category-chips button,
+  .ar-cr-launch-grid button,.ar-cr-queue-grid button,.ar-cr-category-summary button,
+  .ar-cr-feature-button,.ar-cr-feature-search,.ar-cr-text-btn
+) {
+  border-color: var(--admin-border) !important;
+  border-radius: 7px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-btn:hover,.ar-cr-action-strip button:hover,.ar-cr-category-chips button:hover,
+  .ar-cr-launch-grid button:hover,.ar-cr-queue-grid button:hover,.ar-cr-category-summary button:hover,
+  .ar-cr-feature-button:hover
+) {
+  border-color: var(--admin-border-strong) !important;
+  background: var(--admin-surface-2) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary {
+  background: var(--admin-text) !important;
+  border-color: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-nav,.ar-cr-breakdown>div,.ar-cr-compare-track,.ar-cr-compare-track i,
+  .ar-cr-rank-list i,.ar-cr-readiness>i,.ar-cr-month-track,.ar-cr-daily-summary>span,
+  .ar-cr-category-summary i,.ar-cr-legend i,.ar-cr-source-icon,.ar-cr-feature-icon,
+  .ar-cr-feature-count,.ar-cr-untracked-dot
+) {
+  border-color: var(--admin-border) !important;
+  background-color: var(--admin-surface-2) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-nav button,.ar-cr-action-strip button,.ar-cr-category-chips button,
+  .ar-cr-launch-grid button,.ar-cr-queue-grid button,.ar-cr-category-summary button
+) { color: var(--admin-text-2) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-nav button.active,.ar-cr-category-chips button.active,
+  .ar-cr-category-summary button.active
+) {
+  background: var(--admin-primary-soft) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-pill,.ar-cr-results-line,.ar-cr-table-note,.ar-cr-issue) {
+  border-color: var(--admin-border) !important;
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill {
+  background: var(--admin-surface-2) !important;
+  border-radius: 5px !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.good,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.ok { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.good { background: var(--admin-positive-soft) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-issue { color: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.bad { background: var(--admin-negative-soft) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.warn {
+  background: var(--admin-surface-2) !important;color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap :is(th,td) {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-2) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap th { background: var(--admin-surface-2) !important; color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap tbody tr:hover { background: var(--admin-surface-2) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap td strong { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-source-list strong,.ar-cr-rank-list strong,.ar-cr-event-list strong) {
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-source-list small,.ar-cr-rank-list small,.ar-cr-event-list small) {
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(
+  .admin-card,.admin-studio-card,.admin-tool-card,.admin-section-card,
+  .admin-overview-card,.admin-metric-card,.ar-admin-panel,.ar-admin-section,
+  .ar-membership-plan,.ar-membership-activity,.ar-membership-note
+) { overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-feature-count,.ar-cr-feature-icon) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-count strong { color: var(--admin-text) !important; }
+
+/* Keep layout-only wrappers flat; only individual tiles/cards receive card borders. */
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-kpis,.ar-cr-metric-grid,.ar-cr-breakdown,.ar-cr-queue-grid,
+  .ar-cr-category-summary,.ar-cr-source-list,.ar-cr-revenue-grid,.ar-cr-audit,
+  .ar-cr-command,.ar-cr-explorer,.ar-cr-feature-workbench,.ar-cr-explorer-head
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-card-head,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-group>header {
+  border: 0 !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 0 12px !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-workbench {
+  display: grid;
+  gap: 14px !important;
+}
+
+/* Neutralize old gold/blue/orange text overrides while preserving only status red/green. */
+main.admin-page.ar-admin-v3 .ar-control-room span {
+  color: var(--admin-text-2) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-kicker,.ar-cr-untracked-dot,.ar-cr-results-line,.ar-cr-table-note) {
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.good,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.ok { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-issue { color: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-compare-track i,.ar-cr-rank-list i,.ar-cr-readiness>i,.ar-cr-month-bars b,
+  .ar-cr-daily-bars b,.ar-cr-legend i,.ar-cr-daily-summary>span>i
+) { background: var(--admin-border-strong) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-dot.is-ok { background: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-dot.is-warning { background: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert :is(svg,i) { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert.is-ok :is(svg,i) { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert.is-warning :is(svg,i) { color: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-count span { color: var(--admin-muted) !important; }
+
+/* Available and unavailable metric tiles share identical geometry; only the value tone changes. */
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric {
+  display: flex !important;
+  flex-direction: column !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 138px !important;
+  height: 100% !important;
+  padding: 15px !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric.is-untracked {
+  border-style: solid !important;
+  background: var(--admin-surface) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  width: 100%;
+  min-width: 0;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-head>span:first-child {
+  min-width: 0;
+  color: var(--admin-muted) !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric>strong {
+  display: block !important;
+  margin-top: 12px !important;
+  color: var(--admin-text) !important;
+  font-size: clamp(20px,1.5vw,28px) !important;
+  line-height: 1.12 !important;
+  font-weight: 760 !important;
+  letter-spacing: -.025em !important;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric.is-untracked>strong {
+  color: var(--admin-muted) !important;
+  font-size: clamp(20px,1.5vw,28px) !important;
+  letter-spacing: -.025em !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric>p {
+  flex: 1 1 auto;
+  margin: 8px 0 0 !important;
+  min-width: 0;
+  color: var(--admin-muted) !important;
+  font-size: 10.5px !important;
+  line-height: 1.5 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric>small {
+  display: block;
+  margin-top: 12px !important;
+  padding-top: 8px;
+  border-top: 1px solid var(--admin-border);
+  color: var(--admin-faint) !important;
+  font-size: 9px !important;
+  line-height: 1.4 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+  display: grid !important;
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+}
+@media (max-width: 1250px) {
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media (max-width: 640px) {
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kpis {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 10px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-metric { min-height: 0 !important; height: auto !important; }
+}

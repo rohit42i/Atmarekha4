@@ -51,42 +51,76 @@ const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/
 const ADMIN_PAGE_BATCH_SIZE = 1000;
 
 async function loadAllChapterPageRows() {
-  const rows = [];
-  let offset = 0;
-  while (offset <= 100000) {
-    const { data, error } = await supabase
-      .from(PAGES)
-      .select('id, chapter_id, page_number, image_url')
-      .order('chapter_id', { ascending: true })
-      .order('page_number', { ascending: true })
-      .order('id', { ascending: true })
-      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
-    if (error) throw error;
-    const batch = data || [];
-    rows.push(...batch);
-    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
-    offset += ADMIN_PAGE_BATCH_SIZE;
+  const first = await supabase
+    .from(PAGES)
+    .select('chapter_id', { count: 'exact' })
+    .order('chapter_id', { ascending: true })
+    .order('id', { ascending: true })
+    .range(0, ADMIN_PAGE_BATCH_SIZE - 1);
+  if (first.error) throw first.error;
+  const rows = [...(first.data || [])];
+  const total = Number(first.count ?? rows.length);
+  if (total > 100000) {
+    throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
   }
-  throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
+  if (rows.length >= total || rows.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+
+  // Fetch the remaining small projections in bounded parallel batches instead of
+  // downloading image URLs and requesting each 1,000-row page serially.
+  const offsets = [];
+  for (let offset = ADMIN_PAGE_BATCH_SIZE; offset < total; offset += ADMIN_PAGE_BATCH_SIZE) offsets.push(offset);
+  const concurrency = 4;
+  for (let index = 0; index < offsets.length; index += concurrency) {
+    const batchResults = await Promise.all(offsets.slice(index, index + concurrency).map(offset =>
+      supabase
+        .from(PAGES)
+        .select('chapter_id')
+        .order('chapter_id', { ascending: true })
+        .order('id', { ascending: true })
+        .range(offset, Math.min(offset + ADMIN_PAGE_BATCH_SIZE - 1, total - 1))
+    ));
+    for (const result of batchResults) {
+      if (result.error) throw result.error;
+      rows.push(...(result.data || []));
+    }
+  }
+  return { data: rows, error: null };
 }
 
 async function loadAllCommentReportRows() {
-  const rows = [];
-  let offset = 0;
-  while (offset <= 100000) {
-    const { data, error } = await supabase
-      .from('comment_reports')
-      .select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by')
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: false })
-      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
-    if (error) throw error;
-    const batch = data || [];
-    rows.push(...batch);
-    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
-    offset += ADMIN_PAGE_BATCH_SIZE;
+  const columns = 'id, comment_id, reason, status, created_at, reviewed_at, reviewed_by';
+  const first = await supabase
+    .from('comment_reports')
+    .select(columns, { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .range(0, ADMIN_PAGE_BATCH_SIZE - 1);
+  if (first.error) throw first.error;
+  const rows = [...(first.data || [])];
+  const total = Number(first.count ?? rows.length);
+  if (total > 100000) {
+    throw new Error('Report queue exceeded the safe 100,000-row refresh limit. Refine the queue in the database before refreshing the complete history.');
   }
-  throw new Error('Report queue exceeded the safe 100,000-row refresh limit. Refine the queue in the database before refreshing the complete history.');
+  if (rows.length >= total || rows.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+
+  const offsets = [];
+  for (let offset = ADMIN_PAGE_BATCH_SIZE; offset < total; offset += ADMIN_PAGE_BATCH_SIZE) offsets.push(offset);
+  const concurrency = 4;
+  for (let index = 0; index < offsets.length; index += concurrency) {
+    const batchResults = await Promise.all(offsets.slice(index, index + concurrency).map(offset =>
+      supabase
+        .from('comment_reports')
+        .select(columns)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(offset, Math.min(offset + ADMIN_PAGE_BATCH_SIZE - 1, total - 1))
+    ));
+    for (const result of batchResults) {
+      if (result.error) throw result.error;
+      rows.push(...(result.data || []));
+    }
+  }
+  return { data: rows, error: null };
 }
 
 async function captureAdminSource(work) {
@@ -201,10 +235,14 @@ export default function AdminPanel({ onLogout }) {
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
   const [pageCountsAvailable, setPageCountsAvailable] = useState(false);
+  const [pageCountsLoading, setPageCountsLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [commentsAvailable, setCommentsAvailable] = useState(false);
   const [reports, setReports] = useState([]);
   const [reportsAvailable, setReportsAvailable] = useState(false);
+  const [reportsLoadedFully, setReportsLoadedFully] = useState(false);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportHistoryAttempted, setReportHistoryAttempted] = useState(false);
   const [openReportCount, setOpenReportCount] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [announcementsAvailable, setAnnouncementsAvailable] = useState(false);
@@ -212,6 +250,7 @@ export default function AdminPanel({ onLogout }) {
   const [mediaAvailable, setMediaAvailable] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshingAdminData, setRefreshingAdminData] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
   const [editing, setEditing] = useState(null);
@@ -226,8 +265,14 @@ export default function AdminPanel({ onLogout }) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const loadSequence = useRef(0);
+  const pageInventoryRequest = useRef(0);
+  const pageInventoryInFlight = useRef(false);
+  const pageCountsAvailableRef = useRef(false);
+  const reportHistoryRequest = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
+  const [chapterPerformanceLoaded, setChapterPerformanceLoaded] = useState(false);
+  const chapterPerformanceRequest = useRef(0);
   const [adminTheme, setAdminTheme] = useState(() => {
     try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
     catch { return 'dark'; }
@@ -271,54 +316,53 @@ export default function AdminPanel({ onLogout }) {
   const load = async () => {
     const requestId = ++loadSequence.current;
     const initialLoad = !hasLoaded.current;
+    setRefreshingAdminData(true);
     if (initialLoad) setLoading(true);
     setNotice({ type: '', text: '' });
+
+    reportHistoryRequest.current += 1;
+    setReportsLoadedFully(false);
+    setReportsLoading(false);
+    setReportHistoryAttempted(false);
+    if (tab === 'Chapters') setChapterPerformanceLoaded(false);
     const warnings = [];
     try {
       const user = await requireAdmin();
       if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
 
-      const [chapterResult, pdpklResult, pageResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
-        captureAdminSource(() => buildChapters()),
-        captureAdminSource(() => buildPdlplChapters()),
-        captureAdminSource(() => loadAllChapterPageRows()),
-        captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100)),
-        captureAdminSource(() => loadAllCommentReportRows()),
-        captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')),
-        captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10)),
-        captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200)),
-        captureAdminSource(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error }))),
-      ]);
+      const chapterTask = captureAdminSource(() => buildChapters());
+      const pdpklTask = captureAdminSource(() => buildPdlplChapters());
+      const commentTask = captureAdminSource(() => supabase.from('comments').select('id, user_id, chapter_id, announcement_id, author_name, content, created_at, parent_comment_id').order('created_at', { ascending: false }).limit(100));
+      const reportTask = captureAdminSource(() => supabase.from('comment_reports').select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(150));
+      const openReportTask = captureAdminSource(() => supabase.from('comment_reports').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open'));
+      const announcementTask = captureAdminSource(() => supabase.from('announcements').select('id, title, content, image_url, is_pinned, pin_target, display_position, published_at, created_at').order('published_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(10));
+      const mediaTask = captureAdminSource(() => supabase.from('media').select('id, title, image_url, category, created_at').order('created_at', { ascending: false }).limit(200));
+
+      // Render as soon as the primary Atma Rekha chapter list is available. Legacy
+      // inventory and community data can continue loading without blocking the workspace.
+      const chapterResult = await chapterTask;
       if (requestId !== loadSequence.current) return;
       if (chapterResult.error) throw chapterResult.error;
       setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      // Start the page-count scan in the background as soon as admin access and
+      // the primary chapter inventory are confirmed. It never blocks first paint.
+      void refreshPageInventory({ force: true });
+      setLoading(false);
+
+      const [pdpklResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult] = await Promise.all([
+        pdpklTask, commentTask, reportTask, openReportTask, announcementTask, mediaTask,
+      ]);
+      if (requestId !== loadSequence.current) return;
 
       if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
-
-      if (pageResult.error) {
-        setPageCountsAvailable(false);
-        warnings.push('Page inventory: ' + adminSourceError(pageResult.error));
-      } else {
-        const counts = {};
-        for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
-        setPageCounts(counts);
-        setPageCountsAvailable(true);
-      }
 
       if (commentResult.error) {
         setCommentsAvailable(false);
         warnings.push('Comments: ' + adminSourceError(commentResult.error));
       } else {
-        let mergedComments = commentResult.data || [];
-        if (!reportResult.error) {
-          try {
-            mergedComments = await mergeReportedComments(reportResult.data || [], mergedComments);
-          } catch (error) {
-            warnings.push('Older reported comments: ' + adminSourceError(error));
-          }
-        }
+        const mergedComments = commentResult.data || [];
         const commenterIds = [...new Set(mergedComments.map(row => row.user_id).filter(Boolean))];
         let commenterProfiles = {};
         if (commenterIds.length) {
@@ -372,20 +416,8 @@ export default function AdminPanel({ onLogout }) {
         setMediaAvailable(true);
       }
 
-      if (performanceResult.error) {
-        warnings.push('Chapter performance metrics: ' + adminSourceError(performanceResult.error));
-      } else {
-        const performanceMap = {};
-        for (const row of performanceResult.data?.chapter_stats || []) {
-          performanceMap[row.id] = {
-            views: Number(row.period_views ?? row.views ?? 0),
-            likes: Number(row.period_likes ?? row.likes ?? 0),
-            shares: Number(row.period_shares ?? row.shares ?? 0),
-          };
-        }
-        setChapterPerformance(performanceMap);
-      }
       setLastRefreshedAt(new Date());
+      // Non-critical inventories are loaded after the first screen paints, so a large history does not block the dashboard.
       if (warnings.length) {
         setNotice({ type: 'error', text: 'Admin panel loaded with limited data: ' + warnings.join(' · ') });
       }
@@ -396,7 +428,97 @@ export default function AdminPanel({ onLogout }) {
       if (requestId === loadSequence.current) {
         hasLoaded.current = true;
         setLoading(false);
+        setRefreshingAdminData(false);
       }
+    }
+  };
+
+  const refreshPageInventory = async ({ force = false } = {}) => {
+    if (pageInventoryInFlight.current || (pageCountsAvailableRef.current && !force)) return;
+    pageInventoryInFlight.current = true;
+    const requestId = ++pageInventoryRequest.current;
+    setPageCountsLoading(true);
+    try {
+      const result = await captureAdminSource(() => loadAllChapterPageRows());
+      if (requestId !== pageInventoryRequest.current) return;
+      if (result.error) {
+        pageCountsAvailableRef.current = false;
+        setPageCountsAvailable(false);
+        console.warn('Admin page inventory could not be refreshed:', result.error);
+        return;
+      }
+      const counts = {};
+      for (const row of result.data || []) {
+        if (!row?.chapter_id) continue;
+        counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+      }
+      pageCountsAvailableRef.current = true;
+      setPageCounts(counts);
+      setPageCountsAvailable(true);
+    } finally {
+      if (requestId === pageInventoryRequest.current) setPageCountsLoading(false);
+      pageInventoryInFlight.current = false;
+    }
+  };
+
+  const refreshChapterPerformance = async () => {
+    const requestId = ++chapterPerformanceRequest.current;
+    const result = await captureAdminSource(() =>
+      supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } })
+        .then(response => ({ data: response.data?.data || null, error: response.error }))
+    );
+    if (requestId !== chapterPerformanceRequest.current) return;
+    if (result.error) {
+      console.warn('Chapter performance metrics could not be refreshed:', result.error);
+      setChapterPerformanceLoaded(true);
+      return;
+    }
+    const performanceMap = {};
+    for (const row of result.data?.chapter_stats || []) {
+      if (!row?.id) continue;
+      performanceMap[row.id] = {
+        views: Number(row.period_views ?? row.views ?? 0),
+        likes: Number(row.period_likes ?? row.likes ?? 0),
+        shares: Number(row.period_shares ?? row.shares ?? 0),
+      };
+    }
+    setChapterPerformance(performanceMap);
+    setChapterPerformanceLoaded(true);
+  };
+
+  const loadFullReportHistory = async () => {
+    if (reportsLoading || reportsLoadedFully || reportHistoryAttempted) return;
+    setReportHistoryAttempted(true);
+    setReportsLoading(true);
+    const requestId = ++reportHistoryRequest.current;
+    const result = await captureAdminSource(() => loadAllCommentReportRows());
+    if (requestId !== reportHistoryRequest.current) return;
+    if (result.error) {
+      setNotice({ type: 'error', text: 'Report history could not be fully loaded: ' + adminSourceError(result.error) });
+      setReportsLoading(false);
+      return;
+    }
+    try {
+      const currentComments = comments;
+      const merged = await mergeReportedComments(result.data || [], currentComments);
+      const knownIds = new Set(currentComments.map(row => row.id));
+      const additional = merged
+        .filter(row => !knownIds.has(row.id))
+        .map(row => ({
+          ...row,
+          author_display_name: String(row.author_name || '').trim() || 'Reader',
+        }));
+      if (additional.length) setComments(current => [...current, ...additional]);
+      setReports(result.data || []);
+      setReportsAvailable(true);
+      setReportsLoadedFully(true);
+    } catch (error) {
+      setNotice({ type: 'error', text: 'Report history loaded with limited comment details: ' + adminSourceError(error) });
+      setReports(result.data || []);
+      setReportsAvailable(true);
+      setReportsLoadedFully(true);
+    } finally {
+      setReportsLoading(false);
     }
   };
 
@@ -419,6 +541,16 @@ export default function AdminPanel({ onLogout }) {
     void load();
     return () => { loadSequence.current += 1; };
   }, []);
+
+  useEffect(() => {
+    if (tab !== 'Reports' || reportsLoadedFully || reportsLoading || reportHistoryAttempted || loading || refreshingAdminData) return;
+    void loadFullReportHistory();
+  }, [tab, reportsLoadedFully, reportsLoading, reportHistoryAttempted, loading, refreshingAdminData]);
+
+  useEffect(() => {
+    if (tab !== 'Chapters' || chapterPerformanceLoaded) return;
+    void refreshChapterPerformance();
+  }, [tab, chapterPerformanceLoaded]);
 
   useEffect(() => {
     const refreshHandler = () => load();
@@ -1344,13 +1476,13 @@ export default function AdminPanel({ onLogout }) {
       onReload={load}
       chapterPerformance={chapterPerformance}
       onNewChapter={() => { setChapterPublishProject('atma'); resetForm(); }}
-    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} recent comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <AdminModerationQueue
+    /> : tab === 'Comments' ? <section className="admin-card"><div className="admin-card-title"><div><span>MODERATION</span><h2>Comments</h2><p>{comments.length} recent comments · replies included</p></div></div><div className="admin-comment-list">{comments.map(comment => <article key={comment.id} data-admin-comment-id={comment.id}><div className="admin-comment-avatar">{(comment.author_display_name || comment.author_name || 'R').slice(0, 1).toUpperCase()}</div><div><div className="admin-comment-meta"><strong>{comment.author_display_name || comment.author_name || 'Reader'}</strong><span>{new Date(comment.created_at).toLocaleString('en-IN')}</span></div><p>{comment.content}</p><small>{comment.announcement_id ? 'Announcement' : chapterName(comment.chapter_id)}{comment.parent_comment_id ? ' · Reply' : ''}</small></div><button type="button" className="danger-text" onClick={() => deleteComment(comment.id)} disabled={busy}>Delete</button></article>)}{!comments.length && <p className="muted center">No comments yet.</p>}</div></section> : tab === 'Card Thumbnails' ? <AdminCardThumbnails chapters={sorted} pdpklChapters={pdpklChapters} busy={busy} onUpload={(chapter, slot, file) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined ? savePdpklCardThumbnail(chapter, slot, file) : saveCardThumbnail(chapter, slot, file)} onClear={(chapter, slot) => chapter.cardThumbnailDesktopPath !== undefined || chapter.coverPath !== undefined && chapter.mangaId === undefined ? clearPdpklCardThumbnail(chapter, slot) : clearCardThumbnail(chapter, slot)} /> : tab === 'Reports' ? <div className="admin-stack">{reportsLoading && <p className="admin-loading" role="status">Loading full report history. Recent reports remain available meanwhile.</p>}<AdminModerationQueue
       reports={reports}
       comments={comments}
       reportCount={reportCount}
       onDeleteComment={deleteComment}
       onSetReportStatus={setReportStatus}
-    />: tab === 'Email Campaigns' ? <EmailStudio adminEmail={email} /> : tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
+    /></div> : tab === 'Email Campaigns' ? <EmailStudio adminEmail={email} /> : tab === 'Community Posts' ? <section className="admin-stack"><section className="admin-card"><div className="admin-card-title"><div><span>COMMUNITY</span><h2>Community Posts</h2><p>Create and publish reader-facing community posts from the admin panel.</p></div></div><button type="button" className="admin-submit" onClick={() => window.dispatchEvent(new CustomEvent('atma-admin-open-community'))}>Create community post</button></section></section> : tab === 'Announcements' ? <section className="admin-stack">
       <form onSubmit={saveAnnouncement} className="admin-card admin-form">
         <div className="admin-card-title">
           <div><span>CONTENT</span><h2>Announcements</h2><p>{editingAnnouncementId ? 'Edit an existing announcement without losing its record.' : 'Publish up to 10 announcements. The oldest is automatically removed when an 11th is published.'}</p></div>
@@ -1410,6 +1542,7 @@ export default function AdminPanel({ onLogout }) {
         reports={reports}
         pageCounts={pageCounts}
         pageCountsAvailable={pageCountsAvailable}
+        pageCountsLoading={pageCountsLoading}
         commentsAvailable={commentsAvailable}
         reportsAvailable={reportsAvailable}
         announcementsAvailable={announcementsAvailable}

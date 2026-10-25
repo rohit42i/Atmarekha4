@@ -738,7 +738,7 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'async function loadAllChapterPageRows()'],
   ['AdminPanel.jsx', adminPanel, 'async function loadAllCommentReportRows()'],
   ['AdminPanel.jsx', adminPanel, ".order('chapter_id', { ascending: true })"],
-  ['AdminPanel.jsx', adminPanel, ".order('created_at', { ascending: false })\n      .order('id', { ascending: false })"],
+  ['AdminPanel.jsx', adminPanel, ".order('created_at', { ascending: false })\n    .order('id', { ascending: false })"],
   ['AdminPanel.jsx', adminPanel, '{comments.length} recent comments · replies included'],
   ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
@@ -856,6 +856,59 @@ for (const [file, phrase] of [
 
 const adminControlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
 const adminPanelSource = await readFile('AdminPanel.jsx', 'utf8');
+const adminUtilityRailSource = await readFile('AdminUtilityRail.jsx', 'utf8');
+const adminDesignSystemSource = await readFile('admin-console-design-system.css', 'utf8');
+if (!adminControlRoom.includes('const sourceState = (name, settled, ok, error = null)') ||
+    !adminControlRoom.includes('pendingSources') ||
+    !adminControlRoom.includes('row.pending ? \'pending\' : row.ok ? \'ok\' : \'bad\'')) {
+  console.error('CHECK FAILED: pending sources must not be reported as failed while the dashboard is loading.');
+  failed = true;
+}
+const initialAdminLoadStart = adminPanelSource.indexOf('const chapterTask = captureAdminSource(() => buildChapters());');
+const primaryChapterAwait = adminPanelSource.indexOf('const chapterResult = await chapterTask;', initialAdminLoadStart);
+const firstPaintUnlock = adminPanelSource.indexOf('setLoading(false);', primaryChapterAwait);
+const ancillaryJoin = adminPanelSource.indexOf('const [pdpklResult, commentResult', primaryChapterAwait);
+const initialAdminLoad = initialAdminLoadStart >= 0 && primaryChapterAwait > initialAdminLoadStart
+  ? adminPanelSource.slice(initialAdminLoadStart, primaryChapterAwait)
+  : '';
+if (!adminPanelSource.includes("import './admin-console-design-system.css';") ||
+    !adminPanelSource.includes("data-admin-theme={adminTheme}") ||
+    !adminPanelSource.includes('void refreshPageInventory()') ||
+    !adminPanelSource.includes('void refreshChapterPerformance()')) {
+  console.error('CHECK FAILED: admin console theme, layout or deferred inventory refresh is not wired.');
+  failed = true;
+}
+if (!adminDesignSystemSource.includes('--admin-bg: #000000 !important;') ||
+    !adminDesignSystemSource.includes('--admin-text: #ffffff !important;') ||
+    !adminDesignSystemSource.includes('--admin-bg: #ffffff !important;') ||
+    !adminDesignSystemSource.includes('--admin-text: #080808 !important;') ||
+    !adminDesignSystemSource.includes('grid-template-columns: 252px minmax(360px,1fr) 23rem !important;') ||
+    !adminDesignSystemSource.includes('@keyframes showMenu') ||
+    !adminDesignSystemSource.includes('.ar-cr-metric>strong')) {
+  console.error('CHECK FAILED: admin light/dark palettes, stable card sizing or responsive drawer rules are missing.');
+  failed = true;
+}
+if (!adminControlRoom.includes("useState('tracked')") ||
+    !adminControlRoom.includes("<option value=\"tracked\">Available data</option>") ||
+    !adminControlRoom.includes("let value = '—';") ||
+    adminControlRoom.includes('Not tracked')) {
+  console.error('CHECK FAILED: admin metric explorer must prioritize usable values and avoid repeated untracked placeholders.');
+  failed = true;
+}
+if (initialAdminLoadStart < 0 || primaryChapterAwait < initialAdminLoadStart ||
+    firstPaintUnlock < primaryChapterAwait || ancillaryJoin < firstPaintUnlock) {
+  console.error('CHECK FAILED: the admin workspace must render after primary chapter data, before ancillary requests finish.');
+  failed = true;
+}
+if (initialAdminLoad.includes('loadAllChapterPageRows') || initialAdminLoad.includes('loadAllCommentReportRows')) {
+  console.error('CHECK FAILED: full page/report history scans must not be included in the initial admin request batch.');
+  failed = true;
+}
+if (!adminUtilityRailSource.includes('Counting page records…') ||
+    !adminUtilityRailSource.includes('aria-label="Dashboard overview and quick actions"')) {
+  console.error('CHECK FAILED: the dashboard utility rail must show real inventory-loading state and accessible landmark.');
+  failed = true;
+}
 const declaredMetricCount = [...adminControlRoom.matchAll(/\bm\(['"][^'"]+['"],\s*['"][^'"]+['"]/g)].length;
 const workbenchActionCount = [...adminControlRoom.matchAll(/\{\s*id:\s*'[^']+',\s*group:\s*'[^']+',\s*title:/g)].length;
 if (declaredMetricCount < 200) {
@@ -943,9 +996,11 @@ const iconRegistryBlock = adminIconRegistrySource.split('const paths = {')[1]?.s
 const registeredAdminIcons = new Set(
   [...iconRegistryBlock.matchAll(/^\s*(?:'([^']+)'|([A-Za-z][\w-]*))\s*:/gm)].map(match => match[1] || match[2])
 );
+
 const usedAdminIcons = new Set([
   ...[...adminPanelSource.matchAll(/\{ key: '[^']+', icon: '([^']+)'/g)].map(match => match[1]),
   ...[...adminControlRoom.matchAll(/icon:\s*'([^']+)'/g)].map(match => match[1]),
+  ...[...adminUtilityRailSource.matchAll(/AdminIcon name="([^"]+)"/g)].map(match => match[1]),
 ]);
 const unsupportedAdminIcons = [...usedAdminIcons].filter(icon => !registeredAdminIcons.has(icon));
 if (unsupportedAdminIcons.length) {

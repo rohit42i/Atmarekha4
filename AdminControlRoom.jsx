@@ -106,7 +106,8 @@ async function task(run) {
 
 function Metric({ item, compact = false }) {
   const tracked = item.value !== null && item.value !== undefined && !(typeof item.value === 'number' && !Number.isFinite(item.value));
-  let value = 'Not tracked';
+  const unavailableReason = item.reason || `No value was returned by ${item.source || 'the configured source'}.`;
+  let value = '—';
   if (tracked) {
     if (item.unit === 'money') value = fmtMoney(item.value);
     else if (item.unit === 'percent') value = Number(item.value).toFixed(1) + '%';
@@ -118,8 +119,8 @@ function Metric({ item, compact = false }) {
     else value = fmtNum(item.value);
   }
   return <article className={'ar-cr-metric' + (compact ? ' is-compact' : '') + (!tracked ? ' is-untracked' : '')}>
-    <div className="ar-cr-metric-head"><span>{item.label}</span>{!tracked && <span className="ar-cr-untracked-dot" title="The source does not provide this metric">—</span>}</div>
-    <strong>{value}</strong>
+    <div className="ar-cr-metric-head"><span>{item.label}</span>{!tracked && <span className="ar-cr-untracked-dot" title={unavailableReason} aria-label={unavailableReason}>i</span>}</div>
+    <strong aria-label={tracked ? undefined : item.label + ': unavailable'}>{value}</strong>
     <p>{item.description}</p>
     <small>{item.source || 'Derived from available admin data'}</small>
   </article>;
@@ -184,7 +185,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [days, setDays] = useState(30);
   const [section, setSection] = useState('Command Center');
   const [search, setSearch] = useState('');
-  const [metricFilter, setMetricFilter] = useState('all');
+  const [metricFilter, setMetricFilter] = useState('tracked');
   const [metricSort, setMetricSort] = useState('category');
   const [chapterRank, setChapterRank] = useState('views');
   const [chapterStatus, setChapterStatus] = useState('all');
@@ -196,18 +197,74 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [collapsedMetrics, setCollapsedMetrics] = useState(false);
   const [featureSearch, setFeatureSearch] = useState('');
   const loadSequence = useRef(0);
+  const lastLoadStartedAt = useRef(0);
 
   const load = async () => {
     const requestId = ++loadSequence.current;
     const startedAt = Date.now();
+    lastLoadStartedAt.current = startedAt;
     setRefreshing(true);
-    const results = await Promise.all([
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })),
-      task(() => fetchCloudflareAdminAnalytics(Number(days))),
-      task(() => supabase.functions.invoke('get-admin-user-stats')),
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } })),
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'dashboard-inventory' } })),
-    ]);
+    const publishPartial = patch => {
+      if (requestId !== loadSequence.current) return;
+      setBundle(previous => ({ ...(previous || {}), ...patch }));
+      // The first usable source should unlock the screen. Remaining sources update
+      // the dashboard independently instead of holding the whole page behind Promise.all.
+      setLoading(false);
+    };
+    const analyticsTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }))
+      .then(result => {
+        const payload = result.data?.data?.data || result.data?.data || null;
+        publishPartial({ analytics: payload, analyticsError: result.error || result.data?.error?.message || null });
+        return result;
+      });
+    const cloudTask = task(() => fetchCloudflareAdminAnalytics(Number(days)))
+      .then(result => {
+        publishPartial({ cloudflare: result.data || null, cloudflareError: result.error || null });
+        return result;
+      });
+    const usersTask = task(() => supabase.functions.invoke('get-admin-user-stats'))
+      .then(result => {
+        publishPartial({
+          users: result.data?.data || result.data || null,
+          usersError: result.error || result.data?.error?.message || null,
+        });
+        return result;
+      });
+    const membershipTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } }))
+      .then(result => {
+        const payload = result.data || {};
+        publishPartial({
+          membership: payload.data || null,
+          membershipError: result.error || payload.error?.message || null,
+          registeredUsers: asNumber(payload.registered_users),
+        });
+        return result;
+      });
+    const inventoryTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'dashboard-inventory' } }))
+      .then(result => {
+        const envelope = result.data || {};
+        const inventory = envelope.inventory || {};
+        const errors = envelope.errors || {};
+        const sourceError = key => result.error || envelope.error?.message || envelope.error || errors[key] || null;
+        publishPartial({
+          chapters: Array.isArray(inventory.chapters) ? inventory.chapters : chapters,
+          chaptersError: sourceError('chapters'),
+          comments: Array.isArray(inventory.comments) ? inventory.comments : comments,
+          commentsError: sourceError('comments'),
+          commentReports: Array.isArray(inventory.commentReports) ? inventory.commentReports : reports,
+          commentReportsError: sourceError('commentReports'),
+          moderationReports: Array.isArray(inventory.moderationReports) ? inventory.moderationReports : [],
+          moderationReportsError: sourceError('moderationReports'),
+          adminLogs: Array.isArray(inventory.adminLogs) ? inventory.adminLogs : [],
+          adminLogsError: sourceError('adminLogs'),
+          notifications: Array.isArray(inventory.notifications) ? inventory.notifications : [],
+          notificationsError: sourceError('notifications'),
+          profilesCount: inventory.profilesCount ?? null,
+          profilesError: sourceError('profiles'),
+        });
+        return result;
+      });
+    const results = await Promise.all([analyticsTask, cloudTask, usersTask, membershipTask, inventoryTask]);
     const [analyticsResult, cloudResult, usersResult, membershipResult, inventoryResult] = results;
     const membershipEnvelope = membershipResult.data || {};
     const inventoryEnvelope = inventoryResult.data || {};
@@ -249,18 +306,21 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   };
 
   useEffect(() => {
-    const run = async () => { await load(); };
-    run();
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === 'visible') run();
-    }, 60000);
-    const onVisibility = () => { if (document.visibilityState === 'visible') run(); };
-    document.addEventListener('visibilitychange', onVisibility);
+    void load();
+    const refreshIfStale = () => {
+      if (document.visibilityState !== 'visible') return;
+      // Do not double-fetch when the tab becomes visible just after a manual or period refresh.
+      if (Date.now() - lastLoadStartedAt.current < 120000) return;
+      void load();
+    };
+    // The page remains responsive from partial results; polling every minute only adds
+    // five requests at a time without improving operational usefulness. Refresh every 5 minutes.
+    const timer = window.setInterval(refreshIfStale, 300000);
+    document.addEventListener('visibilitychange', refreshIfStale);
     return () => {
-      // Invalidate in-flight work on period changes and unmount.
       loadSequence.current += 1;
       window.clearInterval(timer);
-      document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('visibilitychange', refreshIfStale);
     };
   }, [days]);
 
@@ -292,6 +352,11 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   // The Worker explicitly flags reader-metric query failures; hide those values rather than showing a false zero.
   const activeReaders = cloudReadersAvailable ? asNumber(cloud.active_readers) : null;
   const returningReaders = cloudReadersAvailable ? asNumber(cloud.returning_readers) : null;
+  const readerMetricGap = cloud.reader_metrics_limited
+    ? (cloud.reader_metrics_limited_reason || 'Some historical view events do not include stable reader identities.')
+    : !cloudAnalyticsAvailable
+      ? (data.cloudflareError || 'Reader analytics have not returned a complete result yet.')
+      : 'The analytics source did not return complete reader totals.';
   const dailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.daily_trend) ? cloud.daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
   const previousDailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.previous_daily_trend) ? cloud.previous_daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
   const dailyViewValues = dailyTrendRows.map(row => row.views);
@@ -456,22 +521,35 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const highViewChapters = cloudViewsAvailable ? chapterStats.filter(row => Number(row.views || 0) >= 100) : [];
   const activeLanguages = new Set(activeChapters.map(row => String(row.language || row.mangaLanguage || '').trim()).filter(Boolean));
   const notificationErrors = data.notificationsError ? 1 : 0;
+  const dataHas = (...keys) => keys.every(key => Object.prototype.hasOwnProperty.call(data, key));
+  const sourceState = (name, settled, ok, error = null) => ({
+    name,
+    pending: !settled,
+    ok: Boolean(settled && ok),
+    error: !settled ? null : error ? String(error) : ok ? null : 'Source returned no usable data.',
+  });
+  const cloudSettled = dataHas('cloudflare', 'cloudflareError');
+  const analyticsSettled = dataHas('analytics', 'analyticsError');
   const dataSources = [
-    { name: 'Admin analytics function', ok: data.analytics != null && !data.analyticsError, error: data.analyticsError },
-    { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
-    ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Reader metrics are incomplete or unavailable; counts are hidden rather than shown as zero.') : 'Reader counts were missing or invalid in the analytics response.' }] : []),
-    { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
-    { name: 'Membership analytics', ok: data.membership != null && !data.membershipError, error: data.membershipError },
-    { name: 'Chapter inventory', ok: data.chapters != null && !data.chaptersError, error: data.chaptersError },
-    { name: 'Comments inventory', ok: data.comments != null && !data.commentsError, error: data.commentsError },
-    { name: 'Comment reports', ok: data.commentReports != null && !data.commentReportsError, error: data.commentReportsError },
-    { name: 'Moderation reports', ok: data.moderationReports != null && !data.moderationReportsError, error: data.moderationReportsError },
-    { name: 'Admin audit log', ok: data.adminLogs != null && !data.adminLogsError, error: data.adminLogsError },
-    { name: 'Notification log', ok: data.notifications != null && !data.notificationsError, error: data.notificationsError },
-    { name: 'Profiles count', ok: data.profilesCount != null && !data.profilesError, error: data.profilesError },
+    sourceState('Admin analytics function', analyticsSettled, data.analytics != null && !data.analyticsError, data.analyticsError),
+    sourceState('Cloudflare analytics', cloudSettled, cloudViewsAvailable, cloudViewsAvailable ? null : (data.cloudflareError || 'The analytics response did not include the required view totals.')),
+    ...(cloudSettled && cloudAnalyticsAvailable && !cloudReadersAvailable
+      ? [sourceState('Cloudflare reader metrics', true, false, cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Historical events do not provide complete reader identities.') : 'Reader totals were missing or invalid in the analytics response.')]
+      : []),
+    sourceState('User statistics', dataHas('users', 'usersError'), data.users != null && !data.usersError, data.usersError),
+    sourceState('Membership analytics', dataHas('membership', 'membershipError'), data.membership != null && !data.membershipError, data.membershipError),
+    sourceState('Chapter inventory', dataHas('chapters', 'chaptersError'), data.chapters != null && !data.chaptersError, data.chaptersError),
+    sourceState('Comments inventory', dataHas('comments', 'commentsError'), data.comments != null && !data.commentsError, data.commentsError),
+    sourceState('Comment reports', dataHas('commentReports', 'commentReportsError'), data.commentReports != null && !data.commentReportsError, data.commentReportsError),
+    sourceState('Moderation reports', dataHas('moderationReports', 'moderationReportsError'), data.moderationReports != null && !data.moderationReportsError, data.moderationReportsError),
+    sourceState('Admin audit log', dataHas('adminLogs', 'adminLogsError'), data.adminLogs != null && !data.adminLogsError, data.adminLogsError),
+    sourceState('Notification log', dataHas('notifications', 'notificationsError'), data.notifications != null && !data.notificationsError, data.notificationsError),
+    sourceState('Profiles count', dataHas('profilesCount', 'profilesError'), data.profilesCount != null && !data.profilesError, data.profilesError),
   ];
-  const healthySources = dataSources.filter(row => row.ok).length;
-  const sourceErrors = dataSources.filter(row => !row.ok);
+  const settledSources = dataSources.filter(row => !row.pending);
+  const healthySources = settledSources.filter(row => row.ok).length;
+  const pendingSources = dataSources.filter(row => row.pending).length;
+  const sourceErrors = settledSources.filter(row => !row.ok);
   const ratio = (numerator, denominator) => numerator == null || denominator == null || Number(denominator) <= 0 ? null : Number(numerator) / Number(denominator) * 100;
   const selectedDays = Number(days);
 
@@ -489,8 +567,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Views in previous window', previousViews, 'count', 'Same-length period immediately before the selected window.', 'Selected-period analytics'),
         m('Traffic & Reach', 'View change versus previous', deltaPercent(currentViews, previousViews), 'percent', 'Percent change; unavailable when the previous baseline is zero and current is non-zero.', 'Current and previous views'),
         m('Traffic & Reach', 'Average views per day', currentViews == null ? null : currentViews / selectedDays, 'decimal', 'Selected-window views divided by its number of days.', 'Derived'),
-        m('Traffic & Reach', 'Active readers in window', activeReaders, 'count', 'Distinct readers with stable viewer identities; hidden if historical records make the count incomplete.', 'Cloudflare / admin function'),
-        m('Traffic & Reach', 'Returning readers in window', returningReaders, 'count', 'Identified readers with events on two or more days; hidden if historical identity is incomplete.', 'Cloudflare / admin function'),
+        m('Traffic & Reach', 'Active readers in window', activeReaders, 'count', activeReaders == null ? readerMetricGap : 'Distinct readers with stable viewer identities in the selected period.', 'Cloudflare / admin function'),
+        m('Traffic & Reach', 'Returning readers in window', returningReaders, 'count', returningReaders == null ? readerMetricGap : 'Identified readers with events on two or more days in the selected period.', 'Cloudflare / admin function'),
         m('Traffic & Reach', 'Returning reader share', ratio(returningReaders, activeReaders), 'percent', 'Returning readers divided by active readers.', 'Derived'),
         m('Traffic & Reach', 'Views per active reader', currentViews != null && activeReaders != null && Number(activeReaders) > 0 ? currentViews / Number(activeReaders) : null, 'decimal', 'Period views divided by active readers.', 'Derived'),
         m('Traffic & Reach', 'Published chapters with reads', cloudViewsAvailable ? chaptersWithViews.length : null, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
@@ -624,7 +702,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Audit & Reliability', 'Media cleanup failures in sample', hasAuditRows ? adminLogs.filter(row => /cleanup_failed/i.test(String(row.action || ''))).length : null, 'count', 'Cleanup failure actions in the loaded audit sample.', 'admin_activity_log'),
         m('Audit & Reliability', 'Last recorded admin action', hasAuditRows ? (adminLogs[0]?.created_at ?? null) : null, 'date', 'Newest record in the audit log sample.', 'admin_activity_log'),
         m('Audit & Reliability', 'Analytics load duration', loadDuration, 'decimal', 'Duration of the last control-room refresh in milliseconds.', 'Browser measurement'),
-        m('Audit & Reliability', 'Connected data sources', healthySources, 'text', 'Successful source checks out of ' + dataSources.length + ' checks performed by this control room for the current refresh.', 'Control room checks'),
+        m('Audit & Reliability', 'Connected data sources', settledSources.length ? (healthySources + '/' + settledSources.length) : (loading ? 'Checking…' : '0/0'), 'text', loading ? pendingSources + ' source checks still running; failed sources are shown only after they return an error.' : 'Successful checks out of the ' + settledSources.length + ' completed source checks.', 'Control room source checks'),
       ],
       'Content Quality': [
         m('Content Quality', 'Active chapter records', activeChapters.length, 'count', 'Non-archived chapter rows in the loaded inventory.', 'Chapter inventory'),
@@ -885,7 +963,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         <p>Analytics, publishing health, audience signals, money movement and operational events in one view.</p>
         <div className="ar-cr-status-line">
           <span className={'ar-cr-status-dot' + (loading || statusCount ? ' is-warning' : ' is-ok')}/>
-          <span>{loading ? 'Connecting to data sources…' : statusCount ? statusCount + ' source(s) need attention' : 'All checked sources responded'}</span>
+          <span>{loading ? 'Connecting to data sources…' : refreshing ? 'Refreshing data sources…' : statusCount ? statusCount + ' source(s) need attention' : pendingSources ? pendingSources + ' source check(s) waiting' : 'All checked sources responded'}</span>
           <i/>
           <span>{lastRefresh ? 'Updated ' + lastRefresh.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Not refreshed yet'}</span>
           <span className="ar-cr-status-detail">{availableMetricCount}/{allMetrics.length} metrics available</span>
@@ -904,8 +982,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       {SECTIONS.map(item => <button type="button" key={item.id} className={section === item.id ? 'active' : ''} onClick={() => { setSection(item.id); setSearch(''); }}><AdminIcon name={item.icon} size={16}/><span>{item.label}</span>{item.id === 'Metric Explorer' && <b>{allMetrics.length}</b>}</button>)}
     </nav>
 
-    {sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) failed. Metrics from those sources are marked unavailable; the page did not convert errors into zero counts.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
-    {!loading && sourceErrors.length === 0 && <div className="ar-cr-alert is-ok"><AdminIcon name="pulse" size={18}/><div><strong>Data connections responding</strong><p>Analytics and operational tables returned results for this refresh. This checks data endpoints, not full public-site uptime.</p></div></div>}
+    {!loading && sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) need attention out of {settledSources.length} completed; {pendingSources} are still waiting. Metrics from failed sources remain unavailable instead of being converted to zero.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
+    {!loading && !refreshing && pendingSources === 0 && sourceErrors.length === 0 && <div className="ar-cr-alert is-ok"><AdminIcon name="pulse" size={18}/><div><strong>Data connections responding</strong><p>Analytics and operational tables returned results for this refresh. This checks data endpoints, not full public-site uptime.</p></div></div>}
 
     {section === 'Command Center' && <div className="ar-cr-command">
       <div className="ar-cr-kpis">
@@ -925,7 +1003,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           {comparison.length ? comparison.map(row => <MiniBar key={row.label} label={row.label} current={row.current} previous={row.previous} max={comparisonMax}/>) : <Empty>Comparisons are unavailable until the analytics service returns both current and previous values.</Empty>}
         </Card>
         <Card eyebrow="SYSTEM CHECKS" title="Data source health" aside={<button className="ar-cr-text-btn" type="button" onClick={() => setSection('Audit & Reliability')}>Details →</button>}>
-          <div className="ar-cr-source-list">{dataSources.map(row => <div key={row.name}><span className={'ar-cr-source-icon ' + (row.ok ? 'ok' : 'bad')}>{row.ok ? '✓' : '!'}</span><div><strong>{row.name}</strong><small>{row.ok ? 'Responded' : row.error || 'No response'}</small></div><b>{row.ok ? 'OK' : 'Issue'}</b></div>)}</div>
+          <div className="ar-cr-source-list">{dataSources.map(row => <div key={row.name}><span className={'ar-cr-source-icon ' + (row.pending ? 'pending' : row.ok ? 'ok' : 'bad')}>{row.pending ? '…' : row.ok ? '✓' : '!'}</span><div><strong>{row.name}</strong><small>{row.pending ? 'Waiting for response' : row.ok ? 'Responded' : row.error || 'No response'}</small></div><b>{row.pending ? 'Wait' : row.ok ? 'OK' : 'Issue'}</b></div>)}</div>
         </Card>
       </div>
 
@@ -979,9 +1057,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     </div>}
 
     {section !== 'Command Center' && section !== 'Feature Workbench' && <div className="ar-cr-explorer">
-      <div className="ar-cr-explorer-head"><div><span className="ar-cr-kicker">ANALYTICS WORKSPACE</span><h3>{section}</h3><p>{section === 'Metric Explorer' ? 'Search, filter and export 100+ tracked or explicitly unavailable analytics.' : 'Inspect verified indicators for this operational domain. Click a section in the control-room navigation to switch domains.'}</p></div><div className="ar-cr-explorer-tools"><label><span>Search metrics</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, source or meaning"/></label><label><span>Data coverage</span><select value={metricFilter} onChange={event => setMetricFilter(event.target.value)}><option value="all">All metrics</option><option value="tracked">Tracked only</option><option value="untracked">Not tracked</option></select></label><label><span>Sort</span><select value={metricSort} onChange={event => setMetricSort(event.target.value)}><option value="category">Category</option><option value="name">Name</option><option value="largest">Largest value</option></select></label><button type="button" className="ar-cr-btn" onClick={() => setCollapsedMetrics(value => !value)}>{collapsedMetrics ? 'Expand details' : 'Compact view'}</button></div></div>
+      <div className="ar-cr-explorer-head"><div><span className="ar-cr-kicker">ANALYTICS WORKSPACE</span><h3>{section}</h3><p>{section === 'Metric Explorer' ? 'Search, filter and export 100+ tracked or explicitly unavailable analytics.' : 'Inspect verified indicators for this operational domain. Click a section in the control-room navigation to switch domains.'}</p></div><div className="ar-cr-explorer-tools"><label><span>Search metrics</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, source or meaning"/></label><label><span>Data coverage</span><select value={metricFilter} onChange={event => setMetricFilter(event.target.value)}><option value="tracked">Available data</option><option value="all">All metrics</option><option value="untracked">Source gaps</option></select></label><label><span>Sort</span><select value={metricSort} onChange={event => setMetricSort(event.target.value)}><option value="category">Category</option><option value="name">Name</option><option value="largest">Largest value</option></select></label><button type="button" className="ar-cr-btn" onClick={() => setCollapsedMetrics(value => !value)}>{collapsedMetrics ? 'Expand details' : 'Compact view'}</button></div></div>
       <div className="ar-cr-results-line"><span>{visibleMetrics.length} metrics shown</span><span>{visibleMetrics.filter(item => item.value != null).length} with values · {visibleMetrics.filter(item => item.value == null).length} unavailable/not tracked</span><button type="button" className="ar-cr-text-btn" onClick={exportVisibleMetrics}>Export visible catalogue</button></div>
-      {section === 'Metric Explorer' && <div className="ar-cr-category-chips">{metricCategories.map(category => <button key={category} type="button" onClick={() => { setSearch(category); setMetricFilter('all'); }}>{category}<b>{metricGroups[category].length}</b></button>)}</div>}
+      {section === 'Metric Explorer' && <div className="ar-cr-category-chips">{metricCategories.map(category => <button key={category} type="button" onClick={() => { setSearch(category); setMetricFilter('tracked'); }}>{category}<b>{metricGroups[category].length}</b></button>)}</div>}
       <div className={'ar-cr-metric-grid' + (collapsedMetrics ? ' compact' : '')}>
         {visibleMetrics.map((item, index) => <Metric key={item.category + ':' + item.label} item={item} compact={collapsedMetrics}/>)}
       </div>
@@ -991,7 +1069,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           <p><strong>Period metrics</strong> use the selected reporting window and the existing analytics function/Cloudflare admin API.</p>
           <p><strong>Derived ratios</strong> are computed only when the denominator is available and non-zero. They are not person-level conversion rates unless explicitly stated.</p>
           <p><strong>Sampled lists</strong> state their row limits. Counts from these lists are not represented as lifetime totals.</p>
-          <p><strong>Not tracked</strong> means the current backend does not provide that data. This control room deliberately does not invent device, source, location, age, gender or daily time-series metrics.</p>
+          <p><strong>Source gap</strong> means the configured backend did not return a value. This control room does not invent device, source, location, age, gender or daily time-series metrics.</p>
         </div>
       </Card>
     </div>}
