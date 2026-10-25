@@ -216,6 +216,7 @@ export default function AdminPanel({ onLogout }) {
   const [mediaAvailable, setMediaAvailable] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshingAdminData, setRefreshingAdminData] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState({ type: '', text: '' });
   const [editing, setEditing] = useState(null);
@@ -277,6 +278,7 @@ export default function AdminPanel({ onLogout }) {
   const load = async () => {
     const requestId = ++loadSequence.current;
     const initialLoad = !hasLoaded.current;
+    setRefreshingAdminData(true);
     if (initialLoad) setLoading(true);
     setNotice({ type: '', text: '' });
     setPageCountsLoading(true);
@@ -376,6 +378,7 @@ export default function AdminPanel({ onLogout }) {
       if (requestId === loadSequence.current) {
         hasLoaded.current = true;
         setLoading(false);
+        setRefreshingAdminData(false);
       }
     }
     if (requestId === loadSequence.current && !pageCountsAvailable) void refreshPageInventory(requestId);
@@ -480,9 +483,9 @@ export default function AdminPanel({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    if (tab !== 'Reports' || reportsLoadedFully || reportsLoading || reportHistoryAttempted || loading) return;
+    if (tab !== 'Reports' || reportsLoadedFully || reportsLoading || reportHistoryAttempted || loading || refreshingAdminData) return;
     void loadFullReportHistory();
-  }, [tab, reportsLoadedFully, reportsLoading, reportHistoryAttempted, loading]);
+  }, [tab, reportsLoadedFully, reportsLoading, reportHistoryAttempted, loading, refreshingAdminData]);
 
   useEffect(() => {
     if (tab !== 'Chapters' || chapterPerformanceLoaded) return;
