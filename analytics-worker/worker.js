@@ -254,6 +254,7 @@ async function readerMetrics(env, start, end) {
   // Analytics Engine is disabled or no SQL binding is available.
   const activeViewers = new Set();
   const activeDaysByViewer = new Map();
+  let identityIncomplete = false;
   try {
     for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
       const day = dayKey(cursor);
@@ -271,8 +272,11 @@ async function readerMetrics(env, start, end) {
           const parts = object.key.slice(prefix.length).split('/');
           const chapterId = parts[0];
           const viewerHash = String(parts[1] || '').replace(/\.json$/i, '');
-          if (!validChapterId(chapterId) || !/^[a-f0-9]{64}$/i.test(viewerHash)) continue;
+          if (!validChapterId(chapterId)) continue;
 
+          // Boundary days contain events outside a rolling window. Validate timestamps
+          // before flagging missing identity, otherwise an out-of-window legacy event
+          // could incorrectly mark this reporting period as incomplete.
           if (!isFullDay) {
             const stored = await env.ANALYTICS_BUCKET.get(object.key);
             if (!stored) continue;
@@ -280,6 +284,14 @@ async function readerMetrics(env, start, end) {
             try { event = await stored.json(); } catch { continue; }
             const createdAt = new Date(event?.createdAt || 0).getTime();
             if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
+          }
+
+          if (!/^[a-f0-9]{64}$/i.test(viewerHash)) {
+            // Imported legacy views preserve counts, but do not contain a recoverable
+            // viewer identity. Never present the identifiable subset as a complete
+            // active/returning reader count.
+            identityIncomplete = true;
+            continue;
           }
 
           activeViewers.add(viewerHash);
@@ -297,14 +309,20 @@ async function readerMetrics(env, start, end) {
     return {
       activeReaders: activeViewers.size,
       returningReaders,
+      unavailable: identityIncomplete,
+      reason: identityIncomplete
+        ? 'Historical view events lack stable viewer identities, so unique and returning reader counts are incomplete.'
+        : null,
       source: 'r2',
     };
   } catch (error) {
+    const reason = error?.message || 'R2 reader metrics unavailable';
     return {
       activeReaders: 0,
       returningReaders: 0,
       unavailable: true,
-      error: error?.message || 'R2 reader metrics unavailable',
+      reason,
+      error: reason,
     };
   }
 }
@@ -567,6 +585,7 @@ async function handleAdminAnalytics(request, env) {
     active_readers: currentReaders.activeReaders,
     returning_readers: currentReaders.returningReaders,
     reader_metrics_limited: Boolean(currentReaders.unavailable),
+    reader_metrics_limited_reason: currentReaders.reason || null,
     chapter_stats: chapterStats,
     daily_trend: dailyTrend,
     previous_daily_trend: previousDailyTrend,
