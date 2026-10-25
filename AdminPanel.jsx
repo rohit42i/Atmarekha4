@@ -232,7 +232,6 @@ export default function AdminPanel({ onLogout }) {
   const loadSequence = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
-  const [chapterPerformanceLoaded, setChapterPerformanceLoaded] = useState(false);
   const [adminTheme, setAdminTheme] = useState(() => {
     try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
     catch { return 'dark'; }
@@ -282,7 +281,6 @@ export default function AdminPanel({ onLogout }) {
     setReportsLoadedFully(false);
     setReportsLoading(false);
     setReportHistoryAttempted(false);
-    setChapterPerformanceLoaded(false);
     const warnings = [];
     try {
       const user = await requireAdmin();
@@ -410,7 +408,6 @@ export default function AdminPanel({ onLogout }) {
     if (requestId !== loadSequence.current) return;
     if (result.error) {
       console.warn('Chapter performance metrics could not be refreshed:', result.error);
-      setChapterPerformanceLoaded(true);
       return;
     }
     const performanceMap = {};
@@ -423,7 +420,6 @@ export default function AdminPanel({ onLogout }) {
       };
     }
     setChapterPerformance(performanceMap);
-    setChapterPerformanceLoaded(true);
   };
 
   const loadFullReportHistory = async () => {
