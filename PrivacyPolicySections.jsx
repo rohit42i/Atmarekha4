@@ -46,7 +46,7 @@ export default function PrivacyPolicySections() {
 
     <Section title="5. Retention and account deletion">
       <p>We keep information while it is needed to run the account or feature, maintain a membership, support payments, manage community reports or address technical issues. Different services may keep their own logs or backups for different periods.</p>
-      <p>To request account deletion, use the Privacy Center, confirm your password and verify the request by email OTP. A 14-day recovery window starts after email verification. After that window, the request is reviewed and eligible information is processed for deletion. The request is not an instant erase, and some payment, security, moderation or backup records may remain for a period.</p>
+      <p>To request account deletion, use the Privacy Center, confirm your password and verify the request by email OTP. A recovery window of 14 days starts after email verification. After that window, the request is reviewed and eligible information is processed for deletion. The request is not an instant erase, and some payment, security, moderation or backup records may remain for a period.</p>
     </Section>
 
     <Section title="6. Your choices">
