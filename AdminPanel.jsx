@@ -88,22 +88,39 @@ async function loadAllChapterPageRows() {
 }
 
 async function loadAllCommentReportRows() {
-  const rows = [];
-  let offset = 0;
-  while (offset <= 100000) {
-    const { data, error } = await supabase
-      .from('comment_reports')
-      .select('id, comment_id, reason, status, created_at, reviewed_at, reviewed_by')
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: false })
-      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
-    if (error) throw error;
-    const batch = data || [];
-    rows.push(...batch);
-    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
-    offset += ADMIN_PAGE_BATCH_SIZE;
+  const columns = 'id, comment_id, reason, status, created_at, reviewed_at, reviewed_by';
+  const first = await supabase
+    .from('comment_reports')
+    .select(columns, { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .range(0, ADMIN_PAGE_BATCH_SIZE - 1);
+  if (first.error) throw first.error;
+  const rows = [...(first.data || [])];
+  const total = Number(first.count ?? rows.length);
+  if (total > 100000) {
+    throw new Error('Report queue exceeded the safe 100,000-row refresh limit. Refine the queue in the database before refreshing the complete history.');
   }
-  throw new Error('Report queue exceeded the safe 100,000-row refresh limit. Refine the queue in the database before refreshing the complete history.');
+  if (rows.length >= total || rows.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+
+  const offsets = [];
+  for (let offset = ADMIN_PAGE_BATCH_SIZE; offset < total; offset += ADMIN_PAGE_BATCH_SIZE) offsets.push(offset);
+  const concurrency = 4;
+  for (let index = 0; index < offsets.length; index += concurrency) {
+    const batchResults = await Promise.all(offsets.slice(index, index + concurrency).map(offset =>
+      supabase
+        .from('comment_reports')
+        .select(columns)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(offset, Math.min(offset + ADMIN_PAGE_BATCH_SIZE - 1, total - 1))
+    ));
+    for (const result of batchResults) {
+      if (result.error) throw result.error;
+      rows.push(...(result.data || []));
+    }
+  }
+  return { data: rows, error: null };
 }
 
 async function captureAdminSource(work) {
