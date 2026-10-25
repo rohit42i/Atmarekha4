@@ -1,0 +1,191 @@
+/* Atma Rekha Admin Master System
+   Single scoped presentation layer. Keeps admin styling isolated from reader pages.
+   Theme is driven by data-admin-theme on the admin root. */
+
+/* 1. Theme tokens */
+main.admin-page.ar-admin-v3 {
+  --admin-bg-primary: #ffffff;
+  --admin-bg-secondary: #f5f5f5;
+  --admin-bg-tertiary: #eeeeee;
+  --admin-card-bg: #ffffff;
+  --admin-text-primary: #171717;
+  --admin-text-secondary: #555555;
+  --admin-text-muted: #666666;
+  --admin-border-color: #dedede;
+  --admin-border-strong: #bdbdbd;
+  --admin-button-bg: #202020;
+  --admin-button-text: #ffffff;
+  --admin-input-bg: #ffffff;
+  --admin-input-text: #171717;
+  --admin-focus: #2374e1;
+  --admin-success: #16834a;
+  --admin-danger: #c62828;
+  --admin-warning: #9a6700;
+  --admin-surface: var(--admin-card-bg);
+  --admin-surface-2: var(--admin-bg-secondary);
+  --admin-surface-3: var(--admin-bg-tertiary);
+  --admin-text: var(--admin-text-primary);
+  --admin-text-2: var(--admin-text-secondary);
+  --admin-muted: var(--admin-text-muted);
+  --admin-faint: #767676;
+  --admin-border: var(--admin-border-color);
+  --admin-border-strong: var(--admin-border-strong);
+  --admin-primary: #292929;
+  --admin-primary-soft: #e8e8e8;
+  --admin-positive: var(--admin-success);
+  --admin-positive-soft: #e4f5eb;
+  --admin-negative: var(--admin-danger);
+  --admin-warning: #a66a00;
+  --admin-sidebar: #f8f8f8;
+  --border-radius-1: 8px;
+  --border-radius-2: 10px;
+  --box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  display: block;
+  min-width: 0;
+  color: var(--admin-text-primary);
+  background: var(--admin-bg-primary);
+  color-scheme: light;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"],
+body.dark-theme-variables main.admin-page.ar-admin-v3 {
+  --admin-bg-primary: #111111;
+  --admin-bg-secondary: #1b1b1b;
+  --admin-bg-tertiary: #262626;
+  --admin-card-bg: #1c1c1c;
+  --admin-text-primary: #f5f5f5;
+  --admin-text-secondary: #d0d0d0;
+  --admin-text-muted: #b4b4b4;
+  --admin-border-color: #393939;
+  --admin-border-strong: #505050;
+  --admin-button-bg: #eeeeee;
+  --admin-button-text: #171717;
+  --admin-input-bg: #242424;
+  --admin-input-text: #f5f5f5;
+  --admin-focus: #83b5ff;
+  --admin-success: #5bd18b;
+  --admin-danger: #ff7777;
+  --admin-warning: #ffd166;
+  --admin-primary: #e8e8e8;
+  --admin-primary-soft: #333333;
+  --admin-positive-soft: #173a28;
+  --admin-sidebar: #171717;
+  --box-shadow: 0 2px 10px rgba(0,0,0,.28);
+  color-scheme: dark;
+}
+
+/* 2. Base, typography and responsive shell */
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3 * { box-sizing: border-box; }
+main.admin-page.ar-admin-v3 { font-family: Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; }
+main.admin-page.ar-admin-v3 :is(h1,h2,h3,h4) { color: var(--admin-text-primary) !important; line-height: 1.3; }
+main.admin-page.ar-admin-v3 h1 { font-size: 28px; font-weight: 750; }
+main.admin-page.ar-admin-v3 h2 { font-size: 20px; font-weight: 700; }
+main.admin-page.ar-admin-v3 :is(p,small,.muted,.text-muted,.description,.admin-muted,.ar-data-note) { color: var(--admin-text-secondary); }
+main.admin-page.ar-admin-v3 a { color: var(--admin-focus); }
+main.admin-page.ar-admin-v3 :is(.ar-admin-app,.ar-admin-main,.ar-admin-content,.admin-stack,.admin-form-grid) { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-app { width: 100%; max-width: 1800px; margin-inline: auto; }
+main.admin-page.ar-admin-v3 .ar-admin-main { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-admin-content { width: 100%; max-width: 1440px; margin-inline: auto; padding: 24px; color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 .ar-admin-content > * + * { margin-top: 16px; }
+main.admin-page.ar-admin-v3 .admin-stack { display: grid; gap: 16px; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-dashboard-grid,.ar-cr-overview-grid,.ar-overview-grid,.ar-stat-grid,.admin-media-grid,.admin-form-grid,.ar-admin-grid) { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 16px; }
+main.admin-page.ar-admin-v3 .admin-form-grid .wide { grid-column: 1 / -1; }
+
+/* 3. Cards, dashboard metrics and panels */
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-panel,.ar-admin-section,.admin-studio-card,.ar-cr-card,.ar-ops-card,.ar-mgmt-card,.ar-control-room section,.ar-admin-stat-card,.ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-admin-status-card,.ar-admin-workspace,.ar-membership-plan,.ar-membership-activity,.admin-studio-modal,.ar-utility-section) {
+  min-width: 0;
+  padding: 16px;
+  background: var(--admin-card-bg) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--box-shadow) !important;
+  backdrop-filter: none !important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-stat-card,.ar-stat-card,.ar-stat-number,.ar-stat-card strong,.ar-admin-stat-card strong) { color: var(--admin-text-primary) !important; font-variant-numeric: tabular-nums; }
+main.admin-page.ar-admin-v3 :is(.admin-card-title,.ar-admin-card-header,.ar-cr-card-header,.ar-ops-card-header,.admin-section-header) { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+main.admin-page.ar-admin-v3 .admin-card-title h2 { margin: 0; }
+main.admin-page.ar-admin-v3 .admin-card-title p { margin: 5px 0 0; font-size: 13px; }
+main.admin-page.ar-admin-v3 :is(.ar-stat-label,.ar-stat-foot,.ar-utility-footer) { color: var(--admin-text-secondary) !important; }
+main.admin-page.ar-admin-v3 :is(.admin-table-wrap,.ar-admin-table-wrapper) { max-width: 100%; overflow-x: auto; border: 1px solid var(--admin-border-color); border-radius: 8px; background: var(--admin-card-bg); }
+main.admin-page.ar-admin-v3 table { width: 100%; border-collapse: collapse; color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 :is(table thead,.admin-studio-table thead) { background: var(--admin-bg-secondary); }
+main.admin-page.ar-admin-v3 :is(table th,.admin-studio-table th) { padding: 11px 12px; color: var(--admin-text-secondary); font-size: 11px; font-weight: 700; text-align: left; border-bottom: 1px solid var(--admin-border-color); white-space: nowrap; }
+main.admin-page.ar-admin-v3 :is(table td,.admin-studio-table td) { padding: 11px 12px; color: var(--admin-text-primary); border-bottom: 1px solid var(--admin-border-color); vertical-align: middle; }
+main.admin-page.ar-admin-v3 table tbody tr:hover { background: var(--admin-bg-secondary); }
+
+/* 4. Buttons and interactive states */
+main.admin-page.ar-admin-v3 :is(button,a[role="button"],[role="button"]) { transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease; }
+main.admin-page.ar-admin-v3 button { color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 :is(.ar-admin-content button,.ar-admin-topbar button,.ar-admin-sidebar button,.admin-card button) { max-width: 100%; }
+main.admin-page.ar-admin-v3 :is(.admin-submit,.ar-admin-primary-action,.ar-utility-primary-action) { min-height: 38px; padding: 9px 14px; border: 1px solid var(--admin-button-bg); border-radius: 8px; background: var(--admin-button-bg); color: var(--admin-button-text) !important; font-weight: 650; cursor: pointer; }
+main.admin-page.ar-admin-v3 :is(.admin-submit,.ar-admin-primary-action,.ar-utility-primary-action):hover:not(:disabled) { filter: brightness(.9); }
+main.admin-page.ar-admin-v3 :is(button,.ar-admin-btn):active:not(:disabled) { transform: translateY(1px); }
+main.admin-page.ar-admin-v3 :is(button,input,select,textarea,[role="button"],a):focus-visible { outline: 2px solid var(--admin-focus) !important; outline-offset: 2px; }
+main.admin-page.ar-admin-v3 button:disabled { opacity: .48; cursor: not-allowed; transform: none; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-icon-button,.ar-admin-refresh,.ar-admin-menu-button,.ar-admin-mobile-close,.ar-utility-icon-button) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 8px 10px; border: 1px solid var(--admin-border-strong); border-radius: 8px; background: var(--admin-bg-secondary); color: var(--admin-text-primary) !important; cursor: pointer; }
+main.admin-page.ar-admin-v3 :is(.ar-admin-icon-button,.ar-admin-refresh,.ar-admin-menu-button,.ar-admin-mobile-close,.ar-utility-icon-button):hover:not(:disabled) { background: var(--admin-bg-tertiary); border-color: var(--admin-focus); }
+main.admin-page.ar-admin-v3 :is(.danger-text,.admin-danger,.is-danger) { color: var(--admin-danger) !important; }
+main.admin-page.ar-admin-v3 .danger-text:hover:not(:disabled) { background: color-mix(in srgb, var(--admin-danger) 10%, transparent); }
+
+/* 5. Form fields */
+main.admin-page.ar-admin-v3 :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea,.ar-admin-form-input,.ar-admin-form-textarea,.ar-admin-form-select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 11px;
+  background: var(--admin-input-bg) !important;
+  color: var(--admin-input-text) !important;
+  border: 1px solid var(--admin-border-strong) !important;
+  border-radius: 8px;
+  font: inherit;
+}
+main.admin-page.ar-admin-v3 textarea { min-height: 100px; resize: vertical; }
+main.admin-page.ar-admin-v3 :is(input,textarea)::placeholder { color: var(--admin-text-muted) !important; opacity: 1; }
+main.admin-page.ar-admin-v3 :is(input,select,textarea):focus { border-color: var(--admin-focus) !important; }
+main.admin-page.ar-admin-v3 :is(input[type="checkbox"],input[type="radio"]) { accent-color: var(--admin-focus); }
+main.admin-page.ar-admin-v3 label { color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 .admin-file-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+main.admin-page.ar-admin-v3 .admin-file-field input[type="file"] { padding: 8px; }
+main.admin-page.ar-admin-v3 option { background: var(--admin-input-bg); color: var(--admin-input-text); }
+
+/* 6. Navigation, top bar, sidebar, notices */
+main.admin-page.ar-admin-v3 .ar-admin-sidebar { background: var(--admin-sidebar); color: var(--admin-text-primary); border-color: var(--admin-border-color); }
+main.admin-page.ar-admin-v3 :is(.ar-admin-brand strong,.ar-admin-workspace strong,.ar-admin-profile strong,.ar-admin-nav-text) { color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 :is(.ar-admin-brand span,.ar-admin-workspace small,.ar-admin-profile small,.ar-admin-nav-label) { color: var(--admin-text-secondary); }
+main.admin-page.ar-admin-v3 .ar-admin-nav button { color: var(--admin-text-secondary); }
+main.admin-page.ar-admin-v3 .ar-admin-nav button:hover { color: var(--admin-text-primary); background: var(--admin-bg-secondary); }
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active { color: var(--admin-text-primary); background: var(--admin-bg-tertiary); }
+main.admin-page.ar-admin-v3 .ar-admin-topbar { background: var(--admin-bg-primary); color: var(--admin-text-primary); border-bottom: 1px solid var(--admin-border-color); }
+main.admin-page.ar-admin-v3 :is(.ar-admin-profile,.ar-admin-profile-menu,.ar-admin-command-trigger,.ar-admin-search) { background: var(--admin-card-bg); color: var(--admin-text-primary); border-color: var(--admin-border-color); }
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu { box-shadow: var(--box-shadow); }
+main.admin-page.ar-admin-v3 .ar-admin-notice { padding: 12px 14px; border: 1px solid var(--admin-border-color); border-radius: 8px; background: var(--admin-bg-secondary); color: var(--admin-text-primary); overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-admin-notice.error { border-color: color-mix(in srgb, var(--admin-danger) 55%, var(--admin-border-color)); }
+main.admin-page.ar-admin-v3 .ar-admin-notice.success { border-color: color-mix(in srgb, var(--admin-success) 55%, var(--admin-border-color)); }
+
+/* 7. Lists, images, data states */
+main.admin-page.ar-admin-v3 :is(.admin-mini-list,.admin-comment-list,.ar-utility-activity) { min-width: 0; }
+main.admin-page.ar-admin-v3 .admin-mini-list > div { padding: 12px 0; border-bottom: 1px solid var(--admin-border-color); }
+main.admin-page.ar-admin-v3 .admin-comment-list article { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: start; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--admin-border-color); }
+main.admin-page.ar-admin-v3 :is(.admin-comment-list p,.admin-comment-meta strong,.admin-announcement-admin-row strong,.admin-media-grid strong) { color: var(--admin-text-primary); overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 :is(.admin-announcement-admin-row,.admin-media-grid article) { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+main.admin-page.ar-admin-v3 :is(.admin-announcement-admin-row img,.admin-media-grid img) { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; flex: 0 0 auto; }
+main.admin-page.ar-admin-v3 .admin-media-grid article > div { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+main.admin-page.ar-admin-v3 :is(.center,.admin-loading) { text-align: center; color: var(--admin-text-secondary); padding: 20px; }
+main.admin-page.ar-admin-v3 :is(.status,.badge,.status-badge) { overflow-wrap: anywhere; }
+
+/* 8. Utility rail and reduced motion */
+main.admin-page.ar-admin-v3 .ar-admin-utility-rail { color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 .ar-utility-section { background: var(--admin-card-bg); }
+main.admin-page.ar-admin-v3 .ar-utility-section-heading h3 { color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 .ar-utility-text-action { color: var(--admin-focus); }
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding: 16px 12px 90px; }
+  main.admin-page.ar-admin-v3 :is(.ar-cr-dashboard-grid,.ar-cr-overview-grid,.ar-overview-grid,.ar-stat-grid,.admin-media-grid,.admin-form-grid,.ar-admin-grid) { grid-template-columns: minmax(0,1fr); }
+  main.admin-page.ar-admin-v3 .admin-form-grid .wide { grid-column: auto; }
+  main.admin-page.ar-admin-v3 .admin-comment-list article { grid-template-columns: auto minmax(0,1fr); }
+  main.admin-page.ar-admin-v3 .admin-comment-list article > button { grid-column: 2; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  main.admin-page.ar-admin-v3 *, main.admin-page.ar-admin-v3 *::before, main.admin-page.ar-admin-v3 *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
