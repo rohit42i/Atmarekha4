@@ -232,6 +232,8 @@ export default function AdminPanel({ onLogout }) {
   const loadSequence = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
+  const [chapterPerformanceLoaded, setChapterPerformanceLoaded] = useState(false);
+  const chapterPerformanceRequest = useRef(0);
   const [adminTheme, setAdminTheme] = useState(() => {
     try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
     catch { return 'dark'; }
@@ -281,6 +283,7 @@ export default function AdminPanel({ onLogout }) {
     setReportsLoadedFully(false);
     setReportsLoading(false);
     setReportHistoryAttempted(false);
+    if (tab === 'Chapters') setChapterPerformanceLoaded(false);
     const warnings = [];
     try {
       const user = await requireAdmin();
@@ -375,10 +378,7 @@ export default function AdminPanel({ onLogout }) {
         setLoading(false);
       }
     }
-    if (requestId === loadSequence.current) {
-      void refreshPageInventory(requestId);
-      void refreshChapterPerformance(requestId);
-    }
+    if (requestId === loadSequence.current && !pageCountsAvailable) void refreshPageInventory(requestId);
   };
 
   const refreshPageInventory = async requestId => {
@@ -400,14 +400,16 @@ export default function AdminPanel({ onLogout }) {
     setPageCountsLoading(false);
   };
 
-  const refreshChapterPerformance = async requestId => {
+  const refreshChapterPerformance = async () => {
+    const requestId = ++chapterPerformanceRequest.current;
     const result = await captureAdminSource(() =>
       supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } })
         .then(response => ({ data: response.data?.data || null, error: response.error }))
     );
-    if (requestId !== loadSequence.current) return;
+    if (requestId !== chapterPerformanceRequest.current) return;
     if (result.error) {
       console.warn('Chapter performance metrics could not be refreshed:', result.error);
+      setChapterPerformanceLoaded(true);
       return;
     }
     const performanceMap = {};
@@ -420,6 +422,7 @@ export default function AdminPanel({ onLogout }) {
       };
     }
     setChapterPerformance(performanceMap);
+    setChapterPerformanceLoaded(true);
   };
 
   const loadFullReportHistory = async () => {
@@ -477,9 +480,14 @@ export default function AdminPanel({ onLogout }) {
   }, []);
 
   useEffect(() => {
-    if (tab !== 'Reports' || reportsLoadedFully || reportsLoading || reportHistoryAttempted) return;
+    if (tab !== 'Reports' || reportsLoadedFully || reportsLoading || reportHistoryAttempted || loading) return;
     void loadFullReportHistory();
-  }, [tab, reportsLoadedFully, reportsLoading, reportHistoryAttempted]);
+  }, [tab, reportsLoadedFully, reportsLoading, reportHistoryAttempted, loading]);
+
+  useEffect(() => {
+    if (tab !== 'Chapters' || chapterPerformanceLoaded) return;
+    void refreshChapterPerformance();
+  }, [tab, chapterPerformanceLoaded]);
 
   useEffect(() => {
     const refreshHandler = () => load();
