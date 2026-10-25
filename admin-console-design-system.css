@@ -1005,3 +1005,152 @@ main.admin-page.ar-admin-v3 .ar-cr-alert.is-warning :is(strong,p) { color: var(-
 main.admin-page.ar-admin-v3 .ar-cr-alert.is-ok :is(strong,p) { color: var(--admin-text) !important; }
 main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.ok,.ar-cr-status-dot.is-ok) { color: var(--admin-positive) !important; }
 main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.bad,.ar-cr-status-dot.is-warning) { color: var(--admin-negative) !important; }
+
+/* Final audit layer: older Control Room components use hard-coded warm/dark tokens.
+   Normalize those to the same theme so every card follows the selected scheme. */
+main.admin-page.ar-admin-v3 :is([class~="card"],[class*="-card"],[class*="_card"],[class*="Card"]) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background-color: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-hero,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-explorer-head,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-group,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-workbench {
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: clamp(16px,2vw,24px) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero-copy { min-width: 0; flex: 1 1 320px; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero h2 {
+  color: var(--admin-text) !important;
+  font-size: clamp(22px,2.2vw,30px) !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero p,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-hero p {
+  max-width: 74ch;
+  color: var(--admin-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-kicker {
+  color: var(--admin-muted) !important;
+  letter-spacing: .08em !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-line {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center;
+  gap: 8px 10px !important;
+  max-width: 100%;
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-line :is(span,i) { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-btn,.ar-cr-action-strip button,.ar-cr-category-chips button,
+  .ar-cr-launch-grid button,.ar-cr-queue-grid button,.ar-cr-category-summary button,
+  .ar-cr-feature-button,.ar-cr-feature-search,.ar-cr-text-btn
+) {
+  border-color: var(--admin-border) !important;
+  border-radius: 7px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-btn:hover,.ar-cr-action-strip button:hover,.ar-cr-category-chips button:hover,
+  .ar-cr-launch-grid button:hover,.ar-cr-queue-grid button:hover,.ar-cr-category-summary button:hover,
+  .ar-cr-feature-button:hover
+) {
+  border-color: var(--admin-border-strong) !important;
+  background: var(--admin-surface-2) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary {
+  background: var(--admin-text) !important;
+  border-color: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-nav,.ar-cr-breakdown>div,.ar-cr-compare-track,.ar-cr-compare-track i,
+  .ar-cr-rank-list i,.ar-cr-readiness>i,.ar-cr-month-track,.ar-cr-daily-summary>span,
+  .ar-cr-category-summary i,.ar-cr-legend i,.ar-cr-source-icon,.ar-cr-feature-icon,
+  .ar-cr-feature-count,.ar-cr-untracked-dot
+) {
+  border-color: var(--admin-border) !important;
+  background-color: var(--admin-surface-2) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-nav button,.ar-cr-action-strip button,.ar-cr-category-chips button,
+  .ar-cr-launch-grid button,.ar-cr-queue-grid button,.ar-cr-category-summary button
+) { color: var(--admin-text-2) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-nav button.active,.ar-cr-category-chips button.active,
+  .ar-cr-category-summary button.active
+) {
+  background: var(--admin-primary-soft) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-pill,.ar-cr-results-line,.ar-cr-table-note,.ar-cr-issue) {
+  border-color: var(--admin-border) !important;
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill {
+  background: var(--admin-surface-2) !important;
+  border-radius: 5px !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.good,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.ok { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.good { background: var(--admin-positive-soft) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-issue { color: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.bad { background: var(--admin-negative-soft) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.warn {
+  background: var(--admin-surface-2) !important;color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap :is(th,td) {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-2) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap th { background: var(--admin-surface-2) !important; color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap tbody tr:hover { background: var(--admin-surface-2) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-table-wrap td strong { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-source-list strong,.ar-cr-rank-list strong,.ar-cr-event-list strong) {
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-source-list small,.ar-cr-rank-list small,.ar-cr-event-list small) {
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content :is(
+  .admin-card,.admin-studio-card,.admin-tool-card,.admin-section-card,
+  .admin-overview-card,.admin-metric-card,.ar-admin-panel,.ar-admin-section,
+  .ar-membership-plan,.ar-membership-activity,.ar-membership-note
+) { overflow-wrap: anywhere; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-feature-count,.ar-cr-feature-icon) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-count strong { color: var(--admin-text) !important; }
