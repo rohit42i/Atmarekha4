@@ -12,8 +12,8 @@ const required = [
   ['InfoPage.jsx', "['Age guidance', '15+']"],
   ['InfoPage.jsx', 'I use AI tools in parts of the visual process'],
   ['InfoPage.jsx', 'AI generated material'],
-  ['PrivacyPolicySections.jsx', 'Why we use it'],
-  ['PrivacyPolicySections.jsx', 'How long we keep information'],
+  ['PrivacyPolicySections.jsx', '2. How we use your information'],
+  ['PrivacyPolicySections.jsx', '5. Retention and account deletion'],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
@@ -34,7 +34,7 @@ const required = [
   ['notification-prompt.js', "atma-notification-dont-show-again"],
   ['notification-prompt.js', "Don't show this again"],
   ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin'],
-  ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-19'"],
+  ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-25'"],
   ['supabase/functions/dpdp-data-rights/index.ts', 'Use the password and email verification flow in Privacy Center to request account deletion.'],
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
   ['PrivacyCenter.jsx', '14-day recovery window starts after email verification.'],
@@ -98,10 +98,8 @@ const required = [
   ['supabase/functions/dpdp-data-rights/index.ts', 'email_marketing_preferences: "user_id,marketing_unsubscribed,updated_at"'],
   ['supabase/functions/dpdp-data-rights/index.ts', 'export reached the 100,000-row safety limit'],
   ['supabase/migrations/20261019083955_dpdp_privacy_controls_20261019.sql', 'auth_user_record_dpdp_signup_consent'],
-  ['InfoPage.jsx', 'within 48 hours'],
-  ['InfoPage.jsx', 'within one month'],
-  ['InfoPage.jsx', 'Grievance Officer: Arkesh, creator.'],
-  ['InfoPage.jsx', 'Membership renews automatically'],
+  ['InfoPage.jsx', 'Report a problem'],
+  ['TermsOfUseSections.jsx', 'Membership renews automatically'],
   ['Community.jsx', 'Comments for community post'],
   ['Community.jsx', "atma-open-community-comments"],
   ['Community.jsx', 'community-post-comments'],
@@ -550,12 +548,26 @@ if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') 
   failed = true;
 }
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
+const termsCopyRegression = await readFile('TermsOfUseSections.jsx', 'utf8');
+const privacyCopyRegression = await readFile('PrivacyPolicySections.jsx', 'utf8');
 if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
     !legalCopyRegression.includes('AI generated material') ||
-    !legalCopyRegression.includes('Membership renews automatically') ||
-    !legalCopyRegression.includes('within 48 hours') ||
-    !legalCopyRegression.includes('within one month')) {
-  console.error('CHECK FAILED: public About, Terms or complaint copy is missing a required clarification.');
+    !termsCopyRegression.includes('Membership renews automatically') ||
+    !termsCopyRegression.includes('atmarekhasupport@gmail.com') ||
+    !termsCopyRegression.includes('no-reply@atmarekha.in') ||
+    !legalCopyRegression.includes("type === 'privacy'") ||
+    !privacyCopyRegression.includes('atmarekhainfo@gmail.com') ||
+    !privacyCopyRegression.includes('atmarekhaoffical@gmail.com') ||
+    !privacyCopyRegression.includes('14-day recovery window') ||
+    privacyCopyRegression.includes('Personal data breaches') ||
+    privacyCopyRegression.includes('Indian data-protection law') ||
+    privacyCopyRegression.includes('within 48 hours') ||
+    privacyCopyRegression.includes('within one month') ||
+    privacyCopyRegression.includes('privacy@atmarekha.in') ||
+    legalCopyRegression.includes('within 48 hours') ||
+    legalCopyRegression.includes('within one month') ||
+    legalCopyRegression.includes('Grievance Officer: Arkesh, creator.')) {
+  console.error('CHECK FAILED: public About, Terms or Privacy copy is missing required content or contains an unapproved contact/compliance section.');
   failed = true;
 }
 
