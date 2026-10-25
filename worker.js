@@ -16,7 +16,7 @@ const STATIC_SEO = {
   "/info/about": ["About Atma Rekha | Creator and Story", "Meet Arkesh, the solo creator of Atma Rekha, and learn about the story and how it is made."],
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
   "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
-  "/info/privacy": ["Privacy Policy | Atma Rekha", "Learn how Atma Rekha uses account, reading, community, membership, email, analytics, security, and payment-related information."],
+  "/info/privacy": ["Privacy Policy | Atma Rekha", "Learn how Atma Rekha uses account, reading, community, membership, email, analytics, security, and payment information."],
   "/info/terms": ["Terms of Use | Atma Rekha", "Read the rules for Atma Rekha accounts, manga access, community features, memberships, payments, and moderation."],
   "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Discover Pal Do Pal Ke Lamhe, a separate original story from the creator of Atma Rekha."],
 };
