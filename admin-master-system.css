@@ -239,7 +239,7 @@ main.admin-page.ar-admin-v3 .ar-overview {
 }
 
 /* 3. Cards, dashboard metrics and panels */
-main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-panel,.ar-admin-section,.admin-studio-card,.ar-cr-card,.ar-ops-card,.ar-mgmt-card,.ar-control-room section,.ar-admin-stat-card,.ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-admin-status-card,.ar-admin-workspace,.ar-membership-plan,.ar-membership-activity,.admin-studio-modal,.ar-utility-section) {
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-panel,.ar-admin-section,.admin-studio-card,.ar-cr-card,.ar-ops-card,.ar-mgmt-card,.ar-admin-stat-card,.ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-admin-status-card,.ar-membership-plan,.ar-membership-activity,.admin-studio-modal,.ar-utility-section) {
   min-width: 0;
   padding: 16px;
   background: var(--admin-card-bg) !important;
