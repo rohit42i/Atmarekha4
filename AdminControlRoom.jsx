@@ -106,6 +106,7 @@ async function task(run) {
 
 function Metric({ item, compact = false }) {
   const tracked = item.value !== null && item.value !== undefined && !(typeof item.value === 'number' && !Number.isFinite(item.value));
+  const unavailableReason = item.reason || `No value was returned by ${item.source || 'the configured source'}.`;
   let value = '—';
   if (tracked) {
     if (item.unit === 'money') value = fmtMoney(item.value);
@@ -118,8 +119,8 @@ function Metric({ item, compact = false }) {
     else value = fmtNum(item.value);
   }
   return <article className={'ar-cr-metric' + (compact ? ' is-compact' : '') + (!tracked ? ' is-untracked' : '')}>
-    <div className="ar-cr-metric-head"><span>{item.label}</span>{!tracked && <span className="ar-cr-untracked-dot" title="No value was returned by the configured source">i</span>}</div>
-    <strong>{value}</strong>
+    <div className="ar-cr-metric-head"><span>{item.label}</span>{!tracked && <span className="ar-cr-untracked-dot" title={unavailableReason} aria-label={unavailableReason}>i</span>}</div>
+    <strong aria-label={tracked ? undefined : item.label + ': unavailable'}>{value}</strong>
     <p>{item.description}</p>
     <small>{item.source || 'Derived from available admin data'}</small>
   </article>;
@@ -351,6 +352,11 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   // The Worker explicitly flags reader-metric query failures; hide those values rather than showing a false zero.
   const activeReaders = cloudReadersAvailable ? asNumber(cloud.active_readers) : null;
   const returningReaders = cloudReadersAvailable ? asNumber(cloud.returning_readers) : null;
+  const readerMetricGap = cloud.reader_metrics_limited
+    ? (cloud.reader_metrics_limited_reason || 'Some historical view events do not include stable reader identities.')
+    : !cloudAnalyticsAvailable
+      ? (data.cloudflareError || 'Reader analytics have not returned a complete result yet.')
+      : 'The analytics source did not return complete reader totals.';
   const dailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.daily_trend) ? cloud.daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
   const previousDailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.previous_daily_trend) ? cloud.previous_daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
   const dailyViewValues = dailyTrendRows.map(row => row.views);
@@ -561,8 +567,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Views in previous window', previousViews, 'count', 'Same-length period immediately before the selected window.', 'Selected-period analytics'),
         m('Traffic & Reach', 'View change versus previous', deltaPercent(currentViews, previousViews), 'percent', 'Percent change; unavailable when the previous baseline is zero and current is non-zero.', 'Current and previous views'),
         m('Traffic & Reach', 'Average views per day', currentViews == null ? null : currentViews / selectedDays, 'decimal', 'Selected-window views divided by its number of days.', 'Derived'),
-        m('Traffic & Reach', 'Active readers in window', activeReaders, 'count', 'Distinct readers with stable viewer identities; hidden if historical records make the count incomplete.', 'Cloudflare / admin function'),
-        m('Traffic & Reach', 'Returning readers in window', returningReaders, 'count', 'Identified readers with events on two or more days; hidden if historical identity is incomplete.', 'Cloudflare / admin function'),
+        m('Traffic & Reach', 'Active readers in window', activeReaders, 'count', activeReaders == null ? readerMetricGap : 'Distinct readers with stable viewer identities in the selected period.', 'Cloudflare / admin function'),
+        m('Traffic & Reach', 'Returning readers in window', returningReaders, 'count', returningReaders == null ? readerMetricGap : 'Identified readers with events on two or more days in the selected period.', 'Cloudflare / admin function'),
         m('Traffic & Reach', 'Returning reader share', ratio(returningReaders, activeReaders), 'percent', 'Returning readers divided by active readers.', 'Derived'),
         m('Traffic & Reach', 'Views per active reader', currentViews != null && activeReaders != null && Number(activeReaders) > 0 ? currentViews / Number(activeReaders) : null, 'decimal', 'Period views divided by active readers.', 'Derived'),
         m('Traffic & Reach', 'Published chapters with reads', cloudViewsAvailable ? chaptersWithViews.length : null, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
