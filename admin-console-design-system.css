@@ -822,3 +822,58 @@ main.admin-page.ar-admin-v3 .ar-admin-utility-rail { width: 100% !important; min
     transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important;
   }
 }
+
+/* Keep the legacy HomeGuard token aliases in the same monochrome theme. */
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3[data-admin-theme="light"] {
+  --ar-ui-bg: #ffffff !important;
+  --ar-ui-sidebar: #ffffff !important;
+  --ar-ui-surface: #ffffff !important;
+  --ar-ui-raised: #f7f7f7 !important;
+  --ar-ui-border: #dedede !important;
+  --ar-ui-border-soft: #ebebeb !important;
+  --ar-ui-text: #080808 !important;
+  --ar-ui-muted: #555555 !important;
+  --ar-ui-subtle: #707070 !important;
+  --ar-ui-accent: #111111 !important;
+  --ar-ui-accent-strong: #111111 !important;
+  --ar-ui-accent-soft: rgba(0,0,0,.055) !important;
+  --ar-ui-good: #177245 !important;
+  --ar-ui-warn: #666666 !important;
+  --ar-ui-danger: #b42318 !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+  --ar-ui-bg: #000000 !important;
+  --ar-ui-sidebar: #070707 !important;
+  --ar-ui-surface: #0b0b0b !important;
+  --ar-ui-raised: #141414 !important;
+  --ar-ui-border: #292929 !important;
+  --ar-ui-border-soft: #202020 !important;
+  --ar-ui-text: #ffffff !important;
+  --ar-ui-muted: #bdbdbd !important;
+  --ar-ui-subtle: #929292 !important;
+  --ar-ui-accent: #ffffff !important;
+  --ar-ui-accent-strong: #ffffff !important;
+  --ar-ui-accent-soft: rgba(255,255,255,.075) !important;
+  --ar-ui-good: #65d695 !important;
+  --ar-ui-warn: #bdbdbd !important;
+  --ar-ui-danger: #ff7777 !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-brand-mark {
+  background: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+  border: 1px solid var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-avatar-mini,.ar-admin-avatar) {
+  background: var(--admin-surface-2) !important;
+  color: var(--admin-text) !important;
+  border: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav button.active {
+  background: var(--admin-primary-soft) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: none !important;
+}
