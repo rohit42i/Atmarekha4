@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users", "email_change_requests", "user-details", "notifications"].includes(action)) {
+    if (!["analytics", "membership", "users", "email_change_requests", "user-details", "notifications", "dashboard-inventory"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
     }
 
@@ -287,6 +287,40 @@ Deno.serve(async (req) => {
           ...request,
           events: eventsByRequest.get(request.id) || [],
         })),
+      }, 200, origin);
+    }
+
+    if (action === "dashboard-inventory") {
+      const queries: Record<string, PromiseLike<any>> = {
+        chapters: admin.from("chapters").select("id,chapter_number,title,description,status,release_date,cover_url,deleted_at,deleted_previous_status,created_at,language").order("chapter_number", { ascending: true, nullsFirst: false }).limit(1500),
+        comments: admin.from("comments").select("id,user_id,chapter_id,announcement_id,community_post_id,parent_comment_id,created_at").order("created_at", { ascending: false }).limit(1000),
+        commentReports: admin.from("comment_reports").select("id,reason,status,created_at,reviewed_at").order("created_at", { ascending: false }).limit(1000),
+        moderationReports: admin.from("moderation_reports").select("id,source_type,reason,offense_count,status,created_at").order("created_at", { ascending: false }).limit(1000),
+        adminLogs: admin.from("admin_activity_log").select("id,admin_user_id,action,entity_type,entity_id,details,created_at").order("created_at", { ascending: false }).limit(250),
+        notifications: admin.from("admin_notification_log").select("id,title,target,target_count,sent_count,failed_count,removed_count,status,scheduled_for,sent_at,created_at,error").order("created_at", { ascending: false }).limit(250),
+        profiles: admin.from("profiles").select("id", { count: "exact", head: true }),
+      };
+      const entries = await Promise.all(Object.entries(queries).map(async ([key, query]) => {
+        try {
+          const { data, count, error } = await query;
+          if (error) return [key, { data: null, count: null, error: error.message || "Query failed." }];
+          return [key, { data: data ?? null, count: count ?? null, error: null }];
+        } catch (error) {
+          return [key, { data: null, count: null, error: error instanceof Error ? error.message : "Query failed." }];
+        }
+      }));
+      const results = Object.fromEntries(entries) as Record<string, { data: any; count: number | null; error: string | null }>;
+      return json({
+        inventory: {
+          chapters: results.chapters.data,
+          comments: results.comments.data,
+          commentReports: results.commentReports.data,
+          moderationReports: results.moderationReports.data,
+          adminLogs: results.adminLogs.data,
+          notifications: results.notifications.data,
+          profilesCount: results.profiles.count,
+        },
+        errors: Object.fromEntries(Object.entries(results).map(([key, result]) => [key, result.error])),
       }, 200, origin);
     }
 
