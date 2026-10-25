@@ -520,7 +520,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     name,
     pending: !settled,
     ok: Boolean(settled && ok),
-    error: settled ? (error ? String(error) : null) : null,
+    error: !settled ? null : error ? String(error) : ok ? null : 'Source returned no usable data.',
   });
   const cloudSettled = dataHas('cloudflare', 'cloudflareError');
   const analyticsSettled = dataHas('analytics', 'analyticsError');
@@ -976,7 +976,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       {SECTIONS.map(item => <button type="button" key={item.id} className={section === item.id ? 'active' : ''} onClick={() => { setSection(item.id); setSearch(''); }}><AdminIcon name={item.icon} size={16}/><span>{item.label}</span>{item.id === 'Metric Explorer' && <b>{allMetrics.length}</b>}</button>)}
     </nav>
 
-    {!loading && sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) failed. Metrics from those sources are marked unavailable; the page did not convert errors into zero counts.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
+    {!loading && sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) need attention out of {settledSources.length} completed; {pendingSources} are still waiting. Metrics from failed sources remain unavailable instead of being converted to zero.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
     {!loading && sourceErrors.length === 0 && <div className="ar-cr-alert is-ok"><AdminIcon name="pulse" size={18}/><div><strong>Data connections responding</strong><p>Analytics and operational tables returned results for this refresh. This checks data endpoints, not full public-site uptime.</p></div></div>}
 
     {section === 'Command Center' && <div className="ar-cr-command">
