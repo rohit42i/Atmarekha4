@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users", "email_change_requests", "user-details"].includes(action)) {
+    if (!["analytics", "membership", "users", "email_change_requests", "user-details", "notifications"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
     }
 
@@ -288,6 +288,16 @@ Deno.serve(async (req) => {
           events: eventsByRequest.get(request.id) || [],
         })),
       }, 200, origin);
+    }
+
+    if (action === "notifications") {
+      const { data: notificationRows, error: notificationError } = await admin
+        .from("admin_notification_log")
+        .select("id,title,body,target,target_count,sent_count,failed_count,removed_count,status,scheduled_for,sent_at,created_at,error")
+        .order("created_at", { ascending: false })
+        .limit(250);
+      if (notificationError) throw notificationError;
+      return json({ notifications: notificationRows || [] }, 200, origin);
     }
 
     if (action === "analytics") {
