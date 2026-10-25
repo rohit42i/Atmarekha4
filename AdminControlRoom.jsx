@@ -211,7 +211,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       task(() => supabase.from('comment_reports').select('id,reason,status,created_at,reviewed_at').order('created_at', { ascending: false }).limit(1000)),
       task(() => supabase.from('moderation_reports').select('id,source_type,reason,offense_count,status,created_at').order('created_at', { ascending: false }).limit(1000)),
       task(() => supabase.from('admin_activity_log').select('id,admin_user_id,action,entity_type,entity_id,details,created_at').order('created_at', { ascending: false }).limit(250)),
-      task(() => supabase.from('admin_notification_log').select('id,title,target,target_count,sent_count,failed_count,removed_count,status,scheduled_for,sent_at,created_at,error').order('created_at', { ascending: false }).limit(250)),
+      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'notifications' } })),
       task(() => supabase.from('profiles').select('id', { count: 'exact', head: true })),
     ]);
     const [analyticsResult, cloudResult, usersResult, membershipResult, chapterResult, commentResult, reportResult, moderationResult, logsResult, notificationsResult, profilesResult] = results;
@@ -236,8 +236,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       moderationReportsError: moderationResult.error,
       adminLogs: logsResult.data || [],
       adminLogsError: logsResult.error,
-      notifications: notificationsResult.data || [],
-      notificationsError: notificationsResult.error,
+      notifications: Array.isArray(notificationsResult.data?.notifications) ? notificationsResult.data.notifications : [],
+      notificationsError: notificationsResult.error || notificationsResult.data?.error?.message || notificationsResult.data?.error || (!Array.isArray(notificationsResult.data?.notifications) ? 'Notification history response was invalid.' : null),
       profilesCount: profilesResult.count,
       profilesError: profilesResult.error,
     };
