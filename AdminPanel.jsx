@@ -51,23 +51,40 @@ const SUPPORTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/
 const ADMIN_PAGE_BATCH_SIZE = 1000;
 
 async function loadAllChapterPageRows() {
-  const rows = [];
-  let offset = 0;
-  while (offset <= 100000) {
-    const { data, error } = await supabase
-      .from(PAGES)
-      .select('id, chapter_id, page_number, image_url')
-      .order('chapter_id', { ascending: true })
-      .order('page_number', { ascending: true })
-      .order('id', { ascending: true })
-      .range(offset, offset + ADMIN_PAGE_BATCH_SIZE - 1);
-    if (error) throw error;
-    const batch = data || [];
-    rows.push(...batch);
-    if (batch.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
-    offset += ADMIN_PAGE_BATCH_SIZE;
+  const first = await supabase
+    .from(PAGES)
+    .select('chapter_id', { count: 'exact' })
+    .order('chapter_id', { ascending: true })
+    .order('id', { ascending: true })
+    .range(0, ADMIN_PAGE_BATCH_SIZE - 1);
+  if (first.error) throw first.error;
+  const rows = [...(first.data || [])];
+  const total = Number(first.count ?? rows.length);
+  if (total > 100000) {
+    throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
   }
-  throw new Error('Page inventory exceeded the safe 100,000-row refresh limit. Use the dedicated Page Editor to work with individual chapters.');
+  if (rows.length >= total || rows.length < ADMIN_PAGE_BATCH_SIZE) return { data: rows, error: null };
+
+  // Fetch the remaining small projections in bounded parallel batches instead of
+  // downloading image URLs and requesting each 1,000-row page serially.
+  const offsets = [];
+  for (let offset = ADMIN_PAGE_BATCH_SIZE; offset < total; offset += ADMIN_PAGE_BATCH_SIZE) offsets.push(offset);
+  const concurrency = 4;
+  for (let index = 0; index < offsets.length; index += concurrency) {
+    const batchResults = await Promise.all(offsets.slice(index, index + concurrency).map(offset =>
+      supabase
+        .from(PAGES)
+        .select('chapter_id')
+        .order('chapter_id', { ascending: true })
+        .order('id', { ascending: true })
+        .range(offset, Math.min(offset + ADMIN_PAGE_BATCH_SIZE - 1, total - 1))
+    ));
+    for (const result of batchResults) {
+      if (result.error) throw result.error;
+      rows.push(...(result.data || []));
+    }
+  }
+  return { data: rows, error: null };
 }
 
 async function loadAllCommentReportRows() {
