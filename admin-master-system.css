@@ -150,7 +150,7 @@ main.admin-page.ar-admin-v3 .ar-admin-menu-button,
 main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop,
 main.admin-page.ar-admin-v3 .admin-bottom-nav { display:none; }
 main.admin-page.ar-admin-v3 .ar-admin-main { min-width: 0; }
-main.admin-page.ar-admin-v3 .ar-admin-content { width: 100%; max-width: 1440px; margin-inline: auto; padding: 24px; color: var(--admin-text-primary); }
+main.admin-page.ar-admin-v3 .ar-admin-content { width: 100%; max-width: 1200px; margin-inline: auto; padding: 24px; color: var(--admin-text-primary); }
 main.admin-page.ar-admin-v3 .ar-admin-content > * + * { margin-top: 16px; }
 main.admin-page.ar-admin-v3 .admin-stack { display: grid; gap: 16px; }
 main.admin-page.ar-admin-v3 :is(.ar-cr-dashboard-grid,.ar-cr-overview-grid,.ar-overview-grid,.ar-stat-grid,.admin-media-grid,.admin-form-grid,.ar-admin-grid) { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 16px; }
