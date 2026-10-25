@@ -1475,6 +1475,7 @@ export default function AdminPanel({ onLogout }) {
         reports={reports}
         pageCounts={pageCounts}
         pageCountsAvailable={pageCountsAvailable}
+        pageCountsLoading={pageCountsLoading}
         commentsAvailable={commentsAvailable}
         reportsAvailable={reportsAvailable}
         announcementsAvailable={announcementsAvailable}
