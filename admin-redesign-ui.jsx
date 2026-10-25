@@ -26,6 +26,7 @@ export function AdminIcon({name,size=18,strokeWidth=1.8,className=''}) {
     download:<><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 19v2h16v-2"/></>,
     mail:<><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></>,
     list:<><path d="M9 6h12M9 12h12M9 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></>,
+    plus:<path d="M12 5v14M5 12h14"/>,
     'arrow-right':<><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
     'arrow-up-right':<><path d="M7 17 17 7"/><path d="M8 7h9v9"/></>,
     'alert-circle':<><circle cx="12" cy="12" r="9"/><path d="M12 7v5M12 16h.01"/></>,
