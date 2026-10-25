@@ -14,6 +14,10 @@ const required = [
   ['InfoPage.jsx', 'AI generated material'],
   ['PrivacyPolicySections.jsx', '2. How we use your information'],
   ['PrivacyPolicySections.jsx', '5. Retention and account deletion'],
+  ['InfoPage.jsx', 'className="legal-document-intro"'],
+  ['InfoPage.css', 'font-family: Roboto, Arial, Helvetica, sans-serif;'],
+  ['InfoPage.css', '.legal-document-sections .info-section h3'],
+  ['index.html', 'family=Roboto:wght@400;500;600;700&display=swap'],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
@@ -558,7 +562,7 @@ if (!legalCopyRegression.includes('I use AI tools in parts of the visual process
     !legalCopyRegression.includes("type === 'privacy'") ||
     !privacyCopyRegression.includes('atmarekhainfo@gmail.com') ||
     !privacyCopyRegression.includes('atmarekhaoffical@gmail.com') ||
-    !privacyCopyRegression.includes('14-day recovery window') ||
+    !privacyCopyRegression.includes('recovery window of 14 days') ||
     privacyCopyRegression.includes('Personal data breaches') ||
     privacyCopyRegression.includes('Indian data-protection law') ||
     privacyCopyRegression.includes('within 48 hours') ||

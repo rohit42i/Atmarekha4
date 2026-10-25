@@ -14,7 +14,7 @@ export default function PrivacyPolicySections() {
         <li><strong>Account and profile:</strong> email address, account ID, display name, avatar, profile details, age confirmation and account status.</li>
         <li><strong>Reading and community:</strong> chapters viewed, reading progress, bookmarks, ratings, comments, reports and related activity.</li>
         <li><strong>Membership and payments:</strong> selected plan, subscription status, billing period, and Razorpay transaction or subscription references and payment status.</li>
-        <li><strong>Email and preferences:</strong> verification events, delivery records, reader-update preferences and unsubscribe status.</li>
+        <li><strong>Email and preferences:</strong> verification events, delivery records, reader update preferences and unsubscribe status.</li>
         <li><strong>Technical and usage information:</strong> page and chapter views, basic performance metrics, and technical request information such as browser or IP data where provided by the site or its services.</li>
         <li><strong>Media:</strong> profile images, manga pages and chapter covers stored or displayed by the website.</li>
       </ul>
@@ -34,25 +34,25 @@ export default function PrivacyPolicySections() {
     </Section>
 
     <Section title="3. Services used by Atma Rekha">
-      <p><strong>Supabase</strong> provides account sign-in and backend data services. <strong>Cloudflare</strong> provides website infrastructure, analytics and media storage. <strong>Resend</strong> delivers email. <strong>Razorpay</strong> processes membership payments.</p>
+      <p><strong>Supabase</strong> provides account sign in and backend data services. <strong>Cloudflare</strong> provides website infrastructure, analytics and media storage. <strong>Resend</strong> delivers email. <strong>Razorpay</strong> processes membership payments.</p>
       <p>These services receive information needed to perform their functions. Payment information is handled through Razorpay; do not send passwords, OTPs, UPI PINs, CVVs or full card details to Atma Rekha by email.</p>
     </Section>
 
     <Section title="4. Public content, email and browser storage">
       <p>Comments, ratings and profile details you make public can be seen by other readers. Do not put private information in public posts or comments.</p>
       <p>Reader updates and chapter announcements are enabled by default for new accounts. Turn them off in More &amp; Settings → Notification preferences or use the unsubscribe link in an update email. Essential account, verification, security and payment emails may still be sent.</p>
-      <p>The website uses browser storage for sign-in, preferences and reader features. Blocking it may prevent some features from working.</p>
+      <p>The website uses browser storage for sign in, preferences and reader features. Blocking it may prevent some features from working.</p>
     </Section>
 
     <Section title="5. Retention and account deletion">
       <p>We keep information while it is needed to run the account or feature, maintain a membership, support payments, manage community reports or address technical issues. Different services may keep their own logs or backups for different periods.</p>
-      <p>To request account deletion, use the Privacy Center, confirm your password and verify the request by email OTP. A 14-day recovery window starts after email verification. After that window, the request is reviewed and eligible information is processed for deletion. The request is not an instant erase, and some payment, security, moderation or backup records may remain for a period.</p>
+      <p>To request account deletion, use the Privacy Center, confirm your password and verify the request by email OTP. A recovery window of 14 days starts after email verification. After that window, the request is reviewed and eligible information is processed for deletion. The request is not an instant erase, and some payment, security, moderation or backup records may remain for a period.</p>
     </Section>
 
     <Section title="6. Your choices">
       <ul>
         <li>Update available profile details in your account settings.</li>
-        <li>Change reader-update preferences in More &amp; Settings or unsubscribe from an update email.</li>
+        <li>Change reader update preferences in More &amp; Settings or unsubscribe from an update email.</li>
         <li>Use the Privacy Center to request an available data export, withdraw consent or request account deletion.</li>
         <li>Contact support to ask about correcting information or a privacy request. We may ask you to verify account ownership before acting on it.</li>
       </ul>

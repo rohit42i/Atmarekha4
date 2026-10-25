@@ -289,3 +289,242 @@ html[data-theme="light"] .privacy-control-button:hover:not(:disabled){background
 .privacy-modal-backdrop input,.privacy-modal-backdrop select{box-sizing:border-box;width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--input-bg);color:var(--text-color)}
 .privacy-modal-backdrop .button-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
 .privacy-modal-backdrop .button-row button{flex:1 1 170px;min-height:44px}
+
+
+/* Consistent Roboto Medium layout for Terms, Privacy, and Contact pages. */
+.info-page {
+  font-family: Roboto, Arial, Helvetica, sans-serif;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+}
+
+.info-page .info-page-header h1,
+.info-page .info-page-header .header-kicker {
+  font-family: Roboto, Arial, Helvetica, sans-serif;
+  font-weight: 600;
+}
+
+.info-page.legal-info-page {
+  width: min(840px, calc(100% - 32px));
+  padding-top: 26px;
+}
+
+.info-page.legal-info-page .legal-document-card {
+  padding: clamp(22px, 4vw, 42px);
+  border-radius: 18px;
+}
+
+.legal-document-intro {
+  width: min(100%, 660px);
+  margin: 0 auto 8px;
+  padding: 2px 0 24px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.legal-document-intro p {
+  max-width: 600px;
+  margin: 0 auto 12px;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--text-color));
+}
+
+.legal-document-intro span {
+  display: block;
+  font-size: .82rem;
+  line-height: 1.5;
+  letter-spacing: .02em;
+  color: var(--muted-color, var(--text-secondary));
+}
+
+.legal-document-sections {
+  width: min(100%, 680px);
+  margin: 0 auto;
+}
+
+.legal-document-sections .info-section,
+.legal-document-sections .privacy-policy-section {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-color);
+  overflow: visible;
+}
+
+.legal-document-sections .info-section:first-child,
+.legal-document-sections .privacy-policy-section:first-child {
+  padding-top: 22px;
+  border-top: 0;
+}
+
+.legal-document-sections .info-section:last-child,
+.legal-document-sections .privacy-policy-section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.legal-document-sections .info-section h3,
+.legal-document-sections .privacy-policy-section h2 {
+  margin: 0 0 14px;
+  font-size: 1.08rem;
+  line-height: 1.4;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: .005em;
+}
+
+.legal-document-sections .info-section p,
+.legal-document-sections .privacy-policy-section p {
+  margin: 0;
+  font-size: .96rem;
+  line-height: 1.78;
+  font-weight: 500;
+  text-align: left;
+  color: var(--text-secondary, var(--text-color));
+  overflow-wrap: anywhere;
+}
+
+.legal-document-sections .info-section p + p,
+.legal-document-sections .privacy-policy-section p + p {
+  margin-top: 12px;
+}
+
+.legal-document-sections .info-section ul,
+.legal-document-sections .privacy-policy-section ul {
+  display: grid;
+  gap: 9px;
+  margin: 10px 0 0;
+  padding: 0 0 0 22px;
+  list-style: disc;
+}
+
+.legal-document-sections .info-section li,
+.legal-document-sections .privacy-policy-section li {
+  padding-left: 3px;
+  font-size: .96rem;
+  line-height: 1.72;
+  font-weight: 500;
+  text-align: left;
+  color: var(--text-secondary, var(--text-color));
+  overflow-wrap: anywhere;
+}
+
+.legal-document-sections .info-section strong,
+.legal-document-sections .privacy-policy-section strong {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.legal-document-sections a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-card {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #292929 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-sections .info-section,
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-sections .privacy-policy-section {
+  background: transparent !important;
+  color: #fff !important;
+  border-top-color: transparent !important;
+  border-right-color: transparent !important;
+  border-left-color: transparent !important;
+  border-bottom-color: #292929 !important;
+}
+
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-intro,
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-intro p,
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-sections .info-section p,
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-sections .privacy-policy-section p,
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-sections li {
+  color: #e8e8e8 !important;
+}
+
+html[data-theme="dark"] .info-page.legal-info-page .legal-document-sections strong {
+  color: #fff !important;
+}
+
+html[data-theme="light"] .info-page.legal-info-page .legal-document-card {
+  background: #fff !important;
+  color: #181818 !important;
+  border-color: #deded9 !important;
+  box-shadow: 0 8px 24px rgb(0 0 0 / .06) !important;
+}
+
+html[data-theme="light"] .info-page.legal-info-page .legal-document-sections .info-section,
+html[data-theme="light"] .info-page.legal-info-page .legal-document-sections .privacy-policy-section {
+  background: transparent !important;
+  color: #181818 !important;
+  border-top-color: transparent !important;
+  border-right-color: transparent !important;
+  border-left-color: transparent !important;
+  border-bottom-color: #e7e7e3 !important;
+}
+
+html[data-theme="light"] .info-page.legal-info-page .legal-document-intro p,
+html[data-theme="light"] .info-page.legal-info-page .legal-document-sections .info-section p,
+html[data-theme="light"] .info-page.legal-info-page .legal-document-sections .privacy-policy-section p,
+html[data-theme="light"] .info-page.legal-info-page .legal-document-sections li {
+  color: #333 !important;
+}
+
+html[data-theme="light"] .info-page.legal-info-page .legal-document-sections strong {
+  color: #111 !important;
+}
+
+@media (max-width: 700px) {
+  .info-page.legal-info-page {
+    width: min(100%, calc(100% - 24px));
+    padding-top: 18px;
+    padding-bottom: 88px;
+  }
+
+  .info-page.legal-info-page .legal-document-card {
+    padding: 22px 18px;
+    border-radius: 15px;
+  }
+
+  .legal-document-intro {
+    padding-bottom: 20px;
+  }
+
+  .legal-document-intro p {
+    font-size: .94rem;
+  }
+
+  .legal-document-sections .info-section,
+  .legal-document-sections .privacy-policy-section {
+    padding: 21px 0;
+  }
+
+  .legal-document-sections .info-section:first-child,
+  .legal-document-sections .privacy-policy-section:first-child {
+    padding-top: 19px;
+  }
+
+  .legal-document-sections .info-section h3,
+  .legal-document-sections .privacy-policy-section h2 {
+    font-size: 1.02rem;
+  }
+
+  .legal-document-sections .info-section p,
+  .legal-document-sections .privacy-policy-section p,
+  .legal-document-sections .info-section li,
+  .legal-document-sections .privacy-policy-section li {
+    font-size: .94rem;
+    line-height: 1.72;
+  }
+}
