@@ -341,7 +341,6 @@ main.admin-page.ar-admin-v3 option { background: var(--admin-input-bg); color: v
 main.admin-page.ar-admin-v3 :is(.ar-admin-brand strong,.ar-admin-workspace strong,.ar-admin-profile strong,.ar-admin-nav-text) { color: var(--admin-text-primary); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-brand span,.ar-admin-workspace small,.ar-admin-profile small,.ar-admin-nav-label) { color: var(--admin-text-secondary); }
 main.admin-page.ar-admin-v3 .ar-admin-nav button:hover { color: var(--admin-text-primary); background: var(--admin-bg-secondary); }
-main.admin-page.ar-admin-v3 .ar-admin-nav button.active { color: var(--admin-text-primary); background: var(--admin-bg-tertiary); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-profile,.ar-admin-profile-menu,.ar-admin-command-trigger,.ar-admin-search) { background: var(--admin-card-bg); color: var(--admin-text-primary); border-color: var(--admin-border-color); }
 main.admin-page.ar-admin-v3 .ar-admin-notice { padding: 12px 14px; border: 1px solid var(--admin-border-color); border-radius: 8px; background: var(--admin-bg-secondary); color: var(--admin-text-primary); overflow-wrap: anywhere; }
 main.admin-page.ar-admin-v3 .ar-admin-notice.error { border-color: color-mix(in srgb, var(--admin-danger) 55%, var(--admin-border-color)); }
