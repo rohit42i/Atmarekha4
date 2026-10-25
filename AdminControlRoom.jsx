@@ -106,7 +106,7 @@ async function task(run) {
 
 function Metric({ item, compact = false }) {
   const tracked = item.value !== null && item.value !== undefined && !(typeof item.value === 'number' && !Number.isFinite(item.value));
-  let value = 'Not tracked';
+  let value = '—';
   if (tracked) {
     if (item.unit === 'money') value = fmtMoney(item.value);
     else if (item.unit === 'percent') value = Number(item.value).toFixed(1) + '%';
@@ -118,7 +118,7 @@ function Metric({ item, compact = false }) {
     else value = fmtNum(item.value);
   }
   return <article className={'ar-cr-metric' + (compact ? ' is-compact' : '') + (!tracked ? ' is-untracked' : '')}>
-    <div className="ar-cr-metric-head"><span>{item.label}</span>{!tracked && <span className="ar-cr-untracked-dot" title="The source does not provide this metric">—</span>}</div>
+    <div className="ar-cr-metric-head"><span>{item.label}</span>{!tracked && <span className="ar-cr-untracked-dot" title="No value was returned by the configured source">i</span>}</div>
     <strong>{value}</strong>
     <p>{item.description}</p>
     <small>{item.source || 'Derived from available admin data'}</small>
@@ -184,7 +184,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [days, setDays] = useState(30);
   const [section, setSection] = useState('Command Center');
   const [search, setSearch] = useState('');
-  const [metricFilter, setMetricFilter] = useState('all');
+  const [metricFilter, setMetricFilter] = useState('tracked');
   const [metricSort, setMetricSort] = useState('category');
   const [chapterRank, setChapterRank] = useState('views');
   const [chapterStatus, setChapterStatus] = useState('all');
@@ -979,9 +979,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     </div>}
 
     {section !== 'Command Center' && section !== 'Feature Workbench' && <div className="ar-cr-explorer">
-      <div className="ar-cr-explorer-head"><div><span className="ar-cr-kicker">ANALYTICS WORKSPACE</span><h3>{section}</h3><p>{section === 'Metric Explorer' ? 'Search, filter and export 100+ tracked or explicitly unavailable analytics.' : 'Inspect verified indicators for this operational domain. Click a section in the control-room navigation to switch domains.'}</p></div><div className="ar-cr-explorer-tools"><label><span>Search metrics</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, source or meaning"/></label><label><span>Data coverage</span><select value={metricFilter} onChange={event => setMetricFilter(event.target.value)}><option value="all">All metrics</option><option value="tracked">Tracked only</option><option value="untracked">Not tracked</option></select></label><label><span>Sort</span><select value={metricSort} onChange={event => setMetricSort(event.target.value)}><option value="category">Category</option><option value="name">Name</option><option value="largest">Largest value</option></select></label><button type="button" className="ar-cr-btn" onClick={() => setCollapsedMetrics(value => !value)}>{collapsedMetrics ? 'Expand details' : 'Compact view'}</button></div></div>
+      <div className="ar-cr-explorer-head"><div><span className="ar-cr-kicker">ANALYTICS WORKSPACE</span><h3>{section}</h3><p>{section === 'Metric Explorer' ? 'Search, filter and export 100+ tracked or explicitly unavailable analytics.' : 'Inspect verified indicators for this operational domain. Click a section in the control-room navigation to switch domains.'}</p></div><div className="ar-cr-explorer-tools"><label><span>Search metrics</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search name, source or meaning"/></label><label><span>Data coverage</span><select value={metricFilter} onChange={event => setMetricFilter(event.target.value)}><option value="tracked">Available data</option><option value="all">All metrics</option><option value="untracked">Source gaps</option></select></label><label><span>Sort</span><select value={metricSort} onChange={event => setMetricSort(event.target.value)}><option value="category">Category</option><option value="name">Name</option><option value="largest">Largest value</option></select></label><button type="button" className="ar-cr-btn" onClick={() => setCollapsedMetrics(value => !value)}>{collapsedMetrics ? 'Expand details' : 'Compact view'}</button></div></div>
       <div className="ar-cr-results-line"><span>{visibleMetrics.length} metrics shown</span><span>{visibleMetrics.filter(item => item.value != null).length} with values · {visibleMetrics.filter(item => item.value == null).length} unavailable/not tracked</span><button type="button" className="ar-cr-text-btn" onClick={exportVisibleMetrics}>Export visible catalogue</button></div>
-      {section === 'Metric Explorer' && <div className="ar-cr-category-chips">{metricCategories.map(category => <button key={category} type="button" onClick={() => { setSearch(category); setMetricFilter('all'); }}>{category}<b>{metricGroups[category].length}</b></button>)}</div>}
+      {section === 'Metric Explorer' && <div className="ar-cr-category-chips">{metricCategories.map(category => <button key={category} type="button" onClick={() => { setSearch(category); setMetricFilter('tracked'); }}>{category}<b>{metricGroups[category].length}</b></button>)}</div>}
       <div className={'ar-cr-metric-grid' + (collapsedMetrics ? ' compact' : '')}>
         {visibleMetrics.map((item, index) => <Metric key={item.category + ':' + item.label} item={item} compact={collapsedMetrics}/>)}
       </div>
