@@ -266,6 +266,7 @@ export default function AdminPanel({ onLogout }) {
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const loadSequence = useRef(0);
   const pageInventoryRequest = useRef(0);
+  const reportHistoryRequest = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
   const [chapterPerformanceLoaded, setChapterPerformanceLoaded] = useState(false);
@@ -317,6 +318,7 @@ export default function AdminPanel({ onLogout }) {
     if (initialLoad) setLoading(true);
     setNotice({ type: '', text: '' });
     if (!pageCountsAvailable) setPageCountsLoading(true);
+    reportHistoryRequest.current += 1;
     setReportsLoadedFully(false);
     setReportsLoading(false);
     setReportHistoryAttempted(false);
@@ -468,7 +470,9 @@ export default function AdminPanel({ onLogout }) {
     if (reportsLoading || reportsLoadedFully || reportHistoryAttempted) return;
     setReportHistoryAttempted(true);
     setReportsLoading(true);
+    const requestId = ++reportHistoryRequest.current;
     const result = await captureAdminSource(() => loadAllCommentReportRows());
+    if (requestId !== reportHistoryRequest.current) return;
     if (result.error) {
       setNotice({ type: 'error', text: 'Report history could not be fully loaded: ' + adminSourceError(result.error) });
       setReportsLoading(false);
