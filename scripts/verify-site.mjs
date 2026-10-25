@@ -977,7 +977,7 @@ const iconRegistryBlock = adminIconRegistrySource.split('const paths = {')[1]?.s
 const registeredAdminIcons = new Set(
   [...iconRegistryBlock.matchAll(/^\s*(?:'([^']+)'|([A-Za-z][\w-]*))\s*:/gm)].map(match => match[1] || match[2])
 );
-const adminUtilityRailSource = await readFile('AdminUtilityRail.jsx', 'utf8');
+
 const usedAdminIcons = new Set([
   ...[...adminPanelSource.matchAll(/\{ key: '[^']+', icon: '([^']+)'/g)].map(match => match[1]),
   ...[...adminControlRoom.matchAll(/icon:\s*'([^']+)'/g)].map(match => match[1]),
