@@ -32,7 +32,7 @@ const PAGES = {
   report: {
     eyebrow: 'REPORT', title: 'Report a problem',
     sections: [
-      { heading: 'Complaints and support', body: 'For a broken page, comment, account, membership or privacy issue, email us. Grievance Officer: Arkesh, creator. Consumer complaints are acknowledged within 48 hours and addressed within one month where applicable. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
+      { heading: 'Complaints and support', body: 'For a broken page, comment, account, membership or privacy issue, email us with the details. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
     ],
   },
   terms: {
@@ -41,7 +41,7 @@ const PAGES = {
   },
   privacy: {
     eyebrow: 'PRIVACY', title: 'Privacy Policy',
-    description: 'How Atma Rekha uses and protects account, reading, community and payment-related information.',
+    description: 'What information Atma Rekha uses and how it is handled.',
   },
 };
 
