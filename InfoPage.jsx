@@ -59,16 +59,15 @@ export default function InfoPage({ type, onBack }) {
   const isTerms = type === 'terms';
   const isPrivacy = type === 'privacy';
 
-  return <main className="info-page">
+  return <main className={`info-page${isTerms || isPrivacy ? ' legal-info-page' : ''}`}>
     <header className="subpage-header info-page-header">
       <button className="back-button" onClick={onBack} aria-label="Back">←</button>
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
     </header>
 
-    {(isAbout || isTerms || isPrivacy) && <section className="info-card info-hero">
+    {isAbout && <section className="info-card info-hero">
       <h2>{page.title}</h2>
       <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure manga created by Arkesh.' : page.description}</p>
-      {(isTerms || isPrivacy) && <p className="privacy-version">Last updated: 25 October 2026</p>}
     </section>}
 
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
@@ -76,12 +75,20 @@ export default function InfoPage({ type, onBack }) {
       <div className="about-story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
     </section> : null}
 
-    {isTerms && <section className="info-card info-content-card terms-privacy-policy" aria-label="Terms of Use">
-      <TermsOfUseSections />
+    {isTerms && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Terms of Use">
+      <header className="legal-document-intro">
+        <p>{page.description}</p>
+        <span>Last updated: 25 October 2026</span>
+      </header>
+      <div className="legal-document-sections terms-document-sections"><TermsOfUseSections /></div>
     </section>}
 
-    {isPrivacy && <section className="info-card info-content-card terms-privacy-policy" aria-label="Privacy Policy">
-      <PrivacyPolicySections />
+    {isPrivacy && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Privacy Policy">
+      <header className="legal-document-intro">
+        <p>{page.description}</p>
+        <span>Last updated: 25 October 2026</span>
+      </header>
+      <div className="legal-document-sections privacy-document-sections"><PrivacyPolicySections /></div>
     </section>}
 
     {!isAbout && !isTerms && !isPrivacy && <section className="info-card info-content-card">
