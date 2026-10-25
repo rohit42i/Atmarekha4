@@ -261,7 +261,7 @@ export default function PrivacyCenter() {
     <section className="privacy-hero">
       <h1>Privacy</h1>
       <p>This page explains what information Atma Rekha uses, why it is needed, and the choices you have.</p>
-      <p className="privacy-version">Last updated: 20 October 2026</p>
+      <p className="privacy-version">Last updated: 25 October 2026</p>
     </section>
 
     <section className="privacy-policy-card">
