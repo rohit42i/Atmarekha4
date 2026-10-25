@@ -377,7 +377,87 @@ export default function AdminPanel({ onLogout }) {
         setLoading(false);
       }
     }
-    if (requestId === loadSequence.current) void refreshPageInventory(requestId);
+    if (requestId === loadSequence.current) {
+      void refreshPageInventory(requestId);
+      void refreshChapterPerformance(requestId);
+    }
+  };
+
+  const refreshPageInventory = async requestId => {
+    const result = await captureAdminSource(() => loadAllChapterPageRows());
+    if (requestId !== loadSequence.current) return;
+    if (result.error) {
+      setPageCountsLoading(false);
+      setPageCountsAvailable(false);
+      console.warn('Admin page inventory could not be refreshed:', result.error);
+      return;
+    }
+    const counts = {};
+    for (const row of result.data || []) {
+      if (!row?.chapter_id) continue;
+      counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
+    }
+    setPageCounts(counts);
+    setPageCountsAvailable(true);
+    setPageCountsLoading(false);
+  };
+
+  const refreshChapterPerformance = async requestId => {
+    const result = await captureAdminSource(() =>
+      supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } })
+        .then(response => ({ data: response.data?.data || null, error: response.error }))
+    );
+    if (requestId !== loadSequence.current) return;
+    if (result.error) {
+      console.warn('Chapter performance metrics could not be refreshed:', result.error);
+      setChapterPerformanceLoaded(true);
+      return;
+    }
+    const performanceMap = {};
+    for (const row of result.data?.chapter_stats || []) {
+      if (!row?.id) continue;
+      performanceMap[row.id] = {
+        views: Number(row.period_views ?? row.views ?? 0),
+        likes: Number(row.period_likes ?? row.likes ?? 0),
+        shares: Number(row.period_shares ?? row.shares ?? 0),
+      };
+    }
+    setChapterPerformance(performanceMap);
+    setChapterPerformanceLoaded(true);
+  };
+
+  const loadFullReportHistory = async () => {
+    if (reportsLoading || reportsLoadedFully || reportHistoryAttempted) return;
+    setReportHistoryAttempted(true);
+    setReportsLoading(true);
+    const result = await captureAdminSource(() => loadAllCommentReportRows());
+    if (result.error) {
+      setNotice({ type: 'error', text: 'Report history could not be fully loaded: ' + adminSourceError(result.error) });
+      setReportsLoading(false);
+      return;
+    }
+    try {
+      const currentComments = comments;
+      const merged = await mergeReportedComments(result.data || [], currentComments);
+      const knownIds = new Set(currentComments.map(row => row.id));
+      const additional = merged
+        .filter(row => !knownIds.has(row.id))
+        .map(row => ({
+          ...row,
+          author_display_name: String(row.author_name || '').trim() || 'Reader',
+        }));
+      if (additional.length) setComments(current => [...current, ...additional]);
+      setReports(result.data || []);
+      setReportsAvailable(true);
+      setReportsLoadedFully(true);
+    } catch (error) {
+      setNotice({ type: 'error', text: 'Report history loaded with limited comment details: ' + adminSourceError(error) });
+      setReports(result.data || []);
+      setReportsAvailable(true);
+      setReportsLoadedFully(true);
+    } finally {
+      setReportsLoading(false);
+    }
   };
 
   // Reports can reference comments outside the latest comments page.
@@ -399,6 +479,11 @@ export default function AdminPanel({ onLogout }) {
     void load();
     return () => { loadSequence.current += 1; };
   }, []);
+
+  useEffect(() => {
+    if (tab !== 'Reports' || reportsLoadedFully || reportsLoading || reportHistoryAttempted) return;
+    void loadFullReportHistory();
+  }, [tab, reportsLoadedFully, reportsLoading, reportHistoryAttempted]);
 
   useEffect(() => {
     const refreshHandler = () => load();
