@@ -141,9 +141,5 @@ export default function PrivacyPolicySections() {
       <p>Include relevant details, but never send a password, OTP, UPI PIN, CVV or full card number.</p>
     </Section>
 
-    <Section title="16. Contact">
-      <p>For privacy requests, account issues or complaints, email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. For general information about Atma Rekha, email <a href={`mailto:${INFO_EMAIL}`}>{INFO_EMAIL}</a>.</p>
-      <p>Include the account email and a short description of the request. Never send passwords, OTPs, UPI PINs, CVVs or full payment-card details.</p>
-    </Section>
   </>;
 }
