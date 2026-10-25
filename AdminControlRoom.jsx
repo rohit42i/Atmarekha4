@@ -206,16 +206,14 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       task(() => fetchCloudflareAdminAnalytics(Number(days))),
       task(() => supabase.functions.invoke('get-admin-user-stats')),
       task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } })),
-      task(() => supabase.from('chapters').select('id,chapter_number,title,description,status,release_date,cover_url,deleted_at,deleted_previous_status,created_at,language').order('chapter_number', { ascending: true, nullsFirst: false }).limit(1500)),
-      task(() => supabase.from('comments').select('id,user_id,chapter_id,announcement_id,community_post_id,parent_comment_id,created_at').order('created_at', { ascending: false }).limit(1000)),
-      task(() => supabase.from('comment_reports').select('id,reason,status,created_at,reviewed_at').order('created_at', { ascending: false }).limit(1000)),
-      task(() => supabase.from('moderation_reports').select('id,source_type,reason,offense_count,status,created_at').order('created_at', { ascending: false }).limit(1000)),
-      task(() => supabase.from('admin_activity_log').select('id,admin_user_id,action,entity_type,entity_id,details,created_at').order('created_at', { ascending: false }).limit(250)),
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'notifications' } })),
-      task(() => supabase.from('profiles').select('id', { count: 'exact', head: true })),
+      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'dashboard-inventory' } })),
     ]);
-    const [analyticsResult, cloudResult, usersResult, membershipResult, chapterResult, commentResult, reportResult, moderationResult, logsResult, notificationsResult, profilesResult] = results;
+    const [analyticsResult, cloudResult, usersResult, membershipResult, inventoryResult] = results;
     const membershipEnvelope = membershipResult.data || {};
+    const inventoryEnvelope = inventoryResult.data || {};
+    const inventory = inventoryEnvelope.inventory || {};
+    const inventoryErrors = inventoryEnvelope.errors || {};
+    const inventoryError = key => inventoryResult.error || inventoryEnvelope.error?.message || inventoryEnvelope.error || inventoryErrors[key] || null;
     const combined = {
       analytics: analyticsResult.data?.data?.data || analyticsResult.data?.data || null,
       analyticsError: analyticsResult.error || analyticsResult.data?.error?.message || null,
@@ -226,20 +224,20 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       membership: membershipEnvelope?.data || null,
       membershipError: membershipResult.error || membershipEnvelope?.error?.message || null,
       registeredUsers: asNumber(membershipEnvelope?.registered_users ?? usersResult.data?.logged_in_users),
-      chapters: chapterResult.data || chapters,
-      chaptersError: chapterResult.error,
-      comments: commentResult.data || comments,
-      commentsError: commentResult.error,
-      commentReports: reportResult.data || reports,
-      commentReportsError: reportResult.error,
-      moderationReports: moderationResult.data || [],
-      moderationReportsError: moderationResult.error,
-      adminLogs: logsResult.data || [],
-      adminLogsError: logsResult.error,
-      notifications: Array.isArray(notificationsResult.data?.notifications) ? notificationsResult.data.notifications : [],
-      notificationsError: notificationsResult.error || notificationsResult.data?.error?.message || notificationsResult.data?.error || (!Array.isArray(notificationsResult.data?.notifications) ? 'Notification history response was invalid.' : null),
-      profilesCount: profilesResult.count,
-      profilesError: profilesResult.error,
+      chapters: Array.isArray(inventory.chapters) ? inventory.chapters : chapters,
+      chaptersError: inventoryError('chapters'),
+      comments: Array.isArray(inventory.comments) ? inventory.comments : comments,
+      commentsError: inventoryError('comments'),
+      commentReports: Array.isArray(inventory.commentReports) ? inventory.commentReports : reports,
+      commentReportsError: inventoryError('commentReports'),
+      moderationReports: Array.isArray(inventory.moderationReports) ? inventory.moderationReports : [],
+      moderationReportsError: inventoryError('moderationReports'),
+      adminLogs: Array.isArray(inventory.adminLogs) ? inventory.adminLogs : [],
+      adminLogsError: inventoryError('adminLogs'),
+      notifications: Array.isArray(inventory.notifications) ? inventory.notifications : [],
+      notificationsError: inventoryError('notifications'),
+      profilesCount: inventory.profilesCount ?? null,
+      profilesError: inventoryError('profiles'),
     };
     // Ignore slower refreshes when a newer period/manual refresh has already started.
     if (requestId !== loadSequence.current) return;
