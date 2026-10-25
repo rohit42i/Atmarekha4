@@ -852,10 +852,12 @@ if (!adminControlRoom.includes('const sourceState = (name, settled, ok, error = 
   console.error('CHECK FAILED: pending sources must not be reported as failed while the dashboard is loading.');
   failed = true;
 }
-const initialAdminLoadStart = adminPanelSource.indexOf('const [chapterResult');
-const initialAdminLoadEnd = adminPanelSource.indexOf(']);', initialAdminLoadStart);
-const initialAdminLoad = initialAdminLoadStart >= 0 && initialAdminLoadEnd >= 0
-  ? adminPanelSource.slice(initialAdminLoadStart, initialAdminLoadEnd)
+const initialAdminLoadStart = adminPanelSource.indexOf('const chapterTask = captureAdminSource(() => buildChapters());');
+const primaryChapterAwait = adminPanelSource.indexOf('const chapterResult = await chapterTask;', initialAdminLoadStart);
+const firstPaintUnlock = adminPanelSource.indexOf('setLoading(false);', primaryChapterAwait);
+const ancillaryJoin = adminPanelSource.indexOf('const [pdpklResult, commentResult', primaryChapterAwait);
+const initialAdminLoad = initialAdminLoadStart >= 0 && primaryChapterAwait > initialAdminLoadStart
+  ? adminPanelSource.slice(initialAdminLoadStart, primaryChapterAwait)
   : '';
 if (!adminPanelSource.includes("import './admin-console-design-system.css';") ||
     !adminPanelSource.includes("data-admin-theme={adminTheme}") ||
@@ -881,8 +883,13 @@ if (!adminControlRoom.includes("useState('tracked')") ||
   console.error('CHECK FAILED: admin metric explorer must prioritize usable values and avoid repeated untracked placeholders.');
   failed = true;
 }
+if (initialAdminLoadStart < 0 || primaryChapterAwait < initialAdminLoadStart ||
+    firstPaintUnlock < primaryChapterAwait || ancillaryJoin < firstPaintUnlock) {
+  console.error('CHECK FAILED: the admin workspace must render after primary chapter data, before ancillary requests finish.');
+  failed = true;
+}
 if (initialAdminLoad.includes('loadAllChapterPageRows') || initialAdminLoad.includes('loadAllCommentReportRows')) {
-  console.error('CHECK FAILED: heavy page/report history scans must not block the initial admin dashboard load.');
+  console.error('CHECK FAILED: full page/report history scans must not be included in the initial admin request batch.');
   failed = true;
 }
 if (!adminUtilityRailSource.includes('Counting page records…') ||
