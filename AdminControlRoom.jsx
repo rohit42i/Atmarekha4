@@ -201,13 +201,64 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const requestId = ++loadSequence.current;
     const startedAt = Date.now();
     setRefreshing(true);
-    const results = await Promise.all([
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })),
-      task(() => fetchCloudflareAdminAnalytics(Number(days))),
-      task(() => supabase.functions.invoke('get-admin-user-stats')),
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } })),
-      task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'dashboard-inventory' } })),
-    ]);
+    const publishPartial = patch => {
+      if (requestId !== loadSequence.current) return;
+      setBundle(previous => ({ ...(previous || {}), ...patch }));
+    };
+    const analyticsTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }))
+      .then(result => {
+        const payload = result.data?.data?.data || result.data?.data || null;
+        publishPartial({ analytics: payload, analyticsError: result.error || result.data?.error?.message || null });
+        return result;
+      });
+    const cloudTask = task(() => fetchCloudflareAdminAnalytics(Number(days)))
+      .then(result => {
+        publishPartial({ cloudflare: result.data || null, cloudflareError: result.error || null });
+        return result;
+      });
+    const usersTask = task(() => supabase.functions.invoke('get-admin-user-stats'))
+      .then(result => {
+        publishPartial({
+          users: result.data?.data || result.data || null,
+          usersError: result.error || result.data?.error?.message || null,
+        });
+        return result;
+      });
+    const membershipTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'membership' } }))
+      .then(result => {
+        const payload = result.data || {};
+        publishPartial({
+          membership: payload.data || null,
+          membershipError: result.error || payload.error?.message || null,
+          registeredUsers: asNumber(payload.registered_users),
+        });
+        return result;
+      });
+    const inventoryTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'dashboard-inventory' } }))
+      .then(result => {
+        const envelope = result.data || {};
+        const inventory = envelope.inventory || {};
+        const errors = envelope.errors || {};
+        const sourceError = key => result.error || envelope.error?.message || envelope.error || errors[key] || null;
+        publishPartial({
+          chapters: Array.isArray(inventory.chapters) ? inventory.chapters : chapters,
+          chaptersError: sourceError('chapters'),
+          comments: Array.isArray(inventory.comments) ? inventory.comments : comments,
+          commentsError: sourceError('comments'),
+          commentReports: Array.isArray(inventory.commentReports) ? inventory.commentReports : reports,
+          commentReportsError: sourceError('commentReports'),
+          moderationReports: Array.isArray(inventory.moderationReports) ? inventory.moderationReports : [],
+          moderationReportsError: sourceError('moderationReports'),
+          adminLogs: Array.isArray(inventory.adminLogs) ? inventory.adminLogs : [],
+          adminLogsError: sourceError('adminLogs'),
+          notifications: Array.isArray(inventory.notifications) ? inventory.notifications : [],
+          notificationsError: sourceError('notifications'),
+          profilesCount: inventory.profilesCount ?? null,
+          profilesError: sourceError('profiles'),
+        });
+        return result;
+      });
+    const results = await Promise.all([analyticsTask, cloudTask, usersTask, membershipTask, inventoryTask]);
     const [analyticsResult, cloudResult, usersResult, membershipResult, inventoryResult] = results;
     const membershipEnvelope = membershipResult.data || {};
     const inventoryEnvelope = inventoryResult.data || {};
@@ -991,7 +1042,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
           <p><strong>Period metrics</strong> use the selected reporting window and the existing analytics function/Cloudflare admin API.</p>
           <p><strong>Derived ratios</strong> are computed only when the denominator is available and non-zero. They are not person-level conversion rates unless explicitly stated.</p>
           <p><strong>Sampled lists</strong> state their row limits. Counts from these lists are not represented as lifetime totals.</p>
-          <p><strong>Not tracked</strong> means the current backend does not provide that data. This control room deliberately does not invent device, source, location, age, gender or daily time-series metrics.</p>
+          <p><strong>Source gap</strong> means the configured backend did not return a value. This control room does not invent device, source, location, age, gender or daily time-series metrics.</p>
         </div>
       </Card>
     </div>}
