@@ -206,6 +206,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     const publishPartial = patch => {
       if (requestId !== loadSequence.current) return;
       setBundle(previous => ({ ...(previous || {}), ...patch }));
+      // The first usable source should unlock the screen. Remaining sources update
+      // the dashboard independently instead of holding the whole page behind Promise.all.
+      setLoading(false);
     };
     const analyticsTask = task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }))
       .then(result => {
@@ -954,7 +957,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         <p>Analytics, publishing health, audience signals, money movement and operational events in one view.</p>
         <div className="ar-cr-status-line">
           <span className={'ar-cr-status-dot' + (loading || statusCount ? ' is-warning' : ' is-ok')}/>
-          <span>{loading ? 'Connecting to data sources…' : statusCount ? statusCount + ' source(s) need attention' : 'All checked sources responded'}</span>
+          <span>{loading ? 'Connecting to data sources…' : refreshing ? 'Refreshing data sources…' : statusCount ? statusCount + ' source(s) need attention' : pendingSources ? pendingSources + ' source check(s) waiting' : 'All checked sources responded'}</span>
           <i/>
           <span>{lastRefresh ? 'Updated ' + lastRefresh.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Not refreshed yet'}</span>
           <span className="ar-cr-status-detail">{availableMetricCount}/{allMetrics.length} metrics available</span>
