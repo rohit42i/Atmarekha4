@@ -98,7 +98,7 @@ const sections = [
   {
     heading: '11. Moderation and reports',
     paragraphs: [
-      'You may report comments, profiles or other content using the website’s available reporting controls or contact Atma Rekha at atmarekhasupport@gmail.com. Reports are reviewed to assess whether content or conduct breaches these Terms or applicable law.',
+      'You may report comments, profiles or other content using the website’s available reporting controls or email atmarekhasupport@gmail.com. Reports are reviewed to assess the reported content or conduct.',
       'Depending on the issue, Atma Rekha may remove content, issue a warning, restrict a feature or suspend an account. A report is not proof of wrongdoing. We may confirm that a report was received without disclosing confidential details of action taken against another user.'
     ]
   },
@@ -131,10 +131,14 @@ const sections = [
   },
   {
     heading: '16. Contact',
-    links: [{ label: 'atmarekhasupport@gmail.com', href: 'mailto:atmarekhasupport@gmail.com' }],
+    links: [
+      { label: 'atmarekhasupport@gmail.com', href: 'mailto:atmarekhasupport@gmail.com' },
+      { label: 'atmarekhainfo@gmail.com', href: 'mailto:atmarekhainfo@gmail.com' },
+      { label: 'atmarekhaoffical@gmail.com', href: 'mailto:atmarekhaoffical@gmail.com' }
+    ],
     paragraphs: [
-      'For account, membership, privacy or other complaints, contact us. Include relevant details such as the account email or transaction reference, but never include passwords, OTPs, UPI PINs, CVVs or full payment-card details.',
-      'Grievance contact: Arkesh, creator of Atma Rekha. Consumer complaints are acknowledged within 48 hours and addressed within one month where applicable.'
+      'For account, membership, payment or privacy questions, email support. For general questions, use the information address. For official correspondence, use the official Atma Rekha address.',
+      'Never send passwords, OTPs, UPI PINs, CVVs or full payment-card details by email.'
     ]
   }
 ];
