@@ -62,17 +62,17 @@ export default function PrivacyPolicySections() {
     <Section title="5. How long we keep information">
       <p>We keep information while it is needed for the purpose for which it was collected, to operate the relevant feature, to protect the service, to handle disputes or to meet an applicable legal or accounting obligation. We do not promise a fixed retention period for provider logs or backups where that period depends on the provider product or account configuration.</p>
       <div className="privacy-table-wrap"><table className="privacy-table">
-        <thead><tr><th>Data category</th><th>Retention approach</th></tr></thead>
+        <thead><tr><th>Data category</th><th>Retention approach</th><th>Important details</th></tr></thead>
         <tbody>
-          <tr><td>Account and profile</td><td>While the account is active, unless a shorter period applies. Verified deletion requests follow the recovery and erasure workflow below.</td></tr>
-          <tr><td>Reading progress and bookmarks</td><td>While needed to provide the reader features, then removed or handled as part of account deletion where eligible.</td></tr>
-          <tr><td>Ratings and comments</td><td>While published or needed for discussion, moderation, security or legal reasons. Removed content may remain temporarily in backups or restricted records.</td></tr>
-          <tr><td>Reports and moderation</td><td>For as long as needed to review abuse, protect users, handle disputes or meet legal obligations.</td></tr>
-          <tr><td>Membership and payment references</td><td>For subscription management, accounting, refunds, disputes and legal obligations. Razorpay also applies its own retention practices.</td></tr>
-          <tr><td>Analytics and security logs</td><td>According to the relevant Cloudflare, hosting, application and security configuration, and the time needed for troubleshooting or abuse prevention.</td></tr>
-          <tr><td>Email and verification records</td><td>OTP or verification information is temporary and is used for the relevant verification flow. Delivery and support logs are retained as needed for delivery, support and security.</td></tr>
-          <tr><td>Avatars and other user media</td><td>While associated with an active profile or feature, then removed where eligible as part of deletion. Backup copies may persist temporarily.</td></tr>
-          <tr><td>Manga pages and chapter covers</td><td>Retained while the content remains published. These are creator-owned publication assets, not account profile data.</td></tr>
+          <tr><td>Account and profile</td><td>While the account is active, unless a shorter period applies.</td><td>Verified deletion requests include a 14-day recovery period, followed by review and erasure of eligible data.</td></tr>
+          <tr><td>Reading progress and bookmarks</td><td>While needed to provide reader features.</td><td>Eligible records are removed or handled as part of account deletion.</td></tr>
+          <tr><td>Ratings and comments</td><td>While published or needed for discussion.</td><td>Removed content may remain temporarily in backups or restricted records for moderation, security or legal needs.</td></tr>
+          <tr><td>Reports and moderation</td><td>As long as needed for the report or case.</td><td>Records support abuse review, user protection, disputes and legal obligations.</td></tr>
+          <tr><td>Membership and payment references</td><td>For subscription management and payment support.</td><td>Records may be retained for accounting, refunds, disputes and legal obligations. Razorpay also applies its own retention practices.</td></tr>
+          <tr><td>Analytics and security logs</td><td>According to the active provider or application configuration.</td><td>Periods vary with the service, troubleshooting needs and abuse-prevention requirements.</td></tr>
+          <tr><td>Email and verification records</td><td>OTP or verification information is temporary.</td><td>Delivery and support logs are retained as needed for delivery, support and security.</td></tr>
+          <tr><td>Avatars and other user media</td><td>While associated with an active profile or feature.</td><td>Eligible media is removed during account erasure; backup copies may persist temporarily.</td></tr>
+          <tr><td>Manga pages and chapter covers</td><td>While the content remains published.</td><td>These are creator-owned publication assets, not account profile data.</td></tr>
         </tbody>
       </table></div>
       <p>Account deletion requests require password confirmation and email OTP verification and include a 14-day recovery period after confirmation. A request is queued for review, not instantly erased. After the recovery period, authorised administration processes the erasure of eligible data. Records needed for law, payment, security or disputes may be retained for the relevant period.</p>
