@@ -51,7 +51,7 @@ const sections = [
       'Account and security emails may be sent when needed to provide the service or protect your account. These may include verification codes, password-reset instructions, email-change confirmations, account-deletion or recovery confirmations, security alerts, membership updates, payment confirmations and receipts.',
       'New chapter announcements and Atma Rekha reader updates are enabled by default for new accounts as disclosed during signup. Manage them in More & Settings → Notification preferences or use the unsubscribe link in an update email. Turning updates off does not stop essential account, security or transaction messages.',
       'Promotional emails, if offered, are handled separately and sent only where the applicable subscription or consent has been recorded. Accepting these Terms is not a substitute for any separate consent required by law.',
-      'Resend is used to deliver emails. Email addresses and the information needed to deliver a message may be processed by that provider.'
+      'Atma Rekha account emails are sent from no-reply@atmarekha.in. Replies and support questions should go to atmarekhasupport@gmail.com. Resend delivers these messages and processes the recipient address and delivery information needed to send them.'
     ]
   },
   {
