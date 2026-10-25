@@ -983,7 +983,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     </nav>
 
     {!loading && sourceErrors.length > 0 && <div className="ar-cr-alert is-warning"><AdminIcon name="flag" size={18}/><div><strong>Partial data coverage</strong><p>{sourceErrors.length} source check(s) need attention out of {settledSources.length} completed; {pendingSources} are still waiting. Metrics from failed sources remain unavailable instead of being converted to zero.</p></div><button type="button" className="ar-cr-link" onClick={() => setSection('Audit & Reliability')}>Review sources</button></div>}
-    {!loading && sourceErrors.length === 0 && <div className="ar-cr-alert is-ok"><AdminIcon name="pulse" size={18}/><div><strong>Data connections responding</strong><p>Analytics and operational tables returned results for this refresh. This checks data endpoints, not full public-site uptime.</p></div></div>}
+    {!loading && !refreshing && pendingSources === 0 && sourceErrors.length === 0 && <div className="ar-cr-alert is-ok"><AdminIcon name="pulse" size={18}/><div><strong>Data connections responding</strong><p>Analytics and operational tables returned results for this refresh. This checks data endpoints, not full public-site uptime.</p></div></div>}
 
     {section === 'Command Center' && <div className="ar-cr-command">
       <div className="ar-cr-kpis">
