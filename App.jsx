@@ -502,15 +502,15 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         contact: 'Contact Atma Rekha',
         report: 'Report Atma Rekha Content',
         privacy: 'Atma Rekha Privacy Policy',
-        terms: 'Atma Rekha Terms and Conditions',
+        terms: 'Atma Rekha Terms of Use',
       };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       const infoDescriptions = {
         about: 'Learn about Atma Rekha, its creator Arkesh, the fantasy adventure manga, and how to read its published chapters.',
         contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
         report: 'Report an issue with Atma Rekha website content or community activity.',
-        privacy: 'Read the Atma Rekha privacy policy and understand how account and website data is handled.',
-        terms: 'Read the Atma Rekha terms and conditions for using the website and its reader features.',
+        privacy: 'Read how Atma Rekha processes account, profile, reading, community, membership, email, analytics and payment data.',
+        terms: 'Read the Atma Rekha terms of use for manga access, accounts, memberships, payments and community features.',
       };
       description = infoDescriptions[infoType] || infoDescriptions.about;
     } else if (type === 'privacy-center') {
