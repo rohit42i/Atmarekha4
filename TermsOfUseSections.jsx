@@ -74,7 +74,7 @@ const sections = [
       'Super Supporter: ₹49 per month. Access to both stories, a Super Supporter badge and priority comments.'
     ],
     tail: [
-      'Paid memberships are monthly subscriptions processed through Razorpay. A plan renews according to the renewal terms shown in checkout. Cancellation stops future renewals; access remains active until the end of the current paid period.',
+      'Paid memberships are monthly subscriptions processed through Razorpay. Membership renews automatically where that is part of the monthly plan you choose, according to the renewal terms shown in checkout. Cancellation stops future renewals; access remains active until the end of the current paid period.',
       'There is no promise of an automatic refund solely because you cancel. Refund requests are reviewed using the transaction details, applicable law and the provider’s payment process. Statutory consumer rights are not limited by this clause.',
       'Memberships are linked to the purchasing account and are not transferable unless Atma Rekha expressly allows it. Before deleting an account, review any active membership and future renewal.'
     ]
