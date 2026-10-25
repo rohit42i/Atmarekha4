@@ -555,12 +555,14 @@ const privacyCopyRegression = await readFile('PrivacyPolicySections.jsx', 'utf8'
 if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
     !legalCopyRegression.includes('AI generated material') ||
     !termsCopyRegression.includes('Membership renews automatically') ||
-    !legalCopyRegression.includes('within 48 hours') ||
-    !legalCopyRegression.includes('within one month') ||
+    !termsCopyRegression.includes('atmarekhasupport@gmail.com') ||
+    !termsCopyRegression.includes('no-reply@atmarekha.in') ||
     !legalCopyRegression.includes("type === 'privacy'") ||
     !privacyCopyRegression.includes('11. Personal data breaches') ||
-    !privacyCopyRegression.includes('16. Indian data-protection law')) {
-  console.error('CHECK FAILED: public About, Terms, Privacy or complaint copy is missing required policy content.');
+    !privacyCopyRegression.includes('atmarekhainfo@gmail.com') ||
+    privacyCopyRegression.includes('16. Indian data-protection law') ||
+    privacyCopyRegression.includes('privacy@atmarekha.in')) {
+  console.error('CHECK FAILED: public About, Terms or Privacy copy is missing required content or contains an unapproved contact/compliance section.');
   failed = true;
 }
 
