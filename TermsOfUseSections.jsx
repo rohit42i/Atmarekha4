@@ -131,8 +131,9 @@ const sections = [
   },
   {
     heading: '16. Contact',
+    links: [{ label: 'atmarekhasupport@gmail.com', href: 'mailto:atmarekhasupport@gmail.com' }],
     paragraphs: [
-      'For account, membership, privacy or other complaints, contact atmarekhasupport@gmail.com. Include relevant details such as the account email or transaction reference, but never include passwords, OTPs, UPI PINs, CVVs or full payment-card details.',
+      'For account, membership, privacy or other complaints, contact us. Include relevant details such as the account email or transaction reference, but never include passwords, OTPs, UPI PINs, CVVs or full payment-card details.',
       'Grievance contact: Arkesh, creator of Atma Rekha. Consumer complaints are acknowledged within 48 hours and addressed within one month where applicable.'
     ]
   }
@@ -145,6 +146,7 @@ function Section({ section }) {
       {section.paragraphs?.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       {section.bullets?.length > 0 && <ul>{section.bullets.map(item => <li key={item}>{item}</li>)}</ul>}
       {section.tail?.map((paragraph, index) => <p key={'tail-' + index}>{paragraph}</p>)}
+      {section.links?.length > 0 && <div className="info-links">{section.links.map(link => <a key={link.href} href={link.href}>{link.label}</a>)}</div>}
     </article>
   );
 }
