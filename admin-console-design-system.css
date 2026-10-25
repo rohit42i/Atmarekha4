@@ -1193,3 +1193,26 @@ main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-workbench {
   display: grid;
   gap: 14px !important;
 }
+
+/* Neutralize old gold/blue/orange text overrides while preserving only status red/green. */
+main.admin-page.ar-admin-v3 .ar-control-room span {
+  color: var(--admin-text-2) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-kicker,.ar-cr-untracked-dot,.ar-cr-results-line,.ar-cr-table-note) {
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.good,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.ok { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-pill.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-source-icon.bad,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-issue { color: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-compare-track i,.ar-cr-rank-list i,.ar-cr-readiness>i,.ar-cr-month-bars b,
+  .ar-cr-daily-bars b,.ar-cr-legend i,.ar-cr-daily-summary>span>i
+) { background: var(--admin-border-strong) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-dot.is-ok { background: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-status-dot.is-warning { background: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert :is(svg,i) { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert.is-ok :is(svg,i) { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-alert.is-warning :is(svg,i) { color: var(--admin-negative) !important; }
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-count span { color: var(--admin-muted) !important; }
