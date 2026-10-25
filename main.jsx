@@ -104,6 +104,3 @@ import './dialog-accessibility.js';
 import './chapter-card-thumbnails.css';
 import './comments-name-send-fix.css';
 
-import './admin-overview-premium.css';
-import './admin-control-room.css';
-import './admin-reference-integration.css';
