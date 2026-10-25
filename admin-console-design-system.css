@@ -487,3 +487,338 @@ main.admin-page.ar-admin-v3 .ar-admin-content :is(.ar-cr-dashboard-grid,.ar-cr-o
     scroll-behavior:auto!important;
   }
 }
+
+
+/* Final layout, colour and sizing corrections for the private admin console.
+   Intentionally loaded last to override legacy layers that previously shifted and recoloured cards. */
+main.admin-page.ar-admin-v3,
+main.admin-page.ar-admin-v3[data-admin-theme="light"] {
+  --color-background: #ffffff !important;
+  --color-white: #ffffff !important;
+  --color-dark: #080808 !important;
+  --color-dark-variant: #555555 !important;
+  --color-light: rgba(0,0,0,.045) !important;
+  --color-info-light: #e1e1e1 !important;
+  --color-primary: #111111 !important;
+  --color-success: #177245 !important;
+  --color-danger: #b42318 !important;
+  --color-warning: #666666 !important;
+  --admin-bg: #ffffff !important;
+  --admin-sidebar: #ffffff !important;
+  --admin-surface: #ffffff !important;
+  --admin-surface-2: #f7f7f7 !important;
+  --admin-surface-3: #eeeeee !important;
+  --admin-border: #dedede !important;
+  --admin-border-strong: #b8b8b8 !important;
+  --admin-text: #080808 !important;
+  --admin-text-2: #242424 !important;
+  --admin-muted: #555555 !important;
+  --admin-faint: #707070 !important;
+  --admin-primary: #111111 !important;
+  --admin-active: #111111 !important;
+  --admin-primary-soft: rgba(0,0,0,.055) !important;
+  --admin-positive: #177245 !important;
+  --admin-positive-soft: rgba(23,114,69,.09) !important;
+  --admin-negative: #b42318 !important;
+  --admin-negative-soft: rgba(180,35,24,.08) !important;
+  --admin-warning: #666666 !important;
+  background: #ffffff !important;
+  color: #080808 !important;
+  color-scheme: light !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+  --color-background: #000000 !important;
+  --color-white: #0a0a0a !important;
+  --color-dark: #ffffff !important;
+  --color-dark-variant: #bdbdbd !important;
+  --color-light: rgba(255,255,255,.065) !important;
+  --color-info-light: #292929 !important;
+  --color-primary: #ffffff !important;
+  --color-success: #65d695 !important;
+  --color-danger: #ff7777 !important;
+  --color-warning: #bdbdbd !important;
+  --admin-bg: #000000 !important;
+  --admin-sidebar: #070707 !important;
+  --admin-surface: #0b0b0b !important;
+  --admin-surface-2: #141414 !important;
+  --admin-surface-3: #1c1c1c !important;
+  --admin-border: #292929 !important;
+  --admin-border-strong: #484848 !important;
+  --admin-text: #ffffff !important;
+  --admin-text-2: #eeeeee !important;
+  --admin-muted: #bdbdbd !important;
+  --admin-faint: #929292 !important;
+  --admin-primary: #ffffff !important;
+  --admin-active: #ffffff !important;
+  --admin-primary-soft: rgba(255,255,255,.075) !important;
+  --admin-positive: #65d695 !important;
+  --admin-positive-soft: rgba(101,214,149,.11) !important;
+  --admin-negative: #ff7777 !important;
+  --admin-negative-soft: rgba(255,119,119,.10) !important;
+  --admin-warning: #bdbdbd !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  color-scheme: dark !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-app {
+  display: grid !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  grid-template-columns: 252px minmax(0,1fr) !important;
+  align-items: start !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail {
+  grid-template-columns: 252px minmax(360px,1fr) 23rem !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-main {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: clip;
+  background: var(--admin-bg) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-topbar {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 12px clamp(14px,1.7vw,24px) !important;
+  background: var(--admin-sidebar) !important;
+  color: var(--admin-text) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-content {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) !important;
+  align-content: start !important;
+  gap: 16px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: clamp(14px,1.5vw,24px) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 82px 18px 24px 0 !important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-stat-card,.ar-stat-card,.ar-cr-card,.ar-cr-metric,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-glass-card,.ar-admin-status-card,.ar-admin-workspace,.ar-utility-section,.ar-utility-ring-card,.ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.privacy-requests-admin,.admin-studio-card,.admin-tool-card,.admin-section-card,.admin-overview-card,.admin-metric-card) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  transform: none !important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-stat-card,.ar-stat-card,.ar-cr-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-utility-section,.ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.privacy-requests-admin,.admin-studio-card,.admin-tool-card,.admin-section-card,.admin-overview-card,.admin-metric-card) {
+  padding: 16px !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 132px !important;
+  padding: 15px !important;
+  background: var(--admin-surface) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 10px !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric>strong {
+  margin-top: 12px !important;
+  color: var(--admin-text) !important;
+  font-size: clamp(20px,1.8vw,27px) !important;
+  font-weight: 750 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -.025em !important;
+  overflow-wrap: anywhere !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric>p {
+  color: var(--admin-muted) !important;
+  font-size: 11px !important;
+  line-height: 1.45 !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-metric>small { color: var(--admin-faint) !important; font-size: 10px !important; }
+main.admin-page.ar-admin-v3 .ar-cr-metric.is-untracked { border-style: dashed !important; background: var(--admin-surface-2) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-metric.is-untracked>strong { color: var(--admin-muted) !important; font-size: 19px !important; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head { border-bottom-color: var(--admin-border) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head h3,
+main.admin-page.ar-admin-v3 .ar-cr-card-head span,
+main.admin-page.ar-admin-v3 .ar-cr-card-head aside,
+main.admin-page.ar-admin-v3 .ar-cr-card-head>small { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-card-head span { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-btn,.ar-cr-nav,.ar-cr-nav button,.ar-cr-alert,.ar-cr-field-row,.ar-cr-explorer-tools,.ar-cr-source-list,.ar-cr-queue-grid,.ar-cr-breakdown,.ar-cr-category-summary) {
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room {
+  --cr-bg: var(--admin-bg) !important;
+  --cr-card: var(--admin-surface) !important;
+  --cr-card-raised: var(--admin-surface-2) !important;
+  --cr-border: var(--admin-border) !important;
+  --cr-border-soft: var(--admin-border) !important;
+  --cr-text: var(--admin-text) !important;
+  --cr-muted: var(--admin-muted) !important;
+  --cr-faint: var(--admin-faint) !important;
+  --cr-gold: var(--admin-text) !important;
+  --cr-gold-soft: var(--admin-primary-soft) !important;
+  --cr-green: var(--admin-positive) !important;
+  --cr-red: var(--admin-negative) !important;
+  --cr-yellow: var(--admin-muted) !important;
+  background: transparent !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-nav,.ar-cr-alert,.ar-cr-source-list,.ar-cr-queue-grid,.ar-cr-breakdown,.ar-cr-category-summary,.ar-cr-feature-group) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-btn,.ar-cr-nav button,.ar-cr-source-list button,.ar-cr-category-summary button,.ar-cr-feature-button) {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-btn:hover,.ar-cr-nav button:hover,.ar-cr-source-list button:hover,.ar-cr-category-summary button:hover,.ar-cr-feature-button:hover) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-btn.is-primary {
+  background: var(--admin-text) !important;
+  border-color: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room :is(select,input,textarea) {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-command-trigger,
+main.admin-page.ar-admin-v3 .ar-admin-profile,
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu,
+main.admin-page.ar-admin-v3 .ar-admin-icon-button,
+main.admin-page.ar-admin-v3 .ar-admin-refresh {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 :is(h1,h2,h3,h4,h5,strong,b) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 :is(p,small,.muted,.description,.ar-stat-label,.ar-stat-foot) { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 :is(table,.admin-table,.admin-studio-table) {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-collapse: collapse !important;
+  color: var(--admin-text) !important;
+}
+main.admin-page.ar-admin-v3 :is(.admin-table-wrap,.admin-table-responsive,.ar-admin-table-wrapper,.ar-cr-table-wrap) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: auto !important;
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  border-radius: 10px !important;
+}
+main.admin-page.ar-admin-v3 table :is(th,td) { color: var(--admin-text) !important; border-color: var(--admin-border) !important; }
+main.admin-page.ar-admin-v3 table thead { background: var(--admin-surface-2) !important; }
+main.admin-page.ar-admin-v3 :is(button,input,textarea,select) { font-family: inherit; }
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle {
+  width: 4.4rem !important;
+  min-width: 4.4rem !important;
+  height: 1.8rem !important;
+  min-height: 1.8rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  padding: 2px !important;
+  background: var(--admin-surface-2) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 999px !important;
+  color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span {
+  display: grid !important;place-items: center !important;
+  flex: 1 1 0 !important;min-width: 0 !important;height: 100% !important;
+  border-radius: 999px !important;color: var(--admin-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span.active {
+  background: var(--admin-text) !important;
+  color: var(--admin-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span.active svg { color: var(--admin-bg) !important; }
+main.admin-page.ar-admin-v3 .ar-admin-theme-toggle>span.active .material-icons-sharp { color: var(--admin-bg) !important; }
+main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop { z-index: 999 !important; }
+main.admin-page.ar-admin-v3 .ar-admin-utility-rail { width: 100% !important; min-width: 0 !important; }
+@media (min-width: 1500px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app { grid-template-columns:252px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:252px minmax(360px,1fr) 23rem !important; }
+}
+@media (max-width: 1360px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:252px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail { display:none !important; }
+}
+@media (max-width: 1200px) and (min-width: 981px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app,
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:84px minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-sidebar { width:84px !important; padding:16px 7px !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-main { grid-column:2 !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding:18px !important; }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-app,
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { display: block !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-main {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-column: auto !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-topbar {
+    position: fixed !important; inset: 0 0 auto 0 !important; width: 100% !important;
+    height: 4.6rem !important; min-height: 4.6rem !important; z-index: 100 !important;
+    padding: 0 12px !important; margin: 0 !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-content {
+    width: 100% !important; margin: 4.6rem 0 0 !important;
+    padding: 16px 12px 92px !important; gap: 14px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail .ar-admin-utility-rail { display: none !important; }
+  main.admin-page.ar-admin-v3 .ar-admin-menu-button { display: grid !important; }
+}
+@media (max-width: 640px) {
+  main.admin-page.ar-admin-v3 .ar-admin-content { padding-left: 10px !important; padding-right: 10px !important; }
+  main.admin-page.ar-admin-v3 .ar-cr-kpis,
+  main.admin-page.ar-admin-v3 .ar-cr-metric-grid,
+  main.admin-page.ar-admin-v3 .ar-cr-metric-grid.compact {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+    gap: 9px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-cr-three-col { grid-template-columns: minmax(0,1fr) !important; }
+  main.admin-page.ar-admin-v3 :is(.ar-cr-card,.ar-cr-metric,.ar-utility-section,.admin-card,.ar-admin-card) {
+    border-radius: 9px !important;
+    padding: 12px !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-cr-metric { min-height: 116px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  main.admin-page.ar-admin-v3 *,main.admin-page.ar-admin-v3 *::before,main.admin-page.ar-admin-v3 *::after {
+    transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important;
+  }
+}
