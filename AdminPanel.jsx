@@ -200,11 +200,16 @@ export default function AdminPanel({ onLogout }) {
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
+  const [pageCountsAvailable, setPageCountsAvailable] = useState(false);
   const [comments, setComments] = useState([]);
+  const [commentsAvailable, setCommentsAvailable] = useState(false);
   const [reports, setReports] = useState([]);
+  const [reportsAvailable, setReportsAvailable] = useState(false);
   const [openReportCount, setOpenReportCount] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
+  const [announcementsAvailable, setAnnouncementsAvailable] = useState(false);
   const [media, setMedia] = useState([]);
+  const [mediaAvailable, setMediaAvailable] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -232,6 +237,26 @@ export default function AdminPanel({ onLogout }) {
     if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
     return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
   }, [adminTheme]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const fontLinks = [
+      ['ar-admin-poppins-font', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'],
+      ['ar-admin-material-icons-sharp', 'https://fonts.googleapis.com/icon?family=Material+Icons+Sharp'],
+    ];
+    const created = [];
+    for (const [id, href] of fontLinks) {
+      if (document.getElementById(id)) continue;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+      created.push(link);
+    }
+    return () => created.forEach(link => link.remove());
+  }, []);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -273,14 +298,17 @@ export default function AdminPanel({ onLogout }) {
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
 
       if (pageResult.error) {
+        setPageCountsAvailable(false);
         warnings.push('Page inventory: ' + adminSourceError(pageResult.error));
       } else {
         const counts = {};
         for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
         setPageCounts(counts);
+        setPageCountsAvailable(true);
       }
 
       if (commentResult.error) {
+        setCommentsAvailable(false);
         warnings.push('Comments: ' + adminSourceError(commentResult.error));
       } else {
         let mergedComments = commentResult.data || [];
@@ -301,6 +329,7 @@ export default function AdminPanel({ onLogout }) {
           if (profileResult.error) warnings.push('Comment author profiles: ' + adminSourceError(profileResult.error));
           else commenterProfiles = Object.fromEntries((profileResult.data || []).map(profile => [profile.id, profile]));
         }
+        setCommentsAvailable(true);
         setComments(mergedComments.map(comment => {
           const profile = commenterProfiles[comment.user_id];
           const displayName = String(profile?.display_name || '').trim();
@@ -313,8 +342,13 @@ export default function AdminPanel({ onLogout }) {
         }));
       }
 
-      if (reportResult.error) warnings.push('Report queue: ' + adminSourceError(reportResult.error));
-      else setReports(reportResult.data || []);
+      if (reportResult.error) {
+        setReportsAvailable(false);
+        warnings.push('Report queue: ' + adminSourceError(reportResult.error));
+      } else {
+        setReports(reportResult.data || []);
+        setReportsAvailable(true);
+      }
       if (openReportResult.error) {
         warnings.push('Open report count: ' + adminSourceError(openReportResult.error));
         setOpenReportCount(null);
@@ -322,11 +356,21 @@ export default function AdminPanel({ onLogout }) {
         setOpenReportCount(Number(openReportResult.count ?? 0));
       }
 
-      if (announcementResult.error) warnings.push('Announcements: ' + adminSourceError(announcementResult.error));
-      else setAnnouncements(announcementResult.data || []);
+      if (announcementResult.error) {
+        setAnnouncementsAvailable(false);
+        warnings.push('Announcements: ' + adminSourceError(announcementResult.error));
+      } else {
+        setAnnouncements(announcementResult.data || []);
+        setAnnouncementsAvailable(true);
+      }
 
-      if (mediaResult.error) warnings.push('Media library: ' + adminSourceError(mediaResult.error));
-      else setMedia(mediaResult.data || []);
+      if (mediaResult.error) {
+        setMediaAvailable(false);
+        warnings.push('Media library: ' + adminSourceError(mediaResult.error));
+      } else {
+        setMedia(mediaResult.data || []);
+        setMediaAvailable(true);
+      }
 
       if (performanceResult.error) {
         warnings.push('Chapter performance metrics: ' + adminSourceError(performanceResult.error));
@@ -1262,8 +1306,8 @@ export default function AdminPanel({ onLogout }) {
               <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
             </button>
             <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => setAdminTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
-              <span className={adminTheme === 'light' ? 'active' : ''} aria-hidden="true"><AdminIcon name="sun" size={14}/></span>
-              <span className={adminTheme === 'dark' ? 'active' : ''} aria-hidden="true"><AdminIcon name="moon" size={14}/></span>
+              <span className={adminTheme === 'light' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">light_mode</span></span>
+              <span className={adminTheme === 'dark' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">dark_mode</span></span>
             </button>
             <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}>
               <AdminIcon name="refresh" size={16}/><span>Refresh</span>
@@ -1365,6 +1409,11 @@ export default function AdminPanel({ onLogout }) {
         comments={comments}
         reports={reports}
         pageCounts={pageCounts}
+        pageCountsAvailable={pageCountsAvailable}
+        commentsAvailable={commentsAvailable}
+        reportsAvailable={reportsAvailable}
+        announcementsAvailable={announcementsAvailable}
+        mediaAvailable={mediaAvailable}
         announcements={announcements}
         media={media}
         reportCount={reportCount}
