@@ -4,6 +4,7 @@ import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from '.
 import AdminOverview from './AdminOverview';
 import AdminControlRoom from './AdminControlRoom.jsx';
 import AdminMembership from './AdminMembership.jsx';
+import AdminUtilityRail from './AdminUtilityRail.jsx';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
@@ -34,6 +35,7 @@ import './admin-homeguard-theme.css';
 import './admin-action-ux.css';
 import './admin-unified-fix.css';
 import './admin-authoritative-monochrome.css';
+import './admin-console-design-system.css';
 
 const CHAPTERS = 'chapters';
 const PAGES = 'chapter_pages';
@@ -198,11 +200,16 @@ export default function AdminPanel({ onLogout }) {
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
+  const [pageCountsAvailable, setPageCountsAvailable] = useState(false);
   const [comments, setComments] = useState([]);
+  const [commentsAvailable, setCommentsAvailable] = useState(false);
   const [reports, setReports] = useState([]);
+  const [reportsAvailable, setReportsAvailable] = useState(false);
   const [openReportCount, setOpenReportCount] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
+  const [announcementsAvailable, setAnnouncementsAvailable] = useState(false);
   const [media, setMedia] = useState([]);
+  const [mediaAvailable, setMediaAvailable] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -227,7 +234,29 @@ export default function AdminPanel({ onLogout }) {
   });
   useEffect(() => {
     try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
+    if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
+    return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
   }, [adminTheme]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const fontLinks = [
+      ['ar-admin-poppins-font', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'],
+      ['ar-admin-material-icons-sharp', 'https://fonts.googleapis.com/icon?family=Material+Icons+Sharp'],
+    ];
+    const created = [];
+    for (const [id, href] of fontLinks) {
+      if (document.getElementById(id)) continue;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+      created.push(link);
+    }
+    return () => created.forEach(link => link.remove());
+  }, []);
 
   const sorted = useMemo(() => [...chapters].sort((a, b) => {
     const an = Number(a.chapterNumber), bn = Number(b.chapterNumber);
@@ -269,14 +298,17 @@ export default function AdminPanel({ onLogout }) {
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
 
       if (pageResult.error) {
+        setPageCountsAvailable(false);
         warnings.push('Page inventory: ' + adminSourceError(pageResult.error));
       } else {
         const counts = {};
         for (const row of pageResult.data || []) counts[row.chapter_id] = (counts[row.chapter_id] || 0) + 1;
         setPageCounts(counts);
+        setPageCountsAvailable(true);
       }
 
       if (commentResult.error) {
+        setCommentsAvailable(false);
         warnings.push('Comments: ' + adminSourceError(commentResult.error));
       } else {
         let mergedComments = commentResult.data || [];
@@ -297,6 +329,7 @@ export default function AdminPanel({ onLogout }) {
           if (profileResult.error) warnings.push('Comment author profiles: ' + adminSourceError(profileResult.error));
           else commenterProfiles = Object.fromEntries((profileResult.data || []).map(profile => [profile.id, profile]));
         }
+        setCommentsAvailable(true);
         setComments(mergedComments.map(comment => {
           const profile = commenterProfiles[comment.user_id];
           const displayName = String(profile?.display_name || '').trim();
@@ -309,8 +342,13 @@ export default function AdminPanel({ onLogout }) {
         }));
       }
 
-      if (reportResult.error) warnings.push('Report queue: ' + adminSourceError(reportResult.error));
-      else setReports(reportResult.data || []);
+      if (reportResult.error) {
+        setReportsAvailable(false);
+        warnings.push('Report queue: ' + adminSourceError(reportResult.error));
+      } else {
+        setReports(reportResult.data || []);
+        setReportsAvailable(true);
+      }
       if (openReportResult.error) {
         warnings.push('Open report count: ' + adminSourceError(openReportResult.error));
         setOpenReportCount(null);
@@ -318,11 +356,21 @@ export default function AdminPanel({ onLogout }) {
         setOpenReportCount(Number(openReportResult.count ?? 0));
       }
 
-      if (announcementResult.error) warnings.push('Announcements: ' + adminSourceError(announcementResult.error));
-      else setAnnouncements(announcementResult.data || []);
+      if (announcementResult.error) {
+        setAnnouncementsAvailable(false);
+        warnings.push('Announcements: ' + adminSourceError(announcementResult.error));
+      } else {
+        setAnnouncements(announcementResult.data || []);
+        setAnnouncementsAvailable(true);
+      }
 
-      if (mediaResult.error) warnings.push('Media library: ' + adminSourceError(mediaResult.error));
-      else setMedia(mediaResult.data || []);
+      if (mediaResult.error) {
+        setMediaAvailable(false);
+        warnings.push('Media library: ' + adminSourceError(mediaResult.error));
+      } else {
+        setMedia(mediaResult.data || []);
+        setMediaAvailable(true);
+      }
 
       if (performanceResult.error) {
         warnings.push('Chapter performance metrics: ' + adminSourceError(performanceResult.error));
@@ -1181,6 +1229,7 @@ export default function AdminPanel({ onLogout }) {
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = openReportCount ?? reports.filter(report => (report.status || 'open') === 'open').length;
+  const hasUtilityRail = !loading && (tab === 'Control Room' || tab === 'Overview');
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   useEffect(() => {
@@ -1221,7 +1270,7 @@ export default function AdminPanel({ onLogout }) {
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
   return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme={adminTheme}>
-    <div className="ar-admin-app">
+    <div className={`ar-admin-app${hasUtilityRail ? ' has-utility-rail' : ''}`}>
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
         activeKey={tab}
@@ -1257,7 +1306,8 @@ export default function AdminPanel({ onLogout }) {
               <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
             </button>
             <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => setAdminTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
-              <AdminIcon name={adminTheme === 'dark' ? 'sun' : 'moon'} size={17}/>
+              <span className={adminTheme === 'light' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">light_mode</span></span>
+              <span className={adminTheme === 'dark' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">dark_mode</span></span>
             </button>
             <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}>
               <AdminIcon name="refresh" size={16}/><span>Refresh</span>
@@ -1354,6 +1404,24 @@ export default function AdminPanel({ onLogout }) {
         <AdminProTools />
         <CommunityAdmin />
       </div>
+      {hasUtilityRail && <AdminUtilityRail
+        chapters={sorted}
+        comments={comments}
+        reports={reports}
+        pageCounts={pageCounts}
+        pageCountsAvailable={pageCountsAvailable}
+        commentsAvailable={commentsAvailable}
+        reportsAvailable={reportsAvailable}
+        announcementsAvailable={announcementsAvailable}
+        mediaAvailable={mediaAvailable}
+        announcements={announcements}
+        media={media}
+        reportCount={reportCount}
+        refreshedAt={lastRefreshedAt}
+        onTab={activateTab}
+        onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
+        onRefresh={load}
+      />}
     </div>
   </main>;
 }
