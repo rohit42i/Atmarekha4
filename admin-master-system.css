@@ -70,6 +70,9 @@ main.admin-page.ar-admin-v3 {
   color: var(--admin-text-primary);
   background: var(--admin-bg-primary);
   color-scheme: light;
+  font-family: Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 main.admin-page.ar-admin-v3[data-admin-theme="dark"],
 body.dark-theme-variables main.admin-page.ar-admin-v3 {
@@ -112,7 +115,6 @@ body.dark-theme-variables main.admin-page.ar-admin-v3 {
 /* 2. Base, typography and responsive shell */
 main.admin-page.ar-admin-v3,
 main.admin-page.ar-admin-v3 * { box-sizing: border-box; }
-main.admin-page.ar-admin-v3 { font-family: Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; }
 main.admin-page.ar-admin-v3 :is(h1,h2,h3,h4) { color: var(--admin-text-primary) !important; line-height: 1.3; }
 main.admin-page.ar-admin-v3 h1 { font-size: 28px; font-weight: 750; }
 main.admin-page.ar-admin-v3 h2 { font-size: 20px; font-weight: 700; }
@@ -121,7 +123,7 @@ main.admin-page.ar-admin-v3 a { color: var(--admin-focus); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-app,.ar-admin-main,.ar-admin-content,.admin-stack,.admin-form-grid) { min-width: 0; }
 main.admin-page.ar-admin-v3 .ar-admin-app { display:grid; grid-template-columns:252px minmax(0,1fr); gap:0; width:100%; max-width:none; min-height:100dvh; margin:0; padding:0; background:var(--admin-bg-primary); }
 main.admin-page.ar-admin-v3 .ar-admin-app.has-utility-rail { grid-template-columns:252px minmax(390px,1fr) 23rem; }
-main.admin-page.ar-admin-v3 .ar-admin-sidebar { position:sticky; top:0; align-self:start; display:flex; flex-direction:column; gap:0; width:252px; min-width:0; height:100dvh; max-height:100dvh; margin:0; padding:18px 13px 14px; overflow-x:hidden; overflow-y:auto; border:0; border-right:1px solid var(--admin-border-color); border-radius:0; background:var(--admin-sidebar); box-shadow:none; z-index:80; }
+main.admin-page.ar-admin-v3 .ar-admin-sidebar { position:sticky; top:0; align-self:start; display:flex; flex-direction:column; gap:0; width:252px; min-width:0; height:100dvh; max-height:100dvh; margin:0; padding:18px 13px 14px; overflow-x:hidden; overflow-y:auto; border:0; border-right:1px solid var(--admin-border-color); border-radius:0; background:var(--admin-sidebar); color:var(--admin-text-primary); border-color:var(--admin-border-color); box-shadow:none; z-index:80; }
 main.admin-page.ar-admin-v3 .ar-admin-brand { display:flex; align-items:center; gap:10px; min-height:58px; padding:0 5px 16px; border-bottom:1px solid var(--admin-border-color); }
 main.admin-page.ar-admin-v3 .ar-admin-brand-mark { display:grid; place-items:center; width:38px; height:38px; flex:0 0 38px; border:1px solid var(--admin-border-strong); border-radius:8px; background:var(--admin-text-primary); color:var(--admin-bg-primary); }
 main.admin-page.ar-admin-v3 .ar-admin-workspace { display:flex; align-items:center; gap:10px; margin:16px 0 18px; padding:11px; border:1px solid var(--admin-border-color); border-radius:8px; background:var(--admin-bg-secondary); }
@@ -144,12 +146,11 @@ main.admin-page.ar-admin-v3 .ar-admin-command-trigger { width:100%; min-height:3
 main.admin-page.ar-admin-v3 .ar-admin-profile-wrap { position:relative; }
 main.admin-page.ar-admin-v3 .ar-admin-profile { display:flex; align-items:center; gap:8px; max-width:210px; padding:4px 8px 4px 5px; text-align:left; }
 main.admin-page.ar-admin-v3 .ar-admin-avatar { display:grid; place-items:center; width:28px; height:28px; }
-main.admin-page.ar-admin-v3 .ar-admin-profile-menu { position:absolute; top:calc(100% + 8px); right:0; z-index:300; width:250px; padding:8px; }
+main.admin-page.ar-admin-v3 .ar-admin-profile-menu { position:absolute; top:calc(100% + 8px); right:0; z-index:300; width:250px; padding:8px; box-shadow:var(--box-shadow); }
 main.admin-page.ar-admin-v3 .ar-admin-mobile-close,
 main.admin-page.ar-admin-v3 .ar-admin-menu-button,
 main.admin-page.ar-admin-v3 .ar-admin-drawer-backdrop,
 main.admin-page.ar-admin-v3 .admin-bottom-nav { display:none; }
-main.admin-page.ar-admin-v3 .ar-admin-main { min-width: 0; }
 main.admin-page.ar-admin-v3 .ar-admin-content { width: 100%; max-width: 1200px; margin-inline: auto; padding: 24px; color: var(--admin-text-primary); }
 main.admin-page.ar-admin-v3 .ar-admin-content > * + * { margin-top: 16px; }
 main.admin-page.ar-admin-v3 .admin-stack { display: grid; gap: 16px; }
@@ -302,15 +303,11 @@ main.admin-page.ar-admin-v3 .admin-file-field input[type="file"] { padding: 8px;
 main.admin-page.ar-admin-v3 option { background: var(--admin-input-bg); color: var(--admin-input-text); }
 
 /* 6. Navigation, top bar, sidebar, notices */
-main.admin-page.ar-admin-v3 .ar-admin-sidebar { background: var(--admin-sidebar); color: var(--admin-text-primary); border-color: var(--admin-border-color); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-brand strong,.ar-admin-workspace strong,.ar-admin-profile strong,.ar-admin-nav-text) { color: var(--admin-text-primary); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-brand span,.ar-admin-workspace small,.ar-admin-profile small,.ar-admin-nav-label) { color: var(--admin-text-secondary); }
-main.admin-page.ar-admin-v3 .ar-admin-nav button { color: var(--admin-text-secondary); }
 main.admin-page.ar-admin-v3 .ar-admin-nav button:hover { color: var(--admin-text-primary); background: var(--admin-bg-secondary); }
 main.admin-page.ar-admin-v3 .ar-admin-nav button.active { color: var(--admin-text-primary); background: var(--admin-bg-tertiary); }
-main.admin-page.ar-admin-v3 .ar-admin-topbar { background: var(--admin-bg-primary); color: var(--admin-text-primary); border-bottom: 1px solid var(--admin-border-color); }
 main.admin-page.ar-admin-v3 :is(.ar-admin-profile,.ar-admin-profile-menu,.ar-admin-command-trigger,.ar-admin-search) { background: var(--admin-card-bg); color: var(--admin-text-primary); border-color: var(--admin-border-color); }
-main.admin-page.ar-admin-v3 .ar-admin-profile-menu { box-shadow: var(--box-shadow); }
 main.admin-page.ar-admin-v3 .ar-admin-notice { padding: 12px 14px; border: 1px solid var(--admin-border-color); border-radius: 8px; background: var(--admin-bg-secondary); color: var(--admin-text-primary); overflow-wrap: anywhere; }
 main.admin-page.ar-admin-v3 .ar-admin-notice.error { border-color: color-mix(in srgb, var(--admin-danger) 55%, var(--admin-border-color)); }
 main.admin-page.ar-admin-v3 .ar-admin-notice.success { border-color: color-mix(in srgb, var(--admin-success) 55%, var(--admin-border-color)); }
@@ -595,9 +592,6 @@ main.admin-page.ar-admin-v3 .ar-stat-card {
     border-radius: 10px;
     background: var(--ar-ui-surface);
     box-shadow: none
-}
-main.admin-page.ar-admin-v3 .ar-stat-card::before, main.admin-page.ar-admin-v3 .ar-stat-card::after {
-  display: none!important
 }
 main.admin-page.ar-admin-v3 .ar-stat-card:hover {
   transform: none;
