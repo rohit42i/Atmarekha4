@@ -12,7 +12,7 @@ const required = [
   ['InfoPage.jsx', "['Age guidance', '15+']"],
   ['InfoPage.jsx', 'I use AI tools in parts of the visual process'],
   ['InfoPage.jsx', 'AI generated material'],
-  ['PrivacyPolicySections.jsx', 'Why we use it'],
+  ['PrivacyPolicySections.jsx', '3. Why we use your data'],
   ['PrivacyPolicySections.jsx', 'How long we keep information'],
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
