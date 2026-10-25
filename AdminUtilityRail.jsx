@@ -55,6 +55,11 @@ export default function AdminUtilityRail({
   comments = [],
   reports = [],
   pageCounts = {},
+  pageCountsAvailable = false,
+  commentsAvailable = false,
+  reportsAvailable = false,
+  announcementsAvailable = false,
+  mediaAvailable = false,
   announcements = [],
   media = [],
   reportCount = 0,
@@ -79,7 +84,7 @@ export default function AdminUtilityRail({
 
   const activity = useMemo(() => {
     const items = [
-      ...comments.slice(0, 20).map(row => ({
+      ...(commentsAvailable ? comments.slice(0, 20) : []).map(row => ({
         id: `comment-${row.id}`,
         type: 'comment',
         icon: 'message',
@@ -88,7 +93,7 @@ export default function AdminUtilityRail({
         at: row.created_at,
         target: 'Comments',
       })),
-      ...announcements.slice(0, 10).map(row => ({
+      ...(announcementsAvailable ? announcements.slice(0, 10) : []).map(row => ({
         id: `announcement-${row.id}`,
         type: 'announcement',
         icon: 'bell',
@@ -97,7 +102,7 @@ export default function AdminUtilityRail({
         at: row.published_at || row.created_at,
         target: 'Announcements',
       })),
-      ...reports.slice(0, 20).map(row => ({
+      ...(reportsAvailable ? reports.slice(0, 20) : []).map(row => ({
         id: `report-${row.id}`,
         type: 'report',
         icon: 'flag',
@@ -110,12 +115,12 @@ export default function AdminUtilityRail({
     return items
       .sort((a, b) => (new Date(b.at || 0).getTime() || 0) - (new Date(a.at || 0).getTime() || 0))
       .slice(0, 5);
-  }, [comments, announcements, reports]);
+  }, [comments, announcements, reports, commentsAvailable, announcementsAvailable, reportsAvailable]);
 
   const pageCount = Object.values(pageCounts).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0);
   const reportTotal = reports.length;
-  const reportReviewPercent = reportTotal > 0 ? reviewedReports.length / reportTotal * 100 : null;
-  const pageCoverage = published.length > 0 ? publishedWithPages.length / published.length * 100 : null;
+  const reportReviewPercent = reportsAvailable && reportTotal > 0 ? reviewedReports.length / reportTotal * 100 : null;
+  const pageCoverage = pageCountsAvailable && published.length > 0 ? publishedWithPages.length / published.length * 100 : null;
   const coverCoverage = published.length > 0 ? publishedWithCovers.length / published.length * 100 : null;
 
   return (
@@ -138,11 +143,11 @@ export default function AdminUtilityRail({
         </div>
         <div className="ar-utility-rings">
           <ProgressRing label="Page coverage" value={publishedWithPages.length} percent={pageCoverage} tone="primary"
-            note={`${publishedWithPages.length} of ${published.length} published chapters have pages`}/>
+            note={pageCountsAvailable ? `${publishedWithPages.length} of ${published.length} published chapters have pages` : 'Page inventory unavailable'}/>
           <ProgressRing label="Cover coverage" value={publishedWithCovers.length} percent={coverCoverage} tone="success"
             note={`${publishedWithCovers.length} of ${published.length} published chapters have covers`}/>
           <ProgressRing label="Report review" value={reviewedReports.length} percent={reportReviewPercent} tone="warning"
-            note={reportTotal ? `${reviewedReports.length} of ${reportTotal} loaded reports reviewed` : 'No report history loaded'}/>
+            note={!reportsAvailable ? 'Report history unavailable' : reportTotal ? `${reviewedReports.length} of ${reportTotal} loaded reports reviewed` : 'No report history loaded'}/>
         </div>
       </section>
 
@@ -167,7 +172,7 @@ export default function AdminUtilityRail({
             ))}
           </ol>
         ) : (
-          <div className="ar-utility-empty"><AdminIcon name="activity" size={18}/><span>No recent updates in the loaded records.</span></div>
+          <div className="ar-utility-empty"><AdminIcon name="pulse" size={18}/><span>No recent updates in the loaded records.</span></div>
         )}
       </section>
 
@@ -181,8 +186,8 @@ export default function AdminUtilityRail({
             <span><AdminIcon name="flag" size={15}/>Open reports</span><strong>{Number.isFinite(Number(reportCount)) ? Number(reportCount).toLocaleString('en-IN') : '—'}</strong>
           </button>
           <div><span><AdminIcon name="book" size={15}/>Published chapters</span><strong>{published.length.toLocaleString('en-IN')}</strong></div>
-          <div><span><AdminIcon name="layers" size={15}/>Page records</span><strong>{pageCount.toLocaleString('en-IN')}</strong></div>
-          <div><span><AdminIcon name="image" size={15}/>Media loaded</span><strong>{media.length.toLocaleString('en-IN')}</strong></div>
+          <div><span><AdminIcon name="layers" size={15}/>Page records</span><strong>{pageCountsAvailable ? pageCount.toLocaleString('en-IN') : '—'}</strong></div>
+          <div><span><AdminIcon name="image" size={15}/>Media loaded</span><strong>{mediaAvailable ? media.length.toLocaleString('en-IN') : '—'}</strong></div>
         </div>
         <button type="button" className="ar-utility-primary-action" onClick={onNewChapter}>
           <AdminIcon name="plus" size={16}/> New chapter
