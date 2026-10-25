@@ -112,4 +112,52 @@ const counts = await views.json();
 assert.equal(counts[chapterId], 1, 'recorded R2 event must be included in the public chapter count');
 assert.equal(counts[otherChapterId], 0, 'a successful live zero must not be replaced by a stale hourly snapshot');
 
-console.log('Analytics Worker R2 view flow passed: validation, persistence, retry idempotency, live counts and stale-snapshot protection.');
+// Authenticated analytics must not report the identifiable subset as a complete audience
+// when imported legacy views in the selected period have no stable viewer identity.
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async input => {
+  const url = String(input);
+  if (url.endsWith('/auth/v1/user')) {
+    return new Response(JSON.stringify({ id: 'test-admin' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (url.includes('/rest/v1/admins?')) {
+    return new Response(JSON.stringify([{ user_id: 'test-admin' }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  throw new Error('Unexpected network request in analytics worker test: ' + url);
+};
+const adminEnv = {
+  ...env,
+  SUPABASE_URL: 'https://supabase.test',
+  SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
+};
+const adminRequest = () => new Request('https://analytics.test/v1/admin/analytics?days=1', {
+  method: 'GET',
+  headers: { Origin: origin, Authorization: 'Bearer test-token' },
+});
+try {
+  const completeReaders = await analyticsWorker.fetch(adminRequest(), adminEnv);
+  assert.equal(completeReaders.status, 200, 'authenticated analytics should load');
+  const completePayload = await completeReaders.json();
+  assert.equal(completePayload.reader_metrics_limited, false, 'reader counts with stable identities should remain available');
+  assert.equal(completePayload.current_views, 1, 'authenticated analytics should preserve real view totals');
+
+  const now = new Date();
+  const legacyHash = 'legacy-viewer-identity';
+  const legacyKey = `analytics/views/events/${now.toISOString().slice(0, 10)}/${chapterId}/${legacyHash}.json`;
+  await bucket.put(legacyKey, JSON.stringify({
+    chapterId,
+    viewerHash: legacyHash,
+    createdAt: new Date(now.getTime() - 60_000).toISOString(),
+  }));
+
+  const incompleteReaders = await analyticsWorker.fetch(adminRequest(), adminEnv);
+  assert.equal(incompleteReaders.status, 200, 'incomplete identity history must not hide view totals');
+  const incompletePayload = await incompleteReaders.json();
+  assert.equal(incompletePayload.current_views, 2, 'legacy and identified events must both count as views');
+  assert.equal(incompletePayload.reader_metrics_limited, true, 'legacy identity gaps must flag reader counts as incomplete');
+  assert.match(incompletePayload.reader_metrics_limited_reason, /stable viewer identities/i, 'the response should explain why reader counts are limited');
+} finally {
+  globalThis.fetch = originalFetch;
+}
+
+console.log('Analytics Worker R2 flow passed: view validation, persistence, idempotency, exact counts, stale-snapshot protection and reader-identity integrity.');
