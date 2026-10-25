@@ -56,6 +56,7 @@ export default function AdminUtilityRail({
   reports = [],
   pageCounts = {},
   pageCountsAvailable = false,
+  pageCountsLoading = false,
   commentsAvailable = false,
   reportsAvailable = false,
   announcementsAvailable = false,
@@ -143,11 +144,11 @@ export default function AdminUtilityRail({
         </div>
         <div className="ar-utility-rings">
           <ProgressRing label="Page coverage" value={publishedWithPages.length} percent={pageCoverage} tone="primary"
-            note={pageCountsAvailable ? `${publishedWithPages.length} of ${published.length} published chapters have pages` : 'Page inventory unavailable'}/>
+            note={pageCountsAvailable ? `${publishedWithPages.length} of ${published.length} published chapters have pages` : pageCountsLoading ? 'Counting page records…' : 'Page inventory unavailable'}/>
           <ProgressRing label="Cover coverage" value={publishedWithCovers.length} percent={coverCoverage} tone="success"
             note={`${publishedWithCovers.length} of ${published.length} published chapters have covers`}/>
           <ProgressRing label="Report review" value={reviewedReports.length} percent={reportReviewPercent} tone="warning"
-            note={!reportsAvailable ? 'Report history unavailable' : reportTotal ? `${reviewedReports.length} of ${reportTotal} loaded reports reviewed` : 'No report history loaded'}/>
+            note={!reportsAvailable ? 'Report history unavailable' : reportTotal ? `${reviewedReports.length} of ${reportTotal} recent reports reviewed` : 'No report history loaded'}/>
         </div>
       </section>
 
