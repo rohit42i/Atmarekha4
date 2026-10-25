@@ -59,7 +59,7 @@ const required = [
   ['AdminUtilityRail.jsx', 'aria-label="Dashboard overview and quick actions"'],
   ['AdminUtilityRail.jsx', 'strokeDashoffset={offset}'],
   ['AdminUtilityRail.jsx', 'Content health'],
-  ['admin-master-system.css', 'grid-template-columns: 252px minmax(0,1fr) 23rem'],
+  ['admin-master-system.css', 'grid-template-columns:252px minmax(390px,1fr) 23rem'],
   ['admin-master-system.css', '@media (max-width: 980px)'],
   ['admin-master-system.css', 'body.dark-theme-variables main.admin-page.ar-admin-v3'],
   ['worker.js', 'https://fonts.googleapis.com'],
