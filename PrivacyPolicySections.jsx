@@ -1,14 +1,72 @@
-const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
+const SUPPORT_EMAIL = 'atmarekhasupport@gmail.com';
+const INFO_EMAIL = 'atmarekhainfo@gmail.com';
+const OFFICIAL_EMAIL = 'atmarekhaoffical@gmail.com';
+
+function Section({ title, children }) {
+  return <article className="privacy-policy-section"><h2>{title}</h2>{children}</article>;
+}
 
 export default function PrivacyPolicySections() {
   return <>
-    <article className="privacy-policy-section"><h2>Information we use</h2><p>Depending on how you use the site, this may include your account email and profile details, reading progress, bookmarks, ratings, comments and community activity, membership status and payment references, messages sent to support, and limited technical information used for security and troubleshooting.</p></article>
-    <article className="privacy-policy-section"><h2>Why we use it</h2><p>We use this information to sign you in, provide reader features, save progress, manage memberships, handle payment issues, deliver notifications you choose, moderate the community, protect the site, and respond to requests.</p></article>
-    <article className="privacy-policy-section"><h2>Atma Rekha email updates</h2><p>When you create an account, your email is enabled by default for Atma Rekha reader updates, including new chapter announcements and important website updates. You can turn these updates off in More &amp; Settings → Notification preferences or use the unsubscribe link in an update email. These are reader and service updates, not marketing or promotional emails. Essential account, verification and security messages are handled separately.</p></article>
-    <article className="privacy-policy-section"><h2>Who helps run the site</h2><p>We use service providers for website infrastructure, account and data services, and payments, including Supabase, Cloudflare and Razorpay. They receive information needed for the services they provide. Payment details such as your UPI PIN and full card credentials are handled by the payment provider, not requested by Atma Rekha.</p></article>
-    <article className="privacy-policy-section"><h2>Public content and browser storage</h2><p>Comments and profile details you choose to make public can be seen by other readers. The site uses necessary browser storage for login, preferences and reader features. We do not sell personal information.</p></article>
-    <article className="privacy-policy-section"><h2>How long we keep information</h2><p>We keep information while it is needed to run the site and its features, and for support, security, payment records or legal obligations where required. We review deletion requests and remove eligible data after verification, subject to those requirements.</p></article>
-    <article className="privacy-policy-section"><h2>Your choices</h2><p>You can update your profile, download available account data, withdraw consent where consent is the basis for processing, or request deletion through the Privacy Center. Deletion requests are reviewed and verified before eligible data is erased; they are not instant. Some records may need to be retained for legal, payment or security reasons.</p></article>
-    <article className="privacy-policy-section"><h2>Contact</h2><p>For a privacy question or request, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We may need to verify that the request is yours. If you cannot access your account, contact us from an email address you control.</p></article>
+    <Section title="1. Information we handle">
+      <p>When you use Atma Rekha, we may handle the following information:</p>
+      <ul>
+        <li><strong>Account and profile:</strong> email address, account ID, display name, avatar, profile details, age confirmation and account status.</li>
+        <li><strong>Reading and community:</strong> chapters viewed, reading progress, bookmarks, ratings, comments, reports and related activity.</li>
+        <li><strong>Membership and payments:</strong> selected plan, subscription status, billing period, and Razorpay transaction or subscription references and payment status.</li>
+        <li><strong>Email and preferences:</strong> verification events, delivery records, reader-update preferences and unsubscribe status.</li>
+        <li><strong>Technical and usage information:</strong> page and chapter views, basic performance metrics, and technical request information such as browser or IP data where provided by the site or its services.</li>
+        <li><strong>Media:</strong> profile images, manga pages and chapter covers stored or displayed by the website.</li>
+      </ul>
+    </Section>
+
+    <Section title="2. How we use your information">
+      <ul>
+        <li>To create and manage accounts, verify email addresses and help users recover access.</li>
+        <li>To display manga and save reading progress, bookmarks and reader preferences.</li>
+        <li>To display comments and ratings, review reports and manage community content.</li>
+        <li>To confirm membership payments, maintain access and manage subscriptions.</li>
+        <li>To send account, verification, security, payment and membership emails.</li>
+        <li>To send chapter announcements and reader updates according to your preferences.</li>
+        <li>To understand chapter views, improve site performance and investigate technical issues.</li>
+      </ul>
+      <p>Atma Rekha does not sell personal information.</p>
+    </Section>
+
+    <Section title="3. Services used by Atma Rekha">
+      <p><strong>Supabase</strong> provides account sign-in and backend data services. <strong>Cloudflare</strong> provides website infrastructure, analytics and media storage. <strong>Resend</strong> delivers email. <strong>Razorpay</strong> processes membership payments.</p>
+      <p>These services receive information needed to perform their functions. Payment information is handled through Razorpay; do not send passwords, OTPs, UPI PINs, CVVs or full card details to Atma Rekha by email.</p>
+    </Section>
+
+    <Section title="4. Public content, email and browser storage">
+      <p>Comments, ratings and profile details you make public can be seen by other readers. Do not put private information in public posts or comments.</p>
+      <p>Reader updates and chapter announcements are enabled by default for new accounts. Turn them off in More &amp; Settings → Notification preferences or use the unsubscribe link in an update email. Essential account, verification, security and payment emails may still be sent.</p>
+      <p>The website uses browser storage for sign-in, preferences and reader features. Blocking it may prevent some features from working.</p>
+    </Section>
+
+    <Section title="5. Retention and account deletion">
+      <p>We keep information while it is needed to run the account or feature, maintain a membership, support payments, manage community reports or address technical issues. Different services may keep their own logs or backups for different periods.</p>
+      <p>To request account deletion, use the Privacy Center, confirm your password and verify the request by email OTP. A 14-day recovery window starts after email verification. After that window, the request is reviewed and eligible information is processed for deletion. The request is not an instant erase, and some payment, security, moderation or backup records may remain for a period.</p>
+    </Section>
+
+    <Section title="6. Your choices">
+      <ul>
+        <li>Update available profile details in your account settings.</li>
+        <li>Change reader-update preferences in More &amp; Settings or unsubscribe from an update email.</li>
+        <li>Use the Privacy Center to request an available data export, withdraw consent or request account deletion.</li>
+        <li>Contact support to ask about correcting information or a privacy request. We may ask you to verify account ownership before acting on it.</li>
+      </ul>
+    </Section>
+
+    <Section title="7. Age and policy updates">
+      <p>Atma Rekha is intended for readers aged 15 and above. Account registration asks you to confirm that you are at least 15. This declaration is not independently checked using an identity document.</p>
+      <p>This policy may change when the website or its features change. The date at the top of the page shows the current version date.</p>
+    </Section>
+
+    <Section title="8. Contact">
+      <p>For account, privacy or payment questions, email <a href="mailto:atmarekhasupport@gmail.com">{SUPPORT_EMAIL}</a>.</p>
+      <p>For general questions, email <a href="mailto:atmarekhainfo@gmail.com">{INFO_EMAIL}</a>. For official correspondence, email <a href="mailto:atmarekhaoffical@gmail.com">{OFFICIAL_EMAIL}</a>.</p>
+      <p>Account emails are sent from <a href="mailto:no-reply@atmarekha.in">no-reply@atmarekha.in</a>. This address is used for sending messages, not as the support contact.</p>
+    </Section>
   </>;
 }

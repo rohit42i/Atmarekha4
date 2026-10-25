@@ -1,5 +1,6 @@
 import FeedbackForm from './FeedbackForm.jsx';
 import PrivacyPolicySections from './PrivacyPolicySections.jsx';
+import TermsOfUseSections from './TermsOfUseSections.jsx';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
@@ -31,53 +32,61 @@ const PAGES = {
   report: {
     eyebrow: 'REPORT', title: 'Report a problem',
     sections: [
-      { heading: 'Complaints and support', body: 'For a broken page, comment, account, membership or privacy issue, email us. Grievance Officer: Arkesh, creator. Consumer complaints are acknowledged within 48 hours and addressed within one month where applicable. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
+      { heading: 'Complaints and support', body: 'For a broken page, comment, account, membership or privacy issue, email us with the details. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
     ],
   },
   terms: {
-    eyebrow: 'LEGAL', title: 'Terms & Privacy',
-    sections: [
-      { heading: 'Using the site', body: 'Atma Rekha is for reading manga and using its reader and community features. Please use the site lawfully and respectfully. Do not harass others, post illegal or harmful material, impersonate people, share private information, spam, or interfere with the site. We may hide content or restrict accounts when needed to protect readers or the service.' },
-      { heading: 'Stories and artwork', body: 'The story, characters, writing, branding and creative material made for Atma Rekha are provided for reading here. You may share links to the site, but do not copy, repost, sell or reuse the pages and materials without permission.' },
-      { heading: 'Membership and payments', body: 'Before joining, check the price, billing frequency and chapter access shown on the membership page. Membership renews automatically when that is part of the plan you choose. You can cancel to stop future renewals, and access for the paid period follows the terms shown when you joined. For an incorrect payment or missing access, contact us with the payment or subscription reference. Refund requests are reviewed under applicable law and the transaction details. Never send passwords, OTPs, UPI PINs, CVVs or full card details to support.' },
-      { heading: 'Changes and contact', body: 'Chapters, release plans and features may change, and the site may occasionally be unavailable. We may update these terms when needed. Nothing here takes away rights that cannot legally be excluded. For account, membership or other complaints, contact ' + CONTACT_EMAIL + '.' },
-    ],
+    eyebrow: 'LEGAL', title: 'Terms of Use',
+    description: 'Rules for reading manga, using accounts and community features, and purchasing membership.',
   },
-
+  privacy: {
+    eyebrow: 'PRIVACY', title: 'Privacy Policy',
+    description: 'What information Atma Rekha uses and how it is handled.',
+  },
 };
 
 function Section({ heading, body, links = [] }) {
-  return <article className="info-section"><h3>{heading}</h3><p>{body}</p>{links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label} ↗</a>)}</div>}</article>;
+  return <article className="info-section">
+    <h3>{heading}</h3>
+    <p>{body}</p>
+    {links.length > 0 && <div className="info-links">{links.map(link => <a key={link.href} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noreferrer' : undefined}>{link.label} ↗</a>)}</div>}
+  </article>;
 }
 
 export default function InfoPage({ type, onBack }) {
   const page = PAGES[type] || PAGES.about;
   const isAbout = type === 'about';
+  const isTerms = type === 'terms';
+  const isPrivacy = type === 'privacy';
+
   return <main className="info-page">
     <header className="subpage-header info-page-header">
       <button className="back-button" onClick={onBack} aria-label="Back">←</button>
       <div><p className="header-kicker">{page.eyebrow}</p><h1>{page.title}</h1></div>
     </header>
-    <section className="info-card info-hero">
+
+    {(isAbout || isTerms || isPrivacy) && <section className="info-card info-hero">
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure manga created by Arkesh.' : type === 'contact' ? 'Questions or need a hand? Get in touch.' : type === 'terms' ? 'The terms of use and privacy policy for Atma Rekha.' : 'Let us know if something needs our attention.'}</p>
-    </section>
+      <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure manga created by Arkesh.' : page.description}</p>
+      {(isTerms || isPrivacy) && <p className="privacy-version">Last updated: 25 October 2026</p>}
+    </section>}
+
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
       <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
       <div className="about-story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-    </section> : <>
-      <section className="info-card info-content-card">
-        <div className="info-sections">{page.sections.map(section => <Section key={section.heading} {...section}/>)}</div>
-        {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
-      </section>
-      {type === 'terms' && <section className="info-card info-content-card terms-privacy-policy" aria-labelledby="terms-privacy-policy-title">
-        <header className="privacy-section-heading">
-          <p className="section-eyebrow">PRIVACY</p>
-          <h2 id="terms-privacy-policy-title">Privacy policy</h2>
-          <p className="privacy-version">Last updated: 20 October 2026</p>
-        </header>
-        <PrivacyPolicySections />
-      </section>}
-    </>}
+    </section> : null}
+
+    {isTerms && <section className="info-card info-content-card terms-privacy-policy" aria-label="Terms of Use">
+      <TermsOfUseSections />
+    </section>}
+
+    {isPrivacy && <section className="info-card info-content-card terms-privacy-policy" aria-label="Privacy Policy">
+      <PrivacyPolicySections />
+    </section>}
+
+    {!isAbout && !isTerms && !isPrivacy && <section className="info-card info-content-card">
+      <div className="info-sections">{(page.sections || []).map(section => <Section key={section.heading} {...section} />)}</div>
+      {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
+    </section>}
   </main>;
 }
