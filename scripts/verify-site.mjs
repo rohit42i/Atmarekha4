@@ -726,7 +726,7 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'async function loadAllChapterPageRows()'],
   ['AdminPanel.jsx', adminPanel, 'async function loadAllCommentReportRows()'],
   ['AdminPanel.jsx', adminPanel, ".order('chapter_id', { ascending: true })"],
-  ['AdminPanel.jsx', adminPanel, ".order('created_at', { ascending: false })\n      .order('id', { ascending: false })"],
+  ['AdminPanel.jsx', adminPanel, ".order('created_at', { ascending: false })\n    .order('id', { ascending: false })"],
   ['AdminPanel.jsx', adminPanel, '{comments.length} recent comments · replies included'],
   ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
