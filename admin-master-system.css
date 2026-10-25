@@ -29,7 +29,6 @@ main.admin-page.ar-admin-v3 {
   --admin-muted: var(--admin-text-muted);
   --admin-faint: #767676;
   --admin-border: var(--admin-border-color);
-  --admin-border-strong: var(--admin-border-strong);
   --admin-primary: #292929;
   --admin-primary-soft: #e8e8e8;
   --admin-positive: var(--admin-success);
