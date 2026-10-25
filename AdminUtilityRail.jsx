@@ -24,7 +24,7 @@ function safeExcerpt(value, limit = 88) {
   return clean.length > limit ? clean.slice(0, limit - 1).trimEnd() + '…' : clean;
 }
 
-function ProgressRing({ label, value, percent, tone = 'primary', note }) {
+function ProgressRing({ label, percent, tone = 'primary', note }) {
   const ready = Number.isFinite(percent);
   const normalized = ready ? Math.max(0, Math.min(100, percent)) : 0;
   const circumference = 2 * Math.PI * 31;
@@ -143,11 +143,11 @@ export default function AdminUtilityRail({
           <button type="button" className="ar-utility-text-action" onClick={() => onTab?.('Chapters')}>Manage</button>
         </div>
         <div className="ar-utility-rings">
-          <ProgressRing label="Page coverage" value={publishedWithPages.length} percent={pageCoverage} tone="primary"
+          <ProgressRing label="Page coverage" percent={pageCoverage} tone="primary"
             note={pageCountsAvailable ? `${publishedWithPages.length} of ${published.length} published chapters have pages` : pageCountsLoading ? 'Counting page records…' : 'Page inventory unavailable'}/>
-          <ProgressRing label="Cover coverage" value={publishedWithCovers.length} percent={coverCoverage} tone="success"
+          <ProgressRing label="Cover coverage" percent={coverCoverage} tone="success"
             note={`${publishedWithCovers.length} of ${published.length} published chapters have covers`}/>
-          <ProgressRing label="Report review" value={reviewedReports.length} percent={reportReviewPercent} tone="warning"
+          <ProgressRing label="Report review" percent={reportReviewPercent} tone="warning"
             note={!reportsAvailable ? 'Report history unavailable' : reportTotal ? `${reviewedReports.length} of ${reportTotal} recent reports reviewed` : 'No report history loaded'}/>
         </div>
       </section>
