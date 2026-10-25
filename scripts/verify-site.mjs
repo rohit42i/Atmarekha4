@@ -34,7 +34,7 @@ const required = [
   ['notification-prompt.js', "atma-notification-dont-show-again"],
   ['notification-prompt.js', "Don't show this again"],
   ['ProfileV2.jsx', 'emailRedirectTo: window.location.origin'],
-  ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-19'"],
+  ['UserAuth.jsx', "dpdp_privacy_consent_version:'2026-10-25'"],
   ['supabase/functions/dpdp-data-rights/index.ts', 'Use the password and email verification flow in Privacy Center to request account deletion.'],
   ['ProfileV2.jsx', 'Your profile details were saved, but the email change failed:'],
   ['PrivacyCenter.jsx', '14-day recovery window starts after email verification.'],
@@ -101,7 +101,7 @@ const required = [
   ['InfoPage.jsx', 'within 48 hours'],
   ['InfoPage.jsx', 'within one month'],
   ['InfoPage.jsx', 'Grievance Officer: Arkesh, creator.'],
-  ['InfoPage.jsx', 'Membership renews automatically'],
+  ['TermsOfUseSections.jsx', 'Membership renews automatically'],
   ['Community.jsx', 'Comments for community post'],
   ['Community.jsx', "atma-open-community-comments"],
   ['Community.jsx', 'community-post-comments'],
@@ -550,12 +550,17 @@ if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') 
   failed = true;
 }
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
+const termsCopyRegression = await readFile('TermsOfUseSections.jsx', 'utf8');
+const privacyCopyRegression = await readFile('PrivacyPolicySections.jsx', 'utf8');
 if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
     !legalCopyRegression.includes('AI generated material') ||
-    !legalCopyRegression.includes('Membership renews automatically') ||
+    !termsCopyRegression.includes('Membership renews automatically') ||
     !legalCopyRegression.includes('within 48 hours') ||
-    !legalCopyRegression.includes('within one month')) {
-  console.error('CHECK FAILED: public About, Terms or complaint copy is missing a required clarification.');
+    !legalCopyRegression.includes('within one month') ||
+    !legalCopyRegression.includes("type === 'privacy'") ||
+    !privacyCopyRegression.includes('11. Personal data breaches') ||
+    !privacyCopyRegression.includes('16. Indian data-protection law')) {
+  console.error('CHECK FAILED: public About, Terms, Privacy or complaint copy is missing required policy content.');
   failed = true;
 }
 
