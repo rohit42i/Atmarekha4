@@ -974,3 +974,34 @@ main.admin-page.ar-admin-v3 .ar-admin-modal-backdrop { z-index: 1100 !important;
   main.admin-page.ar-admin-v3 .ar-admin-main { overflow: visible !important; }
   main.admin-page.ar-admin-v3 .ar-admin-content { overflow: visible !important; }
 }
+
+main.admin-page.ar-admin-v3 .ar-cr-source-icon.pending {
+  color: var(--admin-muted) !important;
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-source-list>div {
+  min-width: 0;
+  grid-template-columns: 28px minmax(0,1fr) auto !important;
+  gap: 10px !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-source-list>div>div { min-width: 0; }
+main.admin-page.ar-admin-v3 .ar-cr-source-list>div>div small {
+  display: block;
+  color: var(--admin-muted) !important;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+main.admin-page.ar-admin-v3 .ar-cr-status-line { color: var(--admin-muted) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-warning {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-ok {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border) !important;
+}
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-warning :is(strong,p) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 .ar-cr-alert.is-ok :is(strong,p) { color: var(--admin-text) !important; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.ok,.ar-cr-status-dot.is-ok) { color: var(--admin-positive) !important; }
+main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.bad,.ar-cr-status-dot.is-warning) { color: var(--admin-negative) !important; }
