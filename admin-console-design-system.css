@@ -884,9 +884,12 @@ main.admin-page.ar-admin-v3 :is(
   .admin-card,.admin-section-card,.admin-tool-card,.admin-overview-card,.admin-metric-card,
   .admin-studio-card,.admin-studio-modal,.admin-section,.admin-panel,.ar-admin-panel,
   .ar-admin-section,.ar-cr-card,.ar-cr-metric,.ar-cr-alert,.ar-cr-feature-group,
-  .ar-cr-kpis,.ar-cr-metric-grid,.ar-cr-breakdown,.ar-cr-queue-grid,.ar-cr-category-summary,
-  .ar-cr-source-list,.ar-cr-table-wrap,.ar-cr-revenue-grid,.ar-cr-audit,
-  .ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.ar-health-card,
+  .ar-cr-table-wrap,
+  .ar-ops-card,.ar-ops-panel,.ar-ops-preview-panel,.ar-ops-section,.ar-mgmt-card,.ar-mgmt-panel,
+  .ar-mod-card,.ar-mod-section,.ar-pro-card,.ar-pro-panel,.ar-health-card,.ar-health-panel,
+  .ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-ref-pulse-card,
+  .ar-membership-processed-card,.ar-membership-revenue-card,.ar-push-card,
+  .ar-card-thumb-card,.studio-page-grid-card,.admin-studio-form-card,.admin-studio-publisher-card,
   .ar-membership-plan,.ar-membership-activity,.ar-membership-note,.privacy-requests-admin
 ) {
   background-color: var(--admin-surface) !important;
@@ -1006,9 +1009,19 @@ main.admin-page.ar-admin-v3 .ar-cr-alert.is-ok :is(strong,p) { color: var(--admi
 main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.ok,.ar-cr-status-dot.is-ok) { color: var(--admin-positive) !important; }
 main.admin-page.ar-admin-v3 :is(.ar-cr-source-icon.bad,.ar-cr-status-dot.is-warning) { color: var(--admin-negative) !important; }
 
-/* Final audit layer: older Control Room components use hard-coded warm/dark tokens.
-   Normalize those to the same theme so every card follows the selected scheme. */
-main.admin-page.ar-admin-v3 :is([class~="card"],[class*="-card"],[class*="_card"],[class*="Card"]) {
+/* Final audit layer: normalize known admin card components without boxing card headers or grid wrappers. */
+main.admin-page.ar-admin-v3 :is(
+  .admin-card,.admin-section-card,.admin-tool-card,.admin-overview-card,.admin-metric-card,
+  .admin-studio-card,.admin-studio-form-card,.admin-studio-publisher-card,.admin-studio-modal,
+  .ar-admin-card,.ar-admin-panel,.ar-admin-stat-card,.ar-admin-section,
+  .ar-stat-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-health-panel,.ar-ref-pulse-card,
+  .ar-cr-card,.ar-cr-metric,.ar-cr-alert,.ar-cr-feature-group,
+  .ar-ops-card,.ar-ops-panel,.ar-ops-preview-panel,.ar-ops-section,
+  .ar-mgmt-card,.ar-mgmt-panel,.ar-mod-card,.ar-mod-section,.ar-pro-card,.ar-pro-panel,
+  .ar-membership-plan,.ar-membership-activity,.ar-membership-note,
+  .ar-membership-processed-card,.ar-membership-revenue-card,.ar-push-card,
+  .ar-card-thumb-card,.studio-page-grid-card,.privacy-requests-admin
+) {
   min-width: 0 !important;
   max-width: 100% !important;
   border: 1px solid var(--admin-border) !important;
@@ -1021,9 +1034,7 @@ main.admin-page.ar-admin-v3 :is([class~="card"],[class*="-card"],[class*="_card"
 }
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-hero,
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-hero,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-explorer-head,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-group,
-main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-workbench {
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-group {
   border: 1px solid var(--admin-border) !important;
   border-radius: 10px !important;
   background: var(--admin-surface) !important;
@@ -1154,3 +1165,31 @@ main.admin-page.ar-admin-v3 .ar-control-room :is(.ar-cr-feature-count,.ar-cr-fea
   color: var(--admin-text) !important;
 }
 main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-count strong { color: var(--admin-text) !important; }
+
+/* Keep layout-only wrappers flat; only individual tiles/cards receive card borders. */
+main.admin-page.ar-admin-v3 .ar-control-room :is(
+  .ar-cr-kpis,.ar-cr-metric-grid,.ar-cr-breakdown,.ar-cr-queue-grid,
+  .ar-cr-category-summary,.ar-cr-source-list,.ar-cr-revenue-grid,.ar-cr-audit,
+  .ar-cr-command,.ar-cr-explorer,.ar-cr-feature-workbench,.ar-cr-explorer-head
+) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-card-head,
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-group>header {
+  border: 0 !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 0 12px !important;
+}
+main.admin-page.ar-admin-v3 .ar-control-room .ar-cr-feature-workbench {
+  display: grid;
+  gap: 14px !important;
+}
