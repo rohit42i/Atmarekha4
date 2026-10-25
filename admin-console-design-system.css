@@ -625,7 +625,7 @@ main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-stat-card,.
   backdrop-filter: none !important;
   transform: none !important;
 }
-main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-stat-card,.ar-stat-card,.ar-cr-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-utility-section,.ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.privacy-requests-admin,.admin-studio-card,.admin-tool-card,.admin-section-card,.admin-overview-card,.admin-metric-card) {
+main.admin-page.ar-admin-v3 :is(.admin-card,.ar-admin-card,.ar-admin-panel,.ar-admin-section,.ar-admin-stat-card,.ar-stat-card,.ar-cr-card,.ar-chart-card,.ar-activity-card,.ar-health-card,.ar-utility-section,.ar-ops-card,.ar-mgmt-card,.ar-mod-card,.ar-pro-card,.privacy-requests-admin,.admin-studio-card,.admin-tool-card,.admin-section-card,.admin-overview-card,.admin-metric-card,.ar-membership-plan,.ar-membership-activity,.ar-membership-note) {
   padding: 16px !important;
 }
 main.admin-page.ar-admin-v3 .ar-cr-metric {
