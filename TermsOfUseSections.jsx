@@ -27,17 +27,17 @@ const sections = [
   {
     heading: "4. Membership and payments",
     paragraphs: [
-      "Chapters 1 to 8 of Atma Rekha are free. Membership is needed from Chapter 9 onward. The current monthly plans are:"
+      "Chapters 1 to 8 of Atma Rekha are free. Membership is needed from Chapter 9 onward. The membership options are:"
     ],
     bullets: [
       "Free: ₹0. Chapters 1 to 8, reading progress, bookmarks, ratings and comments.",
       "Supporter: ₹19 per month. Atma Rekha Chapter 9 onward and every Atma Rekha chapter.",
       "Premium Supporter: ₹29 per month. Atma Rekha Chapter 9 onward and every Pal Do Pal Ke Lamhe chapter when available.",
-      "Super Supporter: ₹49 per month. Both stories and priority comments."
+      "Super Supporter: ₹299 per year. Both stories, the Super Supporter badge and priority comments."
     ],
     tail: [
       "Pal Do Pal Ke Lamhe is planned to begin on 25 April 2027. The ₹19 Supporter plan does not include it.",
-      "Membership renews automatically each month through the Razorpay UPI AutoPay mandate approved at checkout. Cancel from the available membership controls to stop future renewals; access continues until the current paid period ends.",
+      "Paid memberships renew automatically through the Razorpay UPI AutoPay mandate approved at checkout. Supporter and Premium Supporter renew monthly; Super Supporter renews yearly at ₹299. Cancellation stops future renewals, while access continues until the current paid period ends.",
       "Membership payments are not refundable. Cancelling stops future renewals and does not return a payment already made."
     ]
   },
