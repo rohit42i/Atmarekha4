@@ -55,7 +55,7 @@ export async function getPdlplMemberAccess() {
   const result = {
     user,
     planId: String(planId || '').trim().toLowerCase() || null,
-    member: ['supporter', 'premium'].includes(String(planId || '').trim().toLowerCase()),
+    member: ['supporter', 'premium', 'premium_yearly'].includes(String(planId || '').trim().toLowerCase()),
     admin: isAdminRole(role),
   };
   pdlplAccessCache = { key: user.id, value: result, expiresAt: Date.now() + PDLPL_ACCESS_CACHE_MS };
