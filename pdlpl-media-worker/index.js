@@ -144,7 +144,7 @@ async function hasMembership(user, request, env) {
   const now = Date.now();
 
   return (rows || []).some(row => {
-    if (!['supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
+    if (!['supporter', 'premium', 'premium_yearly'].includes(String(row?.plan_id || '').toLowerCase())) return false;
 
     const end = row.current_period_end
       ? new Date(row.current_period_end).getTime()
