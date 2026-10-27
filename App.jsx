@@ -18,7 +18,7 @@ import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
 import MorePage from './MorePage.jsx';
 
-const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
+const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium', 'premium_yearly']);
 
 async function canReadAtmaChapter(chapter) {
   const raw = chapter?.chapterNumber ?? chapter?.chapter_number;
