@@ -73,9 +73,11 @@ function iso(unix: unknown) {
   return Number.isFinite(value) && value > 0 ? new Date(value * 1000).toISOString() : null;
 }
 
-function fallbackPeriodEnd(startIso: string | null) {
-  const base = startIso ? new Date(startIso).getTime() : Date.now();
-  return new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString();
+function fallbackPeriodEnd(startIso: string | null, isAnnual = false) {
+  const end = new Date(startIso || Date.now());
+  if (isAnnual) end.setUTCFullYear(end.getUTCFullYear() + 1);
+  else end.setUTCDate(end.getUTCDate() + 30);
+  return end.toISOString();
 }
 
 function readSupabaseServiceRoleKey() {
@@ -147,7 +149,7 @@ Deno.serve(async req => {
 
     const periodStart = iso(remote.current_start);
     let periodEnd = iso(remote.current_end);
-    if (!periodEnd) periodEnd = fallbackPeriodEnd(periodStart);
+    if (!periodEnd) periodEnd = fallbackPeriodEnd(periodStart, record.plan_id === 'premium_yearly');
 
     const { error: updateError } = await admin.from('user_subscriptions').update({
       status: 'active',
