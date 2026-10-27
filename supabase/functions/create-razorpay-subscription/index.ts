@@ -15,9 +15,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const ALLOWED_ORIGINS = new Set(['https://www.atmarekha.in', 'https://atmarekha.in', 'http://localhost:5173']);
 // Must match Membership.jsx and subscription_plans table
 const PLANS = {
-  mini_member: { amount: 1900, name: 'Atma Rekha Supporter' },
-  supporter: { amount: 2900, name: 'Atma Rekha Premium Supporter' },
-  premium: { amount: 4900, name: 'Atma Rekha Super Supporter' },
+  mini_member: { amount: 1900, name: 'Atma Rekha Supporter', period: 'monthly', interval: 1, intervalUnit: 'month' },
+  supporter: { amount: 2900, name: 'Atma Rekha Premium Supporter', period: 'monthly', interval: 1, intervalUnit: 'month' },
+  premium_yearly: { amount: 29900, name: 'Atma Rekha Super Supporter', period: 'yearly', interval: 1, intervalUnit: 'year' },
 } as const;
 type PlanId = keyof typeof PLANS;
 
@@ -48,11 +48,12 @@ async function razorpay(path: string, method: string, keyId: string, keySecret: 
   if (!response.ok) throw new RazorpayApiError(response.status, data?.error?.description || `Razorpay API error (${response.status}).`, data?.error?.code || '', data?.error?.reason || '');
   return data;
 }
-async function findOrCreatePlan(plan: { amount: number; name: string }, keyId: string, keySecret: string) {
+async function findOrCreatePlan(plan: { amount: number; name: string; period: 'monthly' | 'yearly'; interval: number; intervalUnit: 'month' | 'year' }, keyId: string, keySecret: string) {
   const plans = await razorpay('/plans?count=100', 'GET', keyId, keySecret);
-  const existing = plans?.items?.find((item: any) => item?.period === 'monthly' && item?.interval === 1 && Number(item?.item?.amount) === plan.amount && item?.item?.currency === 'INR' && item?.item?.name === plan.name);
+  const existing = plans?.items?.find((item: any) => item?.period === plan.period && item?.interval === plan.interval && Number(item?.item?.amount) === plan.amount && item?.item?.currency === 'INR' && item?.item?.name === plan.name);
   if (existing?.id) return existing.id;
-  const created = await razorpay('/plans', 'POST', keyId, keySecret, { period: 'monthly', interval: 1, item: { name: plan.name, amount: plan.amount, currency: 'INR', description: `${plan.name} monthly membership` } });
+  const frequencyLabel = plan.intervalUnit === 'year' ? 'annual' : 'monthly';
+  const created = await razorpay('/plans', 'POST', keyId, keySecret, { period: plan.period, interval: plan.interval, item: { name: plan.name, amount: plan.amount, currency: 'INR', description: `${plan.name} ${frequencyLabel} membership` } });
   if (!created?.id) throw new Error('Razorpay did not return a plan ID.');
   return created.id;
 }
@@ -131,8 +132,10 @@ Deno.serve(async req => {
     const periodStart = subscription.current_start ? new Date(subscription.current_start * 1000).toISOString() : null;
     let periodEnd = subscription.current_end ? new Date(subscription.current_end * 1000).toISOString() : null;
     if (!periodEnd) {
-      const base = periodStart ? new Date(periodStart).getTime() : Date.now();
-      periodEnd = new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const end = new Date(periodStart || Date.now());
+      if (plan.intervalUnit === 'year') end.setUTCFullYear(end.getUTCFullYear() + plan.interval);
+      else end.setUTCDate(end.getUTCDate() + 30 * plan.interval);
+      periodEnd = end.toISOString();
     }
 
     const row = {

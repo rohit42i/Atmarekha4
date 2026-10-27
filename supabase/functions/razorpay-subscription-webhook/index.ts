@@ -29,7 +29,7 @@ function safeEqual(a: Uint8Array, b: Uint8Array) { if (a.length !== b.length) re
 async function hmac(body: string, secret: string) { const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body)); return new Uint8Array(signature); }
 async function sha256Hex(body: string) { const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)); return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join(''); }
 function iso(unix: unknown) { const value = Number(unix); return Number.isFinite(value) && value > 0 ? new Date(value * 1000).toISOString() : null; }
-function fallbackPeriodEnd(startIso: string | null) { const base = startIso ? new Date(startIso).getTime() : Date.now(); return new Date(base + 30 * 24 * 60 * 60 * 1000).toISOString(); }
+function fallbackPeriodEnd(startIso: string | null, isAnnual = false) { const end = new Date(startIso || Date.now()); if (isAnnual) end.setUTCFullYear(end.getUTCFullYear() + 1); else end.setUTCDate(end.getUTCDate() + 30); return end.toISOString(); }
 
 function readSupabaseServiceRoleKey() {
   const configured = Deno.env.get("SUPABASE_SECRET_KEYS") || "";
@@ -68,7 +68,7 @@ Deno.serve(async req => {
     }
     if (subscriptionId && incomingStatus) {
       const { data: record, error: recordError } = await admin.from('user_subscriptions')
-        .select('id,current_period_start,current_period_end,status')
+        .select('id,plan_id,current_period_start,current_period_end,status')
         .eq('provider', 'razorpay').eq('provider_subscription_id', subscriptionId).maybeSingle();
       if (recordError) throw new Error(`Razorpay subscription lookup failed: ${recordError.message}`);
       // Do not persist/acknowledge an event before the local subscription row exists.
@@ -77,7 +77,7 @@ Deno.serve(async req => {
       if (record) {
         const incomingStart = iso(entity.current_start) || record.current_period_start || null;
         const incomingEnd = iso(entity.current_end);
-        const periodEnd = incomingEnd || record.current_period_end || fallbackPeriodEnd(incomingStart);
+        const periodEnd = incomingEnd || record.current_period_end || fallbackPeriodEnd(incomingStart, record.plan_id === 'premium_yearly');
         const endMs = new Date(periodEnd).getTime();
         const periodStillActive = Number.isFinite(endMs) && endMs > Date.now();
         // Cancellation must never revoke access before the paid period ends.

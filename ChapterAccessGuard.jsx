@@ -5,7 +5,7 @@ import { formatChapterLabel } from './chapters';
 import { findChapterForPath, isChapterPath, legacyChapterIdFromHash } from './routes';
 
 const FREE_CHAPTER_LIMIT = 8;
-const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium']);
+const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium', 'premium_yearly']);
 const isMember = planId => MEMBER_PLAN_IDS.has(String(planId || '').trim().toLowerCase());
 
 function isLockedChapter(chapter, member) {
@@ -151,7 +151,7 @@ export default function ChapterAccessGuard() {
         <div className="chapter-access-perks"><span>✦ Full Chapter 9+ access</span><span>✦ UPI AutoPay membership</span><span>✦ Support Atma Rekha</span></div>
         <button className="chapter-access-cta" type="button" onClick={() => { setLockedChapter(null); window.location.hash = 'membership'; }}>Become a Member <span>→</span></button>
         <button className="chapter-access-secondary" type="button" onClick={() => setLockedChapter(null)}>Maybe later</button>
-        <p className="chapter-access-note">Choose ₹19, ₹29, or ₹49 per month.</p>
+        <p className="chapter-access-note">Choose ₹19/month, ₹29/month, or ₹299/year.</p>
       </section>
     </div>, document.body
   );

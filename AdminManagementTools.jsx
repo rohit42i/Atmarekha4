@@ -4,7 +4,7 @@ import { getAdminRole } from './adminAuth';
 
 const formatDate = value => value ? new Date(value).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 const formatTime = value => value ? new Date(value).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-const planLabel = value => ({ mini_member:'Mini Member', supporter:'Member', premium:'Premium Member' }[value] || 'Free');
+const planLabel = value => ({ mini_member:'Supporter', supporter:'Premium Supporter', premium:'Super Supporter (Legacy Monthly)', premium_yearly:'Super Supporter (Annual)' }[value] || 'Free');
 
 async function verifyAdmin(){
   const { data:{user} } = await supabase.auth.getUser();

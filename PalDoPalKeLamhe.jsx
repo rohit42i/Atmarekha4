@@ -47,10 +47,10 @@ function LockedModal({ chapter, onClose, user, planId }) {
       ? 'Unlock this chapter with membership.'
       : 'PDPKL is for members.';
   const copy = isAtmaOnlyPlan
-    ? 'Your current ₹19 Supporter plan is for Atma Rekha only. Upgrade to ₹29 Premium Supporter or ₹49 Super Supporter to access all of Pal Do Pal Ke Lamhe from Chapter 1 onward.'
+    ? 'Your current ₹19 Supporter plan is for Atma Rekha only. Upgrade to ₹29/month Premium Supporter or ₹299/year Super Supporter to access all of Pal Do Pal Ke Lamhe from Chapter 1 onward.'
     : hasUser
-      ? 'All of Pal Do Pal Ke Lamhe is members-only from Chapter 1 onward. Choose ₹29 Premium Supporter or ₹49 Super Supporter to access the story.'
-      : 'All of Pal Do Pal Ke Lamhe is members-only from Chapter 1 onward. Sign in, then choose ₹29 Premium Supporter or ₹49 Super Supporter to access the story.';
+      ? 'All of Pal Do Pal Ke Lamhe is members-only from Chapter 1 onward. Choose ₹29/month Premium Supporter or ₹299/year Super Supporter to access the story.'
+      : 'All of Pal Do Pal Ke Lamhe is members-only from Chapter 1 onward. Sign in, then choose ₹29/month Premium Supporter or ₹299/year Super Supporter to access the story.';
   const cta = isAtmaOnlyPlan ? 'Upgrade membership' : hasUser ? 'Choose membership' : 'Sign in & choose membership';
 
   return (
@@ -65,7 +65,7 @@ function LockedModal({ chapter, onClose, user, planId }) {
         <div className="chapter-access-perks">
           <span>✦ Chapter 1 onward · Members only</span>
           <span>✦ ₹29 Premium Supporter</span>
-          <span>✦ ₹49 Super Supporter</span>
+          <span>✦ ₹299/year Super Supporter</span>
         </div>
         <button className="chapter-access-cta" type="button" onClick={() => openPdlplMembership(chapter)}>{cta} <span>→</span></button>
         <button className="chapter-access-secondary" type="button" onClick={onClose}>Maybe later</button>

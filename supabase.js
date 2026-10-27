@@ -291,7 +291,7 @@ export async function getCurrentMemberships(userIds = []) {
     const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
     if (row.status === 'active') return end === null || end > now;
     return row.status === 'cancelled' && end !== null && end > now;
-  }).sort((a, b) => { const rank = id => ({ premium: 3, supporter: 2, mini_member: 1, free: 0 }[id] || 0); return rank(b.plan_id) - rank(a.plan_id); });
+  }).sort((a, b) => { const rank = id => ({ premium_yearly: 4, premium: 3, supporter: 2, mini_member: 1, free: 0 }[id] || 0); return rank(b.plan_id) - rank(a.plan_id); });
   return new Map(rows.filter(row => row?.user_id && row?.plan_id).map(row => [row.user_id, row.plan_id]));
 }
 
