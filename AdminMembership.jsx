@@ -163,7 +163,7 @@ export default function AdminMembership() {
         <SectionHeader eyebrow="PLAN MIX" title="Membership plans" description="Current plan configuration and live subscriber counts."/>
         <div className="ar-membership-plan-grid">
           {view.plans.map(plan => <article className="ar-membership-plan" key={plan.id}>
-            <div className="ar-membership-plan-top"><span>{plan.name}</span><b>{money(plan.amountInr)}<small>/mo</small></b></div>
+            <div className="ar-membership-plan-top"><span>{plan.name}{plan.id === 'premium' ? ' · Legacy monthly' : ''}</span><b>{money(plan.amountInr)}<small>/{plan.interval === 'year' ? 'yr' : 'mo'}</small></b></div>
             <div className="ar-membership-plan-bar"><i style={{ width: (view.active ? Math.min(100, plan.activeBillable / view.active * 100) : 0) + '%' }}/></div>
             <div className="ar-membership-plan-stats"><span><strong>{number(plan.activeBillable)}</strong> active</span><span><strong>{number(plan.accessMembers)}</strong> access</span><span><strong>{number(plan.cancelling)}</strong> cancelling</span><span><strong>{number(plan.pending)}</strong> pending</span></div>
           </article>)}
