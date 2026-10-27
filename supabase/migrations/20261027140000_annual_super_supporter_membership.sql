@@ -41,8 +41,7 @@ AS $function$
   order by us.user_id,
     case us.plan_id when 'premium_yearly' then 4 when 'premium' then 3 when 'supporter' then 2 when 'mini_member' then 1 else 0 end desc,
     us.current_period_end desc nulls first;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.get_admin_membership_analytics()
  RETURNS jsonb
@@ -245,8 +244,7 @@ begin
 
   return v_result;
 end;
-$function$
-
+$function$;
 
 DROP POLICY IF EXISTS pdlpl_member_read_pages ON public.pal_do_pal_ke_lamhe_chapter_pages;
 CREATE POLICY pdlpl_member_read_pages
