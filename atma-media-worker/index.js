@@ -142,7 +142,7 @@ async function hasPaidAtmaMembership(user, request, env) {
 
   const now = Date.now();
   return (rows || []).some(row => {
-    if (!['mini_member', 'supporter', 'premium'].includes(String(row?.plan_id || '').toLowerCase())) return false;
+    if (!['mini_member', 'supporter', 'premium', 'premium_yearly'].includes(String(row?.plan_id || '').toLowerCase())) return false;
     const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
     if (row.status === 'active') return end === null || end > now;
     return row.status === 'cancelled' && end !== null && end > now;
