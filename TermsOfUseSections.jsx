@@ -37,7 +37,7 @@ const sections = [
     ],
     tail: [
       "Pal Do Pal Ke Lamhe is planned to begin on 25 April 2027. The ₹19 Supporter plan does not include it.",
-      "Paid memberships renew automatically through the Razorpay UPI AutoPay mandate approved at checkout. Supporter and Premium Supporter renew monthly; Super Supporter renews yearly at ₹299. Cancellation stops future renewals, while access continues until the current paid period ends.",
+      "Membership renews automatically through the Razorpay UPI AutoPay mandate approved at checkout. Supporter and Premium Supporter renew monthly; Super Supporter renews yearly at ₹299. Cancellation stops future renewals, while access continues until the current paid period ends.",
       "Membership payments are not refundable. Cancelling stops future renewals and does not return a payment already made."
     ]
   },
