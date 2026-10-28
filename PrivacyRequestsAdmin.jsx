@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase';
-import './privacy-requests-admin.css';
 
 async function serviceErrorMessage(error, fallback) {
   const context = error?.context;

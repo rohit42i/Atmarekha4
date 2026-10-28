@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
-import './email-studio-workspace.css';
 
 const SITE_URL = 'https://www.atmarekha.in';
 const initial = { id: '', slug: '', name: '', category: 'transactional', subject: '', html_body: '', text_body: '' };

@@ -10,7 +10,8 @@ import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 import { AdminSidebar } from './admin-studio-ui.jsx';
-import './admin-master-system.css';
+import './admin-design-system.css';
+import './admin-layout.css';
 import AdminCommandPalette from './AdminCommandPalette.jsx';
 import AdminChapterManager from './AdminChapterManager.jsx';
 import AdminModerationQueue from './AdminModerationQueue.jsx';
@@ -224,14 +225,11 @@ export default function AdminPanel({ onLogout }) {
   });
   useEffect(() => {
     try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
-    if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
-    return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
   }, [adminTheme]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
     const fontLinks = [
-      ['ar-admin-poppins-font', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'],
       ['ar-admin-material-icons-sharp', 'https://fonts.googleapis.com/icon?family=Material+Icons+Sharp'],
     ];
     const created = [];
@@ -1259,7 +1257,7 @@ export default function AdminPanel({ onLogout }) {
     setProfileOpen(false);
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
-  return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme={adminTheme}>
+  return <main className={`admin-page ar-admin-v3${adminTheme === 'dark' ? ' dark-theme-variables' : ''}`} data-admin-root="true" data-admin-theme={adminTheme}>
     <div className={`ar-admin-app${hasUtilityRail ? ' has-utility-rail' : ''}`}>
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
