@@ -46,20 +46,34 @@ const ago = value => {
   if (hours < 48) return Math.round(hours) + ' h';
   return Math.round(hours / 24) + ' d';
 };
-const percent = (a, b) => Number(b) > 0 ? (Number(a) / Number(b)) * 100 : null;
-const deltaPercent = (current, previous) => Number(previous) > 0 ? ((Number(current) - Number(previous)) / Number(previous)) * 100 : Number(current) === 0 && Number(previous) === 0 ? 0 : null;
+const percent = (a, b) => {
+  if (a === null || a === undefined || a === '' || b === null || b === undefined || b === '') return null;
+  const numerator = Number(a);
+  const denominator = Number(b);
+  return Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0
+    ? numerator / denominator * 100
+    : null;
+};
+const deltaPercent = (current, previous) => {
+  if (current === null || current === undefined || current === '' || previous === null || previous === undefined || previous === '') return null;
+  const currentValue = Number(current);
+  const previousValue = Number(previous);
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) return null;
+  if (previousValue > 0) return ((currentValue - previousValue) / previousValue) * 100;
+  return currentValue === 0 && previousValue === 0 ? 0 : null;
+};
 const median = values => {
-  const rows = values.map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+  const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite).sort((a, b) => a - b);
   if (!rows.length) return null;
   const mid = Math.floor(rows.length / 2);
   return rows.length % 2 ? rows[mid] : (rows[mid - 1] + rows[mid]) / 2;
 };
 const average = values => {
-  const rows = values.map(Number).filter(Number.isFinite);
+  const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
   return rows.length ? rows.reduce((sum, value) => sum + value, 0) / rows.length : null;
 };
 const standardDeviation = values => {
-  const rows = values.map(Number).filter(Number.isFinite);
+  const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
   if (!rows.length) return null;
   const mean = average(rows);
   return Math.sqrt(average(rows.map(value => (value - mean) ** 2)));
@@ -270,25 +284,56 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const requiredAdminMetricFields = [
     'total_likes', 'current_likes', 'previous_likes', 'total_shares', 'current_shares', 'previous_shares',
     'total_comments', 'current_comments', 'previous_comments', 'total_ratings', 'current_ratings',
-    'previous_ratings', 'rating_sum', 'bookmarks',
+    'previous_ratings', 'rating_sum', 'bookmarks', 'released',
   ];
   const missingAdminMetricFields = requiredAdminMetricFields.filter(key => asNumber(analytics[key]) == null);
-  const adminAnalyticsAvailable = adminAnalyticsAvailable &&
-    missingAdminMetricFields.length === 0 &&
-    Array.isArray(analytics.rating_counts) && Array.isArray(analytics.chapter_stats);
+  const validRatingHistogram = Array.isArray(analytics.rating_counts) &&
+    analytics.rating_counts.every(row => row && Number.isInteger(Number(row.rating)) &&
+      Number(row.rating) >= 1 && Number(row.rating) <= 10 && Number.isInteger(Number(row.count)) && Number(row.count) >= 0) &&
+    new Set(analytics.rating_counts.map(row => Number(row.rating))).size === analytics.rating_counts.length &&
+    asNumber(analytics.total_ratings) != null &&
+    analytics.rating_counts.reduce((sum, row) => sum + Number(row.count), 0) === Number(analytics.total_ratings);
+  const validAdminChapterStats = Array.isArray(analytics.chapter_stats) &&
+    analytics.chapter_stats.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
+      ['likes', 'shares', 'rating_count', 'rating_average', 'period_likes', 'period_shares', 'period_rating_count', 'pages']
+        .every(key => asNumber(row[key]) != null)) &&
+    new Set(analytics.chapter_stats.map(row => row.id)).size === analytics.chapter_stats.length;
+  const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError &&
+    missingAdminMetricFields.length === 0 && validRatingHistogram && validAdminChapterStats;
   const adminAnalyticsUnavailableReason = adminAnalyticsAvailable ? null : (data.analyticsError ||
     (missingAdminMetricFields.length ? 'Admin analytics response is missing or has invalid fields: ' + missingAdminMetricFields.join(', ') :
-      'Admin analytics response is missing its rating histogram or chapter statistics.'));
+      !validRatingHistogram ? 'Rating histogram is missing, invalid, duplicated or does not reconcile with total ratings.' :
+        'Admin chapter statistics are missing, duplicated or contain invalid engagement fields.'));
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
-  const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
-  const validTrendSeries = rows => Array.isArray(rows) && rows.length > 0 && rows.every(row =>
-    row && /^\d{4}-\d{2}-\d{2}$/.test(String(row.day || '')) && asNumber(row.views) != null
-  );
-  const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries(cloud.daily_trend) && validTrendSeries(cloud.previous_daily_trend);
+  const cloudChapterStatsAvailable = Array.isArray(cloud.chapter_stats) && cloud.chapter_stats.every(row =>
+    row && typeof row.id === 'string' && row.id.length > 0 &&
+    ['views', 'period_views', 'previous_period_views'].every(key => asNumber(row[key]) != null)
+  ) && new Set((cloud.chapter_stats || []).map(row => row.id)).size === (cloud.chapter_stats || []).length;
+  const sumCloudChapterMetric = key => (cloud.chapter_stats || []).reduce((sum, row) => sum + Number(row[key]), 0);
+  const cloudViewsAvailable = cloudAnalyticsAvailable &&
+    ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null) &&
+    cloudChapterStatsAvailable &&
+    sumCloudChapterMetric('views') === Number(cloud.total_views) &&
+    sumCloudChapterMetric('period_views') === Number(cloud.current_views) &&
+    sumCloudChapterMetric('previous_period_views') === Number(cloud.previous_views);
+  const validTrendSeries = rows => Array.isArray(rows) && rows.length > 0 && rows.every((row, index) => {
+    const day = String(row?.day || '');
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(day) ? new Date(day + 'T00:00:00Z') : null;
+    return Boolean(date && Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === day) &&
+      asNumber(row.views) !== null && Number(row.views) >= 0 &&
+      typeof row.partial === 'boolean' &&
+      (index === 0 || String(rows[index - 1]?.day || '') < day);
+  });
+  const sumTrendViews = rows => rows.reduce((sum, row) => sum + Number(row.views), 0);
+  const dailyTrendAvailable = cloudViewsAvailable &&
+    validTrendSeries(cloud.daily_trend) && validTrendSeries(cloud.previous_daily_trend) &&
+    cloud.daily_trend.length === cloud.previous_daily_trend.length &&
+    sumTrendViews(cloud.daily_trend) === asNumber(cloud.current_views) &&
+    sumTrendViews(cloud.previous_daily_trend) === asNumber(cloud.previous_views);
   // The database view table is legacy-only after the Cloudflare migration.
   // Do not display it as a live fallback when the authoritative Worker is unavailable.
   const viewCountsAvailable = cloudViewsAvailable;
-  const cloudReadersAvailable = cloudAnalyticsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
+  const cloudReadersAvailable = cloudViewsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
   const membership = data.membership || {};
   const totals = membership.totals || {};
   const revenue = membership.revenue || {};
@@ -474,8 +519,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
     { name: 'Admin analytics function', ok: adminAnalyticsAvailable, error: adminAnalyticsUnavailableReason },
-    { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
-    { name: 'Cloudflare daily trends', ok: dailyTrendAvailable, error: dailyTrendAvailable ? null : 'Current or previous daily trend is missing or contains invalid day/view values.' },
+    { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'Cloudflare view totals or chapter-level counts are missing, invalid or inconsistent.') },
+    { name: 'Cloudflare daily trends', ok: dailyTrendAvailable, error: dailyTrendAvailable ? null : 'Current or previous daily trend is missing, invalid, out of order or does not reconcile with the reporting-window totals.' },
     ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Reader metrics are incomplete or unavailable; counts are hidden rather than shown as zero.') : 'Reader counts were missing or invalid in the analytics response.' }] : []),
     { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
     { name: 'Membership analytics', ok: data.membership != null && !data.membershipError, error: data.membershipError },
@@ -520,7 +565,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Median views per daily bucket', dailyTrendAvailable ? median(dailyViewValues) : null, 'decimal', 'Median views across returned UTC calendar buckets.', 'Daily trend'),
         m('Traffic & Reach', 'Peak daily views', dailyTrendAvailable ? peakDailyRow?.views ?? null : null, 'count', 'Highest daily total in the selected reporting window.', 'Daily trend'),
         m('Traffic & Reach', 'Date of peak daily views', dailyTrendAvailable ? peakDailyRow?.day ?? null : null, 'text', 'UTC date of the highest daily view total.', 'Daily trend'),
-        m('Traffic & Reach', 'Previous window peak daily views', cloudViewsAvailable && cloud.previous_daily_trend ? previousPeakDaily?.views ?? null : null, 'count', 'Highest daily total in the previous equal-length reporting window.', 'Previous daily trend'),
+        m('Traffic & Reach', 'Previous window peak daily views', dailyTrendAvailable ? previousPeakDaily?.views ?? null : null, 'count', 'Highest daily total in the previous equal-length reporting window.', 'Previous daily trend'),
         m('Traffic & Reach', 'Active-day coverage', dailyTrendAvailable ? ratio(activeViewDays, dailyTrendRows.length) : null, 'percent', 'Share of returned date buckets with at least one view.', 'Daily trend'),
         m('Traffic & Reach', 'Daily views standard deviation', dailyTrendAvailable ? dailyStdDev : null, 'decimal', 'Population standard deviation across daily view totals.', 'Daily trend'),
         m('Traffic & Reach', 'Daily views volatility', dailyTrendAvailable && dailyMean > 0 ? dailyStdDev / dailyMean * 100 : null, 'percent', 'Coefficient of variation for daily view totals; higher values indicate more uneven daily reach.', 'Daily trend'),
