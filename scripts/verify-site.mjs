@@ -508,7 +508,8 @@ if (!analyticsReaderFallbackRegression.includes('archived && segment.fullDay') |
 }
 if (controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = adminAnalyticsAvailable') ||
     !controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError') ||
-    !controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable &&\\n    validTrendSeries') ||
+    !controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable &&') ||
+    !controlRoomViewCountRegression.includes('validTrendSeries(cloud.daily_trend)') ||
     !controlRoomViewCountRegression.includes('sumCloudChapterMetric(\'period_views\') === Number(cloud.current_views)') ||
     !controlRoomViewCountRegression.includes('sumTrendViews(cloud.daily_trend) === asNumber(cloud.current_views)') ||
     !controlRoomViewCountRegression.includes('views: asNumber(row.views)') ||
