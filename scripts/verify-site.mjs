@@ -93,7 +93,7 @@ const required = [
   ['supabase/functions/get-admin-console-data/index.ts', 'community_post_id,parent_comment_id,created_at'],
   ['AdminControlRoom.jsx', "action: 'dashboard-inventory'"],
   ['AdminControlRoom.jsx', 'const cloudViewsAvailable = cloudAnalyticsAvailable'],
-  ['AdminControlRoom.jsx', 'const cloudReadersAvailable = cloudAnalyticsAvailable'],
+  ['AdminControlRoom.jsx', 'const cloudReadersAvailable = cloudViewsAvailable'],
   ['AdminOverview.jsx', "Number(previous) > 0"],
   ['AdminOverview.jsx', 'views_unavailable: !hasCloudflareViews'],
   ['AdminOverview.jsx', 'const chapterIds = new Set(['],
