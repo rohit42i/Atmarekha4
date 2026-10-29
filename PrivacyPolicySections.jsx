@@ -20,13 +20,13 @@ export default function PrivacyPolicySections() {
       </ul>
     </Section>
 
-    <Section title="2. Why information is used">
+    <Section title="2. How we use your information">
       <ul>
         <li>Create and manage accounts, verify email addresses, and support account recovery.</li>
         <li>Display chapters and save reading progress, bookmarks, and preferences.</li>
         <li>Display ratings and comments, review reports, and manage community content.</li>
         <li>Confirm membership payments, maintain access, and manage subscriptions.</li>
-        <li>Send account, verification, security, payment, membership, and opted-in reader-update emails.</li>
+        <li>Send account, verification, security, payment, membership, and reader-update emails according to your preferences.</li>
         <li>Measure chapter views, improve performance, and investigate technical problems.</li>
       </ul>
       <p>Atma Rekha does not sell personal information.</p>
@@ -43,7 +43,7 @@ export default function PrivacyPolicySections() {
       <p>The site uses browser storage for sign-in, preferences, and reader features. Blocking or clearing it may affect some features or sign-in state.</p>
     </Section>
 
-    <Section title="5. Retention and deletion">
+    <Section title="5. Retention and account deletion">
       <p>Information is kept while needed to operate an account or feature, manage a membership or payment, handle reports, or investigate technical issues. Service providers may retain their own logs and backups for different periods.</p>
       <p>To request account deletion, use the Privacy Center, confirm your password, and verify the request by email OTP. A 14-day recovery window starts after email verification. After that, the request is reviewed and eligible information is processed for deletion. This is not an instant erase; some payment, security, moderation, or backup records may remain for a period.</p>
     </Section>
