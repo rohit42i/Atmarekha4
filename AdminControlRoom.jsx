@@ -55,8 +55,22 @@ const ago = value => {
   if (hours < 48) return Math.round(hours) + ' h';
   return Math.round(hours / 24) + ' d';
 };
-const percent = (a, b) => Number(b) > 0 ? (Number(a) / Number(b)) * 100 : null;
-const deltaPercent = (current, previous) => Number(previous) > 0 ? ((Number(current) - Number(previous)) / Number(previous)) * 100 : Number(current) === 0 && Number(previous) === 0 ? 0 : null;
+const percent = (a, b) => {
+  if (a === null || a === undefined || a === '' || b === null || b === undefined || b === '') return null;
+  const numerator = Number(a);
+  const denominator = Number(b);
+  return Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0
+    ? numerator / denominator * 100
+    : null;
+};
+const deltaPercent = (current, previous) => {
+  if (current === null || current === undefined || current === '' || previous === null || previous === undefined || previous === '') return null;
+  const currentValue = Number(current);
+  const previousValue = Number(previous);
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) return null;
+  if (previousValue > 0) return ((currentValue - previousValue) / previousValue) * 100;
+  return currentValue === 0 && previousValue === 0 ? 0 : null;
+};
 const median = values => {
   const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite).sort((a, b) => a - b);
   if (!rows.length) return null;
