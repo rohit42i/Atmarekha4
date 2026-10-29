@@ -27,13 +27,20 @@ const required = [
   ['index.html', '<link rel="canonical" href="https://www.atmarekha.in/" />'],
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
-  ['index.html', 'og:image:secure_url'],
-  ['index.html', 'og:image:type" content="image/png"'],
-  ['worker.js', 'const DEFAULT_SHARE_IMAGE = SITE_ORIGIN + "/ishani.png?v=20261029";'],
-  ['worker.js', 'html = setMeta(html, "property", "og:image:secure_url", DEFAULT_SHARE_IMAGE);'],
-  ['worker.js', 'html = setMeta(html, "name", "twitter:card", "summary_large_image");'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
   ['public/llms.txt', 'An original fantasy adventure manga by Arkesh.'],
+  ['public/llms.txt', 'Creator: Arkesh Kaalvantik'],
+  ['public/llms-full.txt', '## Responsible answers'],
+  ['public/robots.txt', 'User-agent: OAI-SearchBot'],
+  ['public/robots.txt', 'User-agent: Claude-SearchBot'],
+  ['public/robots.txt', 'User-agent: PerplexityBot'],
+  ['public/robots.txt', 'User-agent: GPTBot\nDisallow: /'],
+  ['public/robots.txt', 'User-agent: Google-Extended\nDisallow: /'],
+  ['public/robots.txt', 'User-agent: ClaudeBot\nDisallow: /'],
+  ['index.html', '"@type":"ComicSeries"'],
+  ['index.html', 'https://www.atmarekha.in/#creator'],
+  ['scripts/generate-sitemap.mjs', "'/info/about'"],
+  ['scripts/generate-sitemap.mjs', "'/pal-do-pal-ke-lamhe'"],
   ['public/.well-known/security.txt', 'Contact: mailto:atmarekhasupport@gmail.com'],
   ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
   ['notification-prompt.js', 'if (stored === null || stored.trim() === \'\') return fallback;'],
@@ -178,6 +185,18 @@ const forbidden = [
 ];
 
 let failed = false;
+
+const seoSitemapRegression = await readFile('public/sitemap.xml', 'utf8');
+const sitemapOpenUrlCount = (seoSitemapRegression.match(/<url>/g) || []).length;
+const sitemapCloseUrlCount = (seoSitemapRegression.match(/<\/url>/g) || []).length;
+if (!seoSitemapRegression.startsWith('<?xml') ||
+    !seoSitemapRegression.includes('<urlset ') ||
+    !seoSitemapRegression.trim().endsWith('</urlset>') ||
+    sitemapOpenUrlCount !== sitemapCloseUrlCount ||
+    /https:\/\/www\.atmarekha\.in\/info\/(?:contact|report|privacy|terms)<\/loc>/.test(seoSitemapRegression)) {
+  console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical discovery pages, not utility/legal routes.');
+  failed = true;
+}
 
 const signupEmailUpdatesRegression = await readFile('UserAuth.jsx', 'utf8');
 if (!signupEmailUpdatesRegression.includes("'atma_rekha_updates','chapter_announcements'") || signupEmailUpdatesRegression.includes("'marketing_email','chapter_announcements'") ||
