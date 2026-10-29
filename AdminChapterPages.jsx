@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAuthenticatedMediaBlobUrl, supabase, cloudflareR2, isSupportedImageFile } from './supabase';
 import { getAdminRole } from './adminAuth';
 import { chapterLanguageLabel, normalizeChapterLanguage } from './chapters';
@@ -25,6 +25,12 @@ const safeExt = file => {
 const isImage = file => isSupportedImageFile(file);
 const projectName = project => project === 'pdpkl' ? 'Pal Do Pal Ke Lamhe' : 'Atma Rekha';
 const publicAtmaUrl = path => cloudflareR2.from(ATMA_BUCKET).getPublicUrl(path).data.publicUrl;
+async function removeAtmaFiles(paths) {
+  const clean = (paths || []).filter(Boolean);
+  if (!clean.length) return;
+  const { error } = await cloudflareR2.from(ATMA_BUCKET).remove(clean);
+  if (error) throw error;
+}
 const atmaPath = url => {
   if (!url) return null;
   const marker = `/storage/v1/object/public/${ATMA_BUCKET}/`;
@@ -77,6 +83,7 @@ export default function AdminChapterPages({ chapters = [] }) {
   const [notice, setNotice] = useState('');
   const [diagnostic, setDiagnostic] = useState('');
   const [retryFiles, setRetryFiles] = useState({});
+  const pageLoadSequence = useRef(0);
 
   const source = project === 'pdpkl' ? pdpklChapters : chapters;
   const visibleChapters = useMemo(() => {
@@ -104,7 +111,14 @@ export default function AdminChapterPages({ chapters = [] }) {
   }, [visibleChapters, chapterId]);
 
   const loadPages = async () => {
-    if (!chapterId) { setPages([]); return; }
+    const requestId = ++pageLoadSequence.current;
+    if (!chapterId) {
+      setPages([]);
+      setSelectedId(null);
+      setDiagnostic('');
+      setBusy('');
+      return;
+    }
     setBusy('load');
     try {
       await adminUser();
@@ -112,18 +126,24 @@ export default function AdminChapterPages({ chapters = [] }) {
       const fields = project === 'pdpkl' ? 'id,chapter_id,page_number,image_path' : 'id,chapter_id,page_number,image_url';
       const { data, error } = await supabase.from(table).select(fields).eq('chapter_id', chapterId).order('page_number', { ascending: true });
       if (error) throw error;
+      if (requestId !== pageLoadSequence.current) return;
       const nextPages = data || [];
       setPages(nextPages);
-      // Preserve the reader's current selection after refresh or reordering.
       setSelectedId(current => nextPages.some(page => page.id === current)
         ? current
         : (nextPages[0]?.id || null));
       setDiagnostic('');
-    } catch (err) { setDiagnostic(err?.message || 'Unable to load pages.'); }
-    finally { setBusy(''); }
+    } catch (err) {
+      if (requestId === pageLoadSequence.current) setDiagnostic(err?.message || 'Unable to load pages.');
+    } finally {
+      if (requestId === pageLoadSequence.current) setBusy('');
+    }
   };
 
-  useEffect(() => { loadPages(); }, [project, chapterId]);
+  useEffect(() => {
+    void loadPages();
+    return () => { pageLoadSequence.current += 1; };
+  }, [project, chapterId]);
 
   const replacePage = async (page, file) => {
     if (!file || busy) return;
@@ -141,15 +161,16 @@ export default function AdminChapterPages({ chapters = [] }) {
     setDiagnostic('');
     let uploadedPath = null;
     let committed = false;
+    let currentAdmin = null;
     try {
-      const user = await adminUser();
+      currentAdmin = await adminUser();
       uploadedPath = (project === 'pdpkl' ? 'chapters/' : '') + page.chapter_id + '/replacements/' + page.id + '-' + Date.now() + '.' + safeExt(file);
       if (project === 'pdpkl') {
         await uploadPdlplFile(file, uploadedPath);
         const { error } = await supabase.rpc('pdlpl_replace_chapter_page', { p_page_id: page.id, p_image_path: uploadedPath });
         if (error) throw error;
         committed = true;
-        if (page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); } }
+        if (page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(currentAdmin, 'r2_cleanup_failed', 'pdlpl_page', page.id, { provider: 'pdpl', paths: [page.image_path], path: page.image_path, error: err.message }); } }
         setPages(rows => rows.map(row => row.id === page.id ? { ...row, image_path: uploadedPath } : row));
       } else {
         const { error } = await cloudflareR2.from(ATMA_BUCKET).upload(uploadedPath, file, { upsert: false, contentType: file.type || undefined, cacheControl: '31536000' });
@@ -159,18 +180,27 @@ export default function AdminChapterPages({ chapters = [] }) {
         if (updateError) throw updateError;
         committed = true;
         const old = atmaPath(page.image_url);
-        if (old) { try { await cloudflareR2.from(ATMA_BUCKET).remove([old]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); } }
+        if (old) { try { await removeAtmaFiles([old]); } catch (err) { await audit(currentAdmin, 'r2_cleanup_failed', 'chapter_page', page.id, { provider: 'atma', bucket: ATMA_BUCKET, paths: [old], path: old, error: err.message }); } }
         setPages(rows => rows.map(row => row.id === page.id ? { ...row, image_url: nextUrl } : row));
       }
       setRetryFiles(rows => { const next = { ...rows }; delete next[page.id]; return next; });
-      await audit(user, project === 'pdpkl' ? 'replace_pdlpl_page' : 'replace_chapter_page', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name });
+      await audit(currentAdmin, project === 'pdpkl' ? 'replace_pdlpl_page' : 'replace_chapter_page', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, { chapter_id: page.chapter_id, page_number: page.page_number, file_name: file.name });
       setNotice(projectName(project) + ' · Page ' + page.page_number + ' replaced.');
     } catch (err) {
       if (uploadedPath && !committed) {
         try {
           if (project === 'pdpkl') await removePdlplFiles([uploadedPath]);
-          else await cloudflareR2.from(ATMA_BUCKET).remove([uploadedPath]);
-        } catch (_) {}
+          else await removeAtmaFiles([uploadedPath]);
+        } catch (cleanupError) {
+          const provider = project === 'pdpkl' ? 'pdpl' : 'atma';
+          await audit(currentAdmin, 'r2_cleanup_failed', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, {
+            provider,
+            ...(project === 'pdpkl' ? {} : { bucket: ATMA_BUCKET }),
+            paths: [uploadedPath],
+            path: uploadedPath,
+            error: cleanupError.message,
+          });
+        }
       }
       setRetryFiles(rows => ({ ...rows, [page.id]: file }));
       setDiagnostic(err?.message || 'Page replacement failed.');
@@ -202,8 +232,8 @@ export default function AdminChapterPages({ chapters = [] }) {
       const rpc = project === 'pdpkl' ? 'pdlpl_delete_chapter_page' : 'delete_chapter_page';
       const { error } = await supabase.rpc(rpc, { p_page_id: page.id });
       if (error) throw error;
-      if (project === 'pdpkl' && page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { path: page.image_path, error: err.message }); } }
-      if (project === 'atma') { const old = atmaPath(page.image_url); if (old) { try { await cloudflareR2.from(ATMA_BUCKET).remove([old]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { path: old, error: err.message }); } } }
+      if (project === 'pdpkl' && page.image_path) { try { await removePdlplFiles([page.image_path]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'pdlpl_page', page.id, { provider: 'pdpl', paths: [page.image_path], path: page.image_path, error: err.message }); } }
+      if (project === 'atma') { const old = atmaPath(page.image_url); if (old) { try { await removeAtmaFiles([old]); } catch (err) { await audit(user, 'r2_cleanup_failed', 'chapter_page', page.id, { provider: 'atma', bucket: ATMA_BUCKET, paths: [old], path: old, error: err.message }); } } }
       await audit(user, 'delete_page', project === 'pdpkl' ? 'pdlpl_page' : 'chapter_page', page.id, { chapter_id: page.chapter_id, page_number: page.page_number, project });
       await loadPages();
       setNotice('Page deleted.');

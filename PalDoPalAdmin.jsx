@@ -576,19 +576,49 @@ export default function PalDoPalAdmin({ embedded = false }) {
       setNotice(`${label({ chapterNumber: number })} ${wasEditing ? 'updated' : 'created'} and ${requestedStatus.toLowerCase()} successfully.`);
     } catch (error) {
       const cleanupErrors = [];
+      let chapterRollbackSucceeded = wasEditing || !chapterId;
       if (!wasEditing && chapterId) {
-        try { await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId); }
-        catch (cleanupError) { cleanupErrors.push('Chapter rollback: ' + (cleanupError?.message || cleanupError)); }
+        try {
+          const { error: rollbackError } = await supabase.from(PDLPL_CHAPTERS).delete().eq('id', chapterId);
+          if (rollbackError) throw rollbackError;
+          chapterRollbackSucceeded = true;
+        } catch (cleanupError) {
+          chapterRollbackSucceeded = false;
+          cleanupErrors.push('Chapter rollback: ' + (cleanupError?.message || cleanupError));
+          await logAdminAction(adminUser, 'chapter_rollback_failed', 'pdlpl_chapter', chapterId, {
+            error: cleanupError?.message || String(cleanupError),
+            uploaded_paths: uploaded,
+          });
+        }
       }
       for (const path of uploaded) {
-        const shouldKeep = wasEditing && ((pagesCommitted && path.includes('/pages/')) || (coverCommitted && path === pendingCoverPath));
+        // Never remove media while a failed database rollback may leave a row referencing it.
+        const shouldKeep = (!wasEditing && !chapterRollbackSucceeded)
+          || (wasEditing && ((pagesCommitted && path.includes('/pages/')) || (coverCommitted && path === pendingCoverPath)));
         if (shouldKeep) continue;
-        try { await removePdlplFiles([path]); }
-        catch (cleanupError) { cleanupErrors.push('R2 cleanup ' + path + ': ' + (cleanupError?.message || cleanupError)); }
+        try {
+          await removePdlplFiles([path]);
+        } catch (cleanupError) {
+          cleanupErrors.push('R2 cleanup ' + path + ': ' + (cleanupError?.message || cleanupError));
+          await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_chapter', chapterId, {
+            provider: 'pdpl',
+            paths: [path],
+            error: cleanupError?.message || String(cleanupError),
+          });
+        }
       }
       if (wasEditing && pendingCoverPath && !coverCommitted) {
-        try { await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId); }
-        catch (cleanupError) { cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError)); }
+        try {
+          const { error: coverRollbackError } = await supabase.from(PDLPL_CHAPTERS).update({ cover_path: oldCoverPath }).eq('id', chapterId);
+          if (coverRollbackError) throw coverRollbackError;
+        } catch (cleanupError) {
+          cleanupErrors.push('Cover rollback: ' + (cleanupError?.message || cleanupError));
+          await logAdminAction(adminUser, 'chapter_cover_rollback_failed', 'pdlpl_chapter', chapterId, {
+            error: cleanupError?.message || String(cleanupError),
+            previous_cover_path: oldCoverPath,
+            attempted_cover_path: pendingCoverPath,
+          });
+        }
       }
       setDiagnostic(diagnosticFromError(currentStage, error, {
         chapterId,

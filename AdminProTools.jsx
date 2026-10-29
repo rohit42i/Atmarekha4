@@ -42,7 +42,7 @@ export default function AdminProTools() {
   const [notice, setNotice] = useState('');
   const [query, setQuery] = useState('');
   const [range, setRange] = useState(30);
-  const [data, setData] = useState({ chapters: [], pages: [], comments: [], reports: 0, openReports: 0, users: 0, announcements: 0, views: 0 });
+  const [data, setData] = useState({ chapters: [], pages: [], comments: [], reports: 0, openReports: 0, users: 0, announcements: 0, views: null });
   const [health, setHealth] = useState({ auth: 'checking', database: 'checking', r2: 'checking' });
   const searchRef = useRef(null);
 
@@ -121,7 +121,9 @@ export default function AdminProTools() {
         openReports,
         users,
         announcements,
-        views: Number(viewsResult?.current_views || 0),
+        views: viewsResult?.current_views != null && Number.isFinite(Number(viewsResult.current_views))
+          ? Number(viewsResult.current_views)
+          : null,
       });
     } catch (error) {
       setHealth(current => ({ ...current, database: 'error' }));
@@ -175,7 +177,7 @@ export default function AdminProTools() {
       ['Open moderation reports', data.openReports],
       ['All moderation reports', data.reports],
       ['Registered users', data.users],
-      [`Views in last ${range} days`, data.views],
+      [`Views in last ${range} days`, data.views == null ? 'Unavailable' : data.views],
       ['Announcements', data.announcements],
       [],
       ['Chapter', 'Status', 'Pages', 'Release date'],
@@ -248,7 +250,7 @@ export default function AdminProTools() {
             <div className={`ar-pro-kpi ${data.openReports ? 'alert' : 'good'}`}><span>Open reports</span><strong>{data.openReports}</strong><small>{data.reports} total reports</small></div>
             <div className={`ar-pro-kpi ${missingPages.length ? 'alert' : 'good'}`}><span>Page gaps</span><strong>{missingPages.length}</strong><small>Published without pages</small></div>
             <div className={`ar-pro-kpi ${missingCovers.length ? 'alert' : 'good'}`}><span>Cover gaps</span><strong>{missingCovers.length}</strong><small>Published without covers</small></div>
-            <div className="ar-pro-kpi"><span>Views</span><strong>{data.views.toLocaleString('en-IN')}</strong><small>Last {range} days</small></div>
+            <div className="ar-pro-kpi"><span>Views</span><strong>{data.views == null ? 'Unavailable' : data.views.toLocaleString('en-IN')}</strong><small>Last {range} days</small></div>
           </div>
           <div className="ar-pro-grid">
             <section className="ar-pro-card">
