@@ -243,7 +243,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             period_active_readers: hasCloudflareReaders ? Number(cloudflare.active_readers) : null,
             period_returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
             views_unavailable: !hasCloudflareViews,
-            views_unavailable_reason: cloudflareError || (!hasCloudflareViews ? 'The analytics Worker response did not include valid total, current-period and previous-period view counts.' : null),
+            views_unavailable_reason: cloudflareError || (!hasCloudflareViews ? 'The analytics Worker response was incomplete or aggregate and chapter-level view totals did not reconcile.' : null),
             reader_metrics_unavailable: !hasCloudflareReaders,
             reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason || (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' : null),
             chapter_stats: chapterStats,
