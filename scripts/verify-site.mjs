@@ -751,6 +751,13 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, '{comments.length} recent comments · replies included'],
   ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
+  ['AdminPanel.jsx', adminPanel, 'if (event.key === \'Escape\') setMobileSidebarOpen(false);'],
+  ['AdminPanel.jsx', adminPanel, 'document.body.style.overflow = \'hidden\';'],
+  ['AdminPanel.jsx', adminPanel, 'aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}'],
+  ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(value => !value)'],
+  ['admin-studio-ui.jsx', adminStudioButtonSource, 'id="ar-admin-sidebar"'],
+  ['admin-master-system.css', adminStyles, 'Mobile admin drawer reliability'],
+  ['admin-master-system.css', adminStyles, 'pointer-events: auto !important;'],
 ];
 const adminOperationsRegressionSource = await readFile('AdminOperations.jsx', 'utf8');
 const groupChatAdminSource = await readFile('AdminGroupChatTools.jsx', 'utf8');
