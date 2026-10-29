@@ -490,7 +490,7 @@ if (viewerKeyStart < 0 ||
   failed = true;
 }
 const analyticsReaderFallbackRegression = await readFile('analytics-worker/worker.js', 'utf8');
-const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end) {');
+const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end, legacyImport = null) {');
 const analyticsReaderMetricsEnd = analyticsReaderFallbackRegression.indexOf('async function verifyAdmin', analyticsReaderMetricsStart);
 const analyticsReaderMetricsBlock = analyticsReaderFallbackRegression.slice(analyticsReaderMetricsStart, analyticsReaderMetricsEnd);
 if (analyticsReaderMetricsStart < 0 ||
