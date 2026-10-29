@@ -10,8 +10,7 @@ const SITE_ORIGINS = new Set([
 const PERIODS = new Set([1, 7, 30, 90]);
 const DAY_MS = 86400000;
 const RETENTION_DAYS = 90;
-const ADMIN_ANALYTICS_CACHE_TTL_MS = 10000;
-const adminAnalyticsCache = new Map();
+const adminAnalyticsInFlight = new Map();
 
 function corsHeaders(request) {
   const origin = request.headers.get('Origin');
@@ -658,26 +657,21 @@ async function handleAdminAnalytics(request, env) {
   const days = Number(new URL(request.url).searchParams.get('days') || 30);
   if (!PERIODS.has(days)) return text(request, 'Analytics period must be 1, 7, 30 or 90 days.', 400);
 
-  // Authorize every request before using this short-lived aggregate cache. It stores
-  // no personal data and prevents the dashboard's parallel widgets from stampeding R2.
-  const cached = adminAnalyticsCache.get(days);
-  if (cached && cached.expiresAt > Date.now()) {
-    const payload = cached.value || await cached.promise;
+  // Authenticate every call. Coalesce concurrent identical aggregate requests, but
+  // never reuse completed results so new views are visible on the next refresh.
+  const pending = adminAnalyticsInFlight.get(days);
+  if (pending) {
+    const payload = await pending;
     return json(request, payload, 200, { 'Cache-Control': 'private, no-store' });
   }
 
-  const entry = { expiresAt: Date.now() + ADMIN_ANALYTICS_CACHE_TTL_MS, value: null, promise: null };
-  entry.promise = buildAdminAnalytics(env, days);
-  adminAnalyticsCache.set(days, entry);
+  const task = buildAdminAnalytics(env, days);
+  adminAnalyticsInFlight.set(days, task);
   try {
-    const payload = await entry.promise;
-    if (adminAnalyticsCache.get(days) === entry) {
-      adminAnalyticsCache.set(days, { expiresAt: Date.now() + ADMIN_ANALYTICS_CACHE_TTL_MS, value: payload, promise: null });
-    }
+    const payload = await task;
     return json(request, payload, 200, { 'Cache-Control': 'private, no-store' });
-  } catch (error) {
-    if (adminAnalyticsCache.get(days) === entry) adminAnalyticsCache.delete(days);
-    throw error;
+  } finally {
+    if (adminAnalyticsInFlight.get(days) === task) adminAnalyticsInFlight.delete(days);
   }
 }
 
