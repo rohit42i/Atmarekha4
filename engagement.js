@@ -21,7 +21,7 @@ function markViewRecorded(chapterId) {
 
 async function analyticsRequest(path, options = {}) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  const timer = setTimeout(() => controller.abort(), 30000);
   try {
     const response = await fetch(`${ANALYTICS_WORKER_URL}${path}`, {
       ...options,
