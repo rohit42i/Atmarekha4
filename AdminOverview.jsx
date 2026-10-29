@@ -7,6 +7,8 @@ import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-
 const WINDOWS = { today: 1, week: 7, month: 30, quarter: 90 };
 const WINDOW_LABELS = { today: '24 Hours', week: '7 Days', month: '30 Days', quarter: '90 Days' };
 const formatNumber = value => value == null || value === '' || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-IN');
+const isFiniteMetric = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+const sumMetric = (rows, key) => rows.reduce((sum, row) => sum + Number(row[key]), 0);
 const compactNumber = value => {
   if (value == null || value === '' || !Number.isFinite(Number(value))) return '—';
   const n = Number(value);
@@ -183,15 +185,22 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         const cloudflareError = cloudResult.error;
         if (active) {
           const base = data || {};
+          const cloudChapterRows = Array.isArray(cloudflare?.chapter_stats) ? cloudflare.chapter_stats : null;
+          const validCloudChapterRows = Array.isArray(cloudChapterRows) && cloudChapterRows.every(row =>
+            row && typeof row.id === 'string' && row.id.length > 0 &&
+            ['views', 'period_views', 'previous_period_views'].every(key => isFiniteMetric(row[key]))
+          );
           const hasCloudflareViews = Boolean(cloudflare) &&
-            ['total_views', 'current_views', 'previous_views'].every(key =>
-              cloudflare[key] != null && Number.isFinite(Number(cloudflare[key]))
-            );
+            ['total_views', 'current_views', 'previous_views'].every(key => isFiniteMetric(cloudflare[key])) &&
+            validCloudChapterRows &&
+            sumMetric(cloudChapterRows, 'views') === Number(cloudflare.total_views) &&
+            sumMetric(cloudChapterRows, 'period_views') === Number(cloudflare.current_views) &&
+            sumMetric(cloudChapterRows, 'previous_period_views') === Number(cloudflare.previous_views);
           const hasViewCounts = hasCloudflareViews;
           const hasCloudflareReaders = hasCloudflareViews &&
             !cloudflare.reader_metrics_limited &&
-            cloudflare.active_readers != null && Number.isFinite(Number(cloudflare.active_readers)) &&
-            cloudflare.returning_readers != null && Number.isFinite(Number(cloudflare.returning_readers));
+            isFiniteMetric(cloudflare.active_readers) &&
+            isFiniteMetric(cloudflare.returning_readers);
           const baseChapterStats = Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
           const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
           const cloudChapterStats = new Map((cloudflare?.chapter_stats || []).map(row => [String(row.id), row]));
