@@ -90,6 +90,16 @@ assert.equal(homepage.headers.get("strict-transport-security"), "max-age=1555200
 assert.equal(homepage.headers.get("x-content-type-options"), "nosniff", "Homepage nosniff header missing.");
 const html = await homepage.text();
 
+// Verify the actual social preview image is publicly retrievable, not just
+// declared in metadata. Share crawlers cannot render a preview if this URL fails.
+const shareImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
+assert.ok(shareImageMatch, "Homepage is missing its Open Graph share image.");
+const shareImage = await assertOk(shareImageMatch[1], "Open Graph share image");
+assert.match(shareImage.headers.get("content-type") || "", /^image\/(?:png|jpeg|webp)(?:;|$)/i, "Open Graph image must return a supported image MIME type.");
+const shareImageBytes = await shareImage.arrayBuffer();
+assert.ok(shareImageBytes.byteLength > 0, "Open Graph share image is empty.");
+assert.ok(shareImageBytes.byteLength <= 5 * 1024 * 1024, "Open Graph share image exceeds the 5 MB preview budget.");
+
 // Count same-origin shell assets and reject absolute resource URLs pointing
 // away from the production host. Assets are not fetched based on response data.
 const assetRefs = new Set();
@@ -99,7 +109,16 @@ for (const match of html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)) {
   let url;
   try { url = new URL(raw, ROOT); } catch { continue; }
   if (/^(?:https?:)?\/\//i.test(raw)) {
-    assert.equal(url.origin, ROOT_URL.origin, "Page shell contains a cross-origin absolute link or asset: " + raw);
+    // Google Fonts is an intentional stylesheet/font dependency. Other page-shell
+    // resources and absolute links must stay on the canonical site origin.
+    const allowedStaticOrigins = new Set([
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com",
+    ]);
+    assert.ok(
+      url.origin === ROOT_URL.origin || allowedStaticOrigins.has(url.origin),
+      "Page shell contains an unapproved cross-origin link or asset: " + raw,
+    );
   }
   if (url.origin === ROOT_URL.origin && /\.(?:js|mjs|css|png|jpe?g|svg|webp|ico|woff2?)(?:$|[?#])/i.test(url.pathname + url.search + url.hash)) {
     assetRefs.add(url.pathname + url.search);
