@@ -342,13 +342,22 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       ratingAverage: adminAnalyticsAvailable ? Number(chapter.rating_average || 0) : null,
       pages: Number(chapter.pages || pageCounts[chapter.id] || 0),
     }));
-    const published = chapters.filter(chapter => String(chapter.status || '').toLowerCase() === 'published');
-    const withPages = published.filter(chapter => Number(pageCounts[chapter.id] || 0) > 0);
+    const published = chapters.filter(chapter =>
+      !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published'
+    );
+    const pageCountFor = chapter => {
+      const stat = chapterStats.find(item => String(item.id) === String(chapter.id));
+      const value = pageCounts[chapter.id] ?? stat?.pages ?? chapter.pages_count ?? 0;
+      return isFiniteMetric(value) ? Number(value) : 0;
+    };
+    const withPages = published.filter(chapter => pageCountFor(chapter) > 0);
     const upcoming = chapters.filter(chapter => {
-      const date = safeDate(chapter.releaseDate);
+      const date = safeDate(chapter.releaseDate || chapter.release_date);
       return date && date.getTime() > Date.now();
-    }).sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)).slice(0, 4);
-    const top = chapterStats;
+    }).sort((a, b) => new Date(a.releaseDate || a.release_date) - new Date(b.releaseDate || b.release_date)).slice(0, 4);
+    const top = chapterStats.filter(chapter =>
+      !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published'
+    );
     return {
       totalViews: data.total_views == null ? null : Number(data.total_views),
       totalLikes: adminAnalyticsAvailable ? Number(data.total_likes || 0) : null,
@@ -367,10 +376,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       currentRatings: adminAnalyticsAvailable ? Number(data.current_ratings || 0) : null,
       activeReaders: data.reader_metrics_unavailable ? null : (data.active_readers == null ? null : Number(data.active_readers)),
       returningReaders: data.reader_metrics_unavailable ? null : (data.returning_readers == null ? null : Number(data.returning_readers)),
-      periodActiveReaders: data.reader_metrics_unavailable ? null : Number(data.period_active_readers ?? data.active_readers ?? 0),
-      periodReturningReaders: data.reader_metrics_unavailable ? null : Number(data.period_returning_readers ?? data.returning_readers ?? 0),
-      viewsUnavailable: data.views_unavailable === true,
-      readerMetricsUnavailable: data.reader_metrics_unavailable === true,
+      periodActiveReaders: data.reader_metrics_unavailable || (data.period_active_readers == null && data.active_readers == null) ? null : Number(data.period_active_readers ?? data.active_readers),
+      periodReturningReaders: data.reader_metrics_unavailable || (data.period_returning_readers == null && data.returning_readers == null) ? null : Number(data.period_returning_readers ?? data.returning_readers),
+      viewsUnavailable: data.views_unavailable !== false || !isFiniteMetric(data.total_views) || !isFiniteMetric(data.current_views) || !isFiniteMetric(data.previous_views),
+      viewsUnavailableReason: data.views_unavailable_reason || null,
+      readerMetricsUnavailable: data.reader_metrics_unavailable !== false || !isFiniteMetric(data.active_readers) || !isFiniteMetric(data.returning_readers),
       readerMetricsUnavailableReason: data.reader_metrics_unavailable_reason || null,
       bookmarks: adminAnalyticsAvailable ? Number(data.bookmarks || 0) : null,
       released: adminAnalyticsAvailable ? Number(data.released || 0) : null,
@@ -576,7 +586,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
     {analytics === null && periodLoading ? <SkeletonGrid/> : analytics === null ? <div className="ar-note" role="alert"><strong>Analytics could not be loaded.</strong> {analyticsError || 'Check the analytics data source and retry.'} <button type="button" onClick={() => setAnalyticsRefreshToken(value => value + 1)}>Try again</button></div> : <div className="ar-overview-kpis">
       <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released == null ? 'Release analytics unavailable' : metrics.released + ' released in period'} icon="book" accent="blue"/>
-      <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? 'Cloudflare analytics unavailable' : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
+      <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? (metrics.viewsUnavailableReason || 'Cloudflare analytics unavailable') : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
       <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note={metrics.readerMetricsUnavailable ? (metrics.readerMetricsUnavailableReason || 'Reader analytics unavailable') : 'Unique viewers in selected period'} icon="pulse" accent="green"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="blue"/>
       <StatCard label="Avg Rating" value={metrics.average ? metrics.average.toFixed(2) + ' / 10' : '—'} note={formatNumber(metrics.totalRatings) + ' ratings · all time'} icon="sparkle" accent="green"/>
@@ -635,14 +645,14 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
         <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description={"Views and engagement · " + WINDOW_LABELS[windowKey]}/>
-        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable} engagementAvailable={!metrics.adminAnalyticsUnavailable}/>
+        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable} viewsUnavailableReason={metrics.viewsUnavailableReason} engagementAvailable={!metrics.adminAnalyticsUnavailable} engagementUnavailableReason={metrics.adminAnalyticsUnavailableReason}/>
       </GlassCard>
       <GlassCard className="ar-activity-card">
         <SectionHeader eyebrow="LIVE" title="Last 24 hours" description="Refreshes automatically while this page is open."/>
         <div className="ar-live-grid">
-          <div><span>Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>{last24.views == null && !last24.loading ? 'Analytics unavailable' : 'chapter reads'}</small></div>
-          <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>{last24.ratings == null && !last24.loading ? 'Analytics unavailable' : 'submitted'}</small></div>
-          <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>{last24.comments == null && !last24.loading ? 'Analytics unavailable' : 'posted'}</small></div>
+          <div><span>Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>{last24.views == null && !last24.loading ? (last24.viewsError || 'Analytics unavailable') : 'chapter reads'}</small></div>
+          <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>{last24.ratings == null && !last24.loading ? (last24.engagementError || 'Analytics unavailable') : 'submitted'}</small></div>
+          <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>{last24.comments == null && !last24.loading ? (last24.engagementError || 'Analytics unavailable') : 'posted'}</small></div>
         </div>
         <div className="ar-live-foot"><AdminIcon name="pulse" size={15}/><span>Live counts are read from the admin analytics service.</span></div>
       </GlassCard>
@@ -652,7 +662,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <GlassCard>
         <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<div className="ar-overview-chapter-actions"><label className="ar-overview-sort-label"><span className="sr-only">Sort chapters by</span><select value={chapterSort} onChange={event => setChapterSort(event.target.value)} aria-label="Sort top chapters"><option value="views">Views</option><option value="likes">Likes</option><option value="rating">Rating</option></select></label><button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button></div>}/>
         <div className="ar-top-list">
-          {(chapterSort === 'views' && metrics.viewsUnavailable) || (chapterSort !== 'views' && metrics.adminAnalyticsUnavailable) ? <div className="ar-empty-inline">{chapterSort === 'views' ? 'View analytics are unavailable. Open Control Room → Audit & Reliability to check the data source.' : (metrics.adminAnalyticsUnavailableReason || 'Engagement analytics are unavailable. Check Control Room → Audit & Reliability.')}</div> : [...metrics.top].sort((a, b) => chapterSort === 'rating' ? Number(b.ratingAverage || 0) - Number(a.ratingAverage || 0) : chapterSort === 'likes' ? Number(b.periodLikes || 0) - Number(a.periodLikes || 0) : Number(b.periodViews || 0) - Number(a.periodViews || 0)).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
+          {(chapterSort === 'views' && metrics.viewsUnavailable) || (chapterSort !== 'views' && metrics.adminAnalyticsUnavailable) ? <div className="ar-empty-inline">{chapterSort === 'views' ? (metrics.viewsUnavailableReason || 'View analytics are unavailable. Open Control Room → Audit & Reliability to check the data source.') : (metrics.adminAnalyticsUnavailableReason || 'Engagement analytics are unavailable. Check Control Room → Audit & Reliability.')}</div> : [...metrics.top].sort((a, b) => chapterSort === 'rating' ? Number(b.ratingAverage || 0) - Number(a.ratingAverage || 0) : chapterSort === 'likes' ? Number(b.periodLikes || 0) - Number(a.periodLikes || 0) : Number(b.periodViews || 0) - Number(a.periodViews || 0)).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
             <b>{String(index + 1).padStart(2, '0')}</b>
             <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, (chapterSort === 'rating' ? chapter.ratingAverage : chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews) / maxTop * 100) + '%' }}/></i></div>
             <strong className="ar-top-value">{chapterSort === 'rating' ? (chapter.ratingAverage ? chapter.ratingAverage.toFixed(1) + '/10' : '—') : formatNumber(chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews)}</strong>
@@ -664,7 +674,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
       <GlassCard>
         <SectionHeader eyebrow="RATINGS" title="Reader sentiment"/>
-        <RatingDonut counts={metrics.ratingCounts} total={metrics.totalRatings}/>
+        <RatingDonut counts={metrics.ratingCounts} total={metrics.totalRatings} available={!metrics.adminAnalyticsUnavailable} unavailableReason={metrics.adminAnalyticsUnavailableReason}/>
         <div className="ar-rating-mini">
           {metrics.ratingCounts.slice(0, 3).map(item => <div key={item.rating}><span>{item.rating}/10</span><strong>{formatNumber(item.count)}</strong></div>)}
         </div>
