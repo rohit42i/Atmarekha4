@@ -2,10 +2,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /profile
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
@@ -25,10 +21,6 @@ User-agent: Googlebot
 User-agent: Bingbot
 Allow: /
 Disallow: /admin
-Disallow: /profile
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
