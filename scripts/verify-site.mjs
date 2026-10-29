@@ -753,6 +753,8 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
   ['AdminPanel.jsx', adminPanel, 'if (event.key === \'Escape\') setMobileSidebarOpen(false);'],
   ['AdminPanel.jsx', adminPanel, 'document.body.style.overflow = \'hidden\';'],
+  ['AdminPanel.jsx', adminPanel, "document.querySelector('.ar-admin-sidebar .ar-admin-mobile-close')?.focus();"],
+  ['AdminPanel.jsx', adminPanel, "document.querySelector('.ar-admin-menu-button')?.focus();"],
   ['AdminPanel.jsx', adminPanel, 'aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}'],
   ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(value => !value)'],
   ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(false);\n          if (item.action) openAdminTool(item.action, item.detail);'],
