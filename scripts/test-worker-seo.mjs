@@ -5,8 +5,8 @@ const previousFetch = globalThis.fetch;
 const previousCaches = globalThis.caches;
 const cacheStore = new Map();
 const chapterRows = [
-  { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/cover-1789677679658.png", release_date: "2026-09-14T00:00:00Z" },
-  { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/cover-1789677679658.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
 ];
 globalThis.caches = {
   default: {
