@@ -310,54 +310,68 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
   const metrics = useMemo(() => {
     const data = analytics || {};
-    const totalRatings = Number(data.total_ratings || 0);
-    const average = totalRatings ? Number(data.rating_sum || 0) / totalRatings : 0;
+    const engagementAvailable = data.engagement_unavailable !== true && hasReliableEngagementMetrics(data);
+    const totalRatings = engagementAvailable ? Number(data.total_ratings) : null;
+    const average = totalRatings != null && totalRatings > 0 && isFiniteMetric(data.rating_sum)
+      ? Number(data.rating_sum) / totalRatings
+      : null;
     const chapterStats = (data.chapter_stats || []).map(chapter => ({
       ...chapter,
       views: chapter.views == null ? null : Number(chapter.views),
       periodViews: chapter.period_views == null ? null : Number(chapter.period_views),
-      likes: Number(chapter.likes || 0),
-      periodLikes: Number(chapter.period_likes || 0),
-      shares: Number(chapter.shares || 0),
-      periodShares: Number(chapter.period_shares || 0),
-      ratingCount: Number(chapter.rating_count || 0),
-      periodRatingCount: Number(chapter.period_rating_count || 0),
-      ratingAverage: Number(chapter.rating_average || 0),
-      pages: Number(chapter.pages || pageCounts[chapter.id] || 0),
+      likes: chapter.likes == null ? null : Number(chapter.likes),
+      periodLikes: chapter.period_likes == null ? null : Number(chapter.period_likes),
+      shares: chapter.shares == null ? null : Number(chapter.shares),
+      periodShares: chapter.period_shares == null ? null : Number(chapter.period_shares),
+      ratingCount: chapter.rating_count == null ? null : Number(chapter.rating_count),
+      periodRatingCount: chapter.period_rating_count == null ? null : Number(chapter.period_rating_count),
+      ratingAverage: chapter.rating_average == null ? null : Number(chapter.rating_average),
+      pages: Number(chapter.pages ?? pageCounts[chapter.id] ?? 0),
     }));
-    const published = chapters.filter(chapter => String(chapter.status || '').toLowerCase() === 'published');
-    const withPages = published.filter(chapter => Number(pageCounts[chapter.id] || 0) > 0);
+    const published = chapters.filter(chapter =>
+      !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published'
+    );
+    const pageCountFor = chapter => {
+      const stat = chapterStats.find(item => String(item.id) === String(chapter.id));
+      const value = pageCounts[chapter.id] ?? stat?.pages ?? chapter.pages_count ?? 0;
+      return isFiniteMetric(value) ? Number(value) : 0;
+    };
+    const withPages = published.filter(chapter => pageCountFor(chapter) > 0);
     const upcoming = chapters.filter(chapter => {
-      const date = safeDate(chapter.releaseDate);
+      const date = safeDate(chapter.releaseDate || chapter.release_date);
       return date && date.getTime() > Date.now();
-    }).sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)).slice(0, 4);
-    const top = chapterStats;
+    }).sort((a, b) => new Date(a.releaseDate || a.release_date) - new Date(b.releaseDate || b.release_date)).slice(0, 4);
+    const top = chapterStats.filter(chapter =>
+      !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published'
+    );
     return {
       totalViews: data.total_views == null ? null : Number(data.total_views),
-      totalLikes: Number(data.total_likes || 0),
-      totalShares: Number(data.total_shares || 0),
-      totalComments: Number(data.total_comments || 0),
+      totalLikes: engagementAvailable ? Number(data.total_likes) : null,
+      totalShares: engagementAvailable ? Number(data.total_shares) : null,
+      totalComments: engagementAvailable ? Number(data.total_comments) : null,
       totalRatings,
       average,
       currentViews: data.current_views == null ? null : Number(data.current_views),
       previousViews: data.previous_views == null ? null : Number(data.previous_views),
-      currentLikes: Number(data.current_likes || 0),
-      previousLikes: Number(data.previous_likes || 0),
-      currentShares: Number(data.current_shares || 0),
-      previousShares: Number(data.previous_shares || 0),
-      currentComments: Number(data.current_comments || 0),
-      previousComments: Number(data.previous_comments || 0),
-      currentRatings: Number(data.current_ratings || 0),
+      currentLikes: engagementAvailable ? Number(data.current_likes) : null,
+      previousLikes: engagementAvailable ? Number(data.previous_likes) : null,
+      currentShares: engagementAvailable ? Number(data.current_shares) : null,
+      previousShares: engagementAvailable ? Number(data.previous_shares) : null,
+      currentComments: engagementAvailable ? Number(data.current_comments) : null,
+      previousComments: engagementAvailable ? Number(data.previous_comments) : null,
+      currentRatings: engagementAvailable ? Number(data.current_ratings) : null,
       activeReaders: data.reader_metrics_unavailable ? null : (data.active_readers == null ? null : Number(data.active_readers)),
       returningReaders: data.reader_metrics_unavailable ? null : (data.returning_readers == null ? null : Number(data.returning_readers)),
-      periodActiveReaders: data.reader_metrics_unavailable ? null : Number(data.period_active_readers ?? data.active_readers ?? 0),
-      periodReturningReaders: data.reader_metrics_unavailable ? null : Number(data.period_returning_readers ?? data.returning_readers ?? 0),
-      viewsUnavailable: data.views_unavailable === true,
+      periodActiveReaders: data.reader_metrics_unavailable ? null : (data.period_active_readers == null && data.active_readers == null ? null : Number(data.period_active_readers ?? data.active_readers)),
+      periodReturningReaders: data.reader_metrics_unavailable ? null : (data.period_returning_readers == null && data.returning_readers == null ? null : Number(data.period_returning_readers ?? data.returning_readers)),
+      viewsUnavailable: data.views_unavailable !== false,
       viewsUnavailableReason: data.views_unavailable_reason || null,
-      readerMetricsUnavailable: data.reader_metrics_unavailable === true,
+      engagementUnavailable: !engagementAvailable,
+      engagementUnavailableReason: data.engagement_unavailable_reason || null,
+      readerMetricsUnavailable: data.reader_metrics_unavailable !== false,
       readerMetricsUnavailableReason: data.reader_metrics_unavailable_reason || null,
-      bookmarks: Number(data.bookmarks || 0),
-      released: Number(data.released || 0),
+      bookmarks: engagementAvailable ? Number(data.bookmarks) : null,
+      released: engagementAvailable ? Number(data.released) : null,
       chapterStats,
       publishedCount: published.length,
       withPagesCount: withPages.length,
@@ -365,11 +379,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       upcoming,
       top,
       recentComments: [...comments].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5),
-      ratingCounts: Array.from({ length: 10 }, (_, index) => {
+      ratingCounts: engagementAvailable ? Array.from({ length: 10 }, (_, index) => {
         const rating = 10 - index;
         const row = (data.rating_counts || []).find(item => Number(item.rating) === rating);
-        return { rating, count: Number(row?.count || 0) };
-      }),
+        return { rating, count: Number(row?.count ?? 0) };
+      }) : [],
     };
   }, [analytics, chapters, comments, pageCounts]);
 
