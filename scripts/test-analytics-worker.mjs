@@ -191,6 +191,21 @@ try {
     longWindowPayload.daily_trend.reduce((sum, row) => sum + row.views, 0),
     'daily trend total must match current rolling-window view total',
   );
+  assert.equal(
+    longWindowPayload.total_views,
+    longWindowPayload.chapter_stats.reduce((sum, row) => sum + row.views, 0),
+    'chapter lifetime totals must match all-time views',
+  );
+  assert.equal(
+    longWindowPayload.current_views,
+    longWindowPayload.chapter_stats.reduce((sum, row) => sum + row.period_views, 0),
+    'chapter period totals must match selected-window views',
+  );
+  assert.equal(
+    longWindowPayload.previous_views,
+    longWindowPayload.chapter_stats.reduce((sum, row) => sum + row.previous_period_views, 0),
+    'chapter previous-period totals must match previous-window views',
+  );
   assert.ok(bucket.listCalls <= 20, `completed archive should prevent per-day R2 scans (observed ${bucket.listCalls} list calls)`);
 } finally {
   globalThis.fetch = originalFetch;
