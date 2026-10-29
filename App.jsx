@@ -43,7 +43,7 @@ const STORY = { title: 'Atma Rekha', description: 'An original fantasy adventure
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Fantasy Adventure Manga';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English.';
-const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
+const DEFAULT_SEO_IMAGE = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/cover-1789677679658.png';
 
 function upsertMeta(attribute, key, content) {
   if (typeof document === 'undefined') return;
@@ -607,6 +607,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', canonicalUrl);
     upsertMeta('property', 'og:image', image);
+    upsertMeta('property', 'og:image:secure_url', image);
+    upsertMeta('property', 'og:image:type', 'image/png');
     upsertMeta('property', 'og:image:alt', title);
     upsertMeta('name', 'twitter:card', 'summary_large_image');
     upsertMeta('name', 'twitter:title', title);
