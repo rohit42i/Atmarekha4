@@ -227,19 +227,22 @@ export default function AdminPanel({ onLogout }) {
     const handleEscape = event => {
       if (event.key === 'Escape') setMobileSidebarOpen(false);
     };
-    const isMobileDrawer = typeof window !== 'undefined' && window.matchMedia('(max-width: 980px)').matches;
+    const drawerBreakpoint = window.matchMedia('(max-width: 980px)');
     const previousOverflow = document.body.style.overflow;
-    if (isMobileDrawer) {
-      document.body.style.overflow = 'hidden';
+    const syncBodyScroll = () => {
+      document.body.style.overflow = drawerBreakpoint.matches ? 'hidden' : previousOverflow;
+    };
+    syncBodyScroll();
+    if (drawerBreakpoint.matches) {
       document.querySelector('.ar-admin-sidebar .ar-admin-mobile-close')?.focus();
     }
     window.addEventListener('keydown', handleEscape);
+    window.addEventListener('resize', syncBodyScroll);
     return () => {
       window.removeEventListener('keydown', handleEscape);
-      if (isMobileDrawer) {
-        document.body.style.overflow = previousOverflow;
-        document.querySelector('.ar-admin-menu-button')?.focus();
-      }
+      window.removeEventListener('resize', syncBodyScroll);
+      document.body.style.overflow = previousOverflow;
+      if (drawerBreakpoint.matches) document.querySelector('.ar-admin-menu-button')?.focus();
     };
   }, [mobileSidebarOpen]);
 
@@ -1301,7 +1304,7 @@ export default function AdminPanel({ onLogout }) {
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
           <div className="ar-admin-topbar-left">
-            <button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation" aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}>
+            <button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(value => !value)} aria-label={mobileSidebarOpen ? 'Close navigation' : 'Open navigation'} aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}>
               <AdminIcon name="menu" size={19}/>
             </button>
             <div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div>
