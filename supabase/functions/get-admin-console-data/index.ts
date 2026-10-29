@@ -46,6 +46,77 @@ function readSupabaseServiceRoleKey() {
   return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
 }
 
+async function hashViewerKey(viewerKey: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(viewerKey));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function collectReaderActivity(
+  admin: any,
+  start: Date,
+  end: Date,
+): Promise<{ complete: boolean; reason: string | null; rowCount: number; activity: Array<{ viewerHash: string; day: string; chapterId: string }> }> {
+  const pageSize = 1000;
+  const maxRows = 20000;
+  const activity: Array<{ viewerHash: string; day: string; chapterId: string }> = [];
+  let offset = 0;
+  let rowCount = 0;
+
+  while (true) {
+    const { data, error, count } = await admin
+      .from("chapter_views")
+      .select("chapter_id,viewer_key,created_at", { count: "exact" })
+      .gte("created_at", start.toISOString())
+      .lt("created_at", end.toISOString())
+      .order("created_at", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw error;
+    if (offset === 0 && typeof count === "number" && count > maxRows) {
+      return {
+        complete: false,
+        reason: "The legacy reader history is too large to reconcile safely in one analytics request.",
+        rowCount: count,
+        activity: [],
+      };
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    for (const row of rows) {
+      const viewerKey = String(row?.viewer_key || "").trim();
+      const chapterId = String(row?.chapter_id || "").trim();
+      const createdAt = new Date(row?.created_at || "");
+      if (!viewerKey || !chapterId || Number.isNaN(createdAt.getTime())) {
+        return {
+          complete: false,
+          reason: "Some historical reader records are missing a stable viewer key, chapter ID, or timestamp.",
+          rowCount: rowCount + rows.length,
+          activity: [],
+        };
+      }
+      activity.push({
+        viewerHash: await hashViewerKey(viewerKey),
+        day: createdAt.toISOString().slice(0, 10),
+        chapterId,
+      });
+    }
+
+    rowCount += rows.length;
+    if (rowCount > maxRows) {
+      return {
+        complete: false,
+        reason: "The legacy reader history is too large to reconcile safely in one analytics request.",
+        rowCount,
+        activity: [],
+      };
+    }
+    if (rows.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  return { complete: true, reason: null, rowCount, activity };
+}
+
 async function collectAuthUsers(admin: any, wantedIds: Set<string>): Promise<Map<string, any>> {
   const found = new Map<string, any>();
   let page = 1;
@@ -107,7 +178,7 @@ Deno.serve(async (req) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Invalid request body." }, 400, origin);
 
     const action = String(body.action || "analytics");
-    if (!["analytics", "membership", "users", "email_change_requests", "user-details", "notifications", "dashboard-inventory"].includes(action)) {
+    if (!["analytics", "reader-identities", "membership", "users", "email_change_requests", "user-details", "notifications", "dashboard-inventory"].includes(action)) {
       return json({ error: "Unknown admin data action." }, 400, origin);
     }
 
@@ -332,6 +403,24 @@ Deno.serve(async (req) => {
         .limit(250);
       if (notificationError) throw notificationError;
       return json({ notifications: notificationRows || [] }, 200, origin);
+    }
+
+    if (action === "reader-identities") {
+      const start = new Date(String(body.start || ""));
+      const end = new Date(String(body.end || ""));
+      const now = Date.now();
+      const maxWindowMs = 90 * 24 * 60 * 60 * 1000 + 60 * 1000;
+      if (
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime()) ||
+        start >= end ||
+        end.getTime() > now + 60 * 1000 ||
+        start.getTime() < now - maxWindowMs
+      ) {
+        return json({ error: "A valid analytics window of up to 90 days is required." }, 400, origin);
+      }
+      const readerActivity = await collectReaderActivity(admin, start, end);
+      return json(readerActivity, 200, origin);
     }
 
     if (action === "analytics") {
