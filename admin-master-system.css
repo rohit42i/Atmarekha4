@@ -2413,6 +2413,8 @@ main.admin-page.ar-admin-v3 :is(button,.ar-admin-btn,.ar-admin-primary-action,.a
 @media (min-width: 981px) {
   main.admin-page.ar-admin-v3 .ar-admin-sidebar {
     transform: none !important;
+    visibility: visible !important;
     pointer-events: auto !important;
+    transition: none !important;
   }
 }
