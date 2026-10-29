@@ -1281,7 +1281,11 @@ export default function AdminPanel({ onLogout }) {
         activeKey={tab}
         mobileOpen={mobileSidebarOpen}
         onClose={() => setMobileSidebarOpen(false)}
-        onSelect={item => item.action ? openAdminTool(item.action, item.detail) : activateTab(item.key)}
+        onSelect={item => {
+          setMobileSidebarOpen(false);
+          if (item.action) openAdminTool(item.action, item.detail);
+          else activateTab(item.key);
+        }}
         email={email}
         reportCount={reportCount}
         connectionState={loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}
