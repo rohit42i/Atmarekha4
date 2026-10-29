@@ -339,7 +339,7 @@ Deno.serve(async (req: Request) => {
       try {
         await webpush.sendNotification(
           { endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },
-          JSON.stringify({ title, body: message, icon: "/ishani.png", badge: "/ishani.png", url: targetUrl, tag: `atma-${category}-${eventId}`, renotify: false }),
+          JSON.stringify({ title, body: message, icon: "/atma-rekha-icon.svg", badge: "/atma-rekha-icon.svg", url: targetUrl, tag: `atma-${category}-${eventId}`, renotify: false }),
         );
         sent++;
         sentDuringDispatch = sent;
