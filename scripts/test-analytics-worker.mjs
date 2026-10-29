@@ -201,6 +201,14 @@ try {
     const before = callsBeforeWindow.get(prefix) || 0;
     assert.ok(count - before <= 1, 'same R2 prefix should be listed at most once per analytics request: ' + prefix);
   }
+  const dayRootPrefix = 'analytics/views/events/';
+  const dailyPrefixQueries = [...bucket.listCallsByPrefix.keys()].filter(prefix => {
+    const suffix = prefix.slice(dayRootPrefix.length);
+    return prefix.startsWith(dayRootPrefix) && suffix.length === 11 && suffix.endsWith('/') && suffix.slice(0, 10).includes('-');
+  }).filter(prefix => (bucket.listCallsByPrefix.get(prefix) || 0) > (callsBeforeWindow.get(prefix) || 0));
+  assert.equal(dailyPrefixQueries.length, 0, 'analytics should list event objects by month, not issue one R2 list request per day');
+  const rollingMonthPrefix = dayRootPrefix + archiveMonth + '-';
+  assert.ok(bucket.listCallsByPrefix.get(rollingMonthPrefix) > (callsBeforeWindow.get(rollingMonthPrefix) || 0), 'analytics should build the trend from a month-scoped event listing');
 } finally {
   globalThis.fetch = originalFetch;
 }
