@@ -603,26 +603,25 @@ async function handlePublicViews(request, env) {
   return json(request, result, 200, { 'Cache-Control': 'public, max-age=10, stale-while-revalidate=20' });
 }
 
-async function handleAdminAnalytics(request, env) {
-  if (!(await verifyAdmin(request, env))) return text(request, 'Admin authorization required.', 403);
+async function buildAdminAnalytics(env, days) {
   await ensureLegacyBootstrapped(env);
-  const days = Number(new URL(request.url).searchParams.get('days') || 30);
-  if (!PERIODS.has(days)) return text(request, 'Analytics period must be 1, 7, 30 or 90 days.', 400);
-
   const now = new Date();
   const currentStart = new Date(now.getTime() - days * DAY_MS);
   const previousStart = new Date(now.getTime() - days * 2 * DAY_MS);
-  const current = await combinedPeriodCounts(env, currentStart, now);
-  const previous = await combinedPeriodCounts(env, previousStart, currentStart);
-  const [currentReaders, previousReaders, dailyTrend, previousDailyTrend] = await Promise.all([
-    readerMetrics(env, currentStart, now),
-    readerMetrics(env, previousStart, currentStart),
-    dailyTrendForPeriod(env, currentStart, now),
-    dailyTrendForPeriod(env, previousStart, currentStart),
+  const context = createAnalyticsReadContext();
+
+  // These share per-request month, object-list, event-body, and period caches.
+  // A view can be counted for the totals and trend without repeating the same R2 calls.
+  const [summary, current, previous, currentReaders, dailyTrend, previousDailyTrend] = await Promise.all([
+    readJson(env, summaryKey(), { chapterViews: {} }),
+    combinedPeriodCounts(env, currentStart, now, context),
+    combinedPeriodCounts(env, previousStart, currentStart, context),
+    readerMetrics(env, currentStart, now, context),
+    dailyTrendForPeriod(env, currentStart, now, context),
+    dailyTrendForPeriod(env, previousStart, currentStart, context),
   ]);
 
-  const summary = await readJson(env, summaryKey(), { chapterViews: {} });
-  const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1));
+  const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1), context);
   const allTime = { ...(summary.chapterViews || {}) };
   // R2 is the source of truth for today's counts. An empty successful result is zero,
   // not a reason to resurrect values from a potentially stale hourly snapshot.
@@ -638,7 +637,7 @@ async function handleAdminAnalytics(request, env) {
     previous_period_views: Number(previous[id] || 0),
   }));
 
-  return json(request, {
+  return {
     version: 1,
     total_views: await totalFromMap(allTime),
     current_views: await totalFromMap(current),
@@ -651,7 +650,35 @@ async function handleAdminAnalytics(request, env) {
     daily_trend: dailyTrend,
     previous_daily_trend: previousDailyTrend,
     updated_at: new Date().toISOString(),
-  }, 200, { 'Cache-Control': 'private, no-store' });
+  };
+}
+
+async function handleAdminAnalytics(request, env) {
+  if (!(await verifyAdmin(request, env))) return text(request, 'Admin authorization required.', 403);
+  const days = Number(new URL(request.url).searchParams.get('days') || 30);
+  if (!PERIODS.has(days)) return text(request, 'Analytics period must be 1, 7, 30 or 90 days.', 400);
+
+  // Authorize every request before using this short-lived aggregate cache. It stores
+  // no personal data and prevents the dashboard's parallel widgets from stampeding R2.
+  const cached = adminAnalyticsCache.get(days);
+  if (cached && cached.expiresAt > Date.now()) {
+    const payload = cached.value || await cached.promise;
+    return json(request, payload, 200, { 'Cache-Control': 'private, no-store' });
+  }
+
+  const entry = { expiresAt: Date.now() + ADMIN_ANALYTICS_CACHE_TTL_MS, value: null, promise: null };
+  entry.promise = buildAdminAnalytics(env, days);
+  adminAnalyticsCache.set(days, entry);
+  try {
+    const payload = await entry.promise;
+    if (adminAnalyticsCache.get(days) === entry) {
+      adminAnalyticsCache.set(days, { expiresAt: Date.now() + ADMIN_ANALYTICS_CACHE_TTL_MS, value: payload, promise: null });
+    }
+    return json(request, payload, 200, { 'Cache-Control': 'private, no-store' });
+  } catch (error) {
+    if (adminAnalyticsCache.get(days) === entry) adminAnalyticsCache.delete(days);
+    throw error;
+  }
 }
 
 export default {
