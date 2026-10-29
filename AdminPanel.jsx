@@ -229,11 +229,17 @@ export default function AdminPanel({ onLogout }) {
     };
     const isMobileDrawer = typeof window !== 'undefined' && window.matchMedia('(max-width: 980px)').matches;
     const previousOverflow = document.body.style.overflow;
-    if (isMobileDrawer) document.body.style.overflow = 'hidden';
+    if (isMobileDrawer) {
+      document.body.style.overflow = 'hidden';
+      document.querySelector('.ar-admin-sidebar .ar-admin-mobile-close')?.focus();
+    }
     window.addEventListener('keydown', handleEscape);
     return () => {
       window.removeEventListener('keydown', handleEscape);
-      if (isMobileDrawer) document.body.style.overflow = previousOverflow;
+      if (isMobileDrawer) {
+        document.body.style.overflow = previousOverflow;
+        document.querySelector('.ar-admin-menu-button')?.focus();
+      }
     };
   }, [mobileSidebarOpen]);
 
