@@ -637,22 +637,39 @@ export default function AdminPanel({ onLogout }) {
         }
       }
 
+      let rollbackNotice = '';
       if (chapterCreated && !pagesCommitted && chapterId) {
         try {
-          await supabase.from(CHAPTERS).delete().eq('id', chapterId);
+          const { error: rollbackError } = await supabase.from(CHAPTERS).delete().eq('id', chapterId);
+          if (rollbackError) throw rollbackError;
           // The new chapter was never valid without its required page set.
-          // Mark committed uploads as cleanable so they do not become R2 orphans.
+          // Clean every uploaded object only after the database row is confirmed deleted.
           for (const item of uploadedPaths) {
-            try { await removeFiles(item.bucket, [item.path]); } catch (_) {}
+            try {
+              await removeFiles(item.bucket, [item.path]);
+            } catch (cleanupError) {
+              rollbackNotice = ' Some uploaded files still need cleanup in Operations.';
+              await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, {
+                bucket: item.bucket,
+                paths: [item.path],
+                error: cleanupError.message,
+              });
+            }
           }
-        } catch (_) {}
+        } catch (rollbackError) {
+          rollbackNotice = ' The new chapter record could not be rolled back. Check the chapter list and remove or repair that incomplete record.';
+          await logAdminAction(adminUser, 'chapter_rollback_failed', 'chapter', chapterId, {
+            error: rollbackError.message,
+            original_error: error.message,
+          });
+        }
       }
 
       if (adminUser) await logAdminAction(adminUser, 'chapter_operation_failed', 'chapter', chapterId, {
         error: error.message,
         r2_cleanup: error.r2Cleanup || null,
       });
-      setNotice({ type: 'error', text: error.message || 'Chapter upload failed.' });
+      setNotice({ type: 'error', text: (error.message || 'Chapter upload failed.') + rollbackNotice });
       setProgress({ current: 0, total: 0, text: '' });
     } finally {
       setBusy(false);
