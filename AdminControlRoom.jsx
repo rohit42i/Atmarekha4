@@ -298,8 +298,18 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const analyticsMetricsError = data.analyticsError ||
     (!analyticsMetricsAvailable ? 'Admin analytics response was incomplete: required engagement totals or chapter/rating arrays were missing.' : null);
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
-  const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
-  const cloudDailyTrendAvailable = cloudAnalyticsAvailable &&
+  const cloudChapterStatsAvailable = Array.isArray(cloud.chapter_stats) && cloud.chapter_stats.every(row =>
+    row && typeof row.id === 'string' && row.id.length > 0 &&
+    ['views', 'period_views', 'previous_period_views'].every(key => asNumber(row[key]) !== null)
+  );
+  const sumCloudChapterMetric = key => (cloud.chapter_stats || []).reduce((sum, row) => sum + Number(row[key]), 0);
+  const cloudViewsAvailable = cloudAnalyticsAvailable &&
+    ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) !== null) &&
+    cloudChapterStatsAvailable &&
+    sumCloudChapterMetric('views') === Number(cloud.total_views) &&
+    sumCloudChapterMetric('period_views') === Number(cloud.current_views) &&
+    sumCloudChapterMetric('previous_period_views') === Number(cloud.previous_views);
+  const cloudDailyTrendAvailable = cloudViewsAvailable &&
     isValidDailyTrend(cloud.daily_trend) && isValidDailyTrend(cloud.previous_daily_trend) &&
     cloud.daily_trend.length === cloud.previous_daily_trend.length &&
     trendViewsTotal(cloud.daily_trend) === asNumber(cloud.current_views) &&
@@ -307,7 +317,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   // The database view table is legacy-only after the Cloudflare migration.
   // Do not display it as a live fallback when the authoritative Worker is unavailable.
   const viewCountsAvailable = cloudViewsAvailable;
-  const cloudReadersAvailable = cloudAnalyticsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
+  const cloudReadersAvailable = cloudViewsAvailable && !cloud.reader_metrics_limited && asNumber(cloud.active_readers) != null && asNumber(cloud.returning_readers) != null;
   const membership = data.membership || {};
   const totals = membership.totals || {};
   const revenue = membership.revenue || {};
@@ -498,7 +508,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
     { name: 'Admin analytics function', ok: analyticsMetricsAvailable, error: analyticsMetricsError },
-    { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
+    { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'The response was incomplete or chapter-level view counts did not reconcile with the aggregate totals.') },
+    ...(cloudAnalyticsAvailable && cloudViewsAvailable && !cloudDailyTrendAvailable ? [{ name: 'Cloudflare daily trends', ok: false, error: 'Daily trend data is missing, invalid, out of order or does not reconcile with the selected-period totals.' }] : []),
     ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Reader metrics are incomplete or unavailable; counts are hidden rather than shown as zero.') : 'Reader counts were missing or invalid in the analytics response.' }] : []),
     { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
     { name: 'Membership analytics', ok: data.membership != null && !data.membershipError, error: data.membershipError },
