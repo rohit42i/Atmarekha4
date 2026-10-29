@@ -276,6 +276,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const data = bundle || {};
   const analytics = data.analytics || {};
   const cloud = data.cloudflare || {};
+  const analyticsMetricsAvailable = Boolean(data.analytics && typeof data.analytics === 'object') &&
+    !data.analyticsError &&
+    ['total_likes', 'total_shares', 'total_ratings', 'total_comments', 'current_likes', 'previous_likes', 'current_shares', 'previous_shares', 'current_comments', 'previous_comments', 'current_ratings', 'previous_ratings', 'rating_sum', 'bookmarks', 'released']
+      .every(key => asNumber(analytics[key]) !== null) &&
+    Array.isArray(analytics.chapter_stats) && Array.isArray(analytics.rating_counts);
+  const analyticsMetricsError = data.analyticsError ||
+    (!analyticsMetricsAvailable ? 'Admin analytics response was incomplete: required engagement totals or chapter/rating arrays were missing.' : null);
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
   const cloudDailyTrendAvailable = cloudAnalyticsAvailable &&
@@ -295,14 +302,14 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;
   const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : null;
   const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : null;
-  const currentLikes = asNumber(analytics.current_likes);
-  const previousLikes = asNumber(analytics.previous_likes);
-  const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
-  const previousShares = asNumber(cloud.previous_shares ?? analytics.previous_shares);
-  const currentComments = asNumber(analytics.current_comments);
-  const previousComments = asNumber(analytics.previous_comments);
-  const currentRatings = asNumber(analytics.current_ratings);
-  const previousRatings = asNumber(analytics.previous_ratings);
+  const currentLikes = analyticsMetricsAvailable ? asNumber(analytics.current_likes) : null;
+  const previousLikes = analyticsMetricsAvailable ? asNumber(analytics.previous_likes) : null;
+  const currentShares = analyticsMetricsAvailable ? asNumber(cloud.current_shares ?? analytics.current_shares) : null;
+  const previousShares = analyticsMetricsAvailable ? asNumber(cloud.previous_shares ?? analytics.previous_shares) : null;
+  const currentComments = analyticsMetricsAvailable ? asNumber(analytics.current_comments) : null;
+  const previousComments = analyticsMetricsAvailable ? asNumber(analytics.previous_comments) : null;
+  const currentRatings = analyticsMetricsAvailable ? asNumber(analytics.current_ratings) : null;
+  const previousRatings = analyticsMetricsAvailable ? asNumber(analytics.previous_ratings) : null;
   // The Worker explicitly flags reader-metric query failures; hide those values rather than showing a false zero.
   const activeReaders = cloudReadersAvailable ? asNumber(cloud.active_readers) : null;
   const returningReaders = cloudReadersAvailable ? asNumber(cloud.returning_readers) : null;
@@ -327,15 +334,15 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const weekdayValues = weekdayTotals.filter(row => row.weekday > 0 && row.weekday < 6).flatMap(row => row.views);
   const lastDailyChange = dailyTrendRows.length > 1 ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyTrendRows[dailyTrendRows.length - 2].views) : null;
   const positiveDailyChanges = dailyTrendRows.slice(1).filter((row, index) => row.views > dailyTrendRows[index].views).length;
-  const ratingCounts = (analytics.rating_counts || []).map(row => ({ rating: Number(row.rating), count: Number(row.count) }));
-  const allRatings = NUMBER(analytics.total_ratings);
-  const ratingSum = NUMBER(analytics.rating_sum);
-  const allTimeAverageRating = allRatings ? ratingSum / allRatings : null;
-  const totalLikes = asNumber(analytics.total_likes);
-  const totalShares = asNumber(cloud.total_shares ?? analytics.total_shares);
-  const totalComments = asNumber(analytics.total_comments);
-  const totalRatings = asNumber(analytics.total_ratings);
-  const totalBookmarks = asNumber(analytics.bookmarks);
+  const ratingCounts = analyticsMetricsAvailable ? analytics.rating_counts.map(row => ({ rating: Number(row.rating), count: Number(row.count) })) : [];
+  const allRatings = analyticsMetricsAvailable ? NUMBER(analytics.total_ratings) : null;
+  const ratingSum = analyticsMetricsAvailable ? NUMBER(analytics.rating_sum) : null;
+  const allTimeAverageRating = allRatings != null && allRatings > 0 && ratingSum != null ? ratingSum / allRatings : null;
+  const totalLikes = analyticsMetricsAvailable ? asNumber(analytics.total_likes) : null;
+  const totalShares = analyticsMetricsAvailable ? asNumber(cloud.total_shares ?? analytics.total_shares) : null;
+  const totalComments = analyticsMetricsAvailable ? asNumber(analytics.total_comments) : null;
+  const totalRatings = analyticsMetricsAvailable ? asNumber(analytics.total_ratings) : null;
+  const totalBookmarks = analyticsMetricsAvailable ? asNumber(analytics.bookmarks) : null;
   const rows = Array.isArray(data.chapters) ? data.chapters : chapters;
   const baseChapterStats = Array.isArray(analytics.chapter_stats) ? analytics.chapter_stats : [];
   const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
@@ -359,13 +366,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       title: row.title ?? chapterMeta.title ?? 'Untitled chapter',
       views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : null,
       period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : null,
-      likes: NUMBER(cloudStat?.likes ?? row.likes),
-      period_likes: NUMBER(cloudStat?.period_likes ?? row.period_likes),
-      shares: NUMBER(cloudStat?.shares ?? row.shares),
-      period_shares: NUMBER(cloudStat?.period_shares ?? row.period_shares),
+      likes: analyticsMetricsAvailable ? NUMBER(cloudStat?.likes ?? row.likes) : null,
+      period_likes: analyticsMetricsAvailable ? NUMBER(cloudStat?.period_likes ?? row.period_likes) : null,
+      shares: analyticsMetricsAvailable ? NUMBER(cloudStat?.shares ?? row.shares) : null,
+      period_shares: analyticsMetricsAvailable ? NUMBER(cloudStat?.period_shares ?? row.period_shares) : null,
       pages: NUMBER(row.pages ?? pageCounts[id] ?? chapterMeta.pages_count ?? 0),
-      rating_count: NUMBER(row.rating_count),
-      rating_average: NUMBER(row.rating_average),
+      rating_count: analyticsMetricsAvailable ? NUMBER(row.rating_count) : null,
+      rating_average: analyticsMetricsAvailable ? NUMBER(row.rating_average) : null,
     };
   });
   const activeChapters = rows.filter(row => !row.deleted_at);
@@ -476,7 +483,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const activeLanguages = new Set(activeChapters.map(row => String(row.language || row.mangaLanguage || '').trim()).filter(Boolean));
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
-    { name: 'Admin analytics function', ok: data.analytics != null && !data.analyticsError, error: data.analyticsError },
+    { name: 'Admin analytics function', ok: analyticsMetricsAvailable, error: analyticsMetricsError },
     { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
     ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Reader metrics are incomplete or unavailable; counts are hidden rather than shown as zero.') : 'Reader counts were missing or invalid in the analytics response.' }] : []),
     { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
@@ -726,26 +733,26 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Deep Analytics', 'Processed gross per processed charge', processedGross != null && chargeCount != null && chargeCount > 0 ? processedGross / chargeCount : null, 'money', 'Mean gross value per processed membership charge record; not net revenue or profit.', 'Membership analytics / payment records'),
         m('Deep Analytics', 'Membership plans returned', plans.length, 'count', 'Number of plan records supplied by the membership analytics response.', 'Membership analytics'),
         m('Deep Analytics', 'Latest notification record age (hours)', hasNotificationRows && latestNotification ? (() => { const created = dateOf(latestNotification.sent_at || latestNotification.created_at); return created ? Math.max(0, (nowDate.getTime() - created.getTime()) / 3600000) : null; })() : null, 'decimal', 'Elapsed hours since the newest logged notification timestamp. This is not a delivery-latency metric.', 'Loaded notification log · max 250'),
-        m('Deep Analytics', 'Rating score 1 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 1.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 1 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 1.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 2 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 2.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 2 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 2.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 3 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 3.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 3 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 3.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 4 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 4.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 4 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 4.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 5 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 5.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 5 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 5.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 6 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 6.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 6 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 6.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 7 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 7.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 7 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 7.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 8 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 8.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 8 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 8.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 9 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 9.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 9 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 9.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 10 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 10.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 10 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 10.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 1 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 1.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 1 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 1.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 2 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 2.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 2 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 2.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 3 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 3.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 3 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 3.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 4 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 4.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 4 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 4.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 5 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 5.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 5 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 5.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 6 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 6.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 6 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 6.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 7 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 7.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 7 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 7.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 8 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 8.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 8 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 8.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 9 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 9.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 9 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 9.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 10 count', analyticsMetricsAvailable ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 10.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 10 share', analyticsMetricsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 10.', 'Rating counts'),
       ],
     });
     return make();
