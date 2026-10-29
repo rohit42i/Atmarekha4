@@ -44,14 +44,14 @@ try {
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
-  assert.match(aboutHtml, /<title>About Atma Rekha \| Creator and Story<\/title>/);
-  assert.match(aboutHtml, /Meet Arkesh, the solo creator of Atma Rekha, and learn about the story and how it is made./);
+  assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
+  assert.match(aboutHtml, /Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English./);
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.match(aboutHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
   assert.match(aboutHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
   assert.match(aboutHtml, /property="og:image:type" content="image\/png"/);
   assert.match(aboutHtml, /name="twitter:card" content="summary_large_image"/);
-  assert.match(aboutHtml, /property="og:title" content="About Atma Rekha \| Creator and Story"/);
+  assert.match(aboutHtml, /property="og:title" content="About Atma Rekha \| Indian Fantasy Manga and Creator"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
   assert.equal(about.headers.get("strict-transport-security"), "max-age=15552000");
 
