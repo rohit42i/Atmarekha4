@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile, writeFile, stat } from "node:fs/promises";
+import { createRequire } from "node:module";
 
 const INPUT = "public/ishani.png";
 const OUTPUT = "public/og-atmarekha.jpg";
@@ -8,13 +9,18 @@ const HEIGHT = 630;
 const MAX_BYTES = 600 * 1024;
 const QUALITY_LEVELS = [82, 76, 70, 64, 58, 52, 46, 40];
 
-const sharpModule = await import("sharp").catch(error => {
+const require = createRequire(import.meta.url);
+let sharp;
+try {
+  // CI installs this build-only tool in a temporary directory to keep the
+  // application's production dependency tree and lockfile unchanged.
+  sharp = require(process.env.SHARP_MODULE_PATH || "sharp");
+} catch (error) {
   throw new Error(
-    "The social-preview build step requires sharp. Install the pinned sharp dependency before running this script. " +
+    "The social-preview build step requires sharp. Install the pinned sharp package and set SHARP_MODULE_PATH if it lives outside node_modules. " +
     (error?.message || String(error)),
   );
-});
-const sharp = sharpModule.default;
+}
 
 const inputStat = await stat(INPUT).catch(error => {
   throw new Error("Cannot read the original artwork at " + INPUT + ": " + (error?.message || String(error)));
