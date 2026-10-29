@@ -140,7 +140,7 @@ function findChapter(path, url, chapters) {
 }
 
 function safeCover(value) {
-  const fallback = "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/a6ddc25b-c814-4ad2-8386-58ce94639586/cover-1789677679658.png";
+  const fallback = SITE_ORIGIN + "/ishani.png";
   try {
     const image = new URL(String(value || ""), SITE_ORIGIN);
     return image.protocol === "https:" ? image.href : fallback;
@@ -250,8 +250,6 @@ async function addServerSeo(request, response, env) {
         html = setMeta(html, "property", "og:description", description);
         html = setMeta(html, "property", "og:url", canonical);
         html = setMeta(html, "property", "og:image", image);
-        html = setMeta(html, "property", "og:image:secure_url", image);
-        html = setMeta(html, "property", "og:image:type", "image/png");
         html = setMeta(html, "property", "og:image:alt", title);
         html = setMeta(html, "name", "twitter:card", "summary_large_image");
         html = setMeta(html, "name", "twitter:title", title);
