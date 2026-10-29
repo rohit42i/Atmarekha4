@@ -161,11 +161,16 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       try {
         const { data, error } = await supabase.functions.invoke('get-admin-user-stats');
         if (error) throw error;
-        if (active && data) setUserStats({
-          logged_in_users: Number(data.logged_in_users || 0),
-          notification_subscriptions: Number(data.notification_subscriptions || 0),
-        });
-      } catch (error) { console.warn('Admin user stats lookup failed:', error); }
+        const valid = isFiniteMetric(data?.logged_in_users) && isFiniteMetric(data?.notification_subscriptions);
+        if (active) setUserStats(valid ? {
+          logged_in_users: Number(data.logged_in_users),
+          notification_subscriptions: Number(data.notification_subscriptions),
+          error: false,
+        } : { logged_in_users: null, notification_subscriptions: null, error: true });
+      } catch (error) {
+        console.warn('Admin user stats lookup failed:', error);
+        if (active) setUserStats({ logged_in_users: null, notification_subscriptions: null, error: true });
+      }
     };
     loadUserStats();
     const timer = setInterval(loadUserStats, 30000);
@@ -177,26 +182,26 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   useEffect(() => {
     let active = true;
     const loadLast24 = async () => {
-      try {
-        const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(1).catch(() => null),
-        ]);
-        if (error) throw error;
-        if (active) setLast24({
-          // Cloudflare R2 is the authoritative view source after the migration.
-          // Never present legacy database counts as live views when the Worker is unavailable.
-          views: cloudflare?.current_views != null && Number.isFinite(Number(cloudflare.current_views))
-            ? Number(cloudflare.current_views)
-            : null,
-          ratings: data?.current_ratings != null && Number.isFinite(Number(data.current_ratings)) ? Number(data.current_ratings) : null,
-          comments: data?.current_comments != null && Number.isFinite(Number(data.current_comments)) ? Number(data.current_comments) : null,
-          loading: false,
-        });
-      } catch (error) {
-        console.warn('Admin 24-hour activity lookup failed:', error);
-        if (active) setLast24({ views: null, ratings: null, comments: null, loading: false, error: true });
-      }
+      const [baseResult, cloudResult] = await Promise.all([
+        supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } })
+          .then(result => ({ data: result.data?.data || null, error: result.error }))
+          .catch(error => ({ data: null, error })),
+        fetchCloudflareAdminAnalytics(1)
+          .then(data => ({ data, error: null }))
+          .catch(error => ({ data: null, error })),
+      ]);
+      const base = baseResult.data;
+      const cloud = cloudResult.data;
+      const engagementAvailable = !baseResult.error && hasReliableEngagementMetrics(base);
+      const viewsAvailable = hasReliableCloudflareViews(cloud);
+      if (active) setLast24({
+        views: viewsAvailable ? Number(cloud.current_views) : null,
+        ratings: engagementAvailable ? Number(base.current_ratings) : null,
+        comments: engagementAvailable ? Number(base.current_comments) : null,
+        viewsError: cloudResult.error?.message || (!viewsAvailable ? 'Cloudflare view totals were incomplete or inconsistent.' : null),
+        engagementError: baseResult.error?.message || (!engagementAvailable ? 'Admin engagement analytics were incomplete or unavailable.' : null),
+        loading: false,
+      });
     };
     loadLast24();
     const timer = setInterval(loadLast24, 60000);
@@ -212,35 +217,30 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     setAnalyticsError('');
     const loadAnalytics = async () => {
       try {
-        const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
+        const [baseResult, cloudResult] = await Promise.all([
+          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })
+            .then(result => ({ data: result.data?.data || null, error: result.error }))
+            .catch(error => ({ data: null, error })),
+          fetchCloudflareAdminAnalytics(Number(days))
+            .then(data => ({ data, error: null }))
+            .catch(error => ({ data: null, error })),
         ]);
-        if (error) throw error;
+        const base = baseResult.data || {};
+        const cloudflare = cloudResult.data;
+        const hasBaseAnalytics = !baseResult.error && hasReliableEngagementMetrics(base);
+        const baseAnalyticsError = baseResult.error?.message ||
+          (!hasBaseAnalytics ? 'Admin engagement analytics returned incomplete or invalid totals.' : null);
+        const cloudflareError = cloudResult.error?.message ||
+          (!cloudflare ? 'Cloudflare analytics request failed.' : null);
         if (active) {
-          const base = data || {};
-          const requiredNumericFields = [
-            'total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum',
-            'current_likes', 'previous_likes', 'current_shares', 'previous_shares',
-            'current_comments', 'previous_comments', 'current_ratings', 'bookmarks', 'released',
-          ];
-          const missingAnalyticsFields = requiredNumericFields.filter(key => base[key] == null || !Number.isFinite(Number(base[key])));
-          const validRatingHistogram = Array.isArray(base.rating_counts) &&
-            base.rating_counts.reduce((sum, row) => sum + Math.max(0, Number(row.count) || 0), 0) === Number(base.total_ratings);
-          const adminAnalyticsUnavailable = missingAnalyticsFields.length > 0 || !validRatingHistogram || !Array.isArray(base.chapter_stats);
-          const adminAnalyticsUnavailableReason = adminAnalyticsUnavailable
-            ? 'Admin analytics response is incomplete' + (missingAnalyticsFields.length ? ': missing or invalid ' + missingAnalyticsFields.join(', ') : !validRatingHistogram ? ': rating histogram does not reconcile with the total rating count' : ': chapter statistics are missing')
-            : null;
-          const hasCloudflareViews = Boolean(cloudflare) &&
-            ['total_views', 'current_views', 'previous_views'].every(key =>
-              cloudflare[key] != null && Number.isFinite(Number(cloudflare[key]))
-            );
-          const hasViewCounts = hasCloudflareViews;
+          const adminAnalyticsUnavailable = !hasBaseAnalytics;
+          const adminAnalyticsUnavailableReason = baseAnalyticsError;
+          const hasCloudflareViews = hasReliableCloudflareViews(cloudflare);
           const hasCloudflareReaders = hasCloudflareViews &&
             !cloudflare.reader_metrics_limited &&
-            cloudflare.active_readers != null && Number.isFinite(Number(cloudflare.active_readers)) &&
-            cloudflare.returning_readers != null && Number.isFinite(Number(cloudflare.returning_readers));
-          const baseChapterStats = Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
+            isFiniteMetric(cloudflare.active_readers) &&
+            isFiniteMetric(cloudflare.returning_readers);
+          const baseChapterStats = hasBaseAnalytics && Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
           const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
           const cloudChapterStats = new Map((cloudflare?.chapter_stats || []).map(row => [String(row.id), row]));
           // Reconcile analytics rows with the actual chapter catalogue. A missing stats row
@@ -262,18 +262,36 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
               views: hasCloudflareViews ? Number(cloud?.views || 0) : null,
               period_views: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
               periodViews: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
-              likes: Number(row.likes || 0),
-              period_likes: Number(row.period_likes || 0),
-              periodLikes: Number(row.period_likes || 0),
-              shares: Number(row.shares || 0),
-              period_shares: Number(row.period_shares || 0),
-              rating_count: Number(row.rating_count || 0),
-              rating_average: Number(row.rating_average || 0),
+              likes: hasBaseAnalytics ? Number(row.likes || 0) : null,
+              period_likes: hasBaseAnalytics ? Number(row.period_likes || 0) : null,
+              periodLikes: hasBaseAnalytics ? Number(row.period_likes || 0) : null,
+              shares: hasBaseAnalytics ? Number(row.shares || 0) : null,
+              period_shares: hasBaseAnalytics ? Number(row.period_shares || 0) : null,
+              rating_count: hasBaseAnalytics ? Number(row.rating_count || 0) : null,
+              period_rating_count: hasBaseAnalytics ? Number(row.period_rating_count || 0) : null,
+              rating_average: hasBaseAnalytics ? Number(row.rating_average || 0) : null,
               pages: Number(row.pages ?? pageCounts[id] ?? 0),
             };
           });
           setAnalytics({
             ...base,
+            engagement_unavailable: adminAnalyticsUnavailable,
+            engagement_unavailable_reason: adminAnalyticsUnavailableReason,
+            total_likes: hasBaseAnalytics ? Number(base.total_likes) : null,
+            total_shares: hasBaseAnalytics ? Number(base.total_shares) : null,
+            total_comments: hasBaseAnalytics ? Number(base.total_comments) : null,
+            total_ratings: hasBaseAnalytics ? Number(base.total_ratings) : null,
+            rating_sum: hasBaseAnalytics ? Number(base.rating_sum) : null,
+            current_likes: hasBaseAnalytics ? Number(base.current_likes) : null,
+            previous_likes: hasBaseAnalytics ? Number(base.previous_likes) : null,
+            current_shares: hasBaseAnalytics ? Number(base.current_shares) : null,
+            previous_shares: hasBaseAnalytics ? Number(base.previous_shares) : null,
+            current_comments: hasBaseAnalytics ? Number(base.current_comments) : null,
+            previous_comments: hasBaseAnalytics ? Number(base.previous_comments) : null,
+            current_ratings: hasBaseAnalytics ? Number(base.current_ratings) : null,
+            bookmarks: hasBaseAnalytics ? Number(base.bookmarks) : null,
+            released: hasBaseAnalytics ? Number(base.released) : null,
+            rating_counts: hasBaseAnalytics ? base.rating_counts : [],
             total_views: hasCloudflareViews ? Number(cloudflare.total_views) : null,
             current_views: hasCloudflareViews ? Number(cloudflare.current_views) : null,
             previous_views: hasCloudflareViews ? Number(cloudflare.previous_views) : null,
@@ -282,8 +300,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             period_active_readers: hasCloudflareReaders ? Number(cloudflare.active_readers) : null,
             period_returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
             views_unavailable: !hasCloudflareViews,
+            views_unavailable_reason: cloudflareError || (!hasCloudflareViews ? 'The analytics Worker response was incomplete or view totals did not reconcile with chapter totals.' : null),
             reader_metrics_unavailable: !hasCloudflareReaders,
-            reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason || (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' : null),
+            reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason ||
+              (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' :
+                !hasCloudflareReaders ? (cloudflareError || 'Reader analytics are unavailable or invalid.') : null),
             admin_analytics_unavailable: adminAnalyticsUnavailable,
             admin_analytics_unavailable_reason: adminAnalyticsUnavailableReason,
             chapter_stats: chapterStats,
