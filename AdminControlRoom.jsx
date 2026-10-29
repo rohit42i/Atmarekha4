@@ -267,8 +267,24 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const data = bundle || {};
   const analytics = data.analytics || {};
   const cloud = data.cloudflare || {};
+  const requiredAdminMetricFields = [
+    'total_likes', 'current_likes', 'previous_likes', 'total_shares', 'current_shares', 'previous_shares',
+    'total_comments', 'current_comments', 'previous_comments', 'total_ratings', 'current_ratings',
+    'previous_ratings', 'rating_sum', 'bookmarks',
+  ];
+  const missingAdminMetricFields = requiredAdminMetricFields.filter(key => asNumber(analytics[key]) == null);
+  const adminAnalyticsAvailable = adminAnalyticsAvailable &&
+    missingAdminMetricFields.length === 0 &&
+    Array.isArray(analytics.rating_counts) && Array.isArray(analytics.chapter_stats);
+  const adminAnalyticsUnavailableReason = adminAnalyticsAvailable ? null : (data.analyticsError ||
+    (missingAdminMetricFields.length ? 'Admin analytics response is missing or has invalid fields: ' + missingAdminMetricFields.join(', ') :
+      'Admin analytics response is missing its rating histogram or chapter statistics.'));
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
+  const validTrendSeries = rows => Array.isArray(rows) && rows.length > 0 && rows.every(row =>
+    row && /^\d{4}-\d{2}-\d{2}$/.test(String(row.day || '')) && asNumber(row.views) != null
+  );
+  const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries(cloud.daily_trend) && validTrendSeries(cloud.previous_daily_trend);
   // The database view table is legacy-only after the Cloudflare migration.
   // Do not display it as a live fallback when the authoritative Worker is unavailable.
   const viewCountsAvailable = cloudViewsAvailable;
@@ -281,19 +297,19 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;
   const previousViews = cloudViewsAvailable ? asNumber(cloud.previous_views) : null;
   const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : null;
-  const currentLikes = asNumber(analytics.current_likes);
-  const previousLikes = asNumber(analytics.previous_likes);
-  const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
-  const previousShares = asNumber(cloud.previous_shares ?? analytics.previous_shares);
-  const currentComments = asNumber(analytics.current_comments);
-  const previousComments = asNumber(analytics.previous_comments);
-  const currentRatings = asNumber(analytics.current_ratings);
-  const previousRatings = asNumber(analytics.previous_ratings);
+  const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;
+  const previousLikes = adminAnalyticsAvailable ? asNumber(analytics.previous_likes) : null;
+  const currentShares = adminAnalyticsAvailable ? asNumber(cloud.current_shares ?? analytics.current_shares) : null;
+  const previousShares = adminAnalyticsAvailable ? asNumber(cloud.previous_shares ?? analytics.previous_shares) : null;
+  const currentComments = adminAnalyticsAvailable ? asNumber(analytics.current_comments) : null;
+  const previousComments = adminAnalyticsAvailable ? asNumber(analytics.previous_comments) : null;
+  const currentRatings = adminAnalyticsAvailable ? asNumber(analytics.current_ratings) : null;
+  const previousRatings = adminAnalyticsAvailable ? asNumber(analytics.previous_ratings) : null;
   // The Worker explicitly flags reader-metric query failures; hide those values rather than showing a false zero.
   const activeReaders = cloudReadersAvailable ? asNumber(cloud.active_readers) : null;
   const returningReaders = cloudReadersAvailable ? asNumber(cloud.returning_readers) : null;
-  const dailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.daily_trend) ? cloud.daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
-  const previousDailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.previous_daily_trend) ? cloud.previous_daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
+  const dailyTrendRows = dailyTrendAvailable ? cloud.daily_trend.map(row => ({ day: String(row.day), views: asNumber(row.views), partial: Boolean(row.partial) })) : [];
+  const previousDailyTrendRows = dailyTrendAvailable ? cloud.previous_daily_trend.map(row => ({ day: String(row.day), views: asNumber(row.views), partial: Boolean(row.partial) })) : [];
   const dailyViewValues = dailyTrendRows.map(row => row.views);
   const previousDailyViewValues = previousDailyTrendRows.map(row => row.views);
   const dailyMean = average(dailyViewValues);
@@ -313,15 +329,15 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const weekdayValues = weekdayTotals.filter(row => row.weekday > 0 && row.weekday < 6).flatMap(row => row.views);
   const lastDailyChange = dailyTrendRows.length > 1 ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyTrendRows[dailyTrendRows.length - 2].views) : null;
   const positiveDailyChanges = dailyTrendRows.slice(1).filter((row, index) => row.views > dailyTrendRows[index].views).length;
-  const ratingCounts = (analytics.rating_counts || []).map(row => ({ rating: Number(row.rating), count: Number(row.count) }));
-  const allRatings = NUMBER(analytics.total_ratings);
-  const ratingSum = NUMBER(analytics.rating_sum);
-  const allTimeAverageRating = allRatings ? ratingSum / allRatings : null;
-  const totalLikes = asNumber(analytics.total_likes);
-  const totalShares = asNumber(cloud.total_shares ?? analytics.total_shares);
-  const totalComments = asNumber(analytics.total_comments);
-  const totalRatings = asNumber(analytics.total_ratings);
-  const totalBookmarks = asNumber(analytics.bookmarks);
+  const ratingCounts = adminAnalyticsAvailable && Array.isArray(analytics.rating_counts) ? analytics.rating_counts.map(row => ({ rating: Number(row.rating), count: Number(row.count) })) : [];
+  const allRatings = adminAnalyticsAvailable ? asNumber(analytics.total_ratings) : null;
+  const ratingSum = adminAnalyticsAvailable ? asNumber(analytics.rating_sum) : null;
+  const allTimeAverageRating = allRatings != null && allRatings > 0 && ratingSum != null ? ratingSum / allRatings : null;
+  const totalLikes = adminAnalyticsAvailable ? asNumber(analytics.total_likes) : null;
+  const totalShares = adminAnalyticsAvailable ? asNumber(cloud.total_shares ?? analytics.total_shares) : null;
+  const totalComments = adminAnalyticsAvailable ? asNumber(analytics.total_comments) : null;
+  const totalRatings = adminAnalyticsAvailable ? asNumber(analytics.total_ratings) : null;
+  const totalBookmarks = adminAnalyticsAvailable ? asNumber(analytics.bookmarks) : null;
   const rows = Array.isArray(data.chapters) ? data.chapters : chapters;
   const baseChapterStats = Array.isArray(analytics.chapter_stats) ? analytics.chapter_stats : [];
   const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
@@ -345,13 +361,13 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       title: row.title ?? chapterMeta.title ?? 'Untitled chapter',
       views: cloudViewsAvailable ? NUMBER(cloudStat?.views) : null,
       period_views: cloudViewsAvailable ? NUMBER(cloudStat?.period_views) : null,
-      likes: NUMBER(cloudStat?.likes ?? row.likes),
-      period_likes: NUMBER(cloudStat?.period_likes ?? row.period_likes),
-      shares: NUMBER(cloudStat?.shares ?? row.shares),
-      period_shares: NUMBER(cloudStat?.period_shares ?? row.period_shares),
+      likes: adminAnalyticsAvailable ? NUMBER(cloudStat?.likes ?? row.likes) : null,
+      period_likes: adminAnalyticsAvailable ? NUMBER(cloudStat?.period_likes ?? row.period_likes) : null,
+      shares: adminAnalyticsAvailable ? NUMBER(cloudStat?.shares ?? row.shares) : null,
+      period_shares: adminAnalyticsAvailable ? NUMBER(cloudStat?.period_shares ?? row.period_shares) : null,
       pages: NUMBER(row.pages ?? pageCounts[id] ?? chapterMeta.pages_count ?? 0),
-      rating_count: NUMBER(row.rating_count),
-      rating_average: NUMBER(row.rating_average),
+      rating_count: adminAnalyticsAvailable && row.id != null ? NUMBER(row.rating_count) : null,
+      rating_average: adminAnalyticsAvailable && row.id != null ? NUMBER(row.rating_average) : null,
     };
   });
   const activeChapters = rows.filter(row => !row.deleted_at);
@@ -457,8 +473,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const activeLanguages = new Set(activeChapters.map(row => String(row.language || row.mangaLanguage || '').trim()).filter(Boolean));
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
-    { name: 'Admin analytics function', ok: data.analytics != null && !data.analyticsError, error: data.analyticsError },
+    { name: 'Admin analytics function', ok: adminAnalyticsAvailable, error: adminAnalyticsUnavailableReason },
     { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
+    { name: 'Cloudflare daily trends', ok: dailyTrendAvailable, error: dailyTrendAvailable ? null : 'Current or previous daily trend is missing or contains invalid day/view values.' },
     ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Reader metrics are incomplete or unavailable; counts are hidden rather than shown as zero.') : 'Reader counts were missing or invalid in the analytics response.' }] : []),
     { name: 'User statistics', ok: data.users != null && !data.usersError, error: data.usersError },
     { name: 'Membership analytics', ok: data.membership != null && !data.membershipError, error: data.membershipError },
@@ -496,23 +513,23 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Published chapters with reads', cloudViewsAvailable ? chaptersWithViews.length : null, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
         m('Traffic & Reach', 'Published chapters with zero reads', cloudViewsAvailable ? viewlessChapters.length : null, 'count', 'Published chapters represented in analytics with zero lifetime views.', 'Chapter analytics'),
         m('Traffic & Reach', 'Median lifetime views per published chapter', cloudViewsAvailable ? median(publishedChapterStats.map(row => Number(row.views || 0))) : null, 'decimal', 'Median lifetime views across published chapters represented in analytics.', 'Chapter analytics'),
-        m('Traffic & Reach', 'Daily trend buckets returned', cloudViewsAvailable && cloud.daily_trend ? dailyTrendRows.length : null, 'count', 'Number of UTC calendar buckets in the selected rolling window; boundary buckets may be partial.', 'Cloudflare Analytics Engine and R2 archive'),
-        m('Traffic & Reach', 'Days with at least one view', cloudViewsAvailable && cloud.daily_trend ? activeViewDays : null, 'count', 'Selected-window date buckets with one or more chapter views.', 'Daily trend'),
-        m('Traffic & Reach', 'Days with zero views', cloudViewsAvailable && cloud.daily_trend ? dailyTrendRows.filter(row => row.views === 0).length : null, 'count', 'Selected-window date buckets with no recorded chapter views.', 'Daily trend'),
-        m('Traffic & Reach', 'Average views per daily bucket', cloudViewsAvailable && cloud.daily_trend ? dailyMean : null, 'decimal', 'Mean views per returned UTC calendar bucket, including zero-view buckets.', 'Daily trend'),
-        m('Traffic & Reach', 'Median views per daily bucket', cloudViewsAvailable && cloud.daily_trend ? median(dailyViewValues) : null, 'decimal', 'Median views across returned UTC calendar buckets.', 'Daily trend'),
-        m('Traffic & Reach', 'Peak daily views', cloudViewsAvailable && cloud.daily_trend ? peakDailyRow?.views ?? null : null, 'count', 'Highest daily total in the selected reporting window.', 'Daily trend'),
-        m('Traffic & Reach', 'Date of peak daily views', cloudViewsAvailable && cloud.daily_trend ? peakDailyRow?.day ?? null : null, 'text', 'UTC date of the highest daily view total.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily trend buckets returned', dailyTrendAvailable ? dailyTrendRows.length : null, 'count', 'Number of UTC calendar buckets in the selected rolling window; boundary buckets may be partial.', 'Cloudflare Analytics Engine and R2 archive'),
+        m('Traffic & Reach', 'Days with at least one view', dailyTrendAvailable ? activeViewDays : null, 'count', 'Selected-window date buckets with one or more chapter views.', 'Daily trend'),
+        m('Traffic & Reach', 'Days with zero views', dailyTrendAvailable ? dailyTrendRows.filter(row => row.views === 0).length : null, 'count', 'Selected-window date buckets with no recorded chapter views.', 'Daily trend'),
+        m('Traffic & Reach', 'Average views per daily bucket', dailyTrendAvailable ? dailyMean : null, 'decimal', 'Mean views per returned UTC calendar bucket, including zero-view buckets.', 'Daily trend'),
+        m('Traffic & Reach', 'Median views per daily bucket', dailyTrendAvailable ? median(dailyViewValues) : null, 'decimal', 'Median views across returned UTC calendar buckets.', 'Daily trend'),
+        m('Traffic & Reach', 'Peak daily views', dailyTrendAvailable ? peakDailyRow?.views ?? null : null, 'count', 'Highest daily total in the selected reporting window.', 'Daily trend'),
+        m('Traffic & Reach', 'Date of peak daily views', dailyTrendAvailable ? peakDailyRow?.day ?? null : null, 'text', 'UTC date of the highest daily view total.', 'Daily trend'),
         m('Traffic & Reach', 'Previous window peak daily views', cloudViewsAvailable && cloud.previous_daily_trend ? previousPeakDaily?.views ?? null : null, 'count', 'Highest daily total in the previous equal-length reporting window.', 'Previous daily trend'),
-        m('Traffic & Reach', 'Active-day coverage', cloudViewsAvailable && cloud.daily_trend ? ratio(activeViewDays, dailyTrendRows.length) : null, 'percent', 'Share of returned date buckets with at least one view.', 'Daily trend'),
-        m('Traffic & Reach', 'Daily views standard deviation', cloudViewsAvailable && cloud.daily_trend ? dailyStdDev : null, 'decimal', 'Population standard deviation across daily view totals.', 'Daily trend'),
-        m('Traffic & Reach', 'Daily views volatility', cloudViewsAvailable && cloud.daily_trend && dailyMean > 0 ? dailyStdDev / dailyMean * 100 : null, 'percent', 'Coefficient of variation for daily view totals; higher values indicate more uneven daily reach.', 'Daily trend'),
-        m('Traffic & Reach', 'Days with growth versus prior day', cloudViewsAvailable && cloud.daily_trend ? positiveDailyChanges : null, 'count', 'Adjacent UTC date buckets where views increased.', 'Daily trend'),
-        m('Traffic & Reach', 'Most-viewed weekday', cloudViewsAvailable && cloud.daily_trend ? (busiestWeekday?.label || null) : null, 'text', 'Weekday with the highest average views in this window; partial boundary dates can affect the sample.', 'Daily trend'),
-        m('Traffic & Reach', 'Average weekend views', cloudViewsAvailable && cloud.daily_trend ? average(weekendValues) : null, 'decimal', 'Mean daily views for Saturday and Sunday buckets in the selected window.', 'Daily trend'),
-        m('Traffic & Reach', 'Average weekday views', cloudViewsAvailable && cloud.daily_trend ? average(weekdayValues) : null, 'decimal', 'Mean daily views for Monday through Friday buckets in the selected window.', 'Daily trend'),
-        m('Traffic & Reach', 'Last daily bucket change', cloudViewsAvailable && cloud.daily_trend ? lastDailyChange : null, 'percent', 'Change between the last two returned daily buckets. Boundary buckets may be partial.', 'Daily trend'),
-        m('Traffic & Reach', 'Active-day change vs previous period', cloudViewsAvailable && cloud.daily_trend && cloud.previous_daily_trend ? deltaPercent(activeViewDays, previousActiveViewDays) : null, 'percent', 'Period-over-period change in date buckets with at least one recorded view.', 'Current and previous daily trends'),
+        m('Traffic & Reach', 'Active-day coverage', dailyTrendAvailable ? ratio(activeViewDays, dailyTrendRows.length) : null, 'percent', 'Share of returned date buckets with at least one view.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily views standard deviation', dailyTrendAvailable ? dailyStdDev : null, 'decimal', 'Population standard deviation across daily view totals.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily views volatility', dailyTrendAvailable && dailyMean > 0 ? dailyStdDev / dailyMean * 100 : null, 'percent', 'Coefficient of variation for daily view totals; higher values indicate more uneven daily reach.', 'Daily trend'),
+        m('Traffic & Reach', 'Days with growth versus prior day', dailyTrendAvailable ? positiveDailyChanges : null, 'count', 'Adjacent UTC date buckets where views increased.', 'Daily trend'),
+        m('Traffic & Reach', 'Most-viewed weekday', dailyTrendAvailable ? (busiestWeekday?.label || null) : null, 'text', 'Weekday with the highest average views in this window; partial boundary dates can affect the sample.', 'Daily trend'),
+        m('Traffic & Reach', 'Average weekend views', dailyTrendAvailable ? average(weekendValues) : null, 'decimal', 'Mean daily views for Saturday and Sunday buckets in the selected window.', 'Daily trend'),
+        m('Traffic & Reach', 'Average weekday views', dailyTrendAvailable ? average(weekdayValues) : null, 'decimal', 'Mean daily views for Monday through Friday buckets in the selected window.', 'Daily trend'),
+        m('Traffic & Reach', 'Last daily bucket change', dailyTrendAvailable ? lastDailyChange : null, 'percent', 'Change between the last two returned daily buckets. Boundary buckets may be partial.', 'Daily trend'),
+        m('Traffic & Reach', 'Active-day change vs previous period', dailyTrendAvailable && cloud.previous_daily_trend ? deltaPercent(activeViewDays, previousActiveViewDays) : null, 'percent', 'Period-over-period change in date buckets with at least one recorded view.', 'Current and previous daily trends'),
       ],
       'Content Intelligence': [
         m('Content Intelligence', 'Published chapters', published.length, 'count', 'Published, non-archived chapter records currently loaded.', 'Chapter inventory'),
@@ -675,9 +692,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Deep Analytics', 'Period views standard deviation by chapter', cloudViewsAvailable ? standardDeviation(publishedChapterStats.map(row => Number(row.period_views || 0))) : null, 'decimal', 'Population standard deviation of selected-window views across published chapters.', 'Published chapter-level analytics'),
         m('Deep Analytics', 'Lifetime chapter-view range', cloudViewsAvailable && chapterViews.length ? Math.max(...chapterViews) - Math.min(...chapterViews) : null, 'count', 'Difference between highest and lowest lifetime chapter views in the loaded analytics rows.', 'Chapter analytics'),
         m('Deep Analytics', 'Chapters with 1,000+ lifetime views', cloudViewsAvailable ? chapterStats.filter(row => Number(row.views || 0) >= 1000).length : null, 'count', 'Count of returned chapter analytics rows that have at least 1,000 lifetime views.', 'Chapter analytics'),
-        m('Deep Analytics', 'Latest daily bucket vs daily mean', cloudViewsAvailable && cloud.daily_trend && dailyMean > 0 && dailyTrendRows.length ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyMean) : null, 'percent', 'Last returned UTC daily bucket compared with the mean for all returned buckets; boundary buckets may be partial.', 'Cloudflare daily trend'),
-        m('Deep Analytics', 'Peak day share of selected-window views', cloudViewsAvailable && cloud.daily_trend && Number(currentViews) > 0 && peakDailyRow ? Number(peakDailyRow.views || 0) / Number(currentViews) * 100 : null, 'percent', 'Peak daily bucket divided by selected-window aggregate views. Daily buckets are UTC and may include partial days.', 'Cloudflare daily trend and period views'),
-        m('Deep Analytics', 'First-half to second-half daily view change', cloudViewsAvailable && cloud.daily_trend && dailyTrendRows.length >= 2 ? (() => { const split = Math.floor(dailyTrendRows.length / 2); const first = dailyTrendRows.slice(0, split).reduce((sum, row) => sum + Number(row.views || 0), 0); const second = dailyTrendRows.slice(split).reduce((sum, row) => sum + Number(row.views || 0), 0); return deltaPercent(second, first); })() : null, 'percent', 'Compares the second half of returned daily buckets with the first half; this is a within-window directional comparison, not a forecast.', 'Cloudflare daily trend'),
+        m('Deep Analytics', 'Latest daily bucket vs daily mean', dailyTrendAvailable && dailyMean > 0 && dailyTrendRows.length ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyMean) : null, 'percent', 'Last returned UTC daily bucket compared with the mean for all returned buckets; boundary buckets may be partial.', 'Cloudflare daily trend'),
+        m('Deep Analytics', 'Peak day share of selected-window views', dailyTrendAvailable && Number(currentViews) > 0 && peakDailyRow ? Number(peakDailyRow.views || 0) / Number(currentViews) * 100 : null, 'percent', 'Peak daily bucket divided by selected-window aggregate views. Daily buckets are UTC and may include partial days.', 'Cloudflare daily trend and period views'),
+        m('Deep Analytics', 'First-half to second-half daily view change', dailyTrendAvailable && dailyTrendRows.length >= 2 ? (() => { const split = Math.floor(dailyTrendRows.length / 2); const first = dailyTrendRows.slice(0, split).reduce((sum, row) => sum + Number(row.views || 0), 0); const second = dailyTrendRows.slice(split).reduce((sum, row) => sum + Number(row.views || 0), 0); return deltaPercent(second, first); })() : null, 'percent', 'Compares the second half of returned daily buckets with the first half; this is a within-window directional comparison, not a forecast.', 'Cloudflare daily trend'),
         m('Deep Analytics', 'Active chapters with complete publication fields', activeChapters.filter(row => String(row.title || '').trim() && String(row.description || '').trim() && String(row.cover_url || row.coverUrl || '').trim() && Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) > 0).length, 'count', 'Loaded non-archived chapter rows with a title, description, cover URL and at least one page.', 'Chapter inventory and page counts'),
         m('Deep Analytics', 'Active chapter content completeness', activeChapters.length ? activeChapters.filter(row => String(row.title || '').trim() && String(row.description || '').trim() && String(row.cover_url || row.coverUrl || '').trim() && Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) > 0).length / activeChapters.length * 100 : null, 'percent', 'Share of loaded non-archived chapter rows with a title, description, cover URL and at least one page.', 'Chapter inventory and page counts'),
         m('Deep Analytics', 'Active languages in chapter inventory', activeLanguages.size, 'count', 'Number of distinct non-empty language labels across loaded non-archived chapter records.', 'Chapter inventory'),
@@ -707,26 +724,26 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Deep Analytics', 'Processed gross per processed charge', processedGross != null && chargeCount != null && chargeCount > 0 ? processedGross / chargeCount : null, 'money', 'Mean gross value per processed membership charge record; not net revenue or profit.', 'Membership analytics / payment records'),
         m('Deep Analytics', 'Membership plans returned', plans.length, 'count', 'Number of plan records supplied by the membership analytics response.', 'Membership analytics'),
         m('Deep Analytics', 'Latest notification record age (hours)', hasNotificationRows && latestNotification ? (() => { const created = dateOf(latestNotification.sent_at || latestNotification.created_at); return created ? Math.max(0, (nowDate.getTime() - created.getTime()) / 3600000) : null; })() : null, 'decimal', 'Elapsed hours since the newest logged notification timestamp. This is not a delivery-latency metric.', 'Loaded notification log · max 250'),
-        m('Deep Analytics', 'Rating score 1 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 1.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 1 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 1.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 2 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 2.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 2 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 2.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 3 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 3.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 3 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 3.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 4 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 4.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 4 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 4.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 5 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 5.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 5 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 5.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 6 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 6.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 6 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 6.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 7 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 7.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 7 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 7.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 8 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 8.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 8 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 8.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 9 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 9.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 9 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 9.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 10 count', data.analytics != null && !data.analyticsError ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 10.', 'Rating counts'),
-        m('Deep Analytics', 'Rating score 10 share', data.analytics != null && !data.analyticsError && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 10.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 1 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 1.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 1 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 1)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 1.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 2 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 2.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 2 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 2)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 2.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 3 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 3.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 3 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 3)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 3.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 4 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 4.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 4 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 4)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 4.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 5 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 5.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 5 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 5)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 5.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 6 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 6.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 6 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 6)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 6.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 7 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 7.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 7 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 7)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 7.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 8 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 8.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 8 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 8)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 8.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 9 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 9.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 9 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 9)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 9.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 10 count', adminAnalyticsAvailable ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) : null, 'count', 'Number of all-time ratings whose score is exactly 10.', 'Rating counts'),
+        m('Deep Analytics', 'Rating score 10 share', adminAnalyticsAvailable && allRatings > 0 ? Number(ratingCounts.find(row => row.rating === 10)?.count || 0) / allRatings * 100 : null, 'percent', 'Share of all-time ratings with a score of exactly 10.', 'Rating counts'),
       ],
     });
     return make();
@@ -774,7 +791,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     { label: 'Ratings', current: currentRatings, previous: previousRatings },
   ].filter(row => row.current != null && row.previous != null);
   const comparisonMax = Math.max(1, ...comparison.flatMap(row => [NUMBER(row.current), NUMBER(row.previous)]));
-  const chapterRankings = chapterRank === 'views' && !cloudViewsAvailable ? [] : [...chapterStats].sort((a, b) => chapterRank === 'likes' ? b.period_likes - a.period_likes : chapterRank === 'shares' ? b.period_shares - a.period_shares : chapterRank === 'rating' ? b.rating_average - a.rating_average : Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 10);
+  const chapterRankings = (chapterRank === 'views' ? !cloudViewsAvailable : !adminAnalyticsAvailable) ? [] : [...chapterStats].sort((a, b) => chapterRank === 'likes' ? Number(b.period_likes || 0) - Number(a.period_likes || 0) : chapterRank === 'shares' ? Number(b.period_shares || 0) - Number(a.period_shares || 0) : chapterRank === 'rating' ? Number(b.rating_average || 0) - Number(a.rating_average || 0) : Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 10);
   const filteredChapters = rows.filter(row => chapterStatus === 'all' || String(row.status || '').toLowerCase() === chapterStatus);
   const recentAudit = hasAuditRows ? adminLogs.slice(0, 8) : [];
   const recentNotificationLogs = hasNotificationRows ? notificationLogs.slice(0, 6) : [];

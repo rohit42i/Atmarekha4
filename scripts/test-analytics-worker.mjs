@@ -4,6 +4,8 @@ import analyticsWorker from '../analytics-worker/worker.js';
 class MemoryR2 {
   constructor() {
     this.objects = new Map();
+    this.listCallsByPrefix = new Map();
+    this.getCallsByKey = new Map();
   }
 
   async put(key, value, options = {}) {
@@ -13,6 +15,7 @@ class MemoryR2 {
   }
 
   async get(key) {
+    this.getCallsByKey.set(key, (this.getCallsByKey.get(key) || 0) + 1);
     const stored = this.objects.get(key);
     if (!stored) return null;
     return {
@@ -29,6 +32,7 @@ class MemoryR2 {
   }
 
   async list({ prefix = '', limit = 1000, cursor } = {}) {
+    this.listCallsByPrefix.set(prefix, (this.listCallsByPrefix.get(prefix) || 0) + 1);
     const keys = [...this.objects.keys()].filter(key => key.startsWith(prefix)).sort();
     const start = cursor ? Math.max(0, keys.indexOf(cursor) + 1) : 0;
     const page = keys.slice(start, start + limit);
@@ -156,6 +160,55 @@ try {
   assert.equal(incompletePayload.current_views, 2, 'legacy and identified events must both count as views');
   assert.equal(incompletePayload.reader_metrics_limited, true, 'legacy identity gaps must flag reader counts as incomplete');
   assert.match(incompletePayload.reader_metrics_limited_reason, /stable viewer identities/i, 'the response should explain why reader counts are limited');
+
+  // R2 archive counts represent whole UTC days. A rolling window's first day must
+  // instead count only timestamped events inside the selected 24 hours.
+  const nowForWindow = Date.now();
+  const yesterday = new Date(nowForWindow - 24 * 60 * 60 * 1000);
+  const yesterdayDay = yesterday.toISOString().slice(0, 10);
+  const archiveMonth = yesterdayDay.slice(0, 7);
+  const archiveKey = 'analytics/views/' + archiveMonth + '.json';
+  const archiveObject = await (async () => {
+    const stored = await bucket.get(archiveKey);
+    return stored ? stored.json() : { version: 1, month: archiveMonth, days: {} };
+  })();
+  archiveObject.days[yesterdayDay] = { views: 99, chapters: { [chapterId]: 99 } };
+  await bucket.put(archiveKey, JSON.stringify(archiveObject));
+
+  const inRangeTime = new Date(nowForWindow - 23 * 60 * 60 * 1000);
+  const outOfRangeTime = new Date(nowForWindow - 25 * 60 * 60 * 1000);
+  const inRangeHash = 'a'.repeat(64);
+  const outOfRangeHash = 'b'.repeat(64);
+  await bucket.put('analytics/views/events/' + yesterdayDay + '/' + chapterId + '/' + inRangeHash + '.json', JSON.stringify({
+    chapterId, viewerHash: inRangeHash, createdAt: inRangeTime.toISOString(),
+  }));
+  await bucket.put('analytics/views/events/' + yesterdayDay + '/' + chapterId + '/' + outOfRangeHash + '.json', JSON.stringify({
+    chapterId, viewerHash: outOfRangeHash, createdAt: outOfRangeTime.toISOString(),
+  }));
+
+  const callsBeforeWindow = new Map(bucket.listCallsByPrefix);
+  const rolling = await analyticsWorker.fetch(adminRequest(), adminEnv);
+  assert.equal(rolling.status, 200, 'rolling window analytics should load');
+  const rollingPayload = await rolling.json();
+  const firstDay = rollingPayload.daily_trend.find(row => row.day === yesterdayDay);
+  assert.ok(firstDay, 'rolling trend should include its first partial UTC day');
+  assert.equal(firstDay.partial, true, 'the first rolling day should be marked partial');
+  assert.equal(firstDay.views, 1, 'partial-day trend must ignore archived all-day totals and out-of-window events');
+
+  // The totals, daily trend and reader panels share the same R2 day listings
+  // within a request instead of repeating a prefix listing for the same date.
+  for (const [prefix, count] of bucket.listCallsByPrefix) {
+    const before = callsBeforeWindow.get(prefix) || 0;
+    assert.ok(count - before <= 1, 'same R2 prefix should be listed at most once per analytics request: ' + prefix);
+  }
+  const dayRootPrefix = 'analytics/views/events/';
+  const dailyPrefixQueries = [...bucket.listCallsByPrefix.keys()].filter(prefix => {
+    const suffix = prefix.slice(dayRootPrefix.length);
+    return prefix.startsWith(dayRootPrefix) && suffix.length === 11 && suffix.endsWith('/') && suffix.slice(0, 10).includes('-');
+  }).filter(prefix => (bucket.listCallsByPrefix.get(prefix) || 0) > (callsBeforeWindow.get(prefix) || 0));
+  assert.equal(dailyPrefixQueries.length, 0, 'analytics should list event objects by month, not issue one R2 list request per day');
+  const rollingMonthPrefix = dayRootPrefix + archiveMonth + '-';
+  assert.ok(bucket.listCallsByPrefix.get(rollingMonthPrefix) > (callsBeforeWindow.get(rollingMonthPrefix) || 0), 'analytics should build the trend from a month-scoped event listing');
 } finally {
   globalThis.fetch = originalFetch;
 }
