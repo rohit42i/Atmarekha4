@@ -465,9 +465,14 @@ const controlRoomViewCountRegression = await readFile('AdminControlRoom.jsx', 'u
 if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews;') ||
     !adminViewCountRegression.includes('views: hasCloudflareViews ? Number(cloud?.views || 0) : null') ||
     !adminViewCountRegression.includes('views_unavailable: !hasCloudflareViews') ||
+    !adminViewCountRegression.includes('views_unavailable_reason: cloudflareError') ||
+    !adminViewCountRegression.includes('viewsUnavailableReason={metrics.viewsUnavailableReason}') ||
     adminViewCountRegression.includes('const hasFallbackViews =') ||
     !controlRoomViewCountRegression.includes('const viewCountsAvailable = cloudViewsAvailable;') ||
     !controlRoomViewCountRegression.includes('const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;') ||
+    !controlRoomViewCountRegression.includes('const cloudDailyTrendAvailable =') ||
+    !controlRoomViewCountRegression.includes('const isValidDailyTrend =') ||
+    !controlRoomViewCountRegression.includes('views: asNumber(row.views), partial: Boolean(row.partial)') ||
     controlRoomViewCountRegression.includes('const fallbackViewsAvailable =')) {
   console.error('CHECK FAILED: admin dashboards must use Cloudflare/R2 as the authoritative view source and hide view counts when that source is unavailable.');
   failed = true;
