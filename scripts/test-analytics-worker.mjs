@@ -4,6 +4,7 @@ import analyticsWorker from '../analytics-worker/worker.js';
 class MemoryR2 {
   constructor() {
     this.objects = new Map();
+    this.listCalls = 0;
   }
 
   async put(key, value, options = {}) {
@@ -29,6 +30,7 @@ class MemoryR2 {
   }
 
   async list({ prefix = '', limit = 1000, cursor } = {}) {
+    this.listCalls += 1;
     const keys = [...this.objects.keys()].filter(key => key.startsWith(prefix)).sort();
     const start = cursor ? Math.max(0, keys.indexOf(cursor) + 1) : 0;
     const page = keys.slice(start, start + limit);
@@ -156,8 +158,42 @@ try {
   assert.equal(incompletePayload.current_views, 2, 'legacy and identified events must both count as views');
   assert.equal(incompletePayload.reader_metrics_limited, true, 'legacy identity gaps must flag reader counts as incomplete');
   assert.match(incompletePayload.reader_metrics_limited_reason, /stable viewer identities/i, 'the response should explain why reader counts are limited');
+
+  // A completed archive covers missing days as zeros. The 90-day endpoint must not
+  // perform one raw R2 listing per date simply because quiet days have no JSON record.
+  const nowForArchive = new Date();
+  const yesterday = new Date(Date.UTC(nowForArchive.getUTCFullYear(), nowForArchive.getUTCMonth(), nowForArchive.getUTCDate() - 1));
+  await bucket.put('analytics/views/summary.json', JSON.stringify({
+    version: 1,
+    processedThrough: yesterday.toISOString().slice(0, 10),
+    chapterViews: {},
+    updatedAt: nowForArchive.toISOString(),
+  }));
+  await bucket.put('analytics/views/legacy-imported.json', JSON.stringify({
+    rows: 248,
+    importedAt: new Date(nowForArchive.getTime() - 30 * 86400000).toISOString(),
+  }));
+  bucket.listCalls = 0;
+  const longWindow = await analyticsWorker.fetch(
+    new Request('https://analytics.test/v1/admin/analytics?days=90', {
+      method: 'GET',
+      headers: { Origin: origin, Authorization: 'Bearer test-token' },
+    }),
+    adminEnv,
+  );
+  assert.equal(longWindow.status, 200, '90-day analytics must load');
+  const longWindowPayload = await longWindow.json();
+  assert.equal(longWindowPayload.reader_metrics_limited, true, 'legacy identity gap must remain visible for long windows');
+  assert.ok(longWindowPayload.daily_trend.length >= 89 && longWindowPayload.daily_trend.length <= 92, '90-day trend must include date buckets across window boundaries');
+  assert.ok(longWindowPayload.previous_daily_trend.length >= 89 && longWindowPayload.previous_daily_trend.length <= 92, 'previous 90-day trend must include its date buckets');
+  assert.equal(
+    longWindowPayload.current_views,
+    longWindowPayload.daily_trend.reduce((sum, row) => sum + row.views, 0),
+    'daily trend total must match current rolling-window view total',
+  );
+  assert.ok(bucket.listCalls <= 20, `completed archive should prevent per-day R2 scans (observed ${bucket.listCalls} list calls)`);
 } finally {
   globalThis.fetch = originalFetch;
 }
 
-console.log('Analytics Worker R2 flow passed: view validation, persistence, idempotency, exact counts, stale-snapshot protection and reader-identity integrity.');
+console.log('Analytics Worker passed: idempotent recording, exact counts, stale-snapshot protection, archive zero-day coverage, rolling trend reconciliation, long-window scan limits and reader-identity integrity.');
