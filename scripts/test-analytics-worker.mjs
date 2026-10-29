@@ -134,7 +134,7 @@ const adminEnv = {
   SUPABASE_URL: 'https://supabase.test',
   SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
 };
-const adminRequest = () => new Request('https://analytics.test/v1/admin/analytics?days=1', {
+const adminRequest = (days = 1) => new Request('https://analytics.test/v1/admin/analytics?days=' + days, {
   method: 'GET',
   headers: { Origin: origin, Authorization: 'Bearer test-token' },
 });
@@ -209,6 +209,56 @@ try {
   assert.equal(dailyPrefixQueries.length, 0, 'analytics should list event objects by month, not issue one R2 list request per day');
   const rollingMonthPrefix = dayRootPrefix + archiveMonth + '-';
   assert.ok(bucket.listCallsByPrefix.get(rollingMonthPrefix) > (callsBeforeWindow.get(rollingMonthPrefix) || 0), 'analytics should build the trend from a month-scoped event listing');
+
+  // The 90-day view must complete without one R2 listing per day. Current and
+  // previous trends must exactly reconcile with their respective aggregate totals.
+  const callsBeforeLongWindow = new Map(bucket.listCallsByPrefix);
+  const longWindowResponse = await analyticsWorker.fetch(adminRequest(90), adminEnv);
+  assert.equal(longWindowResponse.status, 200, '90-day analytics should load');
+  const longWindow = await longWindowResponse.json();
+  assert.ok(longWindow.daily_trend.length >= 89 && longWindow.daily_trend.length <= 92, '90-day trend should cover its rolling date range');
+  assert.ok(longWindow.previous_daily_trend.length >= 89 && longWindow.previous_daily_trend.length <= 92, 'previous 90-day trend should cover its rolling date range');
+  assert.equal(
+    longWindow.daily_trend.reduce((sum, row) => sum + row.views, 0),
+    longWindow.current_views,
+    'current 90-day trend buckets must reconcile with current view totals',
+  );
+  assert.equal(
+    longWindow.previous_daily_trend.reduce((sum, row) => sum + row.views, 0),
+    longWindow.previous_views,
+    'previous 90-day trend buckets must reconcile with previous view totals',
+  );
+  assert.equal(
+    longWindow.chapter_stats.reduce((sum, row) => sum + row.views, 0),
+    longWindow.total_views,
+    'chapter lifetime counts must reconcile with all-time views',
+  );
+  assert.equal(
+    longWindow.chapter_stats.reduce((sum, row) => sum + row.period_views, 0),
+    longWindow.current_views,
+    'chapter period counts must reconcile with current view totals',
+  );
+  assert.equal(
+    longWindow.chapter_stats.reduce((sum, row) => sum + row.previous_period_views, 0),
+    longWindow.previous_views,
+    'chapter previous-period counts must reconcile with previous view totals',
+  );
+  const eventRoot = 'analytics/views/events/';
+  const changedMonthlyPrefixes = [...bucket.listCallsByPrefix].filter(([prefix, count]) => {
+    const suffix = prefix.slice(eventRoot.length);
+    return prefix.startsWith(eventRoot) && /^\d{4}-\d{2}-$/.test(suffix) &&
+      count > (callsBeforeLongWindow.get(prefix) || 0);
+  });
+  assert.ok(changedMonthlyPrefixes.length <= 7, 'a 90-day comparison should list no more than seven event months');
+  for (const [prefix, count] of changedMonthlyPrefixes) {
+    assert.equal(count - (callsBeforeLongWindow.get(prefix) || 0), 1, 'event months should be cached once per request: ' + prefix);
+  }
+  const changedDailyPrefixes = [...bucket.listCallsByPrefix].filter(([prefix, count]) => {
+    const suffix = prefix.slice(eventRoot.length);
+    return prefix.startsWith(eventRoot) && /^\d{4}-\d{2}-\d{2}\/$/.test(suffix) &&
+      count > (callsBeforeLongWindow.get(prefix) || 0);
+  });
+  assert.equal(changedDailyPrefixes.length, 0, 'a 90-day comparison must not issue one R2 listing per day');
 } finally {
   globalThis.fetch = originalFetch;
 }

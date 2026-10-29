@@ -93,7 +93,7 @@ const required = [
   ['supabase/functions/get-admin-console-data/index.ts', 'community_post_id,parent_comment_id,created_at'],
   ['AdminControlRoom.jsx', "action: 'dashboard-inventory'"],
   ['AdminControlRoom.jsx', 'const cloudViewsAvailable = cloudAnalyticsAvailable'],
-  ['AdminControlRoom.jsx', 'const cloudReadersAvailable = cloudAnalyticsAvailable'],
+  ['AdminControlRoom.jsx', 'const cloudReadersAvailable = cloudViewsAvailable'],
   ['AdminOverview.jsx', "Number(previous) > 0"],
   ['AdminOverview.jsx', 'views_unavailable: !hasCloudflareViews'],
   ['AdminOverview.jsx', 'const chapterIds = new Set(['],
@@ -462,7 +462,7 @@ if (!privacyAdminRegression.includes('request.requested_period') ||
 
 const adminViewCountRegression = await readFile('AdminOverview.jsx', 'utf8');
 const controlRoomViewCountRegression = await readFile('AdminControlRoom.jsx', 'utf8');
-if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews;') ||
+if (!adminViewCountRegression.includes('const hasReliableCloudflareViews = cloudflare =>') ||
     !adminViewCountRegression.includes('views: hasCloudflareViews ? Number(cloud?.views || 0) : null') ||
     !adminViewCountRegression.includes('views_unavailable: !hasCloudflareViews') ||
     adminViewCountRegression.includes('const hasFallbackViews =') ||
@@ -506,7 +506,12 @@ if (!analyticsReaderFallbackRegression.includes('archived && segment.fullDay') |
   console.error('CHECK FAILED: R2 analytics must share event reads, use timestamped partial-day buckets and avoid unused reader scans.');
   failed = true;
 }
-if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries') ||
+if (controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = adminAnalyticsAvailable') ||
+    !controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError') ||
+    !controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable &&') ||
+    !controlRoomViewCountRegression.includes('validTrendSeries(cloud.daily_trend)') ||
+    !controlRoomViewCountRegression.includes('sumCloudChapterMetric(\'period_views\') === Number(cloud.current_views)') ||
+    !controlRoomViewCountRegression.includes('sumTrendViews(cloud.daily_trend) === asNumber(cloud.current_views)') ||
     !controlRoomViewCountRegression.includes('views: asNumber(row.views)') ||
     !controlRoomViewCountRegression.includes('const missingAdminMetricFields = requiredAdminMetricFields.filter') ||
     !controlRoomViewCountRegression.includes('const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;') ||
@@ -514,9 +519,25 @@ if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudV
     controlRoomViewCountRegression.includes("m('Deep Analytics', 'Rating score 10 count', data.analytics != null") ||
     !controlRoomViewCountRegression.includes("{ name: 'Cloudflare daily trends', ok: dailyTrendAvailable") ||
     !adminViewCountRegression.includes('admin_analytics_unavailable: adminAnalyticsUnavailable') ||
+    !adminViewCountRegression.includes('views_unavailable_reason: cloudflareError') ||
     !adminViewCountRegression.includes('currentLikes: adminAnalyticsAvailable ? Number(data.current_likes || 0) : null') ||
+    !adminViewCountRegression.includes('const hasReliableCloudflareViews = cloudflare =>') ||
     !adminViewCountRegression.includes('Rating analytics unavailable')) {
   console.error('CHECK FAILED: admin analytics must validate required source fields, correct trend data, and show unavailable metrics instead of false zeros.');
+  failed = true;
+}
+const adminAnalyticsRpcContractRegression = await readFile('AdminControlRoom.jsx', 'utf8');
+const overviewAnalyticsReleaseRegression = await readFile('AdminOverview.jsx', 'utf8');
+if (adminAnalyticsRpcContractRegression.includes("'previous_ratings', 'rating_sum', 'bookmarks', 'released'") ||
+    overviewAnalyticsReleaseRegression.includes("'previous_ratings', 'bookmarks', 'released'") ||
+    !overviewAnalyticsReleaseRegression.includes("base.chapter_stats.filter(row =>") ||
+    !overviewAnalyticsReleaseRegression.includes("status === 'published' && Number.isFinite(releaseDate)")) {
+  console.error('CHECK FAILED: analytics availability must match the live RPC response schema; release counts must be derived from published chapter release dates.');
+  failed = true;
+}
+if (!controlRoomViewCountRegression.includes('return ageMs >= 0 && ageMs <= hours * 3600000;') ||
+    !controlRoomViewCountRegression.includes('row.target_count ?? row.sent_count ?? 0')) {
+  console.error('CHECK FAILED: recency-based analytics must reject future timestamps and preserve explicit zero notification targets.');
   failed = true;
 }
 const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');

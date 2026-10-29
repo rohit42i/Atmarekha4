@@ -7,6 +7,53 @@ import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-
 const WINDOWS = { today: 1, week: 7, month: 30, quarter: 90 };
 const WINDOW_LABELS = { today: '24 Hours', week: '7 Days', month: '30 Days', quarter: '90 Days' };
 const formatNumber = value => value == null || value === '' || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-IN');
+const isFiniteMetric = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+const sumMetric = (rows, key) => rows.reduce((sum, row) => sum + Number(row[key]), 0);
+const hasReliableCloudflareViews = cloudflare => {
+  if (!cloudflare ||
+      !['total_views', 'current_views', 'previous_views'].every(key => isFiniteMetric(cloudflare[key])) ||
+      !Array.isArray(cloudflare.chapter_stats)) return false;
+  const rows = cloudflare.chapter_stats;
+  const validRows = rows.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
+    ['views', 'period_views', 'previous_period_views'].every(key => isFiniteMetric(row[key]))) &&
+    new Set(rows.map(row => row.id)).size === rows.length;
+  return validRows &&
+    sumMetric(rows, 'views') === Number(cloudflare.total_views) &&
+    sumMetric(rows, 'period_views') === Number(cloudflare.current_views) &&
+    sumMetric(rows, 'previous_period_views') === Number(cloudflare.previous_views);
+};
+const hasReliableEngagementMetrics = payload => {
+  if (!payload || typeof payload !== 'object') return false;
+  const fields = [
+    'total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum',
+    'current_likes', 'previous_likes', 'current_shares', 'previous_shares',
+    'current_comments', 'previous_comments', 'current_ratings', 'previous_ratings', 'bookmarks',
+  ];
+  if (!fields.every(key => isFiniteMetric(payload[key]))) return false;
+  if (!Array.isArray(payload.chapter_stats) || !Array.isArray(payload.rating_counts)) return false;
+  const chapterRows = payload.chapter_stats;
+  const countFields = ['likes', 'shares', 'rating_count', 'period_likes', 'period_shares', 'period_rating_count', 'pages'];
+  if (!chapterRows.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
+      countFields.every(key => isFiniteMetric(row[key]) && Number(row[key]) >= 0) &&
+      isFiniteMetric(row.rating_average) && Number(row.rating_average) >= 0 && Number(row.rating_average) <= 10) ||
+      new Set(chapterRows.map(row => row.id)).size !== chapterRows.length) return false;
+  const sumChapter = key => chapterRows.reduce((sum, row) => sum + Number(row[key]), 0);
+  const weightedRatingSum = chapterRows.reduce((sum, row) => sum + Number(row.rating_average) * Number(row.rating_count), 0);
+  const aggregatesReconcile =
+    sumChapter('likes') === Number(payload.total_likes) &&
+    sumChapter('shares') === Number(payload.total_shares) &&
+    sumChapter('rating_count') === Number(payload.total_ratings) &&
+    sumChapter('period_likes') === Number(payload.current_likes) &&
+    sumChapter('period_shares') === Number(payload.current_shares) &&
+    sumChapter('period_rating_count') === Number(payload.current_ratings) &&
+    Math.abs(weightedRatingSum - Number(payload.rating_sum)) < 0.01;
+  if (!aggregatesReconcile) return false;
+  const ratings = payload.rating_counts;
+  return ratings.every(row => row && Number.isInteger(Number(row.rating)) && Number(row.rating) >= 1 && Number(row.rating) <= 10 &&
+      Number.isInteger(Number(row.count)) && Number(row.count) >= 0) &&
+    new Set(ratings.map(row => Number(row.rating))).size === ratings.length &&
+    ratings.reduce((sum, row) => sum + Number(row.count), 0) === Number(payload.total_ratings);
+};
 const compactNumber = value => {
   if (value == null || value === '' || !Number.isFinite(Number(value))) return '—';
   const n = Number(value);
@@ -25,18 +72,23 @@ const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : '
 const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
 const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
 
-function LibraryChart({ chapters, viewsAvailable = true, engagementAvailable = true }) {
-  const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
-  if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.</span></div>;
-  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
+function LibraryChart({ chapters, viewsAvailable = true, viewsUnavailableReason = '', engagementAvailable = true, engagementUnavailableReason = '' }) {
+  const rows = [...chapters]
+    .filter(chapter => !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published')
+    .sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0))
+    .slice(-10);
+  if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>{viewsUnavailableReason || 'Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.'}</span></div>;
+  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough published chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
 
   const maxViews = Math.max(...rows.map(row => Number(row.periodViews || 0)), 1);
-  const maxEngagement = Math.max(...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)), 1);
+  const maxEngagement = engagementAvailable
+    ? Math.max(...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)), 1)
+    : 1;
   return <div className="ar-chart-wrap">
     <div className="ar-chart-legend">
       <span><i className="dot violet"/>Views</span>
       {engagementAvailable && <span><i className="dot pink"/>Engagement</span>}
-      <small>Real chapter totals · last 10 published</small>
+      <small>{engagementAvailable ? 'Real chapter totals · last 10 published' : (engagementUnavailableReason || 'View totals are live; engagement data is unavailable.')}</small>
     </div>
     <div className="ar-chart-bars" role="img" aria-label="Chapter views and engagement">
       {rows.map(row => {
@@ -53,10 +105,11 @@ function LibraryChart({ chapters, viewsAvailable = true, engagementAvailable = t
   </div>;
 }
 
-function RatingDonut({ counts, total }) {
-  if (total == null) return <div className="ar-empty-chart"><AdminIcon name="chart" size={24}/><strong>Rating analytics unavailable</strong><span>The admin analytics source did not return a trusted rating count.</span></div>;
+function RatingDonut({ counts, total, available = true, unavailableReason = '' }) {
+  if (!available || total == null) return <div className="ar-empty-chart"><AdminIcon name="sparkle" size={24}/><strong>Rating analytics unavailable</strong><span>{unavailableReason || 'The admin analytics source did not return a trusted rating count.'}</span></div>;
+  if (Number(total) === 0) return <div className="ar-empty-chart"><strong>No ratings yet</strong><span>Ratings will appear here after readers submit them.</span></div>;
   const positive = counts.reduce((sum, row) => sum + (row.rating >= 8 ? row.count : 0), 0);
-  const percentage = total ? Math.round(positive / total * 100) : 0;
+  const percentage = Math.round(positive / Number(total) * 100);
   return <div className="ar-donut-wrap">
     <div className="ar-donut-ring" style={{ '--donut-pct': percentage }}><strong>{percentage}%</strong><span>8–10</span></div>
     <div><strong>{formatNumber(total)} ratings</strong><span>Positive ratings share</span></div>
@@ -120,11 +173,16 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       try {
         const { data, error } = await supabase.functions.invoke('get-admin-user-stats');
         if (error) throw error;
-        if (active && data) setUserStats({
-          logged_in_users: Number(data.logged_in_users || 0),
-          notification_subscriptions: Number(data.notification_subscriptions || 0),
-        });
-      } catch (error) { console.warn('Admin user stats lookup failed:', error); }
+        const valid = isFiniteMetric(data?.logged_in_users) && isFiniteMetric(data?.notification_subscriptions);
+        if (active) setUserStats(valid ? {
+          logged_in_users: Number(data.logged_in_users),
+          notification_subscriptions: Number(data.notification_subscriptions),
+          error: false,
+        } : { logged_in_users: null, notification_subscriptions: null, error: true });
+      } catch (error) {
+        console.warn('Admin user stats lookup failed:', error);
+        if (active) setUserStats({ logged_in_users: null, notification_subscriptions: null, error: true });
+      }
     };
     loadUserStats();
     const timer = setInterval(loadUserStats, 30000);
@@ -136,26 +194,26 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   useEffect(() => {
     let active = true;
     const loadLast24 = async () => {
-      try {
-        const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(1).catch(() => null),
-        ]);
-        if (error) throw error;
-        if (active) setLast24({
-          // Cloudflare R2 is the authoritative view source after the migration.
-          // Never present legacy database counts as live views when the Worker is unavailable.
-          views: cloudflare?.current_views != null && Number.isFinite(Number(cloudflare.current_views))
-            ? Number(cloudflare.current_views)
-            : null,
-          ratings: data?.current_ratings != null && Number.isFinite(Number(data.current_ratings)) ? Number(data.current_ratings) : null,
-          comments: data?.current_comments != null && Number.isFinite(Number(data.current_comments)) ? Number(data.current_comments) : null,
-          loading: false,
-        });
-      } catch (error) {
-        console.warn('Admin 24-hour activity lookup failed:', error);
-        if (active) setLast24({ views: null, ratings: null, comments: null, loading: false, error: true });
-      }
+      const [baseResult, cloudResult] = await Promise.all([
+        supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 1 } })
+          .then(result => ({ data: result.data?.data || null, error: result.error }))
+          .catch(error => ({ data: null, error })),
+        fetchCloudflareAdminAnalytics(1)
+          .then(data => ({ data, error: null }))
+          .catch(error => ({ data: null, error })),
+      ]);
+      const base = baseResult.data;
+      const cloud = cloudResult.data;
+      const engagementAvailable = !baseResult.error && hasReliableEngagementMetrics(base);
+      const viewsAvailable = hasReliableCloudflareViews(cloud);
+      if (active) setLast24({
+        views: viewsAvailable ? Number(cloud.current_views) : null,
+        ratings: engagementAvailable ? Number(base.current_ratings) : null,
+        comments: engagementAvailable ? Number(base.current_comments) : null,
+        viewsError: cloudResult.error?.message || (!viewsAvailable ? 'Cloudflare view totals were incomplete or inconsistent.' : null),
+        engagementError: baseResult.error?.message || (!engagementAvailable ? 'Admin engagement analytics were incomplete or unavailable.' : null),
+        loading: false,
+      });
     };
     loadLast24();
     const timer = setInterval(loadLast24, 60000);
@@ -171,35 +229,30 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     setAnalyticsError('');
     const loadAnalytics = async () => {
       try {
-        const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
+        const [baseResult, cloudResult] = await Promise.all([
+          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })
+            .then(result => ({ data: result.data?.data || null, error: result.error }))
+            .catch(error => ({ data: null, error })),
+          fetchCloudflareAdminAnalytics(Number(days))
+            .then(data => ({ data, error: null }))
+            .catch(error => ({ data: null, error })),
         ]);
-        if (error) throw error;
+        const base = baseResult.data || {};
+        const cloudflare = cloudResult.data;
+        const hasBaseAnalytics = !baseResult.error && hasReliableEngagementMetrics(base);
+        const baseAnalyticsError = baseResult.error?.message ||
+          (!hasBaseAnalytics ? 'Admin engagement analytics returned incomplete or invalid totals.' : null);
+        const cloudflareError = cloudResult.error?.message ||
+          (!cloudflare ? 'Cloudflare analytics request failed.' : null);
         if (active) {
-          const base = data || {};
-          const requiredNumericFields = [
-            'total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum',
-            'current_likes', 'previous_likes', 'current_shares', 'previous_shares',
-            'current_comments', 'previous_comments', 'current_ratings', 'bookmarks', 'released',
-          ];
-          const missingAnalyticsFields = requiredNumericFields.filter(key => base[key] == null || !Number.isFinite(Number(base[key])));
-          const validRatingHistogram = Array.isArray(base.rating_counts) &&
-            base.rating_counts.reduce((sum, row) => sum + Math.max(0, Number(row.count) || 0), 0) === Number(base.total_ratings);
-          const adminAnalyticsUnavailable = missingAnalyticsFields.length > 0 || !validRatingHistogram || !Array.isArray(base.chapter_stats);
-          const adminAnalyticsUnavailableReason = adminAnalyticsUnavailable
-            ? 'Admin analytics response is incomplete' + (missingAnalyticsFields.length ? ': missing or invalid ' + missingAnalyticsFields.join(', ') : !validRatingHistogram ? ': rating histogram does not reconcile with the total rating count' : ': chapter statistics are missing')
-            : null;
-          const hasCloudflareViews = Boolean(cloudflare) &&
-            ['total_views', 'current_views', 'previous_views'].every(key =>
-              cloudflare[key] != null && Number.isFinite(Number(cloudflare[key]))
-            );
-          const hasViewCounts = hasCloudflareViews;
+          const adminAnalyticsUnavailable = !hasBaseAnalytics;
+          const adminAnalyticsUnavailableReason = baseAnalyticsError;
+          const hasCloudflareViews = hasReliableCloudflareViews(cloudflare);
           const hasCloudflareReaders = hasCloudflareViews &&
             !cloudflare.reader_metrics_limited &&
-            cloudflare.active_readers != null && Number.isFinite(Number(cloudflare.active_readers)) &&
-            cloudflare.returning_readers != null && Number.isFinite(Number(cloudflare.returning_readers));
-          const baseChapterStats = Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
+            isFiniteMetric(cloudflare.active_readers) &&
+            isFiniteMetric(cloudflare.returning_readers);
+          const baseChapterStats = hasBaseAnalytics && Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
           const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
           const cloudChapterStats = new Map((cloudflare?.chapter_stats || []).map(row => [String(row.id), row]));
           // Reconcile analytics rows with the actual chapter catalogue. A missing stats row
@@ -221,18 +274,44 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
               views: hasCloudflareViews ? Number(cloud?.views || 0) : null,
               period_views: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
               periodViews: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
-              likes: Number(row.likes || 0),
-              period_likes: Number(row.period_likes || 0),
-              periodLikes: Number(row.period_likes || 0),
-              shares: Number(row.shares || 0),
-              period_shares: Number(row.period_shares || 0),
-              rating_count: Number(row.rating_count || 0),
-              rating_average: Number(row.rating_average || 0),
+              likes: hasBaseAnalytics ? Number(row.likes || 0) : null,
+              period_likes: hasBaseAnalytics ? Number(row.period_likes || 0) : null,
+              periodLikes: hasBaseAnalytics ? Number(row.period_likes || 0) : null,
+              shares: hasBaseAnalytics ? Number(row.shares || 0) : null,
+              period_shares: hasBaseAnalytics ? Number(row.period_shares || 0) : null,
+              rating_count: hasBaseAnalytics ? Number(row.rating_count || 0) : null,
+              period_rating_count: hasBaseAnalytics ? Number(row.period_rating_count || 0) : null,
+              rating_average: hasBaseAnalytics ? Number(row.rating_average || 0) : null,
               pages: Number(row.pages ?? pageCounts[id] ?? 0),
             };
           });
           setAnalytics({
             ...base,
+            engagement_unavailable: adminAnalyticsUnavailable,
+            engagement_unavailable_reason: adminAnalyticsUnavailableReason,
+            total_likes: hasBaseAnalytics ? Number(base.total_likes) : null,
+            total_shares: hasBaseAnalytics ? Number(base.total_shares) : null,
+            total_comments: hasBaseAnalytics ? Number(base.total_comments) : null,
+            total_ratings: hasBaseAnalytics ? Number(base.total_ratings) : null,
+            rating_sum: hasBaseAnalytics ? Number(base.rating_sum) : null,
+            current_likes: hasBaseAnalytics ? Number(base.current_likes) : null,
+            previous_likes: hasBaseAnalytics ? Number(base.previous_likes) : null,
+            current_shares: hasBaseAnalytics ? Number(base.current_shares) : null,
+            previous_shares: hasBaseAnalytics ? Number(base.previous_shares) : null,
+            current_comments: hasBaseAnalytics ? Number(base.current_comments) : null,
+            previous_comments: hasBaseAnalytics ? Number(base.previous_comments) : null,
+            current_ratings: hasBaseAnalytics ? Number(base.current_ratings) : null,
+            bookmarks: hasBaseAnalytics ? Number(base.bookmarks) : null,
+            released: hasBaseAnalytics && Array.isArray(base.chapter_stats)
+              ? base.chapter_stats.filter(row => {
+                  const releaseDate = new Date(row.releaseDate || row.release_date || 0).getTime();
+                  const status = String(row.status || '').toLowerCase();
+                  const periodStart = Date.now() - Number(days) * 86400000;
+                  return status === 'published' && Number.isFinite(releaseDate) &&
+                    releaseDate >= periodStart && releaseDate <= Date.now();
+                }).length
+              : null,
+            rating_counts: hasBaseAnalytics ? base.rating_counts : [],
             total_views: hasCloudflareViews ? Number(cloudflare.total_views) : null,
             current_views: hasCloudflareViews ? Number(cloudflare.current_views) : null,
             previous_views: hasCloudflareViews ? Number(cloudflare.previous_views) : null,
@@ -241,8 +320,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             period_active_readers: hasCloudflareReaders ? Number(cloudflare.active_readers) : null,
             period_returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
             views_unavailable: !hasCloudflareViews,
+            views_unavailable_reason: cloudflareError || (!hasCloudflareViews ? 'The analytics Worker response was incomplete or view totals did not reconcile with chapter totals.' : null),
             reader_metrics_unavailable: !hasCloudflareReaders,
-            reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason || (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' : null),
+            reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason ||
+              (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' :
+                !hasCloudflareReaders ? (cloudflareError || 'Reader analytics are unavailable or invalid.') : null),
             admin_analytics_unavailable: adminAnalyticsUnavailable,
             admin_analytics_unavailable_reason: adminAnalyticsUnavailableReason,
             chapter_stats: chapterStats,
@@ -280,13 +362,22 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       ratingAverage: adminAnalyticsAvailable ? Number(chapter.rating_average || 0) : null,
       pages: Number(chapter.pages || pageCounts[chapter.id] || 0),
     }));
-    const published = chapters.filter(chapter => String(chapter.status || '').toLowerCase() === 'published');
-    const withPages = published.filter(chapter => Number(pageCounts[chapter.id] || 0) > 0);
+    const published = chapters.filter(chapter =>
+      !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published'
+    );
+    const pageCountFor = chapter => {
+      const stat = chapterStats.find(item => String(item.id) === String(chapter.id));
+      const value = pageCounts[chapter.id] ?? stat?.pages ?? chapter.pages_count ?? 0;
+      return isFiniteMetric(value) ? Number(value) : 0;
+    };
+    const withPages = published.filter(chapter => pageCountFor(chapter) > 0);
     const upcoming = chapters.filter(chapter => {
-      const date = safeDate(chapter.releaseDate);
+      const date = safeDate(chapter.releaseDate || chapter.release_date);
       return date && date.getTime() > Date.now();
-    }).sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate)).slice(0, 4);
-    const top = chapterStats;
+    }).sort((a, b) => new Date(a.releaseDate || a.release_date) - new Date(b.releaseDate || b.release_date)).slice(0, 4);
+    const top = chapterStats.filter(chapter =>
+      !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published'
+    );
     return {
       totalViews: data.total_views == null ? null : Number(data.total_views),
       totalLikes: adminAnalyticsAvailable ? Number(data.total_likes || 0) : null,
@@ -305,10 +396,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       currentRatings: adminAnalyticsAvailable ? Number(data.current_ratings || 0) : null,
       activeReaders: data.reader_metrics_unavailable ? null : (data.active_readers == null ? null : Number(data.active_readers)),
       returningReaders: data.reader_metrics_unavailable ? null : (data.returning_readers == null ? null : Number(data.returning_readers)),
-      periodActiveReaders: data.reader_metrics_unavailable ? null : Number(data.period_active_readers ?? data.active_readers ?? 0),
-      periodReturningReaders: data.reader_metrics_unavailable ? null : Number(data.period_returning_readers ?? data.returning_readers ?? 0),
-      viewsUnavailable: data.views_unavailable === true,
-      readerMetricsUnavailable: data.reader_metrics_unavailable === true,
+      periodActiveReaders: data.reader_metrics_unavailable || (data.period_active_readers == null && data.active_readers == null) ? null : Number(data.period_active_readers ?? data.active_readers),
+      periodReturningReaders: data.reader_metrics_unavailable || (data.period_returning_readers == null && data.returning_readers == null) ? null : Number(data.period_returning_readers ?? data.returning_readers),
+      viewsUnavailable: data.views_unavailable !== false || !isFiniteMetric(data.total_views) || !isFiniteMetric(data.current_views) || !isFiniteMetric(data.previous_views),
+      viewsUnavailableReason: data.views_unavailable_reason || null,
+      readerMetricsUnavailable: data.reader_metrics_unavailable !== false || !isFiniteMetric(data.active_readers) || !isFiniteMetric(data.returning_readers),
       readerMetricsUnavailableReason: data.reader_metrics_unavailable_reason || null,
       bookmarks: adminAnalyticsAvailable ? Number(data.bookmarks || 0) : null,
       released: adminAnalyticsAvailable ? Number(data.released || 0) : null,
@@ -514,7 +606,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
     {analytics === null && periodLoading ? <SkeletonGrid/> : analytics === null ? <div className="ar-note" role="alert"><strong>Analytics could not be loaded.</strong> {analyticsError || 'Check the analytics data source and retry.'} <button type="button" onClick={() => setAnalyticsRefreshToken(value => value + 1)}>Try again</button></div> : <div className="ar-overview-kpis">
       <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released == null ? 'Release analytics unavailable' : metrics.released + ' released in period'} icon="book" accent="blue"/>
-      <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? 'Cloudflare analytics unavailable' : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
+      <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? (metrics.viewsUnavailableReason || 'Cloudflare analytics unavailable') : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
       <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note={metrics.readerMetricsUnavailable ? (metrics.readerMetricsUnavailableReason || 'Reader analytics unavailable') : 'Unique viewers in selected period'} icon="pulse" accent="green"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="blue"/>
       <StatCard label="Avg Rating" value={metrics.average ? metrics.average.toFixed(2) + ' / 10' : '—'} note={formatNumber(metrics.totalRatings) + ' ratings · all time'} icon="sparkle" accent="green"/>
@@ -573,14 +665,14 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
         <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description={"Views and engagement · " + WINDOW_LABELS[windowKey]}/>
-        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable} engagementAvailable={!metrics.adminAnalyticsUnavailable}/>
+        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable} viewsUnavailableReason={metrics.viewsUnavailableReason} engagementAvailable={!metrics.adminAnalyticsUnavailable} engagementUnavailableReason={metrics.adminAnalyticsUnavailableReason}/>
       </GlassCard>
       <GlassCard className="ar-activity-card">
         <SectionHeader eyebrow="LIVE" title="Last 24 hours" description="Refreshes automatically while this page is open."/>
         <div className="ar-live-grid">
-          <div><span>Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>{last24.views == null && !last24.loading ? 'Analytics unavailable' : 'chapter reads'}</small></div>
-          <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>{last24.ratings == null && !last24.loading ? 'Analytics unavailable' : 'submitted'}</small></div>
-          <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>{last24.comments == null && !last24.loading ? 'Analytics unavailable' : 'posted'}</small></div>
+          <div><span>Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>{last24.views == null && !last24.loading ? (last24.viewsError || 'Analytics unavailable') : 'chapter reads'}</small></div>
+          <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>{last24.ratings == null && !last24.loading ? (last24.engagementError || 'Analytics unavailable') : 'submitted'}</small></div>
+          <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>{last24.comments == null && !last24.loading ? (last24.engagementError || 'Analytics unavailable') : 'posted'}</small></div>
         </div>
         <div className="ar-live-foot"><AdminIcon name="pulse" size={15}/><span>Live counts are read from the admin analytics service.</span></div>
       </GlassCard>
@@ -590,7 +682,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <GlassCard>
         <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<div className="ar-overview-chapter-actions"><label className="ar-overview-sort-label"><span className="sr-only">Sort chapters by</span><select value={chapterSort} onChange={event => setChapterSort(event.target.value)} aria-label="Sort top chapters"><option value="views">Views</option><option value="likes">Likes</option><option value="rating">Rating</option></select></label><button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button></div>}/>
         <div className="ar-top-list">
-          {(chapterSort === 'views' && metrics.viewsUnavailable) || (chapterSort !== 'views' && metrics.adminAnalyticsUnavailable) ? <div className="ar-empty-inline">{chapterSort === 'views' ? 'View analytics are unavailable. Open Control Room → Audit & Reliability to check the data source.' : (metrics.adminAnalyticsUnavailableReason || 'Engagement analytics are unavailable. Check Control Room → Audit & Reliability.')}</div> : [...metrics.top].sort((a, b) => chapterSort === 'rating' ? Number(b.ratingAverage || 0) - Number(a.ratingAverage || 0) : chapterSort === 'likes' ? Number(b.periodLikes || 0) - Number(a.periodLikes || 0) : Number(b.periodViews || 0) - Number(a.periodViews || 0)).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
+          {(chapterSort === 'views' && metrics.viewsUnavailable) || (chapterSort !== 'views' && metrics.adminAnalyticsUnavailable) ? <div className="ar-empty-inline">{chapterSort === 'views' ? (metrics.viewsUnavailableReason || 'View analytics are unavailable. Open Control Room → Audit & Reliability to check the data source.') : (metrics.adminAnalyticsUnavailableReason || 'Engagement analytics are unavailable. Check Control Room → Audit & Reliability.')}</div> : [...metrics.top].sort((a, b) => chapterSort === 'rating' ? Number(b.ratingAverage || 0) - Number(a.ratingAverage || 0) : chapterSort === 'likes' ? Number(b.periodLikes || 0) - Number(a.periodLikes || 0) : Number(b.periodViews || 0) - Number(a.periodViews || 0)).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
             <b>{String(index + 1).padStart(2, '0')}</b>
             <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, (chapterSort === 'rating' ? chapter.ratingAverage : chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews) / maxTop * 100) + '%' }}/></i></div>
             <strong className="ar-top-value">{chapterSort === 'rating' ? (chapter.ratingAverage ? chapter.ratingAverage.toFixed(1) + '/10' : '—') : formatNumber(chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews)}</strong>
@@ -602,7 +694,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
       <GlassCard>
         <SectionHeader eyebrow="RATINGS" title="Reader sentiment"/>
-        <RatingDonut counts={metrics.ratingCounts} total={metrics.totalRatings}/>
+        <RatingDonut counts={metrics.ratingCounts} total={metrics.totalRatings} available={!metrics.adminAnalyticsUnavailable} unavailableReason={metrics.adminAnalyticsUnavailableReason}/>
         <div className="ar-rating-mini">
           {metrics.ratingCounts.slice(0, 3).map(item => <div key={item.rating}><span>{item.rating}/10</span><strong>{formatNumber(item.count)}</strong></div>)}
         </div>
