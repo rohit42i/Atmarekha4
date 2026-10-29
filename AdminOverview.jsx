@@ -25,7 +25,7 @@ const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : '
 const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
 const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
 
-function LibraryChart({ chapters, viewsAvailable = true }) {
+function LibraryChart({ chapters, viewsAvailable = true, engagementAvailable = true }) {
   const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
   if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.</span></div>;
   if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
@@ -35,13 +35,13 @@ function LibraryChart({ chapters, viewsAvailable = true }) {
   return <div className="ar-chart-wrap">
     <div className="ar-chart-legend">
       <span><i className="dot violet"/>Views</span>
-      <span><i className="dot pink"/>Engagement</span>
+      {engagementAvailable && <span><i className="dot pink"/>Engagement</span>}
       <small>Real chapter totals · last 10 published</small>
     </div>
     <div className="ar-chart-bars" role="img" aria-label="Chapter views and engagement">
       {rows.map(row => {
         const viewValue = Number(row.periodViews || 0);
-        const engagementValue = Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0);
+        const engagementValue = engagementAvailable ? Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0) : 0;
         const viewH = viewValue > 0 ? Math.max(2, viewValue / maxViews * 100) : 0;
         const engagementH = engagementValue > 0 ? Math.max(2, engagementValue / maxEngagement * 100) : 0;
         return <div className="ar-chart-column" key={row.id}>
@@ -54,6 +54,7 @@ function LibraryChart({ chapters, viewsAvailable = true }) {
 }
 
 function RatingDonut({ counts, total }) {
+  if (total == null) return <div className="ar-empty-chart"><AdminIcon name="chart" size={24}/><strong>Rating analytics unavailable</strong><span>The admin analytics source did not return a trusted rating count.</span></div>;
   const positive = counts.reduce((sum, row) => sum + (row.rating >= 8 ? row.count : 0), 0);
   const percentage = total ? Math.round(positive / total * 100) : 0;
   return <div className="ar-donut-wrap">
@@ -177,6 +178,18 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         if (error) throw error;
         if (active) {
           const base = data || {};
+          const requiredNumericFields = [
+            'total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum',
+            'current_likes', 'previous_likes', 'current_shares', 'previous_shares',
+            'current_comments', 'previous_comments', 'current_ratings', 'bookmarks', 'released',
+          ];
+          const missingAnalyticsFields = requiredNumericFields.filter(key => base[key] == null || !Number.isFinite(Number(base[key])));
+          const validRatingHistogram = Array.isArray(base.rating_counts) &&
+            base.rating_counts.reduce((sum, row) => sum + Math.max(0, Number(row.count) || 0), 0) === Number(base.total_ratings);
+          const adminAnalyticsUnavailable = missingAnalyticsFields.length > 0 || !validRatingHistogram || !Array.isArray(base.chapter_stats);
+          const adminAnalyticsUnavailableReason = adminAnalyticsUnavailable
+            ? 'Admin analytics response is incomplete' + (missingAnalyticsFields.length ? ': missing or invalid ' + missingAnalyticsFields.join(', ') : !validRatingHistogram ? ': rating histogram does not reconcile with the total rating count' : ': chapter statistics are missing')
+            : null;
           const hasCloudflareViews = Boolean(cloudflare) &&
             ['total_views', 'current_views', 'previous_views'].every(key =>
               cloudflare[key] != null && Number.isFinite(Number(cloudflare[key]))
@@ -230,6 +243,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             views_unavailable: !hasCloudflareViews,
             reader_metrics_unavailable: !hasCloudflareReaders,
             reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason || (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' : null),
+            admin_analytics_unavailable: adminAnalyticsUnavailable,
+            admin_analytics_unavailable_reason: adminAnalyticsUnavailableReason,
             chapter_stats: chapterStats,
           });
         }
@@ -249,19 +264,20 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
 
   const metrics = useMemo(() => {
     const data = analytics || {};
-    const totalRatings = Number(data.total_ratings || 0);
-    const average = totalRatings ? Number(data.rating_sum || 0) / totalRatings : 0;
-    const chapterStats = (data.chapter_stats || []).map(chapter => ({
+    const adminAnalyticsAvailable = analytics != null && !analyticsError && data.admin_analytics_unavailable !== true;
+    const totalRatings = adminAnalyticsAvailable ? Number(data.total_ratings || 0) : null;
+    const average = totalRatings != null && totalRatings > 0 ? Number(data.rating_sum || 0) / totalRatings : null;
+    const chapterStats = (Array.isArray(data.chapter_stats) ? data.chapter_stats : []).map(chapter => ({
       ...chapter,
       views: chapter.views == null ? null : Number(chapter.views),
       periodViews: chapter.period_views == null ? null : Number(chapter.period_views),
-      likes: Number(chapter.likes || 0),
-      periodLikes: Number(chapter.period_likes || 0),
-      shares: Number(chapter.shares || 0),
-      periodShares: Number(chapter.period_shares || 0),
-      ratingCount: Number(chapter.rating_count || 0),
-      periodRatingCount: Number(chapter.period_rating_count || 0),
-      ratingAverage: Number(chapter.rating_average || 0),
+      likes: adminAnalyticsAvailable ? Number(chapter.likes || 0) : null,
+      periodLikes: adminAnalyticsAvailable ? Number(chapter.period_likes || 0) : null,
+      shares: adminAnalyticsAvailable ? Number(chapter.shares || 0) : null,
+      periodShares: adminAnalyticsAvailable ? Number(chapter.period_shares || 0) : null,
+      ratingCount: adminAnalyticsAvailable ? Number(chapter.rating_count || 0) : null,
+      periodRatingCount: adminAnalyticsAvailable ? Number(chapter.period_rating_count || 0) : null,
+      ratingAverage: adminAnalyticsAvailable ? Number(chapter.rating_average || 0) : null,
       pages: Number(chapter.pages || pageCounts[chapter.id] || 0),
     }));
     const published = chapters.filter(chapter => String(chapter.status || '').toLowerCase() === 'published');
@@ -273,20 +289,20 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     const top = chapterStats;
     return {
       totalViews: data.total_views == null ? null : Number(data.total_views),
-      totalLikes: Number(data.total_likes || 0),
-      totalShares: Number(data.total_shares || 0),
-      totalComments: Number(data.total_comments || 0),
+      totalLikes: adminAnalyticsAvailable ? Number(data.total_likes || 0) : null,
+      totalShares: adminAnalyticsAvailable ? Number(data.total_shares || 0) : null,
+      totalComments: adminAnalyticsAvailable ? Number(data.total_comments || 0) : null,
       totalRatings,
       average,
       currentViews: data.current_views == null ? null : Number(data.current_views),
       previousViews: data.previous_views == null ? null : Number(data.previous_views),
-      currentLikes: Number(data.current_likes || 0),
-      previousLikes: Number(data.previous_likes || 0),
-      currentShares: Number(data.current_shares || 0),
-      previousShares: Number(data.previous_shares || 0),
-      currentComments: Number(data.current_comments || 0),
-      previousComments: Number(data.previous_comments || 0),
-      currentRatings: Number(data.current_ratings || 0),
+      currentLikes: adminAnalyticsAvailable ? Number(data.current_likes || 0) : null,
+      previousLikes: adminAnalyticsAvailable ? Number(data.previous_likes || 0) : null,
+      currentShares: adminAnalyticsAvailable ? Number(data.current_shares || 0) : null,
+      previousShares: adminAnalyticsAvailable ? Number(data.previous_shares || 0) : null,
+      currentComments: adminAnalyticsAvailable ? Number(data.current_comments || 0) : null,
+      previousComments: adminAnalyticsAvailable ? Number(data.previous_comments || 0) : null,
+      currentRatings: adminAnalyticsAvailable ? Number(data.current_ratings || 0) : null,
       activeReaders: data.reader_metrics_unavailable ? null : (data.active_readers == null ? null : Number(data.active_readers)),
       returningReaders: data.reader_metrics_unavailable ? null : (data.returning_readers == null ? null : Number(data.returning_readers)),
       periodActiveReaders: data.reader_metrics_unavailable ? null : Number(data.period_active_readers ?? data.active_readers ?? 0),
@@ -294,8 +310,10 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       viewsUnavailable: data.views_unavailable === true,
       readerMetricsUnavailable: data.reader_metrics_unavailable === true,
       readerMetricsUnavailableReason: data.reader_metrics_unavailable_reason || null,
-      bookmarks: Number(data.bookmarks || 0),
-      released: Number(data.released || 0),
+      bookmarks: adminAnalyticsAvailable ? Number(data.bookmarks || 0) : null,
+      released: adminAnalyticsAvailable ? Number(data.released || 0) : null,
+      adminAnalyticsUnavailable: !adminAnalyticsAvailable,
+      adminAnalyticsUnavailableReason: data.admin_analytics_unavailable_reason || (analyticsError || null),
       chapterStats,
       publishedCount: published.length,
       withPagesCount: withPages.length,
@@ -305,11 +323,11 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       recentComments: [...comments].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5),
       ratingCounts: Array.from({ length: 10 }, (_, index) => {
         const rating = 10 - index;
-        const row = (data.rating_counts || []).find(item => Number(item.rating) === rating);
-        return { rating, count: Number(row?.count || 0) };
+        const row = (Array.isArray(data.rating_counts) ? data.rating_counts : []).find(item => Number(item.rating) === rating);
+        return { rating, count: adminAnalyticsAvailable ? Number(row?.count || 0) : null };
       }),
     };
-  }, [analytics, chapters, comments, pageCounts]);
+  }, [analytics, analyticsError, chapters, comments, pageCounts]);
 
   const periodLabel = WINDOW_LABELS[windowKey];
   const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
@@ -331,7 +349,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   }, [metrics, reportCount]);
 
   const lifecycle = [
-    ['Registered', Number(userStats.logged_in_users || 0)],
+    ['Registered', userStats.logged_in_users],
     ['Active · ' + periodUnit, metrics.periodActiveReaders],
     ['Returning · ' + periodUnit, metrics.periodReturningReaders],
   ];
@@ -495,7 +513,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     </section>
 
     {analytics === null && periodLoading ? <SkeletonGrid/> : analytics === null ? <div className="ar-note" role="alert"><strong>Analytics could not be loaded.</strong> {analyticsError || 'Check the analytics data source and retry.'} <button type="button" onClick={() => setAnalyticsRefreshToken(value => value + 1)}>Try again</button></div> : <div className="ar-overview-kpis">
-      <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released + ' released in period'} icon="book" accent="blue"/>
+      <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released == null ? 'Release analytics unavailable' : metrics.released + ' released in period'} icon="book" accent="blue"/>
       <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? 'Cloudflare analytics unavailable' : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
       <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note={metrics.readerMetricsUnavailable ? (metrics.readerMetricsUnavailableReason || 'Reader analytics unavailable') : 'Unique viewers in selected period'} icon="pulse" accent="green"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="blue"/>
@@ -506,6 +524,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <StatCard label={"Shares · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentShares)} delta={deltaShares} note={deltaShares == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
       <StatCard label="Notifications On" value={compactNumber(userStats.notification_subscriptions)} note="Push subscriptions" icon="bell" accent="green"/>
     </div>}
+    {analytics !== null && metrics.adminAnalyticsUnavailable && <div className="ar-note" role="status"><strong>Engagement analytics are unavailable.</strong> {metrics.adminAnalyticsUnavailableReason || 'The admin analytics response did not include all required engagement fields.'} View counts remain sourced separately from Cloudflare Analytics.</div>}
 
     <section className="ar-ref-pulse" aria-label="Publishing and community status">
       <div className="ar-ref-section-title"><div><span>MONITORING</span><h3>Publishing & community pulse</h3></div><span className="ar-ref-live-label"><i/> Based on loaded admin data</span></div>
@@ -554,14 +573,14 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
         <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description={"Views and engagement · " + WINDOW_LABELS[windowKey]}/>
-        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable}/>
+        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable} engagementAvailable={!metrics.adminAnalyticsUnavailable}/>
       </GlassCard>
       <GlassCard className="ar-activity-card">
         <SectionHeader eyebrow="LIVE" title="Last 24 hours" description="Refreshes automatically while this page is open."/>
         <div className="ar-live-grid">
           <div><span>Views</span><strong>{last24.loading ? '—' : formatNumber(last24.views)}</strong><small>{last24.views == null && !last24.loading ? 'Analytics unavailable' : 'chapter reads'}</small></div>
-          <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>submitted</small></div>
-          <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>posted</small></div>
+          <div><span>Ratings</span><strong>{last24.loading ? '—' : formatNumber(last24.ratings)}</strong><small>{last24.ratings == null && !last24.loading ? 'Analytics unavailable' : 'submitted'}</small></div>
+          <div><span>Comments</span><strong>{last24.loading ? '—' : formatNumber(last24.comments)}</strong><small>{last24.comments == null && !last24.loading ? 'Analytics unavailable' : 'posted'}</small></div>
         </div>
         <div className="ar-live-foot"><AdminIcon name="pulse" size={15}/><span>Live counts are read from the admin analytics service.</span></div>
       </GlassCard>
@@ -571,7 +590,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <GlassCard>
         <SectionHeader eyebrow="CONTENT" title="Top performing chapters" action={<div className="ar-overview-chapter-actions"><label className="ar-overview-sort-label"><span className="sr-only">Sort chapters by</span><select value={chapterSort} onChange={event => setChapterSort(event.target.value)} aria-label="Sort top chapters"><option value="views">Views</option><option value="likes">Likes</option><option value="rating">Rating</option></select></label><button className="ar-text-action" type="button" onClick={() => onTab('Chapters')}>View all <span>→</span></button></div>}/>
         <div className="ar-top-list">
-          {chapterSort === 'views' && metrics.viewsUnavailable ? <div className="ar-empty-inline">View analytics are unavailable. Open Control Room → Audit & Reliability to check the data source.</div> : [...metrics.top].sort((a, b) => chapterSort === 'rating' ? b.ratingAverage - a.ratingAverage : chapterSort === 'likes' ? b.periodLikes - a.periodLikes : Number(b.periodViews || 0) - Number(a.periodViews || 0)).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
+          {(chapterSort === 'views' && metrics.viewsUnavailable) || (chapterSort !== 'views' && metrics.adminAnalyticsUnavailable) ? <div className="ar-empty-inline">{chapterSort === 'views' ? 'View analytics are unavailable. Open Control Room → Audit & Reliability to check the data source.' : (metrics.adminAnalyticsUnavailableReason || 'Engagement analytics are unavailable. Check Control Room → Audit & Reliability.')}</div> : [...metrics.top].sort((a, b) => chapterSort === 'rating' ? Number(b.ratingAverage || 0) - Number(a.ratingAverage || 0) : chapterSort === 'likes' ? Number(b.periodLikes || 0) - Number(a.periodLikes || 0) : Number(b.periodViews || 0) - Number(a.periodViews || 0)).slice(0, 5).map((chapter, index) => <button type="button" key={chapter.id} onClick={() => { onTab('Chapters'); window.setTimeout(() => window.dispatchEvent(new CustomEvent('atma-admin-focus-chapter', { detail: { chapterId: chapter.id } })), 120); }}>
             <b>{String(index + 1).padStart(2, '0')}</b>
             <div className="ar-top-copy"><strong>{chapterLabel(chapter)}</strong><span>{chapter.title || 'Untitled'}</span><i><em style={{ width: Math.max(6, (chapterSort === 'rating' ? chapter.ratingAverage : chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews) / maxTop * 100) + '%' }}/></i></div>
             <strong className="ar-top-value">{chapterSort === 'rating' ? (chapter.ratingAverage ? chapter.ratingAverage.toFixed(1) + '/10' : '—') : formatNumber(chapterSort === 'likes' ? chapter.periodLikes : chapter.periodViews)}</strong>
