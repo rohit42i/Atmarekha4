@@ -510,6 +510,8 @@ if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudV
     !controlRoomViewCountRegression.includes('views: asNumber(row.views)') ||
     !controlRoomViewCountRegression.includes('const missingAdminMetricFields = requiredAdminMetricFields.filter') ||
     !controlRoomViewCountRegression.includes('const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;') ||
+    !controlRoomViewCountRegression.includes("m('Deep Analytics', 'Rating score 10 count', adminAnalyticsAvailable ?") ||
+    controlRoomViewCountRegression.includes("m('Deep Analytics', 'Rating score 10 count', data.analytics != null") ||
     !controlRoomViewCountRegression.includes("{ name: 'Cloudflare daily trends', ok: dailyTrendAvailable") ||
     !adminViewCountRegression.includes('admin_analytics_unavailable: adminAnalyticsUnavailable') ||
     !adminViewCountRegression.includes('currentLikes: adminAnalyticsAvailable ? Number(data.current_likes || 0) : null') ||
