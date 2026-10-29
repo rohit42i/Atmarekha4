@@ -41,6 +41,17 @@ const env = {
 };
 
 try {
+  const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
+  const homeHtml = await home.text();
+  assert.equal(home.status, 200);
+  assert.match(homeHtml, /<title>Atma Rekha \\| Indian Fantasy Adventure Manga<\\/title>/);
+  assert.ok(homeHtml.includes('name="description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage description is outdated.");
+  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
+  assert.ok(homeHtml.includes('property="og:description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage Open Graph description is outdated.");
+  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
+  assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/ishani.png?v=20261029"'), "Homepage share image URL is missing the cache-busting version.");
+  assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
+
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
