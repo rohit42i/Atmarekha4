@@ -8,10 +8,6 @@ const STATIC_PATHS = [
   '/chapters',
   '/chapters?lang=en',
   '/info/about',
-  '/info/contact',
-  '/info/report',
-  '/info/privacy',
-  '/info/terms',
   '/pal-do-pal-ke-lamhe',
 ];
 
