@@ -757,6 +757,37 @@ for (const [name, source, phrase] of adminPanelReliabilityChecks) {
     failed = true;
   }
 }
+const adminPageEditorRegressionSource = await readFile('AdminChapterPages.jsx', 'utf8');
+const pdlplRollbackRegressionSource = await readFile('PalDoPalAdmin.jsx', 'utf8');
+const adminProToolsRegressionSource = await readFile('AdminProTools.jsx', 'utf8');
+const adminFunctionalityRegressionChecks = [
+  ['AdminPanel.jsx', adminPanel, "const { error: rollbackError } = await supabase.from(CHAPTERS).delete().eq('id', chapterId);"],
+  ['AdminPanel.jsx', adminPanel, "catch (rollbackError)"],
+  ['AdminPanel.jsx', adminPanel, "chapter_rollback_failed"],
+  ['AdminChapterPages.jsx', adminPageEditorRegressionSource, 'const pageLoadSequence = useRef(0);'],
+  ['AdminChapterPages.jsx', adminPageEditorRegressionSource, 'if (requestId !== pageLoadSequence.current) return;'],
+  ['AdminChapterPages.jsx', adminPageEditorRegressionSource, "provider: 'atma', bucket: ATMA_BUCKET, paths: [old]"],
+  ['AdminChapterPages.jsx', adminPageEditorRegressionSource, "provider: 'pdpl', paths: [page.image_path]"],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, 'const notificationRequestKey = useRef(null);'],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, 'const requestKey = notificationRequestKey.current ||'],
+  ['AdminOperations.jsx', adminOperationsRegressionSource, 'notificationRequestKey.current = null;'],
+  ['AdminProTools.jsx', adminProToolsRegressionSource, 'views: viewsResult?.current_views != null'],
+  ['AdminProTools.jsx', adminProToolsRegressionSource, "data.views == null ? 'Unavailable'"],
+  ['PalDoPalAdmin.jsx', pdlplRollbackRegressionSource, 'if (rollbackError) throw rollbackError;'],
+  ['PalDoPalAdmin.jsx', pdlplRollbackRegressionSource, '(!wasEditing && !chapterRollbackSucceeded)'],
+  ['PalDoPalAdmin.jsx', pdlplRollbackRegressionSource, "await logAdminAction(adminUser, 'r2_cleanup_failed', 'pdlpl_chapter'"],
+];
+for (const [name, source, phrase] of adminFunctionalityRegressionChecks) {
+  if (!source.includes(phrase)) {
+    console.error('CHECK FAILED:', name, 'missing admin functionality regression safeguard:', phrase);
+    failed = true;
+  }
+}
+if (adminOperationsRegressionSource.includes('const dedupeKey = `admin:${actualTarget}:${title.trim()}:${body.trim()}:now`;')) {
+  console.error('CHECK FAILED: AdminOperations notification idempotency key must not be permanently tied to message text.');
+  failed = true;
+}
+
 for (const [name, source, phrase] of [
   ['AdminOperations.jsx', adminOperationsRegressionSource, "select('id', { count: 'exact', head: true }).gte('created_at', todayStart())"],
   ['AdminOperations.jsx', adminOperationsRegressionSource, "today.views == null ? 'Unavailable'"],
