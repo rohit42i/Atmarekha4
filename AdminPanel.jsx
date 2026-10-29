@@ -627,9 +627,13 @@ export default function AdminPanel({ onLogout }) {
       setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' + notificationText });
     } catch (error) {
       console.error(error);
+      // A newly created chapter cannot be safely rolled back until Supabase confirms
+      // deletion. Keep its uploaded files until then so a failed rollback never leaves
+      // a remaining database row pointing at assets this handler just removed.
+      const deferNewChapterCleanup = chapterCreated && !pagesCommitted && Boolean(chapterId);
       for (const item of uploadedPaths) {
         const committed = (item.kind === 'page' && pagesCommitted) || (item.kind === 'cover' && coverCommitted);
-        if (!committed) {
+        if (!committed && !deferNewChapterCleanup) {
           try { await removeFiles(item.bucket, [item.path]); }
           catch (cleanupError) {
             await logAdminAction(adminUser, 'r2_cleanup_failed', item.kind === 'page' ? 'chapter_pages' : 'chapter_cover', chapterId, { bucket: item.bucket, paths: [item.path], error: cleanupError.message });
