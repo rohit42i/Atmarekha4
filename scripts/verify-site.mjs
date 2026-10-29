@@ -526,6 +526,20 @@ if (controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = adm
   console.error('CHECK FAILED: admin analytics must validate required source fields, correct trend data, and show unavailable metrics instead of false zeros.');
   failed = true;
 }
+const adminAnalyticsRpcContractRegression = await readFile('AdminControlRoom.jsx', 'utf8');
+const overviewAnalyticsReleaseRegression = await readFile('AdminOverview.jsx', 'utf8');
+if (adminAnalyticsRpcContractRegression.includes("'previous_ratings', 'rating_sum', 'bookmarks', 'released'") ||
+    overviewAnalyticsReleaseRegression.includes("'previous_ratings', 'bookmarks', 'released'") ||
+    !overviewAnalyticsReleaseRegression.includes("base.chapter_stats.filter(row =>") ||
+    !overviewAnalyticsReleaseRegression.includes("status === 'published' && Number.isFinite(releaseDate)")) {
+  console.error('CHECK FAILED: analytics availability must match the live RPC response schema; release counts must be derived from published chapter release dates.');
+  failed = true;
+}
+if (!controlRoomViewCountRegression.includes('return ageMs >= 0 && ageMs <= hours * 3600000;') ||
+    !controlRoomViewCountRegression.includes('row.target_count ?? row.sent_count ?? 0')) {
+  console.error('CHECK FAILED: recency-based analytics must reject future timestamps and preserve explicit zero notification targets.');
+  failed = true;
+}
 const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');
 if (!communityShareClipboardRegression.includes('async function copyTextToClipboard(value)') ||
     !communityShareClipboardRegression.includes("document.execCommand('copy')") ||
