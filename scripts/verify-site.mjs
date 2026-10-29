@@ -506,7 +506,11 @@ if (!analyticsReaderFallbackRegression.includes('archived && segment.fullDay') |
   console.error('CHECK FAILED: R2 analytics must share event reads, use timestamped partial-day buckets and avoid unused reader scans.');
   failed = true;
 }
-if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries') ||
+if (controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = adminAnalyticsAvailable') ||
+    !controlRoomViewCountRegression.includes('const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError') ||
+    !controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable &&\\n    validTrendSeries') ||
+    !controlRoomViewCountRegression.includes('sumCloudChapterMetric(\'period_views\') === Number(cloud.current_views)') ||
+    !controlRoomViewCountRegression.includes('sumTrendViews(cloud.daily_trend) === asNumber(cloud.current_views)') ||
     !controlRoomViewCountRegression.includes('views: asNumber(row.views)') ||
     !controlRoomViewCountRegression.includes('const missingAdminMetricFields = requiredAdminMetricFields.filter') ||
     !controlRoomViewCountRegression.includes('const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;') ||
@@ -514,7 +518,9 @@ if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudV
     controlRoomViewCountRegression.includes("m('Deep Analytics', 'Rating score 10 count', data.analytics != null") ||
     !controlRoomViewCountRegression.includes("{ name: 'Cloudflare daily trends', ok: dailyTrendAvailable") ||
     !adminViewCountRegression.includes('admin_analytics_unavailable: adminAnalyticsUnavailable') ||
+    !adminViewCountRegression.includes('views_unavailable_reason: cloudflareError') ||
     !adminViewCountRegression.includes('currentLikes: adminAnalyticsAvailable ? Number(data.current_likes || 0) : null') ||
+    !adminViewCountRegression.includes('const hasReliableCloudflareViews = cloudflare =>') ||
     !adminViewCountRegression.includes('Rating analytics unavailable')) {
   console.error('CHECK FAILED: admin analytics must validate required source fields, correct trend data, and show unavailable metrics instead of false zeros.');
   failed = true;
