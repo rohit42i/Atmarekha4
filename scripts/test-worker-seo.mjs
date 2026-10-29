@@ -45,7 +45,7 @@ try {
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
   assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
-  assert.match(aboutHtml, /Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English./);
+  assert.ok(aboutHtml.includes("Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.match(aboutHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
   assert.match(aboutHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
