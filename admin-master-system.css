@@ -2372,13 +2372,16 @@ main.admin-page.ar-admin-v3 :is(button,.ar-admin-btn,.ar-admin-primary-action,.a
     overflow-x: hidden !important;
     overflow-y: auto !important;
     transform: translateX(-105%) !important;
-    visibility: visible !important;
+    visibility: hidden !important;
     pointer-events: none !important;
+    transition: transform 180ms ease, visibility 0s linear 180ms !important;
     z-index: 1200 !important;
   }
   main.admin-page.ar-admin-v3 .ar-admin-sidebar.is-open {
     transform: translateX(0) !important;
+    visibility: visible !important;
     pointer-events: auto !important;
+    transition: transform 180ms ease, visibility 0s linear 0s !important;
   }
   main.admin-page.ar-admin-v3 .ar-admin-menu-button {
     display: inline-flex !important;
