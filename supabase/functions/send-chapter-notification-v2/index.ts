@@ -92,7 +92,7 @@ const rate=await db.rpc('consume_rate_limit',{p_rate_key:`admin-push:${user.id}`
    return response(req, {ok:false,error:reason,code:'NO_SUBSCRIPTION',logId:log.id,total:0,sent:0,failed:0,removed:0},422);
   }
   let sent=0,failed=0,removed=0;
-  const payload=JSON.stringify({title,body:message,icon:'/ishani.png',badge:'/ishani.png',url:body.url||body.chapterUrl||'/',tag:body.tag||`atma-rekha-${dedupeKey||log.id}`,renotify:true});
+  const payload=JSON.stringify({title,body:message,icon:'/atma-rekha-icon.svg',badge:'/atma-rekha-icon.svg',url:body.url||body.chapterUrl||'/',tag:body.tag||`atma-rekha-${dedupeKey||log.id}`,renotify:true});
   for(const s of list){
    try{await webpush.sendNotification({endpoint:s.endpoint,keys:{p256dh:s.p256dh,auth:s.auth}},payload);sent++;}
    catch(e){failed++;const code=(e as any)?.statusCode;if(code===404||code===410){const {error}=await db.from('push_subscriptions').delete().eq('id',s.id);if(!error)removed++;}}
