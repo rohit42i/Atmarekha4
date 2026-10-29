@@ -5,7 +5,7 @@ import { getAdminRole } from './adminAuth';
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx', icon: 'instagram' },
   { label: 'YouTube', href: 'https://youtube.com/@atmarekha?si=ytUOmNPrKFtxJUwn', icon: 'youtube' },
-  { label: 'Gmail', href: 'mailto:atmarekhasupport@gmail.com', icon: 'mail' },
+  { label: 'Email support', href: 'mailto:atmarekhasupport@gmail.com', icon: 'mail' },
 ];
 
 function SocialIcon({ type }) {
@@ -40,10 +40,10 @@ export default function Footer() {
 
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/info/about">About</a>
-          <a href="#info/contact">Contact</a>
-          <a href="#info/report">Report</a>
-          <a href="#info/privacy">Privacy</a>
-          <a href="#info/terms">Terms</a>
+          <a href="/info/contact">Contact</a>
+          <a href="/info/report">Report a problem</a>
+          <a href="/info/privacy">Privacy</a>
+          <a href="/info/terms">Terms</a>
           {isAdmin && <a href="/admin" className="footer-admin-link">Admin Login</a>}
         </nav>
 
@@ -56,7 +56,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span>
+          <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India</span>
         </div>
       </div>
     </footer>

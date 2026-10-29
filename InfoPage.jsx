@@ -4,44 +4,47 @@ import TermsOfUseSections from './TermsOfUseSections.jsx';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
+const INFO_EMAIL = 'atmarekhainfo@gmail.com';
+const OFFICIAL_EMAIL = 'atmarekhaoffical@gmail.com';
 
 const PAGES = {
   about: {
-    eyebrow: 'ATMA REKHA',
+    eyebrow: 'ABOUT',
     title: 'About Atma Rekha',
     details: [
-      ['Creator', 'Arkesh'], ['Languages', 'Hindi (Roman Hindi) and English'],
-      ['New chapters', 'Planned for the 14th of each month'],
-      ['Format', 'Digital manga'], ['Free chapters', '1 to 8'],
-      ['Age guidance', '15+'], ['Team', 'Independent creator'],
+      ['Creator', 'Arkesh Kaalvantik'], ['Languages', 'Hindi (Roman Hindi) and English'],
+      ['Chapter schedule', 'Planned for the 14th of each month'],
+      ['Format', 'Digital manga'], ['Free chapters', 'Chapters 1 to 8'],
+      ['Age guidance', '15+'], ['Production', 'Independent creator'],
     ],
     story: [
-      'I’m Arkesh, the solo creator of Atma Rekha, a fantasy adventure manga shaped by Indian cultural influences, spiritual ideas, and a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
-      'I create the series independently. Atma Rekha is available in Hindi (Roman Hindi) and English. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
-      'Every scene and panel begins with my own rough drawings and design decisions. I determine the composition, pose, camera angle, perspective, proportions, shapes, and character placement. I use AI tools in parts of the visual process to enhance my rough sketches and help develop characters while following my original designs and direction.',
-      'AI generated material is not used directly as finished artwork in the published manga. When AI-assisted imagery is used as a background reference, I manually outline and redraw it as part of the artwork. I retain creative control over the story, character designs, panel composition, and final artistic decisions, and review the pages before publication.',
+      'Atma Rekha is an original fantasy adventure manga created independently by Arkesh Kaalvantik. It brings together an unfolding mystery, unusual powers, and a world shaped by Indian cultural and spiritual influences. The story is released in Hindi (Roman Hindi) and English for readers in India and around the world.',
+      'New chapters are planned for the 14th of each month, but dates can change when more time is needed to finish a chapter. Chapters 1 to 8 are currently free to read; later chapters may require a membership, as described on the Membership page.',
+      'The story, scripts, rough drawings, panel layouts, character direction, and final creative decisions are led by the creator. I use AI tools in parts of the visual process, including developing characters from my original sketches. AI generated material is not published directly as finished manga artwork; any AI-assisted reference used in a page is manually outlined or redrawn and reviewed as part of the final artwork.',
     ],
   },
   contact: {
-    eyebrow: 'CONTACT', title: 'Contact',
+    eyebrow: 'CONTACT', title: 'Contact Atma Rekha',
     sections: [
-      { heading: 'Email', body: 'Have a question or need help with your account or membership? Send us an email.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
-      { heading: 'Instagram', body: 'Follow Atma Rekha for updates and previews.', links: [{ label: '@atma.rekha', href: INSTAGRAM_URL }] },
+      { heading: 'Account and membership help', body: 'For sign-in problems, account access, memberships, payments, or privacy requests, email support. Never send your password, verification code, UPI PIN, CVV, or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
+      { heading: 'General questions', body: 'For questions about the manga, chapter releases, or the website, contact the information inbox.', links: [{ label: INFO_EMAIL, href: `mailto:${INFO_EMAIL}` }] },
+      { heading: 'Official correspondence', body: 'For official correspondence, use the official Atma Rekha inbox.', links: [{ label: OFFICIAL_EMAIL, href: `mailto:${OFFICIAL_EMAIL}` }] },
+      { heading: 'Follow updates', body: 'Follow the official Instagram account for announcements and previews.', links: [{ label: '@atma.rekha', href: INSTAGRAM_URL }] },
     ],
   },
   report: {
     eyebrow: 'REPORT', title: 'Report a problem',
     sections: [
-      { heading: 'Complaints and support', body: 'For a broken page, comment, account, membership or privacy issue, email us with the details. Never send passwords, OTPs, UPI PINs or full card details.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Support` }] },
+      { heading: 'What you can report', body: 'Use the form below to report a broken page or feature, a suspicious account, harmful or inappropriate comments, a membership or payment issue, a privacy concern, or another problem with the site. Include the relevant page or chapter and a clear description. Do not include passwords, OTPs, UPI PINs, CVVs, or full card details.', links: [{ label: 'Email support directly', href: `mailto:${CONTACT_EMAIL}?subject=Atma%20Rekha%20Report` }] },
     ],
   },
   terms: {
-    eyebrow: 'LEGAL', title: 'Terms of Use',
-    description: 'Rules for reading manga, using accounts and community features, and purchasing membership.',
+    eyebrow: 'TERMS', title: 'Terms of Use',
+    description: 'What to know when reading, creating an account, joining the community, or purchasing a membership.',
   },
   privacy: {
     eyebrow: 'PRIVACY', title: 'Privacy Policy',
-    description: 'What information Atma Rekha uses and how it is handled.',
+    description: 'What information the website handles, why it is used, and the choices available to you.',
   },
 };
 
@@ -67,7 +70,7 @@ export default function InfoPage({ type, onBack }) {
 
     {isAbout && <section className="info-card info-hero">
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure manga created by Arkesh.' : page.description}</p>
+      <p className="info-hero-copy">An original Indian fantasy adventure manga by Arkesh Kaalvantik.</p>
     </section>}
 
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
@@ -78,7 +81,7 @@ export default function InfoPage({ type, onBack }) {
     {isTerms && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Terms of Use">
       <header className="legal-document-intro">
         <p>{page.description}</p>
-        <span>Last updated: 25 October 2026</span>
+        <span>Last updated: 29 October 2026</span>
       </header>
       <div className="legal-document-sections terms-document-sections"><TermsOfUseSections /></div>
     </section>}
@@ -86,14 +89,14 @@ export default function InfoPage({ type, onBack }) {
     {isPrivacy && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Privacy Policy">
       <header className="legal-document-intro">
         <p>{page.description}</p>
-        <span>Last updated: 25 October 2026</span>
+        <span>Last updated: 29 October 2026</span>
       </header>
       <div className="legal-document-sections privacy-document-sections"><PrivacyPolicySections /></div>
     </section>}
 
     {!isAbout && !isTerms && !isPrivacy && <section className="info-card info-content-card">
       <div className="info-sections">{(page.sections || []).map(section => <Section key={section.heading} {...section} />)}</div>
-      {type === 'report' && <div className="info-feedback-card"><FeedbackForm/></div>}
+      {type === 'report' && <div className="info-feedback-card"><FeedbackForm /></div>}
     </section>}
   </main>;
 }
