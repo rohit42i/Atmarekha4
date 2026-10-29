@@ -770,6 +770,20 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, '{comments.length} recent comments · replies included'],
   ['AdminPanel.jsx', adminPanel, ".select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.open')"],
   ['AdminPanel.jsx', adminPanel, 'Admin panel loaded with limited data:'],
+  ['AdminPanel.jsx', adminPanel, 'if (event.key === \'Escape\') setMobileSidebarOpen(false);'],
+  ['AdminPanel.jsx', adminPanel, "document.body.style.overflow = drawerBreakpoint.matches ? 'hidden' : previousOverflow;"],
+  ['AdminPanel.jsx', adminPanel, "window.addEventListener('resize', syncBodyScroll);"],
+  ['AdminPanel.jsx', adminPanel, "aria-label={mobileSidebarOpen ? 'Close navigation' : 'Open navigation'}"],
+  ['AdminPanel.jsx', adminPanel, "document.querySelector('.ar-admin-sidebar .ar-admin-mobile-close')?.focus();"],
+  ['AdminPanel.jsx', adminPanel, "document.querySelector('.ar-admin-menu-button')?.focus();"],
+  ['AdminPanel.jsx', adminPanel, 'aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}'],
+  ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(value => !value)'],
+  ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(false);\n          if (item.action) openAdminTool(item.action, item.detail);'],
+  ['admin-studio-ui.jsx', adminStudioButtonSource, 'id="ar-admin-sidebar"'],
+  ['admin-master-system.css', adminStyles, 'Mobile admin drawer reliability'],
+  ['admin-master-system.css', adminStyles, 'visibility: hidden !important;'],
+  ['admin-master-system.css', adminStyles, 'pointer-events: auto !important;'],
+  ['admin-master-system.css', adminStyles, 'transition: none !important;'],
 ];
 const adminOperationsRegressionSource = await readFile('AdminOperations.jsx', 'utf8');
 const groupChatAdminSource = await readFile('AdminGroupChatTools.jsx', 'utf8');
