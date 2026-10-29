@@ -620,7 +620,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     removeMeta('property', 'article:section');
     if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
     if (chapter) {
-      upsertMeta('property', 'article:author', 'Arkesh');
+      upsertMeta('property', 'article:author', 'Arkesh Kaalvantik');
       upsertMeta('property', 'article:section', 'Manga');
     }
 
