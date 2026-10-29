@@ -32,10 +32,22 @@ const hasReliableEngagementMetrics = payload => {
   if (!fields.every(key => isFiniteMetric(payload[key]))) return false;
   if (!Array.isArray(payload.chapter_stats) || !Array.isArray(payload.rating_counts)) return false;
   const chapterRows = payload.chapter_stats;
+  const countFields = ['likes', 'shares', 'rating_count', 'period_likes', 'period_shares', 'period_rating_count', 'pages'];
   if (!chapterRows.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
-      ['likes', 'shares', 'rating_count', 'rating_average', 'period_likes', 'period_shares', 'period_rating_count', 'pages']
-        .every(key => isFiniteMetric(row[key]))) ||
+      countFields.every(key => isFiniteMetric(row[key]) && Number(row[key]) >= 0) &&
+      isFiniteMetric(row.rating_average) && Number(row.rating_average) >= 0 && Number(row.rating_average) <= 10) ||
       new Set(chapterRows.map(row => row.id)).size !== chapterRows.length) return false;
+  const sumChapter = key => chapterRows.reduce((sum, row) => sum + Number(row[key]), 0);
+  const weightedRatingSum = chapterRows.reduce((sum, row) => sum + Number(row.rating_average) * Number(row.rating_count), 0);
+  const aggregatesReconcile =
+    sumChapter('likes') === Number(payload.total_likes) &&
+    sumChapter('shares') === Number(payload.total_shares) &&
+    sumChapter('rating_count') === Number(payload.total_ratings) &&
+    sumChapter('period_likes') === Number(payload.current_likes) &&
+    sumChapter('period_shares') === Number(payload.current_shares) &&
+    sumChapter('period_rating_count') === Number(payload.current_ratings) &&
+    Math.abs(weightedRatingSum - Number(payload.rating_sum)) < 0.01;
+  if (!aggregatesReconcile) return false;
   const ratings = payload.rating_counts;
   return ratings.every(row => row && Number.isInteger(Number(row.rating)) && Number(row.rating) >= 1 && Number(row.rating) <= 10 &&
       Number.isInteger(Number(row.count)) && Number(row.count) >= 0) &&
