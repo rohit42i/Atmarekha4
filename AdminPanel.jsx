@@ -223,6 +223,21 @@ export default function AdminPanel({ onLogout }) {
     catch { return 'dark'; }
   });
   useEffect(() => {
+    if (!mobileSidebarOpen) return undefined;
+    const handleEscape = event => {
+      if (event.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    const isMobileDrawer = typeof window !== 'undefined' && window.matchMedia('(max-width: 980px)').matches;
+    const previousOverflow = document.body.style.overflow;
+    if (isMobileDrawer) document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      if (isMobileDrawer) document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileSidebarOpen]);
+
+  useEffect(() => {
     try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
     if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
     return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
@@ -1276,7 +1291,7 @@ export default function AdminPanel({ onLogout }) {
       <div className="ar-admin-main">
         <header className="ar-admin-topbar">
           <div className="ar-admin-topbar-left">
-            <button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation">
+            <button type="button" className="ar-admin-menu-button" onClick={() => setMobileSidebarOpen(true)} aria-label="Open navigation" aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}>
               <AdminIcon name="menu" size={19}/>
             </button>
             <div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div>
@@ -1372,7 +1387,7 @@ export default function AdminPanel({ onLogout }) {
           <button type="button" className={tab === 'Control Room' ? 'active' : ''} onClick={() => activateTab('Control Room')}><AdminIcon name="chart" size={16}/><span>Control Room</span></button>
           <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}><AdminIcon name="book" size={16}/><span>Chapters</span></button>
           <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
-          <button type="button" onClick={() => setMobileSidebarOpen(true)}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
+          <button type="button" onClick={() => setMobileSidebarOpen(value => !value)} aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
         </nav>
         <AdminCommandPalette
           open={commandOpen}
