@@ -13,7 +13,7 @@ const SECURITY_HEADERS = {
 
 const STATIC_SEO = {
   "/chapters": ["Chapters | Atma Rekha", "Browse Atma Rekha chapters in Hindi (Roman Hindi) and English."],
-  "/info/about": ["About Atma Rekha | Creator and Story", "Meet Arkesh, the solo creator of Atma Rekha, and learn about the story and how it is made."],
+  "/info/about": ["About Atma Rekha | Indian Fantasy Manga and Creator", "Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English."],
   "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
   "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
   "/info/privacy": ["Privacy Policy | Atma Rekha", "Learn how Atma Rekha uses account, reading, community, membership, email, analytics, security, and payment information."],
