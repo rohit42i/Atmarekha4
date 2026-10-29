@@ -22,6 +22,18 @@ const hasReliableCloudflareViews = cloudflare => {
     sumMetric(cloudflare.chapter_stats, 'period_views') === Number(cloudflare.current_views) &&
     sumMetric(cloudflare.chapter_stats, 'previous_period_views') === Number(cloudflare.previous_views);
 };
+const hasReliableEngagementMetrics = payload => Boolean(payload && typeof payload === 'object') &&
+  ['total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum', 'current_likes', 'previous_likes', 'current_shares', 'previous_shares', 'current_comments', 'previous_comments', 'current_ratings', 'previous_ratings', 'bookmarks', 'released']
+    .every(key => isFiniteMetric(payload[key])) &&
+  Array.isArray(payload.chapter_stats) && payload.chapter_stats.every(row =>
+    row && typeof row.id === 'string' && row.id.length > 0 &&
+    ['likes', 'shares', 'rating_count', 'rating_average', 'period_likes', 'period_shares', 'period_rating_count', 'pages']
+      .every(key => isFiniteMetric(row[key]))
+  ) &&
+  Array.isArray(payload.rating_counts) && payload.rating_counts.every(row =>
+    row && isFiniteMetric(row.rating) && isFiniteMetric(row.count) &&
+    Number(row.rating) >= 1 && Number(row.rating) <= 10 && Number(row.count) >= 0
+  );
 const compactNumber = value => {
   if (value == null || value === '' || !Number.isFinite(Number(value))) return '—';
   const n = Number(value);
@@ -202,20 +214,21 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             .then(data => ({ data, error: null }))
             .catch(error => ({ data: null, error: error?.message || 'Cloudflare analytics request failed.' })),
         ]);
-        if (baseResult.error) throw baseResult.error;
         const data = baseResult.data;
+        const base = data || {};
+        const hasBaseAnalytics = !baseResult.error && hasReliableEngagementMetrics(base);
+        const baseAnalyticsError = baseResult.error?.message ||
+          (!hasBaseAnalytics ? 'Admin engagement analytics returned incomplete or invalid totals.' : null);
         const cloudflare = cloudResult.data;
         const cloudflareError = cloudResult.error;
         if (active) {
-          const base = data || {};
           const cloudChapterRows = Array.isArray(cloudflare?.chapter_stats) ? cloudflare.chapter_stats : [];
           const hasCloudflareViews = hasReliableCloudflareViews(cloudflare);
-          const hasViewCounts = hasCloudflareViews;
           const hasCloudflareReaders = hasCloudflareViews &&
             !cloudflare.reader_metrics_limited &&
             isFiniteMetric(cloudflare.active_readers) &&
             isFiniteMetric(cloudflare.returning_readers);
-          const baseChapterStats = Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
+          const baseChapterStats = hasBaseAnalytics && Array.isArray(base.chapter_stats) ? base.chapter_stats : [];
           const baseChapterStatsById = new Map(baseChapterStats.map(row => [String(row.id), row]));
           const cloudChapterStats = new Map((cloudflare?.chapter_stats || []).map(row => [String(row.id), row]));
           // Reconcile analytics rows with the actual chapter catalogue. A missing stats row
@@ -237,18 +250,36 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
               views: hasCloudflareViews ? Number(cloud?.views || 0) : null,
               period_views: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
               periodViews: hasCloudflareViews ? Number(cloud?.period_views || 0) : null,
-              likes: Number(row.likes || 0),
-              period_likes: Number(row.period_likes || 0),
-              periodLikes: Number(row.period_likes || 0),
-              shares: Number(row.shares || 0),
-              period_shares: Number(row.period_shares || 0),
-              rating_count: Number(row.rating_count || 0),
-              rating_average: Number(row.rating_average || 0),
+              likes: hasBaseAnalytics ? Number(row.likes || 0) : null,
+              period_likes: hasBaseAnalytics ? Number(row.period_likes || 0) : null,
+              periodLikes: hasBaseAnalytics ? Number(row.period_likes || 0) : null,
+              shares: hasBaseAnalytics ? Number(row.shares || 0) : null,
+              period_shares: hasBaseAnalytics ? Number(row.period_shares || 0) : null,
+              rating_count: hasBaseAnalytics ? Number(row.rating_count || 0) : null,
+              period_rating_count: hasBaseAnalytics ? Number(row.period_rating_count || 0) : null,
+              rating_average: hasBaseAnalytics ? Number(row.rating_average || 0) : null,
               pages: Number(row.pages ?? pageCounts[id] ?? 0),
             };
           });
           setAnalytics({
             ...base,
+            engagement_unavailable: !hasBaseAnalytics,
+            engagement_unavailable_reason: baseAnalyticsError,
+            total_likes: hasBaseAnalytics ? Number(base.total_likes) : null,
+            total_shares: hasBaseAnalytics ? Number(base.total_shares) : null,
+            total_comments: hasBaseAnalytics ? Number(base.total_comments) : null,
+            total_ratings: hasBaseAnalytics ? Number(base.total_ratings) : null,
+            rating_sum: hasBaseAnalytics ? Number(base.rating_sum) : null,
+            rating_counts: hasBaseAnalytics ? base.rating_counts : [],
+            current_likes: hasBaseAnalytics ? Number(base.current_likes) : null,
+            previous_likes: hasBaseAnalytics ? Number(base.previous_likes) : null,
+            current_shares: hasBaseAnalytics ? Number(base.current_shares) : null,
+            previous_shares: hasBaseAnalytics ? Number(base.previous_shares) : null,
+            current_comments: hasBaseAnalytics ? Number(base.current_comments) : null,
+            previous_comments: hasBaseAnalytics ? Number(base.previous_comments) : null,
+            current_ratings: hasBaseAnalytics ? Number(base.current_ratings) : null,
+            bookmarks: hasBaseAnalytics ? Number(base.bookmarks) : null,
+            released: hasBaseAnalytics ? Number(base.released) : null,
             total_views: hasCloudflareViews ? Number(cloudflare.total_views) : null,
             current_views: hasCloudflareViews ? Number(cloudflare.current_views) : null,
             previous_views: hasCloudflareViews ? Number(cloudflare.previous_views) : null,
