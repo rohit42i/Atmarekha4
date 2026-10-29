@@ -246,7 +246,7 @@ try {
   const eventRoot = 'analytics/views/events/';
   const changedMonthlyPrefixes = [...bucket.listCallsByPrefix].filter(([prefix, count]) => {
     const suffix = prefix.slice(eventRoot.length);
-    return prefix.startsWith(eventRoot) && /^\\d{4}-\\d{2}-$/.test(suffix) &&
+    return prefix.startsWith(eventRoot) && /^\d{4}-\d{2}-$/.test(suffix) &&
       count > (callsBeforeLongWindow.get(prefix) || 0);
   });
   assert.ok(changedMonthlyPrefixes.length <= 7, 'a 90-day comparison should list no more than seven event months');
@@ -255,7 +255,7 @@ try {
   }
   const changedDailyPrefixes = [...bucket.listCallsByPrefix].filter(([prefix, count]) => {
     const suffix = prefix.slice(eventRoot.length);
-    return prefix.startsWith(eventRoot) && /^\\d{4}-\\d{2}-\\d{2}\\/$/.test(suffix) &&
+    return prefix.startsWith(eventRoot) && /^\d{4}-\d{2}-\d{2}\/$/.test(suffix) &&
       count > (callsBeforeLongWindow.get(prefix) || 0);
   });
   assert.equal(changedDailyPrefixes.length, 0, 'a 90-day comparison must not issue one R2 listing per day');
