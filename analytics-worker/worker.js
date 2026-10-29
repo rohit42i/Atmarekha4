@@ -10,6 +10,8 @@ const SITE_ORIGINS = new Set([
 const PERIODS = new Set([1, 7, 30, 90]);
 const DAY_MS = 86400000;
 const RETENTION_DAYS = 90;
+const ADMIN_ANALYTICS_CACHE_TTL_MS = 10000;
+const adminAnalyticsCache = new Map();
 
 function corsHeaders(request) {
   const origin = request.headers.get('Origin');
@@ -102,42 +104,133 @@ async function writeJson(env, key, value) {
   });
 }
 
-async function viewRowsForPeriod(env, start, end) {
-  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return [];
-  const counts = new Map();
-  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
-    const day = dayKey(cursor);
-    const nextDay = addDays(cursor, 1);
+async function mapWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index], index);
+    }
+  }));
+  return results;
+}
+
+function createAnalyticsReadContext() {
+  return {
+    monthCache: new Map(),
+    eventListCache: new Map(),
+    eventBodyCache: new Map(),
+    viewRowsCache: new Map(),
+  };
+}
+
+async function readCachedMonth(env, month, context) {
+  if (!context?.monthCache) return readJson(env, monthObjectKey(month), null);
+  if (!context.monthCache.has(month)) {
+    const pending = readJson(env, monthObjectKey(month), null).catch(error => {
+      context.monthCache.delete(month);
+      throw error;
+    });
+    context.monthCache.set(month, pending);
+  }
+  return context.monthCache.get(month);
+}
+
+async function listViewEventObjects(env, day, context) {
+  const cache = context?.eventListCache;
+  if (cache?.has(day)) return cache.get(day);
+  const pending = (async () => {
     const prefix = `${ARCHIVE_PREFIX}/events/${day}/`;
-    const isFullDay = start <= cursor && end >= nextDay;
-    let pageCursor;
+    const objects = [];
+    let cursor;
     do {
       const page = await env.ANALYTICS_BUCKET.list({
         prefix,
         limit: 1000,
-        ...(pageCursor ? { cursor: pageCursor } : {}),
+        ...(cursor ? { cursor } : {}),
       });
-      for (const object of page.objects || []) {
+      objects.push(...(page.objects || []));
+      cursor = page.truncated ? page.cursor : null;
+    } while (cursor);
+    return objects;
+  })();
+  if (cache) cache.set(day, pending);
+  try {
+    return await pending;
+  } catch (error) {
+    if (cache?.get(day) === pending) cache.delete(day);
+    throw error;
+  }
+}
+
+async function readViewEvent(env, key, context) {
+  const cache = context?.eventBodyCache;
+  if (cache?.has(key)) return cache.get(key);
+  const pending = (async () => {
+    const stored = await env.ANALYTICS_BUCKET.get(key);
+    if (!stored) return null;
+    try { return await stored.json(); } catch { return null; }
+  })();
+  if (cache) cache.set(key, pending);
+  try {
+    return await pending;
+  } catch (error) {
+    if (cache?.get(key) === pending) cache.delete(key);
+    throw error;
+  }
+}
+
+function periodDaySegments(start, end) {
+  const segments = [];
+  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+    const nextDay = addDays(cursor, 1);
+    segments.push({
+      cursor,
+      day: dayKey(cursor),
+      nextDay,
+      start: new Date(Math.max(start.getTime(), cursor.getTime())),
+      end: new Date(Math.min(end.getTime(), nextDay.getTime())),
+      fullDay: start.getTime() <= cursor.getTime() && end.getTime() >= nextDay.getTime(),
+    });
+  }
+  return segments;
+}
+
+async function viewRowsForPeriod(env, start, end, context = null) {
+  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return [];
+  const cache = context?.viewRowsCache;
+  const cacheKey = `${start.getTime()}:${end.getTime()}`;
+  if (cache?.has(cacheKey)) return cache.get(cacheKey);
+  const pending = (async () => {
+    const segments = periodDaySegments(start, end);
+    const dailyRows = await mapWithConcurrency(segments, 8, async segment => {
+      const prefix = `${ARCHIVE_PREFIX}/events/${segment.day}/`;
+      const objects = await listViewEventObjects(env, segment.day, context);
+      const counts = new Map();
+      for (const object of objects) {
         const chapterId = object.key.slice(prefix.length).split('/')[0];
         if (!validChapterId(chapterId)) continue;
-        if (!isFullDay) {
-          const stored = await env.ANALYTICS_BUCKET.get(object.key);
-          if (!stored) continue;
-          let event;
-          try { event = await stored.json(); } catch { continue; }
+        if (!segment.fullDay) {
+          const event = await readViewEvent(env, object.key, context);
           const createdAt = new Date(event?.createdAt || 0).getTime();
           if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
         }
-        const key = day + ':' + chapterId;
-        counts.set(key, (counts.get(key) || 0) + 1);
+        counts.set(chapterId, (counts.get(chapterId) || 0) + 1);
       }
-      pageCursor = page.truncated ? page.cursor : null;
-    } while (pageCursor);
+      return [...counts.entries()].map(([chapterId, views]) => ({ day: segment.day, chapterId, views }));
+    });
+    return dailyRows.flat();
+  })();
+  if (cache) cache.set(cacheKey, pending);
+  try {
+    return await pending;
+  } catch (error) {
+    if (cache?.get(cacheKey) === pending) cache.delete(cacheKey);
+    throw error;
   }
-  return [...counts.entries()].map(([key, views]) => {
-    const separator = key.indexOf(':');
-    return { day: key.slice(0, separator), chapterId: key.slice(separator + 1), views };
-  });
 }
 
 function mergeChapterCounts(target, source) {
@@ -176,62 +269,48 @@ async function archiveCountsForPeriod(env, start, end) {
   return target;
 }
 
-async function combinedPeriodCounts(env, start, end) {
+async function combinedPeriodCounts(env, start, end, context = null) {
   const result = {};
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
   const today = dayStart(new Date());
-  const monthCache = new Map();
-  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
-    const day = dayKey(cursor);
-    const nextDay = addDays(cursor, 1);
-    const segmentStart = new Date(Math.max(start.getTime(), cursor.getTime()));
-    const segmentEnd = new Date(Math.min(end.getTime(), nextDay.getTime()));
+  const segments = periodDaySegments(start, end);
+  const segmentCounts = await mapWithConcurrency(segments, 8, async segment => {
     let archived = null;
-    if (cursor < today) {
-      const month = monthKey(cursor);
-      if (!monthCache.has(month)) {
-        monthCache.set(month, await readJson(env, monthObjectKey(month), null));
-      }
-      archived = monthCache.get(month)?.days?.[day] || null;
+    if (segment.cursor < today) {
+      const month = monthKey(segment.cursor);
+      archived = (await readCachedMonth(env, month, context))?.days?.[segment.day] || null;
     }
-    const isFullDay = segmentStart.getTime() === cursor.getTime() && segmentEnd.getTime() === nextDay.getTime();
-    if (archived && archived.chapters && typeof archived.chapters === 'object' && isFullDay) {
-      mergeChapterCounts(result, Object.entries(archived.chapters).map(([chapterId, views]) => ({ chapterId, views })));
-      continue;
+    if (archived && archived.chapters && typeof archived.chapters === 'object' && segment.fullDay) {
+      return Object.entries(archived.chapters).map(([chapterId, views]) => ({ chapterId, views }));
     }
-    // Rolling windows often start partway through a UTC day. For those boundary
-    // slices, count timestamped R2 events instead of including a whole daily archive.
-    mergeChapterCounts(result, await viewRowsForPeriod(env, segmentStart, segmentEnd));
-  }
+    // A partial boundary must be read from timestamped events, never from a whole-day archive.
+    return viewRowsForPeriod(env, segment.start, segment.end, context);
+  });
+  for (const rows of segmentCounts) mergeChapterCounts(result, rows);
   return result;
 }
 
-async function dailyTrendForPeriod(env, start, end) {
-  const trend = [];
+async function dailyTrendForPeriod(env, start, end, context = null) {
   const today = dayStart(new Date());
-  const monthCache = new Map();
-  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
-    const day = dayKey(cursor);
-    const nextDay = addDays(cursor, 1);
-    const segmentStart = new Date(Math.max(start.getTime(), cursor.getTime()));
-    const segmentEnd = new Date(Math.min(end.getTime(), nextDay.getTime()));
-    let views = 0;
-    if (cursor < today) {
-      const month = monthKey(cursor);
-      if (!monthCache.has(month)) monthCache.set(month, await readJson(env, monthObjectKey(month), null));
-      const record = monthCache.get(month)?.days?.[day];
-      if (record) {
-        const chapterCounts = record.chapters || {};
-        views = Math.max(0, Number(record.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
-      } else {
-        views = (await viewRowsForPeriod(env, segmentStart, segmentEnd)).reduce((sum, row) => sum + Number(row.views || 0), 0);
-      }
-    } else {
-      views = (await viewRowsForPeriod(env, segmentStart, segmentEnd)).reduce((sum, row) => sum + Number(row.views || 0), 0);
+  const segments = periodDaySegments(start, end);
+  return mapWithConcurrency(segments, 8, async segment => {
+    let views;
+    let archived = null;
+    if (segment.cursor < today) {
+      const month = monthKey(segment.cursor);
+      archived = (await readCachedMonth(env, month, context))?.days?.[segment.day] || null;
     }
-    trend.push({ day, views, partial: cursor < start || nextDay > end });
-  }
-  return trend;
+    // A whole-day archive is valid only for a whole-day reporting bucket. The first and
+    // last bars are rolling-window slices and must be based on event timestamps.
+    if (archived && segment.fullDay && archived.chapters && typeof archived.chapters === 'object') {
+      const chapterCounts = archived.chapters;
+      views = Math.max(0, Number(archived.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
+    } else {
+      const rows = await viewRowsForPeriod(env, segment.start, segment.end, context);
+      views = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
+    }
+    return { day: segment.day, views, partial: !segment.fullDay };
+  });
 }
 
 function dateKeyFromAnalytics(value) {
