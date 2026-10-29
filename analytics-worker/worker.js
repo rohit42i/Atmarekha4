@@ -323,86 +323,68 @@ async function totalFromMap(map) {
   return Object.values(map).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
-async function readerMetrics(env, start, end) {
+async function readerMetrics(env, start, end, context = null) {
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) {
     return { activeReaders: 0, returningReaders: 0, unavailable: false };
   }
 
-  // R2 is already the durable source of truth for view events. Use the hashed
-  // viewer identity in each event key to calculate reader counts even when
-  // Analytics Engine is disabled or no SQL binding is available.
   const activeViewers = new Set();
   const activeDaysByViewer = new Map();
-  let identityIncomplete = false;
+  const segments = periodDaySegments(start, end);
+
   try {
-    for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
-      const day = dayKey(cursor);
-      const nextDay = addDays(cursor, 1);
-      const prefix = `${ARCHIVE_PREFIX}/events/${day}/`;
-      const isFullDay = start.getTime() <= cursor.getTime() && end.getTime() >= nextDay.getTime();
-      let pageCursor;
-      do {
-        const page = await env.ANALYTICS_BUCKET.list({
-          prefix,
-          limit: 1000,
-          ...(pageCursor ? { cursor: pageCursor } : {}),
-        });
-        for (const object of page.objects || []) {
+    for (let offset = 0; offset < segments.length; offset += 8) {
+      const batch = segments.slice(offset, offset + 8);
+      const dayResults = await mapWithConcurrency(batch, 8, async segment => {
+        const prefix = ARCHIVE_PREFIX + '/events/' + segment.day + '/';
+        const objects = await listViewEventObjects(env, segment.day, context);
+        const viewers = [];
+        for (const object of objects) {
           const parts = object.key.slice(prefix.length).split('/');
           const chapterId = parts[0];
-          const viewerHash = String(parts[1] || '').replace(/\.json$/i, '');
+          const viewerHash = String(parts[1] || '').replace('.json', '');
           if (!validChapterId(chapterId)) continue;
 
-          // Boundary days contain events outside a rolling window. Validate timestamps
-          // before flagging missing identity, otherwise an out-of-window legacy event
-          // could incorrectly mark this reporting period as incomplete.
-          if (!isFullDay) {
-            const stored = await env.ANALYTICS_BUCKET.get(object.key);
-            if (!stored) continue;
-            let event;
-            try { event = await stored.json(); } catch { continue; }
+          if (!segment.fullDay) {
+            const event = await readViewEvent(env, object.key, context);
             const createdAt = new Date(event?.createdAt || 0).getTime();
             if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
           }
 
-          if (!/^[a-f0-9]{64}$/i.test(viewerHash)) {
-            // Imported legacy views preserve counts, but do not contain a recoverable
-            // viewer identity. Never present the identifiable subset as a complete
-            // active/returning reader count.
-            identityIncomplete = true;
-            continue;
-          }
+          const validHash = viewerHash.length === 64 && [...viewerHash].every(ch => '0123456789abcdefABCDEF'.includes(ch));
+          if (!validHash) return { identityIncomplete: true, viewers: [] };
+          viewers.push({ viewerHash, day: segment.day });
+        }
+        return { identityIncomplete: false, viewers };
+      });
 
+      if (dayResults.some(result => result.identityIncomplete)) {
+        return {
+          activeReaders: 0,
+          returningReaders: 0,
+          unavailable: true,
+          reason: 'Historical view events lack stable viewer identities, so unique and returning reader counts are incomplete.',
+          source: 'r2',
+        };
+      }
+
+      for (const result of dayResults) {
+        for (const { viewerHash, day } of result.viewers) {
           activeViewers.add(viewerHash);
           if (!activeDaysByViewer.has(viewerHash)) activeDaysByViewer.set(viewerHash, new Set());
           activeDaysByViewer.get(viewerHash).add(day);
         }
-        pageCursor = page.truncated ? page.cursor : null;
-      } while (pageCursor);
+      }
     }
 
     let returningReaders = 0;
     for (const days of activeDaysByViewer.values()) {
       if (days.size >= 2) returningReaders++;
     }
-    return {
-      activeReaders: activeViewers.size,
-      returningReaders,
-      unavailable: identityIncomplete,
-      reason: identityIncomplete
-        ? 'Historical view events lack stable viewer identities, so unique and returning reader counts are incomplete.'
-        : null,
-      source: 'r2',
-    };
+    return { activeReaders: activeViewers.size, returningReaders, unavailable: false, reason: null, source: 'r2' };
   } catch (error) {
     const reason = error?.message || 'R2 reader metrics unavailable';
-    return {
-      activeReaders: 0,
-      returningReaders: 0,
-      unavailable: true,
-      reason,
-      error: reason,
-    };
+    return { activeReaders: 0, returningReaders: 0, unavailable: true, reason, error: reason };
   }
 }
 
