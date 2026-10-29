@@ -99,7 +99,16 @@ for (const match of html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)) {
   let url;
   try { url = new URL(raw, ROOT); } catch { continue; }
   if (/^(?:https?:)?\/\//i.test(raw)) {
-    assert.equal(url.origin, ROOT_URL.origin, "Page shell contains a cross-origin absolute link or asset: " + raw);
+    // Google Fonts is an intentional stylesheet/font dependency. Other page-shell
+    // resources and absolute links must stay on the canonical site origin.
+    const allowedStaticOrigins = new Set([
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com",
+    ]);
+    assert.ok(
+      url.origin === ROOT_URL.origin || allowedStaticOrigins.has(url.origin),
+      "Page shell contains an unapproved cross-origin link or asset: " + raw,
+    );
   }
   if (url.origin === ROOT_URL.origin && /\.(?:js|mjs|css|png|jpe?g|svg|webp|ico|woff2?)(?:$|[?#])/i.test(url.pathname + url.search + url.hash)) {
     assetRefs.add(url.pathname + url.search);
