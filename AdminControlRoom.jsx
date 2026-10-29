@@ -284,7 +284,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const requiredAdminMetricFields = [
     'total_likes', 'current_likes', 'previous_likes', 'total_shares', 'current_shares', 'previous_shares',
     'total_comments', 'current_comments', 'previous_comments', 'total_ratings', 'current_ratings',
-    'previous_ratings', 'rating_sum', 'bookmarks', 'released',
+    'previous_ratings', 'rating_sum', 'bookmarks',
   ];
   const missingAdminMetricFields = requiredAdminMetricFields.filter(key => asNumber(analytics[key]) == null);
   const validRatingHistogram = Array.isArray(analytics.rating_counts) &&
