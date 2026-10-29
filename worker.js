@@ -1,4 +1,5 @@
 const SITE_ORIGIN = "https://www.atmarekha.in";
+const DEFAULT_SHARE_IMAGE = SITE_ORIGIN + "/ishani.png?v=20261029";
 const SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E";
 
@@ -195,6 +196,22 @@ async function addServerSeo(request, response, env) {
     const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
+    const shareTitle = path === "/" ? "Atma Rekha | Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Fantasy Adventure Manga";
+    const shareDescription = path === "/" ? "Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English.";
+    html = setMeta(html, "property", "og:type", "website");
+    html = setMeta(html, "property", "og:site_name", "Atma Rekha");
+    html = setMeta(html, "property", "og:title", shareTitle);
+    html = setMeta(html, "property", "og:description", shareDescription);
+    html = setMeta(html, "property", "og:url", canonical);
+    html = setMeta(html, "property", "og:image", DEFAULT_SHARE_IMAGE);
+    html = setMeta(html, "property", "og:image:secure_url", DEFAULT_SHARE_IMAGE);
+    html = setMeta(html, "property", "og:image:type", "image/png");
+    html = setMeta(html, "property", "og:image:alt", "Atma Rekha character artwork");
+    html = setMeta(html, "name", "twitter:card", "summary_large_image");
+    html = setMeta(html, "name", "twitter:title", shareTitle);
+    html = setMeta(html, "name", "twitter:description", shareDescription);
+    html = setMeta(html, "name", "twitter:image", DEFAULT_SHARE_IMAGE);
+    html = setMeta(html, "name", "twitter:image:alt", "Atma Rekha character artwork");
     html = setCanonical(html, canonical);
     if (path === "/chapters") {
       html = setAlternates(html, [
