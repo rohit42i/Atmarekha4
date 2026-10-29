@@ -45,8 +45,13 @@ try {
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
   assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
-  assert.match(aboutHtml, /Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi.*and English\./);
+  assert.match(aboutHtml, /Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English./);
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
+  assert.match(aboutHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
+  assert.match(aboutHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
+  assert.match(aboutHtml, /property="og:image:type" content="image\/png"/);
+  assert.match(aboutHtml, /name="twitter:card" content="summary_large_image"/);
+  assert.match(aboutHtml, /property="og:title" content="About Atma Rekha \| Indian Fantasy Manga and Creator"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
   assert.equal(about.headers.get("strict-transport-security"), "max-age=15552000");
 
@@ -72,6 +77,10 @@ try {
   const chapterHindiHtml = await chapterHindi.text();
   assert.match(chapterHindiHtml, /<title>The Forgotten Dream \| Atma Rekha<\/title>/);
   assert.match(chapterHindiHtml, /property="og:title" content="The Forgotten Dream \| Atma Rekha"/);
+  assert.match(chapterHindiHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
+  assert.match(chapterHindiHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
+  assert.doesNotMatch(chapterHindiHtml, /property="og:image:type"/);
+  assert.match(chapterHindiHtml, /name="twitter:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
   assert.match(chapterHindiHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/1"/);
   assert.match(chapterHindiHtml, /"@type":"ComicStory"/);
   assert.match(chapterHindiHtml, /"@type":"BreadcrumbList"/);
