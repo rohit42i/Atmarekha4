@@ -462,7 +462,7 @@ if (!privacyAdminRegression.includes('request.requested_period') ||
 
 const adminViewCountRegression = await readFile('AdminOverview.jsx', 'utf8');
 const controlRoomViewCountRegression = await readFile('AdminControlRoom.jsx', 'utf8');
-if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews;') ||
+if (!adminViewCountRegression.includes('const hasReliableCloudflareViews = cloudflare =>') ||
     !adminViewCountRegression.includes('views: hasCloudflareViews ? Number(cloud?.views || 0) : null') ||
     !adminViewCountRegression.includes('views_unavailable: !hasCloudflareViews') ||
     adminViewCountRegression.includes('const hasFallbackViews =') ||
