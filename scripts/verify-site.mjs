@@ -485,16 +485,32 @@ if (viewerKeyStart < 0 ||
   failed = true;
 }
 const analyticsReaderFallbackRegression = await readFile('analytics-worker/worker.js', 'utf8');
-const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end) {');
+const analyticsReaderMetricsStart = analyticsReaderFallbackRegression.indexOf('async function readerMetrics(env, start, end');
 const analyticsReaderMetricsEnd = analyticsReaderFallbackRegression.indexOf('async function verifyAdmin', analyticsReaderMetricsStart);
 const analyticsReaderMetricsBlock = analyticsReaderFallbackRegression.slice(analyticsReaderMetricsStart, analyticsReaderMetricsEnd);
 if (analyticsReaderMetricsStart < 0 ||
     analyticsReaderMetricsEnd < 0 ||
-    !analyticsReaderMetricsBlock.includes('env.ANALYTICS_BUCKET.list({') ||
+    !analyticsReaderMetricsBlock.includes('listViewEventObjects(env, segment.day, context)') ||
+    !analyticsReaderMetricsBlock.includes('mapWithConcurrency(batch, 8') ||
+    !analyticsReaderMetricsBlock.includes('dayResults.some(result => result.identityIncomplete)') ||
     !analyticsReaderMetricsBlock.includes('activeViewers.add(viewerHash)') ||
     !analyticsReaderMetricsBlock.includes('days.size >= 2') ||
     analyticsReaderMetricsBlock.includes('ANALYTICS_SQL')) {
-  console.error('CHECK FAILED: active and returning reader counts must fall back to durable R2 events without Analytics Engine SQL.');
+  console.error('CHECK FAILED: reader metrics must use bounded/cached durable R2 reads and stop scanning once legacy identities make the result incomplete.');
+  failed = true;
+}
+if (!analyticsReaderFallbackRegression.includes('archived && segment.fullDay') ||
+    !analyticsReaderFallbackRegression.includes('viewRowsForPeriod(env, segment.start, segment.end, context)') ||
+    !analyticsReaderFallbackRegression.includes('const adminAnalyticsInFlight = new Map()') ||
+    !analyticsReaderFallbackRegression.includes('const [summary, current, previous, currentReaders, dailyTrend, previousDailyTrend]')) {
+  console.error('CHECK FAILED: R2 analytics must share event reads, use timestamped partial-day buckets and avoid unused reader scans.');
+  failed = true;
+}
+if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries') ||
+    !controlRoomViewCountRegression.includes('views: asNumber(row.views)') ||
+    !controlRoomViewCountRegression.includes('const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;') ||
+    !controlRoomViewCountRegression.includes("{ name: 'Cloudflare daily trends', ok: dailyTrendAvailable")) {
+  console.error('CHECK FAILED: analytics UI must validate trend data and represent unavailable metrics as unavailable, not zero.');
   failed = true;
 }
 const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');
