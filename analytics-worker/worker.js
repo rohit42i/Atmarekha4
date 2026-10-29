@@ -121,6 +121,7 @@ function createAnalyticsReadContext() {
   return {
     monthCache: new Map(),
     eventListCache: new Map(),
+    eventMonthListCache: new Map(),
     eventBodyCache: new Map(),
     viewRowsCache: new Map(),
   };
@@ -139,28 +140,48 @@ async function readCachedMonth(env, month, context) {
 }
 
 async function listViewEventObjects(env, day, context) {
-  const cache = context?.eventListCache;
-  if (cache?.has(day)) return cache.get(day);
+  const dayCache = context?.eventListCache;
+  if (dayCache?.has(day)) return dayCache.get(day);
+
+  const month = day.slice(0, 7);
+  const monthCache = context?.eventMonthListCache;
+  const monthPrefix = ARCHIVE_PREFIX + '/events/' + month + '-';
+  let monthPending;
+  if (monthCache?.has(month)) {
+    monthPending = monthCache.get(month);
+  } else {
+    monthPending = (async () => {
+      const objects = [];
+      let cursor;
+      do {
+        const page = await env.ANALYTICS_BUCKET.list({
+          prefix: monthPrefix,
+          limit: 1000,
+          ...(cursor ? { cursor } : {}),
+        });
+        objects.push(...(page.objects || []));
+        cursor = page.truncated ? page.cursor : null;
+      } while (cursor);
+      return objects;
+    })();
+    if (monthCache) monthCache.set(month, monthPending);
+  }
+
   const pending = (async () => {
-    const prefix = `${ARCHIVE_PREFIX}/events/${day}/`;
-    const objects = [];
-    let cursor;
-    do {
-      const page = await env.ANALYTICS_BUCKET.list({
-        prefix,
-        limit: 1000,
-        ...(cursor ? { cursor } : {}),
-      });
-      objects.push(...(page.objects || []));
-      cursor = page.truncated ? page.cursor : null;
-    } while (cursor);
-    return objects;
+    try {
+      const monthlyObjects = await monthPending;
+      const dayPrefix = ARCHIVE_PREFIX + '/events/' + day + '/';
+      return monthlyObjects.filter(object => object.key.startsWith(dayPrefix));
+    } catch (error) {
+      if (monthCache?.get(month) === monthPending) monthCache.delete(month);
+      throw error;
+    }
   })();
-  if (cache) cache.set(day, pending);
+  if (dayCache) dayCache.set(day, pending);
   try {
     return await pending;
   } catch (error) {
-    if (cache?.get(day) === pending) cache.delete(day);
+    if (dayCache?.get(day) === pending) dayCache.delete(day);
     throw error;
   }
 }
