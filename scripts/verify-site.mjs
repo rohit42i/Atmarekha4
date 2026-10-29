@@ -466,6 +466,7 @@ if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews
     !adminViewCountRegression.includes('views: hasCloudflareViews ? Number(cloud?.views || 0) : null') ||
     !adminViewCountRegression.includes('views_unavailable: !hasCloudflareViews') ||
     !adminViewCountRegression.includes('views_unavailable_reason: cloudflareError') ||
+    !adminViewCountRegression.includes('sumMetric(cloudChapterRows, \'views\') === Number(cloudflare.total_views)') ||
     !adminViewCountRegression.includes('viewsUnavailableReason={metrics.viewsUnavailableReason}') ||
     adminViewCountRegression.includes('const hasFallbackViews =') ||
     !controlRoomViewCountRegression.includes('const viewCountsAvailable = cloudViewsAvailable;') ||
@@ -473,8 +474,10 @@ if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews
     !controlRoomViewCountRegression.includes('const cloudDailyTrendAvailable =') ||
     !controlRoomViewCountRegression.includes('const isValidDailyTrend =') ||
     !controlRoomViewCountRegression.includes('trendViewsTotal(cloud.daily_trend) === asNumber(cloud.current_views)') ||
+    !controlRoomViewCountRegression.includes('sumCloudChapterMetric(\'period_views\') === Number(cloud.current_views)') ||
     !controlRoomViewCountRegression.includes('const analyticsMetricsAvailable =') ||
     !controlRoomViewCountRegression.includes('values.filter(value => value !== null && value !== undefined && value !== \'\')') ||
+    !controlRoomViewCountRegression.includes('return currentValue === 0 && previousValue === 0 ? 0 : null;') ||
     !controlRoomViewCountRegression.includes('return ageMs >= 0 && ageMs <= hours * 3600000;') ||
     !controlRoomViewCountRegression.includes('row.target_count ?? row.sent_count ?? 0') ||
     !controlRoomViewCountRegression.includes('views: asNumber(row.views), partial: Boolean(row.partial)') ||
