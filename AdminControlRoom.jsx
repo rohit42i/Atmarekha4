@@ -267,7 +267,18 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const data = bundle || {};
   const analytics = data.analytics || {};
   const cloud = data.cloudflare || {};
-  const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError;
+  const requiredAdminMetricFields = [
+    'total_likes', 'current_likes', 'previous_likes', 'total_shares', 'current_shares', 'previous_shares',
+    'total_comments', 'current_comments', 'previous_comments', 'total_ratings', 'current_ratings',
+    'previous_ratings', 'rating_sum', 'bookmarks',
+  ];
+  const missingAdminMetricFields = requiredAdminMetricFields.filter(key => asNumber(analytics[key]) == null);
+  const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError &&
+    missingAdminMetricFields.length === 0 &&
+    Array.isArray(analytics.rating_counts) && Array.isArray(analytics.chapter_stats);
+  const adminAnalyticsUnavailableReason = adminAnalyticsAvailable ? null : (data.analyticsError ||
+    (missingAdminMetricFields.length ? 'Admin analytics response is missing or has invalid fields: ' + missingAdminMetricFields.join(', ') :
+      'Admin analytics response is missing its rating histogram or chapter statistics.'));
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
   const validTrendSeries = rows => Array.isArray(rows) && rows.length > 0 && rows.every(row =>
@@ -288,8 +299,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const totalViews = cloudViewsAvailable ? asNumber(cloud.total_views) : null;
   const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;
   const previousLikes = adminAnalyticsAvailable ? asNumber(analytics.previous_likes) : null;
-  const currentShares = asNumber(cloud.current_shares ?? analytics.current_shares);
-  const previousShares = asNumber(cloud.previous_shares ?? analytics.previous_shares);
+  const currentShares = adminAnalyticsAvailable ? asNumber(cloud.current_shares ?? analytics.current_shares) : null;
+  const previousShares = adminAnalyticsAvailable ? asNumber(cloud.previous_shares ?? analytics.previous_shares) : null;
   const currentComments = adminAnalyticsAvailable ? asNumber(analytics.current_comments) : null;
   const previousComments = adminAnalyticsAvailable ? asNumber(analytics.previous_comments) : null;
   const currentRatings = adminAnalyticsAvailable ? asNumber(analytics.current_ratings) : null;
@@ -462,7 +473,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const activeLanguages = new Set(activeChapters.map(row => String(row.language || row.mangaLanguage || '').trim()).filter(Boolean));
   const notificationErrors = data.notificationsError ? 1 : 0;
   const dataSources = [
-    { name: 'Admin analytics function', ok: data.analytics != null && !data.analyticsError, error: data.analyticsError },
+    { name: 'Admin analytics function', ok: adminAnalyticsAvailable, error: adminAnalyticsUnavailableReason },
     { name: 'Cloudflare analytics', ok: cloudViewsAvailable, error: cloudViewsAvailable ? null : (data.cloudflareError || 'View analytics response was missing required totals; legacy database totals are not used as a substitute.') },
     { name: 'Cloudflare daily trends', ok: dailyTrendAvailable, error: dailyTrendAvailable ? null : 'Current or previous daily trend is missing or contains invalid day/view values.' },
     ...(cloudAnalyticsAvailable && !cloudReadersAvailable ? [{ name: 'Cloudflare reader metrics', ok: false, error: cloud.reader_metrics_limited ? (cloud.reader_metrics_limited_reason || 'Reader metrics are incomplete or unavailable; counts are hidden rather than shown as zero.') : 'Reader counts were missing or invalid in the analytics response.' }] : []),
@@ -780,7 +791,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     { label: 'Ratings', current: currentRatings, previous: previousRatings },
   ].filter(row => row.current != null && row.previous != null);
   const comparisonMax = Math.max(1, ...comparison.flatMap(row => [NUMBER(row.current), NUMBER(row.previous)]));
-  const chapterRankings = chapterRank === 'views' && !cloudViewsAvailable ? [] : [...chapterStats].sort((a, b) => chapterRank === 'likes' ? b.period_likes - a.period_likes : chapterRank === 'shares' ? b.period_shares - a.period_shares : chapterRank === 'rating' ? b.rating_average - a.rating_average : Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 10);
+  const chapterRankings = (chapterRank === 'views' ? !cloudViewsAvailable : !adminAnalyticsAvailable) ? [] : [...chapterStats].sort((a, b) => chapterRank === 'likes' ? Number(b.period_likes || 0) - Number(a.period_likes || 0) : chapterRank === 'shares' ? Number(b.period_shares || 0) - Number(a.period_shares || 0) : chapterRank === 'rating' ? Number(b.rating_average || 0) - Number(a.rating_average || 0) : Number(b.period_views || 0) - Number(a.period_views || 0)).slice(0, 10);
   const filteredChapters = rows.filter(row => chapterStatus === 'all' || String(row.status || '').toLowerCase() === chapterStatus);
   const recentAudit = hasAuditRows ? adminLogs.slice(0, 8) : [];
   const recentNotificationLogs = hasNotificationRows ? notificationLogs.slice(0, 6) : [];
