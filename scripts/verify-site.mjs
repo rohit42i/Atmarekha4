@@ -755,8 +755,10 @@ const adminPanelReliabilityChecks = [
   ['AdminPanel.jsx', adminPanel, 'document.body.style.overflow = \'hidden\';'],
   ['AdminPanel.jsx', adminPanel, 'aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}'],
   ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(value => !value)'],
+  ['AdminPanel.jsx', adminPanel, 'setMobileSidebarOpen(false);\n          if (item.action) openAdminTool(item.action, item.detail);'],
   ['admin-studio-ui.jsx', adminStudioButtonSource, 'id="ar-admin-sidebar"'],
   ['admin-master-system.css', adminStyles, 'Mobile admin drawer reliability'],
+  ['admin-master-system.css', adminStyles, 'visibility: hidden !important;'],
   ['admin-master-system.css', adminStyles, 'pointer-events: auto !important;'],
 ];
 const adminOperationsRegressionSource = await readFile('AdminOperations.jsx', 'utf8');
