@@ -37,7 +37,7 @@ const sections = [
     ],
     tail: [
       "Pal Do Pal Ke Lamhe is planned to begin on 25 April 2027. The ₹19 Supporter plan does not include that story. Availability and release dates can change; check the Membership page for the current offer before paying.",
-      "Where checkout confirms a recurring Razorpay UPI AutoPay mandate, the selected plan renews at the stated interval until cancelled. Cancellation stops future renewals; access to a paid period may continue until that period ends. The payment and cancellation terms shown at checkout also apply.",
+      "Membership renews automatically only when checkout confirms a recurring Razorpay UPI AutoPay mandate. The selected plan renews at the stated interval until cancelled. Cancellation stops future renewals; access to a paid period may continue until that period ends. The payment and cancellation terms shown at checkout also apply.",
       "If you have a billing concern, contact support with the transaction reference. Do not email payment credentials."
     ]
   },
