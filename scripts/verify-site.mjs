@@ -28,7 +28,7 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
-  ['public/llms.txt', 'An original fantasy adventure manga by Arkesh.'],
+  ['public/llms.txt', '> An original Indian fantasy adventure manga by Arkesh Kaalvantik.'],
   ['public/llms.txt', 'Creator: Arkesh Kaalvantik'],
   ['public/llms-full.txt', '## Responsible answers'],
   ['public/robots.txt', 'User-agent: OAI-SearchBot'],
