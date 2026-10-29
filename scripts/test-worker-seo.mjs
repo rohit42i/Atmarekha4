@@ -49,7 +49,7 @@ try {
   assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
   assert.ok(homeHtml.includes('property="og:description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage Open Graph description is outdated.");
   assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
-  assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/ishani.png?v=20261029"'), "Homepage share image URL is missing the cache-busting version.");
+  assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
   assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
 
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
@@ -58,9 +58,11 @@ try {
   assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
   assert.ok(aboutHtml.includes("Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
-  assert.match(aboutHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
-  assert.match(aboutHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
-  assert.match(aboutHtml, /property="og:image:type" content="image\/png"/);
+  assert.ok(aboutHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page does not use the optimized JPEG share image.");
+  assert.ok(aboutHtml.includes('property="og:image:secure_url" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page secure share image URL is incorrect.");
+  assert.match(aboutHtml, /property="og:image:type" content="image\/jpeg"/);
+  assert.match(aboutHtml, /property="og:image:width" content="1200"/);
+  assert.match(aboutHtml, /property="og:image:height" content="630"/);
   assert.match(aboutHtml, /name="twitter:card" content="summary_large_image"/);
   assert.match(aboutHtml, /property="og:title" content="About Atma Rekha \| Indian Fantasy Manga and Creator"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");

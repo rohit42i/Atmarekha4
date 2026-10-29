@@ -70,6 +70,44 @@ function decodeXml(value) {
   return String(value).replace(/&(amp|lt|gt|quot|apos);/g, entity => XML_ENTITIES[entity]);
 }
 
+function readJpegDimensions(bytes) {
+  const sofMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+    throw new Error("Open Graph image is not a valid JPEG stream.");
+  }
+
+  let offset = 2;
+  while (offset < bytes.length - 4) {
+    if (bytes[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.length) break;
+    const marker = bytes[offset];
+    offset += 1;
+
+    // Standalone markers have no length field.
+    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
+    if (marker === 0xd9 || marker === 0xda) break;
+    if (offset + 1 >= bytes.length) break;
+
+    const segmentLength = bytes.readUInt16BE(offset);
+    if (segmentLength < 2 || offset + segmentLength > bytes.length) {
+      throw new Error("Open Graph JPEG contains a malformed segment.");
+    }
+    if (sofMarkers.has(marker)) {
+      if (segmentLength < 7) throw new Error("Open Graph JPEG SOF segment is malformed.");
+      return {
+        height: bytes.readUInt16BE(offset + 3),
+        width: bytes.readUInt16BE(offset + 5),
+      };
+    }
+    offset += segmentLength;
+  }
+  throw new Error("Unable to read Open Graph JPEG dimensions.");
+}
+
 async function assertOk(url, label) {
   const response = await fetchWithRetry(url, { redirect: "follow" });
   assert.ok(response.status >= 200 && response.status < 400, label + " returned HTTP " + response.status + ": " + url);
@@ -90,15 +128,17 @@ assert.equal(homepage.headers.get("strict-transport-security"), "max-age=1555200
 assert.equal(homepage.headers.get("x-content-type-options"), "nosniff", "Homepage nosniff header missing.");
 const html = await homepage.text();
 
-// Verify the actual social preview image is publicly retrievable, not just
-// declared in metadata. Share crawlers cannot render a preview if this URL fails.
+// Verify the actual social preview image is publicly retrievable, lightweight,
+// JPEG encoded, and exactly 1200 x 630. Metadata alone does not prove it works.
 const shareImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
 assert.ok(shareImageMatch, "Homepage is missing its Open Graph share image.");
+assert.equal(shareImageMatch[1], "https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1", "Homepage must declare the current cache-busted social preview.");
 const shareImage = await assertOk(shareImageMatch[1], "Open Graph share image");
-assert.match(shareImage.headers.get("content-type") || "", /^image\/(?:png|jpeg|webp)(?:;|$)/i, "Open Graph image must return a supported image MIME type.");
-const shareImageBytes = await shareImage.arrayBuffer();
+assert.match(shareImage.headers.get("content-type") || "", /^image\/jpeg(?:;|$)/i, "Open Graph image must return image/jpeg.");
+const shareImageBytes = Buffer.from(await shareImage.arrayBuffer());
 assert.ok(shareImageBytes.byteLength > 0, "Open Graph share image is empty.");
-assert.ok(shareImageBytes.byteLength <= 5 * 1024 * 1024, "Open Graph share image exceeds the 5 MB preview budget.");
+assert.ok(shareImageBytes.byteLength <= 600 * 1024, "Open Graph share image exceeds the 600 KiB preview target.");
+assert.deepEqual(readJpegDimensions(shareImageBytes), { width: 1200, height: 630 }, "Open Graph JPEG must be 1200 x 630 pixels.");
 
 // Count same-origin shell assets and reject absolute resource URLs pointing
 // away from the production host. Assets are not fetched based on response data.

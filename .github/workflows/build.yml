@@ -33,6 +33,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install pinned social image optimizer in a temporary directory
+        run: npm install --prefix "$RUNNER_TEMP/social-image-optimizer" --no-save sharp@0.35.5
+
+      - name: Generate optimized social preview image
+        run: node scripts/optimize-social-image.mjs
+        env:
+          SHARP_MODULE_PATH: ${{ runner.temp }}/social-image-optimizer/node_modules/sharp
+
       - name: Validate analytics Worker syntax
         run: node --check analytics-worker/worker.js
 
