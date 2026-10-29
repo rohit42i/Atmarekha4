@@ -25,9 +25,9 @@ const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : '
 const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
 const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
 
-function LibraryChart({ chapters, viewsAvailable = true }) {
+function LibraryChart({ chapters, viewsAvailable = true, viewsUnavailableReason = '' }) {
   const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
-  if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.</span></div>;
+  if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>{viewsUnavailableReason || 'Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.'}</span></div>;
   if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
 
   const maxViews = Math.max(...rows.map(row => Number(row.periodViews || 0)), 1);
@@ -170,11 +170,17 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     setAnalyticsError('');
     const loadAnalytics = async () => {
       try {
-        const [{ data, error }, cloudflare] = await Promise.all([
-          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } }).then(result => ({ data: result.data?.data || null, error: result.error })),
-          fetchCloudflareAdminAnalytics(Number(days)).catch(() => null),
+        const [baseResult, cloudResult] = await Promise.all([
+          supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })
+            .then(result => ({ data: result.data?.data || null, error: result.error })),
+          fetchCloudflareAdminAnalytics(Number(days))
+            .then(data => ({ data, error: null }))
+            .catch(error => ({ data: null, error: error?.message || 'Cloudflare analytics request failed.' })),
         ]);
-        if (error) throw error;
+        if (baseResult.error) throw baseResult.error;
+        const data = baseResult.data;
+        const cloudflare = cloudResult.data;
+        const cloudflareError = cloudResult.error;
         if (active) {
           const base = data || {};
           const hasCloudflareViews = Boolean(cloudflare) &&
@@ -228,6 +234,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             period_active_readers: hasCloudflareReaders ? Number(cloudflare.active_readers) : null,
             period_returning_readers: hasCloudflareReaders ? Number(cloudflare.returning_readers) : null,
             views_unavailable: !hasCloudflareViews,
+            views_unavailable_reason: cloudflareError || (!hasCloudflareViews ? 'The analytics Worker response did not include valid total, current-period and previous-period view counts.' : null),
             reader_metrics_unavailable: !hasCloudflareReaders,
             reader_metrics_unavailable_reason: cloudflare?.reader_metrics_limited_reason || (cloudflare?.reader_metrics_limited ? 'Historical view events lack stable viewer identities; reader counts are incomplete.' : null),
             chapter_stats: chapterStats,
@@ -292,6 +299,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       periodActiveReaders: data.reader_metrics_unavailable ? null : Number(data.period_active_readers ?? data.active_readers ?? 0),
       periodReturningReaders: data.reader_metrics_unavailable ? null : Number(data.period_returning_readers ?? data.returning_readers ?? 0),
       viewsUnavailable: data.views_unavailable === true,
+      viewsUnavailableReason: data.views_unavailable_reason || null,
       readerMetricsUnavailable: data.reader_metrics_unavailable === true,
       readerMetricsUnavailableReason: data.reader_metrics_unavailable_reason || null,
       bookmarks: Number(data.bookmarks || 0),
@@ -554,7 +562,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-main-grid">
       <GlassCard className="ar-chart-card">
         <SectionHeader eyebrow="REACH & ENGAGEMENT" title="Library performance" description={"Views and engagement · " + WINDOW_LABELS[windowKey]}/>
-        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable}/>
+        <LibraryChart chapters={metrics.chapterStats} viewsAvailable={!metrics.viewsUnavailable} viewsUnavailableReason={metrics.viewsUnavailableReason}/>
       </GlassCard>
       <GlassCard className="ar-activity-card">
         <SectionHeader eyebrow="LIVE" title="Last 24 hours" description="Refreshes automatically while this page is open."/>
