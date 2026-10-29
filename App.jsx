@@ -39,11 +39,11 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'An original fantasy adventure manga available in Hindi (Roman Hindi) and English.' };
+const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Hindi (Roman Hindi) and English.' };
 const SITE_URL = 'https://www.atmarekha.in';
-const DEFAULT_SEO_TITLE = 'Atma Rekha | Fantasy Adventure Manga';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English.';
-const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png';
+const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';
+const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.';
+const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png?v=20261029';
 
 function upsertMeta(attribute, key, content) {
   if (typeof document === 'undefined') return;
@@ -452,7 +452,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
 
     const author = {
       '@type': 'Person',
-      name: 'Arkesh',
+      name: 'Arkesh Kaalvantik',
       url: SITE_URL + '/info/about',
       sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
     };
@@ -464,7 +464,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
         description = shortSeoDescription(
           chapter.description,
-          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh.',
+          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       } else {
@@ -472,8 +472,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         const numericChapter = /^\d+(?:\.\d+)?$/.test(chapterPart) ? chapterPart : '';
         title = numericChapter ? 'Atma Rekha Chapter ' + numericChapter : 'Atma Rekha | Chapter';
         description = numericChapter
-          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original fantasy adventure manga by Arkesh.'
-          : 'Read an Atma Rekha chapter, an original fantasy adventure manga by Arkesh.';
+          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.'
+          : 'Read an Atma Rekha chapter, an original fantasy adventure manga by Arkesh Kaalvantik.';
       }
     } else if (type === 'read-chapter') {
       const legacyId = legacyChapterIdFromHash('#' + route);
@@ -483,17 +483,17 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
         description = shortSeoDescription(
           chapter.description,
-          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh.',
+          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'chapters') {
       if (requestedLanguage === 'en') {
         title = 'Atma Rekha | English Chapters';
-        description = 'Read the published English chapters of Atma Rekha, an original fantasy adventure manga by Arkesh.';
+        description = 'Read the published English chapters of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.';
       } else {
         title = 'Atma Rekha | Chapters';
-        description = 'Read the published Hindi chapters of Atma Rekha, an original fantasy adventure manga by Arkesh.';
+        description = 'Read the published Hindi chapters of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.';
       }
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
@@ -506,7 +506,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       const infoDescriptions = {
-        about: 'Learn about Atma Rekha, its creator Arkesh, the fantasy adventure manga, and how to read its published chapters.',
+        about: 'Learn about Atma Rekha, its creator Arkesh Kaalvantik, the fantasy adventure manga, and how to read its published chapters.',
         contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
         report: 'Report an issue with Atma Rekha website content or community activity.',
         privacy: 'Read how Atma Rekha processes account, profile, reading, community, membership, email, analytics and payment data.',
@@ -595,7 +595,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
 
     document.title = title;
     upsertMeta('name', 'description', description);
-    upsertMeta('name', 'author', 'Arkesh');
+    upsertMeta('name', 'author', 'Arkesh Kaalvantik');
     upsertMeta('property', 'og:type', chapter ? 'article' : 'website');
     upsertMeta('property', 'og:site_name', 'Atma Rekha');
     upsertMeta('property', 'og:locale', chapterLanguage === 'en' ? 'en_IN' : 'hi_IN');
@@ -620,7 +620,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     removeMeta('property', 'article:section');
     if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
     if (chapter) {
-      upsertMeta('property', 'article:author', 'Arkesh');
+      upsertMeta('property', 'article:author', 'Arkesh Kaalvantik');
       upsertMeta('property', 'article:section', 'Manga');
     }
 
