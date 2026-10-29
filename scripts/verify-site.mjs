@@ -467,6 +467,13 @@ if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews
     !adminViewCountRegression.includes('views_unavailable: !hasCloudflareViews') ||
     !adminViewCountRegression.includes('views_unavailable_reason: cloudflareError') ||
     !adminViewCountRegression.includes('sumMetric(cloudChapterRows, \'views\') === Number(cloudflare.total_views)') ||
+    !adminViewCountRegression.includes('const hasBaseAnalytics = !baseResult.error && hasReliableEngagementMetrics(base);') ||
+    !adminViewCountRegression.includes('const engagementAvailable = !baseResult.error && hasReliableEngagementMetrics(base);') ||
+    !adminViewCountRegression.includes('engagementAvailable={!metrics.engagementUnavailable}') ||
+    !adminViewCountRegression.includes('available={!metrics.engagementUnavailable}') ||
+    !adminViewCountRegression.includes('const valid = isFiniteMetric(data?.logged_in_users)') ||
+    !adminViewCountRegression.includes('pageCounts[chapter.id] ?? stat?.pages ?? chapter.pages_count ?? 0') ||
+    !adminViewCountRegression.includes('No ratings yet') ||
     !adminViewCountRegression.includes('viewsUnavailableReason={metrics.viewsUnavailableReason}') ||
     adminViewCountRegression.includes('const hasFallbackViews =') ||
     !controlRoomViewCountRegression.includes('const viewCountsAvailable = cloudViewsAvailable;') ||
