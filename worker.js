@@ -268,7 +268,7 @@ async function addServerSeo(request, response, env) {
         html = setMeta(html, "property", "og:url", canonical);
         html = setMeta(html, "property", "og:image", image);
         html = setMeta(html, "property", "og:image:secure_url", image);
-        html = html.replace(/<meta\\s+[^>]*property="og:image:type"[^>]*>\\s*/i, "");
+        html = html.replace(/<meta\s+[^>]*property="og:image:type"[^>]*>\s*/i, "");
         html = setMeta(html, "property", "og:image:alt", title);
         html = setMeta(html, "name", "twitter:card", "summary_large_image");
         html = setMeta(html, "name", "twitter:title", title);
