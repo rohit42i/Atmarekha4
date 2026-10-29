@@ -497,6 +497,18 @@ if (analyticsReaderMetricsStart < 0 ||
   console.error('CHECK FAILED: active and returning reader counts must fall back to durable R2 events without Analytics Engine SQL.');
   failed = true;
 }
+const analyticsArchiveCoverageRegression = await readFile('analytics-worker/worker.js', 'utf8');
+const analyticsWorkerTestsRegression = await readFile('scripts/test-analytics-worker.mjs', 'utf8');
+if (!analyticsArchiveCoverageRegression.includes('async function readArchiveState(env)') ||
+    !analyticsArchiveCoverageRegression.includes('if (isFullDay && archivedThrough && day <= archivedThrough) continue;') ||
+    !analyticsArchiveCoverageRegression.includes('mapWithConcurrency(dayWindows, 8') ||
+    !analyticsArchiveCoverageRegression.includes('record && isFullDay') ||
+    analyticsArchiveCoverageRegression.includes('previousReaders') ||
+    !analyticsWorkerTestsRegression.includes('completed archive should prevent per-day R2 scans') ||
+    !analyticsWorkerTestsRegression.includes('daily trend total must match current rolling-window view total')) {
+  console.error('CHECK FAILED: analytics Worker must use archive coverage for quiet days, bound reader scans, reconcile trend totals, and avoid unused historical reader scans.');
+  failed = true;
+}
 const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');
 if (!communityShareClipboardRegression.includes('async function copyTextToClipboard(value)') ||
     !communityShareClipboardRegression.includes("document.execCommand('copy')") ||
