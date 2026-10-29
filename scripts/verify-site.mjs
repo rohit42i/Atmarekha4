@@ -508,9 +508,13 @@ if (!analyticsReaderFallbackRegression.includes('archived && segment.fullDay') |
 }
 if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries') ||
     !controlRoomViewCountRegression.includes('views: asNumber(row.views)') ||
+    !controlRoomViewCountRegression.includes('const missingAdminMetricFields = requiredAdminMetricFields.filter') ||
     !controlRoomViewCountRegression.includes('const currentLikes = adminAnalyticsAvailable ? asNumber(analytics.current_likes) : null;') ||
-    !controlRoomViewCountRegression.includes("{ name: 'Cloudflare daily trends', ok: dailyTrendAvailable")) {
-  console.error('CHECK FAILED: analytics UI must validate trend data and represent unavailable metrics as unavailable, not zero.');
+    !controlRoomViewCountRegression.includes("{ name: 'Cloudflare daily trends', ok: dailyTrendAvailable") ||
+    !adminViewCountRegression.includes('admin_analytics_unavailable: adminAnalyticsUnavailable') ||
+    !adminViewCountRegression.includes('currentLikes: adminAnalyticsAvailable ? Number(data.current_likes || 0) : null') ||
+    !adminViewCountRegression.includes('Rating analytics unavailable')) {
+  console.error('CHECK FAILED: admin analytics must validate required source fields, correct trend data, and show unavailable metrics instead of false zeros.');
   failed = true;
 }
 const communityShareClipboardRegression = await readFile('Community.jsx', 'utf8');
