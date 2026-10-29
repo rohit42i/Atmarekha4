@@ -271,7 +271,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
   const validTrendSeries = rows => Array.isArray(rows) && rows.length > 0 && rows.every(row =>
-    row && /^\\d{4}-\\d{2}-\\d{2}$/.test(String(row.day || '')) && asNumber(row.views) != null
+    row && /^\d{4}-\d{2}-\d{2}$/.test(String(row.day || '')) && asNumber(row.views) != null
   );
   const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries(cloud.daily_trend) && validTrendSeries(cloud.previous_daily_trend);
   // The database view table is legacy-only after the Cloudflare migration.
