@@ -180,46 +180,44 @@ async function combinedPeriodCounts(env, start, end) {
   const result = {};
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
   const today = dayStart(new Date());
-  const monthCache = new Map();
-  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+  const days = [];
+  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) days.push(cursor);
+  // Fetch independent day archives concurrently. Serial R2 reads made a single
+  // dashboard request perform dozens of network round trips before returning.
+  const dayRows = await Promise.all(days.map(async cursor => {
     const day = dayKey(cursor);
     const nextDay = addDays(cursor, 1);
     const segmentStart = new Date(Math.max(start.getTime(), cursor.getTime()));
     const segmentEnd = new Date(Math.min(end.getTime(), nextDay.getTime()));
-    let archived = null;
-    if (cursor < today) {
-      const month = monthKey(cursor);
-      if (!monthCache.has(month)) {
-        monthCache.set(month, await readJson(env, monthObjectKey(month), null));
-      }
-      archived = monthCache.get(month)?.days?.[day] || null;
-    }
     const isFullDay = segmentStart.getTime() === cursor.getTime() && segmentEnd.getTime() === nextDay.getTime();
-    if (archived && archived.chapters && typeof archived.chapters === 'object' && isFullDay) {
-      mergeChapterCounts(result, Object.entries(archived.chapters).map(([chapterId, views]) => ({ chapterId, views })));
-      continue;
+    if (cursor < today && isFullDay) {
+      const archived = await readJson(env, monthObjectKey(monthKey(cursor)), null);
+      const record = archived?.days?.[day];
+      if (record?.chapters && typeof record.chapters === 'object') {
+        return Object.entries(record.chapters).map(([chapterId, views]) => ({ chapterId, views }));
+      }
     }
-    // Rolling windows often start partway through a UTC day. For those boundary
-    // slices, count timestamped R2 events instead of including a whole daily archive.
-    mergeChapterCounts(result, await viewRowsForPeriod(env, segmentStart, segmentEnd));
-  }
+    // Partial UTC-day windows must use event timestamps, never whole-day totals.
+    return viewRowsForPeriod(env, segmentStart, segmentEnd);
+  }));
+  for (const rows of dayRows) mergeChapterCounts(result, rows.flat());
   return result;
 }
 
 async function dailyTrendForPeriod(env, start, end) {
-  const trend = [];
   const today = dayStart(new Date());
-  const monthCache = new Map();
-  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
+  const days = [];
+  for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) days.push(cursor);
+  // Keep the requested UTC bucket order while resolving independent days in parallel.
+  return Promise.all(days.map(async cursor => {
     const day = dayKey(cursor);
     const nextDay = addDays(cursor, 1);
     const segmentStart = new Date(Math.max(start.getTime(), cursor.getTime()));
     const segmentEnd = new Date(Math.min(end.getTime(), nextDay.getTime()));
     let views = 0;
     if (cursor < today) {
-      const month = monthKey(cursor);
-      if (!monthCache.has(month)) monthCache.set(month, await readJson(env, monthObjectKey(month), null));
-      const record = monthCache.get(month)?.days?.[day];
+      const archived = await readJson(env, monthObjectKey(monthKey(cursor)), null);
+      const record = archived?.days?.[day];
       if (record) {
         const chapterCounts = record.chapters || {};
         views = Math.max(0, Number(record.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
@@ -229,9 +227,8 @@ async function dailyTrendForPeriod(env, start, end) {
     } else {
       views = (await viewRowsForPeriod(env, segmentStart, segmentEnd)).reduce((sum, row) => sum + Number(row.views || 0), 0);
     }
-    trend.push({ day, views, partial: cursor < start || nextDay > end });
-  }
-  return trend;
+    return { day, views, partial: cursor < start || nextDay > end };
+  }));
 }
 
 function dateKeyFromAnalytics(value) {
