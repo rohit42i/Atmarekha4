@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">Atma Rekha</title>
-  <rect width="512" height="512" rx="72" fill="#0b0b0c"/>
-  <circle cx="256" cy="236" r="132" fill="none" stroke="#f5f5f5" stroke-width="10"/>
-  <path d="M256 124 286 208 370 238 286 268 256 352 226 268 142 238 226 208Z" fill="none" stroke="#f5f5f5" stroke-width="9" stroke-linejoin="round"/>
-  <circle cx="256" cy="238" r="23" fill="#f5f5f5"/>
-  <text x="256" y="430" fill="#f5f5f5" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" letter-spacing="4" text-anchor="middle">ATMA REKHA</text>
-</svg>
