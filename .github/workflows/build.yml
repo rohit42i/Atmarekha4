@@ -33,6 +33,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install pinned social image optimizer
+        run: npm install --no-save --package-lock=false sharp@0.35.5
+
+      - name: Generate optimized social preview image
+        run: node scripts/optimize-social-image.mjs
+
       - name: Validate analytics Worker syntax
         run: node --check analytics-worker/worker.js
 
