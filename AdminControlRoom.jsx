@@ -295,11 +295,22 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     analytics.rating_counts.reduce((sum, row) => sum + Number(row.count), 0) === Number(analytics.total_ratings);
   const validAdminChapterStats = Array.isArray(analytics.chapter_stats) &&
     analytics.chapter_stats.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
-      ['likes', 'shares', 'rating_count', 'rating_average', 'period_likes', 'period_shares', 'period_rating_count', 'pages']
-        .every(key => asNumber(row[key]) != null)) &&
+      ['likes', 'shares', 'rating_count', 'period_likes', 'period_shares', 'period_rating_count', 'pages']
+        .every(key => asNumber(row[key]) != null && Number(row[key]) >= 0) &&
+      asNumber(row.rating_average) != null && Number(row.rating_average) >= 0 && Number(row.rating_average) <= 10) &&
     new Set(analytics.chapter_stats.map(row => row.id)).size === analytics.chapter_stats.length;
+  const sumAdminChapterMetric = key => (analytics.chapter_stats || []).reduce((sum, row) => sum + Number(row[key]), 0);
+  const weightedChapterRatingSum = (analytics.chapter_stats || []).reduce((sum, row) => sum + Number(row.rating_average) * Number(row.rating_count), 0);
+  const chapterEngagementReconciles = validAdminChapterStats &&
+    sumAdminChapterMetric('likes') === Number(analytics.total_likes) &&
+    sumAdminChapterMetric('shares') === Number(analytics.total_shares) &&
+    sumAdminChapterMetric('rating_count') === Number(analytics.total_ratings) &&
+    sumAdminChapterMetric('period_likes') === Number(analytics.current_likes) &&
+    sumAdminChapterMetric('period_shares') === Number(analytics.current_shares) &&
+    sumAdminChapterMetric('period_rating_count') === Number(analytics.current_ratings) &&
+    Math.abs(weightedChapterRatingSum - Number(analytics.rating_sum)) < 0.01;
   const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError &&
-    missingAdminMetricFields.length === 0 && validRatingHistogram && validAdminChapterStats;
+    missingAdminMetricFields.length === 0 && validRatingHistogram && chapterEngagementReconciles;
   const adminAnalyticsUnavailableReason = adminAnalyticsAvailable ? null : (data.analyticsError ||
     (missingAdminMetricFields.length ? 'Admin analytics response is missing or has invalid fields: ' + missingAdminMetricFields.join(', ') :
       !validRatingHistogram ? 'Rating histogram is missing, invalid, duplicated or does not reconcile with total ratings.' :
