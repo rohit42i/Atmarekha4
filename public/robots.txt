@@ -1,4 +1,38 @@
+# Public discovery is allowed. Private and account-only routes are not crawl targets.
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /membership
+Disallow: /group-chat
+Disallow: /community
+Disallow: /privacy-center
+Disallow: /maintenance
+Disallow: /403
+Disallow: /430
+Disallow: /503
+
+# AI search and answer engines may crawl public Atma Rekha pages.
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Googlebot
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /membership
+Disallow: /group-chat
+Disallow: /community
+Disallow: /privacy-center
+Disallow: /maintenance
+Disallow: /403
+Disallow: /430
+Disallow: /503
 
 Sitemap: https://www.atmarekha.in/sitemap.xml
