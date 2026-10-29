@@ -185,12 +185,12 @@ let failed = false;
 
 const seoSitemapRegression = await readFile('public/sitemap.xml', 'utf8');
 const sitemapOpenUrlCount = (seoSitemapRegression.match(/<url>/g) || []).length;
-const sitemapCloseUrlCount = (seoSitemapRegression.match(/<\\/url>/g) || []).length;
+const sitemapCloseUrlCount = (seoSitemapRegression.match(/<\/url>/g) || []).length;
 if (!seoSitemapRegression.startsWith('<?xml') ||
     !seoSitemapRegression.includes('<urlset ') ||
     !seoSitemapRegression.trim().endsWith('</urlset>') ||
     sitemapOpenUrlCount !== sitemapCloseUrlCount ||
-    /https:\/\/www\\.atmarekha\\.in\/info\/(?:contact|report|privacy|terms)<\\/loc>/.test(seoSitemapRegression)) {
+    /https:\/\/www\.atmarekha\.in\/info\/(?:contact|report|privacy|terms)<\/loc>/.test(seoSitemapRegression)) {
   console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical discovery pages, not utility/legal routes.');
   failed = true;
 }
