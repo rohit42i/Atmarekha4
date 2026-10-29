@@ -1,5 +1,5 @@
 const SITE_ORIGIN = "https://www.atmarekha.in";
-const DEFAULT_SHARE_IMAGE = SITE_ORIGIN + "/ishani.png?v=20261029";
+const DEFAULT_SHARE_IMAGE = SITE_ORIGIN + "/og-atmarekha.jpg?v=20261029-share1";
 const SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E";
 
@@ -208,7 +208,9 @@ async function addServerSeo(request, response, env) {
     html = setMeta(html, "property", "og:url", canonical);
     html = setMeta(html, "property", "og:image", DEFAULT_SHARE_IMAGE);
     html = setMeta(html, "property", "og:image:secure_url", DEFAULT_SHARE_IMAGE);
-    html = setMeta(html, "property", "og:image:type", "image/png");
+    html = setMeta(html, "property", "og:image:type", "image/jpeg");
+    html = setMeta(html, "property", "og:image:width", "1200");
+    html = setMeta(html, "property", "og:image:height", "630");
     html = setMeta(html, "property", "og:image:alt", "Atma Rekha character artwork");
     html = setMeta(html, "name", "twitter:card", "summary_large_image");
     html = setMeta(html, "name", "twitter:title", shareTitle);
