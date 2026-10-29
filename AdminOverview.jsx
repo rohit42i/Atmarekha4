@@ -7,6 +7,41 @@ import { AdminIcon, GlassCard, SectionHeader, StatCard } from './admin-redesign-
 const WINDOWS = { today: 1, week: 7, month: 30, quarter: 90 };
 const WINDOW_LABELS = { today: '24 Hours', week: '7 Days', month: '30 Days', quarter: '90 Days' };
 const formatNumber = value => value == null || value === '' || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-IN');
+const isFiniteMetric = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+const sumMetric = (rows, key) => rows.reduce((sum, row) => sum + Number(row[key]), 0);
+const hasReliableCloudflareViews = cloudflare => {
+  if (!cloudflare ||
+      !['total_views', 'current_views', 'previous_views'].every(key => isFiniteMetric(cloudflare[key])) ||
+      !Array.isArray(cloudflare.chapter_stats)) return false;
+  const rows = cloudflare.chapter_stats;
+  const validRows = rows.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
+    ['views', 'period_views', 'previous_period_views'].every(key => isFiniteMetric(row[key]))) &&
+    new Set(rows.map(row => row.id)).size === rows.length;
+  return validRows &&
+    sumMetric(rows, 'views') === Number(cloudflare.total_views) &&
+    sumMetric(rows, 'period_views') === Number(cloudflare.current_views) &&
+    sumMetric(rows, 'previous_period_views') === Number(cloudflare.previous_views);
+};
+const hasReliableEngagementMetrics = payload => {
+  if (!payload || typeof payload !== 'object') return false;
+  const fields = [
+    'total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum',
+    'current_likes', 'previous_likes', 'current_shares', 'previous_shares',
+    'current_comments', 'previous_comments', 'current_ratings', 'previous_ratings', 'bookmarks', 'released',
+  ];
+  if (!fields.every(key => isFiniteMetric(payload[key]))) return false;
+  if (!Array.isArray(payload.chapter_stats) || !Array.isArray(payload.rating_counts)) return false;
+  const chapterRows = payload.chapter_stats;
+  if (!chapterRows.every(row => row && typeof row.id === 'string' && row.id.length > 0 &&
+      ['likes', 'shares', 'rating_count', 'rating_average', 'period_likes', 'period_shares', 'period_rating_count', 'pages']
+        .every(key => isFiniteMetric(row[key]))) ||
+      new Set(chapterRows.map(row => row.id)).size !== chapterRows.length) return false;
+  const ratings = payload.rating_counts;
+  return ratings.every(row => row && Number.isInteger(Number(row.rating)) && Number(row.rating) >= 1 && Number(row.rating) <= 10 &&
+      Number.isInteger(Number(row.count)) && Number(row.count) >= 0) &&
+    new Set(ratings.map(row => Number(row.rating))).size === ratings.length &&
+    ratings.reduce((sum, row) => sum + Number(row.count), 0) === Number(payload.total_ratings);
+};
 const compactNumber = value => {
   if (value == null || value === '' || !Number.isFinite(Number(value))) return '—';
   const n = Number(value);
@@ -25,18 +60,23 @@ const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : '
 const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
 const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
 
-function LibraryChart({ chapters, viewsAvailable = true, engagementAvailable = true }) {
-  const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
-  if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.</span></div>;
-  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
+function LibraryChart({ chapters, viewsAvailable = true, viewsUnavailableReason = '', engagementAvailable = true, engagementUnavailableReason = '' }) {
+  const rows = [...chapters]
+    .filter(chapter => !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published')
+    .sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0))
+    .slice(-10);
+  if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>{viewsUnavailableReason || 'Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.'}</span></div>;
+  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough published chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
 
   const maxViews = Math.max(...rows.map(row => Number(row.periodViews || 0)), 1);
-  const maxEngagement = Math.max(...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)), 1);
+  const maxEngagement = engagementAvailable
+    ? Math.max(...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)), 1)
+    : 1;
   return <div className="ar-chart-wrap">
     <div className="ar-chart-legend">
       <span><i className="dot violet"/>Views</span>
       {engagementAvailable && <span><i className="dot pink"/>Engagement</span>}
-      <small>Real chapter totals · last 10 published</small>
+      <small>{engagementAvailable ? 'Real chapter totals · last 10 published' : (engagementUnavailableReason || 'View totals are live; engagement data is unavailable.')}</small>
     </div>
     <div className="ar-chart-bars" role="img" aria-label="Chapter views and engagement">
       {rows.map(row => {
@@ -53,10 +93,11 @@ function LibraryChart({ chapters, viewsAvailable = true, engagementAvailable = t
   </div>;
 }
 
-function RatingDonut({ counts, total }) {
-  if (total == null) return <div className="ar-empty-chart"><AdminIcon name="chart" size={24}/><strong>Rating analytics unavailable</strong><span>The admin analytics source did not return a trusted rating count.</span></div>;
+function RatingDonut({ counts, total, available = true, unavailableReason = '' }) {
+  if (!available || total == null) return <div className="ar-empty-chart"><AdminIcon name="sparkle" size={24}/><strong>Rating analytics unavailable</strong><span>{unavailableReason || 'The admin analytics source did not return a trusted rating count.'}</span></div>;
+  if (Number(total) === 0) return <div className="ar-empty-chart"><strong>No ratings yet</strong><span>Ratings will appear here after readers submit them.</span></div>;
   const positive = counts.reduce((sum, row) => sum + (row.rating >= 8 ? row.count : 0), 0);
-  const percentage = total ? Math.round(positive / total * 100) : 0;
+  const percentage = Math.round(positive / Number(total) * 100);
   return <div className="ar-donut-wrap">
     <div className="ar-donut-ring" style={{ '--donut-pct': percentage }}><strong>{percentage}%</strong><span>8–10</span></div>
     <div><strong>{formatNumber(total)} ratings</strong><span>Positive ratings share</span></div>
