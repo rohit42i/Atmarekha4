@@ -466,14 +466,19 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const adminLogs = data.adminLogs || [];
   const notificationLogs = data.notifications || [];
   const nowDate = new Date();
-  const withinHours = (value, hours) => { const date = dateOf(value); return date ? nowDate - date <= hours * 3600000 : false; };
+  const withinHours = (value, hours) => {
+    const date = dateOf(value);
+    if (date == null) return false;
+    const ageMs = nowDate - date;
+    return ageMs >= 0 && ageMs <= hours * 3600000;
+  };
   const failedAdminLogs = adminLogs.filter(row => /fail|error/i.test(String(row.action || '')) || row.details?.error);
   const recentAdminLogs = adminLogs.filter(row => withinHours(row.created_at, 24));
   const distinctActions = new Set(adminLogs.map(row => String(row.action || '').trim()).filter(Boolean)).size;
   const failedNotifications = notificationLogs.filter(row => String(row.status || '').toLowerCase() === 'failed' || NUMBER(row.failed_count) > 0);
   const sentNotifications = notificationLogs.filter(row => ['sent', 'completed', 'success'].includes(String(row.status || '').toLowerCase()));
   const scheduledNotifications = notificationLogs.filter(row => String(row.status || '').toLowerCase() === 'scheduled');
-  const attemptedDeliveries = notificationLogs.reduce((sum, row) => sum + NUMBER(row.target_count || row.sent_count || 0), 0);
+  const attemptedDeliveries = notificationLogs.reduce((sum, row) => sum + NUMBER(row.target_count ?? row.sent_count ?? 0), 0);
   const deliveredNotifications = notificationLogs.reduce((sum, row) => sum + NUMBER(row.sent_count), 0);
   const failedDeliveryCount = notificationLogs.reduce((sum, row) => sum + NUMBER(row.failed_count), 0);
   const notificationSuccessRate = attemptedDeliveries > 0 ? deliveredNotifications / attemptedDeliveries * 100 : null;
