@@ -9,6 +9,19 @@ const WINDOW_LABELS = { today: '24 Hours', week: '7 Days', month: '30 Days', qua
 const formatNumber = value => value == null || value === '' || !Number.isFinite(Number(value)) ? '—' : Number(value).toLocaleString('en-IN');
 const isFiniteMetric = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 const sumMetric = (rows, key) => rows.reduce((sum, row) => sum + Number(row[key]), 0);
+const hasReliableCloudflareViews = cloudflare => {
+  if (!cloudflare ||
+      !['total_views', 'current_views', 'previous_views'].every(key => isFiniteMetric(cloudflare[key])) ||
+      !Array.isArray(cloudflare.chapter_stats)) return false;
+  const validRows = cloudflare.chapter_stats.every(row =>
+    row && typeof row.id === 'string' && row.id.length > 0 &&
+    ['views', 'period_views', 'previous_period_views'].every(key => isFiniteMetric(row[key]))
+  );
+  return validRows &&
+    sumMetric(cloudflare.chapter_stats, 'views') === Number(cloudflare.total_views) &&
+    sumMetric(cloudflare.chapter_stats, 'period_views') === Number(cloudflare.current_views) &&
+    sumMetric(cloudflare.chapter_stats, 'previous_period_views') === Number(cloudflare.previous_views);
+};
 const compactNumber = value => {
   if (value == null || value === '' || !Number.isFinite(Number(value))) return '—';
   const n = Number(value);
@@ -185,17 +198,8 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
         const cloudflareError = cloudResult.error;
         if (active) {
           const base = data || {};
-          const cloudChapterRows = Array.isArray(cloudflare?.chapter_stats) ? cloudflare.chapter_stats : null;
-          const validCloudChapterRows = Array.isArray(cloudChapterRows) && cloudChapterRows.every(row =>
-            row && typeof row.id === 'string' && row.id.length > 0 &&
-            ['views', 'period_views', 'previous_period_views'].every(key => isFiniteMetric(row[key]))
-          );
-          const hasCloudflareViews = Boolean(cloudflare) &&
-            ['total_views', 'current_views', 'previous_views'].every(key => isFiniteMetric(cloudflare[key])) &&
-            validCloudChapterRows &&
-            sumMetric(cloudChapterRows, 'views') === Number(cloudflare.total_views) &&
-            sumMetric(cloudChapterRows, 'period_views') === Number(cloudflare.current_views) &&
-            sumMetric(cloudChapterRows, 'previous_period_views') === Number(cloudflare.previous_views);
+          const cloudChapterRows = Array.isArray(cloudflare?.chapter_stats) ? cloudflare.chapter_stats : [];
+          const hasCloudflareViews = hasReliableCloudflareViews(cloudflare);
           const hasViewCounts = hasCloudflareViews;
           const hasCloudflareReaders = hasCloudflareViews &&
             !cloudflare.reader_metrics_limited &&
