@@ -157,7 +157,7 @@ export function AdminSidebar({
   connectionError = false,
 }) {
   return (
-    <aside className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}`} aria-label="Admin navigation">
+    <aside id="ar-admin-sidebar" className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}`} aria-label="Admin navigation">
       <div className="ar-admin-brand">
         <div className="ar-admin-brand-mark">AR</div>
         <div>
