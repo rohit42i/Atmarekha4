@@ -27,10 +27,15 @@ const SECTIONS = [
 ];
 const NUMBER = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const asNumber = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
-const isValidDailyTrend = rows => Array.isArray(rows) && rows.length > 0 && rows.every(row =>
-  row && /^\d{4}-\d{2}-\d{2}$/.test(String(row.day || '')) &&
-  asNumber(row.views) !== null && Number(row.views) >= 0
-);
+const isValidDailyTrend = rows => Array.isArray(rows) && rows.length > 0 && rows.every((row, index) => {
+  const day = String(row?.day || '');
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(day) ? new Date(day + 'T00:00:00Z') : null;
+  return Boolean(date && Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === day) &&
+    asNumber(row.views) !== null && Number(row.views) >= 0 &&
+    typeof row.partial === 'boolean' &&
+    (index === 0 || String(rows[index - 1]?.day || '') < day);
+});
+const trendViewsTotal = rows => rows.reduce((sum, row) => sum + Number(row.views), 0);
 const fmtNum = value => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 1 });
 const fmtMoney = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN');
 const dateOf = value => {
@@ -53,17 +58,17 @@ const ago = value => {
 const percent = (a, b) => Number(b) > 0 ? (Number(a) / Number(b)) * 100 : null;
 const deltaPercent = (current, previous) => Number(previous) > 0 ? ((Number(current) - Number(previous)) / Number(previous)) * 100 : Number(current) === 0 && Number(previous) === 0 ? 0 : null;
 const median = values => {
-  const rows = values.map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+  const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite).sort((a, b) => a - b);
   if (!rows.length) return null;
   const mid = Math.floor(rows.length / 2);
   return rows.length % 2 ? rows[mid] : (rows[mid - 1] + rows[mid]) / 2;
 };
 const average = values => {
-  const rows = values.map(Number).filter(Number.isFinite);
+  const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
   return rows.length ? rows.reduce((sum, value) => sum + value, 0) / rows.length : null;
 };
 const standardDeviation = values => {
-  const rows = values.map(Number).filter(Number.isFinite);
+  const rows = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
   if (!rows.length) return null;
   const mean = average(rows);
   return Math.sqrt(average(rows.map(value => (value - mean) ** 2)));
@@ -274,7 +279,10 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
   const cloudDailyTrendAvailable = cloudAnalyticsAvailable &&
-    isValidDailyTrend(cloud.daily_trend) && isValidDailyTrend(cloud.previous_daily_trend);
+    isValidDailyTrend(cloud.daily_trend) && isValidDailyTrend(cloud.previous_daily_trend) &&
+    cloud.daily_trend.length === cloud.previous_daily_trend.length &&
+    trendViewsTotal(cloud.daily_trend) === asNumber(cloud.current_views) &&
+    trendViewsTotal(cloud.previous_daily_trend) === asNumber(cloud.previous_views);
   // The database view table is legacy-only after the Cloudflare migration.
   // Do not display it as a live fallback when the authoritative Worker is unavailable.
   const viewCountsAvailable = cloudViewsAvailable;
@@ -411,14 +419,19 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const adminLogs = data.adminLogs || [];
   const notificationLogs = data.notifications || [];
   const nowDate = new Date();
-  const withinHours = (value, hours) => { const date = dateOf(value); return date ? nowDate - date <= hours * 3600000 : false; };
+  const withinHours = (value, hours) => {
+    const date = dateOf(value);
+    if (!date) return false;
+    const ageMs = nowDate.getTime() - date.getTime();
+    return ageMs >= 0 && ageMs <= hours * 3600000;
+  };
   const failedAdminLogs = adminLogs.filter(row => /fail|error/i.test(String(row.action || '')) || row.details?.error);
   const recentAdminLogs = adminLogs.filter(row => withinHours(row.created_at, 24));
   const distinctActions = new Set(adminLogs.map(row => String(row.action || '').trim()).filter(Boolean)).size;
   const failedNotifications = notificationLogs.filter(row => String(row.status || '').toLowerCase() === 'failed' || NUMBER(row.failed_count) > 0);
   const sentNotifications = notificationLogs.filter(row => ['sent', 'completed', 'success'].includes(String(row.status || '').toLowerCase()));
   const scheduledNotifications = notificationLogs.filter(row => String(row.status || '').toLowerCase() === 'scheduled');
-  const attemptedDeliveries = notificationLogs.reduce((sum, row) => sum + NUMBER(row.target_count || row.sent_count || 0), 0);
+  const attemptedDeliveries = notificationLogs.reduce((sum, row) => sum + NUMBER(row.target_count ?? row.sent_count ?? 0), 0);
   const deliveredNotifications = notificationLogs.reduce((sum, row) => sum + NUMBER(row.sent_count), 0);
   const failedDeliveryCount = notificationLogs.reduce((sum, row) => sum + NUMBER(row.failed_count), 0);
   const notificationSuccessRate = attemptedDeliveries > 0 ? deliveredNotifications / attemptedDeliveries * 100 : null;
