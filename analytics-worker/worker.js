@@ -93,6 +93,32 @@ async function readJson(env, key, fallback) {
   }
 }
 
+async function readArchiveState(env) {
+  const [summary, legacyImport] = await Promise.all([
+    readJson(env, summaryKey(), { version: 1, processedThrough: null, chapterViews: {}, updatedAt: null }),
+    readJson(env, `${ARCHIVE_PREFIX}/legacy-imported.json`, null),
+  ]);
+  const processedThrough = legacyImport && legacyImport.fallback !== true &&
+    /^\d{4}-\d{2}-\d{2}$/.test(String(summary.processedThrough || ''))
+    ? String(summary.processedThrough)
+    : null;
+  return { summary, legacyImport, processedThrough };
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(items.length, Math.max(1, Math.floor(Number(concurrency) || 1)));
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      results[index] = await mapper(items[index], index);
+    }
+  }));
+  return results;
+}
+
 async function writeJson(env, key, value) {
   await env.ANALYTICS_BUCKET.put(key, JSON.stringify(value), {
     httpMetadata: {
@@ -176,11 +202,12 @@ async function archiveCountsForPeriod(env, start, end) {
   return target;
 }
 
-async function combinedPeriodCounts(env, start, end) {
+async function combinedPeriodCounts(env, start, end, archiveState = null) {
   const result = {};
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
   const today = dayStart(new Date());
   const monthCache = new Map();
+  const archivedThrough = archiveState?.processedThrough || null;
   for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
     const day = dayKey(cursor);
     const nextDay = addDays(cursor, 1);
@@ -199,6 +226,10 @@ async function combinedPeriodCounts(env, start, end) {
       mergeChapterCounts(result, Object.entries(archived.chapters).map(([chapterId, views]) => ({ chapterId, views })));
       continue;
     }
+    // A completed archive covers every date through processedThrough, including days
+    // with no stored record. Missing records inside that range are true zero-view days,
+    // not cache misses that should trigger scans of the raw event bucket.
+    if (isFullDay && archivedThrough && day <= archivedThrough) continue;
     // Rolling windows often start partway through a UTC day. For those boundary
     // slices, count timestamped R2 events instead of including a whole daily archive.
     mergeChapterCounts(result, await viewRowsForPeriod(env, segmentStart, segmentEnd));
@@ -206,10 +237,11 @@ async function combinedPeriodCounts(env, start, end) {
   return result;
 }
 
-async function dailyTrendForPeriod(env, start, end) {
+async function dailyTrendForPeriod(env, start, end, archiveState = null) {
   const trend = [];
   const today = dayStart(new Date());
   const monthCache = new Map();
+  const archivedThrough = archiveState?.processedThrough || null;
   for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
     const day = dayKey(cursor);
     const nextDay = addDays(cursor, 1);
@@ -220,10 +252,16 @@ async function dailyTrendForPeriod(env, start, end) {
       const month = monthKey(cursor);
       if (!monthCache.has(month)) monthCache.set(month, await readJson(env, monthObjectKey(month), null));
       const record = monthCache.get(month)?.days?.[day];
-      if (record) {
+      const isFullDay = segmentStart.getTime() === cursor.getTime() && segmentEnd.getTime() === nextDay.getTime();
+      if (record && isFullDay) {
         const chapterCounts = record.chapters || {};
         views = Math.max(0, Number(record.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
+      } else if (isFullDay && archivedThrough && day <= archivedThrough) {
+        // The daily archive is complete through this date; absence of a record is zero.
+        views = 0;
       } else {
+        // Partial UTC days must use timestamped events so the chart totals reconcile
+        // with rolling-window totals instead of displaying the full daily archive.
         views = (await viewRowsForPeriod(env, segmentStart, segmentEnd)).reduce((sum, row) => sum + Number(row.views || 0), 0);
       }
     } else {
@@ -244,62 +282,88 @@ async function totalFromMap(map) {
   return Object.values(map).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
-async function readerMetrics(env, start, end) {
+async function readerMetrics(env, start, end, legacyImport = null) {
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) {
     return { activeReaders: 0, returningReaders: 0, unavailable: false };
   }
 
-  // R2 is already the durable source of truth for view events. Use the hashed
-  // viewer identity in each event key to calculate reader counts even when
-  // Analytics Engine is disabled or no SQL binding is available.
+  // The bootstrap imports historical events without a stable viewer identity.
+  // If this reporting window reaches before that import was completed, a reader
+  // total would be only a partial subset. Return an explicit unavailable state and
+  // avoid scanning many days when the UI must hide the result anyway.
+  const importedAt = Date.parse(legacyImport?.importedAt || '');
+  if (Number(legacyImport?.rows || 0) > 0 && Number.isFinite(importedAt) && start.getTime() < importedAt) {
+    return {
+      activeReaders: 0,
+      returningReaders: 0,
+      unavailable: true,
+      reason: 'This reporting window includes imported legacy views without stable viewer identities, so unique and returning reader counts cannot be complete.',
+      source: 'r2',
+    };
+  }
+
+  // R2 is the durable source of truth. Scan dates concurrently with a hard limit;
+  // sequential per-day lists made 7-day windows slow and can overwhelm the 15s UI
+  // timeout when periods are long.
   const activeViewers = new Set();
   const activeDaysByViewer = new Map();
   let identityIncomplete = false;
   try {
+    const dayWindows = [];
     for (let cursor = dayStart(start); cursor < end; cursor = addDays(cursor, 1)) {
       const day = dayKey(cursor);
       const nextDay = addDays(cursor, 1);
-      const prefix = `${ARCHIVE_PREFIX}/events/${day}/`;
-      const isFullDay = start.getTime() <= cursor.getTime() && end.getTime() >= nextDay.getTime();
+      dayWindows.push({
+        day,
+        prefix: `${ARCHIVE_PREFIX}/events/${day}/`,
+        isFullDay: start.getTime() <= cursor.getTime() && end.getTime() >= nextDay.getTime(),
+      });
+    }
+
+    const pagesByDay = await mapWithConcurrency(dayWindows, 8, async dayWindow => {
+      const objects = [];
       let pageCursor;
       do {
         const page = await env.ANALYTICS_BUCKET.list({
-          prefix,
+          prefix: dayWindow.prefix,
           limit: 1000,
           ...(pageCursor ? { cursor: pageCursor } : {}),
         });
-        for (const object of page.objects || []) {
-          const parts = object.key.slice(prefix.length).split('/');
-          const chapterId = parts[0];
-          const viewerHash = String(parts[1] || '').replace(/\.json$/i, '');
-          if (!validChapterId(chapterId)) continue;
-
-          // Boundary days contain events outside a rolling window. Validate timestamps
-          // before flagging missing identity, otherwise an out-of-window legacy event
-          // could incorrectly mark this reporting period as incomplete.
-          if (!isFullDay) {
-            const stored = await env.ANALYTICS_BUCKET.get(object.key);
-            if (!stored) continue;
-            let event;
-            try { event = await stored.json(); } catch { continue; }
-            const createdAt = new Date(event?.createdAt || 0).getTime();
-            if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
-          }
-
-          if (!/^[a-f0-9]{64}$/i.test(viewerHash)) {
-            // Imported legacy views preserve counts, but do not contain a recoverable
-            // viewer identity. Never present the identifiable subset as a complete
-            // active/returning reader count.
-            identityIncomplete = true;
-            continue;
-          }
-
-          activeViewers.add(viewerHash);
-          if (!activeDaysByViewer.has(viewerHash)) activeDaysByViewer.set(viewerHash, new Set());
-          activeDaysByViewer.get(viewerHash).add(day);
-        }
+        objects.push(...(page.objects || []));
         pageCursor = page.truncated ? page.cursor : null;
       } while (pageCursor);
+      return { ...dayWindow, objects };
+    });
+
+    for (const dayWindow of pagesByDay) {
+      const validObjects = dayWindow.objects.filter(object => {
+        const parts = object.key.slice(dayWindow.prefix.length).split('/');
+        return validChapterId(parts[0]);
+      });
+      const boundaryEvents = dayWindow.isFullDay
+        ? validObjects.map(object => ({ object, viewerHash: object.key.slice(dayWindow.prefix.length).split('/')[1]?.replace(/\.json$/i, '') }))
+        : (await mapWithConcurrency(validObjects, 16, async object => {
+          const stored = await env.ANALYTICS_BUCKET.get(object.key);
+          if (!stored) return null;
+          let event;
+          try { event = await stored.json(); } catch { return null; }
+          const createdAt = new Date(event?.createdAt || 0).getTime();
+          if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) return null;
+          const viewerHash = object.key.slice(dayWindow.prefix.length).split('/')[1]?.replace(/\.json$/i, '');
+          return { object, viewerHash };
+        })).filter(Boolean);
+
+      for (const event of boundaryEvents) {
+        const viewerHash = String(event.viewerHash || '');
+        if (!/^[a-f0-9]{64}$/i.test(viewerHash)) {
+          // Legacy events preserve view counts but not stable reader identity.
+          identityIncomplete = true;
+          continue;
+        }
+        activeViewers.add(viewerHash);
+        if (!activeDaysByViewer.has(viewerHash)) activeDaysByViewer.set(viewerHash, new Set());
+        activeDaysByViewer.get(viewerHash).add(dayWindow.day);
+      }
     }
 
     let returningReaders = 0;
@@ -551,17 +615,19 @@ async function handleAdminAnalytics(request, env) {
   const now = new Date();
   const currentStart = new Date(now.getTime() - days * DAY_MS);
   const previousStart = new Date(now.getTime() - days * 2 * DAY_MS);
-  const current = await combinedPeriodCounts(env, currentStart, now);
-  const previous = await combinedPeriodCounts(env, previousStart, currentStart);
-  const [currentReaders, previousReaders, dailyTrend, previousDailyTrend] = await Promise.all([
-    readerMetrics(env, currentStart, now),
-    readerMetrics(env, previousStart, currentStart),
-    dailyTrendForPeriod(env, currentStart, now),
-    dailyTrendForPeriod(env, previousStart, currentStart),
+  const archiveState = await readArchiveState(env);
+  const [current, previous] = await Promise.all([
+    combinedPeriodCounts(env, currentStart, now, archiveState),
+    combinedPeriodCounts(env, previousStart, currentStart, archiveState),
+  ]);
+  const [currentReaders, dailyTrend, previousDailyTrend] = await Promise.all([
+    readerMetrics(env, currentStart, now, archiveState.legacyImport),
+    dailyTrendForPeriod(env, currentStart, now, archiveState),
+    dailyTrendForPeriod(env, previousStart, currentStart, archiveState),
   ]);
 
-  const summary = await readJson(env, summaryKey(), { chapterViews: {} });
-  const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1));
+  const summary = archiveState.summary;
+  const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1), archiveState);
   const allTime = { ...(summary.chapterViews || {}) };
   // R2 is the source of truth for today's counts. An empty successful result is zero,
   // not a reason to resurrect values from a potentially stale hourly snapshot.
