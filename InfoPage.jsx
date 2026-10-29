@@ -20,7 +20,7 @@ const PAGES = {
     story: [
       'Atma Rekha is an original fantasy adventure manga created independently by Arkesh Kaalvantik. It brings together an unfolding mystery, unusual powers, and a world shaped by Indian cultural and spiritual influences. The story is released in Hindi (Roman Hindi) and English for readers in India and around the world.',
       'New chapters are planned for the 14th of each month, but dates can change when more time is needed to finish a chapter. Chapters 1 to 8 are currently free to read; later chapters may require a membership, as described on the Membership page.',
-      'The story, scripts, rough drawings, panel layouts, character direction, and final creative decisions are led by the creator. AI tools are used to assist parts of the visual workflow, including developing characters from original sketches. AI-generated material is not published directly as finished manga artwork; any AI-assisted reference used in a page is manually outlined or redrawn and reviewed as part of the final artwork.',
+      'The story, scripts, rough drawings, panel layouts, character direction, and final creative decisions are led by the creator. I use AI tools in parts of the visual process, including developing characters from my original sketches. AI generated material is not published directly as finished manga artwork; any AI-assisted reference used in a page is manually outlined or redrawn and reviewed as part of the final artwork.',
     ],
   },
   contact: {
