@@ -40,23 +40,30 @@ const chapterLabel = chapter => chapter.chapterNumber == null ? 'Unnumbered' : '
 const csvCell = value => '"' + String(value ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
 const adminAction = (name, detail) => window.dispatchEvent(new CustomEvent(name, { detail }));
 
-function LibraryChart({ chapters, viewsAvailable = true, viewsUnavailableReason = '' }) {
-  const rows = [...chapters].sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0)).slice(-10);
+function LibraryChart({ chapters, viewsAvailable = true, viewsUnavailableReason = '', engagementAvailable = true }) {
+  const rows = [...chapters]
+    .filter(chapter => !chapter.deleted_at && String(chapter.status || '').toLowerCase() === 'published')
+    .sort((a, b) => Number(a.chapterNumber || 0) - Number(b.chapterNumber || 0))
+    .slice(-10);
   if (!viewsAvailable) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>View analytics unavailable</strong><span>{viewsUnavailableReason || 'Cloudflare Analytics did not return trusted view counts. Check Control Room → Audit & Reliability.'}</span></div>;
-  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
+  if (!rows.length) return <div className="ar-empty-chart"><AdminIcon name="chart" size={28}/><strong>Not enough published chapter data yet</strong><span>Publish chapters to unlock the reach view.</span></div>;
 
   const maxViews = Math.max(...rows.map(row => Number(row.periodViews || 0)), 1);
-  const maxEngagement = Math.max(...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)), 1);
+  const maxEngagement = engagementAvailable
+    ? Math.max(...rows.map(row => Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)), 1)
+    : 1;
   return <div className="ar-chart-wrap">
     <div className="ar-chart-legend">
       <span><i className="dot violet"/>Views</span>
-      <span><i className="dot pink"/>Engagement</span>
-      <small>Real chapter totals · last 10 published</small>
+      {engagementAvailable && <span><i className="dot pink"/>Engagement</span>}
+      <small>{engagementAvailable ? 'Real chapter totals · last 10 published' : 'View totals are live; engagement data is unavailable.'}</small>
     </div>
     <div className="ar-chart-bars" role="img" aria-label="Chapter views and engagement">
       {rows.map(row => {
         const viewValue = Number(row.periodViews || 0);
-        const engagementValue = Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0);
+        const engagementValue = engagementAvailable
+          ? Number(row.periodLikes || 0) + Number(row.periodShares || 0) + Number(row.periodRatingCount || 0)
+          : 0;
         const viewH = viewValue > 0 ? Math.max(2, viewValue / maxViews * 100) : 0;
         const engagementH = engagementValue > 0 ? Math.max(2, engagementValue / maxEngagement * 100) : 0;
         return <div className="ar-chart-column" key={row.id}>
@@ -68,9 +75,12 @@ function LibraryChart({ chapters, viewsAvailable = true, viewsUnavailableReason 
   </div>;
 }
 
-function RatingDonut({ counts, total }) {
+function RatingDonut({ counts, total, available = true }) {
+  if (!available) return <div className="ar-empty-chart"><AdminIcon name="sparkle" size={24}/><strong>Rating analytics unavailable</strong><span>The engagement analytics source did not return reliable rating totals.</span></div>;
+  if (total == null || !Number.isFinite(Number(total))) return <div className="ar-empty-chart"><strong>Rating analytics unavailable</strong></div>;
+  if (Number(total) === 0) return <div className="ar-empty-chart"><strong>No ratings yet</strong><span>Ratings will appear here after readers submit them.</span></div>;
   const positive = counts.reduce((sum, row) => sum + (row.rating >= 8 ? row.count : 0), 0);
-  const percentage = total ? Math.round(positive / total * 100) : 0;
+  const percentage = Math.round(positive / Number(total) * 100);
   return <div className="ar-donut-wrap">
     <div className="ar-donut-ring" style={{ '--donut-pct': percentage }}><strong>{percentage}%</strong><span>8–10</span></div>
     <div><strong>{formatNumber(total)} ratings</strong><span>Positive ratings share</span></div>
