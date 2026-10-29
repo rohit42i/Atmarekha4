@@ -762,6 +762,8 @@ const pdlplRollbackRegressionSource = await readFile('PalDoPalAdmin.jsx', 'utf8'
 const adminProToolsRegressionSource = await readFile('AdminProTools.jsx', 'utf8');
 const adminFunctionalityRegressionChecks = [
   ['AdminPanel.jsx', adminPanel, "const { error: rollbackError } = await supabase.from(CHAPTERS).delete().eq('id', chapterId);"],
+  ['AdminPanel.jsx', adminPanel, 'const deferNewChapterCleanup = chapterCreated && !pagesCommitted && Boolean(chapterId);'],
+  ['AdminPanel.jsx', adminPanel, "if (!committed && !deferNewChapterCleanup)"],
   ['AdminPanel.jsx', adminPanel, "catch (rollbackError)"],
   ['AdminPanel.jsx', adminPanel, "chapter_rollback_failed"],
   ['AdminChapterPages.jsx', adminPageEditorRegressionSource, 'const pageLoadSequence = useRef(0);'],
