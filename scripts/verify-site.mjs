@@ -472,6 +472,11 @@ if (!adminViewCountRegression.includes('const hasViewCounts = hasCloudflareViews
     !controlRoomViewCountRegression.includes('const currentViews = cloudViewsAvailable ? asNumber(cloud.current_views) : null;') ||
     !controlRoomViewCountRegression.includes('const cloudDailyTrendAvailable =') ||
     !controlRoomViewCountRegression.includes('const isValidDailyTrend =') ||
+    !controlRoomViewCountRegression.includes('trendViewsTotal(cloud.daily_trend) === asNumber(cloud.current_views)') ||
+    !controlRoomViewCountRegression.includes('const analyticsMetricsAvailable =') ||
+    !controlRoomViewCountRegression.includes('values.filter(value => value !== null && value !== undefined && value !== \'\')') ||
+    !controlRoomViewCountRegression.includes('return ageMs >= 0 && ageMs <= hours * 3600000;') ||
+    !controlRoomViewCountRegression.includes('row.target_count ?? row.sent_count ?? 0') ||
     !controlRoomViewCountRegression.includes('views: asNumber(row.views), partial: Boolean(row.partial)') ||
     controlRoomViewCountRegression.includes('const fallbackViewsAvailable =')) {
   console.error('CHECK FAILED: admin dashboards must use Cloudflare/R2 as the authoritative view source and hide view counts when that source is unavailable.');
