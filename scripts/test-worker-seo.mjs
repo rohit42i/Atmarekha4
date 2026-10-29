@@ -47,6 +47,11 @@ try {
   assert.match(aboutHtml, /<title>About Atma Rekha \| Creator and Story<\/title>/);
   assert.match(aboutHtml, /Meet Arkesh, the solo creator of Atma Rekha, and learn about the story and how it is made./);
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
+  assert.match(aboutHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
+  assert.match(aboutHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png\?v=20261029"/);
+  assert.match(aboutHtml, /property="og:image:type" content="image\/png"/);
+  assert.match(aboutHtml, /name="twitter:card" content="summary_large_image"/);
+  assert.match(aboutHtml, /property="og:title" content="About Atma Rekha \| Creator and Story"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
   assert.equal(about.headers.get("strict-transport-security"), "max-age=15552000");
 
@@ -72,6 +77,10 @@ try {
   const chapterHindiHtml = await chapterHindi.text();
   assert.match(chapterHindiHtml, /<title>The Forgotten Dream \| Atma Rekha<\/title>/);
   assert.match(chapterHindiHtml, /property="og:title" content="The Forgotten Dream \| Atma Rekha"/);
+  assert.match(chapterHindiHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
+  assert.match(chapterHindiHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
+  assert.doesNotMatch(chapterHindiHtml, /property="og:image:type"/);
+  assert.match(chapterHindiHtml, /name="twitter:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
   assert.match(chapterHindiHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/1"/);
   assert.match(chapterHindiHtml, /"@type":"ComicStory"/);
   assert.match(chapterHindiHtml, /"@type":"BreadcrumbList"/);
