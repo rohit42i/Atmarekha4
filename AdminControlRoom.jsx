@@ -27,6 +27,10 @@ const SECTIONS = [
 ];
 const NUMBER = value => Number.isFinite(Number(value)) ? Number(value) : 0;
 const asNumber = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
+const isValidDailyTrend = rows => Array.isArray(rows) && rows.length > 0 && rows.every(row =>
+  row && /^\d{4}-\d{2}-\d{2}$/.test(String(row.day || '')) &&
+  asNumber(row.views) !== null && Number(row.views) >= 0
+);
 const fmtNum = value => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 1 });
 const fmtMoney = value => '₹' + Math.round(Number(value) || 0).toLocaleString('en-IN');
 const dateOf = value => {
@@ -269,6 +273,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const cloud = data.cloudflare || {};
   const cloudAnalyticsAvailable = data.cloudflare != null && !data.cloudflareError;
   const cloudViewsAvailable = cloudAnalyticsAvailable && ['total_views', 'current_views', 'previous_views'].every(key => asNumber(cloud[key]) != null);
+  const cloudDailyTrendAvailable = cloudAnalyticsAvailable &&
+    isValidDailyTrend(cloud.daily_trend) && isValidDailyTrend(cloud.previous_daily_trend);
   // The database view table is legacy-only after the Cloudflare migration.
   // Do not display it as a live fallback when the authoritative Worker is unavailable.
   const viewCountsAvailable = cloudViewsAvailable;
@@ -292,8 +298,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   // The Worker explicitly flags reader-metric query failures; hide those values rather than showing a false zero.
   const activeReaders = cloudReadersAvailable ? asNumber(cloud.active_readers) : null;
   const returningReaders = cloudReadersAvailable ? asNumber(cloud.returning_readers) : null;
-  const dailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.daily_trend) ? cloud.daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
-  const previousDailyTrendRows = cloudViewsAvailable && Array.isArray(cloud.previous_daily_trend) ? cloud.previous_daily_trend.map(row => ({ day: String(row.day || ''), views: asNumber(row.views) ?? 0, partial: Boolean(row.partial) })) : [];
+  const dailyTrendRows = cloudDailyTrendAvailable ? cloud.daily_trend.map(row => ({ day: String(row.day), views: asNumber(row.views), partial: Boolean(row.partial) })) : [];
+  const previousDailyTrendRows = cloudDailyTrendAvailable ? cloud.previous_daily_trend.map(row => ({ day: String(row.day), views: asNumber(row.views), partial: Boolean(row.partial) })) : [];
   const dailyViewValues = dailyTrendRows.map(row => row.views);
   const previousDailyViewValues = previousDailyTrendRows.map(row => row.views);
   const dailyMean = average(dailyViewValues);
@@ -496,23 +502,23 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Traffic & Reach', 'Published chapters with reads', cloudViewsAvailable ? chaptersWithViews.length : null, 'count', 'Published chapters represented in chapter analytics that have at least one lifetime view.', 'Chapter analytics'),
         m('Traffic & Reach', 'Published chapters with zero reads', cloudViewsAvailable ? viewlessChapters.length : null, 'count', 'Published chapters represented in analytics with zero lifetime views.', 'Chapter analytics'),
         m('Traffic & Reach', 'Median lifetime views per published chapter', cloudViewsAvailable ? median(publishedChapterStats.map(row => Number(row.views || 0))) : null, 'decimal', 'Median lifetime views across published chapters represented in analytics.', 'Chapter analytics'),
-        m('Traffic & Reach', 'Daily trend buckets returned', cloudViewsAvailable && cloud.daily_trend ? dailyTrendRows.length : null, 'count', 'Number of UTC calendar buckets in the selected rolling window; boundary buckets may be partial.', 'Cloudflare Analytics Engine and R2 archive'),
-        m('Traffic & Reach', 'Days with at least one view', cloudViewsAvailable && cloud.daily_trend ? activeViewDays : null, 'count', 'Selected-window date buckets with one or more chapter views.', 'Daily trend'),
-        m('Traffic & Reach', 'Days with zero views', cloudViewsAvailable && cloud.daily_trend ? dailyTrendRows.filter(row => row.views === 0).length : null, 'count', 'Selected-window date buckets with no recorded chapter views.', 'Daily trend'),
-        m('Traffic & Reach', 'Average views per daily bucket', cloudViewsAvailable && cloud.daily_trend ? dailyMean : null, 'decimal', 'Mean views per returned UTC calendar bucket, including zero-view buckets.', 'Daily trend'),
-        m('Traffic & Reach', 'Median views per daily bucket', cloudViewsAvailable && cloud.daily_trend ? median(dailyViewValues) : null, 'decimal', 'Median views across returned UTC calendar buckets.', 'Daily trend'),
-        m('Traffic & Reach', 'Peak daily views', cloudViewsAvailable && cloud.daily_trend ? peakDailyRow?.views ?? null : null, 'count', 'Highest daily total in the selected reporting window.', 'Daily trend'),
-        m('Traffic & Reach', 'Date of peak daily views', cloudViewsAvailable && cloud.daily_trend ? peakDailyRow?.day ?? null : null, 'text', 'UTC date of the highest daily view total.', 'Daily trend'),
-        m('Traffic & Reach', 'Previous window peak daily views', cloudViewsAvailable && cloud.previous_daily_trend ? previousPeakDaily?.views ?? null : null, 'count', 'Highest daily total in the previous equal-length reporting window.', 'Previous daily trend'),
-        m('Traffic & Reach', 'Active-day coverage', cloudViewsAvailable && cloud.daily_trend ? ratio(activeViewDays, dailyTrendRows.length) : null, 'percent', 'Share of returned date buckets with at least one view.', 'Daily trend'),
-        m('Traffic & Reach', 'Daily views standard deviation', cloudViewsAvailable && cloud.daily_trend ? dailyStdDev : null, 'decimal', 'Population standard deviation across daily view totals.', 'Daily trend'),
-        m('Traffic & Reach', 'Daily views volatility', cloudViewsAvailable && cloud.daily_trend && dailyMean > 0 ? dailyStdDev / dailyMean * 100 : null, 'percent', 'Coefficient of variation for daily view totals; higher values indicate more uneven daily reach.', 'Daily trend'),
-        m('Traffic & Reach', 'Days with growth versus prior day', cloudViewsAvailable && cloud.daily_trend ? positiveDailyChanges : null, 'count', 'Adjacent UTC date buckets where views increased.', 'Daily trend'),
-        m('Traffic & Reach', 'Most-viewed weekday', cloudViewsAvailable && cloud.daily_trend ? (busiestWeekday?.label || null) : null, 'text', 'Weekday with the highest average views in this window; partial boundary dates can affect the sample.', 'Daily trend'),
-        m('Traffic & Reach', 'Average weekend views', cloudViewsAvailable && cloud.daily_trend ? average(weekendValues) : null, 'decimal', 'Mean daily views for Saturday and Sunday buckets in the selected window.', 'Daily trend'),
-        m('Traffic & Reach', 'Average weekday views', cloudViewsAvailable && cloud.daily_trend ? average(weekdayValues) : null, 'decimal', 'Mean daily views for Monday through Friday buckets in the selected window.', 'Daily trend'),
-        m('Traffic & Reach', 'Last daily bucket change', cloudViewsAvailable && cloud.daily_trend ? lastDailyChange : null, 'percent', 'Change between the last two returned daily buckets. Boundary buckets may be partial.', 'Daily trend'),
-        m('Traffic & Reach', 'Active-day change vs previous period', cloudViewsAvailable && cloud.daily_trend && cloud.previous_daily_trend ? deltaPercent(activeViewDays, previousActiveViewDays) : null, 'percent', 'Period-over-period change in date buckets with at least one recorded view.', 'Current and previous daily trends'),
+        m('Traffic & Reach', 'Daily trend buckets returned', cloudDailyTrendAvailable ? dailyTrendRows.length : null, 'count', 'Number of UTC calendar buckets in the selected rolling window; boundary buckets may be partial.', 'Cloudflare Analytics Engine and R2 archive'),
+        m('Traffic & Reach', 'Days with at least one view', cloudDailyTrendAvailable ? activeViewDays : null, 'count', 'Selected-window date buckets with one or more chapter views.', 'Daily trend'),
+        m('Traffic & Reach', 'Days with zero views', cloudDailyTrendAvailable ? dailyTrendRows.filter(row => row.views === 0).length : null, 'count', 'Selected-window date buckets with no recorded chapter views.', 'Daily trend'),
+        m('Traffic & Reach', 'Average views per daily bucket', cloudDailyTrendAvailable ? dailyMean : null, 'decimal', 'Mean views per returned UTC calendar bucket, including zero-view buckets.', 'Daily trend'),
+        m('Traffic & Reach', 'Median views per daily bucket', cloudDailyTrendAvailable ? median(dailyViewValues) : null, 'decimal', 'Median views across returned UTC calendar buckets.', 'Daily trend'),
+        m('Traffic & Reach', 'Peak daily views', cloudDailyTrendAvailable ? peakDailyRow?.views ?? null : null, 'count', 'Highest daily total in the selected reporting window.', 'Daily trend'),
+        m('Traffic & Reach', 'Date of peak daily views', cloudDailyTrendAvailable ? peakDailyRow?.day ?? null : null, 'text', 'UTC date of the highest daily view total.', 'Daily trend'),
+        m('Traffic & Reach', 'Previous window peak daily views', cloudDailyTrendAvailable ? previousPeakDaily?.views ?? null : null, 'count', 'Highest daily total in the previous equal-length reporting window.', 'Previous daily trend'),
+        m('Traffic & Reach', 'Active-day coverage', cloudDailyTrendAvailable ? ratio(activeViewDays, dailyTrendRows.length) : null, 'percent', 'Share of returned date buckets with at least one view.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily views standard deviation', cloudDailyTrendAvailable ? dailyStdDev : null, 'decimal', 'Population standard deviation across daily view totals.', 'Daily trend'),
+        m('Traffic & Reach', 'Daily views volatility', cloudDailyTrendAvailable && dailyMean > 0 ? dailyStdDev / dailyMean * 100 : null, 'percent', 'Coefficient of variation for daily view totals; higher values indicate more uneven daily reach.', 'Daily trend'),
+        m('Traffic & Reach', 'Days with growth versus prior day', cloudDailyTrendAvailable ? positiveDailyChanges : null, 'count', 'Adjacent UTC date buckets where views increased.', 'Daily trend'),
+        m('Traffic & Reach', 'Most-viewed weekday', cloudDailyTrendAvailable ? (busiestWeekday?.label || null) : null, 'text', 'Weekday with the highest average views in this window; partial boundary dates can affect the sample.', 'Daily trend'),
+        m('Traffic & Reach', 'Average weekend views', cloudDailyTrendAvailable ? average(weekendValues) : null, 'decimal', 'Mean daily views for Saturday and Sunday buckets in the selected window.', 'Daily trend'),
+        m('Traffic & Reach', 'Average weekday views', cloudDailyTrendAvailable ? average(weekdayValues) : null, 'decimal', 'Mean daily views for Monday through Friday buckets in the selected window.', 'Daily trend'),
+        m('Traffic & Reach', 'Last daily bucket change', cloudDailyTrendAvailable ? lastDailyChange : null, 'percent', 'Change between the last two returned daily buckets. Boundary buckets may be partial.', 'Daily trend'),
+        m('Traffic & Reach', 'Active-day change vs previous period', cloudDailyTrendAvailable && cloud.previous_daily_trend ? deltaPercent(activeViewDays, previousActiveViewDays) : null, 'percent', 'Period-over-period change in date buckets with at least one recorded view.', 'Current and previous daily trends'),
       ],
       'Content Intelligence': [
         m('Content Intelligence', 'Published chapters', published.length, 'count', 'Published, non-archived chapter records currently loaded.', 'Chapter inventory'),
@@ -675,9 +681,9 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         m('Deep Analytics', 'Period views standard deviation by chapter', cloudViewsAvailable ? standardDeviation(publishedChapterStats.map(row => Number(row.period_views || 0))) : null, 'decimal', 'Population standard deviation of selected-window views across published chapters.', 'Published chapter-level analytics'),
         m('Deep Analytics', 'Lifetime chapter-view range', cloudViewsAvailable && chapterViews.length ? Math.max(...chapterViews) - Math.min(...chapterViews) : null, 'count', 'Difference between highest and lowest lifetime chapter views in the loaded analytics rows.', 'Chapter analytics'),
         m('Deep Analytics', 'Chapters with 1,000+ lifetime views', cloudViewsAvailable ? chapterStats.filter(row => Number(row.views || 0) >= 1000).length : null, 'count', 'Count of returned chapter analytics rows that have at least 1,000 lifetime views.', 'Chapter analytics'),
-        m('Deep Analytics', 'Latest daily bucket vs daily mean', cloudViewsAvailable && cloud.daily_trend && dailyMean > 0 && dailyTrendRows.length ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyMean) : null, 'percent', 'Last returned UTC daily bucket compared with the mean for all returned buckets; boundary buckets may be partial.', 'Cloudflare daily trend'),
-        m('Deep Analytics', 'Peak day share of selected-window views', cloudViewsAvailable && cloud.daily_trend && Number(currentViews) > 0 && peakDailyRow ? Number(peakDailyRow.views || 0) / Number(currentViews) * 100 : null, 'percent', 'Peak daily bucket divided by selected-window aggregate views. Daily buckets are UTC and may include partial days.', 'Cloudflare daily trend and period views'),
-        m('Deep Analytics', 'First-half to second-half daily view change', cloudViewsAvailable && cloud.daily_trend && dailyTrendRows.length >= 2 ? (() => { const split = Math.floor(dailyTrendRows.length / 2); const first = dailyTrendRows.slice(0, split).reduce((sum, row) => sum + Number(row.views || 0), 0); const second = dailyTrendRows.slice(split).reduce((sum, row) => sum + Number(row.views || 0), 0); return deltaPercent(second, first); })() : null, 'percent', 'Compares the second half of returned daily buckets with the first half; this is a within-window directional comparison, not a forecast.', 'Cloudflare daily trend'),
+        m('Deep Analytics', 'Latest daily bucket vs daily mean', cloudDailyTrendAvailable && dailyMean > 0 && dailyTrendRows.length ? deltaPercent(dailyTrendRows[dailyTrendRows.length - 1].views, dailyMean) : null, 'percent', 'Last returned UTC daily bucket compared with the mean for all returned buckets; boundary buckets may be partial.', 'Cloudflare daily trend'),
+        m('Deep Analytics', 'Peak day share of selected-window views', cloudDailyTrendAvailable && Number(currentViews) > 0 && peakDailyRow ? Number(peakDailyRow.views || 0) / Number(currentViews) * 100 : null, 'percent', 'Peak daily bucket divided by selected-window aggregate views. Daily buckets are UTC and may include partial days.', 'Cloudflare daily trend and period views'),
+        m('Deep Analytics', 'First-half to second-half daily view change', cloudDailyTrendAvailable && dailyTrendRows.length >= 2 ? (() => { const split = Math.floor(dailyTrendRows.length / 2); const first = dailyTrendRows.slice(0, split).reduce((sum, row) => sum + Number(row.views || 0), 0); const second = dailyTrendRows.slice(split).reduce((sum, row) => sum + Number(row.views || 0), 0); return deltaPercent(second, first); })() : null, 'percent', 'Compares the second half of returned daily buckets with the first half; this is a within-window directional comparison, not a forecast.', 'Cloudflare daily trend'),
         m('Deep Analytics', 'Active chapters with complete publication fields', activeChapters.filter(row => String(row.title || '').trim() && String(row.description || '').trim() && String(row.cover_url || row.coverUrl || '').trim() && Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) > 0).length, 'count', 'Loaded non-archived chapter rows with a title, description, cover URL and at least one page.', 'Chapter inventory and page counts'),
         m('Deep Analytics', 'Active chapter content completeness', activeChapters.length ? activeChapters.filter(row => String(row.title || '').trim() && String(row.description || '').trim() && String(row.cover_url || row.coverUrl || '').trim() && Number(pageCounts[row.id] ?? chapterStats.find(item => String(item.id) === String(row.id))?.pages ?? row.pages_count ?? 0) > 0).length / activeChapters.length * 100 : null, 'percent', 'Share of loaded non-archived chapter rows with a title, description, cover URL and at least one page.', 'Chapter inventory and page counts'),
         m('Deep Analytics', 'Active languages in chapter inventory', activeLanguages.size, 'count', 'Number of distinct non-empty language labels across loaded non-archived chapter records.', 'Chapter inventory'),
