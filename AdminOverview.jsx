@@ -27,7 +27,7 @@ const hasReliableEngagementMetrics = payload => {
   const fields = [
     'total_likes', 'total_shares', 'total_comments', 'total_ratings', 'rating_sum',
     'current_likes', 'previous_likes', 'current_shares', 'previous_shares',
-    'current_comments', 'previous_comments', 'current_ratings', 'previous_ratings', 'bookmarks', 'released',
+    'current_comments', 'previous_comments', 'current_ratings', 'previous_ratings', 'bookmarks',
   ];
   if (!fields.every(key => isFiniteMetric(payload[key]))) return false;
   if (!Array.isArray(payload.chapter_stats) || !Array.isArray(payload.rating_counts)) return false;
@@ -290,7 +290,15 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
             previous_comments: hasBaseAnalytics ? Number(base.previous_comments) : null,
             current_ratings: hasBaseAnalytics ? Number(base.current_ratings) : null,
             bookmarks: hasBaseAnalytics ? Number(base.bookmarks) : null,
-            released: hasBaseAnalytics ? Number(base.released) : null,
+            released: hasBaseAnalytics && Array.isArray(base.chapter_stats)
+              ? base.chapter_stats.filter(row => {
+                  const releaseDate = new Date(row.releaseDate || row.release_date || 0).getTime();
+                  const status = String(row.status || '').toLowerCase();
+                  const periodStart = Date.now() - Number(days) * 86400000;
+                  return status === 'published' && Number.isFinite(releaseDate) &&
+                    releaseDate >= periodStart && releaseDate <= Date.now();
+                }).length
+              : null,
             rating_counts: hasBaseAnalytics ? base.rating_counts : [],
             total_views: hasCloudflareViews ? Number(cloudflare.total_views) : null,
             current_views: hasCloudflareViews ? Number(cloudflare.current_views) : null,
