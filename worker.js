@@ -155,7 +155,7 @@ function addJsonLd(html, nodes) {
   const match = html.match(pattern);
   let base = null;
   try { if (match) base = JSON.parse(match[1]); } catch (_) {}
-  if (!base) base = { "@context": "https://schema.org", "@type": "WebSite", "@id": SITE_ORIGIN + "/#website", name: "Atma Rekha", url: SITE_ORIGIN + "/", creator: { "@type": "Person", name: "Arkesh" } };
+  if (!base) base = { "@context": "https://schema.org", "@type": "WebSite", "@id": SITE_ORIGIN + "/#website", name: "Atma Rekha", url: SITE_ORIGIN + "/", creator: { "@type": "Person", name: "Arkesh Kaalvantik" } };
   const graph = Array.isArray(base["@graph"]) ? base["@graph"] : [base];
   graph.push(...nodes);
   const script = '<script type="application/ld+json" id="atma-rekha-site-schema">' + JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c") + "</script>";
@@ -196,10 +196,13 @@ async function addServerSeo(request, response, env) {
     const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
-    const shareTitle = path === "/" ? "Atma Rekha | Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Fantasy Adventure Manga";
-    const shareDescription = path === "/" ? "Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original fantasy adventure manga by Arkesh, available in Hindi (Roman Hindi) and English.";
+    const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Indian Fantasy Adventure Manga";
+    const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.";
     html = setMeta(html, "property", "og:type", "website");
     html = setMeta(html, "property", "og:site_name", "Atma Rekha");
+    html = setTitle(html, shareTitle);
+    html = setMeta(html, "name", "description", shareDescription);
+    html = setMeta(html, "name", "author", "Arkesh Kaalvantik");
     html = setMeta(html, "property", "og:title", shareTitle);
     html = setMeta(html, "property", "og:description", shareDescription);
     html = setMeta(html, "property", "og:url", canonical);
@@ -242,7 +245,7 @@ async function addServerSeo(request, response, env) {
       } else {
         const name = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number)).trim().slice(0, 180);
         const title = name + " | Atma Rekha";
-        const description = ("Read " + name + " of Atma Rekha, a fantasy adventure manga by Arkesh.").slice(0, 160);
+        const description = ("Read " + name + " of Atma Rekha, an Indian fantasy adventure manga by Arkesh Kaalvantik.").slice(0, 160);
         const canonical = SITE_ORIGIN + chapterPath(chapter);
         const image = safeCover(chapter.cover_url);
         const language = normalizeLanguage(chapter.language);
@@ -259,7 +262,7 @@ async function addServerSeo(request, response, env) {
 
         html = setTitle(html, title);
         html = setMeta(html, "name", "description", description);
-        html = setMeta(html, "name", "author", "Arkesh");
+        html = setMeta(html, "name", "author", "Arkesh Kaalvantik");
         html = setMeta(html, "name", "robots", "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1");
         html = setMeta(html, "property", "og:type", "article");
         html = setMeta(html, "property", "og:site_name", "Atma Rekha");
@@ -294,7 +297,7 @@ async function addServerSeo(request, response, env) {
           },
           {
             "@type": "ComicStory", "@id": canonical, name: name, headline: name, description: description,
-            author: { "@type": "Person", name: "Arkesh" }, image: image, url: canonical, mainEntityOfPage: canonical,
+            author: { "@type": "Person", name: "Arkesh Kaalvantik" }, image: image, url: canonical, mainEntityOfPage: canonical,
             isPartOf: { "@id": SITE_ORIGIN + "/#atma-rekha" },
             datePublished: chapter.release_date || chapter.created_at || undefined,
             inLanguage: language === "en" ? "en-IN" : "hi-Latn-IN",
