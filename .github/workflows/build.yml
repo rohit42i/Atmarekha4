@@ -63,6 +63,7 @@ jobs:
           node --check worker.js
           node --check atma-media-worker/index.js
           node --check scripts/smoke-test-live-site.mjs
+          node --check scripts/submit-indexnow.mjs
           node scripts/test-worker-seo.mjs
 
       - name: Build production bundle
@@ -206,6 +207,11 @@ jobs:
       - name: Verify live site routes, assets, and security headers
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: node scripts/smoke-test-live-site.mjs
+
+      - name: Notify IndexNow about updated public URLs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: node scripts/submit-indexnow.mjs
 
   deploy-atma-media-worker:
     name: Deploy Atma media Worker (independent hotfix path)
