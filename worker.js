@@ -343,7 +343,7 @@ function sitemapDate(value) {
 }
 
 async function loadAllPublishedChapters(env) {
-  const base = String(env.SUPABASE_URL || SUPABASE_URL).replace(/\\/+$/, "");
+  const base = String(env.SUPABASE_URL || SUPABASE_URL).replace(/\/+$/, "");
   const key = String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || PUBLIC_SUPABASE_KEY);
   const rows = [];
   const pageSize = 500;
@@ -417,7 +417,7 @@ function buildSitemapXml(chapters) {
       .map(item => '    <xhtml:link rel="alternate" hreflang="' + escapeXml(item.language) + '" href="' + escapeXml(item.url) + '" />'),
     entry.lastmod ? "    <lastmod>" + entry.lastmod + "</lastmod>" : "",
     "  </url>",
-  ].filter(Boolean).join("\\n"));
+  ].filter(Boolean).join("\n"));
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
