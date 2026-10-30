@@ -237,6 +237,7 @@ async function addServerSeo(request, response, env) {
   const headers = new Headers(response.headers);
   const isPrivate = privatePath(path);
   const isKnown = knownPath(path);
+  let chapterResolved = null;
 
   if (!isKnown && response.status === 200 && (headers.get("Content-Type") || "").toLowerCase().includes("text/html")) {
     headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
