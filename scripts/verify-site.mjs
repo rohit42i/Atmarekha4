@@ -1063,5 +1063,6 @@ if (!crawlerRules.includes('Sitemap: https://www.atmarekha.in/sitemap.xml')) {
   console.error('CHECK FAILED: robots.txt does not reference the canonical sitemap.');
   failed = true;
 }
-\nif (failed) process.exit(1);
+
+if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
