@@ -46,7 +46,7 @@ try {
   const sitemapResponse = await worker.fetch(new Request("https://www.atmarekha.in/sitemap.xml"), env);
   const sitemapXml = await sitemapResponse.text();
   assert.equal(sitemapResponse.status, 200);
-  assert.match(sitemapResponse.headers.get("content-type") || "", /application\\/xml/i);
+  assert.ok((sitemapResponse.headers.get("content-type") || "").includes("application/xml"));
   for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact"]) {
     assert.ok(sitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Sitemap is missing public URL: " + path);
   }
