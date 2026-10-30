@@ -6,7 +6,7 @@ const previousCaches = globalThis.caches;
 const cacheStore = new Map();
 const chapterRows = [
   { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
-  { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/private-cover.png", release_date: "2026-09-14T00:00:00Z" },\n  { id: "draft-2", chapter_number: 2, title: "Unreleased", language: "hi", status: "draft", release_date: "2026-10-01T00:00:00Z" },
 ];
 globalThis.caches = {
   default: {
@@ -41,6 +41,18 @@ const env = {
 };
 
 try {
+  const sitemapResponse = await worker.fetch(new Request("https://www.atmarekha.in/sitemap.xml"), env);
+  const sitemapXml = await sitemapResponse.text();
+  assert.equal(sitemapResponse.status, 200);
+  assert.match(sitemapResponse.headers.get("content-type") || "", /application\\/xml/i);
+  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact"]) {
+    assert.ok(sitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Sitemap is missing public URL: " + path);
+  }
+  assert.ok(sitemapXml.includes('hreflang="en-IN"') && sitemapXml.includes('hreflang="hi-Latn-IN"'), "Published chapter language alternates are missing.");
+  assert.ok(!sitemapXml.includes("Unreleased") && !sitemapXml.includes("draft-2"), "Unpublished chapters must not appear in the sitemap.");
+  assert.ok(!sitemapXml.includes("storage/") && !sitemapXml.includes("<image:image>"), "Sitemap must not expose storage or image URLs.");
+  assert.match(sitemapResponse.headers.get("cache-control") || "", /max-age=300/);
+
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
