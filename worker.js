@@ -323,6 +323,12 @@ async function addServerSeo(request, response, env) {
     }
   }
 
+  if (!isKnown && !isPrivate) {
+    html = setTitle(html, "Page not found | Atma Rekha");
+    html = setMeta(html, "name", "description", "The page you requested is not available. Browse the official Atma Rekha homepage or chapter catalogue.");
+    html = setCanonical(html, SITE_ORIGIN + path);
+  }
+
   let seoChapters = null;
   let seoChapter = null;
   if (path === "/chapters") {
