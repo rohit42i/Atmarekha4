@@ -4,6 +4,8 @@ import { createRequire } from "node:module";
 
 const INPUT = "public/ishani.png";
 const OUTPUT = "public/og-atmarekha.jpg";
+const WEBP_OUTPUT = "public/ishani.webp";
+const WEBP_MAX_BYTES = 1024 * 1024;
 const WIDTH = 1200;
 const HEIGHT = 630;
 const MAX_BYTES = 600 * 1024;
@@ -67,8 +69,51 @@ assert.equal(outputMetadata.width, WIDTH, "Social preview width must be exactly 
 assert.equal(outputMetadata.height, HEIGHT, "Social preview height must be exactly 630 pixels.");
 assert.ok((await stat(OUTPUT)).size <= MAX_BYTES, "Final social preview is larger than the 600 KiB target.");
 
+// Build a smaller modern web image from the same artwork. Keep the original PNG
+// for older integrations that may still reference it.
+let webpOutput;
+let webpQuality;
+for (const quality of [82, 76, 70, 64, 58]) {
+  webpOutput = await sharp(source)
+    .rotate()
+    .resize(1800, 1800, { fit: "inside", withoutEnlargement: true, kernel: sharp.kernel.lanczos3 })
+    .webp({ quality, effort: 5, smartSubsample: true })
+    .toBuffer();
+  if (webpOutput.byteLength <= WEBP_MAX_BYTES) {
+    webpQuality = quality;
+    break;
+  }
+}
+assert.ok(webpOutput && webpOutput.byteLength <= WEBP_MAX_BYTES,
+  "Optimized WebP artwork exceeds the 1 MiB target.");
+await writeFile(WEBP_OUTPUT, webpOutput);
+const webpMetadata = await sharp(webpOutput).metadata();
+assert.equal(webpMetadata.format, "webp", "Optimized artwork must be WebP.");
+assert.ok((await stat(WEBP_OUTPUT)).size <= WEBP_MAX_BYTES, "Final WebP artwork exceeds the 1 MiB target.");
+
+// Render lightweight PNG icons for iOS and installable web-app manifests from
+// the vector favicon. The SVG remains the browser favicon.
+const faviconSvg = await readFile("public/favicon.svg");
+for (const [filename, size] of [
+  ["public/atma-rekha-icon-192.png", 192],
+  ["public/atma-rekha-icon-512.png", 512],
+  ["public/apple-touch-icon.png", 180],
+]) {
+  const icon = await sharp(faviconSvg, { density: 300 })
+    .resize(size, size, { fit: "contain" })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  await writeFile(filename, icon);
+  const metadata = await sharp(icon).metadata();
+  assert.equal(metadata.format, "png", filename + " must be PNG.");
+  assert.equal(metadata.width, size, filename + " has the wrong width.");
+  assert.equal(metadata.height, size, filename + " has the wrong height.");
+}
+
 console.log(
   "Generated " + OUTPUT + ": " + outputMetadata.width + "x" + outputMetadata.height +
   ", JPEG quality " + chosenQuality + ", " + output.byteLength + " bytes. " +
-  "Original artwork preserved at " + INPUT + ".",
+  "Generated " + WEBP_OUTPUT + ": " + webpMetadata.width + "x" + webpMetadata.height +
+  ", WebP quality " + webpQuality + ", " + webpOutput.byteLength + " bytes. " +
+  "Generated lightweight Atma Rekha app icons from public/favicon.svg.",
 );
