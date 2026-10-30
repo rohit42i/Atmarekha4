@@ -141,7 +141,7 @@ function findChapter(path, url, chapters) {
 }
 
 function safeCover(value) {
-  const fallback = SITE_ORIGIN + "/ishani.png";
+  const fallback = SITE_ORIGIN + "/ishani.webp";
   try {
     const image = new URL(String(value || ""), SITE_ORIGIN);
     return image.protocol === "https:" ? image.href : fallback;
@@ -231,11 +231,18 @@ function renderSeoFallback(path, url, chapters, resolvedChapter) {
     return page(STATIC_SEO[path][0], '<p>' + escapeHtml(STATIC_SEO[path][1]) + '</p>');
   }
 
+  if (!knownPath(path)) {
+    return page("Page not found", [
+      '<p>The page you requested could not be found on the official Atma Rekha website.</p>',
+      '<p>' + siteLink("/", "Return to the Atma Rekha homepage") + ' · ' + siteLink("/chapters", "Browse manga chapters") + '</p>',
+    ].join(""));
+  }
+
   return "";
 }
 
 function injectSeoFallback(html, path, url, chapters, resolvedChapter) {
-  if (privatePath(path) || !knownPath(path)) return html;
+  if (privatePath(path)) return html;
   const markup = renderSeoFallback(path, url, chapters, resolvedChapter);
   if (!markup) return html;
   return html.replace(/<div id="root"([^>]*)><\/div>/i, '<div id="root"$1>' + markup + '</div>');
@@ -275,8 +282,8 @@ async function addServerSeo(request, response, env) {
     const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
-    const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Indian Fantasy Adventure Manga";
-    const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.";
+    const shareTitle = path === "/" ? "Atma Rekha | Original Indian Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Indian Fantasy Adventure Manga";
+    const shareDescription = path === "/" ? "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.";
     html = setMeta(html, "property", "og:type", "website");
     html = setMeta(html, "property", "og:site_name", "Atma Rekha");
     html = setTitle(html, shareTitle);
