@@ -1033,5 +1033,32 @@ if (!tabsDeclaration || missingNavigationTabs.length) {
   console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
   failed = true;
 }
-if (failed) process.exit(1);
+
+const publicSitemap = await readFile('public/sitemap.xml', 'utf8');
+const sitemapWorker = await readFile('worker.js', 'utf8');
+const sitemapGenerator = await readFile('scripts/generate-sitemap.mjs', 'utf8');
+const crawlerRules = await readFile('public/robots.txt', 'utf8');
+for (const route of ['/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report', '/pal-do-pal-ke-lamhe']) {
+  if (!publicSitemap.includes('https://www.atmarekha.in' + route) ||
+      !sitemapGenerator.includes(route)) {
+    console.error('CHECK FAILED: public sitemap is missing a required public route:', route);
+    failed = true;
+  }
+}
+if (publicSitemap.includes('storage/') || publicSitemap.includes('<image:image>') ||
+    publicSitemap.includes('xmlns:image')) {
+  console.error('CHECK FAILED: static sitemap must not expose storage or raw image URLs.');
+  failed = true;
+}
+if (!sitemapWorker.includes('async function serveSitemap') ||
+    !sitemapWorker.includes('async function loadAllPublishedChapters') ||
+    !sitemapWorker.includes('url.pathname === "/sitemap.xml"')) {
+  console.error('CHECK FAILED: Worker dynamic sitemap route or complete chapter pagination is missing.');
+  failed = true;
+}
+if (!crawlerRules.includes('Sitemap: https://www.atmarekha.in/sitemap.xml')) {
+  console.error('CHECK FAILED: robots.txt does not reference the canonical sitemap.');
+  failed = true;
+}
+\nif (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');
