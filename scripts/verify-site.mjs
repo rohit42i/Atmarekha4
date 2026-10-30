@@ -43,7 +43,7 @@ const required = [
   ['index.html', '"@type":"Organization"'],
   ['index.html', '"@type":"SearchAction"'],
   ['index.html', '"@type":"ComicSeries"'],
-  ['index.html', 'https://www.atmarekha.in/atma-rekha-logo.svg'],
+  ['index.html', 'https://www.atmarekha.in/atma-rekha-icon-512.png'],
   ['index.html', 'content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'],
   ['index.html', 'href="/favicon.svg"'],
   ['public/favicon.svg', '<svg'],
