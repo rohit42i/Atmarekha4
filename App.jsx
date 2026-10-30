@@ -515,6 +515,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         terms: 'Read the Atma Rekha terms of use for manga access, accounts, memberships, payments and community features.',
       };
       description = infoDescriptions[infoType] || infoDescriptions.about;
+    } else if (type === 'not-found') {
+      title = 'Page not found | Atma Rekha';
+      description = 'The page you requested is not available. Browse the official Atma Rekha homepage or chapter catalogue.';
     } else if (type === 'privacy-center') {
       title = 'Atma Rekha | Privacy';
       description = 'Atma Rekha privacy notice, data controls and privacy requests.';
