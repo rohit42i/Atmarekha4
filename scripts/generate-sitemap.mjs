@@ -105,7 +105,7 @@ function buildXml(chapters) {
     ...rows,
     '</urlset>',
     '',
-  ].join('\\n');
+  ].join('\n');
 }
 
 let chapters = [];
