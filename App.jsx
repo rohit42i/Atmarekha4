@@ -463,7 +463,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       '@type': 'Person',
       name: 'Arkesh Kaalvantik',
       url: SITE_URL + '/info/about',
-      sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
+      sameAs: ['https://www.instagram.com/atma.rekha/', 'https://www.youtube.com/@atmarekha'],
     };
 
     if (type === 'chapter') {
@@ -669,7 +669,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       {
         '@type': 'WebSite',
         '@id': SITE_URL + '/#website',
-        sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
+        sameAs: ['https://www.instagram.com/atma.rekha/', 'https://www.youtube.com/@atmarekha'],
         name: 'Atma Rekha',
         url: SITE_URL + '/',
         description: DEFAULT_SEO_DESCRIPTION,
