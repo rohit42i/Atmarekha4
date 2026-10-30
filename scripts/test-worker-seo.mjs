@@ -127,8 +127,8 @@ try {
 
   const chapterHindi = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1"), env);
   const chapterHindiHtml = await chapterHindi.text();
-  assert.match(chapterHindiHtml, /<title>The Forgotten Dream \| Atma Rekha<\/title>/);
-  assert.match(chapterHindiHtml, /property="og:title" content="The Forgotten Dream \| Atma Rekha"/);
+  assert.match(chapterHindiHtml, /<title>Atma Rekha \\| The Forgotten Dream<\\/title>/);
+  assert.match(chapterHindiHtml, /property="og:title" content="Atma Rekha \\| The Forgotten Dream"/);
   assert.match(chapterHindiHtml, /property="og:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
   assert.match(chapterHindiHtml, /property="og:image:secure_url" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
   assert.doesNotMatch(chapterHindiHtml, /property="og:image:type"/);
