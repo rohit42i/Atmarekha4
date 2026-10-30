@@ -662,9 +662,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       url: SITE_URL + '/',
       logo: {
         '@type': 'ImageObject',
-        url: SITE_URL + '/atma-rekha-logo.svg',
-        width: 640,
-        height: 160,
+        url: SITE_URL + '/atma-rekha-icon-512.png',
+        width: 512,
+        height: 512,
       },
       description: DEFAULT_SEO_DESCRIPTION,
       sameAs: [
