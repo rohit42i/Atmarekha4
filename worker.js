@@ -96,26 +96,42 @@ function chapterPath(chapter) {
 async function loadPublishedChapters(env) {
   const base = String(env.SUPABASE_URL || SUPABASE_URL).replace(/\/+$/, "");
   const key = String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || PUBLIC_SUPABASE_KEY);
-  const endpoint = new URL(base + "/rest/v1/chapters");
-  endpoint.searchParams.set("select", "id,chapter_number,title,language,status,cover_url,release_date,created_at");
-  endpoint.searchParams.set("status", "eq.published");
-  endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc");
-  endpoint.searchParams.set("limit", "1000");
-  const cacheKey = new Request(endpoint.toString(), { method: "GET" });
-  try {
-    const cached = await caches.default.match(cacheKey);
-    if (cached) return await cached.json();
-  } catch (_) {}
-  const response = await fetch(endpoint, {
-    headers: { apikey: key, Authorization: "Bearer " + key, Accept: "application/json" },
-    signal: AbortSignal.timeout(2500),
-  });
-  if (!response.ok) throw new Error("Published chapter lookup failed.");
-  const rows = await response.json();
-  try {
-    await caches.default.put(cacheKey, new Response(JSON.stringify(rows), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } }));
-  } catch (_) {}
-  return Array.isArray(rows) ? rows : [];
+  const pageSize = 500;
+  const chapters = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const endpoint = new URL(base + "/rest/v1/chapters");
+    endpoint.searchParams.set("select", "id,chapter_number,title,language,status,cover_url,release_date,created_at");
+    endpoint.searchParams.set("status", "eq.published");
+    endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc");
+    endpoint.searchParams.set("limit", String(pageSize));
+    endpoint.searchParams.set("offset", String(offset));
+    const cacheKey = new Request(endpoint.toString(), { method: "GET" });
+    let page = null;
+
+    try {
+      const cached = await caches.default.match(cacheKey);
+      if (cached) page = await cached.json();
+    } catch (_) {}
+
+    if (!Array.isArray(page)) {
+      const response = await fetch(endpoint, {
+        headers: { apikey: key, Authorization: "Bearer " + key, Accept: "application/json" },
+        signal: AbortSignal.timeout(2500),
+      });
+      if (!response.ok) throw new Error("Published chapter lookup failed.");
+      page = await response.json();
+      if (!Array.isArray(page)) throw new Error("Invalid published chapter response.");
+      try {
+        await caches.default.put(cacheKey, new Response(JSON.stringify(page), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } }));
+      } catch (_) {}
+    }
+
+    chapters.push(...page.filter(row => String(row.status || "").toLowerCase() === "published"));
+    if (page.length < pageSize) break;
+  }
+
+  return chapters;
 }
 
 function findChapter(path, url, chapters) {
