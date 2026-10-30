@@ -202,8 +202,8 @@ if (!seoSitemapRegression.startsWith('<?xml') ||
     !seoSitemapRegression.includes('<urlset ') ||
     !seoSitemapRegression.trim().endsWith('</urlset>') ||
     sitemapOpenUrlCount !== sitemapCloseUrlCount ||
-    /https:\/\/www\.atmarekha\.in\/info\/(?:contact|report|privacy|terms)<\/loc>/.test(seoSitemapRegression)) {
-  console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical discovery pages, not utility/legal routes.');
+    /(?:<loc>https:\/\/www\.atmarekha\.in\/(?:admin|profile|membership|group-chat|privacy-center)(?:\/|<\/loc>))/i.test(seoSitemapRegression)) {
+  console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical public pages without private account routes.');
   failed = true;
 }
 
