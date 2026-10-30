@@ -40,12 +40,17 @@ export default function Footer() {
 
         <nav className="footer-nav" aria-label="Footer navigation">
           <a href="/info/about">About</a>
-          <a href="#info/contact">Contact</a>
-          <a href="#info/report">Report</a>
-          <a href="#info/privacy">Privacy</a>
-          <a href="#info/terms">Terms</a>
+          <a href="/info/contact">Contact</a>
+          <a href="/info/report">Report</a>
+          <a href="/info/privacy">Privacy policy</a>
+          <a href="/info/terms">Terms of use</a>
           {isAdmin && <a href="/admin" className="footer-admin-link">Admin Login</a>}
         </nav>
+
+        <div className="footer-contact">
+          <a href="mailto:atmarekhasupport@gmail.com">atmarekhasupport@gmail.com</a>
+          <span>Reader support and general enquiries</span>
+        </div>
 
         <div className="footer-socials" aria-label="Social links">
           {SOCIAL_LINKS.map(item => (
@@ -56,7 +61,7 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span style={{ fontStyle: 'italic', transform: 'skewX(-6deg)', display: 'inline-block' }}>© 2026 Atma Rekha · Made in India 🇮🇳</span>
+          <span>© 2026 Atma Rekha · An independent manga project by Arkesh Kaalvantik</span>
         </div>
       </div>
     </footer>
