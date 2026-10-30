@@ -38,7 +38,7 @@ async function loadPublishedChapters() {
   const rows = [];
   const pageSize = 500;
   for (let offset = 0; ; offset += pageSize) {
-    const url = new URL(base.replace(/\\/$/, '') + '/rest/v1/chapters');
+    const url = new URL(base.replace(/\/$/, '') + '/rest/v1/chapters');
     url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language');
     url.searchParams.set('status', 'eq.published');
     url.searchParams.set('order', 'chapter_number.asc.nullsfirst,created_at.asc');
@@ -97,7 +97,7 @@ function buildXml(chapters) {
       .map(item => '    <xhtml:link rel="alternate" hreflang="' + escapeXml(item.language) + '" href="' + escapeXml(item.url) + '" />'),
     entry.lastmod ? '    <lastmod>' + entry.lastmod + '</lastmod>' : '',
     '  </url>',
-  ].filter(Boolean).join('\\n'));
+  ].filter(Boolean).join('\n'));
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
