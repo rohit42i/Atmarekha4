@@ -35,7 +35,7 @@ export default function RazorpayCheckoutButton({ amount, label = 'Pay with Razor
       if (!key) throw new Error('Razorpay public key is not configured.');
       const Razorpay = await loadRazorpay();
       const checkout = new Razorpay({
-        key, amount: data.amount, currency: data.currency, order_id: data.order_id, name: 'Atma Rekha', description, image: `${window.location.origin}/ishani.png`, theme: { color: '#111111' },
+        key, amount: data.amount, currency: data.currency, order_id: data.order_id, name: 'Atma Rekha', description, image: `${window.location.origin}/ishani.webp`, theme: { color: '#111111' },
         modal: { confirm_close: true, escape: true, backdropclose: false, ondismiss: () => setLoading(false) },
         handler: async response => {
           try {
