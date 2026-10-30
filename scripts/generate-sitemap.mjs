@@ -21,7 +21,7 @@ const validDate = value => {
 const slugify = value => String(value || '').toLowerCase().trim()
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 const shortId = id => String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 8).toLowerCase();
-const language = value => String(value || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';
+const language = value => String(value || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';\nconst isPublished = chapter => String(chapter?.status || '').trim().toLowerCase() === 'published';
 const chapterPath = chapter => {
   const number = chapter.chapter_number;
   const path = number !== null && number !== undefined && String(number).trim() !== ''
@@ -50,7 +50,7 @@ async function loadPublishedChapters() {
     if (!response.ok) throw new Error('Supabase chapter lookup returned HTTP ' + response.status);
     const page = await response.json();
     if (!Array.isArray(page)) throw new Error('Supabase returned an invalid chapter list.');
-    rows.push(...page.filter(row => String(row.status || '').toLowerCase() === 'published'));
+    rows.push(...page.filter(isPublished));
     if (page.length < pageSize) break;
   }
   return rows;
