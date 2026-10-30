@@ -10,14 +10,17 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Creator', 'Arkesh'], ['Languages', 'Hindi (Roman Hindi) and English'],
+      ['Creator', 'Arkesh Kaalvantik'], ['Languages', 'Hindi (Roman Hindi) and English'],
       ['New chapters', 'Planned for the 14th of each month'],
       ['Format', 'Digital manga'], ['Free chapters', '1 to 8'],
       ['Age guidance', '15+'], ['Team', 'Independent creator'],
     ],
     story: [
-      'I’m Arkesh, the solo creator of Atma Rekha, a fantasy adventure manga shaped by Indian cultural influences, spiritual ideas, and a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
-      'I create the series independently. Atma Rekha is available in Hindi (Roman Hindi) and English. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
+      'Atma Rekha is an original Indian fantasy adventure manga created by Arkesh Kaalvantik, also credited as Arkesh. The series follows a young student whose missing childhood memories, isolation, and encounters with unusual powers lead toward a larger mystery. It is a digital manga and comic for readers aged 15 and above.',
+      'Atma Rekha began as an original story idea and grew into an independently produced manga. Its world brings fantasy adventure together with Indian cultural and spiritual influences. The story is developed through its characters, their choices, and the mysteries revealed along their journey.',
+      'The mission of Atma Rekha is to tell original fantasy and adventure stories with a distinct Indian creative identity, memorable characters, and emotional stakes. The series is published in Hindi written in Roman Hindi and in English so readers can follow the story in either language.',
+      'Atma Rekha is currently a solo creator project. Arkesh Kaalvantik leads the writing, scripts, rough drawings, panel layouts, character direction, and final creative decisions. No outside publisher or studio is presented as part of the core team.',
+      'New chapters are planned for the 14th of each month, although the schedule can change when a chapter needs more work. The official chapter catalogue is the source of truth for published chapters and current reading access.',
       'Every scene and panel begins with my own rough drawings and design decisions. I determine the composition, pose, camera angle, perspective, proportions, shapes, and character placement. I use AI tools in parts of the visual process to enhance my rough sketches and help develop characters while following my original designs and direction.',
       'AI generated material is not used directly as finished artwork in the published manga. When AI-assisted imagery is used as a background reference, I manually outline and redraw it as part of the artwork. I retain creative control over the story, character designs, panel composition, and final artistic decisions, and review the pages before publication.',
     ],
@@ -72,7 +75,14 @@ export default function InfoPage({ type, onBack }) {
 
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">
       <div className="about-details">{page.details.map(([label, value]) => <div className="about-detail" key={label}><strong>{label}:</strong><span>{value}</span></div>)}</div>
-      <div className="about-story">{page.story.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+      <div className="about-story">
+        <h2>What Atma Rekha is</h2><p>{page.story[0]}</p>
+        <h2>How the project began</h2><p>{page.story[1]}</p>
+        <h2>Mission</h2><p>{page.story[2]}</p>
+        <h2>Creator and team</h2><p>{page.story[3]}</p>
+        <h2>Publication</h2><p>{page.story[4]}</p>
+        <h2>How the manga is made</h2><p>{page.story[5]}</p><p>{page.story[6]}</p>
+      </div>
     </section> : null}
 
     {isTerms && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Terms of Use">
