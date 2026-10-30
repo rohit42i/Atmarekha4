@@ -177,6 +177,8 @@ const sitemapResponse = await assertOk(new URL("/sitemap.xml", ROOT).href, "Site
 assert.match(sitemapResponse.headers.get("content-type") || "", /xml|text\/plain/i, "Sitemap response must be XML or plain text.");
 const sitemap = await sitemapResponse.text();
 assert.match(sitemap, /<urlset\b/i, "Sitemap is missing the urlset root.");
+assert.doesNotMatch(sitemap, /<image:(?:image|loc)\b/i, "The public sitemap must not expose direct storage image URLs.");
+assert.doesNotMatch(sitemap, /(?:workers\.dev|supabase\.co|\/storage\/v1\/object\/)/i, "The public sitemap must not reveal private infrastructure or storage hostnames.");
 const listedUrls = [...sitemap.matchAll(/<loc>\s*([\s\S]*?)\s*<\/loc>/gi)]
   .map(match => decodeXml(match[1].trim()))
   .filter(Boolean);
