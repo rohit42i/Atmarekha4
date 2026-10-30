@@ -1,11 +1,7 @@
-# Public discovery is allowed. Private, account-only and error routes stay out of search.
+# Public pages remain crawlable; private and error routes are marked noindex by the site.
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /profile
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
@@ -24,18 +20,13 @@ User-agent: Claude-User
 User-agent: PerplexityBot
 Allow: /
 Disallow: /admin
-Disallow: /profile
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
 Disallow: /430
 Disallow: /503
 
-# Google-Extended remains blocked. It controls Google's generative-AI usage,
-# independently of Googlebot's ability to index the site in Google Search.
+# Google-Extended remains blocked; Googlebot can still index pages in Google Search.
 User-agent: Google-Extended
 Disallow: /
 
