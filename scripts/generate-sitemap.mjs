@@ -21,7 +21,8 @@ const validDate = value => {
 const slugify = value => String(value || '').toLowerCase().trim()
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 const shortId = id => String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 8).toLowerCase();
-const language = value => String(value || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';\nconst isPublished = chapter => String(chapter?.status || '').trim().toLowerCase() === 'published';
+const language = value => String(value || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';
+const isPublished = chapter => String(chapter?.status || '').trim().toLowerCase() === 'published';
 const chapterPath = chapter => {
   const number = chapter.chapter_number;
   const path = number !== null && number !== undefined && String(number).trim() !== ''
