@@ -97,7 +97,7 @@ try {
   assert.match(aboutHtml, /property="og:image:width" content="1200"/);
   assert.match(aboutHtml, /property="og:image:height" content="630"/);
   assert.match(aboutHtml, /name="twitter:card" content="summary_large_image"/);
-  assert.match(aboutHtml, /property="og:title" content="About Atma Rekha \| Indian Fantasy Manga and Creator"/);
+  assert.match(aboutHtml, /property="og:title" content="Atma Rekha \\| About the Creator"/);
   assert.equal(about.headers.get("x-content-type-options"), "nosniff");
   assert.equal(about.headers.get("strict-transport-security"), "max-age=15552000");
 
