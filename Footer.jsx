@@ -5,13 +5,12 @@ import { getAdminRole } from './adminAuth';
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/atma.rekha/', icon: 'instagram' },
   { label: 'YouTube', href: 'https://www.youtube.com/@atmarekha', icon: 'youtube' },
-  { label: 'Gmail', href: 'mailto:atmarekhasupport@gmail.com', icon: 'mail' },
 ];
 
 function SocialIcon({ type }) {
   if (type === 'instagram') return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="17.4" cy="6.7" r="1" fill="currentColor"/></svg>;
   if (type === 'youtube') return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="4" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg>;
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg>;
+  return null;
 }
 
 export default function Footer() {
@@ -49,7 +48,7 @@ export default function Footer() {
 
         <div className="footer-socials" aria-label="Social links">
           {SOCIAL_LINKS.map(item => (
-            <a key={item.label} href={item.href} target={item.href.startsWith('mailto:') ? undefined : '_blank'} rel={item.href.startsWith('mailto:') ? undefined : 'noreferrer'} className="footer-social" aria-label={item.label} title={item.label}>
+            <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="footer-social" aria-label={item.label} title={item.label}>
               <SocialIcon type={item.icon} />
             </a>
           ))}
