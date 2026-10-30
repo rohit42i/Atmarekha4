@@ -157,7 +157,6 @@ const required = [
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
-  ['scripts/generate-sitemap.mjs', 'xmlns:image'],
   ['public/_headers', '/profile*'],
   ['public/_headers', 'X-Robots-Tag: noindex, nofollow, noarchive'],
   ['MorePage.jsx', 'Notification preferences'],
@@ -261,6 +260,8 @@ if (!seoSitemapRegression.startsWith('<?xml') ||
     !seoSitemapRegression.includes('<urlset ') ||
     !seoSitemapRegression.trim().endsWith('</urlset>') ||
     sitemapOpenUrlCount !== sitemapCloseUrlCount ||
+    /<image:(?:image|loc)\b/i.test(seoSitemapRegression) ||
+    /(?:workers\.dev|supabase\.co|\/storage\/v1\/object\/)/i.test(seoSitemapRegression) ||
     /https:\/\/www\.atmarekha\.in\/info\/(?:contact|report|privacy|terms)<\/loc>/.test(seoSitemapRegression)) {
   console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical discovery pages, not utility/legal routes.');
   failed = true;

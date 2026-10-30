@@ -43,13 +43,6 @@ const chapterGroupKey = chapter => chapter.chapter_number !== null && chapter.ch
   ? 'chapter:' + String(chapter.chapter_number).trim()
   : 'special:' + slugify(chapter.title);
 
-const absoluteAssetUrl = value => {
-  const raw = String(value || '').trim();
-  if (!raw) return null;
-  if (/^https?:\/\//i.test(raw)) return raw;
-  return SITE_URL + '/' + raw.replace(/^\/+/, '');
-};
-
 const chapterPath = chapter => {
   const number = chapter.chapter_number;
   const base = number !== null && number !== undefined && number !== ''
@@ -77,7 +70,7 @@ async function loadPublishedChapters() {
 
   while (true) {
     const url = new URL(base.replace(/\/$/, '') + '/rest/v1/chapters');
-    url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language,cover_url');
+    url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language');
     url.searchParams.set('order', 'chapter_number.asc.nullsfirst,created_at.asc');
     url.searchParams.set('limit', String(pageSize));
     url.searchParams.set('offset', String(offset));
@@ -173,20 +166,14 @@ async function main() {
     return [...new Set(links)];
   };
 
-  const coverByLoc = new Map();
-  for (const chapter of chapters) {
-    const cover = absoluteAssetUrl(chapter.cover_url);
-    if (cover) coverByLoc.set(SITE_URL + chapterPath(chapter), cover);
-  }
 
   const body = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...urls.map(({ loc, lastmod }) => [
       '  <url>',
       '    <loc>' + escapeXml(loc) + '</loc>',
       ...alternatesFor(loc),
-      coverByLoc.has(loc) ? '    <image:image><image:loc>' + escapeXml(coverByLoc.get(loc)) + '</image:loc></image:image>' : null,
       lastmod ? '    <lastmod>' + lastmod + '</lastmod>' : null,
       '  </url>',
     ].filter(Boolean).join('\n')),
