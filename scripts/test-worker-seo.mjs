@@ -54,7 +54,7 @@ try {
     env,
   );
   assert.equal(versionedShareImage.status, 200, "Versioned static images must resolve through the Assets binding.");
-  assert.match(versionedShareImage.headers.get("content-type") || "", /^image\\/jpeg/i);
+  assert.match(versionedShareImage.headers.get("content-type") || "", /^image\/jpeg/i);
   assert.equal(
     staticAssetRequests.at(-1)?.href,
     "https://www.atmarekha.in/og-atmarekha.jpg",
