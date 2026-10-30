@@ -5,7 +5,6 @@ const SITE_URL = 'https://www.atmarekha.in';
 const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
   '/', '/chapters', '/chapters?lang=en',
-  '/chapter/special/intro-282d54fd',
   '/pal-do-pal-ke-lamhe',
   '/info/about', '/info/terms', '/info/privacy', '/info/contact',
 ];
