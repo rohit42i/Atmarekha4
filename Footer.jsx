@@ -35,7 +35,7 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="site-footer-inner">
         <div className="footer-brand-block">
-          <a className="footer-brand" href="/">Atma Rekha</a>
+          <a className="footer-brand" href="/" aria-label="Atma Rekha homepage"><img src="/atma-rekha-logo.svg" alt="Atma Rekha" width="180" height="45" loading="lazy" decoding="async" /></a>
         </div>
 
         <nav className="footer-nav" aria-label="Footer navigation">
