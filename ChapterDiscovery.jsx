@@ -21,6 +21,17 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
     try { return new URLSearchParams(window.location.search).get('search') || ''; } catch { return ''; }
   });
   const [sort, setSort] = useState('chapter');
+  const updateSearch = value => {
+    setQuery(value);
+    try {
+      const url = new URL(window.location.href);
+      if (value.trim()) url.searchParams.set('search', value);
+      else url.searchParams.delete('search');
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    } catch {
+      // Keep the in-page search functional if URL updates are unavailable.
+    }
+  };
   const [recentChapterIds, setRecentChapterIds] = useState({});
 
   useEffect(() => {
@@ -57,7 +68,7 @@ export default function ChapterDiscovery({ chapters, stats, renderChapter, langu
 
   return (
     <>
-      <div className="chapter-discovery"><label><span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search" aria-label="Search" autoComplete="off" spellCheck="false" />{query && <button type="button" onClick={() => setQuery('')} aria-label="Clear chapter search">×</button>}</label><label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange?.(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></label><label className="chapter-sort"><span>Sort</span><select value={sort} onChange={event => setSort(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option></select></label></div>
+      <div className="chapter-discovery"><label><span className="chapter-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></span><input type="search" value={query} onChange={event => updateSearch(event.target.value)} placeholder="Search" aria-label="Search" autoComplete="off" spellCheck="false" />{query && <button type="button" onClick={() => updateSearch('')} aria-label="Clear chapter search">×</button>}</label><label className="chapter-language"><span>Language</span><select value={language} onChange={event => onLanguageChange?.(event.target.value)} aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></label><label className="chapter-sort"><span>Sort</span><select value={sort} onChange={event => setSort(event.target.value)} aria-label="Sort chapters"><option value="chapter">Chapter</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="rating">Top rated</option></select></label></div>
 
       {renderChapter(visible, recentChapterIds, navigateToChapter)}
 
