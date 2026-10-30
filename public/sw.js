@@ -47,7 +47,7 @@ async function flushFeedbackQueue() {
   db.close();
 }
 
-const PRECACHE = ['/', '/ishani.png', '/site.webmanifest'];
+const PRECACHE = ['/', '/ishani.webp', '/favicon.svg', '/site.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(PRECACHE)).catch(()=>{}));
@@ -116,8 +116,8 @@ self.addEventListener('push', event => {
     try {
       await self.registration.showNotification(data.title || 'Atma Rekha', {
         body: data.body || 'A new Atma Rekha update is available.',
-        icon: data.icon || '/ishani.png',
-        badge: data.badge || '/ishani.png',
+        icon: data.icon || '/ishani.webp',
+        badge: data.badge || '/ishani.webp',
         tag: data.tag || 'atma-rekha-notification',
         renotify: Boolean(data.renotify),
         requireInteraction: Boolean(data.requireInteraction),
