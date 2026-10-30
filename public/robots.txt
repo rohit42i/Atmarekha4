@@ -8,6 +8,7 @@ Disallow: /profile
 Disallow: /bookmarks
 Disallow: /membership
 Disallow: /group-chat
+Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
@@ -31,6 +32,7 @@ Disallow: /profile
 Disallow: /bookmarks
 Disallow: /membership
 Disallow: /group-chat
+Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
