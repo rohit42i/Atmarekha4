@@ -44,17 +44,25 @@ try {
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
-  assert.ok(homeHtml.includes('<title>Atma Rekha | Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
-  assert.ok(homeHtml.includes('name="description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage description is outdated.");
-  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
-  assert.ok(homeHtml.includes('property="og:description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage Open Graph description is outdated.");
-  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
+  assert.equal((homeHtml.match(/rel="canonical"/g) || []).length, 1, "Homepage must have exactly one canonical URL.");
+  assert.match(homeHtml, /<h1 id="seo-fallback-title">Atma Rekha<\/h1>/, "Homepage must expose readable HTML before JavaScript runs.");
+  assert.ok(homeHtml.includes("original Indian fantasy adventure manga created independently by Arkesh Kaalvantik"), "Homepage fallback must identify the series and creator.");
+  assert.ok(homeHtml.includes('href="/chapters"'), "Homepage fallback must link to the chapter catalogue.");
+
+  assert.ok(homeHtml.includes('<title>Atma Rekha | Original Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
+  assert.ok(homeHtml.includes('name="description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'), "Homepage description is outdated.");
+  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
+  assert.ok(homeHtml.includes('property="og:description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'), "Homepage Open Graph description is outdated.");
+  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
   assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
   assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
 
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
+  assert.ok(aboutHtml.includes("Atma Rekha is an independent fantasy adventure manga created by Arkesh Kaalvantik"), "About fallback must expose a readable creator and series description.");
+  assert.ok(aboutHtml.includes("AI-generated material is not used directly as finished published manga artwork"), "About fallback must preserve the public AI-workflow disclosure.");
+
   assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
   assert.ok(aboutHtml.includes("Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
@@ -73,18 +81,27 @@ try {
   assert.match(chaptersEnglishHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapters\?lang=en"/);
   assert.match(chaptersEnglishHtml, /hreflang="hi-Latn-IN"/);
   assert.match(chaptersEnglishHtml, /hreflang="en-IN"/);
+  assert.ok(chaptersEnglishHtml.includes('href="/chapter/1?lang=en"'), "English chapter catalogue fallback must include published chapter links.");
+  assert.ok(chaptersEnglishHtml.includes("This catalogue is shown in English"), "English chapter catalogue fallback must identify its language.");
+
 
   const privatePage = await worker.fetch(new Request("https://www.atmarekha.in/membership"), env);
   const privateHtml = await privatePage.text();
   assert.match(privateHtml, /name="robots" content="noindex,nofollow,noarchive"/);
   assert.equal(privatePage.headers.get("cache-control"), "private, no-store, max-age=0");
   assert.equal(privatePage.headers.get("cdn-cache-control"), null);
+  assert.doesNotMatch(privateHtml, /class="seo-fallback"/, "Private routes must not receive public SEO fallback content.");
+
 
   const unknown = await worker.fetch(new Request("https://www.atmarekha.in/not-a-real-route"), env);
   const unknownHtml = await unknown.text();
   assert.equal(unknown.status, 404);
+  assert.match(unknownHtml, /<title>Page not found \| Atma Rekha<\/title>/);
   assert.equal(unknown.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
   assert.match(unknownHtml, /name="robots" content="noindex,nofollow,noarchive"/);
+  assert.match(unknownHtml, /<h1 id="seo-fallback-title">Page not found<\/h1>/, "Unknown routes must show the custom public 404 fallback.");
+  assert.match(unknownHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/not-a-real-route"/);
+
 
   const chapterHindi = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1"), env);
   const chapterHindiHtml = await chapterHindi.text();
@@ -98,6 +115,9 @@ try {
   assert.match(chapterHindiHtml, /"@type":"ComicStory"/);
   assert.match(chapterHindiHtml, /"@type":"BreadcrumbList"/);
   assert.match(chapterHindiHtml, /hreflang="en-IN"/);
+  assert.ok(chapterHindiHtml.includes("The Forgotten Dream is a published chapter of Atma Rekha"), "Chapter fallback must include the published chapter title and series identity.");
+  assert.ok(chapterHindiHtml.includes('href="/chapter/1"'), "Chapter fallback must include a canonical chapter link.");
+
 
   const chapterEnglish = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1?lang=en"), env);
   const chapterEnglishHtml = await chapterEnglish.text();

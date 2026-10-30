@@ -39,11 +39,11 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Hindi (Roman Hindi) and English.' };
+const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English.' };
 const SITE_URL = 'https://www.atmarekha.in';
-const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.';
-const DEFAULT_SEO_IMAGE = SITE_URL + '/ishani.png?v=20261029';
+const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';
+const DEFAULT_SEO_DESCRIPTION = 'Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English.';
+const DEFAULT_SEO_IMAGE = SITE_URL + '/og-atmarekha.jpg?v=20261029-share1';
 
 function upsertMeta(attribute, key, content) {
   if (typeof document === 'undefined') return;
@@ -188,8 +188,10 @@ function ChapterList({ chapters, onBack }) {
     const next = normalizeChapterLanguage(nextLanguage);
     setLanguage(next);
     try { window.localStorage.setItem('atma-language', next); } catch {}
-    const nextUrl = next === 'en' ? '/chapters?lang=en' : '/chapters';
-    window.history.replaceState({}, '', nextUrl);
+    const nextUrl = new URL(next === 'en' ? '/chapters?lang=en' : '/chapters', window.location.origin);
+    const searchTerm = new URLSearchParams(window.location.search).get('search');
+    if (searchTerm) nextUrl.searchParams.set('search', searchTerm);
+    window.history.replaceState({}, '', nextUrl.pathname + nextUrl.search);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
@@ -363,7 +365,7 @@ function Home({ chapters }) { const [adminRole, setAdminRole] = useState(null); 
     || chapters[chapters.length - 1];
   useEffect(() => { let active = true; buildPdlplChapters().then(rows => { if (!active) return; const featuredChapter = [...rows].reverse().find(chapter => published(chapter) && (chapter.cardThumbnailDesktop || chapter.cardThumbnailMobile || chapter.cover) && String(chapter.language || 'hi').toLowerCase() === 'hi')
         || [...rows].reverse().find(chapter => published(chapter) && (chapter.cardThumbnailDesktop || chapter.cardThumbnailMobile || chapter.cover)); setPdlplFeatured(featuredChapter || null); }).catch(() => { if (active) setPdlplFeatured(null); }); return () => { active = false; }; }, []); useEffect(() => { let active = true; supabase.auth.getUser().then(({ data: { user } }) => getAdminRole(user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); })); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { getAdminRole(session?.user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); }); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []);
-  return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><div className="flex items-center gap-2">{(adminRole === 'owner' || adminRole === 'admin') && <div className="flex items-center gap-3"><a className="admin-link" href="#admin" aria-label="Admin Panel"><span>Admin Panel</span></a></div>}</div></header><HomeAnnouncement target="atma" variant="pinned"/><section className="hero-card"><div className="hero-art">{(featured?.cardThumbnailDesktop || featured?.cardThumbnailMobile || featured?.cover) ? (() => { const desktop = featured.cardThumbnailDesktop || featured.cardThumbnailMobile || featured.cover; const mobile = featured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt="Atma Rekha" loading="eager"/></picture>; })() : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="/chapters">View Chapters →</a></div></section><ContinueReading chapters={chapters}/><HomeAnnouncement target="pdpkl" variant="pinned"/><section className="hero-card pdlpl-home-card" aria-labelledby="pdlpl-home-title"><div className="hero-art">{(pdlplFeatured?.cardThumbnailDesktop || pdlplFeatured?.cardThumbnailMobile || pdlplFeatured?.cover) ? (() => { const desktop = pdlplFeatured.cardThumbnailDesktop || pdlplFeatured.cardThumbnailMobile || pdlplFeatured.cover; const mobile = pdlplFeatured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt="Pal Do Pal Ke Lamhe" loading="eager"/></picture>; })() : <span className="hero-fallback">PDPL</span>}</div><div className="hero-copy"><p className="hero-eyebrow">SIDE STORY · SCHOOL LIFE</p><h1 id="pdlpl-home-title">Pal Do Pal Ke Lamhe</h1><p className="hero-description">Starts April 25, 2027</p><a className="hero-button" href="/pal-do-pal-ke-lamhe">View Chapters →</a></div></section><HomeAnnouncement variant="normal"/><Footer/></main>; }
+  return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home" aria-label="Atma Rekha homepage"><img src="/atma-rekha-logo.svg" alt="Atma Rekha" width="160" height="40" decoding="async" /></a><div className="flex items-center gap-2">{(adminRole === 'owner' || adminRole === 'admin') && <div className="flex items-center gap-3"><a className="admin-link" href="#admin" aria-label="Admin Panel"><span>Admin Panel</span></a></div>}</div></header><HomeAnnouncement target="atma" variant="pinned"/><section className="hero-card"><div className="hero-art">{(featured?.cardThumbnailDesktop || featured?.cardThumbnailMobile || featured?.cover) ? (() => { const desktop = featured.cardThumbnailDesktop || featured.cardThumbnailMobile || featured.cover; const mobile = featured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={featured?.title ? `Atma Rekha chapter cover: ${featured.title}` : "Atma Rekha manga cover artwork"} loading="eager" decoding="async"/></picture>; })() : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="/chapters">View Chapters →</a></div></section><ContinueReading chapters={chapters}/><HomeAnnouncement target="pdpkl" variant="pinned"/><section className="hero-card pdlpl-home-card" aria-labelledby="pdlpl-home-title"><div className="hero-art">{(pdlplFeatured?.cardThumbnailDesktop || pdlplFeatured?.cardThumbnailMobile || pdlplFeatured?.cover) ? (() => { const desktop = pdlplFeatured.cardThumbnailDesktop || pdlplFeatured.cardThumbnailMobile || pdlplFeatured.cover; const mobile = pdlplFeatured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={pdlplFeatured?.title ? `Pal Do Pal Ke Lamhe chapter cover: ${pdlplFeatured.title}` : "Pal Do Pal Ke Lamhe manga cover artwork"} loading="lazy" decoding="async"/></picture>; })() : <span className="hero-fallback">PDPL</span>}</div><div className="hero-copy"><p className="hero-eyebrow">SIDE STORY · SCHOOL LIFE</p><h2 id="pdlpl-home-title">Pal Do Pal Ke Lamhe</h2><p className="hero-description">Starts April 25, 2027</p><a className="hero-button" href="/pal-do-pal-ke-lamhe">View Chapters →</a></div></section><HomeAnnouncement variant="normal"/><Footer/></main>; }
 function AccessDenied({ onExit }) { return <main className="site-shell"><div className="reader-error"><h2>Access Denied</h2><p>You don't have permission to access the Atma Rekha Admin Panel.</p><button className="primary-button" onClick={onExit}>Back to Home</button></div></main>; }
 function AdminRoute({ onExit }) {
   const [session, setSession] = useState(null);
@@ -513,6 +515,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         terms: 'Read the Atma Rekha terms of use for manga access, accounts, memberships, payments and community features.',
       };
       description = infoDescriptions[infoType] || infoDescriptions.about;
+    } else if (type === 'not-found') {
+      title = 'Page not found | Atma Rekha';
+      description = 'The page you requested is not available. Browse the official Atma Rekha homepage or chapter catalogue.';
     } else if (type === 'privacy-center') {
       title = 'Atma Rekha | Privacy';
       description = 'Atma Rekha privacy notice, data controls and privacy requests.';
@@ -535,7 +540,9 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       ? chapterCanonicalUrl(chapter)
       : type === 'chapter'
         ? SITE_URL + routeUrl.pathname + routeUrl.search
-        : SITE_URL + publicRoute;
+        : type === 'not-found'
+          ? SITE_URL + window.location.pathname + window.location.search
+          : SITE_URL + publicRoute;
 
     const chapterLanguage = chapter
       ? normalizeChapterLanguage(chapter.language)
@@ -626,7 +633,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
 
     const series = {
       '@type': 'ComicSeries',
-      '@id': SITE_URL + '/#atma-rekha',
+      '@id': SITE_URL + '/#series',
       name: 'Atma Rekha',
       genre: ['Fantasy', 'Adventure', 'Manga'],
       alternateName: 'Atma Rekha Fantasy Adventure Manga',
@@ -648,17 +655,53 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       isPartOf: { '@id': SITE_URL + '/#website' },
     };
 
+    const organization = {
+      '@type': 'Organization',
+      '@id': SITE_URL + '/#organization',
+      name: 'Atma Rekha',
+      url: SITE_URL + '/',
+      logo: {
+        '@type': 'ImageObject',
+        url: SITE_URL + '/atma-rekha-icon-512.png',
+        width: 512,
+        height: 512,
+      },
+      description: DEFAULT_SEO_DESCRIPTION,
+      sameAs: [
+        'https://www.instagram.com/atma.rekha/',
+        'https://youtube.com/@atmarekha',
+        'https://github.com/rohit42i/Atmarekha4',
+      ],
+      contactPoint: [{
+        '@type': 'ContactPoint',
+        contactType: 'reader support',
+        email: 'atmarekhasupport@gmail.com',
+        availableLanguage: ['English', 'Hindi'],
+      }],
+      founder: author,
+    };
+
     const graph = [
+      organization,
       {
         '@type': 'WebSite',
         '@id': SITE_URL + '/#website',
-        sameAs: ['https://www.instagram.com/atma.rekha/', 'https://youtube.com/@atmarekha'],
         name: 'Atma Rekha',
         url: SITE_URL + '/',
         description: DEFAULT_SEO_DESCRIPTION,
+        sameAs: organization.sameAs,
         inLanguage: ['en-IN', 'hi-Latn-IN'],
         creator: author,
-        about: ['fantasy adventure manga', 'mysterious powers', 'mythical beings'],
+        publisher: { '@id': organization['@id'] },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: SITE_URL + '/chapters?search={search_term_string}',
+          },
+          'query-input': 'required name=search_term_string',
+        },
+        about: ['Indian fantasy adventure manga', 'mystery', 'supernatural powers'],
       },
       series,
       pageNode,
@@ -734,7 +777,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     captureMarketingAttribution();
   }, [route]);
  useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);   if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
-  if (route === 'more') return <MorePage/>;
+  if (route === 'more') return <MorePage/>; if (route === 'not-found') return <main className="site-shell"><div className="reader-error"><span aria-hidden="true">404</span><h1>Page not found</h1><p>The page you requested is not available. The Atma Rekha homepage and chapter catalogue are still here.</p><p><a className="primary-button" href="/">Return to Atma Rekha</a></p><a href="/chapters">Browse manga chapters</a></div><Footer/></main>;
   if (route.startsWith('chapter/')) {
     const chapter = findChapterForPath('/' + route, chapters);
     if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;

@@ -28,22 +28,40 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
-  ['public/llms.txt', '> An original Indian fantasy adventure manga by Arkesh Kaalvantik.'],
+  ['public/llms.txt', '> Atma Rekha is an original Indian fantasy adventure manga created independently by Arkesh Kaalvantik, also credited as Arkesh.'],
   ['public/llms.txt', 'Creator: Arkesh Kaalvantik'],
   ['public/llms-full.txt', '## Responsible answers'],
   ['public/robots.txt', 'User-agent: OAI-SearchBot'],
   ['public/robots.txt', 'User-agent: Claude-SearchBot'],
   ['public/robots.txt', 'User-agent: PerplexityBot'],
-  ['public/robots.txt', 'User-agent: GPTBot\nDisallow: /'],
+  ['public/robots.txt', 'User-agent: GPTBot'],
+  ['public/robots.txt', 'User-agent: Bingbot'],
+  ['public/robots.txt', 'User-agent: ClaudeBot'],
+  ['public/robots.txt', 'User-agent: ChatGPT-User'],
   ['public/robots.txt', 'User-agent: Google-Extended\nDisallow: /'],
-  ['public/robots.txt', 'User-agent: ClaudeBot\nDisallow: /'],
+
+  ['index.html', '"@type":"Organization"'],
+  ['index.html', '"@type":"SearchAction"'],
   ['index.html', '"@type":"ComicSeries"'],
+  ['index.html', 'https://www.atmarekha.in/atma-rekha-icon-512.png'],
+  ['index.html', 'content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'],
+  ['index.html', 'href="/favicon.svg"'],
+  ['public/favicon.svg', '<svg'],
+  ['public/llms.txt', 'atmarekhasupport@gmail.com'],
+  ['Footer.jsx', 'atmarekhasupport@gmail.com'],
+  ['Footer.jsx', 'href="/info/privacy"'],
+  ['InfoPage.jsx', 'The mission of Atma Rekha is to tell original fantasy and adventure stories'],
+  ['InfoPage.jsx', 'Atma Rekha is currently a solo creator project'],
+  ['ChapterDiscovery.jsx', "url.searchParams.set('search', value)"],
+  ['scripts/optimize-social-image.mjs', 'public/ishani.webp'],
+  ['scripts/optimize-social-image.mjs', 'public/atma-rekha-icon-512.png'],
+  ['public/site.webmanifest', '/atma-rekha-icon-192.png'],
   ['index.html', 'https://www.atmarekha.in/#creator'],
-  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';"],
-  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.';"],
+  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';"],
+  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English.';"],
   ['App.jsx', "upsertMeta('name', 'author', 'Arkesh Kaalvantik');"],
-  ['worker.js', 'const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga"'],
-  ['worker.js', 'const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'],
+  ['worker.js', 'const shareTitle = path === "/" ? "Atma Rekha | Original Indian Fantasy Adventure Manga"'],
+  ['worker.js', 'const shareDescription = path === "/" ? "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'],
   ['scripts/test-worker-seo.mjs', 'Homepage Open Graph description is outdated.'],
   ['scripts/generate-sitemap.mjs', "'/info/about'"],
   ['scripts/generate-sitemap.mjs', "'/pal-do-pal-ke-lamhe'"],
@@ -191,6 +209,47 @@ const forbidden = [
 ];
 
 let failed = false;
+
+const publicIndexHtml = await readFile('index.html', 'utf8');
+const homeDescription = publicIndexHtml.match(/<meta name="description" content="([^"]+)"/)?.[1] || '';
+if (homeDescription.length < 150 || homeDescription.length > 160 || !homeDescription.includes('Atma Rekha')) {
+  console.error('CHECK FAILED: the homepage meta description must include Atma Rekha and contain 150–160 characters.');
+  failed = true;
+}
+const schemaBlock = publicIndexHtml.match(/<script type="application\/ld\+json" id="atma-rekha-site-schema">([\s\S]*?)<\/script>/);
+let schemaGraph = [];
+try {
+  const parsed = JSON.parse(schemaBlock?.[1] || '{}');
+  schemaGraph = Array.isArray(parsed['@graph']) ? parsed['@graph'] : [];
+} catch {
+  console.error('CHECK FAILED: homepage JSON-LD must be valid JSON.');
+  failed = true;
+}
+const organizationSchema = schemaGraph.find(node => node['@type'] === 'Organization');
+const websiteSchema = schemaGraph.find(node => node['@type'] === 'WebSite');
+if (!organizationSchema?.name || !organizationSchema?.url || !organizationSchema?.logo?.url ||
+    !Array.isArray(organizationSchema.sameAs) || !organizationSchema.contactPoint?.[0]?.email) {
+  console.error('CHECK FAILED: Organization JSON-LD must provide identity, logo, official profiles and contact email.');
+  failed = true;
+}
+if (!websiteSchema?.potentialAction || websiteSchema.potentialAction['@type'] !== 'SearchAction' ||
+    !String(websiteSchema.potentialAction.target?.urlTemplate || '').includes('/chapters?search=')) {
+  console.error('CHECK FAILED: WebSite JSON-LD SearchAction must point to the real chapter search URL.');
+  failed = true;
+}
+const crawlerRules = await readFile('public/robots.txt', 'utf8');
+const searchCrawlerGroup = crawlerRules.slice(crawlerRules.indexOf('User-agent: Googlebot'), crawlerRules.indexOf('User-agent: Google-Extended'));
+for (const agent of ['Googlebot', 'Bingbot', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot']) {
+  if (!searchCrawlerGroup.includes('User-agent: ' + agent)) {
+    console.error('CHECK FAILED: robots.txt must explicitly allow ' + agent + '.');
+    failed = true;
+  }
+}
+if (!searchCrawlerGroup.includes('Allow: /') || /Disallow: \/\s*(?:\r?\n|$)/m.test(searchCrawlerGroup)) {
+  console.error('CHECK FAILED: requested search and AI crawlers must be allowed to access public pages.');
+  failed = true;
+}
+
 
 const seoSitemapRegression = await readFile('public/sitemap.xml', 'utf8');
 const sitemapOpenUrlCount = (seoSitemapRegression.match(/<url>/g) || []).length;

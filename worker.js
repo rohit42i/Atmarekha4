@@ -141,7 +141,7 @@ function findChapter(path, url, chapters) {
 }
 
 function safeCover(value) {
-  const fallback = SITE_ORIGIN + "/ishani.png";
+  const fallback = SITE_ORIGIN + "/ishani.webp";
   try {
     const image = new URL(String(value || ""), SITE_ORIGIN);
     return image.protocol === "https:" ? image.href : fallback;
@@ -160,6 +160,92 @@ function addJsonLd(html, nodes) {
   graph.push(...nodes);
   const script = '<script type="application/ld+json" id="atma-rekha-site-schema">' + JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c") + "</script>";
   return match ? html.replace(pattern, script) : html.replace("</head>", "  " + script + "\n</head>");
+}
+
+
+function renderSeoFallback(path, url, chapters, resolvedChapter) {
+  const siteLink = (href, label) => '<a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a>';
+  const navigation = '<nav aria-label="Official Atma Rekha pages">' +
+    siteLink("/", "Home") + ' · ' +
+    siteLink("/chapters", "Chapters") + ' · ' +
+    siteLink("/info/about", "About the creator") +
+    '</nav>';
+  const page = (title, body) => '<main class="seo-fallback" aria-labelledby="seo-fallback-title">' +
+    '<h1 id="seo-fallback-title">' + escapeHtml(title) + '</h1>' + body + navigation + '</main>';
+
+  if (path === "/") {
+    return page("Atma Rekha", [
+      '<p><strong>Atma Rekha</strong> is an original Indian fantasy adventure manga created independently by Arkesh Kaalvantik, also credited as Arkesh.</p>',
+      '<p>The story follows a young student whose missing childhood memories and isolation lead into a mystery involving unusual powers. It blends fantasy, adventure, mystery, and Indian cultural and spiritual influences.</p>',
+      '<p><strong>Creator:</strong> Arkesh Kaalvantik. <strong>Format:</strong> Digital manga and comic. <strong>Genres:</strong> Fantasy, adventure, and mystery.</p>',
+      '<p><strong>Languages:</strong> Hindi written in Roman Hindi and English. <strong>Age guidance:</strong> 15+.</p>',
+      '<p>New chapters are planned for the 14th of each month. Publication dates and current reading access should be checked in the official chapter catalogue.</p>',
+      '<p>' + siteLink("/chapters", "Read Atma Rekha chapters") + ' · ' + siteLink("/info/about", "About the series and creator") + '</p>',
+    ].join(""));
+  }
+
+  if (path === "/chapters") {
+    const language = normalizeLanguage(url.searchParams.get("lang"));
+    const label = language === "en" ? "English" : "Hindi (Roman Hindi)";
+    const visible = Array.isArray(chapters)
+      ? chapters.filter(item => normalizeLanguage(item.language) === language)
+      : null;
+    const list = visible && visible.length
+      ? '<ol>' + visible.map(item => {
+          const chapterName = String(item.title || (item.chapter_number == null ? "Special chapter" : "Chapter " + item.chapter_number));
+          const href = chapterPath(item);
+          return '<li>' + siteLink(href, chapterName) + ' <span> · ' + escapeHtml(label) + '</span></li>';
+        }).join("") + '</ol>'
+      : '<p>The live chapter catalogue contains the current publication and access details. Open the catalogue to see the latest available chapters.</p>';
+    return page("Atma Rekha chapters", [
+      '<p>Browse the original Indian fantasy adventure manga by Arkesh Kaalvantik. This catalogue is shown in ' + escapeHtml(label) + '.</p>',
+      '<p>Choose a language: ' + siteLink("/chapters", "Hindi (Roman Hindi)") + ' · ' + siteLink("/chapters?lang=en", "English") + '.</p>',
+      list,
+    ].join(""));
+  }
+
+  if (path === "/info/about") {
+    return page("About Atma Rekha", [
+      '<p>Atma Rekha is an independent fantasy adventure manga created by Arkesh Kaalvantik. The series draws on Indian cultural influences and spiritual ideas, with a mystery that unfolds through its characters and their choices.</p>',
+      '<p>The manga is published in Hindi (Roman Hindi) and English. New chapters are planned for the 14th of each month, though the schedule can change when a chapter needs more work. The official site currently lists chapters 1 to 8 as free to read. Check the chapter catalogue for current availability.</p>',
+      '<p>Arkesh creates the series independently. Each scene and panel begins with the creator’s own rough drawings and design decisions, including composition, pose, camera angle, perspective, proportions, shapes, and character placement.</p>',
+      '<p>AI tools assist parts of the visual process. AI-generated material is not used directly as finished published manga artwork. When AI-assisted imagery is used as a background reference, it is manually outlined and redrawn. The creator retains creative control over the story, character designs, panel composition, and final artistic decisions.</p>',
+      '<p><strong>Creator:</strong> Arkesh Kaalvantik, also credited as Arkesh. <strong>Age guidance:</strong> 15+.</p>',
+    ].join(""));
+  }
+
+  if (resolvedChapter) {
+    const chapterName = String(resolvedChapter.title ||
+      (resolvedChapter.chapter_number == null ? "Special chapter" : "Chapter " + resolvedChapter.chapter_number)).trim();
+    const language = normalizeLanguage(resolvedChapter.language);
+    const languageLabel = language === "en" ? "English" : "Hindi (Roman Hindi)";
+    const canonical = chapterPath(resolvedChapter);
+    return page(chapterName + " | Atma Rekha", [
+      '<p>' + escapeHtml(chapterName) + ' is a published chapter of Atma Rekha, the original Indian fantasy adventure manga by Arkesh Kaalvantik.</p>',
+      '<p><strong>Language:</strong> ' + escapeHtml(languageLabel) + '. <strong>Creator:</strong> Arkesh Kaalvantik. <strong>Age guidance:</strong> 15+.</p>',
+      '<p>' + siteLink(canonical, "Open " + chapterName) + ' · ' + siteLink("/chapters", "Browse all chapters") + '</p>',
+    ].join(""));
+  }
+
+  if (STATIC_SEO[path]) {
+    return page(STATIC_SEO[path][0], '<p>' + escapeHtml(STATIC_SEO[path][1]) + '</p>');
+  }
+
+  if (!knownPath(path)) {
+    return page("Page not found", [
+      '<p>The page you requested could not be found on the official Atma Rekha website.</p>',
+      '<p>' + siteLink("/", "Return to the Atma Rekha homepage") + ' · ' + siteLink("/chapters", "Browse manga chapters") + '</p>',
+    ].join(""));
+  }
+
+  return "";
+}
+
+function injectSeoFallback(html, path, url, chapters, resolvedChapter) {
+  if (privatePath(path)) return html;
+  const markup = renderSeoFallback(path, url, chapters, resolvedChapter);
+  if (!markup) return html;
+  return html.replace(/<div id="root"([^>]*)><\/div>/i, '<div id="root"$1>' + markup + '</div>');
 }
 
 async function addServerSeo(request, response, env) {
@@ -196,8 +282,8 @@ async function addServerSeo(request, response, env) {
     const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
-    const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Indian Fantasy Adventure Manga";
-    const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.";
+    const shareTitle = path === "/" ? "Atma Rekha | Original Indian Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Indian Fantasy Adventure Manga";
+    const shareDescription = path === "/" ? "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.";
     html = setMeta(html, "property", "og:type", "website");
     html = setMeta(html, "property", "og:site_name", "Atma Rekha");
     html = setTitle(html, shareTitle);
@@ -237,10 +323,24 @@ async function addServerSeo(request, response, env) {
     }
   }
 
+  if (!isKnown && !isPrivate) {
+    html = setTitle(html, "Page not found | Atma Rekha");
+    html = setMeta(html, "name", "description", "The page you requested is not available. Browse the official Atma Rekha homepage or chapter catalogue.");
+    html = setCanonical(html, SITE_ORIGIN + path);
+  }
+
+  let seoChapters = null;
+  let seoChapter = null;
+  if (path === "/chapters") {
+    try { seoChapters = await loadPublishedChapters(env); } catch (_) {}
+  }
+
   if (/^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
     try {
       const chapters = await loadPublishedChapters(env);
+      seoChapters = chapters;
       const chapter = findChapter(path, url, chapters);
+      seoChapter = chapter;
       if (!chapter) {
         html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
         headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
@@ -300,7 +400,7 @@ async function addServerSeo(request, response, env) {
           {
             "@type": "ComicStory", "@id": canonical, name: name, headline: name, description: description,
             author: { "@type": "Person", name: "Arkesh Kaalvantik" }, image: image, url: canonical, mainEntityOfPage: canonical,
-            isPartOf: { "@id": SITE_ORIGIN + "/#atma-rekha" },
+            isPartOf: { "@id": SITE_ORIGIN + "/#series" },
             datePublished: chapter.release_date || chapter.created_at || undefined,
             inLanguage: language === "en" ? "en-IN" : "hi-Latn-IN",
             isAccessibleForFree: parsedNumber == null ? true : parsedNumber <= 8,
@@ -313,6 +413,8 @@ async function addServerSeo(request, response, env) {
       // Keep the reader available if the metadata service is temporarily unavailable.
     }
   }
+
+  html = injectSeoFallback(html, path, url, seoChapters, seoChapter);
 
   headers.delete("Content-Length");
   headers.delete("content-length");
