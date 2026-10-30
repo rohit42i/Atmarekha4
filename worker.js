@@ -59,7 +59,7 @@ function setAlternates(html, alternates) {
 }
 
 function privatePath(path) {
-  return /^\/(?:admin|profile|membership|group-chat|community|maintenance|403|430|503)(?:\/|$)/i.test(path) || path === "/privacy-center";
+  return /^\/(?:admin|profile|membership|group-chat|community|login|signup|bookmarks|account|maintenance|403|430|503)(?:\/|$)/i.test(path) || path === "/privacy-center";
 }
 
 function knownPath(path) {
@@ -249,8 +249,11 @@ async function addServerSeo(request, response, env) {
     const canonical = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
-    const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga" : STATIC_SEO[path]?.[0] || "Atma Rekha | Indian Fantasy Adventure Manga";
-    const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English." : STATIC_SEO[path]?.[1] || "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.";
+    const chapterListSeo = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
+      ? ["Atma Rekha | English Chapters", "Browse published Atma Rekha chapters in English. Read the official manga by Arkesh Kaalvantik."]
+      : STATIC_SEO[path];
+    const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Original Indian Fantasy Adventure Manga", "Atma Rekha | Official Manga");
+    const shareDescription = chapterListSeo?.[1] || "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English.";
     html = setMeta(html, "property", "og:type", "website");
     html = setMeta(html, "property", "og:site_name", "Atma Rekha");
     html = setTitle(html, shareTitle);
@@ -373,11 +376,11 @@ async function addServerSeo(request, response, env) {
     try {
       const fallbackChapters = await loadPublishedChapters(env);
       const fallbackContent = buildNoScriptFallback(path, url, fallbackChapters);
-      if (fallbackContent && !html.includes("seo-no-script-content")) html = html.replace("</body>", fallbackContent + "\\n</body>");
+      if (fallbackContent && !html.includes("seo-no-script-content")) html = html.replace("</body>", fallbackContent + "\n</body>");
       if (chapterResolved === false) headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
     } catch (_) {
       const fallbackContent = buildNoScriptFallback(path, url, []);
-      if (fallbackContent && !html.includes("seo-no-script-content")) html = html.replace("</body>", fallbackContent + "\\n</body>");
+      if (fallbackContent && !html.includes("seo-no-script-content")) html = html.replace("</body>", fallbackContent + "\n</body>");
     }
   }
 
@@ -491,7 +494,7 @@ function buildSitemapXml(chapters) {
     ...urls,
     "</urlset>",
     "",
-  ].join("\\n");
+  ].join("\n");
 }
 
 async function serveSitemap(request, env) {
