@@ -515,7 +515,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       const infoDescriptions = {
-        about: 'Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English.'
+        about: 'Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English.',
         contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
         report: 'Report an issue with Atma Rekha website content or community activity.',
         privacy: 'Read how Atma Rekha processes account, profile, reading, community, membership, email, analytics and payment data.',
@@ -562,6 +562,11 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       'membership',
       'group-chat',
       'community',
+      'login',
+      'signup',
+      'bookmarks',
+      'account',
+      'privacy-center',
       'not-found',
       'maintenance',
       '403',
