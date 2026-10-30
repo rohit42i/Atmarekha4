@@ -3,6 +3,7 @@ import PrivacyPolicySections from './PrivacyPolicySections.jsx';
 import TermsOfUseSections from './TermsOfUseSections.jsx';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha/';
+const YOUTUBE_URL = 'https://www.youtube.com/@atmarekha';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
 const PAGES = {
@@ -30,6 +31,7 @@ const PAGES = {
     sections: [
       { heading: 'Email', body: 'Have a question or need help with your account or membership? Send us an email.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
       { heading: 'Instagram', body: 'Follow Atma Rekha for updates and previews.', links: [{ label: '@atma.rekha', href: INSTAGRAM_URL }] },
+      { heading: 'YouTube', body: 'Watch official Atma Rekha videos and updates.', links: [{ label: '@atmarekha', href: YOUTUBE_URL }] },
     ],
   },
   report: {
