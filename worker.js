@@ -329,6 +329,136 @@ async function addServerSeo(request, response, env) {
   return new Response(html, { status: response.status, statusText: response.statusText, headers });
 }
 
+
+function escapeXml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+function sitemapDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
+async function loadAllPublishedChapters(env) {
+  const base = String(env.SUPABASE_URL || SUPABASE_URL).replace(/\\/+$/, "");
+  const key = String(env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || PUBLIC_SUPABASE_KEY);
+  const rows = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const endpoint = new URL(base + "/rest/v1/chapters");
+    endpoint.searchParams.set("select", "id,chapter_number,title,language,status,release_date,created_at");
+    endpoint.searchParams.set("status", "eq.published");
+    endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc");
+    endpoint.searchParams.set("limit", String(pageSize));
+    endpoint.searchParams.set("offset", String(offset));
+    const response = await fetch(endpoint, {
+      headers: { apikey: key, Authorization: "Bearer " + key, Accept: "application/json" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) throw new Error("Published chapter sitemap lookup failed.");
+    const page = await response.json();
+    if (!Array.isArray(page)) throw new Error("Invalid chapter sitemap response.");
+    rows.push(...page.filter(row => String(row.status || "").toLowerCase() === "published"));
+    if (page.length < pageSize) break;
+  }
+  return rows;
+}
+
+function buildSitemapXml(chapters) {
+  const staticPaths = [
+    "/", "/chapters", "/chapters?lang=en", "/chapter/special/intro-282d54fd",
+    "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact",
+  ];
+  const entries = new Map();
+  const add = (path, lastmod = "") => {
+    const loc = SITE_ORIGIN + path;
+    if (!entries.has(loc)) entries.set(loc, { loc, lastmod, alternates: [] });
+    else if (!entries.get(loc).lastmod && lastmod) entries.get(loc).lastmod = lastmod;
+  };
+  for (const path of staticPaths) add(path);
+  const groups = new Map();
+  for (const chapter of chapters) {
+    const path = chapterPath(chapter);
+    add(path, sitemapDate(chapter.release_date || chapter.created_at));
+    const key = chapter.chapter_number !== null && chapter.chapter_number !== undefined && String(chapter.chapter_number).trim() !== ""
+      ? "number:" + String(chapter.chapter_number).trim()
+      : "special:" + slugify(chapter.title);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(chapter);
+  }
+  for (const group of groups.values()) {
+    const links = group.map(chapter => ({
+      language: normalizeLanguage(chapter.language) === "en" ? "en-IN" : "hi-Latn-IN",
+      url: SITE_ORIGIN + chapterPath(chapter),
+    }));
+    const fallback = group.find(chapter => normalizeLanguage(chapter.language) === "hi") || group[0];
+    links.push({ language: "x-default", url: SITE_ORIGIN + chapterPath(fallback) });
+    for (const chapter of group) {
+      const entry = entries.get(SITE_ORIGIN + chapterPath(chapter));
+      if (entry) entry.alternates = links;
+    }
+  }
+  const chapterListAlternates = [
+    { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
+    { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapters" },
+    { language: "x-default", url: SITE_ORIGIN + "/chapters" },
+  ];
+  for (const path of ["/chapters", "/chapters?lang=en"]) {
+    const entry = entries.get(SITE_ORIGIN + path);
+    if (entry) entry.alternates = chapterListAlternates;
+  }
+  const urls = [...entries.values()].map(entry => [
+    "  <url>",
+    "    <loc>" + escapeXml(entry.loc) + "</loc>",
+    ...[...new Map(entry.alternates.map(item => [item.language, item])).values()]
+      .map(item => '    <xhtml:link rel="alternate" hreflang="' + escapeXml(item.language) + '" href="' + escapeXml(item.url) + '" />'),
+    entry.lastmod ? "    <lastmod>" + entry.lastmod + "</lastmod>" : "",
+    "  </url>",
+  ].filter(Boolean).join("\\n"));
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    ...urls,
+    "</urlset>",
+    "",
+  ].join("\\n");
+}
+
+async function serveSitemap(request, env) {
+  const cacheKey = new Request(SITE_ORIGIN + "/sitemap.xml", { method: "GET" });
+  try {
+    const cached = await caches.default.match(cacheKey);
+    if (cached) return new Response(cached.body, { status: 200, headers: cached.headers });
+  } catch (_) {}
+  try {
+    const chapters = await loadAllPublishedChapters(env);
+    const body = buildSitemapXml(chapters);
+    const response = new Response(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+    try { await caches.default.put(cacheKey, response.clone()); } catch (_) {}
+    return response;
+  } catch (_) {
+    const fallback = await env.ASSETS.fetch(new Request(SITE_ORIGIN + "/sitemap.xml"));
+    return new Response(fallback.body, {
+      status: fallback.status,
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=60",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -336,6 +466,9 @@ export default {
       if (url.protocol === "http:") url.protocol = "https:";
       if (url.hostname === "atmarekha.in") url.hostname = "www.atmarekha.in";
       return Response.redirect(url.toString(), 301);
+    }
+    if (request.method === "GET" && url.pathname === "/sitemap.xml") {
+      return withSecurityHeaders(await serveSitemap(request, env));
     }
     const response = await env.ASSETS.fetch(request);
     if (request.method === "GET" && (response.headers.get("Content-Type") || "").toLowerCase().includes("text/html")) {
