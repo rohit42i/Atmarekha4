@@ -13,13 +13,14 @@ const SECURITY_HEADERS = {
 };
 
 const STATIC_SEO = {
-  "/chapters": ["Chapters | Atma Rekha", "Browse Atma Rekha chapters in Hindi (Roman Hindi) and English."],
-  "/info/about": ["About Atma Rekha | Indian Fantasy Manga and Creator", "Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English."],
-  "/info/contact": ["Contact Atma Rekha", "Contact the Atma Rekha team for reader questions, support, and website feedback."],
-  "/info/report": ["Report a Problem | Atma Rekha", "Report a website issue, content concern, or accessibility problem to Atma Rekha."],
-  "/info/privacy": ["Privacy Policy | Atma Rekha", "Learn how Atma Rekha uses account, reading, community, membership, email, analytics, security, and payment information."],
-  "/info/terms": ["Terms of Use | Atma Rekha", "Read the rules for Atma Rekha accounts, manga access, community features, memberships, payments, and moderation."],
-  "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Discover Pal Do Pal Ke Lamhe, a separate original story from the creator of Atma Rekha."],
+  "/": ["Atma Rekha | Original Indian Fantasy Adventure Manga", "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."],
+  "/chapters": ["Atma Rekha | Chapter List", "Browse published Atma Rekha chapters in Hindi written in Roman script and English. Read the official manga by Arkesh Kaalvantik."],
+  "/info/about": ["Atma Rekha | About the Creator", "Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English."],
+  "/info/contact": ["Atma Rekha | Contact", "Contact the creator of Atma Rekha for reader support, publication enquiries, or website feedback."],
+  "/info/report": ["Atma Rekha | Report a Problem", "Report a website issue, content concern, or accessibility problem to the Atma Rekha team."],
+  "/info/privacy": ["Atma Rekha | Privacy Policy", "Learn how Atma Rekha handles account, reading, community, membership, email, analytics, security, and payment information."],
+  "/info/terms": ["Atma Rekha | Terms of Use", "Read the terms for Atma Rekha accounts, manga access, community features, memberships, payments, and moderation."],
+  "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Read about Pal Do Pal Ke Lamhe, a separate school-life story from the creator of Atma Rekha."],
 };
 
 function withSecurityHeaders(response) {
@@ -62,7 +63,7 @@ function privatePath(path) {
 }
 
 function knownPath(path) {
-  if (path === "/" || path === "/chapters" || path === "/admin" || path === "/profile" || path === "/membership" || path === "/group-chat" || path === "/community" || path === "/privacy-center" || path === "/maintenance" || path === "/403" || path === "/430" || path === "/503" || path === "/pal-do-pal-ke-lamhe") return true;
+  if (path === "/" || path === "/chapters" || path === "/privacy-center" || path === "/pal-do-pal-ke-lamhe") return true;
   if (/^\/info\/(?:about|contact|report|privacy|terms)$/.test(path)) return true;
   if (/^\/chapter\/\d+(?:\.\d+)?$/.test(path) || /^\/chapter\/special\/[^/]+$/.test(path)) return true;
   return false;
@@ -162,6 +163,58 @@ function addJsonLd(html, nodes) {
   return match ? html.replace(pattern, script) : html.replace("</head>", "  " + script + "\n</head>");
 }
 
+function seoTitle(value, fallback) {
+  const text = String(value || "").replace(/\\s+/g, " ").trim();
+  const safeFallback = String(fallback || "Atma Rekha | Official Manga").trim();
+  if (!text) return safeFallback.slice(0, 59);
+  if (text.length <= 59) return text;
+  const clipped = text.slice(0, 56).replace(/\\s+\\S*$/, "").trim();
+  return (clipped || safeFallback.slice(0, 56)) + "...";
+}
+
+function buildNoScriptFallback(path, url, chapters) {
+  const rows = Array.isArray(chapters) ? chapters.filter(row => String(row.status || "").toLowerCase() === "published") : [];
+  const language = normalizeLanguage(url.searchParams.get("lang"));
+  const localized = rows.filter(row => normalizeLanguage(row.language) === language);
+  const link = (href, label) => '<li><a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a></li>';
+  const chapterLinks = (items, limit) => items.slice(-limit).reverse().map(row => {
+    const number = row.chapter_number == null || String(row.chapter_number).trim() === "" ? "Special" : "Chapter " + row.chapter_number;
+    const label = number + (row.title ? ": " + row.title : "");
+    return link(chapterPath(row), label + " (" + (normalizeLanguage(row.language) === "en" ? "English" : "Hindi, Roman script") + ")");
+  }).join("");
+  const nav = '<nav aria-label="Official Atma Rekha pages"><ul>' +
+    link("/", "Atma Rekha homepage") + link("/chapters", "Chapter list") +
+    link("/info/about", "About the creator") + link("/info/contact", "Contact") +
+    link("/pal-do-pal-ke-lamhe", "Pal Do Pal Ke Lamhe") + '</ul></nav>';
+  let body = "";
+  if (path === "/") {
+    body = '<h1>Atma Rekha</h1>' +
+      '<p>Atma Rekha is an original Indian fantasy adventure manga created and written by Arkesh Kaalvantik. It is published in Hindi written in Roman script and in English.</p>' +
+      '<p>The story follows Arnav, an eighteen-year-old student whose missing childhood memories and encounters with unusual powers lead him into a larger mystery. Arnav and Ishani are among the story’s named characters.</p>' +
+      '<h2>Published chapters</h2><ul>' + chapterLinks(rows, 6) + '</ul>';
+  } else if (path === "/chapters") {
+    body = '<h1>Atma Rekha chapter list</h1>' +
+      '<p>Browse published chapters in ' + (language === "en" ? "English" : "Hindi written in Roman script") + '. The official manga is created by Arkesh Kaalvantik.</p>' +
+      '<ul>' + chapterLinks(localized, localized.length) + '</ul>';
+  } else if (path === "/info/about") {
+    body = '<h1>About Atma Rekha and its creator</h1>' +
+      '<p>Arkesh Kaalvantik is the independent creator and author of Atma Rekha, an original Indian fantasy adventure manga available in Hindi written in Roman script and English.</p>' +
+      '<p>The project idea dates to 21 March 2025. Development began on 25 April 2025. The public introduction chapter is dated 7 September 2026, and Chapter 1 was published on 14 September 2026. New chapters are planned for the 14th of each month.</p>' +
+      '<p>Contact: <a href="mailto:atmarekhasupport@gmail.com">atmarekhasupport@gmail.com</a>.</p>';
+  } else if (/^\\/chapter\\/(?:\\d+(?:\\.\\d+)?|special\\/[^/]+)$/.test(path)) {
+    const chapter = findChapter(path, url, rows);
+    if (chapter) {
+      const title = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number));
+      const languageName = normalizeLanguage(chapter.language) === "en" ? "English" : "Hindi written in Roman script";
+      body = '<h1>' + escapeHtml(title) + ' | Atma Rekha</h1>' +
+        '<p>This published Atma Rekha chapter is available in ' + languageName + '. The series is created by Arkesh Kaalvantik.</p>' +
+        '<p><a href="' + escapeHtml(chapterPath(chapter)) + '">Open ' + escapeHtml(title) + '</a></p>';
+    }
+  }
+  if (!body) return "";
+  return '<noscript><main class="seo-no-script-content">' + body + nav + '</main></noscript>';
+}
+
 async function addServerSeo(request, response, env) {
   const url = new URL(request.url);
   const path = url.pathname === "/" ? "/" : "/" + url.pathname.replace(/^\/+|\/+$/g, "");
@@ -241,13 +294,15 @@ async function addServerSeo(request, response, env) {
     try {
       const chapters = await loadPublishedChapters(env);
       const chapter = findChapter(path, url, chapters);
+      chapterResolved = Boolean(chapter);
       if (!chapter) {
         html = setMeta(html, "name", "robots", "noindex,nofollow,noarchive");
         headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       } else {
         const name = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number)).trim().slice(0, 180);
-        const title = name + " | Atma Rekha";
-        const description = ("Read " + name + " of Atma Rekha, an Indian fantasy adventure manga by Arkesh Kaalvantik.").slice(0, 160);
+        const title = "Atma Rekha | " + name;
+        const languageLabel = normalizeLanguage(chapter.language) === "en" ? "English" : "Hindi written in Roman script";
+        const description = ("Read " + name + " of Atma Rekha by Arkesh Kaalvantik in " + languageLabel + ". An original fantasy adventure manga.").slice(0, 160);
         const canonical = SITE_ORIGIN + chapterPath(chapter);
         const image = safeCover(chapter.cover_url);
         const language = normalizeLanguage(chapter.language);
@@ -298,19 +353,31 @@ async function addServerSeo(request, response, env) {
             ]
           },
           {
-            "@type": "ComicStory", "@id": canonical, name: name, headline: name, description: description,
+            "@type": "ComicIssue", "@id": canonical, name: name, headline: name, description: description,
             author: { "@type": "Person", name: "Arkesh Kaalvantik" }, image: image, url: canonical, mainEntityOfPage: canonical,
-            isPartOf: { "@id": SITE_ORIGIN + "/#atma-rekha" },
+            isPartOf: { "@id": SITE_ORIGIN + "/#series" },
             datePublished: chapter.release_date || chapter.created_at || undefined,
             inLanguage: language === "en" ? "en-IN" : "hi-Latn-IN",
             isAccessibleForFree: parsedNumber == null ? true : parsedNumber <= 8,
-            ...(parsedNumber != null ? { position: parsedNumber } : {})
+            ...(parsedNumber != null ? { position: parsedNumber, issueNumber: String(parsedNumber) } : {})
           }
         ];
         html = addJsonLd(html, nodes);
       }
     } catch (_) {
       // Keep the reader available if the metadata service is temporarily unavailable.
+    }
+  }
+
+  if (path === "/" || path === "/chapters" || path === "/info/about" || /^\\/chapter\\/(?:\\d+(?:\\.\\d+)?|special\\/[^/]+)$/.test(path)) {
+    try {
+      const fallbackChapters = await loadPublishedChapters(env);
+      const fallbackContent = buildNoScriptFallback(path, url, fallbackChapters);
+      if (fallbackContent && !html.includes("seo-no-script-content")) html = html.replace("</body>", fallbackContent + "\\n</body>");
+      if (chapterResolved === false) headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    } catch (_) {
+      const fallbackContent = buildNoScriptFallback(path, url, []);
+      if (fallbackContent && !html.includes("seo-no-script-content")) html = html.replace("</body>", fallbackContent + "\\n</body>");
     }
   }
 
@@ -326,7 +393,7 @@ async function addServerSeo(request, response, env) {
     headers.set("Cache-Control", "public, max-age=0, must-revalidate");
     headers.set("CDN-Cache-Control", "public, max-age=300, stale-while-revalidate=60");
   }
-  return new Response(html, { status: response.status, statusText: response.statusText, headers });
+  return new Response(html, { status: chapterResolved === false ? 404 : response.status, statusText: chapterResolved === false ? "Not Found" : response.statusText, headers });
 }
 
 
