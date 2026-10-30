@@ -1,7 +1,14 @@
-# Public discovery is allowed. Private and account-only routes are not crawl targets.
+# Public pages may be crawled. Account and management areas are excluded.
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /login
+Disallow: /signup
+Disallow: /profile
+Disallow: /bookmarks
+Disallow: /membership
+Disallow: /group-chat
+Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
@@ -19,6 +26,13 @@ User-agent: Googlebot
 User-agent: Bingbot
 Allow: /
 Disallow: /admin
+Disallow: /login
+Disallow: /signup
+Disallow: /profile
+Disallow: /bookmarks
+Disallow: /membership
+Disallow: /group-chat
+Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
