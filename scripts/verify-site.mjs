@@ -39,11 +39,28 @@ const required = [
   ['public/robots.txt', 'User-agent: ClaudeBot\nDisallow: /'],
   ['index.html', '"@type":"ComicSeries"'],
   ['index.html', 'https://www.atmarekha.in/#creator'],
-  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';"],
-  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.';"],
+  ['App.jsx', 'function shortSeoTitle(value, fallback)'],
+  ['App.jsx', "title = 'Atma Rekha | Chapter List';"],
+  ['App.jsx', "title = 'Atma Rekha | Community';"],
+  ['App.jsx', "title = 'Atma Rekha | Membership';"],
+  ['App.jsx', "'@type': 'ComicIssue'"],
+  ['InfoPage.jsx', '21 March 2025'],
+  ['InfoPage.jsx', '25 April 2025'],
+  ['InfoPage.jsx', '14 September 2026'],
+  ['InfoPage.jsx', 'atmarekhasupport@gmail.com'],
+  ['Footer.jsx', 'href="/info/contact"'],
+  ['Footer.jsx', 'https://www.youtube.com/@atmarekha'],
+  ['worker.js', 'function buildNoScriptFallback(path, url, chapters)'],
+  ['worker.js', 'seo-no-script-content'],
+  ['worker.js', '"@type": "ComicIssue"'],
+  ['worker.js', 'login|signup|bookmarks|account'],
+  ['public/llms.txt', 'The project idea dates to 21 March 2025'],
+  ['public/llms-full.txt', 'The project idea dates to 21 March 2025'],
+  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';"],
+  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Roman Hindi and English.';"],
   ['App.jsx', "upsertMeta('name', 'author', 'Arkesh Kaalvantik');"],
-  ['worker.js', 'const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga"'],
-  ['worker.js', 'const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'],
+  ['worker.js', 'const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Original Indian Fantasy Adventure Manga"'],
+  ['worker.js', 'const shareDescription = chapterListSeo?.[1] || "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'],
   ['scripts/test-worker-seo.mjs', 'Homepage Open Graph description is outdated.'],
   ['scripts/generate-sitemap.mjs', "'/info/about'"],
   ['scripts/generate-sitemap.mjs', "'/info/terms'"],
@@ -205,6 +222,30 @@ if (!seoSitemapRegression.startsWith('<?xml') ||
     /(?:<loc>https:\/\/www\.atmarekha\.in\/(?:admin|profile|membership|group-chat|privacy-center)(?:\/|<\/loc>))/i.test(seoSitemapRegression)) {
   console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical public pages without private account routes.');
   failed = true;
+}
+
+
+const seoWorkerSource = await readFile('worker.js', 'utf8');
+const aboutSource = await readFile('InfoPage.jsx', 'utf8');
+const seoAppSource = await readFile('App.jsx', 'utf8');
+if (!seoWorkerSource.includes('function buildNoScriptFallback') ||
+    !seoWorkerSource.includes('seo-no-script-content') ||
+    !seoWorkerSource.includes('"@type": "ComicIssue"') ||
+    !seoAppSource.includes("function shortSeoTitle(value, fallback)")) {
+  console.error('CHECK FAILED: route metadata, no-script crawlable content, or chapter ComicIssue schema is missing.');
+  failed = true;
+}
+if (!aboutSource.includes('21 March 2025') || !aboutSource.includes('25 April 2025') ||
+    !aboutSource.includes('14 September 2026') || !aboutSource.includes('Hindi written in Roman script and English')) {
+  console.error('CHECK FAILED: About page is missing the creator, language, or verified publication timeline.');
+  failed = true;
+}
+const publicRobotRules = await readFile('public/robots.txt', 'utf8');
+for (const privateRoute of ['Disallow: /login', 'Disallow: /profile', 'Disallow: /membership', 'Disallow: /community']) {
+  if (publicRobotRules.includes(privateRoute)) {
+    console.error('CHECK FAILED: robots.txt blocks a private route that must remain crawlable for noindex headers:', privateRoute);
+    failed = true;
+  }
 }
 
 const signupEmailUpdatesRegression = await readFile('UserAuth.jsx', 'utf8');
