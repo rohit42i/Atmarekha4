@@ -439,7 +439,14 @@ export default {
       if (url.hostname === "atmarekha.in") url.hostname = "www.atmarekha.in";
       return Response.redirect(url.toString(), 301);
     }
-    const response = await env.ASSETS.fetch(request);
+    // Query strings are cache-busters for static files, not part of the
+    // asset key. Normalize them before calling the Workers Assets binding so
+    // Open Graph images and other versioned assets resolve to their real files.
+    const isStaticAssetRequest = request.method === "GET" && /\\.[a-z0-9]{1,8}$/i.test(url.pathname);
+    const assetRequest = isStaticAssetRequest && url.search
+      ? new Request(new URL(url.pathname, url.origin), request)
+      : request;
+    const response = await env.ASSETS.fetch(assetRequest);
     if (request.method === "GET" && (response.headers.get("Content-Type") || "").toLowerCase().includes("text/html")) {
       return withSecurityHeaders(await addServerSeo(request, response, env));
     }
