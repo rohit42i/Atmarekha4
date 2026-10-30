@@ -10,8 +10,8 @@ const required = [
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
   ['InfoPage.jsx', "['Age guidance', '15+']"],
-  ['InfoPage.jsx', 'I use AI tools in parts of the visual process'],
-  ['InfoPage.jsx', 'AI generated material'],
+  ['InfoPage.jsx', 'AI tools assist selected parts of the visual workflow.'],
+  ['InfoPage.jsx', 'AI-generated images are not published directly as finished manga pages.'],
   ['PrivacyPolicySections.jsx', '2. How we use your information'],
   ['PrivacyPolicySections.jsx', '5. Retention and account deletion'],
   ['InfoPage.jsx', 'className="legal-document-intro"'],
@@ -256,9 +256,14 @@ for (const privateRoute of ['Disallow: /login', 'Disallow: /profile', 'Disallow:
 
 
 const footerSocialRegression = await readFile('Footer.jsx', 'utf8');
-const socialArray = footerSocialRegression.match(/const SOCIAL_LINKS = \\[[\\s\\S]*?\\];/)?.[0] || '';
+const socialArray = footerSocialRegression.match(/const SOCIAL_LINKS = \[[\s\S]*?\];/)?.[0] || '';
+const socialHrefs = [...socialArray.matchAll(/href:\s*'([^']+)'/g)].map((match) => match[1]).sort();
+const expectedSocialHrefs = [
+  'https://www.instagram.com/atma.rekha/',
+  'https://www.youtube.com/@atmarekha',
+].sort();
 if (!socialArray.includes('Instagram') || !socialArray.includes('YouTube') ||
-    /Gmail|mailto:|Facebook|Twitter|X\\s*['"]/.test(socialArray)) {
+    JSON.stringify(socialHrefs) !== JSON.stringify(expectedSocialHrefs)) {
   console.error('CHECK FAILED: footer social links must contain only the official Instagram and YouTube accounts.');
   failed = true;
 }
@@ -665,12 +670,12 @@ if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') 
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
 const termsCopyRegression = await readFile('TermsOfUseSections.jsx', 'utf8');
 const privacyCopyRegression = await readFile('PrivacyPolicySections.jsx', 'utf8');
-if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
-    !legalCopyRegression.includes('AI generated material') ||
+if (!legalCopyRegression.includes('AI tools assist selected parts of the visual workflow.') ||
+    !legalCopyRegression.includes('AI-generated images are not published directly as finished manga pages.') ||
     !termsCopyRegression.includes('Membership renews automatically') ||
     !termsCopyRegression.includes('atmarekhasupport@gmail.com') ||
     !termsCopyRegression.includes('no-reply@atmarekha.in') ||
-    !legalCopyRegression.includes("type === 'privacy'") ||
+    !legalCopyRegression.includes("const isPrivacy = type === 'privacy';") ||
     !privacyCopyRegression.includes('atmarekhainfo@gmail.com') ||
     !privacyCopyRegression.includes('atmarekhaoffical@gmail.com') ||
     !privacyCopyRegression.includes('recovery window of 14 days') ||
