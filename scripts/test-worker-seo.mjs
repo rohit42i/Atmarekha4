@@ -47,12 +47,13 @@ try {
   const sitemapXml = await sitemapResponse.text();
   assert.equal(sitemapResponse.status, 200);
   assert.ok((sitemapResponse.headers.get("content-type") || "").includes("application/xml"));
-  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact"]) {
+  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
     assert.ok(sitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Sitemap is missing public URL: " + path);
   }
   assert.ok(sitemapXml.includes('hreflang="en-IN"') && sitemapXml.includes('hreflang="hi-Latn-IN"'), "Published chapter language alternates are missing.");
   assert.ok(!sitemapXml.includes("Unreleased") && !sitemapXml.includes("draft-2"), "Unpublished chapters must not appear in the sitemap.");
   assert.ok(!sitemapXml.includes("storage/") && !sitemapXml.includes("<image:image>"), "Sitemap must not expose storage or image URLs.");
+  assert.ok(!sitemapXml.includes("\\\\n"), "Sitemap XML must use real line breaks rather than escaped backslash sequences.");
   assert.match(sitemapResponse.headers.get("cache-control") || "", /max-age=300/);
 
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
@@ -111,6 +112,12 @@ try {
   assert.match(privateHtml, /name="robots" content="noindex,nofollow,noarchive"/);
   assert.equal(privatePage.headers.get("cache-control"), "private, no-store, max-age=0");
   assert.equal(privatePage.headers.get("cdn-cache-control"), null);
+
+  for (const path of ["/admin", "/login", "/signup", "/profile", "/bookmarks", "/membership", "/community", "/group-chat", "/privacy-center"]) {
+    const response = await worker.fetch(new Request("https://www.atmarekha.in" + path), env);
+    assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow, noarchive", "Private route must be noindex: " + path);
+    assert.equal(response.headers.get("cache-control"), "private, no-store, max-age=0", "Private route must not be publicly cached: " + path);
+  }
 
   const unknown = await worker.fetch(new Request("https://www.atmarekha.in/not-a-real-route"), env);
   const unknownHtml = await unknown.text();
