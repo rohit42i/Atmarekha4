@@ -1,21 +1,17 @@
-# Public pages may be crawled. Account and management areas are excluded.
+# Public pages may be crawled. Private routes return noindex headers and are omitted from the sitemap.
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /login
 Disallow: /signup
-Disallow: /profile
 Disallow: /bookmarks
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
 Disallow: /430
 Disallow: /503
 
-# Search crawlers may index public Atma Rekha pages.
+# Search crawlers may index public Atma Rekha pages. Private routes remain crawlable so noindex directives can be read.
 # Search access is separate from permission to use content for model training.
 User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
@@ -28,11 +24,7 @@ Allow: /
 Disallow: /admin
 Disallow: /login
 Disallow: /signup
-Disallow: /profile
 Disallow: /bookmarks
-Disallow: /membership
-Disallow: /group-chat
-Disallow: /community
 Disallow: /privacy-center
 Disallow: /maintenance
 Disallow: /403
