@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const SITE_URL = 'https://www.atmarekha.in';
@@ -107,7 +107,18 @@ function buildXml(chapters) {
   ].join('\\n');
 }
 
-const chapters = await loadPublishedChapters();
+let chapters = [];
+try {
+  chapters = await loadPublishedChapters();
+} catch (error) {
+  console.warn('Sitemap refresh skipped; retaining the last generated sitemap:', error?.message || error);
+  try {
+    await readFile(OUT, 'utf8');
+    process.exit(0);
+  } catch (_) {
+    console.warn('No previous sitemap exists; generating a static public-route fallback.');
+  }
+}
 const xml = buildXml(chapters);
 await writeFile(OUT, xml, 'utf8');
 console.log('Generated sitemap with ' + (STATIC_PATHS.length + chapters.length) + ' source entries, including ' + chapters.length + ' published chapter records.');
