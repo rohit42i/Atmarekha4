@@ -370,7 +370,7 @@ async function loadAllPublishedChapters(env) {
 function buildSitemapXml(chapters) {
   const staticPaths = [
     "/", "/chapters", "/chapters?lang=en",
-    "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact",
+    "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report",
   ];
   const entries = new Map();
   const add = (path, lastmod = "") => {
