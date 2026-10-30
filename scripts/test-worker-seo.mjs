@@ -7,6 +7,7 @@ const cacheStore = new Map();
 const chapterRows = [
   { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
   { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/private-cover.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "intro-282d54fd-rest", chapter_number: null, title: "Intro", language: "hi", status: "published", release_date: "2026-09-07T00:00:00Z" },
   { id: "draft-2", chapter_number: 2, title: "Unreleased", language: "hi", status: "draft", release_date: "2026-10-01T00:00:00Z" },
 ];
 globalThis.caches = {
