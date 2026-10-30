@@ -44,15 +44,16 @@ try {
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
+  assert.equal((homeHtml.match(/rel="canonical"/g) || []).length, 1, "Homepage must have exactly one canonical URL.");
   assert.match(homeHtml, /<h1 id="seo-fallback-title">Atma Rekha<\/h1>/, "Homepage must expose readable HTML before JavaScript runs.");
   assert.ok(homeHtml.includes("original Indian fantasy adventure manga created independently by Arkesh Kaalvantik"), "Homepage fallback must identify the series and creator.");
   assert.ok(homeHtml.includes('href="/chapters"'), "Homepage fallback must link to the chapter catalogue.");
 
-  assert.ok(homeHtml.includes('<title>Atma Rekha | Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
-  assert.ok(homeHtml.includes('name="description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage description is outdated.");
-  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
-  assert.ok(homeHtml.includes('property="og:description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage Open Graph description is outdated.");
-  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
+  assert.ok(homeHtml.includes('<title>Atma Rekha | Original Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
+  assert.ok(homeHtml.includes('name="description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'), "Homepage description is outdated.");
+  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
+  assert.ok(homeHtml.includes('property="og:description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, told through mystery, unusual powers, and human choices in Hindi and English."'), "Homepage Open Graph description is outdated.");
+  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
   assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
   assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
 
@@ -97,7 +98,7 @@ try {
   assert.equal(unknown.status, 404);
   assert.equal(unknown.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
   assert.match(unknownHtml, /name="robots" content="noindex,nofollow,noarchive"/);
-  assert.doesNotMatch(unknownHtml, /class="seo-fallback"/, "Unknown routes must not receive SEO fallback content.");
+  assert.match(unknownHtml, /<h1 id="seo-fallback-title">Page not found<\/h1>/, "Unknown routes must show the custom public 404 fallback.");
 
 
   const chapterHindi = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1"), env);
