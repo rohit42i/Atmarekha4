@@ -164,11 +164,11 @@ function addJsonLd(html, nodes) {
 }
 
 function seoTitle(value, fallback) {
-  const text = String(value || "").replace(/\\s+/g, " ").trim();
+  const text = String(value || "").replace(/\s+/g, " ").trim();
   const safeFallback = String(fallback || "Atma Rekha | Official Manga").trim();
   if (!text) return safeFallback.slice(0, 59);
   if (text.length <= 59) return text;
-  const clipped = text.slice(0, 56).replace(/\\s+\\S*$/, "").trim();
+  const clipped = text.slice(0, 56).replace(/\s+\S*$/, "").trim();
   return (clipped || safeFallback.slice(0, 56)) + "...";
 }
 
@@ -303,7 +303,7 @@ async function addServerSeo(request, response, env) {
         headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       } else {
         const name = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number)).trim().slice(0, 180);
-        const title = "Atma Rekha | " + name;
+        const title = seoTitle("Atma Rekha | " + name, "Atma Rekha | Chapter");
         const languageLabel = normalizeLanguage(chapter.language) === "en" ? "English" : "Hindi written in Roman script";
         const description = ("Read " + name + " of Atma Rekha by Arkesh Kaalvantik in " + languageLabel + ". An original fantasy adventure manga.").slice(0, 160);
         const canonical = SITE_ORIGIN + chapterPath(chapter);
