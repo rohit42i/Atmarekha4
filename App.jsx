@@ -126,11 +126,11 @@ function buildBreadcrumbList(type, routeParts, chapter, title, canonicalUrl) {
 }
 
 function shortSeoTitle(value, fallback) {
-  const text = String(value || '').replace(/\\s+/g, ' ').trim();
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
   const safeFallback = String(fallback || DEFAULT_SEO_TITLE).trim();
   if (!text) return safeFallback.slice(0, 59);
   if (text.length <= 59) return text;
-  const clipped = text.slice(0, 56).replace(/\\s+\\S*$/, '').trim();
+  const clipped = text.slice(0, 56).replace(/\s+\S*$/, '').trim();
   return (clipped || safeFallback.slice(0, 56)) + '...';
 }
 
