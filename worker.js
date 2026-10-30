@@ -217,7 +217,7 @@ function buildNoScriptFallback(path, url, chapters) {
       '<p>Arkesh Kaalvantik is the independent creator and author of Atma Rekha, an original Indian fantasy adventure manga available in Hindi written in Roman script and English.</p>' +
       '<p>The project idea dates to 21 March 2025. Development began on 25 April 2025. The public introduction chapter is dated 7 September 2026, and Chapter 1 was published on 14 September 2026. New chapters are planned for the 14th of each month.</p>' +
       '<p>Contact: <a href="mailto:atmarekhasupport@gmail.com">atmarekhasupport@gmail.com</a>.</p>';
-  } else if (/^\\/chapter\\/(?:\\d+(?:\\.\\d+)?|special\\/[^/]+)$/.test(path)) {
+  } else if (/^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
     const chapter = findChapter(path, url, rows);
     if (chapter) {
       const title = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number));
@@ -388,7 +388,7 @@ async function addServerSeo(request, response, env) {
     }
   }
 
-  if (path === "/" || path === "/chapters" || path === "/info/about" || /^\\/chapter\\/(?:\\d+(?:\\.\\d+)?|special\\/[^/]+)$/.test(path)) {
+  if (path === "/" || path === "/chapters" || path === "/info/about" || /^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
     try {
       const fallbackChapters = await loadPublishedChapters(env);
       const fallbackContent = buildNoScriptFallback(path, url, fallbackChapters);
