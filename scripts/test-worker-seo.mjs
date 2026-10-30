@@ -58,19 +58,37 @@ try {
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
-  assert.ok(homeHtml.includes('<title>Atma Rekha | Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
-  assert.ok(homeHtml.includes('name="description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage description is outdated.");
-  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
-  assert.ok(homeHtml.includes('property="og:description" content="Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'), "Homepage Open Graph description is outdated.");
-  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
+  assert.ok(homeHtml.includes('<title>Atma Rekha | Original Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
+  assert.ok(homeHtml.includes('name="description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'), "Homepage description is outdated.");
+  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
+  assert.ok(homeHtml.includes('property="og:description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'), "Homepage Open Graph description is outdated.");
+  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
   assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
   assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
+
+  assert.match(homeHtml, /<noscript><main class="seo-no-script-content">/);
+  assert.ok(homeHtml.includes("Arnav") && homeHtml.includes("Ishani"), "No-script homepage content should include the confirmed story characters.");
+  assert.ok(homeHtml.includes("href=\"/chapter/1\""), "No-script homepage should expose a crawlable published chapter link.");
+  assert.match(homeHtml, /<meta property="og:url" content="https:\/\/www\.atmarekha\.in\/" \/>/);
+
+  const chapterList = await worker.fetch(new Request("https://www.atmarekha.in/chapters"), env);
+  const chapterListHtml = await chapterList.text();
+  assert.match(chapterListHtml, /<title>Atma Rekha \| Chapter List<\/title>/);
+  assert.ok(chapterListHtml.includes("href=\"/chapter/1\"") && chapterListHtml.includes("href=\"/chapter/special/intro-282d54fd\""), "No-script chapter list should expose published chapter links.");
+  assert.ok(!chapterListHtml.includes("Unreleased"), "No-script chapter list must not expose unpublished chapter titles.");
+
+  const intro = await worker.fetch(new Request("https://www.atmarekha.in/chapter/special/intro-282d54fd"), env);
+  const introHtml = await intro.text();
+  assert.equal(intro.status, 200);
+  assert.match(introHtml, /"@type":"ComicIssue"/);
+  assert.match(introHtml, /inLanguage":"hi-Latn-IN"/);
+  assert.match(introHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/special\/intro-282d54fd"/);
 
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
   assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
-  assert.ok(aboutHtml.includes("Learn about Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, published in Hindi (Roman Hindi) and English."), "About description is missing or incorrect.");
+  assert.ok(aboutHtml.includes("Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.ok(aboutHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page does not use the optimized JPEG share image.");
   assert.ok(aboutHtml.includes('property="og:image:secure_url" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page secure share image URL is incorrect.");
@@ -109,7 +127,7 @@ try {
   assert.doesNotMatch(chapterHindiHtml, /property="og:image:type"/);
   assert.match(chapterHindiHtml, /name="twitter:image" content="https:\/\/www\.atmarekha\.in\/ishani\.png"/);
   assert.match(chapterHindiHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/1"/);
-  assert.match(chapterHindiHtml, /"@type":"ComicStory"/);
+  assert.match(chapterHindiHtml, /"@type":"ComicIssue"/);
   assert.match(chapterHindiHtml, /"@type":"BreadcrumbList"/);
   assert.match(chapterHindiHtml, /hreflang="en-IN"/);
 
