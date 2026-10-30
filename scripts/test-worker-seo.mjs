@@ -96,9 +96,11 @@ try {
   const unknown = await worker.fetch(new Request("https://www.atmarekha.in/not-a-real-route"), env);
   const unknownHtml = await unknown.text();
   assert.equal(unknown.status, 404);
+  assert.match(unknownHtml, /<title>Page not found \| Atma Rekha<\/title>/);
   assert.equal(unknown.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
   assert.match(unknownHtml, /name="robots" content="noindex,nofollow,noarchive"/);
   assert.match(unknownHtml, /<h1 id="seo-fallback-title">Page not found<\/h1>/, "Unknown routes must show the custom public 404 fallback.");
+  assert.match(unknownHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/not-a-real-route"/);
 
 
   const chapterHindi = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1"), env);
