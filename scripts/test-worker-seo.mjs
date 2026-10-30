@@ -4,6 +4,7 @@ import worker from "../worker.js";
 const previousFetch = globalThis.fetch;
 const previousCaches = globalThis.caches;
 const cacheStore = new Map();
+const staticAssetRequests = [];
 const chapterRows = [
   { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
   { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
@@ -34,13 +35,32 @@ const shell = `<!doctype html><html lang="en"><head>
 </head><body><div id="root"></div></body></html>`;
 const env = {
   ASSETS: {
-    async fetch() {
+    async fetch(request) {
+      staticAssetRequests.push(new URL(request.url));
+      if (new URL(request.url).pathname === "/og-atmarekha.jpg") {
+        return new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]), {
+          status: 200,
+          headers: { "Content-Type": "image/jpeg" },
+        });
+      }
       return new Response(shell, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
     },
   },
 };
 
 try {
+  const versionedShareImage = await worker.fetch(
+    new Request("https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"),
+    env,
+  );
+  assert.equal(versionedShareImage.status, 200, "Versioned static images must resolve through the Assets binding.");
+  assert.match(versionedShareImage.headers.get("content-type") || "", /^image\/jpeg/i);
+  assert.equal(
+    staticAssetRequests.at(-1)?.href,
+    "https://www.atmarekha.in/og-atmarekha.jpg",
+    "Static asset cache-busting query strings must not alter the asset lookup path.",
+  );
+
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
