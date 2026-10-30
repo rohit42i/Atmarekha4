@@ -88,7 +88,7 @@ try {
   const about = await worker.fetch(new Request("https://www.atmarekha.in/info/about"), env);
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
-  assert.match(aboutHtml, /<title>About Atma Rekha \| Indian Fantasy Manga and Creator<\/title>/);
+  assert.match(aboutHtml, /<title>Atma Rekha \| About the Creator<\/title>/);
   assert.ok(aboutHtml.includes("Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.ok(aboutHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page does not use the optimized JPEG share image.");
@@ -141,6 +141,32 @@ try {
   const chapterEnglish = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1?lang=en"), env);
   const chapterEnglishHtml = await chapterEnglish.text();
   assert.match(chapterEnglishHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/chapter\/1\?lang=en"/);
+
+  const largeChapterRows = Array.from({ length: 501 }, (_, index) => ({
+    id: "pagination-" + (index + 1),
+    chapter_number: index + 1,
+    title: "Paginated chapter " + (index + 1),
+    language: "hi",
+    status: "published",
+    release_date: "2026-09-14T00:00:00Z",
+  }));
+  const paginationOffsets = [];
+  cacheStore.clear();
+  globalThis.fetch = async request => {
+    const endpoint = new URL(request.url || request);
+    const offset = Number(endpoint.searchParams.get("offset") || 0);
+    const limit = Number(endpoint.searchParams.get("limit") || 500);
+    paginationOffsets.push(offset);
+    return new Response(JSON.stringify(largeChapterRows.slice(offset, offset + limit)), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+  const paginatedSitemapResponse = await worker.fetch(new Request("https://www.atmarekha.in/sitemap.xml"), env);
+  const paginatedSitemapXml = await paginatedSitemapResponse.text();
+  assert.equal(paginatedSitemapResponse.status, 200);
+  assert.ok(paginatedSitemapXml.includes("<loc>https://www.atmarekha.in/chapter/501</loc>"), "Sitemap must include chapters after the first 500 records.");
+  assert.deepEqual(paginationOffsets, [0, 500], "Worker must fetch published chapters in 500-record pages.");
 
   const redirect = await worker.fetch(new Request("http://atmarekha.in/chapters?lang=en"), env);
   assert.equal(redirect.status, 301);
