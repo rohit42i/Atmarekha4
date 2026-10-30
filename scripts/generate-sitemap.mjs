@@ -6,7 +6,7 @@ const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
   '/', '/chapters', '/chapters?lang=en',
   '/pal-do-pal-ke-lamhe',
-  '/info/about', '/info/terms', '/info/privacy', '/info/contact',
+  '/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report',
 ];
 
 const env = key => String(process.env[key] || '').trim();
