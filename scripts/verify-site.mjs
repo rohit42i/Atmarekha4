@@ -49,6 +49,12 @@ const required = [
   ['InfoPage.jsx', '14 September 2026'],
   ['InfoPage.jsx', 'atmarekhasupport@gmail.com'],
   ['Footer.jsx', 'href="/info/contact"'],
+  ['Footer.jsx', "{ label: 'Instagram', href: 'https://www.instagram.com/atma.rekha/', icon: 'instagram' },"],
+  ['Footer.jsx', "{ label: 'YouTube', href: 'https://www.youtube.com/@atmarekha', icon: 'youtube' },"],
+  ['InfoPage.jsx', "const YOUTUBE_URL = 'https://www.youtube.com/@atmarekha';"],
+  ['InfoPage.jsx', "{ heading: 'YouTube', body: 'Watch official Atma Rekha videos and updates.'"],
+  ['index.html', 'https://www.youtube.com/@atmarekha'],
+  ['App.jsx', 'https://www.youtube.com/@atmarekha'],
   ['Footer.jsx', 'https://www.youtube.com/@atmarekha'],
   ['worker.js', 'function buildNoScriptFallback(path, url, chapters)'],
   ['worker.js', 'seo-no-script-content'],
@@ -246,6 +252,15 @@ for (const privateRoute of ['Disallow: /login', 'Disallow: /profile', 'Disallow:
     console.error('CHECK FAILED: robots.txt blocks a private route that must remain crawlable for noindex headers:', privateRoute);
     failed = true;
   }
+}
+
+
+const footerSocialRegression = await readFile('Footer.jsx', 'utf8');
+const socialArray = footerSocialRegression.match(/const SOCIAL_LINKS = \\[[\\s\\S]*?\\];/)?.[0] || '';
+if (!socialArray.includes('Instagram') || !socialArray.includes('YouTube') ||
+    /Gmail|mailto:|Facebook|Twitter|X\\s*['"]/.test(socialArray)) {
+  console.error('CHECK FAILED: footer social links must contain only the official Instagram and YouTube accounts.');
+  failed = true;
 }
 
 const signupEmailUpdatesRegression = await readFile('UserAuth.jsx', 'utf8');
