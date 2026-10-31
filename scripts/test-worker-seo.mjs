@@ -25,7 +25,7 @@ globalThis.caches = {
 globalThis.fetch = async request => {
   chapterLookupRequests.push(new URL(request.url || request));
   return new Response(JSON.stringify(chapterRows), {
-  status: 200,
+    status: 200,
     headers: { "Content-Type": "application/json" },
   });
 };
