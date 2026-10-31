@@ -4,7 +4,6 @@ import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from '.
 import AdminOverview from './AdminOverview';
 import AdminControlRoom from './AdminControlRoom.jsx';
 import AdminMembership from './AdminMembership.jsx';
-import AdminUtilityRail from './AdminUtilityRail.jsx';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
@@ -1271,7 +1270,6 @@ export default function AdminPanel({ onLogout, adminUser }) {
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = openReportCount ?? reports.filter(report => (report.status || 'open') === 'open').length;
-  const hasUtilityRail = !loading && (tab === 'Control Room' || tab === 'Overview');
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   useEffect(() => {
@@ -1312,7 +1310,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
   return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme={adminTheme}>
-    <div className={`ar-admin-app${hasUtilityRail ? ' has-utility-rail' : ''}`}>
+    <div className="ar-admin-app">
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
         activeKey={tab}
@@ -1444,24 +1442,6 @@ export default function AdminPanel({ onLogout, adminUser }) {
         <AdminProTools />
         <CommunityAdmin />
       </div>
-      {hasUtilityRail && <AdminUtilityRail
-        chapters={sorted}
-        comments={comments}
-        reports={reports}
-        pageCounts={pageCounts}
-        pageCountsAvailable={pageCountsAvailable}
-        commentsAvailable={commentsAvailable}
-        reportsAvailable={reportsAvailable}
-        announcementsAvailable={announcementsAvailable}
-        mediaAvailable={mediaAvailable}
-        announcements={announcements}
-        media={media}
-        reportCount={reportCount}
-        refreshedAt={lastRefreshedAt}
-        onTab={activateTab}
-        onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
-        onRefresh={load}
-      />}
     </div>
   </main>;
 }

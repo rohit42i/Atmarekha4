@@ -190,7 +190,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [chapterStatus, setChapterStatus] = useState('all');
   const [bundle, setBundle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [loadDuration, setLoadDuration] = useState(null);
   const [collapsedMetrics, setCollapsedMetrics] = useState(false);
@@ -200,7 +199,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const load = async () => {
     const requestId = ++loadSequence.current;
     const startedAt = Date.now();
-    setRefreshing(true);
     const results = await Promise.all([
       task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })),
       task(() => fetchCloudflareAdminAnalytics(Number(days))),
@@ -245,7 +243,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     setLastRefresh(new Date());
     setLoadDuration(Date.now() - startedAt);
     setLoading(false);
-    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -899,7 +896,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       <div className="ar-cr-hero-copy">
         <span className="ar-cr-kicker">ATMA REKHA / OPERATIONS</span>
         <h2>Control room</h2>
-        <p>Analytics, publishing health, audience signals, money movement and operational events in one view.</p>
         <div className="ar-cr-status-line">
           <span className={'ar-cr-status-dot' + (loading || statusCount ? ' is-warning' : ' is-ok')}/>
           <span>{loading ? 'Connecting to data sources…' : statusCount ? statusCount + ' source(s) need attention' : 'All checked sources responded'}</span>
@@ -910,10 +906,8 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
       </div>
       <div className="ar-cr-hero-actions">
         <label><span>Reporting window</span><select value={days} onChange={event => setDays(Number(event.target.value))}>{WINDOWS.map(row => <option key={row.value} value={row.value}>{row.label}</option>)}</select></label>
-        <button type="button" className="ar-cr-btn is-primary" onClick={load} disabled={refreshing}><AdminIcon name="refresh" size={15}/>{refreshing ? 'Refreshing…' : 'Refresh all'}</button>
         <button type="button" className="ar-cr-btn" onClick={exportMetrics}><AdminIcon name="chart" size={15}/>Export CSV</button>
         <button type="button" className="ar-cr-btn" onClick={exportSnapshot}><AdminIcon name="layers" size={15}/>Export JSON</button>
-        <button type="button" className="ar-cr-btn is-primary" onClick={() => { setSection('Feature Workbench'); setFeatureSearch(''); }}><AdminIcon name="settings" size={15}/>Open {featureCatalog.length} tools</button>
       </div>
     </header>
 
@@ -980,19 +974,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
         </Card>
       </div>
 
-      <Card eyebrow="QUICK LAUNCH" title="Go straight to a task">
-        <div className="ar-cr-launch-grid">
-          {[
-            ['Chapters', 'Chapter Manager', 'book'],
-            ['Pages', 'Page Editor', 'layers'],
-            ['Comments', 'Reader comments', 'message'],
-            ['Reports', 'Moderation queue', 'flag'],
-            ['Announcements', 'Announcements', 'bell'],
-            ['Membership & Earnings', 'Revenue and plans', 'chart'],
-            ['Media', 'Media library', 'image'],
-          ].map(item => <button type="button" key={item[0]} onClick={() => onTab?.(item[0])}><AdminIcon name={item[2]} size={17}/><span><strong>{item[1]}</strong><small>Open workspace</small></span><AdminIcon name="chevron" size={15}/></button>)}
-        </div>
-      </Card>
     </div>}
 
     {section !== 'Command Center' && section !== 'Feature Workbench' && <div className="ar-cr-explorer">
