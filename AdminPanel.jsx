@@ -309,7 +309,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
     setNotice({ type: '', text: '' });
     const warnings = [];
     try {
-      const user = adminUser || await requireAdmin();
+      const user = initialLoad && adminUser ? adminUser : await requireAdmin();
       if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
       // Render the authenticated admin workspace before waiting for optional data sources.
