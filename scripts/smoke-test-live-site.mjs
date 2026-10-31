@@ -134,7 +134,7 @@ const html = await homepage.text();
 // JPEG encoded, and exactly 1200 x 630. Metadata alone does not prove it works.
 const shareImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
 assert.ok(shareImageMatch, "Homepage is missing its Open Graph share image.");
-assert.equal(shareImageMatch[1], "https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1", "Homepage must declare the current cache-busted social preview.");
+assert.equal(shareImageMatch[1], "https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2", "Homepage must declare the current cache-busted social preview.");
 const shareImage = await assertOk(shareImageMatch[1], "Open Graph share image");
 assert.match(shareImage.headers.get("content-type") || "", /^image\/jpeg(?:;|$)/i, "Open Graph image must return image/jpeg.");
 const shareImageBytes = Buffer.from(await shareImage.arrayBuffer());
