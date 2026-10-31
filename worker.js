@@ -437,7 +437,7 @@ async function loadAllPublishedChapters(env) {
   for (let offset = 0; ; offset += pageSize) {
     const endpoint = new URL(base + "/rest/v1/chapters");
     endpoint.searchParams.set("select", "id,chapter_number,title,language,status,release_date,created_at");
-    endpoint.searchParams.set("status", "eq.published");
+    endpoint.searchParams.set("status", "ilike.published");
     endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc");
     endpoint.searchParams.set("limit", String(pageSize));
     endpoint.searchParams.set("offset", String(offset));
