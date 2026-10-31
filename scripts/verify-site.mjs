@@ -1142,6 +1142,10 @@ if (publicSitemap.includes('/admin') || publicSitemap.includes('/membership') ||
   console.error('CHECK FAILED: Static sitemap must not list private or noindex routes.');
   failed = true;
 }
+if (/<loc>https:\/\/www\.atmarekha\.in\/chapter\//.test(publicSitemap)) {
+  console.error('CHECK FAILED: Checked-in sitemap fallback must not pin chapter URLs; chapters are generated from published database records.');
+  failed = true;
+}
 if (!crawlerRules.includes('Sitemap: https://www.atmarekha.in/sitemap.xml')) {
   console.error('CHECK FAILED: robots.txt does not reference the canonical sitemap.');
   failed = true;
