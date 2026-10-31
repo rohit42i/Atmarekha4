@@ -2418,3 +2418,114 @@ main.admin-page.ar-admin-v3 :is(button,.ar-admin-btn,.ar-admin-primary-action,.a
     transition: none !important;
   }
 }
+
+/* 10. Complete admin theme bridge.
+   Keep every admin module, card, control, menu and dialog on the same theme tokens. */
+main.admin-page.ar-admin-v3 {
+  color-scheme: light;
+  background: var(--admin-bg-primary) !important;
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+  color-scheme: dark;
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+main.admin-page.ar-admin-v3 :is(.ar-admin-app,.ar-admin-main,.ar-admin-content,.admin-stack,.ar-admin-dashboard,.ar-admin-workspace,.ar-admin-utility-rail) {
+  background-color: var(--admin-bg-primary) !important;
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 :is(
+  [class*="card"],[class*="panel"],[class*="modal"],[class*="dialog"],
+  [class*="surface"],[class*="widget"],[class*="tile"],[class*="popover"],
+  [class*="dropdown"],[class*="menu"],[class*="table-wrap"],[class*="drawer"]
+):not([class*="backdrop"]):not([class*="icon"]) {
+  color: var(--admin-text-primary);
+  border-color: var(--admin-border-color);
+}
+main.admin-page.ar-admin-v3 :is(
+  .admin-card,.ar-admin-card,.ar-admin-panel,.ar-admin-section,.admin-studio-card,
+  .ar-cr-card,.ar-ops-card,.ar-mgmt-card,.ar-admin-stat-card,.ar-stat-card,
+  .ar-chart-card,.ar-activity-card,.ar-health-card,.ar-membership-plan,
+  .ar-membership-activity,.ar-utility-section,.ar-mgmt-panel,.ar-ops-panel,
+  .ar-health-panel,.ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal,
+  [class*="card"],[class*="panel"],[class*="modal"],[class*="widget"],[class*="tile"]
+):not([class*="backdrop"]):not([class*="icon"]) {
+  background-color: var(--admin-card-bg) !important;
+  color: var(--admin-text-primary) !important;
+  border-color: var(--admin-border-color) !important;
+  box-shadow: var(--box-shadow);
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-admin-topbar,.ar-admin-sidebar,.ar-admin-profile-menu,.ar-admin-command-palette,
+  .ar-admin-command-dialog,.ar-admin-search,.ar-admin-command-trigger,
+  .ar-admin-status-card,.ar-admin-workspace,.ar-admin-nav-group,
+  .ar-utility-header,.ar-utility-footer
+) {
+  background-color: var(--admin-bg-primary);
+  color: var(--admin-text-primary);
+  border-color: var(--admin-border-color);
+}
+main.admin-page.ar-admin-v3 :is(
+  button,a[role="button"],[role="button"],.ar-admin-btn
+) {
+  border-color: var(--admin-border-color);
+}
+main.admin-page.ar-admin-v3 button:not(
+  .admin-submit,.ar-admin-primary-action,.ar-utility-primary-action,
+  .ar-admin-theme-toggle,.danger-text,.ar-text-action,.ar-utility-text-action,
+  .ar-admin-nav button,.admin-bottom-nav button
+) {
+  background-color: var(--admin-bg-secondary);
+  color: var(--admin-text-primary);
+}
+main.admin-page.ar-admin-v3 :is(
+  input:not([type="checkbox"]):not([type="radio"]),select,textarea,
+  [contenteditable="true"],.ar-admin-form-input,.ar-admin-form-textarea,
+  .ar-admin-form-select
+) {
+  background-color: var(--admin-input-bg) !important;
+  color: var(--admin-input-text) !important;
+  border-color: var(--admin-border-strong) !important;
+  caret-color: var(--admin-input-text);
+}
+main.admin-page.ar-admin-v3 :is(
+  h1,h2,h3,h4,h5,h6,p,label,legend,dt,dd,th,td,
+  .ar-admin-content,.admin-stack,.admin-card-title,.ar-admin-card-header
+) {
+  color: var(--admin-text-primary);
+}
+main.admin-page.ar-admin-v3 :is(
+  p,small,.muted,.text-muted,.description,.admin-muted,
+  [class*="subtitle"],[class*="description"],[class*="muted"],[class*="hint"]
+):not([class*="status"]):not([class*="success"]):not([class*="danger"]):not([class*="warning"]) {
+  color: var(--admin-text-secondary);
+}
+main.admin-page.ar-admin-v3 :is(
+  table,thead,tbody,tfoot,tr,th,td,
+  .admin-table-wrap,.ar-admin-table-wrapper
+) {
+  border-color: var(--admin-border-color);
+}
+main.admin-page.ar-admin-v3 :is(table thead,table th,[class*="table-head"],[class*="toolbar"],[class*="filters"]) {
+  background-color: var(--admin-bg-secondary);
+  color: var(--admin-text-secondary);
+}
+main.admin-page.ar-admin-v3 :is(
+  .ar-admin-profile-menu,.ar-admin-command-palette,.ar-admin-command-dialog,
+  .ar-mgmt-backdrop,.ar-ops-backdrop,.ar-health-backdrop,.ar-mod-backdrop,
+  .ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop
+) {
+  color: var(--admin-text-primary);
+}
+main.admin-page.ar-admin-v3 :is(button,a,[role="button"]):hover:not(:disabled) {
+  border-color: var(--admin-border-strong);
+}
+main.admin-page.ar-admin-v3 :is(button,a,[role="button"]):focus-visible,
+main.admin-page.ar-admin-v3 :is(input,select,textarea):focus-visible {
+  outline-color: var(--admin-focus) !important;
+}
+main.admin-page.ar-admin-v3 ::selection {
+  color: var(--admin-button-text);
+  background: var(--admin-primary);
+}
