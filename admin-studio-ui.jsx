@@ -151,6 +151,7 @@ export function AdminSidebar({
   mobileOpen,
   onClose,
   onSelect,
+  email,
   reportCount = 0,
   connectionState = 'Operational',
   connectionError = false,
