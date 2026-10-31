@@ -34,6 +34,8 @@ const required = [
   ['public/llms-full.txt', 'YouTube https://www.youtube.com/@atmarekha'],
   ['public/llms.txt', 'Official profiles: Instagram https://www.instagram.com/atma.rekha/; YouTube https://www.youtube.com/@atmarekha.'],
   ['public/sitemap.xml', '<loc>https://www.atmarekha.in/chapter/special/intro-282d54fd</loc>'],
+  ['public/sitemap.xml', '<loc>https://www.atmarekha.in/chapter/1</loc>'],
+  ['public/sitemap.xml', '<loc>https://www.atmarekha.in/chapter/2</loc>'],
   ['public/_headers', '/login*'],
   ['public/_headers', '/privacy-center*'],
   ['public/robots.txt', 'User-agent: OAI-SearchBot'],
