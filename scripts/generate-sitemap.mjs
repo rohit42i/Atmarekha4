@@ -40,7 +40,7 @@ async function loadPublishedChapters() {
   for (let offset = 0; ; offset += pageSize) {
     const url = new URL(base.replace(/\/$/, '') + '/rest/v1/chapters');
     url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language');
-    url.searchParams.set('status', 'eq.published');
+    url.searchParams.set('status', 'ilike.published');
     url.searchParams.set('order', 'chapter_number.asc.nullsfirst,created_at.asc');
     url.searchParams.set('limit', String(pageSize));
     url.searchParams.set('offset', String(offset));
