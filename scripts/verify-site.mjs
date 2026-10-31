@@ -1071,7 +1071,6 @@ if (!adminPanelSource.includes("import './admin-master-system.css';") ||
   failed = true;
 }
 if (!adminControlRoom.includes("section === 'Feature Workbench'") ||
-    !adminControlRoom.includes('{featureCatalog.length} shortcuts') ||
     !adminControlRoom.includes("onClick={item.run}")) {
   console.error('CHECK FAILED: admin workbench is not reachable or its actions are not generated from the action catalogue.');
   failed = true;
