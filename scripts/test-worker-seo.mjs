@@ -143,6 +143,7 @@ try {
   assert.match(chapterHindiHtml, /"@type":"ComicIssue"/);
   assert.match(chapterHindiHtml, /"@type":"BreadcrumbList"/);
   assert.match(chapterHindiHtml, /hreflang="en-IN"/);
+  assert.ok(chapterLookupRequests.every(request => request.searchParams.get("status") === "ilike.published"), "Every chapter lookup must use the case-insensitive published status filter.");
 
   const chapterEnglish = await worker.fetch(new Request("https://www.atmarekha.in/chapter/1?lang=en"), env);
   const chapterEnglishHtml = await chapterEnglish.text();
