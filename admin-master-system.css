@@ -92,7 +92,8 @@ main.admin-page.ar-admin-v3 {
   font-size: 14px;
   line-height: 1.5;
 }
-main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+main.admin-page.ar-admin-v3[data-admin-theme="dark"],
+body.dark-theme-variables main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
   --admin-bg-primary: #000000;
   --admin-bg: #000000;
   --admin-gold: #eeeeee;
