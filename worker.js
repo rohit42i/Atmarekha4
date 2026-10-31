@@ -65,7 +65,7 @@ function privatePath(path) {
 function knownPath(path) {
   if (path === "/" || path === "/chapters" || path === "/privacy-center" || path === "/pal-do-pal-ke-lamhe") return true;
   if (/^\/info\/(?:about|contact|report|privacy|terms)$/.test(path)) return true;
-  if (/^\/chapter\/\d+(?:\.\d+)?$/.test(path) || /^\/chapter\/special\/[^/]+$/.test(path)) return true;
+  } else if (/^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
   return false;
 }
 
