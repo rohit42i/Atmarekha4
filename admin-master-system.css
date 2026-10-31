@@ -141,7 +141,7 @@ main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
   --admin-primary: #e8e8e8;
   --admin-primary-soft: #333333;
   --admin-positive-soft: #173a28;
-  --admin-sidebar: #171717;
+  --admin-sidebar: #000000;
   --box-shadow: 0 2px 10px rgba(0,0,0,.28);
   color-scheme: dark;
 }
