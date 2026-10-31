@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { supabase, secureSignInWithPassword } from './supabase';
-import { getAdminRole } from './adminAuth';
 import { validateEmail } from './formUX.js';
 
 export default function AdminLogin({ onLoginSuccess }) {
@@ -20,11 +19,8 @@ export default function AdminLogin({ onLoginSuccess }) {
     setFieldError('');setError('');setBusy(true);
     try {
       const { data } = await secureSignInWithPassword(email.trim(), password);
-      const role = await getAdminRole(data.user?.id);
-      if (!role) {
-        await supabase.auth.signOut();
-        throw new Error('This account is not authorized as an Atma Rekha admin.');
-      }
+      if (!data?.user) throw new Error('Sign in completed without a user session. Please try again.');
+      // The parent AdminRoute performs the single bounded role check after auth changes.
       onLoginSuccess?.();
     } catch (loginError) {
       setError(loginError?.message || 'Something went wrong. Please try again.');
