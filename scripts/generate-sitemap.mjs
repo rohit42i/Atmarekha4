@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const SITE_URL = 'https://www.atmarekha.in';
 const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
-  '/', '/chapters', '/chapters?lang=en', '/chapter/1', '/chapter/2',
+  '/', '/chapters', '/chapters?lang=en',
   '/pal-do-pal-ke-lamhe',
   '/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report',
 ];
@@ -16,13 +16,17 @@ const escapeXml = value => String(value ?? '')
 const validDate = value => {
   if (!value) return '';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+  if (Number.isNaN(date.getTime()) || date.getTime() > Date.now()) return '';
+  return date.toISOString().slice(0, 10);
 };
+const chapterLastmod = chapter => validDate(chapter.release_date) || validDate(chapter.created_at);
 const slugify = value => String(value || '').toLowerCase().trim()
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 const shortId = id => String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 8).toLowerCase();
 const language = value => String(value || '').trim().toLowerCase() === 'en' ? 'en' : 'hi';
-const isPublished = chapter => String(chapter?.status || '').trim().toLowerCase() === 'published';
+const isPublished = chapter =>
+  String(chapter?.status || '').trim().toLowerCase() === 'published' &&
+  !chapter?.deleted_at;
 const chapterPath = chapter => {
   const number = chapter.chapter_number;
   const path = number !== null && number !== undefined && String(number).trim() !== ''
@@ -39,9 +43,10 @@ async function loadPublishedChapters() {
   const pageSize = 500;
   for (let offset = 0; ; offset += pageSize) {
     const url = new URL(base.replace(/\/$/, '') + '/rest/v1/chapters');
-    url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language');
+    url.searchParams.set('select', 'id,chapter_number,title,release_date,created_at,status,language,deleted_at');
     url.searchParams.set('status', 'ilike.published');
-    url.searchParams.set('order', 'chapter_number.asc.nullsfirst,created_at.asc');
+    url.searchParams.set('deleted_at', 'is.null');
+    url.searchParams.set('order', 'chapter_number.asc.nullsfirst,created_at.asc,id.asc');
     url.searchParams.set('limit', String(pageSize));
     url.searchParams.set('offset', String(offset));
     const response = await fetch(url, {
@@ -67,32 +72,36 @@ function buildXml(chapters) {
   STATIC_PATHS.forEach(path => add(path));
   const groups = new Map();
   for (const chapter of chapters) {
-    add(chapterPath(chapter), validDate(chapter.release_date || chapter.created_at));
-    const key = chapter.chapter_number !== null && chapter.chapter_number !== undefined && String(chapter.chapter_number).trim() !== ''
-      ? 'number:' + String(chapter.chapter_number).trim()
-      : 'special:' + slugify(chapter.title);
+    add(chapterPath(chapter), chapterLastmod(chapter));
+    if (chapter.chapter_number === null || chapter.chapter_number === undefined || String(chapter.chapter_number).trim() === '') continue;
+    const key = 'number:' + String(chapter.chapter_number).trim();
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(chapter);
   }
   for (const group of groups.values()) {
-    const links = group.map(chapter => ({
+    const languageLinks = group.map(chapter => ({
       language: language(chapter.language) === 'en' ? 'en-IN' : 'hi-Latn-IN',
       url: SITE_URL + chapterPath(chapter),
     }));
+    const links = [...new Map(languageLinks.map(item => [item.language, item])).values()];
     const fallback = group.find(chapter => language(chapter.language) === 'hi') || group[0];
     links.push({ language: 'x-default', url: SITE_URL + chapterPath(fallback) });
-    for (const chapter of group) entries.get(SITE_URL + chapterPath(chapter)).alternates = links;
+    for (const chapter of group) {
+      const entry = entries.get(SITE_URL + chapterPath(chapter));
+      if (entry) entry.alternates = links;
+    }
   }
-  const chapterOne = entries.get(SITE_URL + '/chapter/1');
-  if (chapterOne) chapterOne.alternates = [
-    { language: 'hi-Latn-IN', url: SITE_URL + '/chapter/1' },
-    { language: 'x-default', url: SITE_URL + '/chapter/1' },
-  ];
-  const chapterTwo = entries.get(SITE_URL + '/chapter/2');
-  if (chapterTwo) chapterTwo.alternates = [
-    { language: 'hi-Latn-IN', url: SITE_URL + '/chapter/2' },
-    { language: 'x-default', url: SITE_URL + '/chapter/2' },
-  ];
+  for (const chapter of chapters) {
+    if (chapter.chapter_number !== null && chapter.chapter_number !== undefined && String(chapter.chapter_number).trim() !== '') continue;
+    const url = SITE_URL + chapterPath(chapter);
+    const entry = entries.get(url);
+    if (!entry) continue;
+    const languageCode = language(chapter.language) === 'en' ? 'en-IN' : 'hi-Latn-IN';
+    entry.alternates = [
+      { language: languageCode, url },
+      { language: 'x-default', url },
+    ];
+  }
   const listAlternates = [
     { language: 'en-IN', url: SITE_URL + '/chapters?lang=en' },
     { language: 'hi-Latn-IN', url: SITE_URL + '/chapters' },
@@ -132,4 +141,5 @@ try {
 }
 const xml = buildXml(chapters);
 await writeFile(OUT, xml, 'utf8');
-console.log('Generated sitemap with ' + (STATIC_PATHS.length + chapters.length) + ' source entries, including ' + chapters.length + ' published chapter records.');
+const generatedUrlCount = (xml.match(/<url>/g) || []).length;
+console.log('Generated sitemap with ' + generatedUrlCount + ' unique URLs from ' + chapters.length + ' published chapter records.');
