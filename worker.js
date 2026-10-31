@@ -101,9 +101,10 @@ async function loadPublishedChapters(env) {
 
   for (let offset = 0; ; offset += pageSize) {
     const endpoint = new URL(base + "/rest/v1/chapters");
-    endpoint.searchParams.set("select", "id,chapter_number,title,language,status,cover_url,release_date,created_at");
+    endpoint.searchParams.set("select", "id,chapter_number,title,language,status,cover_url,release_date,created_at,deleted_at");
     endpoint.searchParams.set("status", "ilike.published");
-    endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc");
+    endpoint.searchParams.set("deleted_at", "is.null");
+    endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc,id.asc");
     endpoint.searchParams.set("limit", String(pageSize));
     endpoint.searchParams.set("offset", String(offset));
     const cacheKey = new Request(endpoint.toString(), { method: "GET" });
@@ -127,7 +128,9 @@ async function loadPublishedChapters(env) {
       } catch (_) {}
     }
 
-    chapters.push(...page.filter(row => String(row.status || "").toLowerCase() === "published"));
+    chapters.push(...page.filter(row =>
+      String(row.status || "").trim().toLowerCase() === "published" && !row.deleted_at
+    ));
     if (page.length < pageSize) break;
   }
 
@@ -426,7 +429,13 @@ function escapeXml(value) {
 function sitemapDate(value) {
   if (!value) return "";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+  return Number.isNaN(date.getTime()) || date.getTime() > Date.now()
+    ? ""
+    : date.toISOString().slice(0, 10);
+}
+
+function chapterSitemapDate(chapter) {
+  return sitemapDate(chapter.release_date) || sitemapDate(chapter.created_at);
 }
 
 async function loadAllPublishedChapters(env) {
@@ -436,9 +445,10 @@ async function loadAllPublishedChapters(env) {
   const pageSize = 500;
   for (let offset = 0; ; offset += pageSize) {
     const endpoint = new URL(base + "/rest/v1/chapters");
-    endpoint.searchParams.set("select", "id,chapter_number,title,language,status,release_date,created_at");
+    endpoint.searchParams.set("select", "id,chapter_number,title,language,status,release_date,created_at,deleted_at");
     endpoint.searchParams.set("status", "ilike.published");
-    endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc");
+    endpoint.searchParams.set("deleted_at", "is.null");
+    endpoint.searchParams.set("order", "chapter_number.asc.nullsfirst,created_at.asc,id.asc");
     endpoint.searchParams.set("limit", String(pageSize));
     endpoint.searchParams.set("offset", String(offset));
     const response = await fetch(endpoint, {
@@ -448,7 +458,9 @@ async function loadAllPublishedChapters(env) {
     if (!response.ok) throw new Error("Published chapter sitemap lookup failed.");
     const page = await response.json();
     if (!Array.isArray(page)) throw new Error("Invalid chapter sitemap response.");
-    rows.push(...page.filter(row => String(row.status || "").toLowerCase() === "published"));
+    rows.push(...page.filter(row =>
+      String(row.status || "").trim().toLowerCase() === "published" && !row.deleted_at
+    ));
     if (page.length < pageSize) break;
   }
   return rows;
@@ -456,7 +468,7 @@ async function loadAllPublishedChapters(env) {
 
 function buildSitemapXml(chapters) {
   const staticPaths = [
-    "/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/2",
+    "/", "/chapters", "/chapters?lang=en",
     "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report",
   ];
   const entries = new Map();
@@ -469,18 +481,18 @@ function buildSitemapXml(chapters) {
   const groups = new Map();
   for (const chapter of chapters) {
     const path = chapterPath(chapter);
-    add(path, sitemapDate(chapter.release_date || chapter.created_at));
-    const key = chapter.chapter_number !== null && chapter.chapter_number !== undefined && String(chapter.chapter_number).trim() !== ""
-      ? "number:" + String(chapter.chapter_number).trim()
-      : "special:" + slugify(chapter.title);
+    add(path, chapterSitemapDate(chapter));
+    if (chapter.chapter_number === null || chapter.chapter_number === undefined || String(chapter.chapter_number).trim() === "") continue;
+    const key = "number:" + String(chapter.chapter_number).trim();
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(chapter);
   }
   for (const group of groups.values()) {
-    const links = group.map(chapter => ({
+    const languageLinks = group.map(chapter => ({
       language: normalizeLanguage(chapter.language) === "en" ? "en-IN" : "hi-Latn-IN",
       url: SITE_ORIGIN + chapterPath(chapter),
     }));
+    const links = [...new Map(languageLinks.map(item => [item.language, item])).values()];
     const fallback = group.find(chapter => normalizeLanguage(chapter.language) === "hi") || group[0];
     links.push({ language: "x-default", url: SITE_ORIGIN + chapterPath(fallback) });
     for (const chapter of group) {
@@ -488,16 +500,17 @@ function buildSitemapXml(chapters) {
       if (entry) entry.alternates = links;
     }
   }
-  const chapterOne = entries.get(SITE_ORIGIN + "/chapter/1");
-  if (chapterOne) chapterOne.alternates = [
-    { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapter/1" },
-    { language: "x-default", url: SITE_ORIGIN + "/chapter/1" },
-  ];
-  const chapterTwo = entries.get(SITE_ORIGIN + "/chapter/2");
-  if (chapterTwo) chapterTwo.alternates = [
-    { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapter/2" },
-    { language: "x-default", url: SITE_ORIGIN + "/chapter/2" },
-  ];
+  for (const chapter of chapters) {
+    if (chapter.chapter_number !== null && chapter.chapter_number !== undefined && String(chapter.chapter_number).trim() !== "") continue;
+    const url = SITE_ORIGIN + chapterPath(chapter);
+    const entry = entries.get(url);
+    if (!entry) continue;
+    const languageCode = normalizeLanguage(chapter.language) === "en" ? "en-IN" : "hi-Latn-IN";
+    entry.alternates = [
+      { language: languageCode, url },
+      { language: "x-default", url },
+    ];
+  }
   const chapterListAlternates = [
     { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
     { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapters" },
