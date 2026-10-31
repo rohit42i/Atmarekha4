@@ -105,7 +105,6 @@ const required = [
   ['PrivacyRequestsAdmin.jsx', 'admin-list-deletion-requests'],
   ['PrivacyRequestsAdmin.jsx', 'Mark erased & resolved'],
   ['AdminPanel.jsx', 'data-admin-theme={adminTheme}'],
-  ['AdminPanel.jsx', 'hasUtilityRail'],
   ['AdminPanel.jsx', 'ar-admin-poppins-font'],
   ['AdminPanel.jsx', 'dark-theme-variables'],
   ['AdminUtilityRail.jsx', 'aria-label="Dashboard overview and quick actions"'],
@@ -1071,9 +1070,18 @@ if (!adminPanelSource.includes("import './admin-master-system.css';") ||
   console.error('CHECK FAILED: responsive admin workspace styles are not imported or missing the phone navigation layout.');
   failed = true;
 }
-if (!adminControlRoom.includes('Open {featureCatalog.length} tools') ||
-    !adminControlRoom.includes('{featureCatalog.length} shortcuts')) {
-  console.error('CHECK FAILED: admin workbench count and copy are not generated from the action catalogue.');
+if (!adminControlRoom.includes("section === 'Feature Workbench'") ||
+    !adminControlRoom.includes('{featureCatalog.length} shortcuts') ||
+    !adminControlRoom.includes("onClick={item.run}")) {
+  console.error('CHECK FAILED: admin workbench is not reachable or its actions are not generated from the action catalogue.');
+  failed = true;
+}
+if (adminPanelSource.includes('AdminUtilityRail') || adminPanelSource.includes('hasUtilityRail')) {
+  console.error('CHECK FAILED: the duplicate dashboard utility rail should not be mounted in the admin workspace.');
+  failed = true;
+}
+if (adminControlRoom.includes('QUICK LAUNCH') || adminControlRoom.includes('Go straight to a task')) {
+  console.error('CHECK FAILED: duplicate Control Room quick-launch shortcuts should remain removed.');
   failed = true;
 }
 
