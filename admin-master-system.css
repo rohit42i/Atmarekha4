@@ -2471,10 +2471,9 @@ main.admin-page.ar-admin-v3 :is(
 ) {
   border-color: var(--admin-border-color);
 }
-main.admin-page.ar-admin-v3 button:not(
+main.admin-page.ar-admin-v3 button:not(.ar-admin-nav button):not(.admin-bottom-nav button):not(
   .admin-submit,.ar-admin-primary-action,.ar-utility-primary-action,
-  .ar-admin-theme-toggle,.danger-text,.ar-text-action,.ar-utility-text-action,
-  .ar-admin-nav button,.admin-bottom-nav button
+  .ar-admin-theme-toggle,.danger-text,.ar-text-action,.ar-utility-text-action
 ) {
   background-color: var(--admin-bg-secondary);
   color: var(--admin-text-primary);
