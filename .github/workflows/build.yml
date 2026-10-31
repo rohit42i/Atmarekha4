@@ -73,7 +73,17 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-
+      - name: Ensure optimized social preview is included in deployment assets
+        run: |
+          test -s public/og-atmarekha.jpg
+          install -m 0644 public/og-atmarekha.jpg dist/og-atmarekha.jpg
+          test -s dist/og-atmarekha.jpg
+          bytes="$(wc -c < dist/og-atmarekha.jpg)"
+          if [ "$bytes" -gt 614400 ]; then
+            echo "::error::Optimized social preview exceeds the 600 KiB deployment limit."
+            exit 1
+          fi
+          echo "Verified deployed social preview: ${bytes} bytes."
 
       - name: Deploy website to Cloudflare
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
