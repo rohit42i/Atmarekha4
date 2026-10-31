@@ -167,6 +167,8 @@ const required = [
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
+  ['worker.js', 'searchParams.set("status", "ilike.published");'],
+  ['scripts/generate-sitemap.mjs', "url.searchParams.set('status', 'ilike.published');"],
   ['scripts/generate-sitemap.mjs', 'application/json'],
   ['public/_headers', '/profile*'],
   ['public/_headers', 'X-Robots-Tag: noindex, nofollow, noarchive'],
