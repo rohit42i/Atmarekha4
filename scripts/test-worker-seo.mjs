@@ -54,7 +54,7 @@ try {
   const sitemapXml = await sitemapResponse.text();
   assert.equal(sitemapResponse.status, 200);
   assert.ok((sitemapResponse.headers.get("content-type") || "").includes("application/xml"));
-  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/2", "/chapter/special/intro-282d54fd", "/chapter/special/deadbeef?lang=en", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
+  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/2", "/chapter/special/intro-282d54fd", "/chapter/special/intro-deadbeef?lang=en", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
     assert.ok(sitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Sitemap is missing public URL: " + path);
   }
   assert.ok(sitemapXml.includes('hreflang="en-IN"') && sitemapXml.includes('hreflang="hi-Latn-IN"'), "Published chapter language alternates are missing.");
