@@ -4,6 +4,7 @@ import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from '.
 import AdminOverview from './AdminOverview';
 import AdminControlRoom from './AdminControlRoom.jsx';
 import AdminMembership from './AdminMembership.jsx';
+import AdminUtilityRail from './AdminUtilityRail.jsx';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
 import { getAdminRole } from './adminAuth';
@@ -150,12 +151,12 @@ const emptyForm = () => ({ number: '', language: 'hi', title: '', description: '
 
 const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
-    { key: 'Overview', icon: 'grid', label: 'Overview' },
-    { key: 'Control Room', icon: 'chart', label: 'Analytics' },
+    { key: 'Overview', icon: 'grid', label: 'Dashboard' },
+    { key: 'Control Room', icon: 'chart', label: 'Control Room' },
   ]},
   { label: 'Publishing', items: [
-    { key: 'Chapters', icon: 'book', label: 'Chapters' },
-    { key: 'Pages', icon: 'layers', label: 'Pages' },
+    { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
+    { key: 'Pages', icon: 'layers', label: 'Page Editor' },
     { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
     { key: 'Media', icon: 'image', label: 'Media Library' },
   ]},
@@ -163,19 +164,29 @@ const ADMIN_NAV_GROUPS = [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
     { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'mail', label: 'Email Campaigns' },
+    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
+    { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
+    { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
+    { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
   ]},
   { label: 'Membership', items: [
-    { key: 'Membership & Earnings', icon: 'chart', label: 'Membership & Earnings' },
+    { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
+    { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
   ]},
   { label: 'System', items: [
     { key: 'Privacy Requests', icon: 'settings', label: 'Privacy Requests' },
+    { key: '__email-changes', icon: 'user', label: 'Email Change Requests', action: 'atma-admin-open-management', detail: { view: 'emailChanges' } },
+    { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
+    { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
+    { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
+    { key: '__activity', icon: 'calendar', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
+    { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
   ]},
 ];
 
 export default function AdminPanel({ onLogout }) {
-  const [tab, setTab] = useState('Overview');
+  const [tab, setTab] = useState('Control Room');
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -203,9 +214,14 @@ export default function AdminPanel({ onLogout }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
   const loadSequence = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
+  const [adminTheme, setAdminTheme] = useState(() => {
+    try { return window.localStorage.getItem('ar-admin-theme') === 'dark' ? 'dark' : 'light'; }
+    catch { return 'light'; }
+  });
   useEffect(() => {
     if (!mobileSidebarOpen) return undefined;
     const handleEscape = event => {
@@ -229,6 +245,12 @@ export default function AdminPanel({ onLogout }) {
       if (drawerBreakpoint.matches) document.querySelector('.ar-admin-menu-button')?.focus();
     };
   }, [mobileSidebarOpen]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
+    if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
+    return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
+  }, [adminTheme]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -377,6 +399,7 @@ export default function AdminPanel({ onLogout }) {
         }
         setChapterPerformance(performanceMap);
       }
+      setLastRefreshedAt(new Date());
       if (warnings.length) {
         setNotice({ type: 'error', text: 'Admin panel loaded with limited data: ' + warnings.join(' · ') });
       }
@@ -1220,6 +1243,7 @@ export default function AdminPanel({ onLogout }) {
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = openReportCount ?? reports.filter(report => (report.status || 'open') === 'open').length;
+  const hasUtilityRail = !loading && (tab === 'Control Room' || tab === 'Overview');
   const navLabel = key => ADMIN_NAV_GROUPS.flatMap(group => group.items).find(item => item.key === key)?.label || key;
   const activateTab = item => { setTab(item); setMobileSidebarOpen(false); setProfileOpen(false); };
   useEffect(() => {
@@ -1259,8 +1283,8 @@ export default function AdminPanel({ onLogout }) {
     setProfileOpen(false);
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
-  return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme="light">
-    <div className="ar-admin-app">
+  return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme={adminTheme}>
+    <div className={`ar-admin-app${hasUtilityRail ? ' has-utility-rail' : ''}`}>
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
         activeKey={tab}
@@ -1271,6 +1295,7 @@ export default function AdminPanel({ onLogout }) {
           if (item.action) openAdminTool(item.action, item.detail);
           else activateTab(item.key);
         }}
+        email={email}
         reportCount={reportCount}
         connectionState={loading ? 'Loading admin data…' : notice.type === 'error' ? 'Needs attention' : 'Operational'}
         connectionError={notice.type === 'error'}
@@ -1284,13 +1309,25 @@ export default function AdminPanel({ onLogout }) {
             </button>
             <div className="ar-admin-page-context"><span>ATMA REKHA</span><strong>{navLabel(tab)}</strong></div>
           </div>
+          <div className="ar-admin-search">
+            <button type="button" className="ar-admin-command-trigger" onClick={() => setCommandOpen(true)} aria-label="Open command palette">
+              <AdminIcon name="search" size={16}/>
+              <span>Search chapters, readers, comments, tools…</span>
+              <kbd>⌘K</kbd>
+            </button>
+          </div>
           <div className="ar-admin-top-actions">
-            <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy} aria-label="Refresh admin data" title="Refresh">
-              <AdminIcon name="refresh" size={16}/><span>Refresh</span>
+            <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => setAdminTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
+              <span className={adminTheme === 'light' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">light_mode</span></span>
+              <span className={adminTheme === 'dark' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">dark_mode</span></span>
+            </button>
+            <button type="button" className="ar-admin-icon-button ar-admin-refresh" onClick={load} disabled={busy} aria-label="Refresh admin data" title="Refresh">
+              <AdminIcon name="refresh" size={16}/>
             </button>
             <div className="ar-admin-profile-wrap">
-              <button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-label="Open admin account menu" aria-expanded={profileOpen} aria-haspopup="menu">
+              <button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu">
                 <span className="ar-admin-avatar">A</span>
+                <span className="sr-only">Admin account</span>
               </button>
               {profileOpen && <div className="ar-admin-profile-menu" role="menu">
                 <div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div>
@@ -1301,7 +1338,7 @@ export default function AdminPanel({ onLogout }) {
         </header>
         <div className="ar-admin-content">
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} reports={reports} pageCounts={pageCounts} onTab={activateTab} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
       form={form}
@@ -1373,7 +1410,24 @@ export default function AdminPanel({ onLogout }) {
         <AdminProTools />
         <CommunityAdmin />
       </div>
-}
+      {hasUtilityRail && <AdminUtilityRail
+        chapters={sorted}
+        comments={comments}
+        reports={reports}
+        pageCounts={pageCounts}
+        pageCountsAvailable={pageCountsAvailable}
+        commentsAvailable={commentsAvailable}
+        reportsAvailable={reportsAvailable}
+        announcementsAvailable={announcementsAvailable}
+        mediaAvailable={mediaAvailable}
+        announcements={announcements}
+        media={media}
+        reportCount={reportCount}
+        refreshedAt={lastRefreshedAt}
+        onTab={activateTab}
+        onNewChapter={() => { setChapterPublishProject('atma'); activateTab('Chapters'); resetForm(); }}
+        onRefresh={load}
+      />}
     </div>
   </main>;
 }
