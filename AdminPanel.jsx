@@ -172,7 +172,7 @@ const ADMIN_NAV_GROUPS = [
   { label: 'System', items: [
     { key: 'Privacy Requests', icon: 'settings', label: 'Privacy Requests' },
   ]},
-];;
+];
 
 export default function AdminPanel({ onLogout }) {
   const [tab, setTab] = useState('Overview');
@@ -1301,7 +1301,7 @@ export default function AdminPanel({ onLogout }) {
         </header>
         <div className="ar-admin-content">
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} reports={reports} pageCounts={pageCounts} onTab={activateTab} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
       form={form}
