@@ -2711,17 +2711,29 @@ body[data-admin-theme] .admin-command-palette-results > button.is-active {
 }
 
 
-/* 12. Strict light-mode palette.
-   Apply one consistent white/black palette to every admin module, including
-   feature panels whose legacy styles used hard-coded dark or tinted surfaces. */
-main.admin-page.ar-admin-v3[data-admin-theme="light"],
-main.admin-page.ar-admin-v3[data-admin-theme="light"] * {
-  color: #000000 !important;
-  border-color: #dedede;
-  background-color: #ffffff !important;
-  background-image: none !important;
+/* 12. Complete admin theme contract.
+   Keep the admin root and body-level overlays in sync. Feature modules use both
+   the current --admin-* tokens and older shared aliases; define both here. */
+main.admin-page.ar-admin-v3,
+body[data-admin-theme] {
+  --card-bg: var(--admin-card-bg);
+  --text-color: var(--admin-text-primary);
+  --surface-color: var(--admin-card-bg);
+  --surface-2-color: var(--admin-bg-secondary);
+  --muted-color: var(--admin-text-secondary);
+  --faint-color: var(--admin-text-muted);
+  --border-color: var(--admin-border-color);
+  --border-soft-color: var(--admin-border-color);
+  --overlay-color: var(--admin-overlay);
+  --shadow-color: var(--admin-shadow);
+  --danger-color: var(--admin-danger);
+  --success-color: var(--admin-success);
+  --warning-color: var(--admin-warning);
+  --bg-color: var(--admin-bg-primary);
 }
-main.admin-page.ar-admin-v3[data-admin-theme="light"] {
+main.admin-page.ar-admin-v3[data-admin-theme="light"],
+body[data-admin-theme="light"] {
+  color-scheme: light !important;
   --admin-bg-primary: #ffffff;
   --admin-bg: #ffffff;
   --admin-bg-secondary: #ffffff;
@@ -2735,42 +2747,168 @@ main.admin-page.ar-admin-v3[data-admin-theme="light"] {
   --admin-text-2: #000000;
   --admin-muted: #000000;
   --admin-faint: #000000;
+  --admin-border-color: #dedede;
+  --admin-border-strong: #bdbdbd;
   --admin-input-bg: #ffffff;
   --admin-input-text: #000000;
   --admin-button-bg: #ffffff;
   --admin-button-text: #000000;
-  color-scheme: light !important;
+  --admin-primary: #ffffff;
+  --admin-primary-soft: #ffffff;
+  --admin-gold: #000000;
+  --admin-gold-bright: #000000;
+  --admin-surface: #ffffff;
+  --admin-surface-2: #ffffff;
+  --admin-surface-3: #ffffff;
+  --admin-overlay: rgba(0,0,0,.48);
+  --admin-shadow: 0 12px 40px rgba(0,0,0,.18);
+  --box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"],
+body[data-admin-theme="dark"] {
+  color-scheme: dark !important;
+  --admin-bg-primary: #000000;
+  --admin-bg: #000000;
+  --admin-bg-secondary: #000000;
+  --admin-bg-tertiary: #000000;
+  --admin-card-bg: #000000;
+  --admin-sidebar: #000000;
+  --admin-text-primary: #ffffff;
+  --admin-text-secondary: #ffffff;
+  --admin-text-muted: #ffffff;
+  --admin-text: #ffffff;
+  --admin-text-2: #ffffff;
+  --admin-muted: #ffffff;
+  --admin-faint: #ffffff;
+  --admin-border-color: #393939;
+  --admin-border-strong: #505050;
+  --admin-input-bg: #000000;
+  --admin-input-text: #ffffff;
+  --admin-button-bg: #000000;
+  --admin-button-text: #ffffff;
+  --admin-primary: #ffffff;
+  --admin-primary-soft: #000000;
+  --admin-gold: #ffffff;
+  --admin-gold-bright: #ffffff;
+  --admin-surface: #000000;
+  --admin-surface-2: #000000;
+  --admin-surface-3: #000000;
+  --admin-overlay: rgba(0,0,0,.76);
+  --admin-shadow: 0 14px 46px rgba(0,0,0,.48);
+  --box-shadow: 0 2px 10px rgba(0,0,0,.28);
+}
+
+/* The feature tools are mounted inside the admin route, but some of their
+   styles are injected at runtime and contain hard-coded dark surfaces. Apply
+   the active palette to those complete tool surfaces without touching media,
+   icons, overlay backdrops, or any non-admin route. */
+main.admin-page.ar-admin-v3[data-admin-theme="light"] :is(
+  .ar-ops-panel,.ar-ops-preview-panel,.ar-mgmt-panel,.ar-health-panel,
+  .ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal,
+  .admin-command-palette,.admin-studio-modal
+),
+body[data-admin-theme="light"] :is(
+  .ar-ops-panel,.ar-ops-preview-panel,.ar-mgmt-panel,.ar-health-panel,
+  .ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal,
+  .admin-command-palette,.admin-studio-modal
+) {
   color: #000000 !important;
   background: #ffffff !important;
-}
-main.admin-page.ar-admin-v3[data-admin-theme="light"] :is(img,video,canvas) {
-  background-color: transparent !important;
-  background-image: none !important;
-}
-main.admin-page.ar-admin-v3[data-admin-theme="light"] :is(input,select,textarea,button,[role="button"]) {
-  color: #000000 !important;
   background-color: #ffffff !important;
   border-color: #dedede !important;
 }
-main.admin-page.ar-admin-v3[data-admin-theme="light"] ::placeholder {
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] :is(
+  .ar-ops-panel,.ar-ops-preview-panel,.ar-mgmt-panel,.ar-health-panel,
+  .ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal,
+  .admin-command-palette,.admin-studio-modal
+),
+body[data-admin-theme="dark"] :is(
+  .ar-ops-panel,.ar-ops-preview-panel,.ar-mgmt-panel,.ar-health-panel,
+  .ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal,
+  .admin-command-palette,.admin-studio-modal
+) {
+  color: #ffffff !important;
+  background: #000000 !important;
+  background-color: #000000 !important;
+  border-color: #393939 !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="light"] :is(
+  .ar-ops-backdrop,.ar-ops-preview,.ar-mgmt-backdrop,.ar-health-backdrop,
+  .ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop,
+  .admin-command-palette-backdrop,.admin-studio-modal-backdrop
+),
+body[data-admin-theme="light"] :is(
+  .ar-ops-backdrop,.ar-ops-preview,.ar-mgmt-backdrop,.ar-health-backdrop,
+  .ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop,
+  .admin-command-palette-backdrop,.admin-studio-modal-backdrop
+) {
+  background: rgba(0,0,0,.48) !important;
+  background-color: rgba(0,0,0,.48) !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] :is(
+  .ar-ops-backdrop,.ar-ops-preview,.ar-mgmt-backdrop,.ar-health-backdrop,
+  .ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop,
+  .admin-command-palette-backdrop,.admin-studio-modal-backdrop
+),
+body[data-admin-theme="dark"] :is(
+  .ar-ops-backdrop,.ar-ops-preview,.ar-mgmt-backdrop,.ar-health-backdrop,
+  .ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop,
+  .admin-command-palette-backdrop,.admin-studio-modal-backdrop
+) {
+  background: rgba(0,0,0,.76) !important;
+  background-color: rgba(0,0,0,.76) !important;
+}
+
+/* Theme every nested surface and control in the admin route. Do not paint
+   image/video/canvas assets or SVG artwork, and keep modal backdrops separate. */
+main.admin-page.ar-admin-v3[data-admin-theme="light"] :not(
+  .ar-ops-backdrop,.ar-ops-preview,.ar-mgmt-backdrop,.ar-health-backdrop,
+  .ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop
+):not(img,video,canvas,svg),
+body[data-admin-theme="light"] :is(
+  .admin-command-palette,.admin-studio-modal,
+  .ar-ops-panel,.ar-ops-preview-panel,.ar-mgmt-panel,.ar-health-panel,
+  .ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal
+) :not(img,video,canvas,svg) {
+  color: #000000 !important;
+  border-color: #dedede;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] :not(
+  .ar-ops-backdrop,.ar-ops-preview,.ar-mgmt-backdrop,.ar-health-backdrop,
+  .ar-mod-backdrop,.ar-gcm-backdrop,.ar-pro-backdrop,.community-admin-backdrop
+):not(img,video,canvas,svg),
+body[data-admin-theme="dark"] :is(
+  .admin-command-palette,.admin-studio-modal,
+  .ar-ops-panel,.ar-ops-preview-panel,.ar-mgmt-panel,.ar-health-panel,
+  .ar-mod-modal,.ar-gcm-modal,.ar-pro-panel,.community-admin-modal
+) :not(img,video,canvas,svg) {
+  color: #ffffff !important;
+  border-color: #393939;
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme] :is(input,select,textarea,button,[role="button"]) {
+  color: var(--admin-text-primary) !important;
+  background-color: var(--admin-bg-primary) !important;
+  border-color: var(--admin-border-color) !important;
+  caret-color: var(--admin-text-primary);
+}
+main.admin-page.ar-admin-v3[data-admin-theme="light"] ::placeholder,
+body[data-admin-theme="light"] :is(.ar-gcm-modal,.ar-health-panel,.ar-mod-modal,.ar-pro-panel,.ar-ops-panel,.ar-mgmt-panel,.community-admin-modal) ::placeholder {
   color: #000000 !important;
   opacity: .65;
 }
-body[data-admin-theme="light"] :is(
-  .admin-command-palette-backdrop,.admin-studio-modal-backdrop
-) {
-  color: #000000 !important;
+main.admin-page.ar-admin-v3[data-admin-theme="dark"] ::placeholder,
+body[data-admin-theme="dark"] :is(.ar-gcm-modal,.ar-health-panel,.ar-mod-modal,.ar-pro-panel,.ar-ops-panel,.ar-mgmt-panel,.community-admin-modal) ::placeholder {
+  color: #ffffff !important;
+  opacity: .65;
 }
-body[data-admin-theme="light"] :is(
-  .admin-command-palette,.admin-studio-modal,
-  .admin-studio-modal-head,.admin-studio-modal-body,.admin-studio-modal-foot
-) {
-  color: #000000 !important;
-  background-color: #ffffff !important;
+main.admin-page.ar-admin-v3[data-admin-theme] :is(img,video,canvas) {
+  background-color: transparent !important;
   background-image: none !important;
 }
-body[data-admin-theme="light"] .admin-studio-modal * {
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  background-image: none !important;
+main.admin-page.ar-admin-v3[data-admin-theme] :is(svg,svg *) {
+  background-color: transparent !important;
 }
