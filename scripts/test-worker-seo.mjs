@@ -8,6 +8,7 @@ const cacheStore = new Map();
 const chapterRows = [
   { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "Published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
   { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "Published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/private-cover.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "chapter-hi-2", chapter_number: 2, title: "But what", language: "hi", status: "Published", release_date: "2026-10-14T04:45:00Z" },
   { id: "282d54fd-c4c1-4bb6-976c-156921e16071", chapter_number: null, title: "Intro", language: "hi", status: "Published", release_date: "2026-09-07T00:00:00Z" },
   { id: "draft-2", chapter_number: 2, title: "Unreleased", language: "hi", status: "draft", release_date: "2026-10-01T00:00:00Z" },
 ];
@@ -51,7 +52,7 @@ try {
   const sitemapXml = await sitemapResponse.text();
   assert.equal(sitemapResponse.status, 200);
   assert.ok((sitemapResponse.headers.get("content-type") || "").includes("application/xml"));
-  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
+  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/2", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
     assert.ok(sitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Sitemap is missing public URL: " + path);
   }
   assert.ok(sitemapXml.includes('hreflang="en-IN"') && sitemapXml.includes('hreflang="hi-Latn-IN"'), "Published chapter language alternates are missing.");
@@ -81,8 +82,13 @@ try {
   const chapterList = await worker.fetch(new Request("https://www.atmarekha.in/chapters"), env);
   const chapterListHtml = await chapterList.text();
   assert.match(chapterListHtml, /<title>Atma Rekha \| Chapter List<\/title>/);
-  assert.ok(chapterListHtml.includes("href=\"/chapter/1\"") && chapterListHtml.includes("href=\"/chapter/special/intro-282d54fd\""), "No-script chapter list should expose published chapter links.");
+  assert.ok(chapterListHtml.includes("href=\"/chapter/1\"") && chapterListHtml.includes("href=\"/chapter/2\"") && chapterListHtml.includes("href=\"/chapter/special/intro-282d54fd\""), "No-script chapter list should expose published chapter links.");
   assert.ok(!chapterListHtml.includes("Unreleased"), "No-script chapter list must not expose unpublished chapter titles.");
+
+  const chapterTwo = await worker.fetch(new Request("https://www.atmarekha.in/chapter/2"), env);
+  const chapterTwoHtml = await chapterTwo.text();
+  assert.equal(chapterTwo.status, 200);
+  assert.match(chapterTwoHtml, /<title>Atma Rekha \| But what<\/title>/);
 
   const intro = await worker.fetch(new Request("https://www.atmarekha.in/chapter/special/intro-282d54fd"), env);
   const introHtml = await intro.text();
