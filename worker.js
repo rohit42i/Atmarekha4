@@ -456,7 +456,7 @@ async function loadAllPublishedChapters(env) {
 
 function buildSitemapXml(chapters) {
   const staticPaths = [
-    "/", "/chapters", "/chapters?lang=en",
+    "/", "/chapters", "/chapters?lang=en", "/chapter/1",
     "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report",
   ];
   const entries = new Map();
@@ -488,6 +488,11 @@ function buildSitemapXml(chapters) {
       if (entry) entry.alternates = links;
     }
   }
+  const chapterOne = entries.get(SITE_ORIGIN + "/chapter/1");
+  if (chapterOne) chapterOne.alternates = [
+    { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapter/1" },
+    { language: "x-default", url: SITE_ORIGIN + "/chapter/1" },
+  ];
   const chapterListAlternates = [
     { language: "en-IN", url: SITE_ORIGIN + "/chapters?lang=en" },
     { language: "hi-Latn-IN", url: SITE_ORIGIN + "/chapters" },
