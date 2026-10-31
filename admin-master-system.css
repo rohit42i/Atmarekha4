@@ -2534,6 +2534,7 @@ main.admin-page.ar-admin-v3 ::selection {
    The normal admin variables live on the main admin root, so mirror the compact
    token set here only while the admin route is mounted. */
 body[data-admin-theme="light"] {
+  color-scheme: light;
   --admin-bg-primary: #ffffff;
   --admin-bg-secondary: #f5f5f5;
   --admin-bg-tertiary: #eeeeee;
@@ -2568,6 +2569,7 @@ body[data-admin-theme="light"] {
   --admin-text: var(--admin-text-primary);
 }
 body[data-admin-theme="dark"] {
+  color-scheme: dark;
   --admin-bg-primary: #000000;
   --admin-bg-secondary: #050505;
   --admin-bg-tertiary: #101010;
