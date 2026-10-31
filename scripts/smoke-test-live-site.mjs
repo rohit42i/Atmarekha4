@@ -19,6 +19,8 @@ const PUBLIC_ROUTES = [
   "/info/terms",
   "/pal-do-pal-ke-lamhe",
   "/privacy-center",
+  "/chapter/1",
+  "/chapter/2",
   "/chapter/special/intro-282d54fd",
 ];
 
