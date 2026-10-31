@@ -43,7 +43,7 @@ const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy ad
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';
 const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Roman Hindi and English.';
-const DEFAULT_SEO_IMAGE = SITE_URL + '/og-atmarekha.jpg?v=20261029-share1';
+const DEFAULT_SEO_IMAGE = SITE_URL + '/og-atmarekha.jpg?v=20261031-share2';
 
 function upsertMeta(attribute, key, content) {
   if (typeof document === 'undefined') return;
