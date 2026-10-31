@@ -1310,7 +1310,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
     window.dispatchEvent(new CustomEvent(action, { detail }));
   };
   return <main className="admin-page ar-admin-v3" data-admin-root="true" data-admin-theme={adminTheme}>
-    <div className={`ar-admin-app${hasUtilityRail ? ' has-utility-rail' : ''}`}>
+    <div className="ar-admin-app">
       <AdminSidebar
         groups={ADMIN_NAV_GROUPS}
         activeKey={tab}
@@ -1442,7 +1442,6 @@ export default function AdminPanel({ onLogout, adminUser }) {
         <AdminProTools />
         <CommunityAdmin />
       </div>
-}
     </div>
   </main>;
 }
