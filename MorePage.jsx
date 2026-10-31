@@ -20,7 +20,6 @@ const DEFAULT_PREFERENCES = Object.fromEntries(CATEGORIES.map(([key]) => [key, t
 
 export default function MorePage() {
   const [pwa, setPwa] = useState(initialPwaState);
-  const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [notice, setNotice] = useState('');
   const [user, setUser] = useState(null);
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
@@ -118,18 +117,18 @@ export default function MorePage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!showInstallHelp) return undefined;
-    const onKeyDown = event => { if (event.key === 'Escape') setShowInstallHelp(false); };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [showInstallHelp]);
-
   const handleInstall = async () => {
     setNotice('');
     const result = await window.__atmaPwaInstall?.();
-    if (!result || result.status === 'manual') setShowInstallHelp(true);
-    else if (result.status === 'accepted' || result.status === 'installed') setNotice('Atma Rekha is ready as an installed app.');
+    if (!result || result.status === 'manual') {
+      setNotice(result?.platform === 'ios'
+        ? 'On iPhone or iPad, use Share, then Add to Home Screen.'
+        : 'For one-tap installation, open Atma Rekha in Chrome and tap Install again.');
+    } else if (result.status === 'accepted' || result.status === 'installed') {
+      setNotice('Atma Rekha is installed and will receive the latest website updates when you are online.');
+    } else if (result.status === 'dismissed') {
+      setNotice('Installation was cancelled. Tap Install to try again.');
+    }
   };
 
   const savePreferences = async event => {
@@ -222,17 +221,10 @@ export default function MorePage() {
           </>}
         </form>}
         <button type="button" className="more-page-button more-page-install-button" onClick={handleInstall} disabled={pwa.installed} aria-describedby="more-page-install-note">
-          <span className="more-page-button-icon" aria-hidden="true">↧</span><span><strong>{pwa.installed ? 'App installed' : 'Install App'}</strong><small>{pwa.installed ? 'Atma Rekha is already installed on this device.' : 'Add Atma Rekha to your home screen for a faster, app-like experience.'}</small></span><b aria-hidden="true">{pwa.installed ? '✓' : '→'}</b>
+          <span className="more-page-button-icon" aria-hidden="true">↧</span><span><strong>{pwa.installed ? 'App installed' : 'Install Atma Rekha'}</strong><small>{pwa.installed ? 'Already installed. Updates automatically when you are online.' : 'Install the latest Atma Rekha website as an app.'}</small></span><b aria-hidden="true">{pwa.installed ? '✓' : '→'}</b>
         </button>
       </div>
       <p id="more-page-install-note" className="more-page-notice" role="status" aria-live="polite">{notice}</p>
     </section>
-    {showInstallHelp && <div className="more-page-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShowInstallHelp(false); }}>
-      <section className="more-page-modal" role="dialog" aria-modal="true" aria-labelledby="more-page-modal-title">
-        <div className="more-page-modal-header"><div><p className="section-eyebrow">ATMA REKHA</p><h2 id="more-page-modal-title">Install the app</h2></div><button type="button" className="more-page-modal-close" onClick={() => setShowInstallHelp(false)} aria-label="Close install instructions">×</button></div>
-        {pwa.ios ? <ol><li>Open the browser Share menu.</li><li>Choose <strong>Add to Home Screen</strong>.</li><li>Tap <strong>Add</strong> to finish.</li></ol> : <ol><li>Open your browser menu for this site.</li><li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li><li>Confirm the installation when your browser asks.</li></ol>}
-        <p className="more-page-modal-footnote">Once installed, the app loads the latest Atma Rekha website build whenever you are online.</p>
-      </section>
-    </div>}
   </main>;
 }
