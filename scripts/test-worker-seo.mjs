@@ -3,11 +3,12 @@ import worker from "../worker.js";
 
 const previousFetch = globalThis.fetch;
 const previousCaches = globalThis.caches;
+const chapterLookupRequests = [];
 const cacheStore = new Map();
 const chapterRows = [
-  { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
-  { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/private-cover.png", release_date: "2026-09-14T00:00:00Z" },
-  { id: "282d54fd-c4c1-4bb6-976c-156921e16071", chapter_number: null, title: "Intro", language: "hi", status: "published", release_date: "2026-09-07T00:00:00Z" },
+  { id: "chapter-hi-1", chapter_number: 1, title: "The Forgotten Dream", language: "hi", status: "Published", cover_url: "https://www.atmarekha.in/ishani.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "Published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/private-cover.png", release_date: "2026-09-14T00:00:00Z" },
+  { id: "282d54fd-c4c1-4bb6-976c-156921e16071", chapter_number: null, title: "Intro", language: "hi", status: "Published", release_date: "2026-09-07T00:00:00Z" },
   { id: "draft-2", chapter_number: 2, title: "Unreleased", language: "hi", status: "draft", release_date: "2026-10-01T00:00:00Z" },
 ];
 globalThis.caches = {
@@ -21,10 +22,13 @@ globalThis.caches = {
     },
   },
 };
-globalThis.fetch = async () => new Response(JSON.stringify(chapterRows), {
+globalThis.fetch = async request => {
+  chapterLookupRequests.push(new URL(request.url || request));
+  return new Response(JSON.stringify(chapterRows), {
   status: 200,
-  headers: { "Content-Type": "application/json" },
-});
+    headers: { "Content-Type": "application/json" },
+  });
+};
 
 const shell = `<!doctype html><html lang="en"><head>
   <title>Atma Rekha</title>
@@ -55,6 +59,8 @@ try {
   assert.ok(!sitemapXml.includes("storage/") && !sitemapXml.includes("<image:image>"), "Sitemap must not expose storage or image URLs.");
   assert.ok(!sitemapXml.includes("\\\\n"), "Sitemap XML must use real line breaks rather than escaped backslash sequences.");
   assert.match(sitemapResponse.headers.get("cache-control") || "", /max-age=300/);
+  assert.ok(chapterLookupRequests.length > 0, "Sitemap lookup should fetch chapter records.");
+  assert.equal(chapterLookupRequests[0].searchParams.get("status"), "ilike.published", "Published chapter lookup must be case-insensitive for the stored Published status.");
 
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
