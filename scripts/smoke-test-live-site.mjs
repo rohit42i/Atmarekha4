@@ -20,6 +20,7 @@ const PUBLIC_ROUTES = [
   "/pal-do-pal-ke-lamhe",
   "/privacy-center",
   "/chapter/1",
+  "/chapter/2",
   "/chapter/special/intro-282d54fd",
 ];
 
@@ -194,6 +195,7 @@ for (const value of listedUrls) {
   sitemapPaths.add(url.pathname + url.search);
 }
 assert.ok(sitemapPaths.has("/chapter/1"), "Published Chapter 1 must be present in the sitemap.");
+assert.ok(sitemapPaths.has("/chapter/2"), "Published Chapter 2 must be present in the sitemap.");
 
 console.log("Live site smoke test passed: HTTPS redirect, homepage security headers, " +
   PUBLIC_ROUTES.length + " fixed public routes, " + sitemapPaths.size +
