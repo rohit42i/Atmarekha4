@@ -2,7 +2,8 @@ import FeedbackForm from './FeedbackForm.jsx';
 import PrivacyPolicySections from './PrivacyPolicySections.jsx';
 import TermsOfUseSections from './TermsOfUseSections.jsx';
 
-const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha?igsh=MzQ2YWJ3ZW42MzYx';
+const INSTAGRAM_URL = 'https://www.instagram.com/atma.rekha/';
+const YOUTUBE_URL = 'https://www.youtube.com/@atmarekha';
 const CONTACT_EMAIL = 'atmarekhasupport@gmail.com';
 
 const PAGES = {
@@ -10,16 +11,19 @@ const PAGES = {
     eyebrow: 'ATMA REKHA',
     title: 'About Atma Rekha',
     details: [
-      ['Creator', 'Arkesh'], ['Languages', 'Hindi (Roman Hindi) and English'],
-      ['New chapters', 'Planned for the 14th of each month'],
-      ['Format', 'Digital manga'], ['Free chapters', '1 to 8'],
-      ['Age guidance', '15+'], ['Team', 'Independent creator'],
+      ['Creator', 'Arkesh Kaalvantik'], ['Languages', 'Hindi written in Roman script and English'],
+      ['Format', 'Original digital manga'], ['Created', 'Project idea: 21 March 2025'],
+      ['Development', 'Started: 25 April 2025'], ['First chapter', 'Published: 14 September 2026'],
+      ['Release schedule', 'New chapters are planned for the 14th of each month'],
+      ['Reading access', 'Chapters 1 to 8 are currently listed as free'], ['Age guidance', '15+'],
+      ['Production', 'Independent solo creator'],
     ],
     story: [
-      'I’m Arkesh, the solo creator of Atma Rekha, a fantasy adventure manga shaped by Indian cultural influences, spiritual ideas, and a mystery that slowly unfolds. The story follows its characters and the choices they make, with more of the world revealed as their journey continues.',
-      'I create the series independently. Atma Rekha is available in Hindi (Roman Hindi) and English. New chapters are planned for the 14th of each month, though the schedule can shift when a chapter needs more work.',
-      'Every scene and panel begins with my own rough drawings and design decisions. I determine the composition, pose, camera angle, perspective, proportions, shapes, and character placement. I use AI tools in parts of the visual process to enhance my rough sketches and help develop characters while following my original designs and direction.',
-      'AI generated material is not used directly as finished artwork in the published manga. When AI-assisted imagery is used as a background reference, I manually outline and redraw it as part of the artwork. I retain creative control over the story, character designs, panel composition, and final artistic decisions, and review the pages before publication.',
+      'Atma Rekha is an original Indian fantasy adventure manga created and written by Arkesh Kaalvantik. It follows Arnav, an eighteen-year-old student whose missing childhood memories and encounters with unusual powers draw him into a larger mystery. The series combines fantasy, adventure, mystery, and Indian cultural and spiritual influences while keeping later story developments unspoiled.',
+      'The manga is published in Hindi written in Roman script and in English. The public introduction chapter is dated 7 September 2026, and Chapter 1 was published on 14 September 2026. New chapters are planned for the 14th of each month. The official chapter list is the source of truth for the latest releases and language versions.',
+      'Atma Rekha began as a project idea on 21 March 2025. Development began on 25 April 2025. Arkesh Kaalvantik works independently and leads the story, dialogue, character direction, rough drawings, panel layouts, composition, and final creative decisions.',
+      'AI tools assist selected parts of the visual workflow. AI-generated images are not published directly as finished manga pages. AI-assisted references used during production are manually outlined or redrawn and reviewed by the creator before publication.',
+      'For official updates, follow Atma Rekha on Instagram and YouTube. For reader support, publication enquiries, or messages for the creator, use atmarekhasupport@gmail.com.',
     ],
   },
   contact: {
@@ -27,6 +31,7 @@ const PAGES = {
     sections: [
       { heading: 'Email', body: 'Have a question or need help with your account or membership? Send us an email.', links: [{ label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` }] },
       { heading: 'Instagram', body: 'Follow Atma Rekha for updates and previews.', links: [{ label: '@atma.rekha', href: INSTAGRAM_URL }] },
+      { heading: 'YouTube', body: 'Watch official Atma Rekha videos and updates.', links: [{ label: '@atmarekha', href: YOUTUBE_URL }] },
     ],
   },
   report: {

@@ -10,8 +10,8 @@ const required = [
   ['UserAuth.jsx', 'Account creation is limited to readers aged 15 and over.'],
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
   ['InfoPage.jsx', "['Age guidance', '15+']"],
-  ['InfoPage.jsx', 'I use AI tools in parts of the visual process'],
-  ['InfoPage.jsx', 'AI generated material'],
+  ['InfoPage.jsx', 'AI tools assist selected parts of the visual workflow.'],
+  ['InfoPage.jsx', 'AI-generated images are not published directly as finished manga pages.'],
   ['PrivacyPolicySections.jsx', '2. How we use your information'],
   ['PrivacyPolicySections.jsx', '5. Retention and account deletion'],
   ['InfoPage.jsx', 'className="legal-document-intro"'],
@@ -21,7 +21,7 @@ const required = [
   ['theme-system.css', ':root[data-theme="dark"]'],
   ['theme-system.css', ':root[data-theme="light"]'],
   ['worker.js', 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev'],
-  ['scripts/generate-sitemap.mjs', "chapterGroupKey"],
+  ['scripts/generate-sitemap.mjs', 'STATIC_PATHS'],
   ['UserAuth.jsx', "from './formUX.js'"],
   ['ChapterDiscovery.jsx', '<div className="chapter-discovery">'],
   ['index.html', '<link rel="canonical" href="https://www.atmarekha.in/" />'],
@@ -31,6 +31,11 @@ const required = [
   ['public/llms.txt', '> An original Indian fantasy adventure manga by Arkesh Kaalvantik.'],
   ['public/llms.txt', 'Creator: Arkesh Kaalvantik'],
   ['public/llms-full.txt', '## Responsible answers'],
+  ['public/llms-full.txt', 'YouTube https://www.youtube.com/@atmarekha'],
+  ['public/llms.txt', 'Official profiles: Instagram https://www.instagram.com/atma.rekha/; YouTube https://www.youtube.com/@atmarekha.'],
+  ['public/sitemap.xml', '<loc>https://www.atmarekha.in/chapter/1?lang=en</loc>'],
+  ['public/_headers', '/login*'],
+  ['public/_headers', '/privacy-center*'],
   ['public/robots.txt', 'User-agent: OAI-SearchBot'],
   ['public/robots.txt', 'User-agent: Claude-SearchBot'],
   ['public/robots.txt', 'User-agent: PerplexityBot'],
@@ -39,13 +44,39 @@ const required = [
   ['public/robots.txt', 'User-agent: ClaudeBot\nDisallow: /'],
   ['index.html', '"@type":"ComicSeries"'],
   ['index.html', 'https://www.atmarekha.in/#creator'],
-  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Indian Fantasy Adventure Manga';"],
-  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English.';"],
+  ['App.jsx', 'function shortSeoTitle(value, fallback)'],
+  ['App.jsx', "title = 'Atma Rekha | Chapter List';"],
+  ['App.jsx', "title = 'Atma Rekha | Community';"],
+  ['App.jsx', "title = 'Atma Rekha | Membership';"],
+  ['App.jsx', "'@type': 'ComicIssue'"],
+  ['InfoPage.jsx', '21 March 2025'],
+  ['InfoPage.jsx', '25 April 2025'],
+  ['InfoPage.jsx', '14 September 2026'],
+  ['InfoPage.jsx', 'atmarekhasupport@gmail.com'],
+  ['Footer.jsx', 'href="/info/contact"'],
+  ['Footer.jsx', "{ label: 'Instagram', href: 'https://www.instagram.com/atma.rekha/', icon: 'instagram' },"],
+  ['Footer.jsx', "{ label: 'YouTube', href: 'https://www.youtube.com/@atmarekha', icon: 'youtube' },"],
+  ['InfoPage.jsx', "const YOUTUBE_URL = 'https://www.youtube.com/@atmarekha';"],
+  ['InfoPage.jsx', "{ heading: 'YouTube', body: 'Watch official Atma Rekha videos and updates.'"],
+  ['index.html', 'https://www.youtube.com/@atmarekha'],
+  ['App.jsx', 'https://www.youtube.com/@atmarekha'],
+  ['Footer.jsx', 'https://www.youtube.com/@atmarekha'],
+  ['worker.js', 'function buildNoScriptFallback(path, url, chapters)'],
+  ['worker.js', 'seo-no-script-content'],
+  ['worker.js', '"@type": "ComicIssue"'],
+  ['worker.js', 'login|signup|bookmarks|account'],
+  ['public/llms.txt', 'The project idea dates to 21 March 2025'],
+  ['public/llms-full.txt', 'The project idea dates to 21 March 2025'],
+  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';"],
+  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Roman Hindi and English.';"],
   ['App.jsx', "upsertMeta('name', 'author', 'Arkesh Kaalvantik');"],
-  ['worker.js', 'const shareTitle = path === "/" ? "Atma Rekha | Indian Fantasy Adventure Manga"'],
-  ['worker.js', 'const shareDescription = path === "/" ? "Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Hindi (Roman Hindi) and English."'],
+  ['worker.js', 'const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Original Indian Fantasy Adventure Manga"'],
+  ['worker.js', 'const shareDescription = chapterListSeo?.[1] || "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'],
   ['scripts/test-worker-seo.mjs', 'Homepage Open Graph description is outdated.'],
   ['scripts/generate-sitemap.mjs', "'/info/about'"],
+  ['scripts/generate-sitemap.mjs', "'/info/terms'"],
+  ['scripts/generate-sitemap.mjs', "'/info/privacy'"],
+  ['scripts/generate-sitemap.mjs', "'/info/contact'"],
   ['scripts/generate-sitemap.mjs', "'/pal-do-pal-ke-lamhe'"],
   ['public/.well-known/security.txt', 'Contact: mailto:atmarekhasupport@gmail.com'],
   ['public/.well-known/security.txt', 'Canonical: https://www.atmarekha.in/.well-known/security.txt'],
@@ -136,7 +167,7 @@ const required = [
   ['routes.js', 'window.location.search'],
   ['App.jsx', 'window.history.replaceState'],
   ['scripts/generate-sitemap.mjs', 'isPublished'],
-  ['scripts/generate-sitemap.mjs', 'xmlns:image'],
+  ['scripts/generate-sitemap.mjs', 'application/json'],
   ['public/_headers', '/profile*'],
   ['public/_headers', 'X-Robots-Tag: noindex, nofollow, noarchive'],
   ['MorePage.jsx', 'Notification preferences'],
@@ -199,8 +230,46 @@ if (!seoSitemapRegression.startsWith('<?xml') ||
     !seoSitemapRegression.includes('<urlset ') ||
     !seoSitemapRegression.trim().endsWith('</urlset>') ||
     sitemapOpenUrlCount !== sitemapCloseUrlCount ||
-    /https:\/\/www\.atmarekha\.in\/info\/(?:contact|report|privacy|terms)<\/loc>/.test(seoSitemapRegression)) {
-  console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical discovery pages, not utility/legal routes.');
+    /(?:<loc>https:\/\/www\.atmarekha\.in\/(?:admin|profile|membership|group-chat|privacy-center)(?:\/|<\/loc>))/i.test(seoSitemapRegression)) {
+  console.error('CHECK FAILED: the sitemap must be well-formed and contain canonical public pages without private account routes.');
+  failed = true;
+}
+
+
+const seoWorkerSource = await readFile('worker.js', 'utf8');
+const aboutSource = await readFile('InfoPage.jsx', 'utf8');
+const seoAppSource = await readFile('App.jsx', 'utf8');
+if (!seoWorkerSource.includes('function buildNoScriptFallback') ||
+    !seoWorkerSource.includes('seo-no-script-content') ||
+    !seoWorkerSource.includes('"@type": "ComicIssue"') ||
+    !seoAppSource.includes("function shortSeoTitle(value, fallback)")) {
+  console.error('CHECK FAILED: route metadata, no-script crawlable content, or chapter ComicIssue schema is missing.');
+  failed = true;
+}
+if (!aboutSource.includes('21 March 2025') || !aboutSource.includes('25 April 2025') ||
+    !aboutSource.includes('14 September 2026') || !aboutSource.includes('Hindi written in Roman script and English')) {
+  console.error('CHECK FAILED: About page is missing the creator, language, or verified publication timeline.');
+  failed = true;
+}
+const publicRobotRules = await readFile('public/robots.txt', 'utf8');
+for (const privateRoute of ['Disallow: /login', 'Disallow: /profile', 'Disallow: /membership', 'Disallow: /community']) {
+  if (publicRobotRules.includes(privateRoute)) {
+    console.error('CHECK FAILED: robots.txt blocks a private route that must remain crawlable for noindex headers:', privateRoute);
+    failed = true;
+  }
+}
+
+
+const footerSocialRegression = await readFile('Footer.jsx', 'utf8');
+const socialArray = footerSocialRegression.match(/const SOCIAL_LINKS = \[[\s\S]*?\];/)?.[0] || '';
+const socialHrefs = [...socialArray.matchAll(/href:\s*'([^']+)'/g)].map((match) => match[1]).sort();
+const expectedSocialHrefs = [
+  'https://www.instagram.com/atma.rekha/',
+  'https://www.youtube.com/@atmarekha',
+].sort();
+if (!socialArray.includes('Instagram') || !socialArray.includes('YouTube') ||
+    JSON.stringify(socialHrefs) !== JSON.stringify(expectedSocialHrefs)) {
+  console.error('CHECK FAILED: footer social links must contain only the official Instagram and YouTube accounts.');
   failed = true;
 }
 
@@ -606,12 +675,12 @@ if (!simplifiedRightsHandler.includes('.range(offset, offset + pageLimit - 1)') 
 const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
 const termsCopyRegression = await readFile('TermsOfUseSections.jsx', 'utf8');
 const privacyCopyRegression = await readFile('PrivacyPolicySections.jsx', 'utf8');
-if (!legalCopyRegression.includes('I use AI tools in parts of the visual process') ||
-    !legalCopyRegression.includes('AI generated material') ||
+if (!legalCopyRegression.includes('AI tools assist selected parts of the visual workflow.') ||
+    !legalCopyRegression.includes('AI-generated images are not published directly as finished manga pages.') ||
     !termsCopyRegression.includes('Membership renews automatically') ||
     !termsCopyRegression.includes('atmarekhasupport@gmail.com') ||
     !termsCopyRegression.includes('no-reply@atmarekha.in') ||
-    !legalCopyRegression.includes("type === 'privacy'") ||
+    !legalCopyRegression.includes("const isPrivacy = type === 'privacy';") ||
     !privacyCopyRegression.includes('atmarekhainfo@gmail.com') ||
     !privacyCopyRegression.includes('atmarekhaoffical@gmail.com') ||
     !privacyCopyRegression.includes('recovery window of 14 days') ||
@@ -1033,5 +1102,33 @@ if (!tabsDeclaration || missingNavigationTabs.length) {
   console.error('CHECK FAILED: admin navigation links do not resolve to declared tabs:', missingNavigationTabs.join(', '));
   failed = true;
 }
+
+const publicSitemap = await readFile('public/sitemap.xml', 'utf8');
+const sitemapWorker = await readFile('worker.js', 'utf8');
+const sitemapGenerator = await readFile('scripts/generate-sitemap.mjs', 'utf8');
+const crawlerRules = await readFile('public/robots.txt', 'utf8');
+for (const route of ['/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report', '/pal-do-pal-ke-lamhe']) {
+  if (!publicSitemap.includes('https://www.atmarekha.in' + route) ||
+      !sitemapGenerator.includes(route)) {
+    console.error('CHECK FAILED: public sitemap is missing a required public route:', route);
+    failed = true;
+  }
+}
+if (publicSitemap.includes('storage/') || publicSitemap.includes('<image:image>') ||
+    publicSitemap.includes('xmlns:image')) {
+  console.error('CHECK FAILED: static sitemap must not expose storage or raw image URLs.');
+  failed = true;
+}
+if (!sitemapWorker.includes('async function serveSitemap') ||
+    !sitemapWorker.includes('async function loadAllPublishedChapters') ||
+    !sitemapWorker.includes('url.pathname === "/sitemap.xml"')) {
+  console.error('CHECK FAILED: Worker dynamic sitemap route or complete chapter pagination is missing.');
+  failed = true;
+}
+if (!crawlerRules.includes('Sitemap: https://www.atmarekha.in/sitemap.xml')) {
+  console.error('CHECK FAILED: robots.txt does not reference the canonical sitemap.');
+  failed = true;
+}
+
 if (failed) process.exit(1);
 console.log('Atma Rekha production checks passed.');

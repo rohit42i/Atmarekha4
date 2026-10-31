@@ -66,6 +66,21 @@
 /community*
   X-Robots-Tag: noindex, nofollow, noarchive
 
+/login*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/signup*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/bookmarks*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/account*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/privacy-center*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
 /maintenance*
   X-Robots-Tag: noindex, nofollow, noarchive
 
