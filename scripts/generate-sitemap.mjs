@@ -112,9 +112,9 @@ function buildXml(chapters) {
   const rows = [...entries.values()].map(entry => [
     '  <url>',
     '    <loc>' + escapeXml(entry.loc) + '</loc>',
+    entry.lastmod ? '    <lastmod>' + entry.lastmod + '</lastmod>' : '',
     ...[...new Map(entry.alternates.map(item => [item.language, item])).values()]
       .map(item => '    <xhtml:link rel="alternate" hreflang="' + escapeXml(item.language) + '" href="' + escapeXml(item.url) + '" />'),
-    entry.lastmod ? '    <lastmod>' + entry.lastmod + '</lastmod>' : '',
     '  </url>',
   ].filter(Boolean).join('\n'));
 
