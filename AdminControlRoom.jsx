@@ -273,7 +273,7 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     'previous_ratings', 'rating_sum', 'bookmarks',
   ];
   const missingAdminMetricFields = requiredAdminMetricFields.filter(key => asNumber(analytics[key]) == null);
-  const adminAnalyticsAvailable = adminAnalyticsAvailable &&
+  const adminAnalyticsAvailable = data.analytics != null && !data.analyticsError &&
     missingAdminMetricFields.length === 0 &&
     Array.isArray(analytics.rating_counts) && Array.isArray(analytics.chapter_stats);
   const adminAnalyticsUnavailableReason = adminAnalyticsAvailable ? null : (data.analyticsError ||
