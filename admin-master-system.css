@@ -2528,3 +2528,128 @@ main.admin-page.ar-admin-v3 ::selection {
   color: var(--admin-button-text);
   background: var(--admin-primary);
 }
+
+
+/* 11. Theme tokens for admin dialogs rendered through document.body portals.
+   The normal admin variables live on the main admin root, so mirror the compact
+   token set here only while the admin route is mounted. */
+body[data-admin-theme="light"] {
+  --admin-bg-primary: #ffffff;
+  --admin-bg-secondary: #f5f5f5;
+  --admin-bg-tertiary: #eeeeee;
+  --admin-card-bg: #ffffff;
+  --admin-text-primary: #171717;
+  --admin-text-secondary: #555555;
+  --admin-text-muted: #666666;
+  --admin-border-color: #dedede;
+  --admin-border-strong: #bdbdbd;
+  --admin-button-bg: #202020;
+  --admin-button-text: #ffffff;
+  --admin-input-bg: #ffffff;
+  --admin-input-text: #171717;
+  --admin-primary: #292929;
+  --admin-focus: #2374e1;
+  --admin-overlay: rgba(0,0,0,.48);
+  --admin-shadow: 0 12px 40px rgba(0,0,0,.18);
+  --admin-radius-xl: 10px;
+  --admin-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --admin-surface: var(--admin-card-bg);
+  --admin-surface-2: var(--admin-bg-secondary);
+  --admin-surface-3: var(--admin-bg-tertiary);
+  --admin-border: var(--admin-border-color);
+  --admin-border-soft: var(--admin-border-color);
+  --admin-muted: var(--admin-text-secondary);
+  --admin-faint: var(--admin-text-muted);
+  --admin-text: var(--admin-text-primary);
+}
+body[data-admin-theme="dark"] {
+  --admin-bg-primary: #000000;
+  --admin-bg-secondary: #050505;
+  --admin-bg-tertiary: #101010;
+  --admin-card-bg: #080808;
+  --admin-text-primary: #ffffff;
+  --admin-text-secondary: #d0d0d0;
+  --admin-text-muted: #b4b4b4;
+  --admin-border-color: #393939;
+  --admin-border-strong: #505050;
+  --admin-button-bg: #eeeeee;
+  --admin-button-text: #171717;
+  --admin-input-bg: #242424;
+  --admin-input-text: #f5f5f5;
+  --admin-primary: #e8e8e8;
+  --admin-focus: #83b5ff;
+  --admin-overlay: rgba(0,0,0,.72);
+  --admin-shadow: 0 14px 46px rgba(0,0,0,.48);
+  --admin-radius-xl: 10px;
+  --admin-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --admin-surface: var(--admin-card-bg);
+  --admin-surface-2: var(--admin-bg-secondary);
+  --admin-surface-3: var(--admin-bg-tertiary);
+  --admin-border: var(--admin-border-color);
+  --admin-border-soft: var(--admin-border-color);
+  --admin-muted: var(--admin-text-secondary);
+  --admin-faint: var(--admin-text-muted);
+  --admin-text: var(--admin-text-primary);
+}
+body[data-admin-theme] :is(.admin-command-palette-backdrop,.admin-studio-modal-backdrop) {
+  background: var(--admin-overlay) !important;
+  backdrop-filter: blur(4px);
+}
+body[data-admin-theme] .admin-studio-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100060;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 18px;
+}
+body[data-admin-theme] :is(.admin-command-palette,.admin-studio-modal) {
+  background: var(--admin-card-bg) !important;
+  color: var(--admin-text-primary) !important;
+  border: 1px solid var(--admin-border-color) !important;
+  box-shadow: var(--admin-shadow) !important;
+}
+body[data-admin-theme] .admin-studio-modal {
+  width: min(680px,100%);
+  max-height: min(88dvh,900px);
+  overflow: auto;
+  border-radius: 10px !important;
+}
+body[data-admin-theme] .admin-studio-modal :is(
+  h1,h2,h3,h4,h5,h6,p,label,legend,strong,small,span,th,td
+) {
+  color: inherit;
+}
+body[data-admin-theme] .admin-studio-modal :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+  background: var(--admin-input-bg) !important;
+  color: var(--admin-input-text) !important;
+  border-color: var(--admin-border-strong) !important;
+}
+body[data-admin-theme] .admin-studio-modal button:not(.admin-studio-button-primary):not(.admin-studio-button-danger):not(.danger-text) {
+  background: var(--admin-bg-secondary);
+  color: var(--admin-text-primary);
+  border-color: var(--admin-border-color);
+}
+body[data-admin-theme] .admin-studio-modal .admin-studio-button-primary {
+  background: var(--admin-button-bg) !important;
+  color: var(--admin-button-text) !important;
+  border-color: var(--admin-border-color) !important;
+}
+body[data-admin-theme] .admin-studio-modal .admin-studio-button-danger,
+body[data-admin-theme] .admin-studio-modal .danger-text {
+  background: var(--admin-danger-soft, #fce8e8);
+  color: var(--admin-danger, #c62828);
+  border-color: var(--admin-danger, #c62828);
+}
+body[data-admin-theme] .admin-command-palette-search input {
+  color: var(--admin-input-text) !important;
+}
+body[data-admin-theme] .admin-command-palette-results > button {
+  color: var(--admin-text-primary);
+}
+body[data-admin-theme] .admin-command-palette-results > button:hover,
+body[data-admin-theme] .admin-command-palette-results > button.is-active {
+  background: var(--admin-bg-secondary);
+  border-color: var(--admin-border-color);
+}
