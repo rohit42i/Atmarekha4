@@ -59,9 +59,14 @@ export default function AdminUtilityRail({
   commentsAvailable = false,
   reportsAvailable = false,
   announcementsAvailable = false,
+  mediaAvailable = false,
   announcements = [],
+  media = [],
+  reportCount = 0,
   refreshedAt = null,
   onTab,
+  onNewChapter,
+  onRefresh,
 }) {
   const published = useMemo(() => chapters.filter(isPublished), [chapters]);
   const publishedWithPages = useMemo(
@@ -166,6 +171,27 @@ export default function AdminUtilityRail({
         ) : (
           <div className="ar-utility-empty"><AdminIcon name="pulse" size={18}/><span>No recent updates in the loaded records.</span></div>
         )}
+      </section>
+
+      <section className="ar-utility-section" aria-labelledby="ar-utility-operations-title">
+        <div className="ar-utility-section-heading">
+          <h3 id="ar-utility-operations-title">Operations</h3>
+          <span className="ar-utility-live"><i/>Live data</span>
+        </div>
+        <div className="ar-utility-stat-list">
+          <button type="button" onClick={() => onTab?.('Reports')}>
+            <span><AdminIcon name="flag" size={15}/>Open reports</span><strong>{Number.isFinite(Number(reportCount)) ? Number(reportCount).toLocaleString('en-IN') : '—'}</strong>
+          </button>
+          <div><span><AdminIcon name="book" size={15}/>Published chapters</span><strong>{published.length.toLocaleString('en-IN')}</strong></div>
+          <div><span><AdminIcon name="layers" size={15}/>Page records</span><strong>{pageCountsAvailable ? pageCount.toLocaleString('en-IN') : '—'}</strong></div>
+          <div><span><AdminIcon name="image" size={15}/>Media loaded</span><strong>{mediaAvailable ? media.length.toLocaleString('en-IN') : '—'}</strong></div>
+        </div>
+        <button type="button" className="ar-utility-primary-action" onClick={onNewChapter}>
+          <AdminIcon name="plus" size={16}/> New chapter
+        </button>
+        <button type="button" className="ar-utility-secondary-action" onClick={() => onTab?.('Announcements')}>
+          <AdminIcon name="bell" size={15}/> Manage announcements
+        </button>
       </section>
 
       <footer className="ar-utility-footer">
