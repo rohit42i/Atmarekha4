@@ -151,7 +151,6 @@ export function AdminSidebar({
   mobileOpen,
   onClose,
   onSelect,
-  email,
   reportCount = 0,
   connectionState = 'Operational',
   connectionError = false,
@@ -167,14 +166,6 @@ export function AdminSidebar({
         <button type="button" className="ar-admin-mobile-close" onClick={onClose} aria-label="Close navigation">
           <AdminIcon name="close" size={18} />
         </button>
-      </div>
-
-      <div className="ar-admin-workspace">
-        <span className="ar-admin-avatar-mini">A</span>
-        <div>
-          <strong>Publisher</strong>
-          <small>{email || 'Protected admin'}</small>
-        </div>
       </div>
 
       <nav className="admin-tabs ar-admin-nav">
