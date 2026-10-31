@@ -21,10 +21,14 @@ globalThis.caches = {
     },
   },
 };
-globalThis.fetch = async () => new Response(JSON.stringify(chapterRows), {
-  status: 200,
-  headers: { "Content-Type": "application/json" },
-});
+globalThis.fetch = async request => {
+  const endpoint = new URL(request.url || request);
+  assert.equal(endpoint.searchParams.get("status"), "ilike.published", "Worker must match the database published status case-insensitively.");
+  return new Response(JSON.stringify(chapterRows), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+};
 
 const shell = `<!doctype html><html lang="en"><head>
   <title>Atma Rekha</title>
@@ -154,6 +158,7 @@ try {
   cacheStore.clear();
   globalThis.fetch = async request => {
     const endpoint = new URL(request.url || request);
+    assert.equal(endpoint.searchParams.get("status"), "ilike.published", "Paginated sitemap query must match published status case-insensitively.");
     const offset = Number(endpoint.searchParams.get("offset") || 0);
     const limit = Number(endpoint.searchParams.get("limit") || 500);
     paginationOffsets.push(offset);
