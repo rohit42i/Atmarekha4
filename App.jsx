@@ -459,7 +459,7 @@ function AdminRoute({ onExit }) {
 
   if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>;
   if (accessError) return <main className="site-shell"><div className="reader-error" role="alert"><h2>Unable to verify admin access</h2><p>{accessError}</p><button className="primary-button" onClick={() => setRetryAttempt(value => value + 1)}>Try again</button><button className="secondary-button" onClick={onExit}>Back to home</button></div></main>;
-  if (!session) return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin sign-in…"/></main>}><AdminLogin /></Suspense>;
+  if (!session) return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin sign-in…"/></main>}><AdminLogin onLoginSuccess={() => setRetryAttempt(value => value + 1)} /></Suspense>;
   if (!(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
   return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin panel…"/></main>}><AdminPanel adminUser={session.user} onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/></Suspense>;
 }
