@@ -13,13 +13,13 @@ const SECURITY_HEADERS = {
 };
 
 const STATIC_SEO = {
-  "/": ["Atma Rekha | Original Indian Fantasy Adventure Manga", "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."],
-  "/chapters": ["Atma Rekha | Chapter List", "Browse published Atma Rekha chapters in Hindi written in Roman script and English. Read the official manga by Arkesh Kaalvantik."],
-  "/info/about": ["Atma Rekha | About the Creator", "Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English."],
+  "/": ["Atma Rekha | Fantasy Adventure Comic", "Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery."],
+  "/chapters": ["Atma Rekha | Chapter List", "Browse Atma Rekha chapters in Hindi written in Roman script and English. Read the fantasy adventure comic by Arkesh Kaalvantik."],
+  "/info/about": ["Atma Rekha | About the Creator", "Meet Arkesh Kaalvantik, the creator of Atma Rekha, a fantasy adventure comic published in Roman Hindi and English."],
   "/info/contact": ["Atma Rekha | Contact", "Contact the creator of Atma Rekha for reader support, publication enquiries, or website feedback."],
   "/info/report": ["Atma Rekha | Report a Problem", "Report a website issue, content concern, or accessibility problem to the Atma Rekha team."],
   "/info/privacy": ["Atma Rekha | Privacy Policy", "Learn how Atma Rekha handles account, reading, community, membership, email, analytics, security, and payment information."],
-  "/info/terms": ["Atma Rekha | Terms of Use", "Read the terms for Atma Rekha accounts, manga access, community features, memberships, payments, and moderation."],
+  "/info/terms": ["Atma Rekha | Terms of Use", "Read the terms for Atma Rekha accounts, comic access, community features, memberships, payments, and moderation."],
   "/pal-do-pal-ke-lamhe": ["Pal Do Pal Ke Lamhe | Atma Rekha", "Read about Pal Do Pal Ke Lamhe, a separate school-life story from the creator of Atma Rekha."],
 };
 
@@ -181,7 +181,7 @@ function addJsonLd(html, nodes) {
 
 function seoTitle(value, fallback) {
   const text = String(value || "").replace(/\s+/g, " ").trim();
-  const safeFallback = String(fallback || "Atma Rekha | Official Manga").trim();
+  const safeFallback = String(fallback || "Atma Rekha | Official Comic").trim();
   if (!text) return safeFallback.slice(0, 59);
   if (text.length <= 59) return text;
   const clipped = text.slice(0, 56).replace(/\s+\S*$/, "").trim();
@@ -205,16 +205,16 @@ function buildNoScriptFallback(path, url, chapters) {
   let body = "";
   if (path === "/") {
     body = '<h1>Atma Rekha</h1>' +
-      '<p>Atma Rekha is an original Indian fantasy adventure manga created and written by Arkesh Kaalvantik. It is published in Hindi written in Roman script and in English.</p>' +
+      '<p>Atma Rekha is a fantasy adventure comic created and written by Arkesh Kaalvantik. Its world draws inspiration from Indian culture and traditions. It is published in Hindi written in Roman script and in English.</p>' +
       '<p>The story follows Arnav, an eighteen-year-old student whose missing childhood memories and encounters with unusual powers lead him into a larger mystery. Arnav and Ishani are among the story’s named characters.</p>' +
       '<h2>Published chapters</h2><ul>' + chapterLinks(rows, 6) + '</ul>';
   } else if (path === "/chapters") {
     body = '<h1>Atma Rekha chapter list</h1>' +
-      '<p>Browse published chapters in ' + (language === "en" ? "English" : "Hindi written in Roman script") + '. The official manga is created by Arkesh Kaalvantik.</p>' +
+      '<p>Browse published chapters in ' + (language === "en" ? "English" : "Hindi written in Roman script") + '. The official comic is created by Arkesh Kaalvantik.</p>' +
       '<ul>' + chapterLinks(localized, localized.length) + '</ul>';
   } else if (path === "/info/about") {
     body = '<h1>About Atma Rekha and its creator</h1>' +
-      '<p>Arkesh Kaalvantik is the independent creator and author of Atma Rekha, an original Indian fantasy adventure manga available in Hindi written in Roman script and English.</p>' +
+      '<p>Arkesh Kaalvantik is the creator and author of Atma Rekha, a fantasy adventure comic available in Hindi written in Roman script and English.</p>' +
       '<p>The project idea dates to 21 March 2025. Development began on 25 April 2025. The public introduction chapter is dated 7 September 2026, and Chapter 1 was published on 14 September 2026. New chapters are planned for the 14th of each month.</p>' +
       '<p>Contact: <a href="mailto:atmarekhasupport@gmail.com">atmarekhasupport@gmail.com</a>.</p>';
   } else if (/^\/chapter\/(?:\d+(?:\.\d+)?|special\/[^/]+)$/.test(path)) {
@@ -267,10 +267,10 @@ async function addServerSeo(request, response, env) {
       ? SITE_ORIGIN + "/chapters?lang=en"
       : SITE_ORIGIN + path;
     const chapterListSeo = path === "/chapters" && normalizeLanguage(url.searchParams.get("lang")) === "en"
-      ? ["Atma Rekha | English Chapters", "Browse published Atma Rekha chapters in English. Read the official manga by Arkesh Kaalvantik."]
+      ? ["Atma Rekha | English Chapters", "Browse published Atma Rekha chapters in English. Read the fantasy adventure comic by Arkesh Kaalvantik."]
       : STATIC_SEO[path];
-    const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Original Indian Fantasy Adventure Manga", "Atma Rekha | Official Manga");
-    const shareDescription = chapterListSeo?.[1] || "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English.";
+    const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Fantasy Adventure Comic", "Atma Rekha | Official Comic");
+    const shareDescription = chapterListSeo?.[1] || "Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery.";
     html = setMeta(html, "property", "og:type", "website");
     html = setMeta(html, "property", "og:site_name", "Atma Rekha");
     html = setTitle(html, shareTitle);
@@ -322,7 +322,7 @@ async function addServerSeo(request, response, env) {
         const name = String(chapter.title || (chapter.chapter_number == null ? "Special chapter" : "Chapter " + chapter.chapter_number)).trim().slice(0, 180);
         const title = seoTitle("Atma Rekha | " + name, "Atma Rekha | Chapter");
         const languageLabel = normalizeLanguage(chapter.language) === "en" ? "English" : "Hindi written in Roman script";
-        const description = ("Read " + name + " of Atma Rekha by Arkesh Kaalvantik in " + languageLabel + ". An original fantasy adventure manga.").slice(0, 160);
+        const description = ("Read " + name + " of Atma Rekha by Arkesh Kaalvantik in " + languageLabel + ". A fantasy adventure comic.").slice(0, 160);
         const canonical = SITE_ORIGIN + chapterPath(chapter);
         const image = safeCover(chapter.cover_url);
         const language = normalizeLanguage(chapter.language);

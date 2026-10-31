@@ -11,7 +11,7 @@ const required = [
   ['UserAuth.jsx', 'I confirm that I am 15 years old or older'],
   ['InfoPage.jsx', "['Age guidance', '15+']"],
   ['InfoPage.jsx', 'AI tools assist selected parts of the visual workflow.'],
-  ['InfoPage.jsx', 'AI-generated images are not published directly as finished manga pages.'],
+  ['InfoPage.jsx', 'AI-generated images are not published directly as finished comic pages.'],
   ['PrivacyPolicySections.jsx', '2. How we use your information'],
   ['PrivacyPolicySections.jsx', '5. Retention and account deletion'],
   ['InfoPage.jsx', 'className="legal-document-intro"'],
@@ -28,7 +28,7 @@ const required = [
   ['index.html', '<script type="application/ld+json" id="atma-rekha-site-schema">'],
   ['index.html', '<meta name="robots" content="index,follow'],
   ['public/robots.txt', 'Sitemap: https://www.atmarekha.in/sitemap.xml'],
-  ['public/llms.txt', '> An original Indian fantasy adventure manga by Arkesh Kaalvantik.'],
+  ['public/llms.txt', '> A fantasy adventure comic created by Arkesh Kaalvantik.'],
   ['public/llms.txt', 'Creator: Arkesh Kaalvantik'],
   ['public/llms-full.txt', '## Responsible answers'],
   ['public/llms-full.txt', 'YouTube https://www.youtube.com/@atmarekha'],
@@ -70,11 +70,11 @@ const required = [
   ['worker.js', 'login|signup|bookmarks|account'],
   ['public/llms.txt', 'The project idea dates to 21 March 2025'],
   ['public/llms-full.txt', 'The project idea dates to 21 March 2025'],
-  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';"],
-  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Roman Hindi and English.';"],
+  ['App.jsx', "const DEFAULT_SEO_TITLE = 'Atma Rekha | Fantasy Adventure Comic';"],
+  ['App.jsx', "const DEFAULT_SEO_DESCRIPTION = 'Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery.';"],
   ['App.jsx', "upsertMeta('name', 'author', 'Arkesh Kaalvantik');"],
-  ['worker.js', 'const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Original Indian Fantasy Adventure Manga"'],
-  ['worker.js', 'const shareDescription = chapterListSeo?.[1] || "Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'],
+  ['worker.js', 'const shareTitle = seoTitle(chapterListSeo?.[0] || "Atma Rekha | Fantasy Adventure Comic"'],
+  ['worker.js', 'const shareDescription = chapterListSeo?.[1] || "Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery."'],
   ['scripts/test-worker-seo.mjs', 'Homepage Open Graph description is outdated.'],
   ['scripts/generate-sitemap.mjs', "'/info/about'"],
   ['scripts/generate-sitemap.mjs', "'/info/terms'"],
@@ -681,7 +681,7 @@ const legalCopyRegression = await readFile('InfoPage.jsx', 'utf8');
 const termsCopyRegression = await readFile('TermsOfUseSections.jsx', 'utf8');
 const privacyCopyRegression = await readFile('PrivacyPolicySections.jsx', 'utf8');
 if (!legalCopyRegression.includes('AI tools assist selected parts of the visual workflow.') ||
-    !legalCopyRegression.includes('AI-generated images are not published directly as finished manga pages.') ||
+    !legalCopyRegression.includes('AI-generated images are not published directly as finished comic pages.') ||
     !termsCopyRegression.includes('Membership renews automatically') ||
     !termsCopyRegression.includes('atmarekhasupport@gmail.com') ||
     !termsCopyRegression.includes('no-reply@atmarekha.in') ||

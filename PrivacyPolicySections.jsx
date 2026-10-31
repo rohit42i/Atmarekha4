@@ -16,14 +16,14 @@ export default function PrivacyPolicySections() {
         <li><strong>Membership and payments:</strong> selected plan, subscription status, billing period, and Razorpay transaction or subscription references and payment status.</li>
         <li><strong>Email and preferences:</strong> verification events, delivery records, reader update preferences and unsubscribe status.</li>
         <li><strong>Technical and usage information:</strong> page and chapter views, basic performance metrics, and technical request information such as browser or IP data where provided by the site or its services.</li>
-        <li><strong>Media:</strong> profile images, manga pages and chapter covers stored or displayed by the website.</li>
+        <li><strong>Media:</strong> profile images, comic pages and chapter covers stored or displayed by the website.</li>
       </ul>
     </Section>
 
     <Section title="2. How we use your information">
       <ul>
         <li>To create and manage accounts, verify email addresses and help users recover access.</li>
-        <li>To display manga and save reading progress, bookmarks and reader preferences.</li>
+        <li>To display comic pages and save reading progress, bookmarks and reader preferences.</li>
         <li>To display comments and ratings, review reports and manage community content.</li>
         <li>To confirm membership payments, maintain access and manage subscriptions.</li>
         <li>To send account, verification, security, payment and membership emails.</li>

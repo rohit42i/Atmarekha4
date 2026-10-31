@@ -12,17 +12,17 @@ const PAGES = {
     title: 'About Atma Rekha',
     details: [
       ['Creator', 'Arkesh Kaalvantik'], ['Languages', 'Hindi written in Roman script and English'],
-      ['Format', 'Original digital manga'], ['Created', 'Project idea: 21 March 2025'],
+      ['Format', 'Digital comic'], ['Created', 'Project idea: 21 March 2025'],
       ['Development', 'Started: 25 April 2025'], ['First chapter', 'Published: 14 September 2026'],
       ['Release schedule', 'New chapters are planned for the 14th of each month'],
       ['Reading access', 'Chapters 1 to 8 are currently listed as free'], ['Age guidance', '15+'],
       ['Production', 'Independent solo creator'],
     ],
     story: [
-      'Atma Rekha is an original Indian fantasy adventure manga created and written by Arkesh Kaalvantik. It follows Arnav, an eighteen-year-old student whose missing childhood memories and encounters with unusual powers draw him into a larger mystery. The series combines fantasy, adventure, mystery, and Indian cultural and spiritual influences while keeping later story developments unspoiled.',
-      'The manga is published in Hindi written in Roman script and in English. The public introduction chapter is dated 7 September 2026, and Chapter 1 was published on 14 September 2026. New chapters are planned for the 14th of each month. The official chapter list is the source of truth for the latest releases and language versions.',
+      'Atma Rekha is a fantasy adventure comic created and written by Arkesh Kaalvantik. Its world draws inspiration from Indian culture and traditions. It follows Arnav, an eighteen-year-old student whose missing childhood memories and encounters with unusual powers lead him into a larger mystery. The series blends fantasy, adventure, and mystery while keeping later story developments unspoiled.',
+      'The comic is published in Hindi written in Roman script and in English. The public introduction chapter is dated 7 September 2026, and Chapter 1 was published on 14 September 2026. New chapters are planned for the 14th of each month. The official chapter list is the source of truth for the latest releases and language versions.',
       'Atma Rekha began as a project idea on 21 March 2025. Development began on 25 April 2025. Arkesh Kaalvantik works independently and leads the story, dialogue, character direction, rough drawings, panel layouts, composition, and final creative decisions.',
-      'AI tools assist selected parts of the visual workflow. AI-generated images are not published directly as finished manga pages. AI-assisted references used during production are manually outlined or redrawn and reviewed by the creator before publication.',
+      'AI tools assist selected parts of the visual workflow. AI-generated images are not published directly as finished comic pages. AI-assisted references used during production are manually outlined or redrawn and reviewed by the creator before publication.',
       'For official updates, follow Atma Rekha on Instagram and YouTube. For reader support, publication enquiries, or messages for the creator, use atmarekhasupport@gmail.com.',
     ],
   },
@@ -42,7 +42,7 @@ const PAGES = {
   },
   terms: {
     eyebrow: 'LEGAL', title: 'Terms of Use',
-    description: 'Rules for reading manga, using accounts and community features, and purchasing membership.',
+    description: 'Rules for reading the comic, using accounts and community features, and purchasing membership.',
   },
   privacy: {
     eyebrow: 'PRIVACY', title: 'Privacy Policy',
@@ -72,7 +72,7 @@ export default function InfoPage({ type, onBack }) {
 
     {isAbout && <section className="info-card info-hero">
       <h2>{page.title}</h2>
-      <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure manga created by Arkesh.' : page.description}</p>
+      <p className="info-hero-copy">{isAbout ? 'An independent fantasy adventure comic created by Arkesh.' : page.description}</p>
     </section>}
 
     {isAbout ? <section className="info-card info-content-card" aria-label="About Atma Rekha">

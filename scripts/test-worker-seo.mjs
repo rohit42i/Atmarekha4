@@ -66,11 +66,11 @@ try {
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
-  assert.ok(homeHtml.includes('<title>Atma Rekha | Original Indian Fantasy Adventure Manga</title>'), "Homepage HTML title is outdated.");
-  assert.ok(homeHtml.includes('name="description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'), "Homepage description is outdated.");
-  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
-  assert.ok(homeHtml.includes('property="og:description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'), "Homepage Open Graph description is outdated.");
-  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
+  assert.ok(homeHtml.includes('<title>Atma Rekha | Fantasy Adventure Comic</title>'), "Homepage HTML title is outdated.");
+  assert.ok(homeHtml.includes('name="description" content="Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery."'), "Homepage description is outdated.");
+  assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Fantasy Adventure Comic"'), "Homepage Open Graph title is outdated.");
+  assert.ok(homeHtml.includes('property="og:description" content="Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery."'), "Homepage Open Graph description is outdated.");
+  assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Fantasy Adventure Comic"'), "Homepage Twitter title is outdated.");
   assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
   assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
 
@@ -101,7 +101,7 @@ try {
   const aboutHtml = await about.text();
   assert.equal(about.status, 200);
   assert.match(aboutHtml, /<title>Atma Rekha \| About the Creator<\/title>/);
-  assert.ok(aboutHtml.includes("Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English."), "About description is missing or incorrect.");
+  assert.ok(aboutHtml.includes("Meet Arkesh Kaalvantik, the creator of Atma Rekha, a fantasy adventure comic published in Roman Hindi and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
   assert.ok(aboutHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2"'), "About page does not use the optimized JPEG share image.");
   assert.ok(aboutHtml.includes('property="og:image:secure_url" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2"'), "About page secure share image URL is incorrect.");

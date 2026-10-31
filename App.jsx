@@ -39,10 +39,10 @@ async function canReadAtmaChapter(chapter) {
 }
 
 // Keep the existing application implementation intact; this comment marks the production hotfix deployment.
-const STORY = { title: 'Atma Rekha', description: 'An original Indian fantasy adventure manga by Arkesh Kaalvantik, following Arnav through missing memories, unusual powers and a mystery.' };
+const STORY = { title: 'Atma Rekha', description: 'A fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery.' };
 const SITE_URL = 'https://www.atmarekha.in';
-const DEFAULT_SEO_TITLE = 'Atma Rekha | Original Indian Fantasy Adventure Manga';
-const DEFAULT_SEO_DESCRIPTION = 'Read Atma Rekha, an original Indian fantasy adventure manga by Arkesh Kaalvantik, in Roman Hindi and English.';
+const DEFAULT_SEO_TITLE = 'Atma Rekha | Fantasy Adventure Comic';
+const DEFAULT_SEO_DESCRIPTION = 'Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery.';
 const DEFAULT_SEO_IMAGE = SITE_URL + '/og-atmarekha.jpg?v=20261031-share2';
 
 function upsertMeta(attribute, key, content) {
@@ -372,7 +372,7 @@ function Home({ chapters }) { const [adminRole, setAdminRole] = useState(null); 
     || chapters[chapters.length - 1];
   useEffect(() => { let active = true; buildPdlplChapters().then(rows => { if (!active) return; const featuredChapter = [...rows].reverse().find(chapter => published(chapter) && (chapter.cardThumbnailDesktop || chapter.cardThumbnailMobile || chapter.cover) && String(chapter.language || 'hi').toLowerCase() === 'hi')
         || [...rows].reverse().find(chapter => published(chapter) && (chapter.cardThumbnailDesktop || chapter.cardThumbnailMobile || chapter.cover)); setPdlplFeatured(featuredChapter || null); }).catch(() => { if (active) setPdlplFeatured(null); }); return () => { active = false; }; }, []); useEffect(() => { let active = true; supabase.auth.getUser().then(({ data: { user } }) => getAdminRole(user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); })); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { getAdminRole(session?.user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); }); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []);
-  return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><div className="flex items-center gap-2">{(adminRole === 'owner' || adminRole === 'admin') && <div className="flex items-center gap-3"><a className="admin-link" href="#admin" aria-label="Admin Panel"><span>Admin Panel</span></a></div>}</div></header><HomeAnnouncement target="atma" variant="pinned"/><section className="hero-card"><div className="hero-art">{(featured?.cardThumbnailDesktop || featured?.cardThumbnailMobile || featured?.cover) ? (() => { const desktop = featured.cardThumbnailDesktop || featured.cardThumbnailMobile || featured.cover; const mobile = featured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={featured?.title ? `Atma Rekha chapter cover: ${featured.title}` : "Atma Rekha fantasy adventure manga cover artwork"} loading="eager" fetchPriority="high" decoding="async"/></picture>; })() : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="/chapters">View Chapters →</a></div></section><ContinueReading chapters={chapters}/><HomeAnnouncement target="pdpkl" variant="pinned"/><section className="hero-card pdlpl-home-card" aria-labelledby="pdlpl-home-title"><div className="hero-art">{(pdlplFeatured?.cardThumbnailDesktop || pdlplFeatured?.cardThumbnailMobile || pdlplFeatured?.cover) ? (() => { const desktop = pdlplFeatured.cardThumbnailDesktop || pdlplFeatured.cardThumbnailMobile || pdlplFeatured.cover; const mobile = pdlplFeatured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={pdlplFeatured?.title ? `Pal Do Pal Ke Lamhe chapter cover: ${pdlplFeatured.title}` : "Pal Do Pal Ke Lamhe school life manga cover artwork"} loading="lazy" decoding="async"/></picture>; })() : <span className="hero-fallback">PDPL</span>}</div><div className="hero-copy"><p className="hero-eyebrow">SIDE STORY · SCHOOL LIFE</p><h1 id="pdlpl-home-title">Pal Do Pal Ke Lamhe</h1><p className="hero-description">Starts April 25, 2027</p><a className="hero-button" href="/pal-do-pal-ke-lamhe">View Chapters →</a></div></section><HomeAnnouncement variant="normal"/><Footer/></main>; }
+  return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><div className="flex items-center gap-2">{(adminRole === 'owner' || adminRole === 'admin') && <div className="flex items-center gap-3"><a className="admin-link" href="#admin" aria-label="Admin Panel"><span>Admin Panel</span></a></div>}</div></header><HomeAnnouncement target="atma" variant="pinned"/><section className="hero-card"><div className="hero-art">{(featured?.cardThumbnailDesktop || featured?.cardThumbnailMobile || featured?.cover) ? (() => { const desktop = featured.cardThumbnailDesktop || featured.cardThumbnailMobile || featured.cover; const mobile = featured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={featured?.title ? `Atma Rekha chapter cover: ${featured.title}` : "Atma Rekha fantasy adventure comic cover artwork"} loading="eager" fetchPriority="high" decoding="async"/></picture>; })() : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="/chapters">View Chapters →</a></div></section><ContinueReading chapters={chapters}/><HomeAnnouncement target="pdpkl" variant="pinned"/><section className="hero-card pdlpl-home-card" aria-labelledby="pdlpl-home-title"><div className="hero-art">{(pdlplFeatured?.cardThumbnailDesktop || pdlplFeatured?.cardThumbnailMobile || pdlplFeatured?.cover) ? (() => { const desktop = pdlplFeatured.cardThumbnailDesktop || pdlplFeatured.cardThumbnailMobile || pdlplFeatured.cover; const mobile = pdlplFeatured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={pdlplFeatured?.title ? `Pal Do Pal Ke Lamhe chapter cover: ${pdlplFeatured.title}` : "Pal Do Pal Ke Lamhe school life manga cover artwork"} loading="lazy" decoding="async"/></picture>; })() : <span className="hero-fallback">PDPL</span>}</div><div className="hero-copy"><p className="hero-eyebrow">SIDE STORY · SCHOOL LIFE</p><h1 id="pdlpl-home-title">Pal Do Pal Ke Lamhe</h1><p className="hero-description">Starts April 25, 2027</p><a className="hero-button" href="/pal-do-pal-ke-lamhe">View Chapters →</a></div></section><HomeAnnouncement variant="normal"/><Footer/></main>; }
 function AccessDenied({ onExit }) { return <main className="site-shell"><div className="reader-error"><h2>Access Denied</h2><p>You don't have permission to access the Atma Rekha Admin Panel.</p><button className="primary-button" onClick={onExit}>Back to Home</button></div></main>; }
 function AdminRoute({ onExit }) {
   const [session, setSession] = useState(null);
@@ -473,7 +473,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
         description = shortSeoDescription(
           chapter.description,
-          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.',
+          'Read ' + label + ' of Atma Rekha, a fantasy adventure comic by Arkesh Kaalvantik.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       } else {
@@ -481,8 +481,8 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         const numericChapter = /^\d+(?:\.\d+)?$/.test(chapterPart) ? chapterPart : '';
         title = numericChapter ? 'Atma Rekha Chapter ' + numericChapter : 'Atma Rekha | Chapter';
         description = numericChapter
-          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.'
-          : 'Read an Atma Rekha chapter, an original fantasy adventure manga by Arkesh Kaalvantik.';
+          ? 'Read Chapter ' + numericChapter + ' of Atma Rekha, a fantasy adventure comic by Arkesh Kaalvantik.'
+          : 'Read an Atma Rekha chapter, a fantasy adventure comic by Arkesh Kaalvantik.';
       }
     } else if (type === 'read-chapter') {
       const legacyId = legacyChapterIdFromHash('#' + route);
@@ -492,17 +492,17 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         title = 'Atma Rekha ' + label + (chapter.title ? ' | ' + chapter.title : '');
         description = shortSeoDescription(
           chapter.description,
-          'Read ' + label + ' of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.',
+          'Read ' + label + ' of Atma Rekha, a fantasy adventure comic by Arkesh Kaalvantik.',
         );
         image = chapter.cover || DEFAULT_SEO_IMAGE;
       }
     } else if (type === 'chapters') {
       if (requestedLanguage === 'en') {
         title = 'Atma Rekha | English Chapters';
-        description = 'Browse the published English chapters of Atma Rekha, an original fantasy adventure manga by Arkesh Kaalvantik.';
+        description = 'Browse the published English chapters of Atma Rekha, a fantasy adventure comic by Arkesh Kaalvantik.';
       } else {
         title = 'Atma Rekha | Chapter List';
-        description = 'Browse Atma Rekha chapters in Hindi written in Roman script. Read the original fantasy adventure manga by Arkesh Kaalvantik.';
+        description = 'Browse Atma Rekha chapters in Hindi written in Roman script. Read the fantasy adventure comic by Arkesh Kaalvantik.';
       }
     } else if (type === 'info') {
       const infoType = routeParts[1] || 'about';
@@ -515,11 +515,11 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       };
       title = 'Atma Rekha | ' + (labels[infoType] || 'About Atma Rekha');
       const infoDescriptions = {
-        about: 'Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English.',
+        about: 'Meet Arkesh Kaalvantik, the creator of Atma Rekha, a fantasy adventure comic published in Roman Hindi and English.',
         contact: 'Contact the Atma Rekha team for support, feedback, or general enquiries.',
         report: 'Report an issue with Atma Rekha website content or community activity.',
         privacy: 'Read how Atma Rekha processes account, profile, reading, community, membership, email, analytics and payment data.',
-        terms: 'Read the Atma Rekha terms of use for manga access, accounts, memberships, payments and community features.',
+        terms: 'Read the Atma Rekha terms of use for comic access, accounts, memberships, payments and community features.',
       };
       description = infoDescriptions[infoType] || infoDescriptions.about;
     } else if (type === 'privacy-center') {
@@ -527,7 +527,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
       description = 'Atma Rekha privacy notice, data controls and privacy requests.';
     } else if (type === 'community') {
       title = 'Atma Rekha | Community';
-      description = 'The Atma Rekha community is a space for readers to discuss the manga and follow official updates.';
+      description = 'The Atma Rekha community is a space for readers to discuss the comic and follow official updates.';
     } else if (type === 'membership') {
       title = 'Atma Rekha | Membership';
       description = 'View Atma Rekha membership information and current reading access options on the official website.';
@@ -643,17 +643,17 @@ export default function App() { const route = useHashRoute(); const [chapters, s
     if (chapter?.releaseDate) upsertMeta('property', 'article:published_time', new Date(chapter.releaseDate).toISOString());
     if (chapter) {
       upsertMeta('property', 'article:author', 'Arkesh Kaalvantik');
-      upsertMeta('property', 'article:section', 'Manga');
+      upsertMeta('property', 'article:section', 'Comic');
     }
 
     const series = {
       '@type': 'ComicSeries',
       '@id': SITE_URL + '/#series',
       name: 'Atma Rekha',
-      genre: ['Fantasy', 'Adventure', 'Manga'],
-      alternateName: 'Atma Rekha Fantasy Adventure Manga',
+      genre: ['Fantasy', 'Adventure', 'Mystery'],
+      alternateName: 'Atma Rekha Fantasy Adventure Comic',
       description: DEFAULT_SEO_DESCRIPTION,
-      keywords: 'fantasy adventure manga, original comic, mysterious powers, Roman Hindi manga',
+      keywords: 'fantasy adventure comic, missing memories, mysterious powers, Roman Hindi comic',
       author,
       inLanguage: ['en-IN', 'hi-Latn-IN'],
       url: SITE_URL + '/',
@@ -680,7 +680,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
         description: DEFAULT_SEO_DESCRIPTION,
         inLanguage: ['en-IN', 'hi-Latn-IN'],
         creator: author,
-        about: ['fantasy adventure manga', 'mysterious powers', 'mythical beings'],
+        about: ['fantasy adventure comic', 'mysterious powers', 'mythical beings'],
       },
       series,
       pageNode,

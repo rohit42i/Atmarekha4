@@ -2,7 +2,7 @@ const sections = [
   {
     heading: "1. Using Atma Rekha",
     paragraphs: [
-      "Atma Rekha is an original fantasy adventure manga website created by Arkesh Kaalvantik. These Terms cover the website, manga reader, accounts, community features and memberships."
+      "Atma Rekha is a fantasy adventure comic website created by Arkesh Kaalvantik. These Terms cover the website, comic reader, accounts, community features and memberships."
     ]
   },
   {
@@ -13,12 +13,12 @@ const sections = [
     ]
   },
   {
-    heading: "3. Manga and community",
+    heading: "3. Comic and community",
     paragraphs: [
-      "Atma Rekha stories, characters, writing, artwork, chapter pages and covers belong to Arkesh Kaalvantik or their respective rights holders. A membership gives access to the included chapters; it does not transfer ownership."
+      "Atma Rekha stories, characters, writing, artwork, comic pages and covers belong to Arkesh Kaalvantik or their respective rights holders. A membership gives access to the included chapters; it does not transfer ownership."
     ],
     bullets: [
-      "Do not copy, repost, sell, distribute, translate or adapt manga pages or chapters without permission.",
+      "Do not copy, repost, sell, distribute, translate or adapt comic pages or chapters without permission.",
       "Keep comments respectful. Do not harass, threaten, impersonate or expose another person’s private information.",
       "Only post content you have the right to share. Comments and other public profile details may be visible to other readers.",
       "Use the website’s reporting controls for problematic content. Content may be removed and accounts may be restricted when needed to protect the community."
