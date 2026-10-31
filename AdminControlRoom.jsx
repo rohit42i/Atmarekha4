@@ -190,7 +190,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const [chapterStatus, setChapterStatus] = useState('all');
   const [bundle, setBundle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [loadDuration, setLoadDuration] = useState(null);
   const [collapsedMetrics, setCollapsedMetrics] = useState(false);
@@ -200,7 +199,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
   const load = async () => {
     const requestId = ++loadSequence.current;
     const startedAt = Date.now();
-    setRefreshing(true);
     const results = await Promise.all([
       task(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: Number(days) } })),
       task(() => fetchCloudflareAdminAnalytics(Number(days))),
@@ -245,7 +243,6 @@ export default function AdminControlRoom({ chapters = [], comments = [], reports
     setLastRefresh(new Date());
     setLoadDuration(Date.now() - startedAt);
     setLoading(false);
-    setRefreshing(false);
   };
 
   useEffect(() => {
