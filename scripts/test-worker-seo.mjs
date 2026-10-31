@@ -71,7 +71,7 @@ try {
   assert.ok(homeHtml.includes('property="og:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Open Graph title is outdated.");
   assert.ok(homeHtml.includes('property="og:description" content="Atma Rekha is an original Indian fantasy adventure manga by Arkesh Kaalvantik, available in Roman Hindi and English."'), "Homepage Open Graph description is outdated.");
   assert.ok(homeHtml.includes('name="twitter:title" content="Atma Rekha | Original Indian Fantasy Adventure Manga"'), "Homepage Twitter title is outdated.");
-  assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
+  assert.ok(homeHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2"'), "Homepage share image URL is missing the optimized cache-busted JPEG.");
   assert.ok(homeHtml.includes('name="author" content="Arkesh Kaalvantik"'), "Homepage creator metadata is inconsistent.");
 
   assert.match(homeHtml, /<noscript><main class="seo-no-script-content">/);
@@ -103,8 +103,8 @@ try {
   assert.match(aboutHtml, /<title>Atma Rekha \| About the Creator<\/title>/);
   assert.ok(aboutHtml.includes("Meet Arkesh Kaalvantik, the independent creator of Atma Rekha, an original fantasy adventure manga published in Roman Hindi and English."), "About description is missing or incorrect.");
   assert.match(aboutHtml, /rel="canonical" href="https:\/\/www\.atmarekha\.in\/info\/about"/);
-  assert.ok(aboutHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page does not use the optimized JPEG share image.");
-  assert.ok(aboutHtml.includes('property="og:image:secure_url" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261029-share1"'), "About page secure share image URL is incorrect.");
+  assert.ok(aboutHtml.includes('property="og:image" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2"'), "About page does not use the optimized JPEG share image.");
+  assert.ok(aboutHtml.includes('property="og:image:secure_url" content="https://www.atmarekha.in/og-atmarekha.jpg?v=20261031-share2"'), "About page secure share image URL is incorrect.");
   assert.match(aboutHtml, /property="og:image:type" content="image\/jpeg"/);
   assert.match(aboutHtml, /property="og:image:width" content="1200"/);
   assert.match(aboutHtml, /property="og:image:height" content="630"/);
