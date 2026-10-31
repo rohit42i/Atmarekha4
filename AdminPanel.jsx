@@ -219,8 +219,8 @@ export default function AdminPanel({ onLogout }) {
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
   const [adminTheme, setAdminTheme] = useState(() => {
-    try { return window.localStorage.getItem('ar-admin-theme') === 'light' ? 'light' : 'dark'; }
-    catch { return 'dark'; }
+    try { return window.localStorage.getItem('ar-admin-theme') === 'dark' ? 'dark' : 'light'; }
+    catch { return 'light'; }
   });
   useEffect(() => {
     if (!mobileSidebarOpen) return undefined;
@@ -1317,24 +1317,17 @@ export default function AdminPanel({ onLogout }) {
             </button>
           </div>
           <div className="ar-admin-top-actions">
-            <span className="ar-admin-freshness" title={lastRefreshedAt ? lastRefreshedAt.toLocaleString('en-IN') : 'Not loaded yet'}>
-              <i className={notice.type === 'error' ? 'is-error' : ''}/>{lastRefreshedAt ? 'Updated ' + lastRefreshedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : 'Updating'}
-            </span>
-            <button type="button" className="ar-admin-icon-button" onClick={() => activateTab('Reports')} aria-label={'Reports' + (reportCount ? ', ' + reportCount + ' open' : '')}>
-              <AdminIcon name="bell" size={17}/>{reportCount > 0 && <i>{reportCount}</i>}
-            </button>
             <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => setAdminTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
               <span className={adminTheme === 'light' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">light_mode</span></span>
               <span className={adminTheme === 'dark' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">dark_mode</span></span>
             </button>
-            <button type="button" className="ar-admin-refresh" onClick={load} disabled={busy}>
-              <AdminIcon name="refresh" size={16}/><span>Refresh</span>
+            <button type="button" className="ar-admin-icon-button ar-admin-refresh" onClick={load} disabled={busy} aria-label="Refresh admin data" title="Refresh">
+              <AdminIcon name="refresh" size={16}/>
             </button>
             <div className="ar-admin-profile-wrap">
               <button type="button" className="ar-admin-profile" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu">
                 <span className="ar-admin-avatar">A</span>
-                <span><strong>Admin</strong><small>{email || 'Protected'}</small></span>
-                <AdminIcon name="chevron" size={13}/>
+                <span className="sr-only">Admin account</span>
               </button>
               {profileOpen && <div className="ar-admin-profile-menu" role="menu">
                 <div><strong>Admin account</strong><span>{email || 'Protected by Supabase'}</span></div>
@@ -1396,12 +1389,7 @@ export default function AdminPanel({ onLogout }) {
     </section> : <section className="admin-stack"><form onSubmit={saveMedia} className="admin-card admin-form"><div className="admin-card-title"><div><span>CONTENT</span><h2>Media library</h2></div></div><div className="admin-form-grid"><input value={mediaForm.title} onChange={e => setMediaForm({ ...mediaForm, title: e.target.value })} placeholder="Title" required/><input value={mediaForm.category} onChange={e => setMediaForm({ ...mediaForm, category: e.target.value })} placeholder="Category" required/><label className="admin-file-field wide"><span>Image file</span><input type="file" accept={SUPPORTED_IMAGE_ACCEPT} required onChange={e => { const file = e.target.files?.[0] || null; e.target.value = ''; setMediaForm({ ...mediaForm, file }); }}/>{mediaForm.file && <em>{mediaForm.file.name}</em>}</label></div><button type="submit" className="admin-submit" disabled={busy}>Add media</button></form><div className="admin-media-grid">{media.map(item => <article key={item.id}>{item.image_url && <img src={item.image_url} alt="" loading="lazy"/>}<div><strong>{item.title}</strong><span>{item.category}</span><button type="button" className="danger-text" onClick={() => deleteMedia(item)}>Delete</button></div></article>)}</div></section>}
 
         </div>
-        <nav className="admin-bottom-nav" aria-label="Admin quick navigation">
-          <button type="button" className={tab === 'Control Room' ? 'active' : ''} onClick={() => activateTab('Control Room')}><AdminIcon name="chart" size={16}/><span>Control Room</span></button>
-          <button type="button" className={tab === 'Chapters' ? 'active' : ''} onClick={() => activateTab('Chapters')}><AdminIcon name="book" size={16}/><span>Chapters</span></button>
-          <button type="button" className={tab === 'Reports' ? 'active' : ''} onClick={() => activateTab('Reports')}><AdminIcon name="flag" size={16}/><span>Reports</span>{reportCount > 0 ? <b>{reportCount}</b> : null}</button>
-          <button type="button" onClick={() => setMobileSidebarOpen(value => !value)} aria-controls="ar-admin-sidebar" aria-expanded={mobileSidebarOpen}><AdminIcon name="menu" size={16}/><span>Menu</span></button>
-        </nav>
+
         <AdminCommandPalette
           open={commandOpen}
           onClose={() => setCommandOpen(false)}

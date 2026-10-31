@@ -169,14 +169,6 @@ export function AdminSidebar({
         </button>
       </div>
 
-      <div className="ar-admin-workspace">
-        <span className="ar-admin-avatar-mini">A</span>
-        <div>
-          <strong>Publisher</strong>
-          <small>{email || 'Protected admin'}</small>
-        </div>
-      </div>
-
       <nav className="admin-tabs ar-admin-nav">
         {groups.map(group => (
           <div className="ar-admin-nav-group" key={group.label}>

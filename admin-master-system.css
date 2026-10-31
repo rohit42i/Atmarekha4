@@ -93,9 +93,9 @@ main.admin-page.ar-admin-v3 {
   line-height: 1.5;
 }
 main.admin-page.ar-admin-v3[data-admin-theme="dark"],
-body.dark-theme-variables main.admin-page.ar-admin-v3 {
-  --admin-bg-primary: #111111;
-  --admin-bg: #111111;
+body.dark-theme-variables main.admin-page.ar-admin-v3[data-admin-theme="dark"] {
+  --admin-bg-primary: #000000;
+  --admin-bg: #000000;
   --admin-gold: #eeeeee;
   --admin-gold-bright: #ffffff;
   --admin-gold-soft: #333333;
@@ -123,10 +123,10 @@ body.dark-theme-variables main.admin-page.ar-admin-v3 {
   --ar-work-raised: var(--admin-bg-secondary);
   --ar-work-surface: var(--admin-card-bg);
   --ar-work-text: var(--admin-text-primary);
-  --admin-bg-secondary: #1b1b1b;
-  --admin-bg-tertiary: #262626;
-  --admin-card-bg: #1c1c1c;
-  --admin-text-primary: #f5f5f5;
+  --admin-bg-secondary: #050505;
+  --admin-bg-tertiary: #101010;
+  --admin-card-bg: #080808;
+  --admin-text-primary: #ffffff;
   --admin-text-secondary: #d0d0d0;
   --admin-text-muted: #b4b4b4;
   --admin-border-color: #393939;
@@ -142,7 +142,7 @@ body.dark-theme-variables main.admin-page.ar-admin-v3 {
   --admin-primary: #e8e8e8;
   --admin-primary-soft: #333333;
   --admin-positive-soft: #173a28;
-  --admin-sidebar: #171717;
+  --admin-sidebar: #000000;
   --box-shadow: 0 2px 10px rgba(0,0,0,.28);
   color-scheme: dark;
 }
