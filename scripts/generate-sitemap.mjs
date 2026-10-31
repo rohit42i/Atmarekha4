@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const SITE_URL = 'https://www.atmarekha.in';
 const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
-  '/', '/chapters', '/chapters?lang=en',
+  '/', '/chapters', '/chapters?lang=en', '/chapter/1',
   '/pal-do-pal-ke-lamhe',
   '/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report',
 ];
@@ -83,6 +83,11 @@ function buildXml(chapters) {
     links.push({ language: 'x-default', url: SITE_URL + chapterPath(fallback) });
     for (const chapter of group) entries.get(SITE_URL + chapterPath(chapter)).alternates = links;
   }
+  const chapterOne = entries.get(SITE_URL + '/chapter/1');
+  if (chapterOne) chapterOne.alternates = [
+    { language: 'hi-Latn-IN', url: SITE_URL + '/chapter/1' },
+    { language: 'x-default', url: SITE_URL + '/chapter/1' },
+  ];
   const listAlternates = [
     { language: 'en-IN', url: SITE_URL + '/chapters?lang=en' },
     { language: 'hi-Latn-IN', url: SITE_URL + '/chapters' },
