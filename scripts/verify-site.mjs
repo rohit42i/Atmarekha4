@@ -33,10 +33,6 @@ const required = [
   ['public/llms-full.txt', '## Responsible answers'],
   ['public/llms-full.txt', 'YouTube https://www.youtube.com/@atmarekha'],
   ['public/llms.txt', 'Official profiles: Instagram https://www.instagram.com/atma.rekha/; YouTube https://www.youtube.com/@atmarekha.'],
-  ['public/sitemap.xml', '<loc>https://www.atmarekha.in/chapter/special/intro-282d54fd</loc>'],
-  ['public/sitemap.xml', '<loc>https://www.atmarekha.in/chapter/2</loc>'],
-  ['scripts/generate-sitemap.mjs', "'/chapter/2'"],
-  ['worker.js', '"/chapter/2"'],
   ['public/_headers', '/login*'],
   ['public/_headers', '/privacy-center*'],
   ['public/robots.txt', 'User-agent: OAI-SearchBot'],
@@ -1126,8 +1122,24 @@ if (publicSitemap.includes('storage/') || publicSitemap.includes('<image:image>'
 }
 if (!sitemapWorker.includes('async function serveSitemap') ||
     !sitemapWorker.includes('async function loadAllPublishedChapters') ||
-    !sitemapWorker.includes('url.pathname === "/sitemap.xml"')) {
-  console.error('CHECK FAILED: Worker dynamic sitemap route or complete chapter pagination is missing.');
+    !sitemapWorker.includes('url.pathname === "/sitemap.xml"') ||
+    !sitemapWorker.includes('endpoint.searchParams.set("deleted_at", "is.null")') ||
+    !sitemapGenerator.includes("url.searchParams.set('deleted_at', 'is.null')")) {
+  console.error('CHECK FAILED: Dynamic sitemap must paginate published, non-deleted chapters.');
+  failed = true;
+}
+const sitemapLocs = [...publicSitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
+if (!publicSitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>') ||
+    sitemapLocs.length === 0 ||
+    new Set(sitemapLocs).size !== sitemapLocs.length ||
+    sitemapLocs.some(loc => !loc.startsWith('https://www.atmarekha.in/'))) {
+  console.error('CHECK FAILED: Static sitemap must be validly declared, unique, and limited to canonical HTTPS URLs.');
+  failed = true;
+}
+if (publicSitemap.includes('/admin') || publicSitemap.includes('/membership') ||
+    publicSitemap.includes('/login') || publicSitemap.includes('/signup') ||
+    publicSitemap.includes('/privacy-center')) {
+  console.error('CHECK FAILED: Static sitemap must not list private or noindex routes.');
   failed = true;
 }
 if (!crawlerRules.includes('Sitemap: https://www.atmarekha.in/sitemap.xml')) {

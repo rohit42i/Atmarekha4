@@ -10,6 +10,8 @@ const chapterRows = [
   { id: "chapter-en-1", chapter_number: 1, title: "The Forgotten Dream", language: "en", status: "Published", cover_url: "https://tiny-pond-c959.rohitbaswaraj.workers.dev/storage/v1/object/public/covers/chapters/private-cover.png", release_date: "2026-09-14T00:00:00Z" },
   { id: "chapter-hi-2", chapter_number: 2, title: "But what", language: "hi", status: "Published", release_date: "2026-10-14T04:45:00Z" },
   { id: "282d54fd-c4c1-4bb6-976c-156921e16071", chapter_number: null, title: "Intro", language: "hi", status: "Published", release_date: "2026-09-07T00:00:00Z" },
+  { id: "deadbeef-c4c1-4bb6-976c-156921e16071", chapter_number: null, title: "Intro", language: "en", status: "Published", release_date: "2026-09-07T00:00:00Z" },
+  { id: "deleted-3", chapter_number: 3, title: "Removed chapter", language: "hi", status: "Published", deleted_at: "2026-10-20T00:00:00Z", release_date: "2026-10-01T00:00:00Z" },
   { id: "draft-2", chapter_number: 2, title: "Unreleased", language: "hi", status: "draft", release_date: "2026-10-01T00:00:00Z" },
 ];
 globalThis.caches = {
@@ -52,16 +54,28 @@ try {
   const sitemapXml = await sitemapResponse.text();
   assert.equal(sitemapResponse.status, 200);
   assert.ok((sitemapResponse.headers.get("content-type") || "").includes("application/xml"));
-  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/2", "/chapter/special/intro-282d54fd", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
+  for (const path of ["/", "/chapters", "/chapters?lang=en", "/chapter/1", "/chapter/1?lang=en", "/chapter/2", "/chapter/special/intro-282d54fd", "/chapter/special/intro-deadbeef?lang=en", "/pal-do-pal-ke-lamhe", "/info/about", "/info/terms", "/info/privacy", "/info/contact", "/info/report"]) {
     assert.ok(sitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Sitemap is missing public URL: " + path);
   }
   assert.ok(sitemapXml.includes('hreflang="en-IN"') && sitemapXml.includes('hreflang="hi-Latn-IN"'), "Published chapter language alternates are missing.");
   assert.ok(!sitemapXml.includes("Unreleased") && !sitemapXml.includes("draft-2"), "Unpublished chapters must not appear in the sitemap.");
+  assert.ok(!sitemapXml.includes("/chapter/3"), "Soft-deleted published chapters must not appear in the sitemap.");
+  assert.ok(chapterLookupRequests[0].searchParams.get("deleted_at") === "is.null", "Sitemap query must exclude soft-deleted chapters.");
+  const introUrl = "https://www.atmarekha.in/chapter/special/intro-282d54fd";
+  const introPosition = sitemapXml.indexOf("<loc>" + introUrl + "</loc>");
+  const introStart = sitemapXml.lastIndexOf("<url>", introPosition);
+  const introEnd = sitemapXml.indexOf("</url>", introPosition);
+  const introEntry = introPosition >= 0 && introStart >= 0 && introEnd >= 0 ? sitemapXml.slice(introStart, introEnd + 6) : "";
+  assert.ok(introEntry.includes('hreflang="hi-Latn-IN"') && !introEntry.includes('hreflang="en-IN"'), "Unrelated special chapters with the same title must not be treated as translations.");
+  const sitemapLocs = [...sitemapXml.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
+  assert.equal(new Set(sitemapLocs).size, sitemapLocs.length, "Sitemap URLs must be unique.");
+  assert.ok(sitemapLocs.every(loc => loc.startsWith("https://www.atmarekha.in/")), "Every sitemap URL must use the canonical HTTPS origin.");
   assert.ok(!sitemapXml.includes("storage/") && !sitemapXml.includes("<image:image>"), "Sitemap must not expose storage or image URLs.");
   assert.ok(!sitemapXml.includes("\\\\n"), "Sitemap XML must use real line breaks rather than escaped backslash sequences.");
   assert.match(sitemapResponse.headers.get("cache-control") || "", /max-age=300/);
   assert.ok(chapterLookupRequests.length > 0, "Sitemap lookup should fetch chapter records.");
   assert.equal(chapterLookupRequests[0].searchParams.get("status"), "ilike.published", "Published chapter lookup must be case-insensitive for the stored Published status.");
+  assert.equal(chapterLookupRequests[0].searchParams.get("deleted_at"), "is.null", "Soft-deleted records must be excluded at the database query.");
 
   const home = await worker.fetch(new Request("https://www.atmarekha.in/"), env);
   const homeHtml = await home.text();
