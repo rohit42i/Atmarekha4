@@ -2709,3 +2709,68 @@ body[data-admin-theme] .admin-command-palette-results > button.is-active {
   background: var(--admin-bg-secondary);
   border-color: var(--admin-border-color);
 }
+
+
+/* 12. Strict light-mode palette.
+   Apply one consistent white/black palette to every admin module, including
+   feature panels whose legacy styles used hard-coded dark or tinted surfaces. */
+main.admin-page.ar-admin-v3[data-admin-theme="light"],
+main.admin-page.ar-admin-v3[data-admin-theme="light"] * {
+  color: #000000 !important;
+  border-color: #dedede;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="light"] {
+  --admin-bg-primary: #ffffff;
+  --admin-bg: #ffffff;
+  --admin-bg-secondary: #ffffff;
+  --admin-bg-tertiary: #ffffff;
+  --admin-card-bg: #ffffff;
+  --admin-sidebar: #ffffff;
+  --admin-text-primary: #000000;
+  --admin-text-secondary: #000000;
+  --admin-text-muted: #000000;
+  --admin-text: #000000;
+  --admin-text-2: #000000;
+  --admin-muted: #000000;
+  --admin-faint: #000000;
+  --admin-input-bg: #ffffff;
+  --admin-input-text: #000000;
+  --admin-button-bg: #ffffff;
+  --admin-button-text: #000000;
+  color-scheme: light !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="light"] :is(img,video,canvas) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="light"] :is(input,select,textarea,button,[role="button"]) {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: #dedede !important;
+}
+main.admin-page.ar-admin-v3[data-admin-theme="light"] ::placeholder {
+  color: #000000 !important;
+  opacity: .65;
+}
+body[data-admin-theme="light"] :is(
+  .admin-command-palette-backdrop,.admin-studio-modal-backdrop
+) {
+  color: #000000 !important;
+}
+body[data-admin-theme="light"] :is(
+  .admin-command-palette,.admin-studio-modal,
+  .admin-studio-modal-head,.admin-studio-modal-body,.admin-studio-modal-foot
+) {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+body[data-admin-theme="light"] .admin-studio-modal * {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
