@@ -185,7 +185,7 @@ const ADMIN_NAV_GROUPS = [
   ]},
 ];
 
-export default function AdminPanel({ onLogout }) {
+export default function AdminPanel({ onLogout, adminUser }) {
   const [tab, setTab] = useState('Control Room');
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
@@ -289,9 +289,14 @@ export default function AdminPanel({ onLogout }) {
     setNotice({ type: '', text: '' });
     const warnings = [];
     try {
-      const user = await requireAdmin();
+      const user = adminUser || await requireAdmin();
       if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
+      // Render the authenticated admin workspace before waiting for optional data sources.
+      if (initialLoad) {
+        hasLoaded.current = true;
+        setLoading(false);
+      }
 
       const [chapterResult, pdpklResult, pageResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
         captureAdminSource(() => buildChapters()),
