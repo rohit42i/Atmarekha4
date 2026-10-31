@@ -80,8 +80,17 @@ async function loadAllCommentReportRows() {
 }
 
 async function captureAdminSource(work) {
+  let timeoutId;
   try {
-    const result = await work();
+    const result = await Promise.race([
+      Promise.resolve().then(work),
+      new Promise((_, reject) => {
+        timeoutId = window.setTimeout(
+          () => reject(new Error('This admin data request timed out after 30 seconds.')),
+          30000,
+        );
+      }),
+    ]);
     if (result && typeof result === 'object' && Object.prototype.hasOwnProperty.call(result, 'error') &&
         (Object.prototype.hasOwnProperty.call(result, 'data') || Object.prototype.hasOwnProperty.call(result, 'count'))) {
       return { data: result.data ?? null, count: result.count ?? null, error: result.error || null };
@@ -89,6 +98,8 @@ async function captureAdminSource(work) {
     return { data: result ?? null, count: result?.count ?? null, error: null };
   } catch (error) {
     return { data: null, count: null, error };
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
   }
 }
 
@@ -319,8 +330,11 @@ export default function AdminPanel({ onLogout, adminUser }) {
         captureAdminSource(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error }))),
       ]);
       if (requestId !== loadSequence.current) return;
-      if (chapterResult.error) throw chapterResult.error;
-      setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      if (chapterResult.error) {
+        warnings.push('Chapters: ' + adminSourceError(chapterResult.error));
+      } else {
+        setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      }
 
       if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
