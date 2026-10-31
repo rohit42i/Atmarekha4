@@ -374,10 +374,22 @@ function Home({ chapters }) { const [adminRole, setAdminRole] = useState(null); 
         || [...rows].reverse().find(chapter => published(chapter) && (chapter.cardThumbnailDesktop || chapter.cardThumbnailMobile || chapter.cover)); setPdlplFeatured(featuredChapter || null); }).catch(() => { if (active) setPdlplFeatured(null); }); return () => { active = false; }; }, []); useEffect(() => { let active = true; supabase.auth.getUser().then(({ data: { user } }) => getAdminRole(user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); })); const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { getAdminRole(session?.user?.id).then(role => { if (active) setAdminRole(role); }).catch(() => { if (active) setAdminRole(null); }); }); return () => { active = false; listener.subscription.unsubscribe(); }; }, []);
   return <main className="home-page"><header className="home-header"><a className="brand-wordmark" href="#home">Atma Rekha</a><div className="flex items-center gap-2">{(adminRole === 'owner' || adminRole === 'admin') && <div className="flex items-center gap-3"><a className="admin-link" href="#admin" aria-label="Admin Panel"><span>Admin Panel</span></a></div>}</div></header><HomeAnnouncement target="atma" variant="pinned"/><section className="hero-card"><div className="hero-art">{(featured?.cardThumbnailDesktop || featured?.cardThumbnailMobile || featured?.cover) ? (() => { const desktop = featured.cardThumbnailDesktop || featured.cardThumbnailMobile || featured.cover; const mobile = featured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={featured?.title ? `Atma Rekha chapter cover: ${featured.title}` : "Atma Rekha fantasy adventure manga cover artwork"} loading="eager" fetchPriority="high" decoding="async"/></picture>; })() : <span className="hero-fallback">AR</span>}</div><div className="hero-copy"><h1>{STORY.title}</h1><p className="hero-description">{STORY.description}</p><a className="hero-button" href="/chapters">View Chapters →</a></div></section><ContinueReading chapters={chapters}/><HomeAnnouncement target="pdpkl" variant="pinned"/><section className="hero-card pdlpl-home-card" aria-labelledby="pdlpl-home-title"><div className="hero-art">{(pdlplFeatured?.cardThumbnailDesktop || pdlplFeatured?.cardThumbnailMobile || pdlplFeatured?.cover) ? (() => { const desktop = pdlplFeatured.cardThumbnailDesktop || pdlplFeatured.cardThumbnailMobile || pdlplFeatured.cover; const mobile = pdlplFeatured.cardThumbnailMobile || desktop; return <picture><source media="(max-width: 640px)" srcSet={mobile}/><img src={desktop} alt={pdlplFeatured?.title ? `Pal Do Pal Ke Lamhe chapter cover: ${pdlplFeatured.title}` : "Pal Do Pal Ke Lamhe school life manga cover artwork"} loading="lazy" decoding="async"/></picture>; })() : <span className="hero-fallback">PDPL</span>}</div><div className="hero-copy"><p className="hero-eyebrow">SIDE STORY · SCHOOL LIFE</p><h1 id="pdlpl-home-title">Pal Do Pal Ke Lamhe</h1><p className="hero-description">Starts April 25, 2027</p><a className="hero-button" href="/pal-do-pal-ke-lamhe">View Chapters →</a></div></section><HomeAnnouncement variant="normal"/><Footer/></main>; }
 function AccessDenied({ onExit }) { return <main className="site-shell"><div className="reader-error"><h2>Access Denied</h2><p>You don't have permission to access the Atma Rekha Admin Panel.</p><button className="primary-button" onClick={onExit}>Back to Home</button></div></main>; }
+function withAdminTimeout(operation, message, timeoutMs = 12000) {
+  let timer;
+  return Promise.race([
+    Promise.resolve().then(operation),
+    new Promise((_, reject) => {
+      timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]).finally(() => window.clearTimeout(timer));
+}
+
 function AdminRoute({ onExit }) {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [accessError, setAccessError] = useState('');
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const sessionUserIdRef = useRef(null);
 
   useEffect(() => {
@@ -386,8 +398,15 @@ function AdminRoute({ onExit }) {
 
     const check = async nextSession => {
       const id = ++checkId;
+      setChecking(true);
+      setAccessError('');
       try {
-        const currentSession = nextSession || (await supabase.auth.getSession()).data.session;
+        const currentSession = nextSession !== undefined
+          ? nextSession
+          : (await withAdminTimeout(
+              () => supabase.auth.getSession(),
+              'Admin session check timed out. Check your connection and retry.',
+            )).data.session;
         if (!active || id !== checkId) return;
 
         if (!currentSession?.user) {
@@ -400,48 +419,49 @@ function AdminRoute({ onExit }) {
 
         sessionUserIdRef.current = currentSession.user.id;
         setSession(currentSession);
-        setChecking(true);
 
-        const nextRole = await getAdminRole(currentSession.user.id);
+        const nextRole = await withAdminTimeout(
+          () => getAdminRole(currentSession.user.id),
+          'Admin access verification timed out. Check your connection and retry.',
+        );
         if (!active || id !== checkId) return;
 
         setRole(nextRole);
         setChecking(false);
-      } catch {
+      } catch (error) {
         if (!active || id !== checkId) return;
         setRole(null);
+        setAccessError(error?.message || 'Unable to verify admin access. Please retry.');
         setChecking(false);
       }
     };
 
-    check();
+    void check();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === 'SIGNED_OUT' || !nextSession?.user) {
-        check(null);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!nextSession?.user) {
+        void check(nextSession);
         return;
       }
 
-      // Token refreshes can happen while the admin is viewing another page.
-      // Keep the existing admin session/role stable and only re-check when the
-      // authenticated user actually changes.
       if (sessionUserIdRef.current === nextSession.user.id) {
         setSession(nextSession);
         return;
       }
-      check(nextSession);
+      void check(nextSession);
     });
 
     return () => {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, []);
+  }, [retryAttempt]);
 
   if (checking) return <main className="site-shell"><LoadingState label="Checking admin access…"/></main>;
+  if (accessError) return <main className="site-shell"><div className="reader-error" role="alert"><h2>Unable to verify admin access</h2><p>{accessError}</p><button className="primary-button" onClick={() => setRetryAttempt(value => value + 1)}>Try again</button><button className="secondary-button" onClick={onExit}>Back to home</button></div></main>;
   if (!session) return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin sign-in…"/></main>}><AdminLogin /></Suspense>;
   if (!(role === 'owner' || role === 'admin')) return <AccessDenied onExit={onExit}/>;
-  return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin panel…"/></main>}><AdminPanel onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/></Suspense>;
+  return <Suspense fallback={<main className="site-shell"><LoadingState label="Opening admin panel…"/></main>}><AdminPanel adminUser={session.user} onLogout={async () => { await supabase.auth.signOut(); onExit(); }}/></Suspense>;
 }
 function useHashRoute() { const [route, setRoute] = useState(() => getSiteRoute()); useEffect(() => { const update = () => setRoute(getSiteRoute()); window.addEventListener('hashchange', update); window.addEventListener('popstate', update); return () => { window.removeEventListener('hashchange', update); window.removeEventListener('popstate', update); }; }, []); return route; }
 export default function App() { const route = useHashRoute(); const [chapters, setChapters] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState('');
