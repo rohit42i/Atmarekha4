@@ -248,8 +248,17 @@ export default function AdminPanel({ onLogout, adminUser }) {
 
   useEffect(() => {
     try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
-    if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
-    return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
+    if (typeof document === 'undefined') return undefined;
+    const body = document.body;
+    const previousTheme = body.getAttribute('data-admin-theme');
+    const hadDarkClass = body.classList.contains('dark-theme-variables');
+    body.setAttribute('data-admin-theme', adminTheme);
+    body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
+    return () => {
+      if (previousTheme === null) body.removeAttribute('data-admin-theme');
+      else body.setAttribute('data-admin-theme', previousTheme);
+      body.classList.toggle('dark-theme-variables', hadDarkClass);
+    };
   }, [adminTheme]);
 
   useEffect(() => {
