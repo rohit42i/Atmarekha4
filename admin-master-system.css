@@ -2557,6 +2557,7 @@ body[data-admin-theme="light"] {
   --admin-warning: #9a6700;
   --admin-overlay: rgba(0,0,0,.48);
   --admin-shadow: 0 12px 40px rgba(0,0,0,.18);
+  --shadow-color: rgba(0,0,0,.18);
   --admin-radius-xl: 10px;
   --admin-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --admin-surface: var(--admin-card-bg);
@@ -2725,7 +2726,7 @@ body[data-admin-theme] {
   --border-color: var(--admin-border-color);
   --border-soft-color: var(--admin-border-color);
   --overlay-color: var(--admin-overlay);
-  --shadow-color: var(--admin-shadow);
+  --shadow-color: rgba(0,0,0,.18);
   --danger-color: var(--admin-danger);
   --success-color: var(--admin-success);
   --warning-color: var(--admin-warning);
@@ -2795,6 +2796,7 @@ body[data-admin-theme="dark"] {
   --admin-surface-3: #000000;
   --admin-overlay: rgba(0,0,0,.76);
   --admin-shadow: 0 14px 46px rgba(0,0,0,.48);
+  --shadow-color: rgba(0,0,0,.55);
   --box-shadow: 0 2px 10px rgba(0,0,0,.28);
 }
 
