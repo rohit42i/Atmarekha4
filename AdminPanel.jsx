@@ -80,8 +80,17 @@ async function loadAllCommentReportRows() {
 }
 
 async function captureAdminSource(work) {
+  let timeoutId;
   try {
-    const result = await work();
+    const result = await Promise.race([
+      Promise.resolve().then(work),
+      new Promise((_, reject) => {
+        timeoutId = window.setTimeout(
+          () => reject(new Error('This admin data request timed out after 30 seconds.')),
+          30000,
+        );
+      }),
+    ]);
     if (result && typeof result === 'object' && Object.prototype.hasOwnProperty.call(result, 'error') &&
         (Object.prototype.hasOwnProperty.call(result, 'data') || Object.prototype.hasOwnProperty.call(result, 'count'))) {
       return { data: result.data ?? null, count: result.count ?? null, error: result.error || null };
@@ -89,6 +98,8 @@ async function captureAdminSource(work) {
     return { data: result ?? null, count: result?.count ?? null, error: null };
   } catch (error) {
     return { data: null, count: null, error };
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
   }
 }
 
@@ -185,7 +196,7 @@ const ADMIN_NAV_GROUPS = [
   ]},
 ];
 
-export default function AdminPanel({ onLogout }) {
+export default function AdminPanel({ onLogout, adminUser }) {
   const [tab, setTab] = useState('Control Room');
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
@@ -248,8 +259,17 @@ export default function AdminPanel({ onLogout }) {
 
   useEffect(() => {
     try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
-    if (typeof document !== 'undefined') document.body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
-    return () => { if (typeof document !== 'undefined') document.body.classList.remove('dark-theme-variables'); };
+    if (typeof document === 'undefined') return undefined;
+    const body = document.body;
+    const previousTheme = body.getAttribute('data-admin-theme');
+    const hadDarkClass = body.classList.contains('dark-theme-variables');
+    body.setAttribute('data-admin-theme', adminTheme);
+    body.classList.toggle('dark-theme-variables', adminTheme === 'dark');
+    return () => {
+      if (previousTheme === null) body.removeAttribute('data-admin-theme');
+      else body.setAttribute('data-admin-theme', previousTheme);
+      body.classList.toggle('dark-theme-variables', hadDarkClass);
+    };
   }, [adminTheme]);
 
   useEffect(() => {
@@ -289,9 +309,14 @@ export default function AdminPanel({ onLogout }) {
     setNotice({ type: '', text: '' });
     const warnings = [];
     try {
-      const user = await requireAdmin();
+      const user = initialLoad && adminUser ? adminUser : await requireAdmin();
       if (requestId !== loadSequence.current) return;
       setEmail(user.email || '');
+      // Render the authenticated admin workspace before waiting for optional data sources.
+      if (initialLoad) {
+        hasLoaded.current = true;
+        setLoading(false);
+      }
 
       const [chapterResult, pdpklResult, pageResult, commentResult, reportResult, openReportResult, announcementResult, mediaResult, performanceResult] = await Promise.all([
         captureAdminSource(() => buildChapters()),
@@ -305,8 +330,11 @@ export default function AdminPanel({ onLogout }) {
         captureAdminSource(() => supabase.functions.invoke('get-admin-console-data', { body: { action: 'analytics', days: 30 } }).then(result => ({ data: result.data?.data || null, error: result.error }))),
       ]);
       if (requestId !== loadSequence.current) return;
-      if (chapterResult.error) throw chapterResult.error;
-      setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      if (chapterResult.error) {
+        warnings.push('Chapters: ' + adminSourceError(chapterResult.error));
+      } else {
+        setChapters(Array.isArray(chapterResult.data) ? chapterResult.data : []);
+      }
 
       if (pdpklResult.error) warnings.push('PDPKL chapters: ' + adminSourceError(pdpklResult.error));
       else setPdpklChapters(Array.isArray(pdpklResult.data) ? pdpklResult.data : []);
