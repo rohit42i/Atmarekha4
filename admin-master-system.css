@@ -87,7 +87,7 @@ main.admin-page.ar-admin-v3 {
   min-width: 0;
   color: var(--admin-text-primary);
   background: var(--admin-bg-primary);
-  color-scheme: light !important;
+  color-scheme: inherit;
   font-family: Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.5;
