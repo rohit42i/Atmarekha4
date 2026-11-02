@@ -234,30 +234,6 @@ function communityMimeFromKey(key) {
   return IMAGE_MIME_BY_EXT[ext] || COMMUNITY_MIME_BY_EXT[ext] || '';
 }
 
-function boundedUploadStream(stream, maxBytes, onLimit) {
-  const reader = stream.getReader();
-  let received = 0;
-  return new ReadableStream({
-    async pull(controller) {
-      try {
-        const part = await reader.read();
-        if (part.done) { controller.close(); return; }
-        received += part.value?.byteLength || 0;
-        if (received > maxBytes) {
-          onLimit();
-          try { await reader.cancel(); } catch (_) {}
-          controller.error(new Error('UPLOAD_TOO_LARGE'));
-          return;
-        }
-        controller.enqueue(part.value);
-      } catch (error) {
-        controller.error(error);
-      }
-    },
-    cancel(reason) { return reader.cancel(reason); },
-  });
-}
-
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
@@ -354,36 +330,51 @@ export default {
         }
 
         if (!request.body) return json(request, env, { error: 'Empty upload body.' }, 400);
-        const declaredLength = Number(request.headers.get('Content-Length') || 0);
+        const contentLengthHeader = request.headers.get('Content-Length');
+        const declaredLength = contentLengthHeader ? Number(contentLengthHeader) : NaN;
         const maxBytes = isCommunity ? COMMUNITY_MAX_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+        if (!Number.isSafeInteger(declaredLength) || declaredLength <= 0) {
+          return json(request, env, {
+            error: 'The upload arrived without a valid Content-Length. Please reselect the file and try again.',
+            code: 'UPLOAD_LENGTH_REQUIRED',
+          }, 411);
+        }
         if (declaredLength > maxBytes) {
           return json(request, env, {
             error: isCommunity ? 'Community attachment is larger than 15 MB.' : 'Image is larger than 95 MB.',
+            code: 'UPLOAD_TOO_LARGE',
           }, 413);
         }
 
-        let uploadExceededLimit = false;
-        try {
-          await env.MANGA_BUCKET.put(key, boundedUploadStream(request.body, maxBytes, () => { uploadExceededLimit = true; }), {
-            httpMetadata: {
-              contentType,
-              cacheControl: isCommunity ? 'public, max-age=86400' : 'private, max-age=3600',
-            },
-          });
-        } catch (error) {
-          if (uploadExceededLimit || error?.message === 'UPLOAD_TOO_LARGE') {
-            return json(request, env, { error: isCommunity ? 'Community attachment is larger than 15 MB.' : 'Image is larger than 95 MB.' }, 413);
-          }
-          throw error;
+        // Keep the original Request body. Wrapping it in a new ReadableStream
+        // removes Workerd's known-length metadata, causing R2.put() to reject
+        // otherwise valid browser File uploads.
+        const object = await env.MANGA_BUCKET.put(key, request.body, {
+          httpMetadata: {
+            contentType,
+            cacheControl: isCommunity ? 'public, max-age=86400' : 'private, max-age=3600',
+          },
+        });
+        if (!object) {
+          return json(request, env, { error: 'Cloudflare R2 did not confirm the upload.', code: 'R2_UPLOAD_NOT_CONFIRMED' }, 412);
         }
-        return json(request, env, { ok: true, path: key });
+        return json(request, env, { ok: true, path: key, size: object.size, etag: object.etag });
       }
 
       await env.MANGA_BUCKET.delete(key);
       return json(request, env, { ok: true, path: key });
     } catch (error) {
-      console.error('Atma media operation failed:', error instanceof Error ? error.message : 'unknown error');
-      return json(request, env, { error: 'Atma media operation failed.' }, 500);
+      const requestId = request.headers.get('cf-ray') || crypto.randomUUID();
+      const message = error instanceof Error ? error.message : String(error || 'Unknown media operation error');
+      const code = error?.code || error?.name || 'MEDIA_OPERATION_FAILED';
+      console.error('Atma media operation failed:', {
+        requestId,
+        method: request.method,
+        path: requestUrl.pathname,
+        code,
+        message,
+      });
+      return json(request, env, { error: message, code, requestId }, 500);
     }
   },
 };
