@@ -528,8 +528,13 @@ export default function AdminPanel({ onLogout, adminUser }) {
     const ext = imageExtension(file);
     const contentType = IMAGE_MIME_BY_EXT[ext] || declaredType;
     if (!contentType || !contentType.startsWith('image/')) throw new Error('Please select a supported image file.');
-    const { error } = await cloudflareR2.from(bucket).upload(path, file, { upsert: false, contentType, cacheControl: '31536000' });
-    if (error) throw new Error(`Upload to ${bucket} failed: ${error.message}`);
+    const { data, error } = await cloudflareR2.from(bucket).upload(path, file, { upsert: false, contentType, cacheControl: '31536000' });
+    if (error) {
+      const status = error.status ? ` (HTTP ${error.status})` : '';
+      const requestId = error.requestId ? ` Reference: ${error.requestId}` : '';
+      throw new Error(`Upload to ${bucket} failed${status}: ${error.message}${requestId}`);
+    }
+    if (!data?.path) throw new Error(`Upload to ${bucket} failed: the storage service did not confirm the saved file.`);
     return publicUrl(bucket, path);
   }
 
@@ -632,6 +637,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
 
         for (let i = 0; i < form.pages.length; i += 1) {
           const file = form.pages[i];
+          setProgress({ current: i, total: form.pages.length, text: 'Uploading page ' + (i + 1) + ' of ' + form.pages.length + '…' });
           const ext = imageExtension(file);
           const pagePath = 'chapters/' + chapterId + '/pages/' + language + '-' + revision + '/' + String(i + 1).padStart(4, '0') + '.' + ext;
           const url = await upload(PAGE_BUCKET, file, pagePath);
@@ -675,7 +681,9 @@ export default function AdminPanel({ onLogout, adminUser }) {
       }
       resetForm();
       await load();
-      setNotice({ type: 'success', text: savedLabel + ' ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' + notificationText });
+      const languageLabel = chapterLanguageLabel(language);
+      const pageSummary = form.pages.length ? ' ' + form.pages.length + ' manga page(s) uploaded and saved.' : '';
+      setNotice({ type: 'success', text: savedLabel + ' (' + languageLabel + ') ' + (wasEditing ? 'updated' : 'uploaded') + ' successfully.' + pageSummary + notificationText });
     } catch (error) {
       console.error(error);
       for (const item of uploadedPaths) {

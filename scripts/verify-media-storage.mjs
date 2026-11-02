@@ -71,6 +71,28 @@ const checks = [
       && worker.includes('const page = new RegExp'),
   ],
   [
+    'Atma R2 upload preserves the original known-length request stream',
+    worker.includes('env.MANGA_BUCKET.put(key, request.body, {')
+      && !worker.includes('boundedUploadStream(')
+      && worker.includes("code: 'UPLOAD_LENGTH_REQUIRED'")
+      && worker.includes("code: 'UPLOAD_TOO_LARGE'"),
+  ],
+  [
+    'Atma R2 upload returns actionable Worker errors and verifies the stored object',
+    worker.includes('object.size')
+      && worker.includes('object.etag')
+      && worker.includes('requestId')
+      && adapter.includes('payload?.error')
+      && adapter.includes('uploadError.status')
+      && adapter.includes('did not confirm the expected uploaded object path'),
+  ],
+  [
+    'Chapter uploader reports the selected language and per-page upload progress',
+    atmaAdmin.includes('Uploading page ')
+      && atmaAdmin.includes('chapterLanguageLabel(language)')
+      && atmaAdmin.includes('did not confirm the saved file'),
+  ],
+  [
     'PDPKL images use their dedicated Cloudflare media Worker',
     pdlplMedia.includes('PDLPL_MEDIA_WORKER_URL')
       && pdlplMedia.includes('pdlpl-media.rohitbaswaraj.workers.dev')
