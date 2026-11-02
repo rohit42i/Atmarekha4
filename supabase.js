@@ -212,20 +212,45 @@ export const cloudflareR2 = {
             : imageContentType(file, options);
           // Never decode or re-encode uploads in the browser. It fails on valid mobile files
           // and can reduce the quality of line art; the original file is uploaded unchanged.
-          const response = await fetch(publicPath(storagePath), {
-            method: 'PUT',
-            headers: {
-              ...(await authHeaders()),
-              'Content-Type': contentType,
-              'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}`,
-            },
-            body: file,
-          });
-          if (!response.ok) {
-            const text = await response.text();
-            return { data: null, error: new Error(text || `R2 upload failed (${response.status})`) };
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000);
+          let response;
+          try {
+            response = await fetch(publicPath(storagePath), {
+              method: 'PUT',
+              headers: {
+                ...(await authHeaders()),
+                'Content-Type': contentType,
+                'Cache-Control': `public, max-age=${options.cacheControl || '31536000'}`,
+              },
+              body: file,
+              signal: controller.signal,
+            });
+          } catch (fetchError) {
+            if (controller.signal.aborted) {
+              throw new Error('Cloudflare R2 upload timed out after 10 minutes. Check your connection and try again.');
+            }
+            throw new Error(`Cloudflare R2 upload could not reach the media Worker: ${fetchError?.message || fetchError}. Check your connection and the Worker CORS configuration.`);
+          } finally {
+            clearTimeout(timeoutId);
           }
-          return { data: { path }, error: null };
+
+          if (!response.ok) {
+            const responseText = await response.text().catch(() => '');
+            let payload = null;
+            try { payload = responseText ? JSON.parse(responseText) : null; } catch (_) {}
+            const detail = payload?.error || payload?.message || responseText || response.statusText || 'Unknown upload error';
+            const uploadError = new Error(`Cloudflare R2 upload failed (HTTP ${response.status}): ${detail}`);
+            uploadError.status = response.status;
+            uploadError.code = payload?.code || null;
+            uploadError.requestId = payload?.requestId || response.headers.get('X-Request-Id') || null;
+            return { data: null, error: uploadError };
+          }
+          const payload = await response.json().catch(() => null);
+          if (!payload?.ok || payload.path !== normalizeAtmaR2Path(bucket, path)) {
+            return { data: null, error: new Error('Cloudflare R2 did not confirm the expected uploaded object path.') };
+          }
+          return { data: { path, size: payload.size ?? file.size, etag: payload.etag || null }, error: null };
         } catch (error) {
           return { data: null, error };
         }
