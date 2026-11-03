@@ -81,7 +81,7 @@ function SkeletonGrid() {
   </>;
 }
 
-export default function AdminOverview({ chapters = [], comments = [], reports = [], pageCounts = {}, onTab, chapterName }) {
+export default function AdminOverview({ chapters = [], comments = [], reports = [], pageCounts = {}, onTab, chapterName, openReportCount = null, reportsAvailable = true }) {
   const [windowKey, setWindowKey] = useState('month');
   const [membershipPlans, setMembershipPlans] = useState(new Map());
   const [userStats, setUserStats] = useState({ logged_in_users: null, notification_subscriptions: null });
@@ -343,7 +343,9 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   }, [analytics, analyticsError, chapters, comments, pageCounts]);
 
   const periodLabel = WINDOW_LABELS[windowKey];
-  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
+  const reportCount = openReportCount == null
+    ? (reportsAvailable ? reports.filter(report => (report.status || 'open') === 'open').length : null)
+    : Number(openReportCount);
   const deltaViews = pct(metrics.currentViews, metrics.previousViews);
   const deltaLikes = pct(metrics.currentLikes, metrics.previousLikes);
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
@@ -356,7 +358,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     if (metrics.previousViews > 0 && metrics.currentViews > metrics.previousViews) values.push('Reach is trending upward versus the previous period.');
     if (metrics.previousLikes > 0 && metrics.currentLikes > metrics.previousLikes) values.push('Likes are rising alongside chapter reach.');
     if (metrics.readiness < 100 && metrics.publishedCount) values.push((metrics.publishedCount - metrics.withPagesCount) + ' published chapter(s) need page review.');
-    if (reportCount) values.push(reportCount + ' moderation report(s) are waiting for review.');
+    if (reportCount > 0) values.push(reportCount + ' moderation report(s) are waiting for review.');
     if (!values.length) values.push('Keep publishing consistently to build a stronger reader trend.');
     return values.slice(0, 3);
   }, [metrics, reportCount]);
@@ -442,7 +444,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
       <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released == null ? 'Release analytics unavailable' : metrics.released + ' released in period'} icon="book" accent="blue"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="blue"/>
       <StatCard label="Avg Rating" value={metrics.average ? metrics.average.toFixed(2) + ' / 10' : '—'} note={formatNumber(metrics.totalRatings) + ' ratings · all time'} icon="sparkle" accent="green"/>
-      <StatCard label="Open Reports" value={formatNumber(reportCount)} note={reportCount ? 'Awaiting moderation' : 'No cases waiting'} icon="flag" accent="blue"/>
+      <StatCard label="Open Reports" value={formatNumber(reportCount)} note={reportCount == null ? 'Report data unavailable' : reportCount ? 'Awaiting moderation' : 'No cases waiting'} icon="flag" accent="blue"/>
     </div>}
 
     {analytics !== null && <div className="ar-overview-secondary-metrics" aria-label="Additional dashboard metrics">
@@ -524,7 +526,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-grid-2">
       <GlassCard>
         <SectionHeader eyebrow="MODERATION" title="Queue preview" action={<button className="ar-text-action" type="button" onClick={() => onTab('Reports')}>Review <span>→</span></button>}/>
-        {reportCount ? <div className="ar-queue"><div className="ar-queue-count"><strong>{reportCount}</strong><span>open report{reportCount === 1 ? '' : 's'}</span></div><div><strong>Moderation needs attention</strong><small>Review open reports and resolve or reopen cases.</small></div></div> : <div className="ar-queue empty"><AdminIcon name="pulse" size={18}/><div><strong>Queue is clear</strong><span>No open comment reports right now.</span></div></div>}
+        {reportCount == null ? <div className="ar-queue empty"><AdminIcon name="alert-circle" size={18}/><div><strong>Report status unavailable</strong><span>The moderation count could not be loaded.</span></div></div> : reportCount > 0 ? <div className="ar-queue"><div className="ar-queue-count"><strong>{reportCount}</strong><span>open report{reportCount === 1 ? '' : 's'}</span></div><div><strong>Moderation needs attention</strong><small>Review open reports and resolve or reopen cases.</small></div></div> : <div className="ar-queue empty"><AdminIcon name="pulse" size={18}/><div><strong>Queue is clear</strong><span>No open comment reports right now.</span></div></div>}
       </GlassCard>
 
       <GlassCard>
