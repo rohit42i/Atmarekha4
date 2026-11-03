@@ -199,7 +199,7 @@ const ADMIN_NAV_GROUPS = [
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
     { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
   ]},
-];;
+];
 
 export default function AdminPanel({ onLogout, adminUser }) {
   const [tab, setTab] = useState('Overview');
