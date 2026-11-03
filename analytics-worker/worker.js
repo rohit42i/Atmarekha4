@@ -862,10 +862,10 @@ async function buildReaderJourneyAnalytics(env, days) {
       }
       continue;
     }
-    if (!session || session.completed) continue;
+    if (!session) continue;
     if (event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
     session.lastEventAt = event.createdAt;
-    if (event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
+    if (!session.completed && event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
       session.pages.add(Number(event.pageNumber));
     } else if (event.eventType === 'complete') {
       session.pages.add(Number(event.pageNumber));
@@ -946,7 +946,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       completed_sessions: completed.length,
       explicit_exits: exits.length,
       unconfirmed_exits: rows.filter(session => !session.completed && !session.exited).length,
-      next_chapter_clicks: exits.filter(session => session.exitReason === 'next_chapter').length,
+      next_chapter_clicks: rows.filter(session => session.exitReason === 'next_chapter').length,
       previous_chapter_clicks: exits.filter(session => session.exitReason === 'previous_chapter').length,
       chapter_list_exits: exits.filter(session => session.exitReason === 'chapter_list').length,
       page_exit_events: exits.filter(session => session.exitReason === 'page_exit').length,
@@ -984,7 +984,7 @@ async function buildReaderJourneyAnalytics(env, days) {
   });
   const pageReads = validSessions.reduce((sum, session) => sum + session.pages.size, 0);
   const transitionsByPair = new Map();
-  for (const session of explicitExits) {
+  for (const session of validSessions) {
     if (session.exitReason !== 'next_chapter' || !validChapterId(session.nextChapterId || '')) continue;
     const key = session.chapterId + '>' + session.nextChapterId;
     if (!transitionsByPair.has(key)) {
@@ -1022,7 +1022,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       completed_sessions: completedSessions.length,
       explicit_exits: explicitExits.length,
       unconfirmed_exits: validSessions.length - completedSessions.length - explicitExits.length,
-      next_chapter_clicks: explicitExits.filter(session => session.exitReason === 'next_chapter').length,
+      next_chapter_clicks: validSessions.filter(session => session.exitReason === 'next_chapter').length,
       previous_chapter_clicks: explicitExits.filter(session => session.exitReason === 'previous_chapter').length,
       chapter_list_exits: explicitExits.filter(session => session.exitReason === 'chapter_list').length,
       page_exit_events: explicitExits.filter(session => session.exitReason === 'page_exit').length,
