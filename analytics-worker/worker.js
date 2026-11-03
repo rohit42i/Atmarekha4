@@ -831,7 +831,11 @@ async function buildReaderJourneyAnalytics(env, days) {
   const now = new Date();
   const start = new Date(now.getTime() - days * DAY_MS);
   const events = await readerJourneyObjectsForPeriod(env, start, now);
-  events.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const eventOrder = { start: 0, progress: 1, complete: 2, exit: 3 };
+  events.sort((a, b) => {
+    const byTime = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    return byTime || eventOrder[a.eventType] - eventOrder[b.eventType];
+  });
 
   const sessions = new Map();
   for (const event of events) {
@@ -850,6 +854,7 @@ async function buildReaderJourneyAnalytics(env, days) {
           pages: new Set(),
           exitPage: null,
           exitReason: null,
+          nextChapterId: null,
           completed: false,
           exited: false,
         };
@@ -870,6 +875,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
       session.exitReason = event.exitReason || 'page_exit';
+      session.nextChapterId = event.nextChapterId || null;
     }
   }
 
@@ -977,6 +983,29 @@ async function buildReaderJourneyAnalytics(env, days) {
     return { ...row, partial: !segment.fullDay };
   });
   const pageReads = validSessions.reduce((sum, session) => sum + session.pages.size, 0);
+  const transitionsByPair = new Map();
+  for (const session of explicitExits) {
+    if (session.exitReason !== 'next_chapter' || !validChapterId(session.nextChapterId || '')) continue;
+    const key = session.chapterId + '>' + session.nextChapterId;
+    if (!transitionsByPair.has(key)) {
+      transitionsByPair.set(key, {
+        from_chapter_id: session.chapterId,
+        to_chapter_id: session.nextChapterId,
+        sessions: 0,
+        readers: new Set(),
+      });
+    }
+    const transition = transitionsByPair.get(key);
+    transition.sessions++;
+    transition.readers.add(session.viewerHash);
+  }
+  const chapterTransitions = [...transitionsByPair.values()].map(row => ({
+    from_chapter_id: row.from_chapter_id,
+    to_chapter_id: row.to_chapter_id,
+    sessions: row.sessions,
+    readers: row.readers.size,
+  })).sort((a, b) => b.sessions - a.sessions);
+
   const explicitReasonCounts = {};
   for (const session of explicitExits) {
     const reason = session.exitReason || 'unknown';
@@ -1006,6 +1035,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       exit_reasons: explicitReasonCounts,
     },
     chapters: chapterStats,
+    chapter_transitions: chapterTransitions,
     daily_trend: daysRows,
     reader_depth: depthRows,
     updated_at: new Date().toISOString(),
