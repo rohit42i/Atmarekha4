@@ -296,7 +296,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     }
     exportRows.push([], ['Individual reader visits'], [
       'Chapter', 'Language', 'Visit started (IST)', 'Confirmed pages read', 'Last confirmed page',
-      'Last confirmed page time (IST)', 'Reported page at exit', 'Exit time kind',
+      'Last confirmed page time (IST)', 'Page open at exit', 'Highest page reached at exit', 'Exit time kind',
       'Confirmed exit time (IST)', 'Estimated inactivity time (IST)', 'Last activity time (IST)',
       'End status', 'Exit reason', 'Active reading seconds', 'Elapsed visit seconds',
       'Page timeline (IST)',
@@ -310,6 +310,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
         (session.page_ranges || []).map(range => range.label).join(', ') || 'No confirmed page reads',
         session.last_confirmed_page ?? '',
         dateTime(session.last_confirmed_page_at),
+        session.current_page_at_exit ?? '',
         session.reported_exit_page ?? '',
         session.exit_time_kind || 'Not confirmed',
         dateTime(session.exit_at),
@@ -589,6 +590,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
               <th>Confirmed pages read</th>
               <th>Last confirmed page</th>
               <th>Last page time (IST)</th>
+              <th>Page open at exit</th>
               <th>Exit time (IST)</th>
               <th>Visit status</th>
               <th>Exit reason</th>
@@ -613,6 +615,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
                 </td>
                 <td>{session.last_confirmed_page ? 'Page ' + session.last_confirmed_page : 'None'}</td>
                 <td>{dateTime(session.last_confirmed_page_at)}</td>
+                <td>{session.current_page_at_exit ? 'Page ' + session.current_page_at_exit : 'Not reported'}</td>
                 <td>
                   <strong className={session.exit_time_kind === 'estimated' ? 'is-estimated' : ''}>{exitTime}</strong>
                   {session.exit_time_kind === 'estimated' && <small className="ar-reader-session-subline">Last activity: {dateTime(session.last_activity_at)}</small>}
@@ -629,8 +632,8 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
                       <span>{dateTime(page.reached_at)}</span>
                     </li>)}</ol>
                   </details> : 'No page events'}
-                  {session.reported_exit_page != null && session.reported_exit_page !== session.last_confirmed_page &&
-                    <small className="ar-reader-session-subline">Exit beacon reported page {session.reported_exit_page}; not independently confirmed.</small>}
+                  {session.reported_exit_page != null && session.reported_exit_page !== session.current_page_at_exit &&
+                    <small className="ar-reader-session-subline">Highest page confirmed before exit: {session.reported_exit_page}.</small>}
                 </td>
               </tr>;
             })}</tbody>
