@@ -107,10 +107,17 @@ assert.deepEqual(await pageOpen.json(), { recorded: true, pageview: true, reader
 const repeatedPageOpen = await openChapter();
 assert.equal(repeatedPageOpen.status, 200, 'retrying the same chapter open must remain successful');
 assert.deepEqual(await repeatedPageOpen.json(), { recorded: true, pageview: true, readerDay: true });
+const secondVisitId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const secondDistinctOpen = await analyticsWorker.fetch(
+  request('https://analytics.test/v1/view', 'POST', origin, { chapterId, viewerKey, visitId: secondVisitId }),
+  env,
+);
+assert.equal(secondDistinctOpen.status, 200, 'a second distinct visit by the same browser must count');
+assert.deepEqual(await secondDistinctOpen.json(), { recorded: true, pageview: true, readerDay: true });
 
 const todaysEvents = await bucket.list({ prefix: todayPrefix });
-assert.equal(todaysEvents.objects.length, 2, 'one reader-day and one idempotent page-open record must exist');
-assert.equal(todaysEvents.objects.filter(object => object.key.includes('/visits/')).length, 1, 'a repeat request with the same visit ID must not inflate pageviews');
+assert.equal(todaysEvents.objects.length, 3, 'one reader-day and two distinct visit records must exist');
+assert.equal(todaysEvents.objects.filter(object => object.key.includes('/visits/')).length, 2, 'two distinct chapter opens must count as two pageviews');
 assert.equal(todaysEvents.objects.filter(object => !object.key.includes('/visits/')).length, 1, 'the browser must count once per chapter per UTC day');
 
 const otherChapterId = 'f3bfec99-d077-43ca-977a-345e7f0b2298';
@@ -159,9 +166,9 @@ try {
   assert.equal(completePayload.reader_metrics_limited, false, 'reader counts with stable identities should remain available');
   assert.equal(completePayload.current_views, 1, 'legacy compatible totals should remain reader-days');
   assert.equal(completePayload.current_reader_days, 1, 'reader-day metrics should deduplicate a browser within a chapter and day');
-  assert.equal(completePayload.current_pageviews, 1, 'per-visit pageviews should count a successful chapter opening');
-  assert.equal(completePayload.total_pageviews, 1, 'the cumulative pageview total should include recorded chapter opens');
-  assert.equal(completePayload.chapter_stats.find(row => row.id === chapterId).period_pageviews, 1, 'chapter breakdown should expose period pageviews');
+  assert.equal(completePayload.current_pageviews, 2, 'two distinct opens by one browser should count as two pageviews');
+  assert.equal(completePayload.total_pageviews, 2, 'the cumulative pageview total should include each distinct chapter open');
+  assert.equal(completePayload.chapter_stats.find(row => row.id === chapterId).period_pageviews, 2, 'chapter breakdown should expose period pageviews');
 
   const journeyChapterTwo = 'f3bfec99-d077-43ca-977a-345e7f0b2298';
   const journeyViewerTwo = 'reader-journey-test-viewer-0123456789';
