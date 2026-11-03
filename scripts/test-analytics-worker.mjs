@@ -198,6 +198,11 @@ try {
     ...baseJourney, sessionId: 'not-a-session', viewerKey, eventType: 'start',
   });
   assert.equal(invalidJourney.status, 400, 'reader journey must reject malformed session IDs');
+  const invalidExitPage = await journeyPost({
+    ...baseJourney, sessionId: journeySessions[0], viewerKey,
+    eventType: 'exit', pageNumber: 2, currentPageNumber: 4, exitReason: 'page_exit',
+  });
+  assert.equal(invalidExitPage.status, 400, 'reader journey must reject an exit page outside the chapter');
 
   const journeyEvents = [
     { ...journeyStart(journeySessions[0], viewerKey), deviceType: 'mobile', entrySource: 'social' },
@@ -206,7 +211,7 @@ try {
     journeyProgress(journeySessions[0], viewerKey, 2),
     {
       ...baseJourney, sessionId: journeySessions[0], viewerKey, eventType: 'exit',
-      pageNumber: 2, exitReason: 'page_exit',
+      pageNumber: 2, currentPageNumber: 2, exitReason: 'page_exit',
     },
     journeyStart(journeySessions[1], journeyViewerTwo),
     { ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo, eventType: 'engagement', activeSeconds: 60, sequence: 1 },
@@ -303,7 +308,8 @@ try {
   const explicitExitEvent = await explicitExitObject.json();
   assert.ok(explicitExitDetail, 'reader analytics should return an individual record for each visit');
   assert.equal(explicitExitDetail.page_ranges.map(range => range.label).join(', '), '1–2', 'visit details should compress confirmed pages into a readable range');
-  assert.equal(explicitExitDetail.last_confirmed_page, 2, 'visit details should show the last page confirmed as read');
+  assert.equal(explicitExitDetail.last_confirmed_page, 2, 'visit details should show the highest page confirmed as read');
+  assert.equal(explicitExitDetail.current_page_at_exit, 2, 'visit details should distinguish the page open when the reader exited');
   assert.equal(explicitExitDetail.last_confirmed_page_at, explicitExitDetail.page_timeline[1].reached_at, 'last page timestamp should match its confirmed page event');
   assert.equal(explicitExitDetail.exit_at, explicitExitEvent.createdAt, 'confirmed exit time must use the event receipt timestamp');
   assert.equal(explicitExitDetail.exit_time_kind, 'confirmed', 'browser exit signals must not be labelled as estimates');
