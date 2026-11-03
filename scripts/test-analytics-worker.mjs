@@ -201,6 +201,14 @@ try {
       sessionId: journeySessions[2], viewerKey, eventType: 'exit',
       pageNumber: 1, exitReason: 'next_chapter',
     },
+    journeyStart('44444444-4444-4444-8444-444444444444', journeyViewerTwo, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+      sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo,
+      eventType: 'exit', pageNumber: 1, exitReason: 'navigation',
+    },
   ];
   for (const event of journeyEvents) {
     const result = await journeyPost(event);
@@ -224,9 +232,10 @@ try {
   assert.equal(journeyAnalyticsResponse.status, 200, 'authenticated reader journey analytics must load');
   const journeyAnalytics = await journeyAnalyticsResponse.json();
   assert.equal(journeyAnalytics.summary.unique_readers, 2, 'journey readers should deduplicate sessions by anonymous browser key');
-  assert.equal(journeyAnalytics.summary.sessions, 3, 'journey analytics should count all three chapter sessions');
+  assert.equal(journeyAnalytics.summary.sessions, 4, 'journey analytics should count all four chapter sessions');
   assert.equal(journeyAnalytics.summary.completed_sessions, 1, 'the final page event should count as a completion');
-  assert.equal(journeyAnalytics.summary.explicit_exits, 2, 'journey analytics should distinguish explicit exits');
+  assert.equal(journeyAnalytics.summary.explicit_exits, 3, 'journey analytics should distinguish explicit exits');
+  assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
   assert.equal(journeyAnalytics.summary.next_chapter_clicks, 1, 'next chapter navigation should have its own exit reason');
   assert.equal(journeyAnalytics.summary.pages_read, 6, 'page exposure events should be counted once per session and page');
   const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
