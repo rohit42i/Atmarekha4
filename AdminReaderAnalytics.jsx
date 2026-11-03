@@ -59,7 +59,7 @@ function Bar({ value, max, className = '' }) {
   return <div className="ar-reader-bar"><i className={className} style={{ width: width + '%' }}/></div>;
 }
 
-export default function AdminReaderAnalytics({ chapters = [] }) {
+export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} }) {
   const [days, setDays] = useState(30);
   const [language, setLanguage] = useState('all');
   const [selectedChapterId, setSelectedChapterId] = useState('all');
@@ -113,7 +113,13 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
       average_completion_percent: 0,
       average_reading_seconds: null,
       exit_reasons: {},
-      page_stats: [],
+      page_stats: Array.from({ length: Math.max(0, Math.min(500, number(pageCounts[chapter.id]))) }, (_, index) => ({
+        page_number: index + 1,
+        sessions_reached: 0,
+        readers_reached: 0,
+        exits_after_page: 0,
+        exit_readers: 0,
+      })),
     });
   }, [measuredRows, chapters]);
   const rows = useMemo(() => allRows
@@ -146,6 +152,8 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
     const exportRows = [
       ['Atma Rekha reader journey analytics'],
       ['Reporting window', days + ' days'],
+      ['Language filter', language],
+      ['Chapter filter', selectedChapterId === 'all' ? 'All chapters' : chapterLabel(rows.find(row => String(row.chapter_id) === selectedChapterId) || {}, chapterById.get(selectedChapterId))],
       ['Updated at', payload?.updated_at || ''],
       [],
       ['Chapter', 'Language', 'Unique browsers', 'Sessions', 'Completed sessions', 'Completion rate', 'Recorded exits', 'No end signal', 'Average pages read', 'Average completion', 'Average reading time seconds', 'Next chapter clicks', 'Chapter list exits', 'Page exit events'],
@@ -227,6 +235,8 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
       </label>
       <span className="ar-reader-filter-note">{rows.length.toLocaleString('en-IN')} chapter{rows.length === 1 ? '' : 's'} in this view</span>
     </div>
+
+    <p className="ar-reader-scope-note">Summary totals below cover the full selected reporting window across all chapters and languages. The filters apply to the chapter table and page detail.</p>
 
     <div className="ar-reader-metrics">
       <Metric label="Unique readers" value={count(summary.unique_readers)} detail="Anonymous browser identifiers, not verified people"/>
