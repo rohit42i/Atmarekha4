@@ -4,6 +4,7 @@ import { supabase } from './supabase';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 
 const TOOL_RESULTS = [
+  { id: 'tab-reader-analytics', type: 'Section', title: 'Reader Analytics', hint: 'Review chapter completion, page retention and exits', tab: 'Reader Analytics' },
   { id: 'tool-health', type: 'Tool', title: 'Chapter Health', hint: 'Inspect publishing readiness', event: 'atma-admin-open-health' },
   { id: 'tool-operations', type: 'Tool', title: 'Operations & Recovery', hint: 'Recovery, notifications and audit', event: 'atma-admin-open-operations' },
   { id: 'tool-users', type: 'Tool', title: 'Users & Memberships', hint: 'Manage readers and memberships', event: 'atma-admin-open-management', detail: { view: 'users' } },
@@ -17,7 +18,6 @@ const TOOL_RESULTS = [
 const TAB_RESULTS = [
   ['Overview', 'Dashboard'],
   ['Control Room', 'Control Room'],
-  ['Reader Analytics', 'Reader Analytics'],
   ['Chapters', 'Chapter Manager'],
   ['Pages', 'Page Editor'],
   ['Comments', 'Comments'],
