@@ -257,6 +257,15 @@ function ChapterList({ chapters, onBack }) {
 }
 
 
+async function recordReaderJourneyEventWithRetry(event) {
+  try {
+    return await recordReaderJourneyEvent(event);
+  } catch (firstError) {
+    await new Promise(resolve => window.setTimeout(resolve, 400));
+    return recordReaderJourneyEvent(event);
+  }
+}
+
 function finishReaderJourney(session, reason, nextChapterId = null) {
   if (!session || session.ended) return;
   if (session.completed && !['next_chapter', 'previous_chapter'].includes(reason)) {
@@ -269,6 +278,7 @@ function finishReaderJourney(session, reason, nextChapterId = null) {
     ...session.meta,
     pageNumber: session.maxPageReached || null,
     exitReason: reason,
+    activeSeconds: session.activeSeconds || 0,
     ...(nextChapterId ? { nextChapterId } : {}),
   });
 }
@@ -316,17 +326,34 @@ function Reader({ chapterId, onBack, chapters }) {
       completed: false,
       ended: false,
       exitReason: null,
+      activeSeconds: 0,
+      engagementSequence: 0,
+      pageReady: false,
     };
     readerJourneyRef.current = session;
-    session.startPromise = recordReaderJourneyEvent({ ...meta, eventType: 'start' })
+    session.startPromise = recordReaderJourneyEventWithRetry({ ...meta, eventType: 'start' })
+      .then(() => true)
       .catch(journeyError => {
-        console.warn('Reader journey start was not recorded:', journeyError);
-        return null;
+        console.warn('Reader journey start was not recorded after retry:', journeyError);
+        return false;
       });
     const onPageHide = () => finishReaderJourney(session, 'page_exit');
+    const engagementTimer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible' || !document.hasFocus() || !session.pageReady || session.ended) return;
+      session.activeSeconds += 1;
+      if (session.activeSeconds % 15 !== 0) return;
+      session.engagementSequence += 1;
+      recordReaderJourneyEventWithRetry({
+        ...session.meta,
+        eventType: 'engagement',
+        activeSeconds: session.activeSeconds,
+        sequence: session.engagementSequence,
+      }).catch(journeyError => console.warn('Reader engagement heartbeat was not recorded:', journeyError));
+    }, 1000);
     window.addEventListener('pagehide', onPageHide);
     return () => {
       window.removeEventListener('pagehide', onPageHide);
+      window.clearInterval(engagementTimer);
       finishReaderJourney(session, session.exitReason || 'navigation');
       if (readerJourneyRef.current === session) readerJourneyRef.current = null;
     };
@@ -339,8 +366,9 @@ function Reader({ chapterId, onBack, chapters }) {
     const pageUrl = Number(chapter.chapterNumber) > 8 ? protectedUrls[index] : pages[index];
     const expectedLoadedKey = String(chapter.id) + ':' + index + ':' + String(pageUrl || '');
     if (!pageUrl || loadedPageKey !== expectedLoadedKey) return undefined;
+    session.pageReady = true;
     const pageNumber = index + 1;
-    if (session.recordedPages.has(pageNumber)) return undefined;
+    if (session.recordedPages.has(pageNumber)) return () => { session.pageReady = false; };
     let timer = null;
     const scheduleVisibleRead = () => {
       if (document.visibilityState !== 'visible') {
@@ -352,20 +380,28 @@ function Reader({ chapterId, onBack, chapters }) {
       timer = window.setTimeout(() => {
         timer = null;
         if (session.ended || session.recordedPages.has(pageNumber) || document.visibilityState !== 'visible') return;
-        session.recordedPages.add(pageNumber);
-        session.startPromise.then(async () => {
-          if (session.ended) return;
-          session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
+        session.startPromise.then(async started => {
+          if (!started || session.ended) return;
           try {
-            await recordReaderJourneyEvent({ ...session.meta, eventType: 'progress', pageNumber });
+            await recordReaderJourneyEventWithRetry({ ...session.meta, eventType: 'progress', pageNumber });
+            session.recordedPages.add(pageNumber);
+            session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
           } catch (journeyError) {
-            console.warn('Reader page progress was not recorded:', journeyError);
+            console.warn('Reader page progress was not recorded after retry:', journeyError);
             return;
           }
           if (pageNumber === session.meta.totalPages && !session.completed) {
-            session.completed = true;
-            recordReaderJourneyEvent({ ...session.meta, eventType: 'complete', pageNumber })
-              .catch(journeyError => console.warn('Reader chapter completion was not recorded:', journeyError));
+            try {
+              await recordReaderJourneyEventWithRetry({
+                ...session.meta,
+                eventType: 'complete',
+                pageNumber,
+                activeSeconds: session.activeSeconds || 0,
+              });
+              session.completed = true;
+            } catch (journeyError) {
+              console.warn('Reader chapter completion was not recorded after retry:', journeyError);
+            }
           }
         });
       }, 2000);
@@ -373,6 +409,7 @@ function Reader({ chapterId, onBack, chapters }) {
     document.addEventListener('visibilitychange', scheduleVisibleRead);
     scheduleVisibleRead();
     return () => {
+      session.pageReady = false;
       document.removeEventListener('visibilitychange', scheduleVisibleRead);
       if (timer !== null) window.clearTimeout(timer);
     };

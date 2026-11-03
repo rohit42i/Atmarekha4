@@ -176,6 +176,7 @@ try {
 
   const journeyEvents = [
     journeyStart(journeySessions[0], viewerKey),
+    { ...baseJourney, sessionId: journeySessions[0], viewerKey, eventType: 'engagement', activeSeconds: 30, sequence: 1 },
     journeyProgress(journeySessions[0], viewerKey, 1),
     journeyProgress(journeySessions[0], viewerKey, 2),
     {
@@ -183,6 +184,7 @@ try {
       pageNumber: 2, exitReason: 'page_exit',
     },
     journeyStart(journeySessions[1], journeyViewerTwo),
+    { ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo, eventType: 'engagement', activeSeconds: 60, sequence: 1 },
     journeyProgress(journeySessions[1], journeyViewerTwo, 1),
     journeyProgress(journeySessions[1], journeyViewerTwo, 2),
     journeyProgress(journeySessions[1], journeyViewerTwo, 3),
@@ -197,6 +199,7 @@ try {
     journeyStart(journeySessions[2], viewerKey, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
+    { chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2, sessionId: journeySessions[2], viewerKey, eventType: 'engagement', activeSeconds: 15, sequence: 1 },
     journeyProgress(journeySessions[2], viewerKey, 1, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
@@ -208,6 +211,7 @@ try {
     journeyStart('44444444-4444-4444-8444-444444444444', journeyViewerTwo, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
+    { chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2, sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo, eventType: 'engagement', activeSeconds: 5, sequence: 1 },
     {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
       sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo,
@@ -236,12 +240,19 @@ try {
   assert.equal(journeyAnalyticsResponse.status, 200, 'authenticated reader journey analytics must load');
   const journeyAnalytics = await journeyAnalyticsResponse.json();
   assert.equal(journeyAnalytics.summary.unique_readers, 2, 'journey readers should deduplicate sessions by anonymous browser key');
-  assert.equal(journeyAnalytics.summary.sessions, 4, 'journey analytics should count all four chapter sessions');
+  assert.equal(
+    journeyAnalytics.summary.sessions,
+    4,
+    'journey analytics should count all four chapter sessions; found ' +
+      journeyAnalytics.summary.sessions + '; start records: ' +
+      JSON.stringify([...bucket.objects.keys()].filter(key => key.startsWith('analytics/reader-journeys/') && key.endsWith('/start.json'))),
+  );
   assert.equal(journeyAnalytics.summary.completed_sessions, 1, 'the final page event should count as a completion');
   assert.equal(journeyAnalytics.summary.explicit_exits, 3, 'journey analytics should distinguish explicit exits');
   assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
   assert.equal(journeyAnalytics.summary.next_chapter_clicks, 2, 'next chapter navigation should be counted even after a reader completes a chapter');
   assert.equal(journeyAnalytics.summary.pages_read, 6, 'page exposure events should be counted once per session and page');
+  assert.equal(journeyAnalytics.summary.average_engaged_seconds, 27.5, 'active reading time should average visible and focused engagement heartbeats');
   const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
   assert.ok(firstChapterJourney, 'chapter page funnel should include the tracked chapter');
   assert.equal(firstChapterJourney.sessions, 2, 'chapter funnel should count both chapter sessions');
@@ -249,8 +260,44 @@ try {
   assert.equal(firstChapterJourney.completed_sessions, 1, 'chapter funnel should expose completed sessions');
   assert.equal(firstChapterJourney.page_stats[2].readers_reached, 1, 'page funnel should expose unique readers who reached the last page');
   assert.equal(firstChapterJourney.page_stats[1].exits_after_page, 1, 'page funnel should identify exits after page two');
+  assert.equal(firstChapterJourney.page_stats[1].drop_off_sessions, 1, 'page funnel should show sessions that failed to reach the next page');
+  assert.equal(firstChapterJourney.page_stats[1].drop_off_rate, 50, 'page funnel should calculate the percentage lost before the next page');
   assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
   assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
+
+  const journeyMonthPrefix = 'analytics/reader-journeys/' + journeyDay.slice(0, 7);
+  assert.ok(
+    (bucket.listCallsByPrefix.get(journeyMonthPrefix) || 0) > 0,
+    'reader journey queries must list the same date-folder prefix used when events are stored',
+  );
+
+  // A pagehide beacon can reach storage before the start fetch. The report must
+  // still attach that exit to its session instead of silently dropping it.
+  const outOfOrderSession = '55555555-5555-4555-8555-555555555555';
+  const outOfOrderViewer = 'out-of-order-reader-viewer-key-012345';
+  const outOfOrderHashBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(outOfOrderViewer)));
+  const outOfOrderHash = [...outOfOrderHashBytes].map(value => value.toString(16).padStart(2, '0')).join('');
+  const startedAt = new Date(Date.now() - 20_000).toISOString();
+  const exitedAt = new Date(Date.now() - 25_000).toISOString();
+  const outOfOrderBase = {
+    sessionId: outOfOrderSession,
+    chapterId,
+    viewerHash: outOfOrderHash,
+    chapterNumber: 1,
+    language: 'en',
+    totalPages: 3,
+  };
+  await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + outOfOrderSession + '/start.json', JSON.stringify({
+    ...outOfOrderBase, eventType: 'start', pageNumber: null, exitReason: null, nextChapterId: null, createdAt: startedAt,
+  }));
+  await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + outOfOrderSession + '/exit.json', JSON.stringify({
+    ...outOfOrderBase, eventType: 'exit', pageNumber: 1, exitReason: 'page_exit', nextChapterId: null, createdAt: exitedAt,
+  }));
+  const orderedAnalyticsResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
+  assert.equal(orderedAnalyticsResponse.status, 200, 'analytics must remain readable with out-of-order browser events');
+  const orderedAnalytics = await orderedAnalyticsResponse.json();
+  assert.equal(orderedAnalytics.summary.sessions, 5, 'out-of-order start records must still create one session');
+  assert.equal(orderedAnalytics.summary.explicit_exits, 4, 'an exit arriving before its start must still be attached to that session');
 
   const now = new Date();
   const legacyHash = 'legacy-viewer-identity';

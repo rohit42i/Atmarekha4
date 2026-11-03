@@ -724,7 +724,7 @@ async function handleReaderJourneyEvent(request, env) {
   const chapterNumber = payload?.chapterNumber == null ? null : Number(payload.chapterNumber);
   const language = String(payload?.language || '');
 
-  if (!['start', 'progress', 'complete', 'exit'].includes(eventType)) {
+  if (!['start', 'progress', 'complete', 'exit', 'engagement'].includes(eventType)) {
     return text(request, 'Invalid reader journey event type.', 400);
   }
   if (!validChapterId(chapterId) || !validJourneySessionId(sessionId) || !validViewerKey(viewerKey)) {
@@ -744,6 +744,15 @@ async function handleReaderJourneyEvent(request, env) {
   if (eventType === 'complete' && pageNumber !== totalPages) {
     return text(request, 'A chapter can only be completed on its final page.', 400);
   }
+  const activeSeconds = payload?.activeSeconds == null ? null : Number(payload.activeSeconds);
+  if (activeSeconds !== null && (!Number.isInteger(activeSeconds) || activeSeconds < 0 || activeSeconds > 86400)) {
+    return text(request, 'Invalid active reading duration.', 400);
+  }
+  const engagementSequence = eventType === 'engagement' ? Number(payload?.sequence) : null;
+  if (eventType === 'engagement' &&
+      (activeSeconds === null || !Number.isInteger(engagementSequence) || engagementSequence < 1 || engagementSequence > 100000)) {
+    return text(request, 'Invalid engagement event sequence.', 400);
+  }
   if (eventType === 'exit' && pageNumber !== null &&
       (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > totalPages)) {
     return text(request, 'Invalid reader exit position.', 400);
@@ -760,7 +769,11 @@ async function handleReaderJourneyEvent(request, env) {
   const viewerHash = await sha256(viewerKey);
   const createdAt = new Date();
   const day = dayKey(createdAt);
-  const eventFile = eventType === 'progress' ? 'progress/' + pageNumber + '.json' : eventType + '.json';
+  const eventFile = eventType === 'progress'
+    ? 'progress/' + pageNumber + '.json'
+    : eventType === 'engagement'
+      ? 'engagement/' + engagementSequence + '.json'
+      : eventType + '.json';
   const key = JOURNEY_PREFIX + '/' + day + '/' + sessionId + '/' + eventFile;
   const record = {
     eventType,
@@ -773,6 +786,8 @@ async function handleReaderJourneyEvent(request, env) {
     pageNumber,
     exitReason,
     nextChapterId,
+    activeSeconds,
+    sequence: engagementSequence,
     createdAt: createdAt.toISOString(),
   };
 
@@ -796,7 +811,7 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
     let cursor;
     do {
       const page = await env.ANALYTICS_BUCKET.list({
-        prefix: JOURNEY_PREFIX + '/' + month + '-',
+        prefix: JOURNEY_PREFIX + '/' + month,
         limit: 1000,
         ...(cursor ? { cursor } : {}),
       });
@@ -812,9 +827,9 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
       if (!stored) return null;
       const event = await stored.json();
       const createdAt = new Date(event?.createdAt || 0);
-      if (!Number.isFinite(createdAt.getTime()) || createdAt < start || createdAt >= end) return null;
+      if (!Number.isFinite(createdAt.getTime()) || createdAt < start || createdAt > end) return null;
       if (!validChapterId(event?.chapterId) || !validJourneySessionId(event?.sessionId) ||
-          !['start', 'progress', 'complete', 'exit'].includes(event?.eventType)) return null;
+          !['start', 'progress', 'complete', 'exit', 'engagement'].includes(event?.eventType)) return null;
       return event;
     } catch {
       return null;
@@ -831,46 +846,55 @@ async function buildReaderJourneyAnalytics(env, days) {
   const now = new Date();
   const start = new Date(now.getTime() - days * DAY_MS);
   const events = await readerJourneyObjectsForPeriod(env, start, now);
-  const eventOrder = { start: 0, progress: 1, complete: 2, exit: 3 };
+  const eventOrder = { start: 0, engagement: 1, progress: 2, complete: 3, exit: 4 };
   events.sort((a, b) => {
     const byTime = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     return byTime || eventOrder[a.eventType] - eventOrder[b.eventType];
   });
 
   const sessions = new Map();
+
+  // Create every session from its start record first. Browser beacons and normal
+  // fetches can arrive out of order, so processing the raw event stream once by
+  // timestamp can otherwise discard an exit that reached R2 before its start.
   for (const event of events) {
-    let session = sessions.get(event.sessionId);
-    if (event.eventType === 'start') {
-      if (!session) {
-        session = {
-          sessionId: event.sessionId,
-          chapterId: event.chapterId,
-          viewerHash: event.viewerHash,
-          chapterNumber: event.chapterNumber,
-          language: event.language,
-          totalPages: Number(event.totalPages) || 0,
-          startedAt: event.createdAt,
-          lastEventAt: event.createdAt,
-          pages: new Set(),
-          exitPage: null,
-          exitReason: null,
-          nextChapterId: null,
-          completed: false,
-          exited: false,
-        };
-        sessions.set(event.sessionId, session);
-      }
-      continue;
+    if (event.eventType !== 'start' || sessions.has(event.sessionId)) continue;
+    sessions.set(event.sessionId, {
+      sessionId: event.sessionId,
+      chapterId: event.chapterId,
+      viewerHash: event.viewerHash,
+      chapterNumber: event.chapterNumber,
+      language: event.language,
+      totalPages: Number(event.totalPages) || 0,
+      startedAt: event.createdAt,
+      lastEventAt: event.createdAt,
+      pages: new Set(),
+      exitPage: null,
+      exitReason: null,
+      nextChapterId: null,
+      completed: false,
+      exited: false,
+      activeSeconds: null,
+    });
+  }
+
+  // Apply all non-start events after session creation, independent of arrival
+  // order. Idempotent R2 object keys prevent duplicate events from inflating counts.
+  for (const event of events) {
+    if (event.eventType === 'start') continue;
+    const session = sessions.get(event.sessionId);
+    if (!session || event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
+    if (new Date(event.createdAt).getTime() >= new Date(session.lastEventAt).getTime()) {
+      session.lastEventAt = event.createdAt;
     }
-    if (!session) continue;
-    if (event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
-    session.lastEventAt = event.createdAt;
+    if (event.activeSeconds != null && Number.isInteger(Number(event.activeSeconds)) && Number(event.activeSeconds) >= 0) {
+      session.activeSeconds = Math.max(session.activeSeconds ?? 0, Number(event.activeSeconds));
+    }
     if (!session.completed && event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
       session.pages.add(Number(event.pageNumber));
     } else if (event.eventType === 'complete') {
       session.pages.add(Number(event.pageNumber));
       session.completed = true;
-      session.lastEventAt = event.createdAt;
     } else if (event.eventType === 'exit') {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
@@ -930,11 +954,20 @@ async function buildReaderJourneyAnalytics(env, days) {
     const pageStats = Array.from({ length: maxPages }, (_, index) => {
       const page = index + 1;
       const pageSessions = reached(page);
+      const nextPageSessions = page < maxPages ? reached(page + 1) : [];
       const exitSessions = exits.filter(session => session.exitPage === page);
+      const dropOffSessions = page < maxPages
+        ? Math.max(0, pageSessions.length - nextPageSessions.length)
+        : 0;
       return {
         page_number: page,
         sessions_reached: pageSessions.length,
         readers_reached: new Set(pageSessions.map(session => session.viewerHash)).size,
+        next_page_sessions: nextPageSessions.length,
+        drop_off_sessions: dropOffSessions,
+        drop_off_rate: pageSessions.length && page < maxPages
+          ? (dropOffSessions / pageSessions.length) * 100
+          : 0,
         exits_after_page: exitSessions.length,
         exit_readers: new Set(exitSessions.map(session => session.viewerHash)).size,
       };
@@ -957,6 +990,10 @@ async function buildReaderJourneyAnalytics(env, days) {
       average_pages_read: rows.length ? pagesRead / rows.length : 0,
       average_completion_percent: completionValues.length ? completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length : 0,
       average_reading_seconds: durations.length ? durations.reduce((sum, value) => sum + value, 0) / durations.length : null,
+      average_engaged_seconds: rows.some(session => session.activeSeconds !== null)
+        ? rows.filter(session => session.activeSeconds !== null).reduce((sum, session) => sum + session.activeSeconds, 0) /
+          rows.filter(session => session.activeSeconds !== null).length
+        : null,
       exit_reasons: exitReasons,
       page_stats: pageStats,
     };
@@ -971,6 +1008,7 @@ async function buildReaderJourneyAnalytics(env, days) {
   const durations = endedSessions.map(session => Math.max(0, (
     new Date(session.lastEventAt).getTime() - new Date(session.startedAt).getTime()
   ) / 1000));
+  const sessionsWithEngagement = validSessions.filter(session => session.activeSeconds !== null);
   const readerDepth = new Map();
   for (const chaptersRead of readerChapters.values()) {
     const bucket = chaptersRead.size >= 4 ? '4+' : String(chaptersRead.size);
@@ -1033,6 +1071,9 @@ async function buildReaderJourneyAnalytics(env, days) {
       average_pages_read: validSessions.length ? pageReads / validSessions.length : 0,
       average_completion_percent: completionValues.length ? completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length : 0,
       average_reading_seconds: durations.length ? durations.reduce((sum, value) => sum + value, 0) / durations.length : null,
+      average_engaged_seconds: sessionsWithEngagement.length
+        ? sessionsWithEngagement.reduce((sum, session) => sum + session.activeSeconds, 0) / sessionsWithEngagement.length
+        : null,
       completion_rate: validSessions.length ? completedSessions.length / validSessions.length * 100 : 0,
       exit_reasons: explicitReasonCounts,
     },
