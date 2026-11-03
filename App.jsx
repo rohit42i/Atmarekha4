@@ -299,6 +299,7 @@ function Reader({ chapterId, onBack, chapters }) {
   useEffect(() => {
     if (!chapter || !pages.length) return undefined;
     const sessionId = createReaderJourneySessionId();
+    if (!sessionId) return undefined;
     const meta = {
       sessionId,
       chapterId: String(chapter.id),
