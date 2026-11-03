@@ -309,6 +309,49 @@ try {
   assert.equal(nextChapterTransition?.follow_through_rate, 100, 'chapter flow should calculate observed next-chapter follow-through');
   assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
 
+  // A visit with no activity for 30 minutes is an estimated inactive visit.
+  // A visit with a recent page event remains unresolved and must not inflate drop-off.
+  const inactiveSessionId = '77777777-7777-4777-8777-777777777777';
+  const activeSessionId = '88888888-8888-4888-8888-888888888888';
+  const inactiveViewer = 'inactive-reader-viewer-key-0123456789';
+  const activeViewer = 'active-reader-viewer-key-0123456789';
+  const hashViewer = async key => {
+    const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key)));
+    return [...bytes].map(value => value.toString(16).padStart(2, '0')).join('');
+  };
+  const inactiveHash = await hashViewer(inactiveViewer);
+  const activeHash = await hashViewer(activeViewer);
+  const inactiveAt = new Date(Date.now() - 31 * 60 * 1000).toISOString();
+  const activeAt = new Date(Date.now() - 60 * 1000).toISOString();
+  const lifecycleBase = { chapterId, chapterNumber: 1, language: 'en', totalPages: 3 };
+  for (const [sessionId, key, viewerHash, createdAt] of [
+    [inactiveSessionId, inactiveViewer, inactiveHash, inactiveAt],
+    [activeSessionId, activeViewer, activeHash, activeAt],
+  ]) {
+    const base = { ...lifecycleBase, sessionId, viewerHash };
+    await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + sessionId + '/start.json', JSON.stringify({
+      ...base, eventType: 'start', createdAt,
+    }));
+    await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + sessionId + '/progress/1.json', JSON.stringify({
+      ...base, eventType: 'progress', pageNumber: 1, createdAt,
+    }));
+  }
+  const lifecycleResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
+  assert.equal(lifecycleResponse.status, 200, 'session lifecycle analytics should remain readable');
+  const lifecycleAnalytics = await lifecycleResponse.json();
+  assert.equal(lifecycleAnalytics.summary.sessions, 7, 'inactive and recent visits should be included in chapter visit totals');
+  assert.equal(lifecycleAnalytics.summary.inactive_sessions, 1, 'visits without activity for 30 minutes should be classified as inactive');
+  assert.equal(lifecycleAnalytics.summary.recent_unconfirmed_sessions, 1, 'recent visits without an end signal should remain unresolved rather than inactive');
+  const lifecycleChapter = lifecycleAnalytics.chapters.find(row => row.chapter_id === chapterId);
+  assert.equal(lifecycleChapter.page_stats[0].settled_sessions, 3, 'page-one drop-off denominator should include only settled visits');
+  assert.equal(lifecycleChapter.page_stats[0].recent_unconfirmed_sessions, 1, 'page-one funnel should expose the recent unresolved visit separately');
+  assert.equal(lifecycleChapter.page_stats[0].drop_off_sessions, 1, 'only the inactive visit should count as a settled page-one drop-off');
+  assert.equal(
+    lifecycleChapter.page_stats[0].drop_off_rate,
+    100 / 3,
+    'active readers should not be included in the page drop-off rate denominator',
+  );
+
   const journeyMonthPrefix = 'analytics/reader-journeys/' + journeyDay.slice(0, 7);
   assert.ok(
     (bucket.listCallsByPrefix.get(journeyMonthPrefix) || 0) > 0,
