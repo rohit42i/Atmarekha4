@@ -202,7 +202,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       ['Chapter filter', selectedChapterId === 'all' ? 'All chapters' : chapterLabel(rows.find(row => String(row.chapter_id) === selectedChapterId) || {}, chapterById.get(selectedChapterId))],
       ['Updated at', payload?.updated_at || viewPayload?.updated_at || ''],
       [],
-      ['Chapter', 'Language', 'Page opens in period', 'Tracked page opens total', 'Reader-days in period', 'Cumulative reader-days', 'Unique browsers', 'Chapter visits', 'Completed visits', 'Completion of settled visits', 'Recorded exits', 'Inactive over 30 minutes', 'Still active or unconfirmed', 'Average pages read', 'Average active reading seconds', 'Average elapsed visit seconds', 'Next chapter clicks', 'Next chapter opens', 'Chapter list exits', 'Page exit events'],
+      ['Chapter', 'Language', 'Page opens in period', 'Tracked page opens total', 'Reader-days in period', 'Cumulative reader-days', 'Unique browsers', 'Chapter visits', 'Completed visits', 'Completion of settled visits', 'Recorded exits', 'Inactive over 30 minutes', 'Still active or unconfirmed', 'Average pages read', 'Average page reach', 'Average active reading seconds', 'Average elapsed visit seconds', 'Next chapter clicks', 'Next chapter opens', 'Chapter list exits', 'Page exit events'],
     ];
     for (const row of rows) {
       exportRows.push([
@@ -356,7 +356,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
           ? new Date(trackingHealth.last_event_at).toLocaleString('en-IN') + (trackingHealth.first_event_at ? ' · First event: ' + new Date(trackingHealth.first_event_at).toLocaleString('en-IN') : '')
           : 'Chapter page opens can be counted independently. Page-level retention appears here only after a real reading visit sends a start event.'}</p>
       </div>
-    </section>}
+    </section>
 
     <div className="ar-reader-grid">
       <section className="ar-reader-card">
