@@ -259,7 +259,7 @@ function ChapterList({ chapters, onBack }) {
 
 function finishReaderJourney(session, reason, nextChapterId = null) {
   if (!session || session.ended) return;
-  if (session.completed) {
+  if (session.completed && !['next_chapter', 'previous_chapter'].includes(reason)) {
     session.ended = true;
     return;
   }
