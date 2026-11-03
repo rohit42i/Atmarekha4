@@ -298,6 +298,17 @@ try {
   assert.equal(journeyAnalytics.summary.chapter_list_exits, 1, 'returning to the chapter list after completion should still be recorded as navigation');
   assert.equal(journeyAnalytics.summary.pages_read, 8, 'page exposure events should be counted once per session and page');
   assert.equal(journeyAnalytics.summary.average_engaged_seconds, 40, 'active reading time should average visible and focused engagement heartbeats');
+  const explicitExitDetail = journeyAnalytics.session_details.find(row => row.session_id === journeySessions[0]);
+  const explicitExitObject = await bucket.get('analytics/reader-journeys/' + journeyDay + '/' + journeySessions[0] + '/exit.json');
+  const explicitExitEvent = await explicitExitObject.json();
+  assert.ok(explicitExitDetail, 'reader analytics should return an individual record for each visit');
+  assert.equal(explicitExitDetail.page_ranges.map(range => range.label).join(', '), '1–2', 'visit details should compress confirmed pages into a readable range');
+  assert.equal(explicitExitDetail.last_confirmed_page, 2, 'visit details should show the last page confirmed as read');
+  assert.equal(explicitExitDetail.last_confirmed_page_at, explicitExitDetail.page_timeline[1].reached_at, 'last page timestamp should match its confirmed page event');
+  assert.equal(explicitExitDetail.exit_at, explicitExitEvent.createdAt, 'confirmed exit time must use the event receipt timestamp');
+  assert.equal(explicitExitDetail.exit_time_kind, 'confirmed', 'browser exit signals must not be labelled as estimates');
+  assert.equal(explicitExitDetail.end_status, 'explicit_exit', 'an explicit page exit should be identified separately');
+  assert.equal(explicitExitDetail.page_timeline.length, 2, 'visit details should retain timestamps for every confirmed page');
   assert.equal(journeyAnalytics.device_breakdown.find(row => row.value === 'mobile')?.sessions, 1, 'device categories should be grouped from coarse metadata');
   assert.equal(journeyAnalytics.source_breakdown.find(row => row.value === 'social')?.sessions, 1, 'entry-source categories should be grouped without full referrer URLs');
   assert.equal(journeyAnalytics.tracking_health.event_counts.start, 5, 'tracking health should report real start events');
@@ -357,6 +368,18 @@ try {
     Math.abs(lifecycleChapter.page_stats[0].drop_off_rate - 100 / 3) < 1e-9,
     'active readers should not be included in the page drop-off rate denominator',
   );
+  const inactiveDetail = lifecycleAnalytics.session_details.find(row => row.session_id === inactiveSessionId);
+  const activeDetail = lifecycleAnalytics.session_details.find(row => row.session_id === activeSessionId);
+  assert.equal(inactiveDetail?.end_status, 'inactive', 'inactive visits should be marked as inferred rather than confirmed exits');
+  assert.equal(inactiveDetail?.exit_time_kind, 'estimated', 'inactive visits should expose an estimated exit time');
+  assert.equal(
+    inactiveDetail?.estimated_exit_at,
+    new Date(new Date(inactiveDetail.last_activity_at).getTime() + 30 * 60 * 1000).toISOString(),
+    'the inactivity estimate should be exactly 30 minutes after the last recorded activity',
+  );
+  assert.equal(inactiveDetail?.last_confirmed_page, 1, 'inactive visit detail should show the last confirmed page');
+  assert.equal(activeDetail?.end_status, 'active', 'recent visits without an exit must remain unresolved');
+  assert.equal(activeDetail?.estimated_exit_at, null, 'recent unresolved visits must not be assigned a fictional exit time');
 
   const journeyMonthPrefix = 'analytics/reader-journeys/' + journeyDay.slice(0, 7);
   assert.ok(
@@ -391,6 +414,40 @@ try {
   const orderedAnalytics = await orderedAnalyticsResponse.json();
   assert.equal(orderedAnalytics.summary.sessions, 8, 'out-of-order start records must still create one session');
   assert.equal(orderedAnalytics.summary.explicit_exits, 4, 'an exit arriving before its start must still be attached to that session');
+
+  // Page ranges preserve non-contiguous reading activity and per-page timestamps.
+  const rangeSessionId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const rangeViewerKey = 'page-range-test-viewer-key-0123456789';
+  const rangeViewerBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rangeViewerKey)));
+  const rangeViewerHash = [...rangeViewerBytes].map(value => value.toString(16).padStart(2, '0')).join('');
+  const rangeBase = {
+    sessionId: rangeSessionId,
+    chapterId,
+    viewerHash: rangeViewerHash,
+    chapterNumber: 1,
+    language: 'en',
+    totalPages: 10,
+  };
+  const rangeStartedAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + rangeSessionId + '/start.json', JSON.stringify({
+    ...rangeBase, eventType: 'start', createdAt: rangeStartedAt,
+  }));
+  for (const [index, pageNumber] of [1, 2, 3, 4, 5, 7, 8, 9, 10].entries()) {
+    await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + rangeSessionId + '/progress/' + pageNumber + '.json', JSON.stringify({
+      ...rangeBase,
+      eventType: 'progress',
+      pageNumber,
+      createdAt: new Date(Date.now() - (9 - index) * 10_000).toISOString(),
+    }));
+  }
+  const rangeResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
+  assert.equal(rangeResponse.status, 200, 'page range detail query should succeed');
+  const rangeAnalytics = await rangeResponse.json();
+  const rangeDetail = rangeAnalytics.session_details.find(row => row.session_id === rangeSessionId);
+  assert.equal(rangeDetail?.page_ranges.map(range => range.label).join(', '), '1–5, 7–10', 'page ranges must preserve gaps instead of implying unread pages were read');
+  assert.equal(rangeDetail?.last_confirmed_page, 10, 'the last confirmed page must be the highest reached page');
+  assert.equal(rangeDetail?.page_timeline.length, 9, 'the detail timeline should include every confirmed page, excluding skipped page six');
+  assert.equal(rangeDetail?.end_status, 'active', 'a recent visit without an exit event should remain active');
 
   const now = new Date();
   const legacyHash = 'legacy-viewer-identity';
