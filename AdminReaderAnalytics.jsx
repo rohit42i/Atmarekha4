@@ -250,7 +250,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     <p className="ar-reader-scope-note">Summary totals below cover the full selected reporting window across all chapters and languages. The filters apply to the chapter table and page detail.</p>
 
     <div className="ar-reader-metrics">
-      <Metric label="Unique readers" value={count(summary.unique_readers)} detail="Anonymous browser identifiers, not verified people"/>
+      <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser identifiers, not verified people or accounts"/>
       <Metric label="Reading sessions" value={count(summary.sessions)} detail="A new session each time a chapter is opened"/>
       <Metric label="Completed chapters" value={count(summary.completed_sessions)} detail={percentage(summary.completion_rate) + ' of recorded sessions'}/>
       <Metric label="Recorded exits" value={count(summary.explicit_exits)} detail="Exit event received before completion"/>
@@ -300,7 +300,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       {rows.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table">
           <thead><tr>
-            <th>Chapter</th><th>Language</th><th>Readers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. read time</th>
+            <th>Chapter</th><th>Language</th><th>Unique browsers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. read time</th>
           </tr></thead>
           <tbody>{rows.map(row => <tr key={row.chapter_id} className={selectedChapterId === String(row.chapter_id) ? 'is-selected' : ''}>
             <td><button type="button" className="ar-reader-link" onClick={() => setSelectedChapterId(String(row.chapter_id))}>{chapterLabel(row, row.chapter)}</button></td>
@@ -320,12 +320,12 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <section className="ar-reader-card">
       <div className="ar-reader-card-heading">
-        <div><span>CHAPTER FLOW</span><h3>Chapter-to-chapter movement</h3><p>Next chapter control clicks from the chapter currently being read.</p></div>
+        <div><span>CHAPTER FLOW</span><h3>Next-chapter navigation clicks</h3><p>Click events grouped by the chapter being left and the chapter selected. A click does not guarantee the next chapter finished loading.</p></div>
         <small>{visibleTransitions.length} transitions</small>
       </div>
       {visibleTransitions.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table ar-reader-transition-table">
-          <thead><tr><th>From</th><th>To</th><th>Sessions</th><th>Unique browsers</th></tr></thead>
+          <thead><tr><th>From</th><th>To</th><th>Next clicks</th><th>Unique browsers</th></tr></thead>
           <tbody>{visibleTransitions.map(row => {
             const from = chapterById.get(String(row.from_chapter_id));
             const to = chapterById.get(String(row.to_chapter_id));
@@ -343,7 +343,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     <section className="ar-reader-grid ar-reader-detail-grid">
       <section className="ar-reader-card">
         <div className="ar-reader-card-heading">
-          <div><span>PAGE-LEVEL RETENTION</span><h3>{selectedRow ? chapterLabel(selectedRow, selectedRow.chapter) : 'Choose a chapter'}</h3><p>Readers who stayed on a loaded page for at least two seconds.</p></div>
+          <div><span>PAGE-LEVEL RETENTION</span><h3>{selectedRow ? chapterLabel(selectedRow, selectedRow.chapter) : 'Choose a chapter'}</h3><p>Unique browsers who stayed on a loaded page for at least two seconds.</p></div>
         </div>
         {selectedRow ? <>
           <div className="ar-reader-page-summary">
@@ -356,7 +356,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
               <strong>Page {page.page_number}</strong>
               <div className="ar-reader-page-reach">
                 <Bar value={number(page.readers_reached)} max={Math.max(1, number(selectedRow.readers))}/>
-                <span>{count(page.readers_reached)} readers</span>
+                <span>{count(page.readers_reached)} browsers</span>
               </div>
               <small>{count(page.exits_after_page)} exit signals at this page</small>
             </div>)}
