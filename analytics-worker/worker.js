@@ -724,7 +724,7 @@ async function handleReaderJourneyEvent(request, env) {
   const chapterNumber = payload?.chapterNumber == null ? null : Number(payload.chapterNumber);
   const language = String(payload?.language || '');
 
-  if (!['start', 'progress', 'complete', 'exit'].includes(eventType)) {
+  if (!['start', 'progress', 'complete', 'exit', 'engagement'].includes(eventType)) {
     return text(request, 'Invalid reader journey event type.', 400);
   }
   if (!validChapterId(chapterId) || !validJourneySessionId(sessionId) || !validViewerKey(viewerKey)) {
@@ -744,6 +744,15 @@ async function handleReaderJourneyEvent(request, env) {
   if (eventType === 'complete' && pageNumber !== totalPages) {
     return text(request, 'A chapter can only be completed on its final page.', 400);
   }
+  const activeSeconds = payload?.activeSeconds == null ? null : Number(payload.activeSeconds);
+  if (activeSeconds !== null && (!Number.isInteger(activeSeconds) || activeSeconds < 0 || activeSeconds > 86400)) {
+    return text(request, 'Invalid active reading duration.', 400);
+  }
+  const engagementSequence = eventType === 'engagement' ? Number(payload?.sequence) : null;
+  if (eventType === 'engagement' &&
+      (!Number.isInteger(engagementSequence) || engagementSequence < 1 || engagementSequence > 100000)) {
+    return text(request, 'Invalid engagement event sequence.', 400);
+  }
   if (eventType === 'exit' && pageNumber !== null &&
       (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > totalPages)) {
     return text(request, 'Invalid reader exit position.', 400);
@@ -760,7 +769,11 @@ async function handleReaderJourneyEvent(request, env) {
   const viewerHash = await sha256(viewerKey);
   const createdAt = new Date();
   const day = dayKey(createdAt);
-  const eventFile = eventType === 'progress' ? 'progress/' + pageNumber + '.json' : eventType + '.json';
+  const eventFile = eventType === 'progress'
+    ? 'progress/' + pageNumber + '.json'
+    : eventType === 'engagement'
+      ? 'engagement/' + engagementSequence + '.json'
+      : eventType + '.json';
   const key = JOURNEY_PREFIX + '/' + day + '/' + sessionId + '/' + eventFile;
   const record = {
     eventType,
@@ -773,6 +786,8 @@ async function handleReaderJourneyEvent(request, env) {
     pageNumber,
     exitReason,
     nextChapterId,
+    activeSeconds,
+    sequence: engagementSequence,
     createdAt: createdAt.toISOString(),
   };
 
@@ -814,7 +829,7 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
       const createdAt = new Date(event?.createdAt || 0);
       if (!Number.isFinite(createdAt.getTime()) || createdAt < start || createdAt >= end) return null;
       if (!validChapterId(event?.chapterId) || !validJourneySessionId(event?.sessionId) ||
-          !['start', 'progress', 'complete', 'exit'].includes(event?.eventType)) return null;
+          !['start', 'progress', 'complete', 'exit', 'engagement'].includes(event?.eventType)) return null;
       return event;
     } catch {
       return null;
@@ -859,6 +874,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       nextChapterId: null,
       completed: false,
       exited: false,
+      activeSeconds: null,
     });
   }
 
@@ -870,6 +886,9 @@ async function buildReaderJourneyAnalytics(env, days) {
     if (!session || event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
     if (new Date(event.createdAt).getTime() >= new Date(session.lastEventAt).getTime()) {
       session.lastEventAt = event.createdAt;
+    }
+    if (Number.isInteger(Number(event.activeSeconds)) && Number(event.activeSeconds) >= 0) {
+      session.activeSeconds = Math.max(session.activeSeconds ?? 0, Number(event.activeSeconds));
     }
     if (!session.completed && event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
       session.pages.add(Number(event.pageNumber));
@@ -971,6 +990,10 @@ async function buildReaderJourneyAnalytics(env, days) {
       average_pages_read: rows.length ? pagesRead / rows.length : 0,
       average_completion_percent: completionValues.length ? completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length : 0,
       average_reading_seconds: durations.length ? durations.reduce((sum, value) => sum + value, 0) / durations.length : null,
+      average_engaged_seconds: rows.some(session => session.activeSeconds !== null)
+        ? rows.filter(session => session.activeSeconds !== null).reduce((sum, session) => sum + session.activeSeconds, 0) /
+          rows.filter(session => session.activeSeconds !== null).length
+        : null,
       exit_reasons: exitReasons,
       page_stats: pageStats,
     };
@@ -985,6 +1008,7 @@ async function buildReaderJourneyAnalytics(env, days) {
   const durations = endedSessions.map(session => Math.max(0, (
     new Date(session.lastEventAt).getTime() - new Date(session.startedAt).getTime()
   ) / 1000));
+  const sessionsWithEngagement = validSessions.filter(session => session.activeSeconds !== null);
   const readerDepth = new Map();
   for (const chaptersRead of readerChapters.values()) {
     const bucket = chaptersRead.size >= 4 ? '4+' : String(chaptersRead.size);
@@ -1047,6 +1071,9 @@ async function buildReaderJourneyAnalytics(env, days) {
       average_pages_read: validSessions.length ? pageReads / validSessions.length : 0,
       average_completion_percent: completionValues.length ? completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length : 0,
       average_reading_seconds: durations.length ? durations.reduce((sum, value) => sum + value, 0) / durations.length : null,
+      average_engaged_seconds: sessionsWithEngagement.length
+        ? sessionsWithEngagement.reduce((sum, session) => sum + session.activeSeconds, 0) / sessionsWithEngagement.length
+        : null,
       completion_rate: validSessions.length ? completedSessions.length / validSessions.length * 100 : 0,
       exit_reasons: explicitReasonCounts,
     },
