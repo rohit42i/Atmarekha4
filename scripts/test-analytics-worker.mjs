@@ -176,6 +176,7 @@ try {
 
   const journeyEvents = [
     journeyStart(journeySessions[0], viewerKey),
+    { ...baseJourney, sessionId: journeySessions[0], viewerKey, eventType: 'engagement', activeSeconds: 30, sequence: 1 },
     journeyProgress(journeySessions[0], viewerKey, 1),
     journeyProgress(journeySessions[0], viewerKey, 2),
     {
@@ -183,6 +184,7 @@ try {
       pageNumber: 2, exitReason: 'page_exit',
     },
     journeyStart(journeySessions[1], journeyViewerTwo),
+    { ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo, eventType: 'engagement', activeSeconds: 60, sequence: 1 },
     journeyProgress(journeySessions[1], journeyViewerTwo, 1),
     journeyProgress(journeySessions[1], journeyViewerTwo, 2),
     journeyProgress(journeySessions[1], journeyViewerTwo, 3),
@@ -197,6 +199,7 @@ try {
     journeyStart(journeySessions[2], viewerKey, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
+    { chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2, sessionId: journeySessions[2], viewerKey, eventType: 'engagement', activeSeconds: 15, sequence: 1 },
     journeyProgress(journeySessions[2], viewerKey, 1, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
@@ -208,6 +211,7 @@ try {
     journeyStart('44444444-4444-4444-8444-444444444444', journeyViewerTwo, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
+    { chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2, sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo, eventType: 'engagement', activeSeconds: 5, sequence: 1 },
     {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
       sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo,
@@ -248,6 +252,7 @@ try {
   assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
   assert.equal(journeyAnalytics.summary.next_chapter_clicks, 2, 'next chapter navigation should be counted even after a reader completes a chapter');
   assert.equal(journeyAnalytics.summary.pages_read, 6, 'page exposure events should be counted once per session and page');
+  assert.equal(journeyAnalytics.summary.average_engaged_seconds, 27.5, 'active reading time should average visible and focused engagement heartbeats');
   const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
   assert.ok(firstChapterJourney, 'chapter page funnel should include the tracked chapter');
   assert.equal(firstChapterJourney.sessions, 2, 'chapter funnel should count both chapter sessions');
