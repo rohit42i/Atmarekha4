@@ -2,22 +2,6 @@ import { supabase } from './supabase';
 
 const VIEWER_KEY_STORAGE = 'atma-rekha-viewer-key-v1';
 const ANALYTICS_WORKER_URL = 'https://atma-rekha-analytics.rohitbaswaraj.workers.dev';
-const VIEW_RECORDED_STORAGE = 'atma-rekha-view-recorded-v3';
-
-function viewRecordKey(chapterId) {
-  const utcDay = new Date().toISOString().slice(0, 10);
-  return `${VIEW_RECORDED_STORAGE}:${utcDay}:${String(chapterId || '')}`;
-}
-
-function wasViewRecorded(chapterId) {
-  if (typeof window === 'undefined') return false;
-  try { return window.localStorage.getItem(viewRecordKey(chapterId)) === '1'; } catch (_) { return false; }
-}
-
-function markViewRecorded(chapterId) {
-  if (typeof window === 'undefined') return;
-  try { window.localStorage.setItem(viewRecordKey(chapterId), '1'); } catch (_) {}
-}
 
 async function analyticsRequest(path, options = {}) {
   const controller = new AbortController();
@@ -382,29 +366,28 @@ export async function recordChapterShare(chapterId) {
   return { recorded: true };
 }
 
-export async function recordChapterView(chapterId) {
+export async function recordChapterView(chapterId, visitId = createReaderJourneySessionId()) {
   if (!chapterId) throw new Error('Chapter ID is required.');
-  if (wasViewRecorded(chapterId)) return { recorded: false, duplicate: true };
   const viewerKey = getViewerKey();
   try {
     await analyticsRequest('/v1/view', {
       method: 'POST',
-      body: JSON.stringify({ chapterId, viewerKey }),
+      body: JSON.stringify({
+        chapterId,
+        viewerKey,
+        ...(visitId ? { visitId } : {}),
+      }),
     });
-    markViewRecorded(chapterId);
-    return { recorded: true };
+    return { recorded: true, pageview: Boolean(visitId), readerDay: true, visitId };
   } catch (analyticsError) {
-    // Transitional fallback: retain the legacy Supabase write until the
-    // migration is completed. After the legacy insert policy is removed,
-    // this fails silently in the existing reader error handler.
+    // Keep the legacy write as a fallback only. It cannot supply a unique per-open
+    // pageview, so report that limitation rather than calling it a pageview.
     const { error } = await supabase.from('chapter_views').insert({
       chapter_id: chapterId,
       viewer_key: viewerKey,
     });
     if (error && error.code !== '23505') throw analyticsError;
-    // Do not mark a fallback-only write as recorded: the analytics service may
-    // become available later, and this browser must retry to populate its live counts.
-    return { recorded: !error, fallback: true };
+    return { recorded: !error, pageview: false, readerDay: !error, fallback: true };
   }
 }
 
