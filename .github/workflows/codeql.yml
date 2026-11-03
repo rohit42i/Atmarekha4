@@ -36,3 +36,36 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:javascript-typescript"
+
+      - name: Export CodeQL finding details for review
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file = 'results/javascript.sarif';
+          if (!fs.existsSync(file)) {
+            console.log('No SARIF file was produced.');
+            process.exit(0);
+          }
+          const sarif = JSON.parse(fs.readFileSync(file, 'utf8'));
+          for (const run of sarif.runs || []) {
+            const rules = new Map((run.tool?.driver?.rules || []).map(rule => [rule.id, rule]));
+            for (const result of run.results || []) {
+              const rule = rules.get(result.ruleId) || {};
+              const location = result.locations?.[0]?.physicalLocation;
+              const region = location?.region || {};
+              const uri = location?.artifactLocation?.uri || 'unknown file';
+              const message = result.message?.text || rule.shortDescription?.text || '';
+              const severity = result.properties?.['security-severity'] || rule.properties?.['security-severity'] || '';
+              console.log(JSON.stringify({
+                ruleId: result.ruleId,
+                name: rule.name || rule.shortDescription?.text,
+                level: result.level,
+                securitySeverity: severity,
+                file: uri,
+                line: region.startLine || null,
+                message,
+              }));
+            }
+          }
+          NODE
