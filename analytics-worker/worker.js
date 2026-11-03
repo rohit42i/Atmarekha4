@@ -718,13 +718,17 @@ async function buildAdminAnalytics(env, days) {
 
   // These share per-request month, object-list, event-body, and period caches.
   // A view can be counted for the totals and trend without repeating the same R2 calls.
-  const [summary, current, previous, currentReaders, dailyTrend, previousDailyTrend] = await Promise.all([
-    readJson(env, summaryKey(), { chapterViews: {} }),
+  const [summary, current, previous, currentPageviews, previousPageviews, currentReaders, dailyTrend, previousDailyTrend, pageviewDailyTrend, previousPageviewDailyTrend] = await Promise.all([
+    readJson(env, summaryKey(), { chapterViews: {}, chapterPageviews: {} }),
     combinedPeriodCounts(env, currentStart, now, context),
     combinedPeriodCounts(env, previousStart, currentStart, context),
+    combinedPeriodPageviews(env, currentStart, now, context),
+    combinedPeriodPageviews(env, previousStart, currentStart, context),
     readerMetrics(env, currentStart, now, context),
     dailyTrendForPeriod(env, currentStart, now, context),
     dailyTrendForPeriod(env, previousStart, currentStart, context),
+    dailyPageviewTrendForPeriod(env, currentStart, now, context),
+    dailyPageviewTrendForPeriod(env, previousStart, currentStart, context),
   ]);
 
   const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1), context);
@@ -735,19 +739,40 @@ async function buildAdminAnalytics(env, days) {
     allTime[id] = Number(allTime[id] || 0) + Number(count || 0);
   }
 
-  const ids = new Set([...Object.keys(allTime), ...Object.keys(current), ...Object.keys(previous)]);
+  const allTimePageviews = { ...(summary.chapterPageviews || {}) };
+  const liveTodayPageviews = await combinedPeriodPageviews(env, dayStart(now), new Date(now.getTime() + 1), context);
+  for (const [id, count] of Object.entries(liveTodayPageviews)) {
+    allTimePageviews[id] = Number(allTimePageviews[id] || 0) + Number(count || 0);
+  }
+
+  const ids = new Set([
+    ...Object.keys(allTime), ...Object.keys(current), ...Object.keys(previous),
+    ...Object.keys(allTimePageviews), ...Object.keys(currentPageviews), ...Object.keys(previousPageviews),
+  ]);
   const chapterStats = [...ids].map(id => ({
     id,
     views: Number(allTime[id] || 0),
     period_views: Number(current[id] || 0),
     previous_period_views: Number(previous[id] || 0),
+    reader_days: Number(allTime[id] || 0),
+    period_reader_days: Number(current[id] || 0),
+    previous_period_reader_days: Number(previous[id] || 0),
+    pageviews: Number(allTimePageviews[id] || 0),
+    period_pageviews: Number(currentPageviews[id] || 0),
+    previous_period_pageviews: Number(previousPageviews[id] || 0),
   }));
 
   return {
-    version: 1,
+    version: 2,
     total_views: await totalFromMap(allTime),
     current_views: await totalFromMap(current),
     previous_views: await totalFromMap(previous),
+    total_reader_days: await totalFromMap(allTime),
+    current_reader_days: await totalFromMap(current),
+    previous_reader_days: await totalFromMap(previous),
+    total_pageviews: await totalFromMap(allTimePageviews),
+    current_pageviews: await totalFromMap(currentPageviews),
+    previous_pageviews: await totalFromMap(previousPageviews),
     active_readers: currentReaders.activeReaders,
     returning_readers: currentReaders.returningReaders,
     reader_metrics_limited: Boolean(currentReaders.unavailable),
@@ -755,6 +780,8 @@ async function buildAdminAnalytics(env, days) {
     chapter_stats: chapterStats,
     daily_trend: dailyTrend,
     previous_daily_trend: previousDailyTrend,
+    pageview_daily_trend: pageviewDailyTrend,
+    previous_pageview_daily_trend: previousPageviewDailyTrend,
     updated_at: new Date().toISOString(),
   };
 }
