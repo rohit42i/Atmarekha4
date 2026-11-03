@@ -149,8 +149,10 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       return {
         ...fallback,
         ...(journey || {}),
-        chapter_views: number(chapterViews?.views),
-        period_views: number(chapterViews?.period_views),
+        chapter_reader_days: number(chapterViews?.reader_days ?? chapterViews?.views),
+        period_reader_days: number(chapterViews?.period_reader_days ?? chapterViews?.period_views),
+        chapter_pageviews: number(chapterViews?.pageviews),
+        period_pageviews: number(chapterViews?.period_pageviews),
       };
     });
   }, [measuredRows, measuredViews, chapters, pageCounts]);
@@ -159,9 +161,9 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     .filter(row => selectedChapterId === 'all' || String(row.chapter_id) === selectedChapterId)
     .map(row => ({ ...row, chapter: chapterById.get(String(row.chapter_id)) }))
     .sort((a, b) => {
-      const byViews = number(b.period_views) - number(a.period_views);
+      const byPageviews = number(b.period_pageviews) - number(a.period_pageviews);
       const bySessions = number(b.sessions) - number(a.sessions);
-      return byViews || bySessions || number(a.chapter_number ?? 9999) - number(b.chapter_number ?? 9999);
+      return byPageviews || bySessions || number(a.chapter_number ?? 9999) - number(b.chapter_number ?? 9999);
     }), [allRows, language, selectedChapterId, chapterById]);
 
   const selectedRow = rows.length === 1 && selectedChapterId !== 'all'
@@ -169,15 +171,20 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     : rows.find(row => String(row.chapter_id) === selectedChapterId) || null;
   const summary = payload?.summary || {};
   const daily = Array.isArray(payload?.daily_trend) ? payload.daily_trend : [];
+  const pageviewDaily = Array.isArray(viewPayload?.pageview_daily_trend) ? viewPayload.pageview_daily_trend : [];
+  const deviceBreakdown = Array.isArray(payload?.device_breakdown) ? payload.device_breakdown : [];
+  const sourceBreakdown = Array.isArray(payload?.source_breakdown) ? payload.source_breakdown : [];
+  const trackingHealth = payload?.tracking_health || {};
   const readerDepth = Array.isArray(payload?.reader_depth) ? payload.reader_depth : [];
   const chapterTransitions = Array.isArray(payload?.chapter_transitions) ? payload.chapter_transitions : [];
   const visibleTransitions = chapterTransitions.filter(row => (language === 'all' || chapterById.get(String(row.from_chapter_id))?.language === language) && (selectedChapterId === 'all' || String(row.from_chapter_id) === selectedChapterId));
   const maxDaily = Math.max(1, ...daily.map(row => number(row.sessions)));
+  const maxPageviewsDaily = Math.max(1, ...pageviewDaily.map(row => number(row.pageviews)));
   const maxDepth = Math.max(1, ...readerDepth.map(row => number(row.readers)));
   const hasJourneyData = Boolean(payload?.has_data || number(summary.sessions) > 0);
-  const hasViewData = number(viewPayload?.total_views) > 0 ||
-    number(viewPayload?.current_views) > 0 ||
-    measuredViews.some(row => number(row.views) > 0 || number(row.period_views) > 0);
+  const hasViewData = number(viewPayload?.total_pageviews ?? viewPayload?.total_reader_days ?? viewPayload?.total_views) > 0 ||
+    number(viewPayload?.current_pageviews ?? viewPayload?.current_reader_days ?? viewPayload?.current_views) > 0 ||
+    measuredViews.some(row => number(row.pageviews) > 0 || number(row.reader_days ?? row.views) > 0);
   const hasData = hasJourneyData || hasViewData;
   const exitReasons = [
     ['Opened another chapter', number(summary.next_chapter_clicks)],
@@ -194,49 +201,64 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       ['Language filter', language],
       ['Chapter filter', selectedChapterId === 'all' ? 'All chapters' : chapterLabel(rows.find(row => String(row.chapter_id) === selectedChapterId) || {}, chapterById.get(selectedChapterId))],
       ['Updated at', payload?.updated_at || viewPayload?.updated_at || ''],
+      ['Page opens in period', viewPayload?.current_pageviews ?? 0],
+      ['Tracked page opens total', viewPayload?.total_pageviews ?? 0],
+      ['Reader-days in period', viewPayload?.current_reader_days ?? viewPayload?.current_views ?? 0],
+      ['Cumulative reader-days', viewPayload?.total_reader_days ?? viewPayload?.total_views ?? 0],
+      ['Unique browsers', viewPayload?.reader_metrics_limited ? 'Unavailable' : viewPayload?.active_readers ?? 0],
+      ['Returning browsers (2+ days)', viewPayload?.reader_metrics_limited ? 'Unavailable' : viewPayload?.returning_readers ?? 0],
       [],
-      ['Chapter', 'Language', 'Views in period', 'All-time views', 'Unique browsers', 'Chapter visits', 'Completed visits', 'Completion rate', 'Recorded exits', 'No end signal', 'Average pages read', 'Average completion', 'Average active reading seconds', 'Average elapsed visit seconds', 'Next chapter clicks', 'Chapter list exits', 'Page exit events'],
+      ['Chapter', 'Language', 'Page opens in period', 'Tracked page opens total', 'Reader-days in period', 'Cumulative reader-days', 'Unique browsers', 'Chapter visits', 'Completed visits', 'Completion of settled visits', 'Recorded exits', 'Inactive over 30 minutes', 'Still active or unconfirmed', 'Average pages read', 'Average page reach', 'Average active reading seconds', 'Average elapsed visit seconds', 'Next chapter clicks', 'Next chapter opens', 'Chapter list exits', 'Page exit events'],
     ];
     for (const row of rows) {
       exportRows.push([
         chapterLabel(row, row.chapter),
         languageName(row.language),
-        row.period_views,
-        row.chapter_views,
+        row.period_pageviews,
+        row.chapter_pageviews,
+        row.period_reader_days,
+        row.chapter_reader_days,
         row.readers,
         row.sessions,
         row.completed_sessions,
-        percentage(number(row.sessions) ? number(row.completed_sessions) / number(row.sessions) * 100 : 0),
+        percentage(number(row.settled_sessions) ? number(row.completed_sessions) / number(row.settled_sessions) * 100 : 0),
         row.explicit_exits,
-        row.unconfirmed_exits,
+        row.inactive_sessions,
+        row.recent_unconfirmed_sessions,
         number(row.average_pages_read).toFixed(2),
         percentage(row.average_completion_percent),
         row.average_engaged_seconds == null ? '' : Math.round(row.average_engaged_seconds),
         row.average_reading_seconds == null ? '' : Math.round(row.average_reading_seconds),
         row.next_chapter_clicks,
+        row.next_chapter_opens || 0,
         row.chapter_list_exits,
         row.page_exit_events,
       ]);
       exportRows.push(['Page breakdown for ' + chapterLabel(row, row.chapter)]);
-      exportRows.push(['Page', 'Chapter visits reaching page', 'Unique browsers reaching page', 'Visits reaching next page', 'Drop-off visits', 'Drop-off rate', 'Confirmed exit signals']);
+      exportRows.push(['Page', 'Chapter visits reaching page', 'Unique browsers reaching page', 'Visits reaching next page', 'Settled visits', 'Recent unresolved visits', 'Inactive after page', 'Drop-off visits', 'Drop-off rate', 'Confirmed exit signals']);
       for (const page of row.page_stats || []) {
         exportRows.push([
           page.page_number,
           page.sessions_reached,
           page.readers_reached,
           page.next_page_sessions,
+          page.settled_sessions,
+          page.recent_unconfirmed_sessions,
+          page.inactive_after_page,
           page.drop_off_sessions,
           percentage(page.drop_off_rate),
           page.exits_after_page,
         ]);
       }
     }
-    exportRows.push([], ['Chapter transitions'], ['From chapter', 'To chapter', 'Sessions', 'Unique browsers']);
+    exportRows.push([], ['Chapter transitions'], ['From chapter', 'To chapter', 'Next clicks', 'Target chapter opened', 'Follow-through rate', 'Unique browsers']);
     for (const transition of visibleTransitions) {
       exportRows.push([
         chapterLabel({ chapter_number: chapterById.get(String(transition.from_chapter_id))?.chapterNumber }, chapterById.get(String(transition.from_chapter_id))),
         chapterLabel({ chapter_number: chapterById.get(String(transition.to_chapter_id))?.chapterNumber }, chapterById.get(String(transition.to_chapter_id))),
         transition.sessions,
+        transition.opened_sessions,
+        percentage(transition.follow_through_rate),
         transition.readers,
       ]);
     }
@@ -298,17 +320,21 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     <p className="ar-reader-scope-note">Summary totals below cover the full selected reporting window across all chapters and languages. The filters apply to the chapter table and page detail.</p>
 
     <div className="ar-reader-metrics">
-      <Metric label="Chapter views" value={count(viewPayload?.current_views)} detail="Recorded chapter opens in the selected reporting window"/>
-      <Metric label="All-time views" value={count(viewPayload?.total_views)} detail="Historical chapter view totals from the existing tracker"/>
-      <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser IDs, not verified individual people"/>
-      <Metric label="Chapter visits" value={count(summary.sessions)} detail="Each time a reader opens a chapter, not a site-wide session"/>
-      <Metric label="Completed chapters" value={count(summary.completed_sessions)} detail={percentage(summary.completion_rate) + ' of recorded chapter visits'}/>
-      <Metric label="Recorded exits" value={count(summary.explicit_exits)} detail="Exit event received before completion"/>
-      <Metric label="No end signal" value={count(summary.unconfirmed_exits)} detail="No completion or exit event was received"/>
-      <Metric label="Next chapter clicks" value={count(summary.next_chapter_clicks)} detail="Reader used the next chapter control"/>
-      <Metric label="Pages read" value={count(summary.pages_read)} detail="Page loaded and remained visible for at least 2 seconds"/>
-      <Metric label="Average active reading" value={duration(summary.average_engaged_seconds)} detail="Time while the reader tab is visible and focused"/>
-      <Metric label="Average completion" value={percentage(summary.average_completion_percent)} detail={duration(summary.average_reading_seconds) + ' average elapsed visit time'}/>
+      <Metric label="Chapter page opens" value={count(viewPayload?.current_pageviews)} detail="Every successful chapter opening, including repeat opens"/>
+      <Metric label="Tracked page opens total" value={count(viewPayload?.total_pageviews)} detail="Individual opens recorded since per-visit tracking launched"/>
+      <Metric label="Reader-days" value={count(viewPayload?.current_reader_days ?? viewPayload?.current_views)} detail="One browser counted once per chapter per UTC day"/>
+      <Metric label="Cumulative reader-days" value={count(viewPayload?.total_reader_days ?? viewPayload?.total_views)} detail="Daily browser/chapter counts summed over time, not all-time people"/>
+      <Metric label="Unique browsers" value={viewPayload?.reader_metrics_limited ? 'Unavailable' : count(viewPayload?.active_readers)} detail={viewPayload?.reader_metrics_limited ? (viewPayload?.reader_metrics_limited_reason || 'Historical reader identities are incomplete') : 'Hashed anonymous browsers with at least one chapter open in this period'}/>
+      <Metric label="Returning browsers" value={viewPayload?.reader_metrics_limited ? 'Unavailable' : count(viewPayload?.returning_readers)} detail="Browsers with chapter activity on two or more UTC days in this period"/>
+      <Metric label="Chapter visits" value={count(summary.sessions)} detail="Each chapter reading visit; one reader can create several visits"/>
+      <Metric label="Completed visits" value={count(summary.completed_sessions)} detail={percentage(summary.settled_completion_rate) + ' of completed, exited or inactive visits'}/>
+      <Metric label="Explicit exits" value={count(summary.explicit_exits)} detail="An exit or chapter-navigation event was received"/>
+      <Metric label="Inactive visits" value={count(summary.inactive_sessions)} detail="No activity for at least 30 minutes; abandonment is estimated, not confirmed"/>
+      <Metric label="Still active or unresolved" value={count(summary.recent_unconfirmed_sessions)} detail="No end signal, but activity was seen within the last 30 minutes"/>
+      <Metric label="Next chapter opened" value={count(summary.next_chapter_opens)} detail={percentage(summary.next_chapter_follow_through_rate) + ' of next-chapter clicks followed by an observed open'}/>
+      <Metric label="Pages read" value={count(summary.pages_read)} detail="Image loaded and visible for at least 2 seconds"/>
+      <Metric label="Average active reading" value={duration(summary.average_engaged_seconds)} detail="Foreground, visible and focused reader time"/>
+      <Metric label="Average page reach" value={percentage(summary.average_completion_percent)} detail={duration(summary.average_reading_seconds) + ' average elapsed visit duration'}/>
     </div>
 
     {viewError && <div className="ar-reader-alert" role="status">
@@ -318,8 +344,26 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     {!hasJourneyData && !error && <div className="ar-reader-empty-state">
       <strong>No page-by-page reading journeys recorded in this period yet.</strong>
-      <p>Chapter views above use the existing tracker. Page-level retention and exit details begin with this release and cannot be reconstructed for earlier visits.</p>
+      <p>Page opens are measured separately from reader-days. Page-level retention appears after a real chapter reading visit sends its first event; historical page-by-page journeys cannot be reconstructed.</p>
     </div>}
+
+    <section className="ar-reader-card">
+      <div className="ar-reader-card-heading"><div><span>TRACKING HEALTH</span><h3>Reader event collection</h3><p>Events actually received by the analytics Worker in the selected reporting period.</p></div></div>
+      <div className="ar-reader-metrics">
+        <Metric label="Total events" value={count(trackingHealth.total_events)} detail="Start, progress, completion, exit and engagement"/>
+        <Metric label="Starts" value={count(trackingHealth.event_counts?.start)} detail="New chapter visits"/>
+        <Metric label="Page progress" value={count(trackingHealth.event_counts?.progress)} detail="Pages visible for at least two seconds"/>
+        <Metric label="Completions" value={count(trackingHealth.event_counts?.complete)} detail="Final page reached"/>
+        <Metric label="Exit signals" value={count(trackingHealth.event_counts?.exit)} detail="Best-effort visit endings"/>
+        <Metric label="Engagement events" value={count(trackingHealth.event_counts?.engagement)} detail="Foreground reading-time heartbeats"/>
+      </div>
+      <div className="ar-reader-note">
+        <strong>{trackingHealth.last_event_at ? 'Latest reader event received' : 'No reader journey events received'}</strong>
+        <p>{trackingHealth.last_event_at
+          ? new Date(trackingHealth.last_event_at).toLocaleString('en-IN') + (trackingHealth.first_event_at ? ' · First event: ' + new Date(trackingHealth.first_event_at).toLocaleString('en-IN') : '')
+          : 'Chapter page opens can be counted independently. Page-level retention appears here only after a real reading visit sends a start event.'}</p>
+      </div>
+    </section>
 
     <div className="ar-reader-grid">
       <section className="ar-reader-card">
@@ -334,6 +378,17 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
           </div>)}
         </div> : <Empty>No daily session data is available.</Empty>}
         <div className="ar-reader-legend"><span><i/>Chapter visits started</span><span><i className="is-completed"/>Completed</span></div>
+      </section>
+
+      <section className="ar-reader-card">
+        <div className="ar-reader-card-heading"><div><span>PAGE OPENS</span><h3>Chapter opens over time</h3><p>Repeat openings count as separate pageviews; historical reader-days are not included.</p></div><small>UTC dates</small></div>
+        {pageviewDaily.length ? <div className="ar-reader-trend" style={{ gridTemplateColumns: `repeat(${Math.max(1, pageviewDaily.length)}, minmax(0, 1fr))` }}>
+          {pageviewDaily.map(row => <div className="ar-reader-trend-day" key={row.day} title={row.day + ': ' + count(row.pageviews) + ' chapter opens'}>
+            <div className="ar-reader-trend-bars"><i style={{ height: Math.max(row.pageviews ? 3 : 0, number(row.pageviews) / maxPageviewsDaily * 100) + '%' }}/></div>
+            <small>{pageviewDaily.length <= 14 || row.day.endsWith('-01') || row.day === pageviewDaily[pageviewDaily.length - 1]?.day ? row.day.slice(8, 10) : ''}</small>
+          </div>)}
+        </div> : <Empty>No individual chapter-open records in this period.</Empty>}
+        <div className="ar-reader-legend"><span><i/>Chapter opens</span></div>
       </section>
 
       <section className="ar-reader-card">
@@ -356,22 +411,23 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       {rows.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table">
           <thead><tr>
-            <th>Chapter</th><th>Language</th><th>Views in period</th><th>All-time views</th><th>Unique browsers</th><th>Chapter visits</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. active read</th><th>Avg. elapsed visit</th>
+            <th>Chapter</th><th>Language</th><th>Page opens</th><th>Tracked opens total</th><th>Reader-days</th><th>Cumulative reader-days</th><th>Journey browsers</th><th>Chapter visits</th><th>Completed</th><th>Settled completion</th><th>Explicit exits</th><th>Inactive</th><th>Avg. pages</th><th>Avg. active read</th>
           </tr></thead>
           <tbody>{rows.map(row => <tr key={row.chapter_id} className={selectedChapterId === String(row.chapter_id) ? 'is-selected' : ''}>
             <td><button type="button" className="ar-reader-link" onClick={() => setSelectedChapterId(String(row.chapter_id))}>{chapterLabel(row, row.chapter)}</button></td>
             <td>{languageName(row.language)}</td>
-            <td>{count(row.period_views)}</td>
-            <td>{count(row.chapter_views)}</td>
+            <td>{count(row.period_pageviews)}</td>
+            <td>{count(row.chapter_pageviews)}</td>
+            <td>{count(row.period_reader_days)}</td>
+            <td>{count(row.chapter_reader_days)}</td>
             <td>{count(row.readers)}</td>
             <td>{count(row.sessions)}</td>
             <td>{count(row.completed_sessions)}</td>
-            <td><div className="ar-reader-rate"><Bar value={number(row.average_completion_percent)} max={100}/><strong>{percentage(row.average_completion_percent)}</strong></div></td>
+            <td><div className="ar-reader-rate"><Bar value={number(row.settled_completion_rate)} max={100}/><strong>{percentage(row.settled_completion_rate)}</strong></div></td>
             <td>{count(row.explicit_exits)}</td>
-            <td>{count(row.next_chapter_clicks)}</td>
+            <td>{count(row.inactive_sessions)}</td>
             <td>{number(row.average_pages_read).toFixed(1)}</td>
             <td>{duration(row.average_engaged_seconds)}</td>
-            <td title="Elapsed time from chapter open to last recorded event">{duration(row.average_reading_seconds)}</td>
           </tr>)}</tbody>
         </table>
       </div> : <Empty>No chapter journey records match these filters.</Empty>}
@@ -379,12 +435,12 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <section className="ar-reader-card">
       <div className="ar-reader-card-heading">
-        <div><span>CHAPTER FLOW</span><h3>Next-chapter navigation clicks</h3><p>Click events grouped by the chapter being left and the chapter selected. A click does not guarantee the next chapter finished loading.</p></div>
+        <div><span>CHAPTER FLOW</span><h3>Next-chapter follow-through</h3><p>Separates a next-chapter click from a confirmed opening of the target chapter in the same browser shortly afterwards.</p></div>
         <small>{visibleTransitions.length} transitions</small>
       </div>
       {visibleTransitions.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table ar-reader-transition-table">
-          <thead><tr><th>From</th><th>To</th><th>Next clicks</th><th>Unique browsers</th></tr></thead>
+          <thead><tr><th>From</th><th>To</th><th>Next clicks</th><th>Target opened</th><th>Follow-through</th><th>Unique browsers</th></tr></thead>
           <tbody>{visibleTransitions.map(row => {
             const from = chapterById.get(String(row.from_chapter_id));
             const to = chapterById.get(String(row.to_chapter_id));
@@ -392,6 +448,8 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
               <td>{chapterLabel({ chapter_number: from?.chapterNumber }, from)}</td>
               <td>{chapterLabel({ chapter_number: to?.chapterNumber }, to)}</td>
               <td>{count(row.sessions)}</td>
+              <td>{count(row.opened_sessions)}</td>
+              <td>{percentage(row.follow_through_rate)}</td>
               <td>{count(row.readers)}</td>
             </tr>;
           })}</tbody>
@@ -401,15 +459,24 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <section className="ar-reader-grid ar-reader-detail-grid">
       <section className="ar-reader-card">
+        <div className="ar-reader-card-heading"><div><span>DEVICE MIX</span><h3>Reader device categories</h3><p>Coarse categories inferred from viewport width and pointer type. No raw device identifiers are stored.</p></div></div>
+        {deviceBreakdown.length ? <div className="ar-reader-depth">{deviceBreakdown.map(row => <div className="ar-reader-depth-row" key={row.value}><span>{row.value}</span><Bar value={number(row.sessions)} max={Math.max(1, ...deviceBreakdown.map(item => number(item.sessions)))}/><strong>{count(row.sessions)}</strong></div>)}</div> : <Empty>Device mix will appear after new reader visits arrive.</Empty>}
+      </section>
+      <section className="ar-reader-card">
+        <div className="ar-reader-card-heading"><div><span>DISCOVERY</span><h3>Reader entry categories</h3><p>Only a broad source category is stored. Full referring URLs and query strings are not retained.</p></div></div>
+        {sourceBreakdown.length ? <div className="ar-reader-depth">{sourceBreakdown.map(row => <div className="ar-reader-depth-row" key={row.value}><span>{row.value}</span><Bar value={number(row.sessions)} max={Math.max(1, ...sourceBreakdown.map(item => number(item.sessions)))}/><strong>{count(row.sessions)}</strong></div>)}</div> : <Empty>Entry sources will appear after new reader visits arrive.</Empty>}
+      </section>
+      <section className="ar-reader-card">
         <div className="ar-reader-card-heading">
           <div><span>PAGE-LEVEL RETENTION</span><h3>{selectedRow ? chapterLabel(selectedRow, selectedRow.chapter) : 'Choose a chapter'}</h3><p>Page reach is counted after the image loads and stays visible for two seconds. Drop-off means a visit did not reach the following page.</p></div>
         </div>
         {selectedRow ? <>
           <div className="ar-reader-page-summary">
             <span><small>Average pages read</small><strong>{number(selectedRow.average_pages_read).toFixed(1)}</strong></span>
-            <span><small>Average completion</small><strong>{percentage(selectedRow.average_completion_percent)}</strong></span>
+            <span><small>Settled completion</small><strong>{percentage(selectedRow.settled_completion_rate)}</strong></span>
             <span><small>Active reading time</small><strong>{duration(selectedRow.average_engaged_seconds)}</strong></span>
-            <span><small>Unconfirmed ends</small><strong>{count(selectedRow.unconfirmed_exits)}</strong></span>
+            <span><small>Inactive visits</small><strong>{count(selectedRow.inactive_sessions)}</strong></span>
+            <span><small>Still active or unresolved</small><strong>{count(selectedRow.recent_unconfirmed_sessions)}</strong></span>
           </div>
           {(selectedRow.page_stats || []).length ? <div className="ar-reader-page-list">
             {selectedRow.page_stats.map(page => <div className="ar-reader-page-row" key={page.page_number}>
@@ -420,7 +487,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
               </div>
               <small>
                 {page.page_number < (selectedRow.page_stats || []).length
-                  ? count(page.drop_off_sessions) + ' did not reach the next page · ' + percentage(page.drop_off_rate) + ' drop-off'
+                  ? count(page.drop_off_sessions) + ' settled visits did not reach the next page · ' + percentage(page.drop_off_rate) + ' drop-off · ' + count(page.recent_unconfirmed_sessions) + ' still active or unresolved'
                   : count(page.exits_after_page) + ' confirmed exit signals at final page'}
               </small>
             </div>)}
@@ -442,7 +509,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <footer className="ar-reader-privacy-note">
       <strong>Measurement and privacy</strong>
-      <p>Reader journeys use a random browser identifier that is hashed before storage. Records contain chapter, language, page progress and aggregate foreground engagement time, not account names or raw IP addresses. Active reading time counts while the reader tab is visible and focused. A page is counted after it loads and remains visible for two seconds. Elapsed visit time is shown separately. Browser exit signals are best effort, so some visits may have no confirmed ending.</p>
+      <p>Every successful chapter opening gets a unique visit ID and counts as one page open. Reader-days count one browser once per chapter per UTC day, so repeat openings are not included in that measure. Historical reader-days are retained from the earlier tracker; exact historical repeat page opens cannot be reconstructed. Page journeys use a random browser ID hashed before storage. Coarse device and entry-source categories are stored, not full referring URLs, account names or raw IP addresses. Active reading time counts while the reader tab is visible and focused. A page counts after it loads and remains visible for two seconds. Visits without completion or exit become inactive estimates after 30 minutes; these are not confirmed reader intent.</p>
     </footer>
   </section>;
 }

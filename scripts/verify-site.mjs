@@ -568,11 +568,25 @@ if (analyticsReaderMetricsStart < 0 ||
   console.error('CHECK FAILED: reader metrics must use bounded/cached durable R2 reads and stop scanning once legacy identities make the result incomplete.');
   failed = true;
 }
+const readerOpenRowsStart = analyticsReaderFallbackRegression.indexOf('async function viewRowsForPeriod(');
+const readerOpenRowsEnd = analyticsReaderFallbackRegression.indexOf('function mergeChapterCounts', readerOpenRowsStart);
+const readerOpenRowsBlock = analyticsReaderFallbackRegression.slice(readerOpenRowsStart, readerOpenRowsEnd);
+const readerPageviewTotalsStart = analyticsReaderFallbackRegression.indexOf('async function combinedPeriodPageviews(');
+const readerPageviewTotalsEnd = analyticsReaderFallbackRegression.indexOf('async function dailyTrendForPeriod', readerPageviewTotalsStart);
+const readerPageviewTotalsBlock = analyticsReaderFallbackRegression.slice(readerPageviewTotalsStart, readerPageviewTotalsEnd);
 if (!analyticsReaderFallbackRegression.includes('archived && segment.fullDay') ||
     !analyticsReaderFallbackRegression.includes('viewRowsForPeriod(env, segment.start, segment.end, context)') ||
     !analyticsReaderFallbackRegression.includes('const adminAnalyticsInFlight = new Map()') ||
-    !analyticsReaderFallbackRegression.includes('const [summary, current, previous, currentReaders, dailyTrend, previousDailyTrend]')) {
-  console.error('CHECK FAILED: R2 analytics must share event reads, use timestamped partial-day buckets and avoid unused reader scans.');
+    !analyticsReaderFallbackRegression.includes('currentPageviews, previousPageviews') ||
+    !analyticsReaderFallbackRegression.includes('pageviewDailyTrend, previousPageviewDailyTrend') ||
+    readerOpenRowsStart < 0 || readerOpenRowsEnd < 0 ||
+    !readerOpenRowsBlock.includes("parts[1] === 'visits'") ||
+    !readerOpenRowsBlock.includes('row.pageviews++') ||
+    !readerOpenRowsBlock.includes('row.readerDays++') ||
+    readerPageviewTotalsStart < 0 || readerPageviewTotalsEnd < 0 ||
+    !readerPageviewTotalsBlock.includes('viewRowsForPeriod(env, segment.start, segment.end, context)') ||
+    !readerPageviewTotalsBlock.includes('row.pageviews || 0')) {
+  console.error('CHECK FAILED: R2 analytics must preserve cached daily reader counts and timestamped per-open pageviews as separate measures.');
   failed = true;
 }
 if (!controlRoomViewCountRegression.includes('const dailyTrendAvailable = cloudViewsAvailable && validTrendSeries') ||

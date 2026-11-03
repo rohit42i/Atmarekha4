@@ -11,6 +11,9 @@ const SITE_ORIGINS = new Set([
 const PERIODS = new Set([1, 7, 30, 90]);
 const DAY_MS = 86400000;
 const RETENTION_DAYS = 90;
+const READER_INACTIVITY_MS = 30 * 60 * 1000;
+const READER_DEVICE_TYPES = new Set(['mobile', 'tablet', 'desktop', 'unknown']);
+const READER_ENTRY_SOURCES = new Set(['direct', 'search', 'social', 'internal', 'referral', 'unknown']);
 const adminAnalyticsInFlight = new Map();
 
 function corsHeaders(request) {
@@ -232,16 +235,26 @@ async function viewRowsForPeriod(env, start, end, context = null) {
       const objects = await listViewEventObjects(env, segment.day, context);
       const counts = new Map();
       for (const object of objects) {
-        const chapterId = object.key.slice(prefix.length).split('/')[0];
+        const parts = object.key.slice(prefix.length).split('/');
+        const chapterId = parts[0];
         if (!validChapterId(chapterId)) continue;
         if (!segment.fullDay) {
           const event = await readViewEvent(env, object.key, context);
           const createdAt = new Date(event?.createdAt || 0).getTime();
-          if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
+          if (!Number.isFinite(createdAt) || createdAt < segment.start.getTime() || createdAt >= segment.end.getTime()) continue;
         }
-        counts.set(chapterId, (counts.get(chapterId) || 0) + 1);
+        const row = counts.get(chapterId) || { pageviews: 0, readerDays: 0 };
+        if (parts[1] === 'visits') row.pageviews++;
+        else row.readerDays++;
+        counts.set(chapterId, row);
       }
-      return [...counts.entries()].map(([chapterId, views]) => ({ day: segment.day, chapterId, views }));
+      return [...counts.entries()].map(([chapterId, row]) => ({
+        day: segment.day,
+        chapterId,
+        views: row.readerDays,
+        readerDays: row.readerDays,
+        pageviews: row.pageviews,
+      }));
     });
     return dailyRows.flat();
   })();
@@ -307,7 +320,26 @@ async function combinedPeriodCounts(env, start, end, context = null) {
     // A partial boundary must be read from timestamped events, never from a whole-day archive.
     return viewRowsForPeriod(env, segment.start, segment.end, context);
   });
-  for (const rows of segmentCounts) mergeChapterCounts(result, rows);
+  for (const rows of segmentCounts) mergeChapterCounts(result, rows.map(row => ({
+    chapterId: row.chapterId,
+    views: row.readerDays ?? row.views ?? 0,
+  })));
+  return result;
+}
+
+async function combinedPeriodPageviews(env, start, end, context = null) {
+  const result = {};
+  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
+  // Page-open records are queried directly for the selected period. This avoids waiting
+  // for the hourly archive job and keeps rolling-period counts exact.
+  const segments = periodDaySegments(start, end);
+  const segmentRows = await mapWithConcurrency(segments, 8, segment =>
+    viewRowsForPeriod(env, segment.start, segment.end, context)
+  );
+  for (const rows of segmentRows) mergeChapterCounts(result, rows.map(row => ({
+    chapterId: row.chapterId,
+    views: row.pageviews || 0,
+  })));
   return result;
 }
 
@@ -315,22 +347,35 @@ async function dailyTrendForPeriod(env, start, end, context = null) {
   const today = dayStart(new Date());
   const segments = periodDaySegments(start, end);
   return mapWithConcurrency(segments, 8, async segment => {
-    let views;
     let archived = null;
     if (segment.cursor < today) {
       const month = monthKey(segment.cursor);
       archived = (await readCachedMonth(env, month, context))?.days?.[segment.day] || null;
     }
-    // A whole-day archive is valid only for a whole-day reporting bucket. The first and
-    // last bars are rolling-window slices and must be based on event timestamps.
-    if (archived && segment.fullDay && archived.chapters && typeof archived.chapters === 'object') {
-      const chapterCounts = archived.chapters;
-      views = Math.max(0, Number(archived.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
-    } else {
-      const rows = await viewRowsForPeriod(env, segment.start, segment.end, context);
-      views = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
-    }
-    return { day: segment.day, views, partial: !segment.fullDay };
+    // Whole-day archives are valid only for complete daily buckets. Rolling boundaries
+    // are read from timestamped R2 events so the reporting window stays exact.
+    const rows = (!archived || !segment.fullDay)
+      ? await viewRowsForPeriod(env, segment.start, segment.end, context)
+      : null;
+    const readerDays = archived && segment.fullDay
+      ? Math.max(0, Number(archived.readerDays ?? archived.views ?? 0))
+      : (rows || []).reduce((sum, row) => sum + Number(row.readerDays ?? row.views ?? 0), 0);
+    const pageviews = archived && segment.fullDay
+      ? Math.max(0, Number(archived.pageviews || 0))
+      : (rows || []).reduce((sum, row) => sum + Number(row.pageviews || 0), 0);
+    return { day: segment.day, views: readerDays, reader_days: readerDays, pageviews, partial: !segment.fullDay };
+  });
+}
+
+async function dailyPageviewTrendForPeriod(env, start, end, context = null) {
+  const segments = periodDaySegments(start, end);
+  return mapWithConcurrency(segments, 8, async segment => {
+    const rows = await viewRowsForPeriod(env, segment.start, segment.end, context);
+    return {
+      day: segment.day,
+      pageviews: rows.reduce((sum, row) => sum + Number(row.pageviews || 0), 0),
+      partial: !segment.fullDay,
+    };
   });
 }
 
@@ -363,6 +408,7 @@ async function readerMetrics(env, start, end, context = null) {
         for (const object of objects) {
           const parts = object.key.slice(prefix.length).split('/');
           const chapterId = parts[0];
+          if (parts[1] === 'visits') continue;
           const viewerHash = String(parts[1] || '').replace('.json', '');
           if (!validChapterId(chapterId)) continue;
 
@@ -466,8 +512,10 @@ async function bootstrapLegacy(env, today) {
     version: 1,
     processedThrough: null,
     chapterViews: {},
+    chapterPageviews: {},
     updatedAt: null,
   });
+  summary.chapterPageviews ||= {};
   try {
     const legacyRows = await fetchLegacyRows(env, dayStart(today));
     const byDay = {};
@@ -480,7 +528,16 @@ async function bootstrapLegacy(env, today) {
     let latestDay = null;
     for (const [day, chapters] of Object.entries(byDay)) {
       const monthObject = await readJson(env, monthObjectKey(day.slice(0, 7)), { version: 1, month: day.slice(0, 7), days: {} });
-      monthObject.days[day] = { views: Object.values(chapters).reduce((sum, value) => sum + value, 0), chapters };
+      const existingDay = monthObject.days[day] || {};
+      const readerDays = Object.values(chapters).reduce((sum, value) => sum + value, 0);
+      monthObject.days[day] = {
+        ...existingDay,
+        views: readerDays,
+        readerDays,
+        chapters,
+        pageviews: Math.max(0, Number(existingDay.pageviews || 0)),
+        chapterPageviews: existingDay.chapterPageviews || {},
+      };
       await writeJson(env, monthObjectKey(day.slice(0, 7)), monthObject);
       for (const [chapterId, count] of Object.entries(chapters)) summary.chapterViews[chapterId] = (summary.chapterViews[chapterId] || 0) + count;
       if (!latestDay || day > latestDay) latestDay = day;
@@ -510,8 +567,10 @@ async function archiveMissingDays(env, today) {
     version: 1,
     processedThrough: null,
     chapterViews: {},
+    chapterPageviews: {},
     updatedAt: null,
   });
+  summary.chapterPageviews ||= {};
   const target = addDays(today, -1);
   let cursor = summary.processedThrough ? addDays(summary.processedThrough, 1) : target;
   if (cursor > target) return summary;
@@ -522,19 +581,28 @@ async function archiveMissingDays(env, today) {
     const monthObject = await readJson(env, monthObjectKey(month), { version: 1, month, days: {} });
     const day = dayKey(cursor);
     const existingRecord = monthObject.days[day];
-    const eventChapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.views]));
-    // Preserve older archived counts when the new live-event store has no rows for
-    // a day that was already archived by the previous Analytics Engine pipeline.
-    const chapters = Object.keys(eventChapters).length || !existingRecord
-      ? eventChapters
+    const eventReaderDays = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.readerDays ?? row.views ?? 0]));
+    const eventPageviews = Object.fromEntries(rowsForDay.filter(row => row.pageviews > 0).map(row => [row.chapterId, row.pageviews]));
+    // Preserve archived reader-day and pageview totals when their source events are no longer present.
+    const chapters = Object.keys(eventReaderDays).length || !existingRecord
+      ? eventReaderDays
       : (existingRecord.chapters || {});
+    const chapterPageviews = Object.keys(eventPageviews).length || !existingRecord
+      ? eventPageviews
+      : (existingRecord.chapterPageviews || {});
     const total = Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0);
-    monthObject.days[day] = { views: total, chapters };
+    const pageviewTotal = Object.values(chapterPageviews).reduce((sum, value) => sum + Number(value || 0), 0);
+    monthObject.days[day] = { views: total, readerDays: total, chapters, pageviews: pageviewTotal, chapterPageviews };
     await writeJson(env, monthObjectKey(month), monthObject);
     const oldChapters = existingRecord?.chapters || {};
     for (const chapterId of new Set([...Object.keys(oldChapters), ...Object.keys(chapters)])) {
       const delta = Number(chapters[chapterId] || 0) - Number(oldChapters[chapterId] || 0);
       if (delta) summary.chapterViews[chapterId] = Math.max(0, Number(summary.chapterViews[chapterId] || 0) + delta);
+    }
+    const oldPageviews = existingRecord?.chapterPageviews || {};
+    for (const chapterId of new Set([...Object.keys(oldPageviews), ...Object.keys(chapterPageviews)])) {
+      const delta = Number(chapterPageviews[chapterId] || 0) - Number(oldPageviews[chapterId] || 0);
+      if (delta) summary.chapterPageviews[chapterId] = Math.max(0, Number(summary.chapterPageviews[chapterId] || 0) + delta);
     }
     summary.processedThrough = day;
     summary.updatedAt = new Date().toISOString();
@@ -548,13 +616,17 @@ async function updateCurrent(env, today) {
   const start = dayStart(today);
   const end = addDays(start, 1);
   const rowsForDay = await viewRowsForPeriod(env, start, end);
-  const chapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.views]));
+  const chapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.readerDays ?? row.views ?? 0]));
+  const chapterPageviews = Object.fromEntries(rowsForDay.filter(row => row.pageviews > 0).map(row => [row.chapterId, row.pageviews]));
   await writeJson(env, currentKey(), {
-    version: 1,
+    version: 2,
     day: dayKey(today),
     updatedAt: new Date().toISOString(),
     views: Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0),
     chapterViews: chapters,
+    readerDays: Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0),
+    chapterPageviews,
+    pageviews: Object.values(chapterPageviews).reduce((sum, value) => sum + Number(value || 0), 0),
   });
 }
 
@@ -575,32 +647,46 @@ async function handleView(request, env) {
   }
   const chapterId = String(payload?.chapterId || '');
   const viewerKey = payload?.viewerKey;
+  const visitId = payload?.visitId == null ? null : String(payload.visitId);
   if (!validChapterId(chapterId) || !validViewerKey(viewerKey)) return text(request, 'Invalid chapter or viewer key.', 400);
+  if (visitId && !validJourneySessionId(visitId)) return text(request, 'Invalid chapter visit ID.', 400);
   const viewerHash = await sha256(viewerKey);
   const createdAt = new Date();
-  const eventKey = `${ARCHIVE_PREFIX}/events/${dayKey(createdAt)}/${chapterId}/${viewerHash}.json`;
+  const dayPrefix = `${ARCHIVE_PREFIX}/events/${dayKey(createdAt)}/${chapterId}/`;
+  const uniqueReaderDayKey = dayPrefix + viewerHash + '.json';
+  const pageviewKey = visitId ? dayPrefix + 'visits/' + visitId + '.json' : null;
   try {
-    // R2 is the immediate source of truth for counts; a stable object key makes
-    // retries idempotent for this browser/chapter/day and avoids counter races.
-    await env.ANALYTICS_BUCKET.put(eventKey, JSON.stringify({
+    // One daily unique-browser/chapter record supports reader-day and returning-reader metrics.
+    await env.ANALYTICS_BUCKET.put(uniqueReaderDayKey, JSON.stringify({
       chapterId,
       viewerHash,
       createdAt: createdAt.toISOString(),
+      eventType: 'reader_day',
     }), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+    // Each successful chapter open receives an idempotent pageview record of its own.
+    if (pageviewKey) {
+      await env.ANALYTICS_BUCKET.put(pageviewKey, JSON.stringify({
+        chapterId,
+        visitId,
+        viewerHash,
+        createdAt: createdAt.toISOString(),
+        eventType: 'chapter_open',
+      }), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+    }
   } catch (error) {
-    return text(request, `Unable to persist view event: ${error?.message || 'storage error'}`, 503);
+    return text(request, `Unable to persist chapter open: ${error?.message || 'storage error'}`, 503);
   }
   // R2 is the source of truth; this optional sink must never block view counts.
   try {
     if (typeof env.ANALYTICS?.writeDataPoint === 'function') {
       env.ANALYTICS.writeDataPoint({
-        blobs: [chapterId, viewerHash],
-        doubles: [1],
+        blobs: [chapterId, viewerHash, visitId || 'legacy'],
+        doubles: [1, visitId ? 1 : 0],
         indexes: ['atma-rekha'],
       });
     }
   } catch { /* The durable R2 event already recorded the view. */ }
-  return json(request, { recorded: true });
+  return json(request, { recorded: true, pageview: Boolean(visitId), readerDay: true });
 }
 
 async function handlePublicViews(request, env) {
@@ -633,13 +719,17 @@ async function buildAdminAnalytics(env, days) {
 
   // These share per-request month, object-list, event-body, and period caches.
   // A view can be counted for the totals and trend without repeating the same R2 calls.
-  const [summary, current, previous, currentReaders, dailyTrend, previousDailyTrend] = await Promise.all([
-    readJson(env, summaryKey(), { chapterViews: {} }),
+  const [summary, current, previous, currentPageviews, previousPageviews, currentReaders, dailyTrend, previousDailyTrend, pageviewDailyTrend, previousPageviewDailyTrend] = await Promise.all([
+    readJson(env, summaryKey(), { chapterViews: {}, chapterPageviews: {} }),
     combinedPeriodCounts(env, currentStart, now, context),
     combinedPeriodCounts(env, previousStart, currentStart, context),
+    combinedPeriodPageviews(env, currentStart, now, context),
+    combinedPeriodPageviews(env, previousStart, currentStart, context),
     readerMetrics(env, currentStart, now, context),
     dailyTrendForPeriod(env, currentStart, now, context),
     dailyTrendForPeriod(env, previousStart, currentStart, context),
+    dailyPageviewTrendForPeriod(env, currentStart, now, context),
+    dailyPageviewTrendForPeriod(env, previousStart, currentStart, context),
   ]);
 
   const liveToday = await combinedPeriodCounts(env, dayStart(now), new Date(now.getTime() + 1), context);
@@ -650,19 +740,43 @@ async function buildAdminAnalytics(env, days) {
     allTime[id] = Number(allTime[id] || 0) + Number(count || 0);
   }
 
-  const ids = new Set([...Object.keys(allTime), ...Object.keys(current), ...Object.keys(previous)]);
+  const allTimePageviews = { ...(summary.chapterPageviews || {}) };
+  const firstUnarchivedDay = summary.processedThrough
+    ? dayStart(addDays(summary.processedThrough, 1))
+    : dayStart(new Date(now.getTime() - RETENTION_DAYS * DAY_MS));
+  const liveTodayPageviews = await combinedPeriodPageviews(env, firstUnarchivedDay, new Date(now.getTime() + 1), context);
+  for (const [id, count] of Object.entries(liveTodayPageviews)) {
+    allTimePageviews[id] = Number(allTimePageviews[id] || 0) + Number(count || 0);
+  }
+
+  const ids = new Set([
+    ...Object.keys(allTime), ...Object.keys(current), ...Object.keys(previous),
+    ...Object.keys(allTimePageviews), ...Object.keys(currentPageviews), ...Object.keys(previousPageviews),
+  ]);
   const chapterStats = [...ids].map(id => ({
     id,
     views: Number(allTime[id] || 0),
     period_views: Number(current[id] || 0),
     previous_period_views: Number(previous[id] || 0),
+    reader_days: Number(allTime[id] || 0),
+    period_reader_days: Number(current[id] || 0),
+    previous_period_reader_days: Number(previous[id] || 0),
+    pageviews: Number(allTimePageviews[id] || 0),
+    period_pageviews: Number(currentPageviews[id] || 0),
+    previous_period_pageviews: Number(previousPageviews[id] || 0),
   }));
 
   return {
-    version: 1,
+    version: 2,
     total_views: await totalFromMap(allTime),
     current_views: await totalFromMap(current),
     previous_views: await totalFromMap(previous),
+    total_reader_days: await totalFromMap(allTime),
+    current_reader_days: await totalFromMap(current),
+    previous_reader_days: await totalFromMap(previous),
+    total_pageviews: await totalFromMap(allTimePageviews),
+    current_pageviews: await totalFromMap(currentPageviews),
+    previous_pageviews: await totalFromMap(previousPageviews),
     active_readers: currentReaders.activeReaders,
     returning_readers: currentReaders.returningReaders,
     reader_metrics_limited: Boolean(currentReaders.unavailable),
@@ -670,6 +784,8 @@ async function buildAdminAnalytics(env, days) {
     chapter_stats: chapterStats,
     daily_trend: dailyTrend,
     previous_daily_trend: previousDailyTrend,
+    pageview_daily_trend: pageviewDailyTrend,
+    previous_pageview_daily_trend: previousPageviewDailyTrend,
     updated_at: new Date().toISOString(),
   };
 }
@@ -723,6 +839,8 @@ async function handleReaderJourneyEvent(request, env) {
   const pageNumber = payload?.pageNumber == null ? null : Number(payload.pageNumber);
   const chapterNumber = payload?.chapterNumber == null ? null : Number(payload.chapterNumber);
   const language = String(payload?.language || '');
+  const deviceType = READER_DEVICE_TYPES.has(String(payload?.deviceType || '')) ? String(payload.deviceType) : 'unknown';
+  const entrySource = READER_ENTRY_SOURCES.has(String(payload?.entrySource || '')) ? String(payload.entrySource) : 'unknown';
 
   if (!['start', 'progress', 'complete', 'exit', 'engagement'].includes(eventType)) {
     return text(request, 'Invalid reader journey event type.', 400);
@@ -782,6 +900,8 @@ async function handleReaderJourneyEvent(request, env) {
     viewerHash,
     chapterNumber,
     language,
+    deviceType,
+    entrySource,
     totalPages,
     pageNumber,
     exitReason,
@@ -839,7 +959,13 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
 }
 
 function emptyJourneyDaily(day) {
-  return { day, sessions: 0, completed: 0, exits: 0 };
+  return { day, sessions: 0, completed: 0, exits: 0, inactive: 0 };
+}
+
+function isReaderSessionInactive(session, now) {
+  if (!session || session.completed || session.exited) return false;
+  const lastActivity = new Date(session.lastEventAt).getTime();
+  return Number.isFinite(lastActivity) && now.getTime() - lastActivity >= READER_INACTIVITY_MS;
 }
 
 async function buildReaderJourneyAnalytics(env, days) {
@@ -865,11 +991,14 @@ async function buildReaderJourneyAnalytics(env, days) {
       viewerHash: event.viewerHash,
       chapterNumber: event.chapterNumber,
       language: event.language,
+      deviceType: READER_DEVICE_TYPES.has(event.deviceType) ? event.deviceType : 'unknown',
+      entrySource: READER_ENTRY_SOURCES.has(event.entrySource) ? event.entrySource : 'unknown',
       totalPages: Number(event.totalPages) || 0,
       startedAt: event.createdAt,
       lastEventAt: event.createdAt,
       pages: new Set(),
       exitPage: null,
+      exitAt: null,
       exitReason: null,
       nextChapterId: null,
       completed: false,
@@ -898,12 +1027,20 @@ async function buildReaderJourneyAnalytics(env, days) {
     } else if (event.eventType === 'exit') {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
+      session.exitAt = event.createdAt;
       session.exitReason = event.exitReason || 'page_exit';
       session.nextChapterId = event.nextChapterId || null;
     }
   }
 
   const validSessions = [...sessions.values()];
+  const inactiveSessions = validSessions.filter(session => isReaderSessionInactive(session, now));
+  const recentUnconfirmedSessions = validSessions.filter(session =>
+    !session.completed && !session.exited && !isReaderSessionInactive(session, now)
+  );
+  const inactiveSessionIds = new Set(inactiveSessions.map(session => session.sessionId));
+  const recentUnconfirmedSessionIds = new Set(recentUnconfirmedSessions.map(session => session.sessionId));
+  const isSettledSession = session => session.completed || session.exited || inactiveSessionIds.has(session.sessionId);
   const chapterBuckets = new Map();
   const daily = new Map();
   const readerChapters = new Map();
@@ -930,6 +1067,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     daily.get(day).sessions++;
     if (session.completed) daily.get(day).completed++;
     if (session.exited && !session.completed) daily.get(day).exits++;
+    if (inactiveSessionIds.has(session.sessionId)) daily.get(day).inactive++;
   }
 
   const chapterStats = [...chapterBuckets.values()].map(chapter => {
@@ -941,7 +1079,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     const completionValues = rows.map(session => session.totalPages > 0
       ? (Math.max(0, ...session.pages) / session.totalPages) * 100
       : 0);
-    const durations = rows.filter(session => session.completed || session.exited).map(session => {
+    const durations = rows.filter(isSettledSession).map(session => {
       const elapsed = new Date(session.lastEventAt).getTime() - new Date(session.startedAt).getTime();
       return Math.max(0, elapsed / 1000);
     });
@@ -955,18 +1093,25 @@ async function buildReaderJourneyAnalytics(env, days) {
       const page = index + 1;
       const pageSessions = reached(page);
       const nextPageSessions = page < maxPages ? reached(page + 1) : [];
+      const settledPageSessions = pageSessions.filter(isSettledSession);
+      const nextPageSessionIds = new Set(nextPageSessions.map(session => session.sessionId));
       const exitSessions = exits.filter(session => session.exitPage === page);
-      const dropOffSessions = page < maxPages
-        ? Math.max(0, pageSessions.length - nextPageSessions.length)
-        : 0;
+      const dropOffRows = page < maxPages
+        ? settledPageSessions.filter(session => !nextPageSessionIds.has(session.sessionId))
+        : [];
+      const dropOffSessions = dropOffRows.length;
+      const inactiveAfterPage = dropOffRows.filter(session => inactiveSessionIds.has(session.sessionId)).length;
       return {
         page_number: page,
         sessions_reached: pageSessions.length,
         readers_reached: new Set(pageSessions.map(session => session.viewerHash)).size,
         next_page_sessions: nextPageSessions.length,
+        settled_sessions: settledPageSessions.length,
+        recent_unconfirmed_sessions: pageSessions.length - settledPageSessions.length,
         drop_off_sessions: dropOffSessions,
-        drop_off_rate: pageSessions.length && page < maxPages
-          ? (dropOffSessions / pageSessions.length) * 100
+        inactive_after_page: inactiveAfterPage,
+        drop_off_rate: settledPageSessions.length && page < maxPages
+          ? (dropOffSessions / settledPageSessions.length) * 100
           : 0,
         exits_after_page: exitSessions.length,
         exit_readers: new Set(exitSessions.map(session => session.viewerHash)).size,
@@ -981,6 +1126,12 @@ async function buildReaderJourneyAnalytics(env, days) {
       completed_sessions: completed.length,
       explicit_exits: exits.length,
       unconfirmed_exits: rows.filter(session => !session.completed && !session.exited).length,
+      inactive_sessions: rows.filter(session => inactiveSessionIds.has(session.sessionId)).length,
+      recent_unconfirmed_sessions: rows.filter(session => recentUnconfirmedSessionIds.has(session.sessionId)).length,
+      settled_sessions: rows.filter(isSettledSession).length,
+      settled_completion_rate: rows.filter(isSettledSession).length
+        ? completed.length / rows.filter(isSettledSession).length * 100
+        : 0,
       next_chapter_clicks: rows.filter(session => session.exitReason === 'next_chapter').length,
       previous_chapter_clicks: rows.filter(session => session.exitReason === 'previous_chapter').length,
       chapter_list_exits: rows.filter(session => session.exitReason === 'chapter_list').length,
@@ -1001,7 +1152,7 @@ async function buildReaderJourneyAnalytics(env, days) {
 
   const completedSessions = validSessions.filter(session => session.completed);
   const explicitExits = validSessions.filter(session => session.exited && !session.completed);
-  const endedSessions = validSessions.filter(session => session.completed || session.exited);
+  const endedSessions = validSessions.filter(isSettledSession);
   const completionValues = validSessions.map(session => session.totalPages > 0
     ? (Math.max(0, ...session.pages) / session.totalPages) * 100
     : 0);
@@ -1039,12 +1190,67 @@ async function buildReaderJourneyAnalytics(env, days) {
     transition.sessions++;
     transition.readers.add(session.viewerHash);
   }
-  const chapterTransitions = [...transitionsByPair.values()].map(row => ({
-    from_chapter_id: row.from_chapter_id,
-    to_chapter_id: row.to_chapter_id,
-    sessions: row.sessions,
-    readers: row.readers.size,
-  })).sort((a, b) => b.sessions - a.sessions);
+  const chapterTransitions = [...transitionsByPair.values()].map(row => {
+    const sourceSessions = validSessions.filter(session =>
+      session.chapterId === row.from_chapter_id &&
+      session.exitReason === 'next_chapter' &&
+      session.nextChapterId === row.to_chapter_id
+    );
+    const followedThrough = sourceSessions.filter(source => {
+      const exitTime = new Date(source.exitAt || source.lastEventAt).getTime();
+      if (!Number.isFinite(exitTime)) return false;
+      return validSessions.some(target => {
+        const startTime = new Date(target.startedAt).getTime();
+        return target.sessionId !== source.sessionId &&
+          target.viewerHash === source.viewerHash &&
+          target.chapterId === row.to_chapter_id &&
+          target.pages.size > 0 &&
+          startTime >= exitTime &&
+          startTime - exitTime <= READER_INACTIVITY_MS;
+      });
+    });
+    return {
+      from_chapter_id: row.from_chapter_id,
+      to_chapter_id: row.to_chapter_id,
+      sessions: row.sessions,
+      readers: row.readers.size,
+      opened_sessions: followedThrough.length,
+      opened_readers: new Set(followedThrough.map(session => session.viewerHash)).size,
+      follow_through_rate: sourceSessions.length ? followedThrough.length / sourceSessions.length * 100 : 0,
+    };
+  }).sort((a, b) => b.sessions - a.sessions);
+
+  for (const chapter of chapterStats) {
+    const outgoing = chapterTransitions.filter(row => row.from_chapter_id === chapter.chapter_id);
+    chapter.next_chapter_opens = outgoing.reduce((sum, row) => sum + row.opened_sessions, 0);
+    chapter.next_chapter_follow_through_rate = chapter.next_chapter_clicks
+      ? chapter.next_chapter_opens / chapter.next_chapter_clicks * 100
+      : 0;
+  }
+
+  const buildBreakdown = field => {
+    const buckets = new Map();
+    for (const session of validSessions) {
+      const key = String(session[field] || 'unknown');
+      if (!buckets.has(key)) buckets.set(key, { value: key, sessions: 0, readers: new Set(), completed: 0 });
+      const bucket = buckets.get(key);
+      bucket.sessions++;
+      bucket.readers.add(session.viewerHash);
+      if (session.completed) bucket.completed++;
+    }
+    return [...buckets.values()].map(bucket => ({
+      value: bucket.value,
+      sessions: bucket.sessions,
+      readers: bucket.readers.size,
+      completed_sessions: bucket.completed,
+      completion_rate: bucket.sessions ? bucket.completed / bucket.sessions * 100 : 0,
+    })).sort((a, b) => b.sessions - a.sessions);
+  };
+  const eventCounts = Object.fromEntries(['start', 'progress', 'complete', 'exit', 'engagement'].map(type => [
+    type, events.filter(event => event.eventType === type).length,
+  ]));
+  const openedSessions = chapterTransitions.reduce((sum, row) => sum + row.opened_sessions, 0);
+  const nextChapterClicks = validSessions.filter(session => session.exitReason === 'next_chapter').length;
 
   const explicitReasonCounts = {};
   for (const session of explicitExits) {
@@ -1061,8 +1267,16 @@ async function buildReaderJourneyAnalytics(env, days) {
       sessions: validSessions.length,
       completed_sessions: completedSessions.length,
       explicit_exits: explicitExits.length,
-      unconfirmed_exits: validSessions.length - completedSessions.length - explicitExits.length,
-      next_chapter_clicks: validSessions.filter(session => session.exitReason === 'next_chapter').length,
+      inactive_sessions: inactiveSessions.length,
+      recent_unconfirmed_sessions: recentUnconfirmedSessions.length,
+      unconfirmed_exits: recentUnconfirmedSessions.length + inactiveSessions.length,
+      settled_sessions: completedSessions.length + explicitExits.length + inactiveSessions.length,
+      settled_completion_rate: (completedSessions.length + explicitExits.length + inactiveSessions.length)
+        ? completedSessions.length / (completedSessions.length + explicitExits.length + inactiveSessions.length) * 100
+        : 0,
+      next_chapter_clicks: nextChapterClicks,
+      next_chapter_opens: openedSessions,
+      next_chapter_follow_through_rate: nextChapterClicks ? openedSessions / nextChapterClicks * 100 : 0,
       previous_chapter_clicks: validSessions.filter(session => session.exitReason === 'previous_chapter').length,
       chapter_list_exits: validSessions.filter(session => session.exitReason === 'chapter_list').length,
       page_exit_events: explicitExits.filter(session => session.exitReason === 'page_exit').length,
@@ -1081,6 +1295,15 @@ async function buildReaderJourneyAnalytics(env, days) {
     chapter_transitions: chapterTransitions,
     daily_trend: daysRows,
     reader_depth: depthRows,
+    device_breakdown: buildBreakdown('deviceType'),
+    source_breakdown: buildBreakdown('entrySource'),
+    tracking_health: {
+      total_events: events.length,
+      event_counts: eventCounts,
+      first_event_at: events.length ? events[0].createdAt : null,
+      last_event_at: events.length ? events[events.length - 1].createdAt : null,
+      inactivity_threshold_minutes: READER_INACTIVITY_MS / 60000,
+    },
     updated_at: new Date().toISOString(),
   };
 }
