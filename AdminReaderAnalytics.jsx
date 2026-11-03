@@ -92,7 +92,30 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
   }, [days, refreshVersion]);
 
   const chapterById = useMemo(() => new Map(chapters.map(chapter => [String(chapter.id), chapter])), [chapters]);
-  const allRows = Array.isArray(payload?.chapters) ? payload.chapters : [];
+  const measuredRows = Array.isArray(payload?.chapters) ? payload.chapters : [];
+  const allRows = useMemo(() => {
+    const measuredById = new Map(measuredRows.map(row => [String(row.chapter_id), row]));
+    return chapters.map(chapter => measuredById.get(String(chapter.id)) || {
+      chapter_id: String(chapter.id),
+      chapter_number: chapter.chapterNumber ?? null,
+      language: chapter.language === 'en' ? 'en' : 'hi',
+      sessions: 0,
+      readers: 0,
+      completed_sessions: 0,
+      explicit_exits: 0,
+      unconfirmed_exits: 0,
+      next_chapter_clicks: 0,
+      previous_chapter_clicks: 0,
+      chapter_list_exits: 0,
+      page_exit_events: 0,
+      pages_read: 0,
+      average_pages_read: 0,
+      average_completion_percent: 0,
+      average_reading_seconds: null,
+      exit_reasons: {},
+      page_stats: [],
+    });
+  }, [measuredRows, chapters]);
   const rows = useMemo(() => allRows
     .filter(row => language === 'all' || row.language === language)
     .filter(row => selectedChapterId === 'all' || String(row.chapter_id) === selectedChapterId)
@@ -116,6 +139,7 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
     ['Returned to chapter list', number(summary.chapter_list_exits)],
     ['Opened previous chapter', number(summary.previous_chapter_clicks)],
     ['Left the page or closed the tab', number(summary.page_exit_events)],
+    ['Other navigation away from the reader', number(summary.navigation_exits)],
   ];
 
   const exportCsv = () => {
@@ -223,7 +247,7 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
     <div className="ar-reader-grid">
       <section className="ar-reader-card">
         <div className="ar-reader-card-heading"><div><span>SESSION ACTIVITY</span><h3>Reading sessions over time</h3></div><small>UTC dates</small></div>
-        {daily.length ? <div className="ar-reader-trend">
+        {daily.length ? <div className="ar-reader-trend" style={{ gridTemplateColumns: `repeat(${Math.max(1, daily.length)}, minmax(0, 1fr))` }}>
           {daily.map(row => <div className="ar-reader-trend-day" key={row.day} title={row.day + ': ' + count(row.sessions) + ' sessions, ' + count(row.completed) + ' completed, ' + count(row.exits) + ' exits'}>
             <div className="ar-reader-trend-bars">
               <i style={{ height: Math.max(row.sessions ? 3 : 0, number(row.sessions) / maxDaily * 100) + '%' }}/>
@@ -303,7 +327,7 @@ export default function AdminReaderAnalytics({ chapters = [] }) {
         </div>
         <div className="ar-reader-note">
           <strong>About unconfirmed sessions</strong>
-          <p>A session without a completion or exit signal may mean the tab was closed, the browser stopped the request, the connection dropped, or the reader is still reading. It is kept separate from confirmed exit events.</p>
+          <p>A session without a completion or exit signal may mean the tab was closed, the browser stopped the request, the connection dropped, or the reader is still reading. It is kept separate from confirmed exit events. A quick switch to another chapter or navigation action is shown as its own exit reason.</p>
         </div>
       </section>
     </section>
