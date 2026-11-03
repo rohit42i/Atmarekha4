@@ -17,6 +17,7 @@ const TOOL_RESULTS = [
 const TAB_RESULTS = [
   ['Overview', 'Dashboard'],
   ['Control Room', 'Control Room'],
+  ['Reader Analytics', 'Reader Analytics'],
   ['Chapters', 'Chapter Manager'],
   ['Pages', 'Page Editor'],
   ['Comments', 'Comments'],
