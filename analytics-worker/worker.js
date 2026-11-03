@@ -354,21 +354,13 @@ async function dailyTrendForPeriod(env, start, end, context = null) {
   const today = dayStart(new Date());
   const segments = periodDaySegments(start, end);
   return mapWithConcurrency(segments, 8, async segment => {
-    let views;
     let archived = null;
     if (segment.cursor < today) {
       const month = monthKey(segment.cursor);
       archived = (await readCachedMonth(env, month, context))?.days?.[segment.day] || null;
     }
-    // A whole-day archive is valid only for a whole-day reporting bucket. The first and
-    // last bars are rolling-window slices and must be based on event timestamps.
-    if (archived && segment.fullDay && archived.chapters && typeof archived.chapters === 'object') {
-      const chapterCounts = archived.chapters;
-      views = Math.max(0, Number(archived.views ?? Object.values(chapterCounts).reduce((sum, count) => sum + Number(count || 0), 0)) || 0);
-    } else {
-      const rows = await viewRowsForPeriod(env, segment.start, segment.end, context);
-      views = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
-    }
+    // Whole-day archives are valid only for complete daily buckets. Rolling boundaries
+    // are read from timestamped R2 events so the reporting window stays exact.
     const rows = (!archived || !segment.fullDay)
       ? await viewRowsForPeriod(env, segment.start, segment.end, context)
       : null;
