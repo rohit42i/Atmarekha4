@@ -11,6 +11,9 @@ const SITE_ORIGINS = new Set([
 const PERIODS = new Set([1, 7, 30, 90]);
 const DAY_MS = 86400000;
 const RETENTION_DAYS = 90;
+const READER_INACTIVITY_MS = 30 * 60 * 1000;
+const READER_DEVICE_TYPES = new Set(['mobile', 'tablet', 'desktop', 'unknown']);
+const READER_ENTRY_SOURCES = new Set(['direct', 'search', 'social', 'internal', 'referral', 'unknown']);
 const adminAnalyticsInFlight = new Map();
 
 function corsHeaders(request) {
@@ -723,6 +726,8 @@ async function handleReaderJourneyEvent(request, env) {
   const pageNumber = payload?.pageNumber == null ? null : Number(payload.pageNumber);
   const chapterNumber = payload?.chapterNumber == null ? null : Number(payload.chapterNumber);
   const language = String(payload?.language || '');
+  const deviceType = READER_DEVICE_TYPES.has(String(payload?.deviceType || '')) ? String(payload.deviceType) : 'unknown';
+  const entrySource = READER_ENTRY_SOURCES.has(String(payload?.entrySource || '')) ? String(payload.entrySource) : 'unknown';
 
   if (!['start', 'progress', 'complete', 'exit', 'engagement'].includes(eventType)) {
     return text(request, 'Invalid reader journey event type.', 400);
@@ -782,6 +787,8 @@ async function handleReaderJourneyEvent(request, env) {
     viewerHash,
     chapterNumber,
     language,
+    deviceType,
+    entrySource,
     totalPages,
     pageNumber,
     exitReason,
@@ -839,7 +846,13 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
 }
 
 function emptyJourneyDaily(day) {
-  return { day, sessions: 0, completed: 0, exits: 0 };
+  return { day, sessions: 0, completed: 0, exits: 0, inactive: 0 };
+}
+
+function isReaderSessionInactive(session, now) {
+  if (!session || session.completed || session.exited) return false;
+  const lastActivity = new Date(session.lastEventAt).getTime();
+  return Number.isFinite(lastActivity) && now.getTime() - lastActivity >= READER_INACTIVITY_MS;
 }
 
 async function buildReaderJourneyAnalytics(env, days) {
@@ -865,11 +878,14 @@ async function buildReaderJourneyAnalytics(env, days) {
       viewerHash: event.viewerHash,
       chapterNumber: event.chapterNumber,
       language: event.language,
+      deviceType: READER_DEVICE_TYPES.has(event.deviceType) ? event.deviceType : 'unknown',
+      entrySource: READER_ENTRY_SOURCES.has(event.entrySource) ? event.entrySource : 'unknown',
       totalPages: Number(event.totalPages) || 0,
       startedAt: event.createdAt,
       lastEventAt: event.createdAt,
       pages: new Set(),
       exitPage: null,
+      exitAt: null,
       exitReason: null,
       nextChapterId: null,
       completed: false,
@@ -898,12 +914,19 @@ async function buildReaderJourneyAnalytics(env, days) {
     } else if (event.eventType === 'exit') {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
+      session.exitAt = event.createdAt;
       session.exitReason = event.exitReason || 'page_exit';
       session.nextChapterId = event.nextChapterId || null;
     }
   }
 
   const validSessions = [...sessions.values()];
+  const inactiveSessions = validSessions.filter(session => isReaderSessionInactive(session, now));
+  const recentUnconfirmedSessions = validSessions.filter(session =>
+    !session.completed && !session.exited && !isReaderSessionInactive(session, now)
+  );
+  const inactiveSessionIds = new Set(inactiveSessions.map(session => session.sessionId));
+  const isSettledSession = session => session.completed || session.exited || inactiveSessionIds.has(session.sessionId);
   const chapterBuckets = new Map();
   const daily = new Map();
   const readerChapters = new Map();
@@ -930,6 +953,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     daily.get(day).sessions++;
     if (session.completed) daily.get(day).completed++;
     if (session.exited && !session.completed) daily.get(day).exits++;
+    if (inactiveSessionIds.has(session.sessionId)) daily.get(day).inactive++;
   }
 
   const chapterStats = [...chapterBuckets.values()].map(chapter => {
@@ -955,18 +979,25 @@ async function buildReaderJourneyAnalytics(env, days) {
       const page = index + 1;
       const pageSessions = reached(page);
       const nextPageSessions = page < maxPages ? reached(page + 1) : [];
+      const settledPageSessions = pageSessions.filter(isSettledSession);
+      const nextPageSessionIds = new Set(nextPageSessions.map(session => session.sessionId));
       const exitSessions = exits.filter(session => session.exitPage === page);
-      const dropOffSessions = page < maxPages
-        ? Math.max(0, pageSessions.length - nextPageSessions.length)
-        : 0;
+      const dropOffRows = page < maxPages
+        ? settledPageSessions.filter(session => !nextPageSessionIds.has(session.sessionId))
+        : [];
+      const dropOffSessions = dropOffRows.length;
+      const inactiveAfterPage = dropOffRows.filter(session => inactiveSessionIds.has(session.sessionId)).length;
       return {
         page_number: page,
         sessions_reached: pageSessions.length,
         readers_reached: new Set(pageSessions.map(session => session.viewerHash)).size,
         next_page_sessions: nextPageSessions.length,
+        settled_sessions: settledPageSessions.length,
+        recent_unconfirmed_sessions: pageSessions.length - settledPageSessions.length,
         drop_off_sessions: dropOffSessions,
-        drop_off_rate: pageSessions.length && page < maxPages
-          ? (dropOffSessions / pageSessions.length) * 100
+        inactive_after_page: inactiveAfterPage,
+        drop_off_rate: settledPageSessions.length && page < maxPages
+          ? (dropOffSessions / settledPageSessions.length) * 100
           : 0,
         exits_after_page: exitSessions.length,
         exit_readers: new Set(exitSessions.map(session => session.viewerHash)).size,
@@ -981,6 +1012,12 @@ async function buildReaderJourneyAnalytics(env, days) {
       completed_sessions: completed.length,
       explicit_exits: exits.length,
       unconfirmed_exits: rows.filter(session => !session.completed && !session.exited).length,
+      inactive_sessions: rows.filter(session => inactiveSessionIds.has(session.sessionId)).length,
+      recent_unconfirmed_sessions: rows.filter(session => recentUnconfirmedSessions.some(active => active.sessionId === session.sessionId)).length,
+      settled_sessions: rows.filter(isSettledSession).length,
+      settled_completion_rate: rows.filter(isSettledSession).length
+        ? completed.length / rows.filter(isSettledSession).length * 100
+        : 0,
       next_chapter_clicks: rows.filter(session => session.exitReason === 'next_chapter').length,
       previous_chapter_clicks: rows.filter(session => session.exitReason === 'previous_chapter').length,
       chapter_list_exits: rows.filter(session => session.exitReason === 'chapter_list').length,
@@ -1039,12 +1076,58 @@ async function buildReaderJourneyAnalytics(env, days) {
     transition.sessions++;
     transition.readers.add(session.viewerHash);
   }
-  const chapterTransitions = [...transitionsByPair.values()].map(row => ({
-    from_chapter_id: row.from_chapter_id,
-    to_chapter_id: row.to_chapter_id,
-    sessions: row.sessions,
-    readers: row.readers.size,
-  })).sort((a, b) => b.sessions - a.sessions);
+  const chapterTransitions = [...transitionsByPair.values()].map(row => {
+    const sourceSessions = validSessions.filter(session =>
+      session.chapterId === row.from_chapter_id &&
+      session.exitReason === 'next_chapter' &&
+      session.nextChapterId === row.to_chapter_id
+    );
+    const followedThrough = sourceSessions.filter(source => {
+      const exitTime = new Date(source.exitAt || source.lastEventAt).getTime();
+      if (!Number.isFinite(exitTime)) return false;
+      return validSessions.some(target => {
+        const startTime = new Date(target.startedAt).getTime();
+        return target.sessionId !== source.sessionId &&
+          target.viewerHash === source.viewerHash &&
+          target.chapterId === row.to_chapter_id &&
+          startTime >= exitTime &&
+          startTime - exitTime <= READER_INACTIVITY_MS;
+      });
+    });
+    return {
+      from_chapter_id: row.from_chapter_id,
+      to_chapter_id: row.to_chapter_id,
+      sessions: row.sessions,
+      readers: row.readers.size,
+      opened_sessions: followedThrough.length,
+      opened_readers: new Set(followedThrough.map(session => session.viewerHash)).size,
+      follow_through_rate: sourceSessions.length ? followedThrough.length / sourceSessions.length * 100 : 0,
+    };
+  }).sort((a, b) => b.sessions - a.sessions);
+
+  const buildBreakdown = field => {
+    const buckets = new Map();
+    for (const session of validSessions) {
+      const key = String(session[field] || 'unknown');
+      if (!buckets.has(key)) buckets.set(key, { value: key, sessions: 0, readers: new Set(), completed: 0 });
+      const bucket = buckets.get(key);
+      bucket.sessions++;
+      bucket.readers.add(session.viewerHash);
+      if (session.completed) bucket.completed++;
+    }
+    return [...buckets.values()].map(bucket => ({
+      value: bucket.value,
+      sessions: bucket.sessions,
+      readers: bucket.readers.size,
+      completed_sessions: bucket.completed,
+      completion_rate: bucket.sessions ? bucket.completed / bucket.sessions * 100 : 0,
+    })).sort((a, b) => b.sessions - a.sessions);
+  };
+  const eventCounts = Object.fromEntries(['start', 'progress', 'complete', 'exit', 'engagement'].map(type => [
+    type, events.filter(event => event.eventType === type).length,
+  ]));
+  const openedSessions = chapterTransitions.reduce((sum, row) => sum + row.opened_sessions, 0);
+  const nextChapterClicks = validSessions.filter(session => session.exitReason === 'next_chapter').length;
 
   const explicitReasonCounts = {};
   for (const session of explicitExits) {
@@ -1061,8 +1144,16 @@ async function buildReaderJourneyAnalytics(env, days) {
       sessions: validSessions.length,
       completed_sessions: completedSessions.length,
       explicit_exits: explicitExits.length,
-      unconfirmed_exits: validSessions.length - completedSessions.length - explicitExits.length,
-      next_chapter_clicks: validSessions.filter(session => session.exitReason === 'next_chapter').length,
+      inactive_sessions: inactiveSessions.length,
+      recent_unconfirmed_sessions: recentUnconfirmedSessions.length,
+      unconfirmed_exits: recentUnconfirmedSessions.length + inactiveSessions.length,
+      settled_sessions: completedSessions.length + explicitExits.length + inactiveSessions.length,
+      settled_completion_rate: (completedSessions.length + explicitExits.length + inactiveSessions.length)
+        ? completedSessions.length / (completedSessions.length + explicitExits.length + inactiveSessions.length) * 100
+        : 0,
+      next_chapter_clicks: nextChapterClicks,
+      next_chapter_opens: openedSessions,
+      next_chapter_follow_through_rate: nextChapterClicks ? openedSessions / nextChapterClicks * 100 : 0,
       previous_chapter_clicks: validSessions.filter(session => session.exitReason === 'previous_chapter').length,
       chapter_list_exits: validSessions.filter(session => session.exitReason === 'chapter_list').length,
       page_exit_events: explicitExits.filter(session => session.exitReason === 'page_exit').length,
@@ -1081,6 +1172,15 @@ async function buildReaderJourneyAnalytics(env, days) {
     chapter_transitions: chapterTransitions,
     daily_trend: daysRows,
     reader_depth: depthRows,
+    device_breakdown: buildBreakdown('deviceType'),
+    source_breakdown: buildBreakdown('entrySource'),
+    tracking_health: {
+      total_events: events.length,
+      event_counts: eventCounts,
+      first_event_at: events.length ? events[0].createdAt : null,
+      last_event_at: events.length ? events[events.length - 1].createdAt : null,
+      inactivity_threshold_minutes: READER_INACTIVITY_MS / 60000,
+    },
     updated_at: new Date().toISOString(),
   };
 }
