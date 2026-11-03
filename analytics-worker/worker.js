@@ -886,8 +886,10 @@ async function buildReaderJourneyAnalytics(env, days) {
   const allReaders = new Set();
   for (const session of validSessions) {
     allReaders.add(session.viewerHash);
-    if (!readerChapters.has(session.viewerHash)) readerChapters.set(session.viewerHash, new Set());
-    readerChapters.get(session.viewerHash).add(session.chapterId);
+    if (session.pages.size > 0) {
+      if (!readerChapters.has(session.viewerHash)) readerChapters.set(session.viewerHash, new Set());
+      readerChapters.get(session.viewerHash).add(session.chapterId);
+    }
 
     if (!chapterBuckets.has(session.chapterId)) {
       chapterBuckets.set(session.chapterId, {
