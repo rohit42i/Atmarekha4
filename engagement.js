@@ -63,6 +63,71 @@ export async function fetchCloudflareAdminAnalytics(days = 30) {
   });
 }
 
+export async function fetchCloudflareReaderAnalytics(days = 30) {
+  const value = Number(days);
+  if (![1, 7, 30, 90].includes(value)) throw new Error('Analytics period must be 1, 7, 30 or 90 days.');
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  const token = sessionData?.session?.access_token;
+  if (!token) throw new Error('Admin session required.');
+  return analyticsRequest(`/v1/admin/reader-analytics?days=${value}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function createReaderJourneySessionId() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = [...bytes].map(value => value.toString(16).padStart(2, '0')).join('');
+      return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
+    }
+  } catch (_) {}
+  const hex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-4' + hex.slice(13, 16) + '-8' + hex.slice(17, 20) + '-' + hex.slice(20);
+}
+
+export async function recordReaderJourneyEvent(event) {
+  if (!event?.chapterId || !event?.sessionId || !event?.eventType) {
+    throw new Error('Reader journey event is missing its session details.');
+  }
+  return analyticsRequest('/v1/reader-event', {
+    method: 'POST',
+    body: JSON.stringify({ ...event, viewerKey: getViewerKey() }),
+  });
+}
+
+export function sendReaderJourneyExitBeacon(event) {
+  if (!event?.chapterId || !event?.sessionId) return false;
+  const body = JSON.stringify({
+    ...event,
+    eventType: 'exit',
+    viewerKey: getViewerKey(),
+  });
+  const url = ANALYTICS_WORKER_URL + '/v1/reader-event';
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      const payload = new Blob([body], { type: 'text/plain;charset=UTF-8' });
+      if (navigator.sendBeacon(url, payload)) return true;
+    }
+  } catch (_) {}
+  try {
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8', Accept: 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {});
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 let inMemoryViewerKey = null;
 
 function createViewerKey() {
