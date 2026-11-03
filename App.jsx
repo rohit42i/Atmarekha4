@@ -275,7 +275,7 @@ function finishReaderJourney(session, reason, nextChapterId = null) {
 
 function Reader({ chapterId, onBack, chapters }) {
    const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [loadedPageIndex, setLoadedPageIndex] = useState(null); const readerJourneyRef = useRef(null); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null);
-  useEffect(() => { const protectedPage = Number(chapter?.chapterNumber) > 8; const url = protectedPage ? protectedUrls[index] : pages[index]; setPageImageLoading(Boolean(url)); }, [chapter, pages, index, protectedUrls]);
+  useEffect(() => { const protectedPage = Number(chapter?.chapterNumber) > 8; const url = protectedPage ? protectedUrls[index] : pages[index]; setLoadedPageIndex(null); setPageImageLoading(Boolean(url)); }, [chapter, pages, index, protectedUrls]);
  const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const specialPageFallbackRef = useRef(new Set()); const progressHydratedRef = useRef(false);
   const minSwipeDistance = 50;
   const onTouchStart = event => { setTouchEnd(null); setTouchStart(event.targetTouches[0].clientX); };
@@ -318,8 +318,11 @@ function Reader({ chapterId, onBack, chapters }) {
       exitReason: null,
     };
     readerJourneyRef.current = session;
-    recordReaderJourneyEvent({ ...meta, eventType: 'start' })
-      .catch(journeyError => console.warn('Reader journey start was not recorded:', journeyError));
+    session.startPromise = recordReaderJourneyEvent({ ...meta, eventType: 'start' })
+      .catch(journeyError => {
+        console.warn('Reader journey start was not recorded:', journeyError);
+        return null;
+      });
     const onPageHide = () => finishReaderJourney(session, 'page_exit');
     window.addEventListener('pagehide', onPageHide);
     return () => {
@@ -347,14 +350,21 @@ function Reader({ chapterId, onBack, chapters }) {
         timer = null;
         if (session.ended || session.recordedPages.has(pageNumber) || document.visibilityState !== 'visible') return;
         session.recordedPages.add(pageNumber);
-        session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
-        recordReaderJourneyEvent({ ...session.meta, eventType: 'progress', pageNumber })
-          .catch(journeyError => console.warn('Reader page progress was not recorded:', journeyError));
-        if (pageNumber === session.meta.totalPages && !session.completed) {
-          session.completed = true;
-          recordReaderJourneyEvent({ ...session.meta, eventType: 'complete', pageNumber })
-            .catch(journeyError => console.warn('Reader chapter completion was not recorded:', journeyError));
-        }
+        session.startPromise.then(async () => {
+          if (session.ended) return;
+          session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
+          try {
+            await recordReaderJourneyEvent({ ...session.meta, eventType: 'progress', pageNumber });
+          } catch (journeyError) {
+            console.warn('Reader page progress was not recorded:', journeyError);
+            return;
+          }
+          if (pageNumber === session.meta.totalPages && !session.completed) {
+            session.completed = true;
+            recordReaderJourneyEvent({ ...session.meta, eventType: 'complete', pageNumber })
+              .catch(journeyError => console.warn('Reader chapter completion was not recorded:', journeyError));
+          }
+        });
       }, 2000);
     };
     document.addEventListener('visibilitychange', scheduleVisibleRead);
