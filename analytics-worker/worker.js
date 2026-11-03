@@ -330,20 +330,13 @@ async function combinedPeriodCounts(env, start, end, context = null) {
 async function combinedPeriodPageviews(env, start, end, context = null) {
   const result = {};
   if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
-  const today = dayStart(new Date());
+  // Page-open records are queried directly for the selected period. This avoids waiting
+  // for the hourly archive job and keeps rolling-period counts exact.
   const segments = periodDaySegments(start, end);
-  const segmentCounts = await mapWithConcurrency(segments, 8, async segment => {
-    let archived = null;
-    if (segment.cursor < today) {
-      const month = monthKey(segment.cursor);
-      archived = (await readCachedMonth(env, month, context))?.days?.[segment.day] || null;
-    }
-    if (archived && segment.fullDay && archived.chapterPageviews) {
-      return Object.entries(archived.chapterPageviews).map(([chapterId, pageviews]) => ({ chapterId, views: pageviews }));
-    }
-    return viewRowsForPeriod(env, segment.start, segment.end, context);
-  });
-  for (const rows of segmentCounts) mergeChapterCounts(result, rows.map(row => ({
+  const segmentRows = await mapWithConcurrency(segments, 8, segment =>
+    viewRowsForPeriod(env, segment.start, segment.end, context)
+  );
+  for (const rows of segmentRows) mergeChapterCounts(result, rows.map(row => ({
     chapterId: row.chapterId,
     views: row.pageviews || 0,
   })));
@@ -375,8 +368,15 @@ async function dailyTrendForPeriod(env, start, end, context = null) {
 }
 
 async function dailyPageviewTrendForPeriod(env, start, end, context = null) {
-  const rows = await dailyTrendForPeriod(env, start, end, context);
-  return rows.map(row => ({ day: row.day, pageviews: row.pageviews, partial: row.partial }));
+  const segments = periodDaySegments(start, end);
+  return mapWithConcurrency(segments, 8, async segment => {
+    const rows = await viewRowsForPeriod(env, segment.start, segment.end, context);
+    return {
+      day: segment.day,
+      pageviews: rows.reduce((sum, row) => sum + Number(row.pageviews || 0), 0),
+      partial: !segment.fullDay,
+    };
+  });
 }
 
 function dateKeyFromAnalytics(value) {
@@ -732,7 +732,10 @@ async function buildAdminAnalytics(env, days) {
   }
 
   const allTimePageviews = { ...(summary.chapterPageviews || {}) };
-  const liveTodayPageviews = await combinedPeriodPageviews(env, dayStart(now), new Date(now.getTime() + 1), context);
+  const firstUnarchivedDay = summary.processedThrough
+    ? dayStart(addDays(summary.processedThrough, 1))
+    : dayStart(now);
+  const liveTodayPageviews = await combinedPeriodPageviews(env, firstUnarchivedDay, new Date(now.getTime() + 1), context);
   for (const [id, count] of Object.entries(liveTodayPageviews)) {
     allTimePageviews[id] = Number(allTimePageviews[id] || 0) + Number(count || 0);
   }
