@@ -32,10 +32,20 @@ jobs:
       - name: Build JavaScript and TypeScript
         uses: github/codeql-action/autobuild@v4
 
-      - name: Upload CodeQL results
+      - name: Generate CodeQL results for review
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:javascript-typescript"
+          upload: false
+
+      - name: Upload CodeQL SARIF for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif-review
+          path: results/javascript.sarif
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Export CodeQL finding details for review
         if: always()
