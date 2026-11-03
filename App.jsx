@@ -278,6 +278,7 @@ function finishReaderJourney(session, reason, nextChapterId = null) {
     ...session.meta,
     pageNumber: session.maxPageReached || null,
     exitReason: reason,
+    activeSeconds: session.activeSeconds || 0,
     ...(nextChapterId ? { nextChapterId } : {}),
   });
 }
@@ -325,6 +326,8 @@ function Reader({ chapterId, onBack, chapters }) {
       completed: false,
       ended: false,
       exitReason: null,
+      activeSeconds: 0,
+      engagementSequence: 0,
     };
     readerJourneyRef.current = session;
     session.startPromise = recordReaderJourneyEventWithRetry({ ...meta, eventType: 'start' })
@@ -334,9 +337,22 @@ function Reader({ chapterId, onBack, chapters }) {
         return false;
       });
     const onPageHide = () => finishReaderJourney(session, 'page_exit');
+    const engagementTimer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible' || !document.hasFocus() || session.ended) return;
+      session.activeSeconds += 1;
+      if (session.activeSeconds % 15 !== 0) return;
+      session.engagementSequence += 1;
+      recordReaderJourneyEventWithRetry({
+        ...session.meta,
+        eventType: 'engagement',
+        activeSeconds: session.activeSeconds,
+        sequence: session.engagementSequence,
+      }).catch(journeyError => console.warn('Reader engagement heartbeat was not recorded:', journeyError));
+    }, 1000);
     window.addEventListener('pagehide', onPageHide);
     return () => {
       window.removeEventListener('pagehide', onPageHide);
+      window.clearInterval(engagementTimer);
       finishReaderJourney(session, session.exitReason || 'navigation');
       if (readerJourneyRef.current === session) readerJourneyRef.current = null;
     };
@@ -374,7 +390,12 @@ function Reader({ chapterId, onBack, chapters }) {
           }
           if (pageNumber === session.meta.totalPages && !session.completed) {
             try {
-              await recordReaderJourneyEventWithRetry({ ...session.meta, eventType: 'complete', pageNumber });
+              await recordReaderJourneyEventWithRetry({
+                ...session.meta,
+                eventType: 'complete',
+                pageNumber,
+                activeSeconds: session.activeSeconds || 0,
+              });
               session.completed = true;
             } catch (journeyError) {
               console.warn('Reader chapter completion was not recorded after retry:', journeyError);
