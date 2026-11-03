@@ -935,11 +935,20 @@ async function buildReaderJourneyAnalytics(env, days) {
     const pageStats = Array.from({ length: maxPages }, (_, index) => {
       const page = index + 1;
       const pageSessions = reached(page);
+      const nextPageSessions = page < maxPages ? reached(page + 1) : [];
       const exitSessions = exits.filter(session => session.exitPage === page);
+      const dropOffSessions = page < maxPages
+        ? Math.max(0, pageSessions.length - nextPageSessions.length)
+        : 0;
       return {
         page_number: page,
         sessions_reached: pageSessions.length,
         readers_reached: new Set(pageSessions.map(session => session.viewerHash)).size,
+        next_page_sessions: nextPageSessions.length,
+        drop_off_sessions: dropOffSessions,
+        drop_off_rate: pageSessions.length && page < maxPages
+          ? (dropOffSessions / pageSessions.length) * 100
+          : 0,
         exits_after_page: exitSessions.length,
         exit_readers: new Set(exitSessions.map(session => session.viewerHash)).size,
       };
