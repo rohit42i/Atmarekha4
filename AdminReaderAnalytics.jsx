@@ -137,6 +137,8 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
   const summary = payload?.summary || {};
   const daily = Array.isArray(payload?.daily_trend) ? payload.daily_trend : [];
   const readerDepth = Array.isArray(payload?.reader_depth) ? payload.reader_depth : [];
+  const chapterTransitions = Array.isArray(payload?.chapter_transitions) ? payload.chapter_transitions : [];
+  const visibleTransitions = chapterTransitions.filter(row => (language === 'all' || chapterById.get(String(row.from_chapter_id))?.language === language) && (selectedChapterId === 'all' || String(row.from_chapter_id) === selectedChapterId));
   const maxDaily = Math.max(1, ...daily.map(row => number(row.sessions)));
   const maxDepth = Math.max(1, ...readerDepth.map(row => number(row.readers)));
   const hasData = Boolean(payload?.has_data);
@@ -180,6 +182,15 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       for (const page of row.page_stats || []) {
         exportRows.push([page.page_number, page.sessions_reached, page.readers_reached, page.exits_after_page]);
       }
+    }
+    exportRows.push([], ['Chapter transitions'], ['From chapter', 'To chapter', 'Sessions', 'Unique browsers']);
+    for (const transition of visibleTransitions) {
+      exportRows.push([
+        chapterLabel({ chapter_number: chapterById.get(String(transition.from_chapter_id))?.chapterNumber }, chapterById.get(String(transition.from_chapter_id))),
+        chapterLabel({ chapter_number: chapterById.get(String(transition.to_chapter_id))?.chapterNumber }, chapterById.get(String(transition.to_chapter_id))),
+        transition.sessions,
+        transition.readers,
+      ]);
     }
     downloadCsv('atma-rekha-reader-analytics-' + days + 'd.csv', exportRows);
   };
@@ -289,7 +300,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       {rows.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table">
           <thead><tr>
-            <th>Chapter</th><th>Language</th><th>Readers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Avg. pages</th><th>Avg. read time</th>
+            <th>Chapter</th><th>Language</th><th>Readers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. read time</th>
           </tr></thead>
           <tbody>{rows.map(row => <tr key={row.chapter_id} className={selectedChapterId === String(row.chapter_id) ? 'is-selected' : ''}>
             <td><button type="button" className="ar-reader-link" onClick={() => setSelectedChapterId(String(row.chapter_id))}>{chapterLabel(row, row.chapter)}</button></td>
@@ -299,11 +310,34 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
             <td>{count(row.completed_sessions)}</td>
             <td><div className="ar-reader-rate"><Bar value={number(row.average_completion_percent)} max={100}/><strong>{percentage(row.average_completion_percent)}</strong></div></td>
             <td>{count(row.explicit_exits)}</td>
+            <td>{count(row.next_chapter_clicks)}</td>
             <td>{number(row.average_pages_read).toFixed(1)}</td>
             <td>{duration(row.average_reading_seconds)}</td>
           </tr>)}</tbody>
         </table>
       </div> : <Empty>No chapter journey records match these filters.</Empty>}
+    </section>
+
+    <section className="ar-reader-card">
+      <div className="ar-reader-card-heading">
+        <div><span>CHAPTER FLOW</span><h3>Chapter-to-chapter movement</h3><p>Next chapter control clicks from the chapter currently being read.</p></div>
+        <small>{visibleTransitions.length} transitions</small>
+      </div>
+      {visibleTransitions.length ? <div className="ar-reader-table-wrap">
+        <table className="ar-reader-table ar-reader-transition-table">
+          <thead><tr><th>From</th><th>To</th><th>Sessions</th><th>Unique browsers</th></tr></thead>
+          <tbody>{visibleTransitions.map(row => {
+            const from = chapterById.get(String(row.from_chapter_id));
+            const to = chapterById.get(String(row.to_chapter_id));
+            return <tr key={row.from_chapter_id + ':' + row.to_chapter_id}>
+              <td>{chapterLabel({ chapter_number: from?.chapterNumber }, from)}</td>
+              <td>{chapterLabel({ chapter_number: to?.chapterNumber }, to)}</td>
+              <td>{count(row.sessions)}</td>
+              <td>{count(row.readers)}</td>
+            </tr>;
+          })}</tbody>
+        </table>
+      </div> : <Empty>No next-chapter transitions were recorded in this reporting window.</Empty>}
     </section>
 
     <section className="ar-reader-grid ar-reader-detail-grid">
