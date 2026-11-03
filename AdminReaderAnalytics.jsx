@@ -208,6 +208,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     (selectedChapterId === 'all' || String(session.chapter_id) === selectedChapterId)
   );
   const sessionDetailsTotal = number(payload?.session_details_total);
+  const sessionDetailsLoaded = sessionDetails.length;
   const sessionDetailsLimit = number(payload?.session_details_limit);
   const maxDaily = Math.max(1, ...daily.map(row => number(row.sessions)));
   const maxPageviewsDaily = Math.max(1, ...pageviewDaily.map(row => number(row.pageviews)));
@@ -636,8 +637,8 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
           </table>
         </div>
         <p className="ar-reader-session-limit">
-          Showing the {count(visibleSessionDetails.length)} most recent matching visits
-          {sessionDetailsTotal > sessionDetails.length ? ' out of ' + count(sessionDetailsTotal) + ' visits in this period. Detail rows are capped at ' + count(sessionDetailsLimit) + ' per response; summary metrics still use every session.' : '.'}
+          Showing {count(visibleSessionDetails.length)} matching visits from the {count(sessionDetailsLoaded)} most recent visit details loaded
+          {sessionDetailsTotal > sessionDetailsLoaded ? ' out of ' + count(sessionDetailsTotal) + ' visits in this reporting window. The detail list is capped at ' + count(sessionDetailsLimit) + ' recent visits across all chapters; summary metrics still use every visit.' : ' in this reporting window.'}
         </p>
       </> : <Empty>No individual visits match these filters. Page-level visit details appear after real readers generate new events.</Empty>}
     </section>
