@@ -137,6 +137,9 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
           page_number: index + 1,
           sessions_reached: 0,
           readers_reached: 0,
+          next_page_sessions: 0,
+          drop_off_sessions: 0,
+          drop_off_rate: 0,
           exits_after_page: 0,
           exit_readers: 0,
         })),
@@ -287,14 +290,14 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     <div className="ar-reader-metrics">
       <Metric label="Chapter views" value={count(viewPayload?.current_views)} detail="Recorded chapter opens in the selected reporting window"/>
       <Metric label="All-time views" value={count(viewPayload?.total_views)} detail="Historical chapter view totals from the existing tracker"/>
-      <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser identifiers, not verified people or accounts"/>
-      <Metric label="Reading sessions" value={count(summary.sessions)} detail="New page-tracked sessions recorded since journey tracking launched"/>
+      <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser IDs, not verified individual people"/>
+      <Metric label="Chapter visits" value={count(summary.sessions)} detail="Each time a reader opens a chapter, not a site-wide session"/>
       <Metric label="Completed chapters" value={count(summary.completed_sessions)} detail={percentage(summary.completion_rate) + ' of recorded sessions'}/>
       <Metric label="Recorded exits" value={count(summary.explicit_exits)} detail="Exit event received before completion"/>
       <Metric label="No end signal" value={count(summary.unconfirmed_exits)} detail="No completion or exit event was received"/>
       <Metric label="Next chapter clicks" value={count(summary.next_chapter_clicks)} detail="Reader used the next chapter control"/>
       <Metric label="Pages read" value={count(summary.pages_read)} detail="Page loaded and remained visible for at least 2 seconds"/>
-      <Metric label="Average completion" value={percentage(summary.average_completion_percent)} detail={duration(summary.average_reading_seconds) + ' average ended-session duration'}/>
+      <Metric label="Average completion" value={percentage(summary.average_completion_percent)} detail={duration(summary.average_reading_seconds) + ' average elapsed visit time, not active reading time'}/>
     </div>
 
     {viewError && <div className="ar-reader-alert" role="status">
@@ -342,7 +345,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       {rows.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table">
           <thead><tr>
-            <th>Chapter</th><th>Language</th><th>Views in period</th><th>All-time views</th><th>Unique browsers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. read time</th>
+            <th>Chapter</th><th>Language</th><th>Views in period</th><th>All-time views</th><th>Unique browsers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. elapsed visit</th>
           </tr></thead>
           <tbody>{rows.map(row => <tr key={row.chapter_id} className={selectedChapterId === String(row.chapter_id) ? 'is-selected' : ''}>
             <td><button type="button" className="ar-reader-link" onClick={() => setSelectedChapterId(String(row.chapter_id))}>{chapterLabel(row, row.chapter)}</button></td>
@@ -356,7 +359,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
             <td>{count(row.explicit_exits)}</td>
             <td>{count(row.next_chapter_clicks)}</td>
             <td>{number(row.average_pages_read).toFixed(1)}</td>
-            <td>{duration(row.average_reading_seconds)}</td>
+            <td title="Elapsed time from chapter open to last recorded event; not active reading time">{duration(row.average_reading_seconds)}</td>
           </tr>)}</tbody>
         </table>
       </div> : <Empty>No chapter journey records match these filters.</Empty>}
@@ -387,7 +390,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     <section className="ar-reader-grid ar-reader-detail-grid">
       <section className="ar-reader-card">
         <div className="ar-reader-card-heading">
-          <div><span>PAGE-LEVEL RETENTION</span><h3>{selectedRow ? chapterLabel(selectedRow, selectedRow.chapter) : 'Choose a chapter'}</h3><p>Unique browsers who stayed on a loaded page for at least two seconds.</p></div>
+          <div><span>PAGE-LEVEL RETENTION</span><h3>{selectedRow ? chapterLabel(selectedRow, selectedRow.chapter) : 'Choose a chapter'}</h3><p>Page reach is counted after the image loads and stays visible for two seconds. Drop-off means a visit did not reach the following page.</p></div>
         </div>
         {selectedRow ? <>
           <div className="ar-reader-page-summary">
@@ -402,7 +405,11 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
                 <Bar value={number(page.readers_reached)} max={Math.max(1, number(selectedRow.readers))}/>
                 <span>{count(page.readers_reached)} browsers</span>
               </div>
-              <small>{count(page.exits_after_page)} exit signals at this page</small>
+              <small>
+                {page.page_number < (selectedRow.page_stats || []).length
+                  ? count(page.drop_off_sessions) + ' did not reach the next page · ' + percentage(page.drop_off_rate) + ' drop-off'
+                  : count(page.exits_after_page) + ' confirmed exit signals at final page'}
+              </small>
             </div>)}
           </div> : <Empty>No page-level records for this chapter yet.</Empty>}
         </> : <Empty>Select a chapter in the filter or table to inspect its page-by-page retention.</Empty>}
@@ -422,7 +429,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <footer className="ar-reader-privacy-note">
       <strong>Measurement and privacy</strong>
-      <p>Reader journeys use a random browser identifier that is hashed before storage. The journey records contain chapter, language, page progress and session events, not account names or raw IP addresses. A page is counted after it has loaded and remained visible for two seconds. Browser exit signals are best effort, so some exits may appear as sessions with no end signal.</p>
+      <p>Reader journeys use a random browser identifier that is hashed before storage. Records contain chapter, language, page progress and event times, not account names or raw IP addresses. A page is counted after it loads and remains visible for two seconds. Elapsed visit time is not the same as active reading time. Browser exit signals are best effort, so some visits may have no confirmed ending.</p>
     </footer>
   </section>;
 }
