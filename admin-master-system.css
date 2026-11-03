@@ -3146,7 +3146,9 @@ main.admin-page.ar-admin-v3 .ar-overview .ar-chart-legend .dot.pink {
   background: var(--admin-text-muted) !important;
 }
 main.admin-page.ar-admin-v3 .ar-overview .ar-chart-bars {
-  background: repeating-linear-gradient(to bottom, transparent 0, transparent 48px, var(--admin-border-color) 49px, transparent 50px) !important;
+  border-top: 1px solid var(--admin-border-color);
+  border-bottom: 1px solid var(--admin-border-color);
+  background: var(--admin-card-bg) !important;
 }
 main.admin-page.ar-admin-v3 .ar-overview .ar-chart-track {
   background: var(--admin-bg-tertiary) !important;
@@ -3287,7 +3289,9 @@ main.admin-page.ar-admin-v3 .ar-overview .ar-health-bar i {
   }
 }
 @media (max-width: 640px) {
-  main.admin-page.ar-admin-v3 .ar-overview-kpis,
+  main.admin-page.ar-admin-v3 .ar-overview-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
   main.admin-page.ar-admin-v3 .ar-overview-main-grid,
   main.admin-page.ar-admin-v3 .ar-overview-secondary,
   main.admin-page.ar-admin-v3 .ar-overview-grid-3,
