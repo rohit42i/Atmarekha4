@@ -201,6 +201,12 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       ['Language filter', language],
       ['Chapter filter', selectedChapterId === 'all' ? 'All chapters' : chapterLabel(rows.find(row => String(row.chapter_id) === selectedChapterId) || {}, chapterById.get(selectedChapterId))],
       ['Updated at', payload?.updated_at || viewPayload?.updated_at || ''],
+      ['Page opens in period', viewPayload?.current_pageviews ?? 0],
+      ['Tracked page opens total', viewPayload?.total_pageviews ?? 0],
+      ['Reader-days in period', viewPayload?.current_reader_days ?? viewPayload?.current_views ?? 0],
+      ['Cumulative reader-days', viewPayload?.total_reader_days ?? viewPayload?.total_views ?? 0],
+      ['Unique browsers', viewPayload?.reader_metrics_limited ? 'Unavailable' : viewPayload?.active_readers ?? 0],
+      ['Returning browsers (2+ days)', viewPayload?.reader_metrics_limited ? 'Unavailable' : viewPayload?.returning_readers ?? 0],
       [],
       ['Chapter', 'Language', 'Page opens in period', 'Tracked page opens total', 'Reader-days in period', 'Cumulative reader-days', 'Unique browsers', 'Chapter visits', 'Completed visits', 'Completion of settled visits', 'Recorded exits', 'Inactive over 30 minutes', 'Still active or unconfirmed', 'Average pages read', 'Average page reach', 'Average active reading seconds', 'Average elapsed visit seconds', 'Next chapter clicks', 'Next chapter opens', 'Chapter list exits', 'Page exit events'],
     ];
@@ -318,7 +324,8 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       <Metric label="Tracked page opens total" value={count(viewPayload?.total_pageviews)} detail="Individual opens recorded since per-visit tracking launched"/>
       <Metric label="Reader-days" value={count(viewPayload?.current_reader_days ?? viewPayload?.current_views)} detail="One browser counted once per chapter per UTC day"/>
       <Metric label="Cumulative reader-days" value={count(viewPayload?.total_reader_days ?? viewPayload?.total_views)} detail="Daily browser/chapter counts summed over time, not all-time people"/>
-      <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser IDs in page-journey records, not verified people"/>
+      <Metric label="Unique browsers" value={viewPayload?.reader_metrics_limited ? 'Unavailable' : count(viewPayload?.active_readers)} detail={viewPayload?.reader_metrics_limited ? (viewPayload?.reader_metrics_limited_reason || 'Historical reader identities are incomplete') : 'Hashed anonymous browsers with at least one chapter open in this period'}/>
+      <Metric label="Returning browsers" value={viewPayload?.reader_metrics_limited ? 'Unavailable' : count(viewPayload?.returning_readers)} detail="Browsers with chapter activity on two or more UTC days in this period"/>
       <Metric label="Chapter visits" value={count(summary.sessions)} detail="Each chapter reading visit; one reader can create several visits"/>
       <Metric label="Completed visits" value={count(summary.completed_sessions)} detail={percentage(summary.settled_completion_rate) + ' of completed, exited or inactive visits'}/>
       <Metric label="Explicit exits" value={count(summary.explicit_exits)} detail="An exit or chapter-navigation event was received"/>
@@ -404,7 +411,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       {rows.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table">
           <thead><tr>
-            <th>Chapter</th><th>Language</th><th>Page opens</th><th>Tracked opens total</th><th>Reader-days</th><th>Cumulative reader-days</th><th>Unique browsers</th><th>Chapter visits</th><th>Completed</th><th>Settled completion</th><th>Explicit exits</th><th>Inactive</th><th>Avg. pages</th><th>Avg. active read</th>
+            <th>Chapter</th><th>Language</th><th>Page opens</th><th>Tracked opens total</th><th>Reader-days</th><th>Cumulative reader-days</th><th>Journey browsers</th><th>Chapter visits</th><th>Completed</th><th>Settled completion</th><th>Explicit exits</th><th>Inactive</th><th>Avg. pages</th><th>Avg. active read</th>
           </tr></thead>
           <tbody>{rows.map(row => <tr key={row.chapter_id} className={selectedChapterId === String(row.chapter_id) ? 'is-selected' : ''}>
             <td><button type="button" className="ar-reader-link" onClick={() => setSelectedChapterId(String(row.chapter_id))}>{chapterLabel(row, row.chapter)}</button></td>
@@ -502,7 +509,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <footer className="ar-reader-privacy-note">
       <strong>Measurement and privacy</strong>
-      <p>Every successful chapter opening gets a unique visit ID and counts as one page open. Separately, reader-days count one browser once per chapter per UTC day, so repeat openings are not included in that measure. Page journeys use a random browser ID hashed before storage. Coarse device and entry-source categories are stored, not full referring URLs, account names or raw IP addresses. Active reading time counts while the reader tab is visible and focused. A page counts after it loads and remains visible for two seconds. Visits without completion or exit become inactive estimates after 30 minutes; these are not confirmed reader intent.</p>
+      <p>Every successful chapter opening gets a unique visit ID and counts as one page open. Reader-days count one browser once per chapter per UTC day, so repeat openings are not included in that measure. Historical reader-days are retained from the earlier tracker; exact historical repeat page opens cannot be reconstructed. Page journeys use a random browser ID hashed before storage. Coarse device and entry-source categories are stored, not full referring URLs, account names or raw IP addresses. Active reading time counts while the reader tab is visible and focused. A page counts after it loads and remains visible for two seconds. Visits without completion or exit become inactive estimates after 30 minutes; these are not confirmed reader intent.</p>
     </footer>
   </section>;
 }
