@@ -331,22 +331,37 @@ function Reader({ chapterId, onBack, chapters }) {
   useEffect(() => {
     const session = readerJourneyRef.current;
     if (!session || session.ended || !chapter || session.meta.chapterId !== String(chapter.id) ||
-        !pages.length || loadedPageIndex !== index || document.visibilityState !== 'visible') return undefined;
+        !pages.length || loadedPageIndex !== index) return undefined;
     const pageNumber = index + 1;
     if (session.recordedPages.has(pageNumber)) return undefined;
-    const timer = window.setTimeout(() => {
-      if (session.ended || session.recordedPages.has(pageNumber) || document.visibilityState !== 'visible') return;
-      session.recordedPages.add(pageNumber);
-      session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
-      recordReaderJourneyEvent({ ...session.meta, eventType: 'progress', pageNumber })
-        .catch(journeyError => console.warn('Reader page progress was not recorded:', journeyError));
-      if (pageNumber === session.meta.totalPages && !session.completed) {
-        session.completed = true;
-        recordReaderJourneyEvent({ ...session.meta, eventType: 'complete', pageNumber })
-          .catch(journeyError => console.warn('Reader chapter completion was not recorded:', journeyError));
+    let timer = null;
+    const scheduleVisibleRead = () => {
+      if (document.visibilityState !== 'visible') {
+        if (timer !== null) window.clearTimeout(timer);
+        timer = null;
+        return;
       }
-    }, 2000);
-    return () => window.clearTimeout(timer);
+      if (timer !== null || session.ended || session.recordedPages.has(pageNumber)) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        if (session.ended || session.recordedPages.has(pageNumber) || document.visibilityState !== 'visible') return;
+        session.recordedPages.add(pageNumber);
+        session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
+        recordReaderJourneyEvent({ ...session.meta, eventType: 'progress', pageNumber })
+          .catch(journeyError => console.warn('Reader page progress was not recorded:', journeyError));
+        if (pageNumber === session.meta.totalPages && !session.completed) {
+          session.completed = true;
+          recordReaderJourneyEvent({ ...session.meta, eventType: 'complete', pageNumber })
+            .catch(journeyError => console.warn('Reader chapter completion was not recorded:', journeyError));
+        }
+      }, 2000);
+    };
+    document.addEventListener('visibilitychange', scheduleVisibleRead);
+    scheduleVisibleRead();
+    return () => {
+      document.removeEventListener('visibilitychange', scheduleVisibleRead);
+      if (timer !== null) window.clearTimeout(timer);
+    };
   }, [chapter?.id, index, loadedPageIndex, pages.length]);
   useEffect(() => {
     const protectedChapter = Number(chapter?.chapterNumber) > 8;
