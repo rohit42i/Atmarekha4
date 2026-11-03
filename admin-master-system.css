@@ -2914,3 +2914,417 @@ main.admin-page.ar-admin-v3[data-admin-theme] :is(img,video,canvas) {
 main.admin-page.ar-admin-v3[data-admin-theme] :is(svg,svg *) {
   background-color: transparent !important;
 }
+
+
+/* Dashboard and grouped navigation refinement.
+   All colors follow the same shared tokens as the main admin shell. */
+main.admin-page.ar-admin-v3 .ar-admin-nav .ar-admin-nav-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 30px;
+  margin: 0 0 4px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--admin-text-muted);
+  text-align: left;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav .ar-admin-nav-heading:hover {
+  color: var(--admin-text-primary);
+  background: var(--admin-bg-tertiary);
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav .ar-admin-nav-heading .ar-admin-nav-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav-heading-icon {
+  display: none;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav-chevron {
+  flex: 0 0 auto;
+  color: var(--admin-text-muted);
+  transition: transform .15s ease;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav-chevron.is-expanded {
+  transform: rotate(90deg);
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav-items {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav-items[hidden] {
+  display: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-admin-nav :is(button, a):focus-visible,
+main.admin-page.ar-admin-v3 .ar-overview :is(button, a, select, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+}
+main.admin-page.ar-admin-v3 .ar-overview-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-card {
+  min-width: 0;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 9px !important;
+  background: var(--admin-card-bg) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-card:hover {
+  transform: none !important;
+  border-color: var(--admin-border-strong) !important;
+  background: var(--admin-bg-secondary) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-top > span:first-child {
+  color: var(--admin-text-secondary) !important;
+  font-size: 11px !important;
+  font-weight: 600;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-icon {
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 7px !important;
+  background: var(--admin-bg-secondary) !important;
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-card > strong {
+  color: var(--admin-text-primary) !important;
+  font-size: clamp(22px, 2vw, 28px) !important;
+  font-variant-numeric: tabular-nums;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-card > small {
+  color: var(--admin-text-muted) !important;
+  font-size: 10px !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-stat-accent-line {
+  display: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview-secondary-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 9px;
+  background: var(--admin-card-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview-secondary-metric {
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px 15px;
+  border-right: 1px solid var(--admin-border-color) !important;
+  background: var(--admin-card-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:last-child {
+  border-right: 0 !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview-secondary-metric > span {
+  color: var(--admin-text-muted) !important;
+  font-size: 10px;
+  line-height: 1.4;
+}
+main.admin-page.ar-admin-v3 .ar-overview-secondary-metric > strong {
+  color: var(--admin-text-primary) !important;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-ref-discovery {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: -5px;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-ref-refresh,
+main.admin-page.ar-admin-v3 .ar-overview .ar-ref-export {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 7px;
+  background: var(--admin-card-bg) !important;
+  color: var(--admin-text-primary) !important;
+  font-size: 11px;
+  font-weight: 650;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-ref-refresh:hover:not(:disabled),
+main.admin-page.ar-admin-v3 .ar-overview .ar-ref-export:hover {
+  border-color: var(--admin-border-strong) !important;
+  background: var(--admin-bg-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-ref-refresh:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+main.admin-page.ar-admin-v3 .ar-overview-hero {
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--admin-border-color);
+}
+main.admin-page.ar-admin-v3 .ar-overview-hero h2 {
+  color: var(--admin-text-primary) !important;
+  font-size: clamp(25px, 3vw, 32px);
+  letter-spacing: -.035em;
+}
+main.admin-page.ar-admin-v3 .ar-overview-hero p,
+main.admin-page.ar-admin-v3 .ar-overview .ar-period-status {
+  color: var(--admin-text-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-period-switch {
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 8px;
+  background: var(--admin-card-bg) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-period-switch button {
+  border-radius: 6px;
+  color: var(--admin-text-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-period-switch button.active,
+main.admin-page.ar-admin-v3 .ar-overview .ar-period-switch button[aria-selected="true"] {
+  border-color: var(--admin-border-color) !important;
+  background: var(--admin-bg-tertiary) !important;
+  color: var(--admin-text-primary) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-glass-card {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 9px !important;
+  background: var(--admin-card-bg) !important;
+  color: var(--admin-text-primary) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-glass-card:hover {
+  transform: none !important;
+  border-color: var(--admin-border-strong) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header {
+  border-bottom: 1px solid var(--admin-border-color) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header > div > span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header h3,
+main.admin-page.ar-admin-v3 .ar-overview .ar-section-header p {
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-legend,
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-legend span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-legend small {
+  color: var(--admin-text-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-legend .dot.violet {
+  background: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-legend .dot.pink {
+  background: var(--admin-text-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-bars {
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 48px, var(--admin-border-color) 49px, transparent 50px) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-track {
+  background: var(--admin-bg-tertiary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-track i {
+  background: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-track b {
+  background: var(--admin-text-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-chart-column > span {
+  color: var(--admin-text-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-text-action {
+  border: 1px solid var(--admin-border-color) !important;
+  background: var(--admin-card-bg) !important;
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-text-action:hover {
+  border-color: var(--admin-border-strong) !important;
+  background: var(--admin-bg-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-live-grid > div,
+main.admin-page.ar-admin-v3 .ar-overview .ar-rating-mini > div,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-stats > div,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-card,
+main.admin-page.ar-admin-v3 .ar-overview .ar-queue {
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 8px;
+  background: var(--admin-bg-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-live-grid span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-rating-mini span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-stats span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-live-foot,
+main.admin-page.ar-admin-v3 .ar-overview .ar-note,
+main.admin-page.ar-admin-v3 .ar-overview .ar-empty-inline {
+  color: var(--admin-text-secondary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-live-grid strong,
+main.admin-page.ar-admin-v3 .ar-overview .ar-rating-mini strong,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-stats b,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-card > div:first-child strong,
+main.admin-page.ar-admin-v3 .ar-overview .ar-queue-count strong {
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-insight-list > div,
+main.admin-page.ar-admin-v3 .ar-overview .ar-comment-feed article,
+main.admin-page.ar-admin-v3 .ar-overview .ar-admin-activity-list article {
+  border-color: var(--admin-border-color) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-avatar,
+main.admin-page.ar-admin-v3 .ar-overview .ar-admin-activity-mark,
+main.admin-page.ar-admin-v3 .ar-overview .ar-insight-list > div > span {
+  border: 1px solid var(--admin-border-color) !important;
+  background: var(--admin-bg-tertiary) !important;
+  color: var(--admin-text-primary) !important;
+  box-shadow: none !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-top-copy strong,
+main.admin-page.ar-admin-v3 .ar-overview .ar-top-value,
+main.admin-page.ar-admin-v3 .ar-overview .ar-comment-meta strong,
+main.admin-page.ar-admin-v3 .ar-overview .ar-comment-feed p,
+main.admin-page.ar-admin-v3 .ar-overview .ar-upcoming strong,
+main.admin-page.ar-admin-v3 .ar-overview .ar-admin-activity-copy strong {
+  color: var(--admin-text-primary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-top-copy span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-comment-meta time,
+main.admin-page.ar-admin-v3 .ar-overview .ar-comment-feed small,
+main.admin-page.ar-admin-v3 .ar-overview .ar-upcoming small,
+main.admin-page.ar-admin-v3 .ar-overview .ar-admin-activity-copy span,
+main.admin-page.ar-admin-v3 .ar-overview .ar-admin-activity-list time {
+  color: var(--admin-text-muted) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-top-copy i,
+main.admin-page.ar-admin-v3 .ar-overview .ar-funnel-list i,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-bar {
+  background: var(--admin-bg-tertiary) !important;
+}
+main.admin-page.ar-admin-v3 .ar-overview .ar-top-copy i em,
+main.admin-page.ar-admin-v3 .ar-overview .ar-funnel-list i em,
+main.admin-page.ar-admin-v3 .ar-overview .ar-health-bar i {
+  background: var(--admin-text-primary) !important;
+}
+@media (max-width: 1200px) and (min-width: 981px) {
+  main.admin-page.ar-admin-v3 .ar-admin-nav-heading {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-nav-heading-icon {
+    display: inline-flex;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-nav-heading .ar-admin-nav-label,
+  main.admin-page.ar-admin-v3 .ar-admin-nav-chevron {
+    display: none;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:nth-child(3) {
+    border-right: 0 !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:nth-child(n + 4) {
+    border-top: 1px solid var(--admin-border-color);
+  }
+}
+@media (max-width: 980px) {
+  main.admin-page.ar-admin-v3 .ar-admin-nav-heading {
+    min-height: 32px;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-nav-heading-icon {
+    display: none;
+  }
+  main.admin-page.ar-admin-v3 .ar-admin-nav-heading .ar-admin-nav-label {
+    display: block;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:nth-child(2n) {
+    border-right: 0 !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:nth-child(n + 3) {
+    border-top: 1px solid var(--admin-border-color);
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-main-grid,
+  main.admin-page.ar-admin-v3 .ar-overview-secondary,
+  main.admin-page.ar-admin-v3 .ar-overview-grid-3,
+  main.admin-page.ar-admin-v3 .ar-overview-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 640px) {
+  main.admin-page.ar-admin-v3 .ar-overview-kpis,
+  main.admin-page.ar-admin-v3 .ar-overview-main-grid,
+  main.admin-page.ar-admin-v3 .ar-overview-secondary,
+  main.admin-page.ar-admin-v3 .ar-overview-grid-3,
+  main.admin-page.ar-admin-v3 .ar-overview-grid-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:nth-child(2n) {
+    border-right: 0 !important;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-secondary-metric:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview .ar-period-switch {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview .ar-period-switch button {
+    flex: 1 1 auto;
+  }
+  main.admin-page.ar-admin-v3 .ar-overview .ar-glass-card {
+    padding: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  main.admin-page.ar-admin-v3 .ar-admin-nav *,
+  main.admin-page.ar-admin-v3 .ar-overview *,
+  main.admin-page.ar-admin-v3 .ar-overview *::before,
+  main.admin-page.ar-admin-v3 .ar-overview *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
