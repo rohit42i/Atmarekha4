@@ -190,6 +190,10 @@ try {
       ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo,
       eventType: 'complete', pageNumber: 3,
     },
+    {
+      ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo,
+      eventType: 'exit', pageNumber: 3, exitReason: 'next_chapter', nextChapterId: journeyChapterTwo,
+    },
     journeyStart(journeySessions[2], viewerKey, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
@@ -236,7 +240,7 @@ try {
   assert.equal(journeyAnalytics.summary.completed_sessions, 1, 'the final page event should count as a completion');
   assert.equal(journeyAnalytics.summary.explicit_exits, 3, 'journey analytics should distinguish explicit exits');
   assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
-  assert.equal(journeyAnalytics.summary.next_chapter_clicks, 1, 'next chapter navigation should have its own exit reason');
+  assert.equal(journeyAnalytics.summary.next_chapter_clicks, 2, 'next chapter navigation should be counted even after a reader completes a chapter');
   assert.equal(journeyAnalytics.summary.pages_read, 6, 'page exposure events should be counted once per session and page');
   const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
   assert.ok(firstChapterJourney, 'chapter page funnel should include the tracked chapter');
@@ -246,6 +250,7 @@ try {
   assert.equal(firstChapterJourney.page_stats[2].readers_reached, 1, 'page funnel should expose unique readers who reached the last page');
   assert.equal(firstChapterJourney.page_stats[1].exits_after_page, 1, 'page funnel should identify exits after page two');
   assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
+  assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
 
   const now = new Date();
   const legacyHash = 'legacy-viewer-identity';
