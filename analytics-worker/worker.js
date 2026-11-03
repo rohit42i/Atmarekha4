@@ -1276,7 +1276,10 @@ async function buildReaderJourneyAnalytics(env, days) {
     type, events.filter(event => event.eventType === type).length,
   ]));
   const sessionDetailLimit = 200;
-  const sessionDetails = validSessions
+  const detailSessions = [...validSessions]
+    .sort((a, b) => new Date(b.lastEventAt).getTime() - new Date(a.lastEventAt).getTime())
+    .slice(0, sessionDetailLimit);
+  const sessionDetails = detailSessions
     .map(session => {
       const pageNumbers = [...session.pages].sort((a, b) => a - b);
       const lastConfirmedPage = pageNumbers.length ? pageNumbers[pageNumbers.length - 1] : null;
@@ -1325,8 +1328,7 @@ async function buildReaderJourneyAnalytics(env, days) {
           ? Math.max(0, (endAtMs - startedAtMs) / 1000)
           : null,
       };
-    })
-    .sort((a, b) => new Date(b.last_activity_at).getTime() - new Date(a.last_activity_at).getTime());
+    });
   const openedSessions = chapterTransitions.reduce((sum, row) => sum + row.opened_sessions, 0);
   const nextChapterClicks = validSessions.filter(session => session.exitReason === 'next_chapter').length;
 
@@ -1371,7 +1373,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     },
     chapters: chapterStats,
     chapter_transitions: chapterTransitions,
-    session_details: sessionDetails.slice(0, sessionDetailLimit),
+    session_details: sessionDetails,
     session_details_total: sessionDetails.length,
     session_details_limit: sessionDetailLimit,
     daily_trend: daysRows,
