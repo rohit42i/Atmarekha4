@@ -528,7 +528,16 @@ async function bootstrapLegacy(env, today) {
     let latestDay = null;
     for (const [day, chapters] of Object.entries(byDay)) {
       const monthObject = await readJson(env, monthObjectKey(day.slice(0, 7)), { version: 1, month: day.slice(0, 7), days: {} });
-      monthObject.days[day] = { views: Object.values(chapters).reduce((sum, value) => sum + value, 0), chapters };
+      const existingDay = monthObject.days[day] || {};
+      const readerDays = Object.values(chapters).reduce((sum, value) => sum + value, 0);
+      monthObject.days[day] = {
+        ...existingDay,
+        views: readerDays,
+        readerDays,
+        chapters,
+        pageviews: Math.max(0, Number(existingDay.pageviews || 0)),
+        chapterPageviews: existingDay.chapterPageviews || {},
+      };
       await writeJson(env, monthObjectKey(day.slice(0, 7)), monthObject);
       for (const [chapterId, count] of Object.entries(chapters)) summary.chapterViews[chapterId] = (summary.chapterViews[chapterId] || 0) + count;
       if (!latestDay || day > latestDay) latestDay = day;
@@ -734,7 +743,7 @@ async function buildAdminAnalytics(env, days) {
   const allTimePageviews = { ...(summary.chapterPageviews || {}) };
   const firstUnarchivedDay = summary.processedThrough
     ? dayStart(addDays(summary.processedThrough, 1))
-    : dayStart(now);
+    : dayStart(new Date(now.getTime() - RETENTION_DAYS * DAY_MS));
   const liveTodayPageviews = await combinedPeriodPageviews(env, firstUnarchivedDay, new Date(now.getTime() + 1), context);
   for (const [id, count] of Object.entries(liveTodayPageviews)) {
     allTimePageviews[id] = Number(allTimePageviews[id] || 0) + Number(count || 0);
