@@ -1035,6 +1035,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     !session.completed && !session.exited && !isReaderSessionInactive(session, now)
   );
   const inactiveSessionIds = new Set(inactiveSessions.map(session => session.sessionId));
+  const recentUnconfirmedSessionIds = new Set(recentUnconfirmedSessions.map(session => session.sessionId));
   const isSettledSession = session => session.completed || session.exited || inactiveSessionIds.has(session.sessionId);
   const chapterBuckets = new Map();
   const daily = new Map();
@@ -1074,7 +1075,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     const completionValues = rows.map(session => session.totalPages > 0
       ? (Math.max(0, ...session.pages) / session.totalPages) * 100
       : 0);
-    const durations = rows.filter(session => session.completed || session.exited).map(session => {
+    const durations = rows.filter(isSettledSession).map(session => {
       const elapsed = new Date(session.lastEventAt).getTime() - new Date(session.startedAt).getTime();
       return Math.max(0, elapsed / 1000);
     });
@@ -1122,7 +1123,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       explicit_exits: exits.length,
       unconfirmed_exits: rows.filter(session => !session.completed && !session.exited).length,
       inactive_sessions: rows.filter(session => inactiveSessionIds.has(session.sessionId)).length,
-      recent_unconfirmed_sessions: rows.filter(session => recentUnconfirmedSessions.some(active => active.sessionId === session.sessionId)).length,
+      recent_unconfirmed_sessions: rows.filter(session => recentUnconfirmedSessionIds.has(session.sessionId)).length,
       settled_sessions: rows.filter(isSettledSession).length,
       settled_completion_rate: rows.filter(isSettledSession).length
         ? completed.length / rows.filter(isSettledSession).length * 100
@@ -1147,7 +1148,7 @@ async function buildReaderJourneyAnalytics(env, days) {
 
   const completedSessions = validSessions.filter(session => session.completed);
   const explicitExits = validSessions.filter(session => session.exited && !session.completed);
-  const endedSessions = validSessions.filter(session => session.completed || session.exited);
+  const endedSessions = validSessions.filter(isSettledSession);
   const completionValues = validSessions.map(session => session.totalPages > 0
     ? (Math.max(0, ...session.pages) / session.totalPages) * 100
     : 0);
@@ -1199,6 +1200,7 @@ async function buildReaderJourneyAnalytics(env, days) {
         return target.sessionId !== source.sessionId &&
           target.viewerHash === source.viewerHash &&
           target.chapterId === row.to_chapter_id &&
+          target.pages.size > 0 &&
           startTime >= exitTime &&
           startTime - exitTime <= READER_INACTIVITY_MS;
       });
@@ -1213,6 +1215,14 @@ async function buildReaderJourneyAnalytics(env, days) {
       follow_through_rate: sourceSessions.length ? followedThrough.length / sourceSessions.length * 100 : 0,
     };
   }).sort((a, b) => b.sessions - a.sessions);
+
+  for (const chapter of chapterStats) {
+    const outgoing = chapterTransitions.filter(row => row.from_chapter_id === chapter.chapter_id);
+    chapter.next_chapter_opens = outgoing.reduce((sum, row) => sum + row.opened_sessions, 0);
+    chapter.next_chapter_follow_through_rate = chapter.next_chapter_clicks
+      ? chapter.next_chapter_opens / chapter.next_chapter_clicks * 100
+      : 0;
+  }
 
   const buildBreakdown = field => {
     const buckets = new Map();
