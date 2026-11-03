@@ -89,15 +89,29 @@ const post = () => analyticsWorker.fetch(
 
 const first = await post();
 assert.equal(first.status, 200, 'a valid view must be accepted');
-assert.deepEqual(await first.json(), { recorded: true });
+assert.deepEqual(await first.json(), { recorded: true, pageview: false, readerDay: true });
 
 const second = await post();
 assert.equal(second.status, 200, 'retrying a view must remain successful');
-assert.deepEqual(await second.json(), { recorded: true });
+assert.deepEqual(await second.json(), { recorded: true, pageview: false, readerDay: true });
 
 const todayPrefix = `analytics/views/events/${new Date().toISOString().slice(0, 10)}/${chapterId}/`;
+const visitId = '99999999-9999-4999-8999-999999999999';
+const openChapter = () => analyticsWorker.fetch(
+  request('https://analytics.test/v1/view', 'POST', origin, { chapterId, viewerKey, visitId }),
+  env,
+);
+const pageOpen = await openChapter();
+assert.equal(pageOpen.status, 200, 'a chapter open with a visit ID must be accepted');
+assert.deepEqual(await pageOpen.json(), { recorded: true, pageview: true, readerDay: true });
+const repeatedPageOpen = await openChapter();
+assert.equal(repeatedPageOpen.status, 200, 'retrying the same chapter open must remain successful');
+assert.deepEqual(await repeatedPageOpen.json(), { recorded: true, pageview: true, readerDay: true });
+
 const todaysEvents = await bucket.list({ prefix: todayPrefix });
-assert.equal(todaysEvents.objects.length, 1, 'same viewer/chapter/day retries must be idempotent');
+assert.equal(todaysEvents.objects.length, 2, 'one reader-day and one idempotent page-open record must exist');
+assert.equal(todaysEvents.objects.filter(object => object.key.includes('/visits/')).length, 1, 'a repeat request with the same visit ID must not inflate pageviews');
+assert.equal(todaysEvents.objects.filter(object => !object.key.includes('/visits/')).length, 1, 'the browser must count once per chapter per UTC day');
 
 const otherChapterId = 'f3bfec99-d077-43ca-977a-345e7f0b2298';
 // Simulate a stale hourly snapshot that says this chapter had views, despite no R2 event.
@@ -143,7 +157,11 @@ try {
   assert.equal(completeReaders.status, 200, 'authenticated analytics should load');
   const completePayload = await completeReaders.json();
   assert.equal(completePayload.reader_metrics_limited, false, 'reader counts with stable identities should remain available');
-  assert.equal(completePayload.current_views, 1, 'authenticated analytics should preserve real view totals');
+  assert.equal(completePayload.current_views, 1, 'legacy compatible totals should remain reader-days');
+  assert.equal(completePayload.current_reader_days, 1, 'reader-day metrics should deduplicate a browser within a chapter and day');
+  assert.equal(completePayload.current_pageviews, 1, 'per-visit pageviews should count a successful chapter opening');
+  assert.equal(completePayload.total_pageviews, 1, 'the cumulative pageview total should include recorded chapter opens');
+  assert.equal(completePayload.chapter_stats.find(row => row.id === chapterId).period_pageviews, 1, 'chapter breakdown should expose period pageviews');
 
   const journeyChapterTwo = 'f3bfec99-d077-43ca-977a-345e7f0b2298';
   const journeyViewerTwo = 'reader-journey-test-viewer-0123456789';
@@ -175,7 +193,7 @@ try {
   assert.equal(invalidJourney.status, 400, 'reader journey must reject malformed session IDs');
 
   const journeyEvents = [
-    journeyStart(journeySessions[0], viewerKey),
+    { ...journeyStart(journeySessions[0], viewerKey), deviceType: 'mobile', entrySource: 'social' },
     { ...baseJourney, sessionId: journeySessions[0], viewerKey, eventType: 'engagement', activeSeconds: 30, sequence: 1 },
     journeyProgress(journeySessions[0], viewerKey, 1),
     journeyProgress(journeySessions[0], viewerKey, 2),
@@ -196,16 +214,16 @@ try {
       ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo,
       eventType: 'exit', pageNumber: 3, exitReason: 'next_chapter', nextChapterId: journeyChapterTwo,
     },
-    journeyStart(journeySessions[2], viewerKey, {
+    journeyStart(journeySessions[2], journeyViewerTwo, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
-    { chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2, sessionId: journeySessions[2], viewerKey, eventType: 'engagement', activeSeconds: 15, sequence: 1 },
-    journeyProgress(journeySessions[2], viewerKey, 1, {
+    { chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2, sessionId: journeySessions[2], viewerKey: journeyViewerTwo, eventType: 'engagement', activeSeconds: 15, sequence: 1 },
+    journeyProgress(journeySessions[2], journeyViewerTwo, 1, {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
     }),
     {
       chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
-      sessionId: journeySessions[2], viewerKey, eventType: 'exit',
+      sessionId: journeySessions[2], viewerKey: journeyViewerTwo, eventType: 'exit',
       pageNumber: 1, exitReason: 'next_chapter',
     },
     journeyStart('44444444-4444-4444-8444-444444444444', journeyViewerTwo, {
@@ -273,6 +291,9 @@ try {
   assert.equal(journeyAnalytics.summary.chapter_list_exits, 1, 'returning to the chapter list after completion should still be recorded as navigation');
   assert.equal(journeyAnalytics.summary.pages_read, 8, 'page exposure events should be counted once per session and page');
   assert.equal(journeyAnalytics.summary.average_engaged_seconds, 40, 'active reading time should average visible and focused engagement heartbeats');
+  assert.equal(journeyAnalytics.device_breakdown.find(row => row.value === 'mobile')?.sessions, 1, 'device categories should be grouped from coarse metadata');
+  assert.equal(journeyAnalytics.source_breakdown.find(row => row.value === 'social')?.sessions, 1, 'entry-source categories should be grouped without full referrer URLs');
+  assert.equal(journeyAnalytics.tracking_health.event_counts.start, 5, 'tracking health should report real start events');
   const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
   assert.ok(firstChapterJourney, 'chapter page funnel should include the tracked chapter');
   assert.equal(firstChapterJourney.sessions, 2, 'chapter funnel should count both chapter sessions');
@@ -282,7 +303,10 @@ try {
   assert.equal(firstChapterJourney.page_stats[1].exits_after_page, 1, 'page funnel should identify exits after page two');
   assert.equal(firstChapterJourney.page_stats[1].drop_off_sessions, 1, 'page funnel should show sessions that failed to reach the next page');
   assert.equal(firstChapterJourney.page_stats[1].drop_off_rate, 50, 'page funnel should calculate the percentage lost before the next page');
-  assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
+  const nextChapterTransition = journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo);
+  assert.equal(nextChapterTransition?.readers, 1, 'chapter movement should identify readers who clicked to the next chapter');
+  assert.equal(nextChapterTransition?.opened_sessions, 1, 'chapter flow should confirm the target chapter was actually opened by the same browser');
+  assert.equal(nextChapterTransition?.follow_through_rate, 100, 'chapter flow should calculate observed next-chapter follow-through');
   assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
 
   const journeyMonthPrefix = 'analytics/reader-journeys/' + journeyDay.slice(0, 7);
