@@ -235,16 +235,26 @@ async function viewRowsForPeriod(env, start, end, context = null) {
       const objects = await listViewEventObjects(env, segment.day, context);
       const counts = new Map();
       for (const object of objects) {
-        const chapterId = object.key.slice(prefix.length).split('/')[0];
+        const parts = object.key.slice(prefix.length).split('/');
+        const chapterId = parts[0];
         if (!validChapterId(chapterId)) continue;
         if (!segment.fullDay) {
           const event = await readViewEvent(env, object.key, context);
           const createdAt = new Date(event?.createdAt || 0).getTime();
-          if (!Number.isFinite(createdAt) || createdAt < start.getTime() || createdAt >= end.getTime()) continue;
+          if (!Number.isFinite(createdAt) || createdAt < segment.start.getTime() || createdAt >= segment.end.getTime()) continue;
         }
-        counts.set(chapterId, (counts.get(chapterId) || 0) + 1);
+        const row = counts.get(chapterId) || { pageviews: 0, readerDays: 0 };
+        if (parts[1] === 'visits') row.pageviews++;
+        else row.readerDays++;
+        counts.set(chapterId, row);
       }
-      return [...counts.entries()].map(([chapterId, views]) => ({ day: segment.day, chapterId, views }));
+      return [...counts.entries()].map(([chapterId, row]) => ({
+        day: segment.day,
+        chapterId,
+        views: row.readerDays,
+        readerDays: row.readerDays,
+        pageviews: row.pageviews,
+      }));
     });
     return dailyRows.flat();
   })();
@@ -310,7 +320,33 @@ async function combinedPeriodCounts(env, start, end, context = null) {
     // A partial boundary must be read from timestamped events, never from a whole-day archive.
     return viewRowsForPeriod(env, segment.start, segment.end, context);
   });
-  for (const rows of segmentCounts) mergeChapterCounts(result, rows);
+  for (const rows of segmentCounts) mergeChapterCounts(result, rows.map(row => ({
+    chapterId: row.chapterId,
+    views: row.readerDays ?? row.views ?? 0,
+  })));
+  return result;
+}
+
+async function combinedPeriodPageviews(env, start, end, context = null) {
+  const result = {};
+  if (!(start instanceof Date) || !(end instanceof Date) || start >= end) return result;
+  const today = dayStart(new Date());
+  const segments = periodDaySegments(start, end);
+  const segmentCounts = await mapWithConcurrency(segments, 8, async segment => {
+    let archived = null;
+    if (segment.cursor < today) {
+      const month = monthKey(segment.cursor);
+      archived = (await readCachedMonth(env, month, context))?.days?.[segment.day] || null;
+    }
+    if (archived && segment.fullDay && archived.chapterPageviews) {
+      return Object.entries(archived.chapterPageviews).map(([chapterId, pageviews]) => ({ chapterId, views: pageviews }));
+    }
+    return viewRowsForPeriod(env, segment.start, segment.end, context);
+  });
+  for (const rows of segmentCounts) mergeChapterCounts(result, rows.map(row => ({
+    chapterId: row.chapterId,
+    views: row.pageviews || 0,
+  })));
   return result;
 }
 
@@ -333,8 +369,22 @@ async function dailyTrendForPeriod(env, start, end, context = null) {
       const rows = await viewRowsForPeriod(env, segment.start, segment.end, context);
       views = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
     }
-    return { day: segment.day, views, partial: !segment.fullDay };
+    const rows = (!archived || !segment.fullDay)
+      ? await viewRowsForPeriod(env, segment.start, segment.end, context)
+      : null;
+    const readerDays = archived && segment.fullDay
+      ? Math.max(0, Number(archived.readerDays ?? archived.views ?? 0))
+      : (rows || []).reduce((sum, row) => sum + Number(row.readerDays ?? row.views ?? 0), 0);
+    const pageviews = archived && segment.fullDay
+      ? Math.max(0, Number(archived.pageviews || 0))
+      : (rows || []).reduce((sum, row) => sum + Number(row.pageviews || 0), 0);
+    return { day: segment.day, views: readerDays, reader_days: readerDays, pageviews, partial: !segment.fullDay };
   });
+}
+
+async function dailyPageviewTrendForPeriod(env, start, end, context = null) {
+  const rows = await dailyTrendForPeriod(env, start, end, context);
+  return rows.map(row => ({ day: row.day, pageviews: row.pageviews, partial: row.partial }));
 }
 
 function dateKeyFromAnalytics(value) {
@@ -366,6 +416,7 @@ async function readerMetrics(env, start, end, context = null) {
         for (const object of objects) {
           const parts = object.key.slice(prefix.length).split('/');
           const chapterId = parts[0];
+          if (parts[1] === 'visits') continue;
           const viewerHash = String(parts[1] || '').replace('.json', '');
           if (!validChapterId(chapterId)) continue;
 
