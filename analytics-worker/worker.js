@@ -862,6 +862,13 @@ async function handleReaderJourneyEvent(request, env) {
   if (eventType === 'complete' && pageNumber !== totalPages) {
     return text(request, 'A chapter can only be completed on its final page.', 400);
   }
+  const currentPageNumber = eventType === 'exit' && payload?.currentPageNumber != null
+    ? Number(payload.currentPageNumber)
+    : null;
+  if (currentPageNumber !== null &&
+      (!Number.isInteger(currentPageNumber) || currentPageNumber < 1 || currentPageNumber > totalPages)) {
+    return text(request, 'Invalid current reader page at exit.', 400);
+  }
   const activeSeconds = payload?.activeSeconds == null ? null : Number(payload.activeSeconds);
   if (activeSeconds !== null && (!Number.isInteger(activeSeconds) || activeSeconds < 0 || activeSeconds > 86400)) {
     return text(request, 'Invalid active reading duration.', 400);
@@ -904,6 +911,7 @@ async function handleReaderJourneyEvent(request, env) {
     entrySource,
     totalPages,
     pageNumber,
+    currentPageNumber,
     exitReason,
     nextChapterId,
     activeSeconds,
@@ -1018,6 +1026,7 @@ async function buildReaderJourneyAnalytics(env, days) {
       pages: new Set(),
       pageReadAt: new Map(),
       exitPage: null,
+      exitCurrentPage: null,
       exitAt: null,
       exitReason: null,
       nextChapterId: null,
@@ -1053,6 +1062,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     } else if (event.eventType === 'exit') {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
+      session.exitCurrentPage = event.currentPageNumber == null ? null : Number(event.currentPageNumber);
       session.exitAt = event.createdAt;
       session.exitReason = event.exitReason || 'page_exit';
       session.nextChapterId = event.nextChapterId || null;
@@ -1318,6 +1328,7 @@ async function buildReaderJourneyAnalytics(env, days) {
         page_ranges: buildPageRanges(pageNumbers),
         page_timeline: pageTimeline,
         reported_exit_page: session.exitPage,
+        current_page_at_exit: session.exitCurrentPage,
         exit_at: session.exitAt,
         estimated_exit_at: estimatedExitAt,
         exit_time_kind: session.exitAt ? 'confirmed' : (estimatedExitAt ? 'estimated' : null),
