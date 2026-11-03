@@ -827,7 +827,7 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
       if (!stored) return null;
       const event = await stored.json();
       const createdAt = new Date(event?.createdAt || 0);
-      if (!Number.isFinite(createdAt.getTime()) || createdAt < start || createdAt >= end) return null;
+      if (!Number.isFinite(createdAt.getTime()) || createdAt < start || createdAt > end) return null;
       if (!validChapterId(event?.chapterId) || !validJourneySessionId(event?.sessionId) ||
           !['start', 'progress', 'complete', 'exit', 'engagement'].includes(event?.eventType)) return null;
       return event;
