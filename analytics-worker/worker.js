@@ -1,6 +1,7 @@
 const DATASET_NAME = 'atma_rekha_views';
 const DATASET_TABLE = `events.analyticsEngine."${DATASET_NAME}"`;
 const ARCHIVE_PREFIX = 'analytics/views';
+const JOURNEY_PREFIX = 'analytics/reader-journeys';
 const SITE_ORIGINS = new Set([
   'https://www.atmarekha.in',
   'https://atmarekha.in',
@@ -696,14 +697,337 @@ async function handleAdminAnalytics(request, env) {
   }
 }
 
+
+function validJourneySessionId(value) {
+  return typeof value === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+const JOURNEY_EXIT_REASONS = new Set([
+  'next_chapter', 'previous_chapter', 'chapter_list', 'navigation', 'page_exit',
+]);
+
+async function handleReaderJourneyEvent(request, env) {
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return text(request, 'Invalid JSON body.', 400);
+  }
+
+  const eventType = String(payload?.eventType || '');
+  const chapterId = String(payload?.chapterId || '');
+  const sessionId = String(payload?.sessionId || '');
+  const viewerKey = payload?.viewerKey;
+  const totalPages = Number(payload?.totalPages);
+  const pageNumber = payload?.pageNumber == null ? null : Number(payload.pageNumber);
+  const chapterNumber = payload?.chapterNumber == null ? null : Number(payload.chapterNumber);
+  const language = String(payload?.language || '');
+
+  if (!['start', 'progress', 'complete', 'exit'].includes(eventType)) {
+    return text(request, 'Invalid reader journey event type.', 400);
+  }
+  if (!validChapterId(chapterId) || !validJourneySessionId(sessionId) || !validViewerKey(viewerKey)) {
+    return text(request, 'Invalid chapter, session or viewer key.', 400);
+  }
+  if (!Number.isInteger(totalPages) || totalPages < 1 || totalPages > 500) {
+    return text(request, 'Invalid chapter page count.', 400);
+  }
+  if (chapterNumber !== null && (!Number.isInteger(chapterNumber) || chapterNumber < 0 || chapterNumber > 9999)) {
+    return text(request, 'Invalid chapter number.', 400);
+  }
+  if (!['en', 'hi'].includes(language)) return text(request, 'Invalid chapter language.', 400);
+  if (['progress', 'complete'].includes(eventType) &&
+      (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > totalPages)) {
+    return text(request, 'Invalid reader page number.', 400);
+  }
+  if (eventType === 'complete' && pageNumber !== totalPages) {
+    return text(request, 'A chapter can only be completed on its final page.', 400);
+  }
+  if (eventType === 'exit' && pageNumber !== null &&
+      (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > totalPages)) {
+    return text(request, 'Invalid reader exit position.', 400);
+  }
+  const exitReason = eventType === 'exit' ? String(payload?.exitReason || 'page_exit') : null;
+  if (eventType === 'exit' && !JOURNEY_EXIT_REASONS.has(exitReason)) {
+    return text(request, 'Invalid reader exit reason.', 400);
+  }
+  const nextChapterId = eventType === 'exit' && payload?.nextChapterId != null
+    ? String(payload.nextChapterId)
+    : null;
+  if (nextChapterId && !validChapterId(nextChapterId)) return text(request, 'Invalid next chapter ID.', 400);
+
+  const viewerHash = await sha256(viewerKey);
+  const createdAt = new Date();
+  const day = dayKey(createdAt);
+  const eventFile = eventType === 'progress' ? 'progress/' + pageNumber + '.json' : eventType + '.json';
+  const key = JOURNEY_PREFIX + '/' + day + '/' + sessionId + '/' + eventFile;
+  const record = {
+    eventType,
+    sessionId,
+    chapterId,
+    viewerHash,
+    chapterNumber,
+    language,
+    totalPages,
+    pageNumber,
+    exitReason,
+    nextChapterId,
+    createdAt: createdAt.toISOString(),
+  };
+
+  try {
+    await env.ANALYTICS_BUCKET.put(key, JSON.stringify(record), {
+      httpMetadata: {
+        contentType: 'application/json; charset=utf-8',
+        cacheControl: 'private, no-store',
+      },
+    });
+  } catch (error) {
+    return text(request, 'Unable to persist reader journey event: ' + (error?.message || 'storage error'), 503);
+  }
+  return json(request, { recorded: true, eventType }, 200, { 'Cache-Control': 'no-store' });
+}
+
+async function readerJourneyObjectsForPeriod(env, start, end) {
+  const months = monthRange(start, end);
+  const monthObjects = await mapWithConcurrency(months, 4, async month => {
+    const objects = [];
+    let cursor;
+    do {
+      const page = await env.ANALYTICS_BUCKET.list({
+        prefix: JOURNEY_PREFIX + '/' + month + '-',
+        limit: 1000,
+        ...(cursor ? { cursor } : {}),
+      });
+      objects.push(...(page.objects || []));
+      cursor = page.truncated ? page.cursor : null;
+    } while (cursor);
+    return objects;
+  });
+  const listed = monthObjects.flat();
+  const rows = await mapWithConcurrency(listed, 16, async object => {
+    try {
+      const stored = await env.ANALYTICS_BUCKET.get(object.key);
+      if (!stored) return null;
+      const event = await stored.json();
+      const createdAt = new Date(event?.createdAt || 0);
+      if (!Number.isFinite(createdAt.getTime()) || createdAt < start || createdAt >= end) return null;
+      if (!validChapterId(event?.chapterId) || !validJourneySessionId(event?.sessionId) ||
+          !['start', 'progress', 'complete', 'exit'].includes(event?.eventType)) return null;
+      return event;
+    } catch {
+      return null;
+    }
+  });
+  return rows.filter(Boolean);
+}
+
+function emptyJourneyDaily(day) {
+  return { day, sessions: 0, completed: 0, exits: 0 };
+}
+
+async function buildReaderJourneyAnalytics(env, days) {
+  const now = new Date();
+  const start = new Date(now.getTime() - days * DAY_MS);
+  const events = await readerJourneyObjectsForPeriod(env, start, now);
+  events.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  const sessions = new Map();
+  for (const event of events) {
+    let session = sessions.get(event.sessionId);
+    if (event.eventType === 'start') {
+      if (!session) {
+        session = {
+          sessionId: event.sessionId,
+          chapterId: event.chapterId,
+          viewerHash: event.viewerHash,
+          chapterNumber: event.chapterNumber,
+          language: event.language,
+          totalPages: Number(event.totalPages) || 0,
+          startedAt: event.createdAt,
+          lastEventAt: event.createdAt,
+          pages: new Set(),
+          exitPage: null,
+          exitReason: null,
+          completed: false,
+          exited: false,
+        };
+        sessions.set(event.sessionId, session);
+      }
+      continue;
+    }
+    if (!session || session.completed) continue;
+    if (event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
+    session.lastEventAt = event.createdAt;
+    if (event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
+      session.pages.add(Number(event.pageNumber));
+    } else if (event.eventType === 'complete') {
+      session.pages.add(Number(event.pageNumber));
+      session.completed = true;
+      session.lastEventAt = event.createdAt;
+    } else if (event.eventType === 'exit') {
+      session.exited = true;
+      session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
+      session.exitReason = event.exitReason || 'page_exit';
+    }
+  }
+
+  const validSessions = [...sessions.values()];
+  const chapterBuckets = new Map();
+  const daily = new Map();
+  const readerChapters = new Map();
+  const allReaders = new Set();
+  for (const session of validSessions) {
+    allReaders.add(session.viewerHash);
+    if (!readerChapters.has(session.viewerHash)) readerChapters.set(session.viewerHash, new Set());
+    readerChapters.get(session.viewerHash).add(session.chapterId);
+
+    if (!chapterBuckets.has(session.chapterId)) {
+      chapterBuckets.set(session.chapterId, {
+        chapter_id: session.chapterId,
+        chapter_number: session.chapterNumber,
+        language: session.language,
+        sessions: [],
+      });
+    }
+    chapterBuckets.get(session.chapterId).sessions.push(session);
+
+    const day = dayKey(session.startedAt);
+    if (!daily.has(day)) daily.set(day, emptyJourneyDaily(day));
+    daily.get(day).sessions++;
+    if (session.completed) daily.get(day).completed++;
+    if (session.exited) daily.get(day).exits++;
+  }
+
+  const chapterStats = [...chapterBuckets.values()].map(chapter => {
+    const rows = chapter.sessions;
+    const completed = rows.filter(session => session.completed);
+    const exits = rows.filter(session => session.exited && !session.completed);
+    const reached = pageNumber => rows.filter(session => session.pages.has(pageNumber));
+    const pagesRead = rows.reduce((sum, session) => sum + session.pages.size, 0);
+    const completionValues = rows.map(session => session.totalPages > 0
+      ? (Math.max(0, ...session.pages) / session.totalPages) * 100
+      : 0);
+    const durations = rows.filter(session => session.completed || session.exited).map(session => {
+      const elapsed = new Date(session.lastEventAt).getTime() - new Date(session.startedAt).getTime();
+      return Math.max(0, elapsed / 1000);
+    });
+    const exitReasons = {};
+    for (const session of exits) {
+      const reason = session.exitReason || 'unknown';
+      exitReasons[reason] = (exitReasons[reason] || 0) + 1;
+    }
+    const maxPages = Math.max(0, ...rows.map(session => session.totalPages));
+    const pageStats = Array.from({ length: maxPages }, (_, index) => {
+      const page = index + 1;
+      const pageSessions = reached(page);
+      const exitSessions = exits.filter(session => session.exitPage === page);
+      return {
+        page_number: page,
+        sessions_reached: pageSessions.length,
+        readers_reached: new Set(pageSessions.map(session => session.viewerHash)).size,
+        exits_after_page: exitSessions.length,
+        exit_readers: new Set(exitSessions.map(session => session.viewerHash)).size,
+      };
+    });
+    return {
+      chapter_id: chapter.chapter_id,
+      chapter_number: chapter.chapter_number,
+      language: chapter.language,
+      sessions: rows.length,
+      readers: new Set(rows.map(session => session.viewerHash)).size,
+      completed_sessions: completed.length,
+      explicit_exits: exits.length,
+      unconfirmed_exits: rows.filter(session => !session.completed && !session.exited).length,
+      next_chapter_clicks: exits.filter(session => session.exitReason === 'next_chapter').length,
+      previous_chapter_clicks: exits.filter(session => session.exitReason === 'previous_chapter').length,
+      chapter_list_exits: exits.filter(session => session.exitReason === 'chapter_list').length,
+      page_exit_events: exits.filter(session => session.exitReason === 'page_exit').length,
+      pages_read: pagesRead,
+      average_pages_read: rows.length ? pagesRead / rows.length : 0,
+      average_completion_percent: completionValues.length ? completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length : 0,
+      average_reading_seconds: durations.length ? durations.reduce((sum, value) => sum + value, 0) / durations.length : null,
+      exit_reasons: exitReasons,
+      page_stats: pageStats,
+    };
+  }).sort((a, b) => b.sessions - a.sessions || Number(a.chapter_number ?? 9999) - Number(b.chapter_number ?? 9999));
+
+  const completedSessions = validSessions.filter(session => session.completed);
+  const explicitExits = validSessions.filter(session => session.exited && !session.completed);
+  const endedSessions = validSessions.filter(session => session.completed || session.exited);
+  const completionValues = validSessions.map(session => session.totalPages > 0
+    ? (Math.max(0, ...session.pages) / session.totalPages) * 100
+    : 0);
+  const durations = endedSessions.map(session => Math.max(0, (
+    new Date(session.lastEventAt).getTime() - new Date(session.startedAt).getTime()
+  ) / 1000));
+  const readerDepth = new Map();
+  for (const chaptersRead of readerChapters.values()) {
+    const bucket = chaptersRead.size >= 4 ? '4+' : String(chaptersRead.size);
+    readerDepth.set(bucket, (readerDepth.get(bucket) || 0) + 1);
+  }
+  const depthRows = ['1', '2', '3', '4+'].map(chaptersRead => ({
+    chapters_read: chaptersRead,
+    readers: readerDepth.get(chaptersRead) || 0,
+  }));
+  const daysRows = periodDaySegments(start, now).map(segment => {
+    const row = daily.get(segment.day) || emptyJourneyDaily(segment.day);
+    return { ...row, partial: !segment.fullDay };
+  });
+  const pageReads = validSessions.reduce((sum, session) => sum + session.pages.size, 0);
+  const explicitReasonCounts = {};
+  for (const session of explicitExits) {
+    const reason = session.exitReason || 'unknown';
+    explicitReasonCounts[reason] = (explicitReasonCounts[reason] || 0) + 1;
+  }
+
+  return {
+    version: 1,
+    has_data: validSessions.length > 0,
+    days,
+    summary: {
+      unique_readers: allReaders.size,
+      sessions: validSessions.length,
+      completed_sessions: completedSessions.length,
+      explicit_exits: explicitExits.length,
+      unconfirmed_exits: validSessions.length - completedSessions.length - explicitExits.length,
+      next_chapter_clicks: explicitExits.filter(session => session.exitReason === 'next_chapter').length,
+      previous_chapter_clicks: explicitExits.filter(session => session.exitReason === 'previous_chapter').length,
+      chapter_list_exits: explicitExits.filter(session => session.exitReason === 'chapter_list').length,
+      page_exit_events: explicitExits.filter(session => session.exitReason === 'page_exit').length,
+      pages_read: pageReads,
+      average_pages_read: validSessions.length ? pageReads / validSessions.length : 0,
+      average_completion_percent: completionValues.length ? completionValues.reduce((sum, value) => sum + value, 0) / completionValues.length : 0,
+      average_reading_seconds: durations.length ? durations.reduce((sum, value) => sum + value, 0) / durations.length : null,
+      completion_rate: validSessions.length ? completedSessions.length / validSessions.length * 100 : 0,
+      exit_reasons: explicitReasonCounts,
+    },
+    chapters: chapterStats,
+    daily_trend: daysRows,
+    reader_depth: depthRows,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function handleAdminReaderAnalytics(request, env) {
+  if (!(await verifyAdmin(request, env))) return text(request, 'Admin authorization required.', 403);
+  const days = Number(new URL(request.url).searchParams.get('days') || 30);
+  if (!PERIODS.has(days)) return text(request, 'Analytics period must be 1, 7, 30 or 90 days.', 400);
+  const payload = await buildReaderJourneyAnalytics(env, days);
+  return json(request, payload, 200, { 'Cache-Control': 'private, no-store' });
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
     try {
       const url = new URL(request.url);
       if (request.method === 'POST' && url.pathname === '/v1/view') return await handleView(request, env);
+      if (request.method === 'POST' && url.pathname === '/v1/reader-event') return await handleReaderJourneyEvent(request, env);
       if (request.method === 'GET' && url.pathname === '/v1/views') return await handlePublicViews(request, env);
       if (request.method === 'GET' && url.pathname === '/v1/admin/analytics') return await handleAdminAnalytics(request, env);
+      if (request.method === 'GET' && url.pathname === '/v1/admin/reader-analytics') return await handleAdminReaderAnalytics(request, env);
       return text(request, 'Not found.', 404);
     } catch (error) {
       return text(request, `Analytics worker error: ${error?.message || 'unknown error'}`, 500);
