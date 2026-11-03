@@ -839,6 +839,8 @@ for (const phrase of [
 
 
 const adminPanel = await readFile('AdminPanel.jsx', 'utf8');
+const adminOverviewSource = await readFile('AdminOverview.jsx', 'utf8');
+const overviewPremiumStyles = await readFile('admin-overview-premium.css', 'utf8');
 const controlRoom = await readFile('AdminControlRoom.jsx', 'utf8');
 const chapterManager = await readFile('AdminChapterManager.jsx', 'utf8');
 const adminStyles = await readFile('admin-master-system.css', 'utf8');
@@ -869,6 +871,29 @@ if (!pdlplAdminSubmitRegression.includes('<button type="submit" className="pdlpl
 const adminStudioButtonSource = await readFile('admin-studio-ui.jsx', 'utf8');
 if (!adminStudioButtonSource.includes('<button type="button" className={classes} {...props}>')) {
   console.error('CHECK FAILED: shared admin buttons must default to type=button unless a caller explicitly overrides it.');
+  failed = true;
+}
+
+for (const [name, content, phrase] of [
+  ['AdminPanel.jsx', adminPanel, "const [tab, setTab] = useState('Overview');"],
+  ['AdminPanel.jsx', adminPanel, "{ label: 'Engagement', icon: 'bell'"],
+  ['AdminPanel.jsx', adminPanel, "{ label: 'Tools', icon: 'pulse'"],
+  ['admin-studio-ui.jsx', adminStudioButtonSource, 'aria-expanded={expanded}'],
+  ['admin-studio-ui.jsx', adminStudioButtonSource, 'aria-controls={listId}'],
+  ['admin-master-system.css', adminStyles, '.ar-admin-nav-items[hidden]'],
+  ['admin-master-system.css', adminStyles, '.ar-overview-secondary-metrics'],
+  ['AdminOverview.jsx', adminOverviewSource, 'aria-label="Key dashboard metrics"'],
+  ['AdminOverview.jsx', adminOverviewSource, 'Open Reports'],
+  ['AdminOverview.jsx', adminOverviewSource, 'ar-overview-secondary-metrics'],
+  ['AdminOverview.jsx', adminOverviewSource, 'onClick={() => setAnalyticsRefreshToken(value => value + 1)}'],
+]) {
+  if (!content.includes(phrase)) {
+    console.error('CHECK FAILED:', name, 'missing admin dashboard refinement:', phrase);
+    failed = true;
+  }
+}
+if (/linear-gradient|backdrop-filter/i.test(overviewPremiumStyles)) {
+  console.error('CHECK FAILED: dashboard compatibility stylesheet must not reintroduce fixed gradients or glass blur.');
   failed = true;
 }
 
