@@ -194,7 +194,7 @@ export function AdminSidebar({
 
       <nav className="admin-tabs ar-admin-nav" aria-label="Admin sections">
         {groups.map((group, index) => {
-          const expanded = expandedGroups.has(group.label) || activeGroup === group.label;
+          const expanded = expandedGroups.has(group.label);
           const listId = `ar-admin-nav-items-${index}`;
           return (
             <section className="ar-admin-nav-group" key={group.label}>
