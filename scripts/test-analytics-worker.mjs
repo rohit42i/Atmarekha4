@@ -252,6 +252,40 @@ try {
   assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
   assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
 
+  const journeyMonthPrefix = 'analytics/reader-journeys/' + journeyDay.slice(0, 7);
+  assert.ok(
+    (bucket.listCallsByPrefix.get(journeyMonthPrefix) || 0) > 0,
+    'reader journey queries must list the same date-folder prefix used when events are stored',
+  );
+
+  // A pagehide beacon can reach storage before the start fetch. The report must
+  // still attach that exit to its session instead of silently dropping it.
+  const outOfOrderSession = '55555555-5555-4555-8555-555555555555';
+  const outOfOrderViewer = 'out-of-order-reader-viewer-key-012345';
+  const outOfOrderHashBytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(outOfOrderViewer)));
+  const outOfOrderHash = [...outOfOrderHashBytes].map(value => value.toString(16).padStart(2, '0')).join('');
+  const startedAt = new Date(Date.now() - 20_000).toISOString();
+  const exitedAt = new Date(Date.now() - 25_000).toISOString();
+  const outOfOrderBase = {
+    sessionId: outOfOrderSession,
+    chapterId,
+    viewerHash: outOfOrderHash,
+    chapterNumber: 1,
+    language: 'en',
+    totalPages: 3,
+  };
+  await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + outOfOrderSession + '/start.json', JSON.stringify({
+    ...outOfOrderBase, eventType: 'start', pageNumber: null, exitReason: null, nextChapterId: null, createdAt: startedAt,
+  }));
+  await bucket.put('analytics/reader-journeys/' + journeyDay + '/' + outOfOrderSession + '/exit.json', JSON.stringify({
+    ...outOfOrderBase, eventType: 'exit', pageNumber: 1, exitReason: 'page_exit', nextChapterId: null, createdAt: exitedAt,
+  }));
+  const orderedAnalyticsResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
+  assert.equal(orderedAnalyticsResponse.status, 200, 'analytics must remain readable with out-of-order browser events');
+  const orderedAnalytics = await orderedAnalyticsResponse.json();
+  assert.equal(orderedAnalytics.summary.sessions, 5, 'out-of-order start records must still create one session');
+  assert.equal(orderedAnalytics.summary.explicit_exits, 4, 'an exit arriving before its start must still be attached to that session');
+
   const now = new Date();
   const legacyHash = 'legacy-viewer-identity';
   const legacyKey = `analytics/views/events/${now.toISOString().slice(0, 10)}/${chapterId}/${legacyHash}.json`;
