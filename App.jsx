@@ -273,6 +273,7 @@ function finishReaderJourney(session, reason, nextChapterId = null) {
   sendReaderJourneyExitBeacon({
     ...session.meta,
     pageNumber: session.maxPageReached || null,
+    currentPageNumber: session.currentPageNumber || null,
     exitReason: reason,
     activeSeconds: session.activeSeconds || 0,
     ...(nextChapterId ? { nextChapterId } : {}),
@@ -354,6 +355,7 @@ function Reader({ chapterId, onBack, chapters }) {
     const session = {
       meta,
       maxPageReached: 0,
+      currentPageNumber: index + 1,
       recordedPages: new Set(),
       completed: false,
       ended: false,
@@ -400,6 +402,7 @@ function Reader({ chapterId, onBack, chapters }) {
     if (!pageUrl || loadedPageKey !== expectedLoadedKey) return undefined;
     session.pageReady = true;
     const pageNumber = index + 1;
+    session.currentPageNumber = pageNumber;
     if (session.recordedPages.has(pageNumber)) return () => { session.pageReady = false; };
     let timer = null;
     const scheduleVisibleRead = () => {

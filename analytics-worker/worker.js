@@ -862,6 +862,13 @@ async function handleReaderJourneyEvent(request, env) {
   if (eventType === 'complete' && pageNumber !== totalPages) {
     return text(request, 'A chapter can only be completed on its final page.', 400);
   }
+  const currentPageNumber = eventType === 'exit' && payload?.currentPageNumber != null
+    ? Number(payload.currentPageNumber)
+    : null;
+  if (currentPageNumber !== null &&
+      (!Number.isInteger(currentPageNumber) || currentPageNumber < 1 || currentPageNumber > totalPages)) {
+    return text(request, 'Invalid current reader page at exit.', 400);
+  }
   const activeSeconds = payload?.activeSeconds == null ? null : Number(payload.activeSeconds);
   if (activeSeconds !== null && (!Number.isInteger(activeSeconds) || activeSeconds < 0 || activeSeconds > 86400)) {
     return text(request, 'Invalid active reading duration.', 400);
@@ -904,6 +911,7 @@ async function handleReaderJourneyEvent(request, env) {
     entrySource,
     totalPages,
     pageNumber,
+    currentPageNumber,
     exitReason,
     nextChapterId,
     activeSeconds,
@@ -968,6 +976,25 @@ function isReaderSessionInactive(session, now) {
   return Number.isFinite(lastActivity) && now.getTime() - lastActivity >= READER_INACTIVITY_MS;
 }
 
+function buildPageRanges(pageNumbers) {
+  const pages = [...new Set(pageNumbers)]
+    .filter(value => Number.isInteger(value) && value > 0)
+    .sort((a, b) => a - b);
+  const ranges = [];
+  for (const page of pages) {
+    const previous = ranges[ranges.length - 1];
+    if (previous && page === previous.end + 1) {
+      previous.end = page;
+      previous.label = previous.start === previous.end
+        ? String(previous.start)
+        : previous.start + '–' + previous.end;
+    } else {
+      ranges.push({ start: page, end: page, label: String(page) });
+    }
+  }
+  return ranges;
+}
+
 async function buildReaderJourneyAnalytics(env, days) {
   const now = new Date();
   const start = new Date(now.getTime() - days * DAY_MS);
@@ -997,10 +1024,13 @@ async function buildReaderJourneyAnalytics(env, days) {
       startedAt: event.createdAt,
       lastEventAt: event.createdAt,
       pages: new Set(),
+      pageReadAt: new Map(),
       exitPage: null,
+      exitCurrentPage: null,
       exitAt: null,
       exitReason: null,
       nextChapterId: null,
+      completedAt: null,
       completed: false,
       exited: false,
       activeSeconds: null,
@@ -1020,13 +1050,19 @@ async function buildReaderJourneyAnalytics(env, days) {
       session.activeSeconds = Math.max(session.activeSeconds ?? 0, Number(event.activeSeconds));
     }
     if (!session.completed && event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
-      session.pages.add(Number(event.pageNumber));
+      const pageNumber = Number(event.pageNumber);
+      session.pages.add(pageNumber);
+      session.pageReadAt.set(pageNumber, event.createdAt);
     } else if (event.eventType === 'complete') {
-      session.pages.add(Number(event.pageNumber));
+      const pageNumber = Number(event.pageNumber);
+      session.pages.add(pageNumber);
+      session.pageReadAt.set(pageNumber, event.createdAt);
+      session.completedAt = event.createdAt;
       session.completed = true;
     } else if (event.eventType === 'exit') {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
+      session.exitCurrentPage = event.currentPageNumber == null ? null : Number(event.currentPageNumber);
       session.exitAt = event.createdAt;
       session.exitReason = event.exitReason || 'page_exit';
       session.nextChapterId = event.nextChapterId || null;
@@ -1249,6 +1285,61 @@ async function buildReaderJourneyAnalytics(env, days) {
   const eventCounts = Object.fromEntries(['start', 'progress', 'complete', 'exit', 'engagement'].map(type => [
     type, events.filter(event => event.eventType === type).length,
   ]));
+  const sessionDetailLimit = 200;
+  const detailSessions = [...validSessions]
+    .sort((a, b) => new Date(b.lastEventAt).getTime() - new Date(a.lastEventAt).getTime())
+    .slice(0, sessionDetailLimit);
+  const sessionDetails = detailSessions
+    .map(session => {
+      const pageNumbers = [...session.pages].sort((a, b) => a - b);
+      const lastConfirmedPage = pageNumbers.length ? pageNumbers[pageNumbers.length - 1] : null;
+      const inactive = inactiveSessionIds.has(session.sessionId);
+      const estimatedExitAt = inactive
+        ? new Date(new Date(session.lastEventAt).getTime() + READER_INACTIVITY_MS).toISOString()
+        : null;
+      const endStatus = session.exited
+        ? (session.completed ? 'completed_then_exited' : 'explicit_exit')
+        : session.completed
+          ? 'completed_no_exit_signal'
+          : inactive
+            ? 'inactive'
+            : 'active';
+      const endAt = session.exitAt || session.completedAt || estimatedExitAt || session.lastEventAt;
+      const startedAtMs = new Date(session.startedAt).getTime();
+      const endAtMs = new Date(endAt).getTime();
+      const pageTimeline = pageNumbers.map(pageNumber => ({
+        page_number: pageNumber,
+        reached_at: session.pageReadAt.get(pageNumber) || null,
+      }));
+      return {
+        session_id: session.sessionId,
+        chapter_id: session.chapterId,
+        chapter_number: session.chapterNumber,
+        language: session.language,
+        device_type: session.deviceType || 'unknown',
+        entry_source: session.entrySource || 'unknown',
+        total_pages: session.totalPages,
+        started_at: session.startedAt,
+        completed_at: session.completedAt,
+        last_activity_at: session.lastEventAt,
+        last_confirmed_page: lastConfirmedPage,
+        last_confirmed_page_at: lastConfirmedPage == null ? null : (session.pageReadAt.get(lastConfirmedPage) || null),
+        pages_read: pageNumbers,
+        page_ranges: buildPageRanges(pageNumbers),
+        page_timeline: pageTimeline,
+        reported_exit_page: session.exitPage,
+        current_page_at_exit: session.exitCurrentPage,
+        exit_at: session.exitAt,
+        estimated_exit_at: estimatedExitAt,
+        exit_time_kind: session.exitAt ? 'confirmed' : (estimatedExitAt ? 'estimated' : null),
+        exit_reason: session.exitReason,
+        end_status: endStatus,
+        active_seconds: session.activeSeconds,
+        elapsed_seconds: Number.isFinite(startedAtMs) && Number.isFinite(endAtMs)
+          ? Math.max(0, (endAtMs - startedAtMs) / 1000)
+          : null,
+      };
+    });
   const openedSessions = chapterTransitions.reduce((sum, row) => sum + row.opened_sessions, 0);
   const nextChapterClicks = validSessions.filter(session => session.exitReason === 'next_chapter').length;
 
@@ -1293,6 +1384,9 @@ async function buildReaderJourneyAnalytics(env, days) {
     },
     chapters: chapterStats,
     chapter_transitions: chapterTransitions,
+    session_details: sessionDetails,
+    session_details_total: sessionDetails.length,
+    session_details_limit: sessionDetailLimit,
     daily_trend: daysRows,
     reader_depth: depthRows,
     device_breakdown: buildBreakdown('deviceType'),

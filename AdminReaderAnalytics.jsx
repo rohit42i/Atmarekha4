@@ -26,6 +26,30 @@ const duration = value => {
   const remainder = seconds % 60;
   return minutes + ' min' + (remainder ? ' ' + remainder + ' sec' : '');
 };
+const dateTime = value => {
+  if (!value) return 'Not recorded';
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return 'Not recorded';
+  return new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'medium',
+    timeZone: 'Asia/Kolkata',
+  }).format(date);
+};
+const exitReasonLabel = value => ({
+  page_exit: 'Left reader / closed tab',
+  navigation: 'Navigated away',
+  chapter_list: 'Returned to chapter list',
+  next_chapter: 'Opened next chapter',
+  previous_chapter: 'Opened previous chapter',
+}[value] || 'No exit signal');
+const sessionStatusLabel = value => ({
+  explicit_exit: 'Confirmed exit',
+  completed_then_exited: 'Completed, then exited',
+  completed_no_exit_signal: 'Chapter completed; exit not captured',
+  inactive: 'Inactive; exit estimated',
+  active: 'Still active or unresolved',
+}[value] || 'Unknown');
 
 function downloadCsv(filename, rows) {
   const csv = rows.map(row => row.map(value => {
@@ -178,6 +202,14 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
   const readerDepth = Array.isArray(payload?.reader_depth) ? payload.reader_depth : [];
   const chapterTransitions = Array.isArray(payload?.chapter_transitions) ? payload.chapter_transitions : [];
   const visibleTransitions = chapterTransitions.filter(row => (language === 'all' || chapterById.get(String(row.from_chapter_id))?.language === language) && (selectedChapterId === 'all' || String(row.from_chapter_id) === selectedChapterId));
+  const sessionDetails = Array.isArray(payload?.session_details) ? payload.session_details : [];
+  const visibleSessionDetails = sessionDetails.filter(session =>
+    (language === 'all' || session.language === language) &&
+    (selectedChapterId === 'all' || String(session.chapter_id) === selectedChapterId)
+  );
+  const sessionDetailsTotal = number(payload?.session_details_total);
+  const sessionDetailsLoaded = sessionDetails.length;
+  const sessionDetailsLimit = number(payload?.session_details_limit);
   const maxDaily = Math.max(1, ...daily.map(row => number(row.sessions)));
   const maxPageviewsDaily = Math.max(1, ...pageviewDaily.map(row => number(row.pageviews)));
   const maxDepth = Math.max(1, ...readerDepth.map(row => number(row.readers)));
@@ -260,6 +292,35 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
         transition.opened_sessions,
         percentage(transition.follow_through_rate),
         transition.readers,
+      ]);
+    }
+    exportRows.push([], ['Individual reader visits'], [
+      'Chapter', 'Language', 'Visit started (IST)', 'Confirmed pages read', 'Last confirmed page',
+      'Last confirmed page time (IST)', 'Page open at exit', 'Highest page reached at exit', 'Exit time kind',
+      'Confirmed exit time (IST)', 'Estimated inactivity time (IST)', 'Last activity time (IST)',
+      'End status', 'Exit reason', 'Active reading seconds', 'Elapsed visit seconds',
+      'Page timeline (IST)',
+    ]);
+    for (const session of visibleSessionDetails) {
+      const chapter = chapterById.get(String(session.chapter_id));
+      exportRows.push([
+        chapterLabel({ chapter_number: session.chapter_number }, chapter),
+        languageName(session.language),
+        dateTime(session.started_at),
+        (session.page_ranges || []).map(range => range.label).join(', ') || 'No confirmed page reads',
+        session.last_confirmed_page ?? '',
+        dateTime(session.last_confirmed_page_at),
+        session.current_page_at_exit ?? '',
+        session.reported_exit_page ?? '',
+        session.exit_time_kind || 'Not confirmed',
+        dateTime(session.exit_at),
+        dateTime(session.estimated_exit_at),
+        dateTime(session.last_activity_at),
+        sessionStatusLabel(session.end_status),
+        exitReasonLabel(session.exit_reason),
+        session.active_seconds ?? '',
+        session.elapsed_seconds ?? '',
+        (session.page_timeline || []).map(page => 'Page ' + page.page_number + ': ' + dateTime(page.reached_at)).join(' | '),
       ]);
     }
     downloadCsv('atma-rekha-reader-analytics-' + days + 'd.csv', exportRows);
@@ -505,6 +566,84 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
           <p>A session without a completion or exit signal may mean the tab was closed, the browser stopped the request, the connection dropped, or the reader is still reading. It is kept separate from confirmed exit events. A quick switch to another chapter or navigation action is shown as its own exit reason.</p>
         </div>
       </section>
+    </section>
+
+    <section className="ar-reader-card ar-reader-session-card">
+      <div className="ar-reader-card-heading">
+        <div>
+          <span>INDIVIDUAL READER VISITS</span>
+          <h3>Where each reader stopped</h3>
+          <p>One row per anonymous chapter visit. Page ranges include only pages confirmed after loading and two seconds in the foreground.</p>
+        </div>
+        <small>{count(sessionDetailsTotal)} visits in window</small>
+      </div>
+      <div className="ar-reader-note ar-reader-session-explainer">
+        <strong>How exit times are reported</strong>
+        <p>Confirmed means the browser sent an exit event and the time shown is when the analytics service received it. Estimated means no exit event arrived: the time is the last recorded activity plus 30 minutes of inactivity, not a known moment when the reader closed the tab. Recent visits without an end signal remain unresolved.</p>
+      </div>
+      {visibleSessionDetails.length ? <>
+        <div className="ar-reader-table-wrap">
+          <table className="ar-reader-table ar-reader-session-table">
+            <thead><tr>
+              <th>Chapter</th>
+              <th>Visit started (IST)</th>
+              <th>Confirmed pages read</th>
+              <th>Last confirmed page</th>
+              <th>Last page time (IST)</th>
+              <th>Page open at exit</th>
+              <th>Exit time (IST)</th>
+              <th>Visit status</th>
+              <th>Exit reason</th>
+              <th>Active reading</th>
+              <th>Elapsed time</th>
+              <th>Page timeline</th>
+            </tr></thead>
+            <tbody>{visibleSessionDetails.map(session => {
+              const chapter = chapterById.get(String(session.chapter_id));
+              const pageRanges = (session.page_ranges || []).map(range => range.label).join(', ');
+              const exitTime = session.exit_at
+                ? 'Confirmed · ' + dateTime(session.exit_at)
+                : session.estimated_exit_at
+                  ? 'Estimated · ' + dateTime(session.estimated_exit_at)
+                  : 'Not recorded';
+              return <tr key={session.session_id}>
+                <td>{chapterLabel({ chapter_number: session.chapter_number }, chapter)}</td>
+                <td>{dateTime(session.started_at)}</td>
+                <td>
+                  <strong>{pageRanges || 'No confirmed pages'}</strong>
+                  <small className="ar-reader-session-subline">{count((session.pages_read || []).length)} of {count(session.total_pages)} pages confirmed</small>
+                </td>
+                <td>{session.last_confirmed_page ? 'Page ' + session.last_confirmed_page : 'None'}</td>
+                <td>{dateTime(session.last_confirmed_page_at)}</td>
+                <td>{session.current_page_at_exit ? 'Page ' + session.current_page_at_exit : 'Not reported'}</td>
+                <td>
+                  <strong className={session.exit_time_kind === 'estimated' ? 'is-estimated' : ''}>{exitTime}</strong>
+                  {session.exit_time_kind === 'estimated' && <small className="ar-reader-session-subline">Last activity: {dateTime(session.last_activity_at)}</small>}
+                </td>
+                <td>{sessionStatusLabel(session.end_status)}</td>
+                <td>{exitReasonLabel(session.exit_reason)}</td>
+                <td>{duration(session.active_seconds)}</td>
+                <td>{duration(session.elapsed_seconds)}</td>
+                <td>
+                  {(session.page_timeline || []).length ? <details className="ar-reader-session-timeline">
+                    <summary>View {session.page_timeline.length} page times</summary>
+                    <ol>{session.page_timeline.map(page => <li key={page.page_number}>
+                      <strong>Page {page.page_number}</strong>
+                      <span>{dateTime(page.reached_at)}</span>
+                    </li>)}</ol>
+                  </details> : 'No page events'}
+                  {session.reported_exit_page != null && session.reported_exit_page !== session.current_page_at_exit &&
+                    <small className="ar-reader-session-subline">Highest page confirmed before exit: {session.reported_exit_page}.</small>}
+                </td>
+              </tr>;
+            })}</tbody>
+          </table>
+        </div>
+        <p className="ar-reader-session-limit">
+          Showing {count(visibleSessionDetails.length)} matching visits from the {count(sessionDetailsLoaded)} most recent visit details loaded
+          {sessionDetailsTotal > sessionDetailsLoaded ? ' out of ' + count(sessionDetailsTotal) + ' visits in this reporting window. The detail list is capped at ' + count(sessionDetailsLimit) + ' recent visits across all chapters; summary metrics still use every visit.' : ' in this reporting window.'}
+        </p>
+      </> : <Empty>No individual visits match these filters. Page-level visit details appear after real readers generate new events.</Empty>}
     </section>
 
     <footer className="ar-reader-privacy-note">
