@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: codeql-sarif-review
-          path: results/javascript.sarif
+          path: ../results/javascript.sarif
           if-no-files-found: error
           retention-days: 1
 
@@ -52,7 +52,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const file = 'results/javascript.sarif';
+          const file = '../results/javascript.sarif';
           if (!fs.existsSync(file)) {
             console.log('No SARIF file was produced.');
             process.exit(0);
