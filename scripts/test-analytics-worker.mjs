@@ -249,6 +249,8 @@ try {
   assert.equal(firstChapterJourney.completed_sessions, 1, 'chapter funnel should expose completed sessions');
   assert.equal(firstChapterJourney.page_stats[2].readers_reached, 1, 'page funnel should expose unique readers who reached the last page');
   assert.equal(firstChapterJourney.page_stats[1].exits_after_page, 1, 'page funnel should identify exits after page two');
+  assert.equal(firstChapterJourney.page_stats[1].drop_off_sessions, 1, 'page funnel should show sessions that failed to reach the next page');
+  assert.equal(firstChapterJourney.page_stats[1].drop_off_rate, 50, 'page funnel should calculate the percentage lost before the next page');
   assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
   assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
 
