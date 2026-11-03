@@ -245,6 +245,7 @@ try {
   assert.equal(firstChapterJourney.completed_sessions, 1, 'chapter funnel should expose completed sessions');
   assert.equal(firstChapterJourney.page_stats[2].readers_reached, 1, 'page funnel should expose unique readers who reached the last page');
   assert.equal(firstChapterJourney.page_stats[1].exits_after_page, 1, 'page funnel should identify exits after page two');
+  assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
 
   const now = new Date();
   const legacyHash = 'legacy-viewer-identity';
