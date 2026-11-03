@@ -887,7 +887,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     if (new Date(event.createdAt).getTime() >= new Date(session.lastEventAt).getTime()) {
       session.lastEventAt = event.createdAt;
     }
-    if (Number.isInteger(Number(event.activeSeconds)) && Number(event.activeSeconds) >= 0) {
+    if (event.activeSeconds != null && Number.isInteger(Number(event.activeSeconds)) && Number(event.activeSeconds) >= 0) {
       session.activeSeconds = Math.max(session.activeSeconds ?? 0, Number(event.activeSeconds));
     }
     if (!session.completed && event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
