@@ -218,9 +218,17 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
         row.page_exit_events,
       ]);
       exportRows.push(['Page breakdown for ' + chapterLabel(row, row.chapter)]);
-      exportRows.push(['Page', 'Sessions reaching page', 'Unique browsers reaching page', 'Exits recorded at page']);
+      exportRows.push(['Page', 'Chapter visits reaching page', 'Unique browsers reaching page', 'Visits reaching next page', 'Drop-off visits', 'Drop-off rate', 'Confirmed exit signals']);
       for (const page of row.page_stats || []) {
-        exportRows.push([page.page_number, page.sessions_reached, page.readers_reached, page.exits_after_page]);
+        exportRows.push([
+          page.page_number,
+          page.sessions_reached,
+          page.readers_reached,
+          page.next_page_sessions,
+          page.drop_off_sessions,
+          percentage(page.drop_off_rate),
+          page.exits_after_page,
+        ]);
       }
     }
     exportRows.push([], ['Chapter transitions'], ['From chapter', 'To chapter', 'Sessions', 'Unique browsers']);
@@ -294,7 +302,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       <Metric label="All-time views" value={count(viewPayload?.total_views)} detail="Historical chapter view totals from the existing tracker"/>
       <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser IDs, not verified individual people"/>
       <Metric label="Chapter visits" value={count(summary.sessions)} detail="Each time a reader opens a chapter, not a site-wide session"/>
-      <Metric label="Completed chapters" value={count(summary.completed_sessions)} detail={percentage(summary.completion_rate) + ' of recorded sessions'}/>
+      <Metric label="Completed chapters" value={count(summary.completed_sessions)} detail={percentage(summary.completion_rate) + ' of recorded chapter visits'}/>
       <Metric label="Recorded exits" value={count(summary.explicit_exits)} detail="Exit event received before completion"/>
       <Metric label="No end signal" value={count(summary.unconfirmed_exits)} detail="No completion or exit event was received"/>
       <Metric label="Next chapter clicks" value={count(summary.next_chapter_clicks)} detail="Reader used the next chapter control"/>
@@ -315,7 +323,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
     <div className="ar-reader-grid">
       <section className="ar-reader-card">
-        <div className="ar-reader-card-heading"><div><span>SESSION ACTIVITY</span><h3>Reading sessions over time</h3></div><small>UTC dates</small></div>
+        <div className="ar-reader-card-heading"><div><span>SESSION ACTIVITY</span><h3>Chapter visits over time</h3></div><small>UTC dates</small></div>
         {daily.length ? <div className="ar-reader-trend" style={{ gridTemplateColumns: `repeat(${Math.max(1, daily.length)}, minmax(0, 1fr))` }}>
           {daily.map(row => <div className="ar-reader-trend-day" key={row.day} title={row.day + ': ' + count(row.sessions) + ' sessions, ' + count(row.completed) + ' completed, ' + count(row.exits) + ' exits'}>
             <div className="ar-reader-trend-bars">
@@ -325,7 +333,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
             <small>{daily.length <= 14 || row.day.endsWith('-01') || row.day === daily[daily.length - 1]?.day ? row.day.slice(8, 10) : ''}</small>
           </div>)}
         </div> : <Empty>No daily session data is available.</Empty>}
-        <div className="ar-reader-legend"><span><i/>Sessions started</span><span><i className="is-completed"/>Completed</span></div>
+        <div className="ar-reader-legend"><span><i/>Chapter visits started</span><span><i className="is-completed"/>Completed</span></div>
       </section>
 
       <section className="ar-reader-card">
@@ -421,7 +429,7 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       </section>
 
       <section className="ar-reader-card">
-        <div className="ar-reader-card-heading"><div><span>EXIT ANALYSIS</span><h3>How reading sessions ended</h3><p>These are received exit signals, not inferred reader intent.</p></div></div>
+        <div className="ar-reader-card-heading"><div><span>EXIT ANALYSIS</span><h3>How chapter visits ended</h3><p>These are received exit signals, not inferred reader intent.</p></div></div>
         <div className="ar-reader-exit-list">
           {exitReasons.map(([label, value]) => <div className="ar-reader-exit-row" key={label}><span>{label}</span><strong>{count(value)}</strong></div>)}
         </div>
