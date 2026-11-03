@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchCloudflareReaderAnalytics } from './engagement';
+import { fetchCloudflareAdminAnalytics, fetchCloudflareReaderAnalytics } from './engagement';
 import './admin-reader-analytics.css';
 
 const WINDOWS = [
@@ -64,6 +64,8 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
   const [language, setLanguage] = useState('all');
   const [selectedChapterId, setSelectedChapterId] = useState('all');
   const [payload, setPayload] = useState(null);
+  const [viewPayload, setViewPayload] = useState(null);
+  const [viewError, setViewError] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -71,64 +73,91 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
 
   useEffect(() => {
     let active = true;
-    const hasPrevious = Boolean(payload);
+    const hasPrevious = Boolean(payload || viewPayload);
     if (hasPrevious) setRefreshing(true);
     else setLoading(true);
     setError('');
-    fetchCloudflareReaderAnalytics(days)
-      .then(result => {
-        if (!active) return;
-        setPayload(result);
-        setLoading(false);
-        setRefreshing(false);
-      })
-      .catch(loadError => {
-        if (!active) return;
-        setError(loadError?.message || 'Reader analytics could not be loaded.');
-        setLoading(false);
-        setRefreshing(false);
-      });
+    setViewError('');
+
+    Promise.allSettled([
+      fetchCloudflareReaderAnalytics(days),
+      fetchCloudflareAdminAnalytics(days),
+    ]).then(([journeyResult, viewResult]) => {
+      if (!active) return;
+
+      if (journeyResult.status === 'fulfilled') {
+        setPayload(journeyResult.value);
+      } else {
+        setError(journeyResult.reason?.message || 'Reader analytics could not be loaded.');
+      }
+
+      if (viewResult.status === 'fulfilled') {
+        setViewPayload(viewResult.value);
+      } else {
+        setViewError(viewResult.reason?.message || 'Chapter view totals could not be loaded.');
+      }
+
+      setLoading(false);
+      setRefreshing(false);
+    });
+
     return () => { active = false; };
   }, [days, refreshVersion]);
 
   const chapterById = useMemo(() => new Map(chapters.map(chapter => [String(chapter.id), chapter])), [chapters]);
   const measuredRows = Array.isArray(payload?.chapters) ? payload.chapters : [];
+  const measuredViews = Array.isArray(viewPayload?.chapter_stats) ? viewPayload.chapter_stats : [];
   const allRows = useMemo(() => {
     const measuredById = new Map(measuredRows.map(row => [String(row.chapter_id), row]));
-    return chapters.map(chapter => measuredById.get(String(chapter.id)) || {
-      chapter_id: String(chapter.id),
-      chapter_number: chapter.chapterNumber ?? null,
-      language: chapter.language === 'en' ? 'en' : 'hi',
-      sessions: 0,
-      readers: 0,
-      completed_sessions: 0,
-      explicit_exits: 0,
-      unconfirmed_exits: 0,
-      next_chapter_clicks: 0,
-      previous_chapter_clicks: 0,
-      chapter_list_exits: 0,
-      page_exit_events: 0,
-      pages_read: 0,
-      average_pages_read: 0,
-      average_completion_percent: 0,
-      average_reading_seconds: null,
-      exit_reasons: {},
-      page_stats: Array.from({ length: Math.max(0, Math.min(500, number(pageCounts[chapter.id]))) }, (_, index) => ({
-        page_number: index + 1,
-        sessions_reached: 0,
-        readers_reached: 0,
-        exits_after_page: 0,
-        exit_readers: 0,
-      })),
+    const viewsById = new Map(measuredViews.map(row => [String(row.id), row]));
+
+    return chapters.map(chapter => {
+      const chapterId = String(chapter.id);
+      const journey = measuredById.get(chapterId);
+      const chapterViews = viewsById.get(chapterId);
+      const fallback = {
+        chapter_id: chapterId,
+        chapter_number: chapter.chapterNumber ?? null,
+        language: chapter.language === 'en' ? 'en' : 'hi',
+        sessions: 0,
+        readers: 0,
+        completed_sessions: 0,
+        explicit_exits: 0,
+        unconfirmed_exits: 0,
+        next_chapter_clicks: 0,
+        previous_chapter_clicks: 0,
+        chapter_list_exits: 0,
+        page_exit_events: 0,
+        pages_read: 0,
+        average_pages_read: 0,
+        average_completion_percent: 0,
+        average_reading_seconds: null,
+        exit_reasons: {},
+        page_stats: Array.from({ length: Math.max(0, Math.min(500, number(pageCounts[chapter.id]))) }, (_, index) => ({
+          page_number: index + 1,
+          sessions_reached: 0,
+          readers_reached: 0,
+          exits_after_page: 0,
+          exit_readers: 0,
+        })),
+      };
+
+      return {
+        ...fallback,
+        ...(journey || {}),
+        chapter_views: number(chapterViews?.views),
+        period_views: number(chapterViews?.period_views),
+      };
     });
-  }, [measuredRows, chapters]);
+  }, [measuredRows, measuredViews, chapters, pageCounts]);
   const rows = useMemo(() => allRows
     .filter(row => language === 'all' || row.language === language)
     .filter(row => selectedChapterId === 'all' || String(row.chapter_id) === selectedChapterId)
     .map(row => ({ ...row, chapter: chapterById.get(String(row.chapter_id)) }))
     .sort((a, b) => {
+      const byViews = number(b.period_views) - number(a.period_views);
       const bySessions = number(b.sessions) - number(a.sessions);
-      return bySessions || number(a.chapter_number ?? 9999) - number(b.chapter_number ?? 9999);
+      return byViews || bySessions || number(a.chapter_number ?? 9999) - number(b.chapter_number ?? 9999);
     }), [allRows, language, selectedChapterId, chapterById]);
 
   const selectedRow = rows.length === 1 && selectedChapterId !== 'all'
@@ -141,7 +170,11 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
   const visibleTransitions = chapterTransitions.filter(row => (language === 'all' || chapterById.get(String(row.from_chapter_id))?.language === language) && (selectedChapterId === 'all' || String(row.from_chapter_id) === selectedChapterId));
   const maxDaily = Math.max(1, ...daily.map(row => number(row.sessions)));
   const maxDepth = Math.max(1, ...readerDepth.map(row => number(row.readers)));
-  const hasData = Boolean(payload?.has_data);
+  const hasJourneyData = Boolean(payload?.has_data || number(summary.sessions) > 0);
+  const hasViewData = number(viewPayload?.total_views) > 0 ||
+    number(viewPayload?.current_views) > 0 ||
+    measuredViews.some(row => number(row.views) > 0 || number(row.period_views) > 0);
+  const hasData = hasJourneyData || hasViewData;
   const exitReasons = [
     ['Opened another chapter', number(summary.next_chapter_clicks)],
     ['Returned to chapter list', number(summary.chapter_list_exits)],
@@ -156,14 +189,16 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       ['Reporting window', days + ' days'],
       ['Language filter', language],
       ['Chapter filter', selectedChapterId === 'all' ? 'All chapters' : chapterLabel(rows.find(row => String(row.chapter_id) === selectedChapterId) || {}, chapterById.get(selectedChapterId))],
-      ['Updated at', payload?.updated_at || ''],
+      ['Updated at', payload?.updated_at || viewPayload?.updated_at || ''],
       [],
-      ['Chapter', 'Language', 'Unique browsers', 'Sessions', 'Completed sessions', 'Completion rate', 'Recorded exits', 'No end signal', 'Average pages read', 'Average completion', 'Average reading time seconds', 'Next chapter clicks', 'Chapter list exits', 'Page exit events'],
+      ['Chapter', 'Language', 'Views in period', 'All-time views', 'Unique browsers', 'Sessions', 'Completed sessions', 'Completion rate', 'Recorded exits', 'No end signal', 'Average pages read', 'Average completion', 'Average reading time seconds', 'Next chapter clicks', 'Chapter list exits', 'Page exit events'],
     ];
     for (const row of rows) {
       exportRows.push([
         chapterLabel(row, row.chapter),
         languageName(row.language),
+        row.period_views,
+        row.chapter_views,
         row.readers,
         row.sessions,
         row.completed_sessions,
@@ -250,8 +285,10 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
     <p className="ar-reader-scope-note">Summary totals below cover the full selected reporting window across all chapters and languages. The filters apply to the chapter table and page detail.</p>
 
     <div className="ar-reader-metrics">
+      <Metric label="Chapter views" value={count(viewPayload?.current_views)} detail="Recorded chapter opens in the selected reporting window"/>
+      <Metric label="All-time views" value={count(viewPayload?.total_views)} detail="Historical chapter view totals from the existing tracker"/>
       <Metric label="Unique browsers" value={count(summary.unique_readers)} detail="Anonymous browser identifiers, not verified people or accounts"/>
-      <Metric label="Reading sessions" value={count(summary.sessions)} detail="A new session each time a chapter is opened"/>
+      <Metric label="Reading sessions" value={count(summary.sessions)} detail="New page-tracked sessions recorded since journey tracking launched"/>
       <Metric label="Completed chapters" value={count(summary.completed_sessions)} detail={percentage(summary.completion_rate) + ' of recorded sessions'}/>
       <Metric label="Recorded exits" value={count(summary.explicit_exits)} detail="Exit event received before completion"/>
       <Metric label="No end signal" value={count(summary.unconfirmed_exits)} detail="No completion or exit event was received"/>
@@ -260,9 +297,14 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       <Metric label="Average completion" value={percentage(summary.average_completion_percent)} detail={duration(summary.average_reading_seconds) + ' average ended-session duration'}/>
     </div>
 
-    {!hasData && !error && <div className="ar-reader-empty-state">
-      <strong>No reading journeys recorded in this period yet.</strong>
-      <p>Journey tracking starts with this release. Existing chapter view totals are not converted into page-level reading history.</p>
+    {viewError && <div className="ar-reader-alert" role="status">
+      <strong>Chapter view totals unavailable</strong>
+      <span>{viewError}</span>
+    </div>}
+
+    {!hasJourneyData && !error && <div className="ar-reader-empty-state">
+      <strong>No page-by-page reading journeys recorded in this period yet.</strong>
+      <p>Chapter views above use the existing tracker. Page-level retention and exit details begin with this release and cannot be reconstructed for earlier visits.</p>
     </div>}
 
     <div className="ar-reader-grid">
@@ -300,11 +342,13 @@ export default function AdminReaderAnalytics({ chapters = [], pageCounts = {} })
       {rows.length ? <div className="ar-reader-table-wrap">
         <table className="ar-reader-table">
           <thead><tr>
-            <th>Chapter</th><th>Language</th><th>Unique browsers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. read time</th>
+            <th>Chapter</th><th>Language</th><th>Views in period</th><th>All-time views</th><th>Unique browsers</th><th>Sessions</th><th>Completed</th><th>Completion</th><th>Exits</th><th>Next chapter</th><th>Avg. pages</th><th>Avg. read time</th>
           </tr></thead>
           <tbody>{rows.map(row => <tr key={row.chapter_id} className={selectedChapterId === String(row.chapter_id) ? 'is-selected' : ''}>
             <td><button type="button" className="ar-reader-link" onClick={() => setSelectedChapterId(String(row.chapter_id))}>{chapterLabel(row, row.chapter)}</button></td>
             <td>{languageName(row.language)}</td>
+            <td>{count(row.period_views)}</td>
+            <td>{count(row.chapter_views)}</td>
             <td>{count(row.readers)}</td>
             <td>{count(row.sessions)}</td>
             <td>{count(row.completed_sessions)}</td>
