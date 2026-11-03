@@ -846,7 +846,7 @@ async function buildReaderJourneyAnalytics(env, days) {
   const now = new Date();
   const start = new Date(now.getTime() - days * DAY_MS);
   const events = await readerJourneyObjectsForPeriod(env, start, now);
-  const eventOrder = { start: 0, progress: 1, complete: 2, exit: 3 };
+  const eventOrder = { start: 0, engagement: 1, progress: 2, complete: 3, exit: 4 };
   events.sort((a, b) => {
     const byTime = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     return byTime || eventOrder[a.eventType] - eventOrder[b.eventType];
