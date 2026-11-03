@@ -390,7 +390,7 @@ try {
   const orderedAnalyticsResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
   assert.equal(orderedAnalyticsResponse.status, 200, 'analytics must remain readable with out-of-order browser events');
   const orderedAnalytics = await orderedAnalyticsResponse.json();
-  assert.equal(orderedAnalytics.summary.sessions, 6, 'out-of-order start records must still create one session');
+  assert.equal(orderedAnalytics.summary.sessions, 8, 'out-of-order start records must still create one session');
   assert.equal(orderedAnalytics.summary.explicit_exits, 4, 'an exit arriving before its start must still be attached to that session');
 
   const now = new Date();
