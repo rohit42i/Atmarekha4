@@ -279,8 +279,41 @@ function finishReaderJourney(session, reason, nextChapterId = null) {
   });
 }
 
+function getReaderAnalyticsContext() {
+  const width = typeof window !== 'undefined'
+    ? Number(window.innerWidth || document.documentElement?.clientWidth || 0)
+    : 0;
+  const coarsePointer = typeof window !== 'undefined' &&
+    Boolean(window.matchMedia?.('(pointer: coarse)')?.matches);
+  const deviceType = width > 0 && width <= 767
+    ? 'mobile'
+    : (width <= 1024 || coarsePointer ? 'tablet' : 'desktop');
+
+  let entrySource = 'direct';
+  try {
+    const referrer = document.referrer ? new URL(document.referrer) : null;
+    if (referrer) {
+      const host = referrer.hostname.toLowerCase().replace(/^www\\./, '');
+      const ownHost = window.location.hostname.toLowerCase().replace(/^www\\./, '');
+      if (host === ownHost || host === 'atmarekha.in') {
+        entrySource = 'internal';
+      } else if (/(^|\\.)google\\.|(^|\\.)bing\\.|(^|\\.)yahoo\\.|(^|\\.)duckduckgo\\.|(^|\\.)brave\\./.test(host)) {
+        entrySource = 'search';
+      } else if (/(^|\\.)(instagram\\.com|facebook\\.com|fb\\.com|youtube\\.com|youtu\\.be|tiktok\\.com|x\\.com|twitter\\.com|reddit\\.com|pinterest\\.com)$/.test(host)) {
+        entrySource = 'social';
+      } else {
+        entrySource = 'referral';
+      }
+    }
+  } catch {
+    entrySource = 'unknown';
+  }
+
+  return { deviceType, entrySource };
+}
+
 function Reader({ chapterId, onBack, chapters }) {
-   const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [loadedPageKey, setLoadedPageKey] = useState(null); const readerJourneyRef = useRef(null); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null);
+   const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [loadedPageKey, setLoadedPageKey] = useState(null); const readerJourneyRef = useRef(null); const readerVisitIdRef = useRef(null); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null);
   useEffect(() => { const protectedPage = Number(chapter?.chapterNumber) > 8; const url = protectedPage ? protectedUrls[index] : pages[index]; setPageImageLoading(Boolean(url)); }, [chapter, pages, index, protectedUrls]);
  const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const specialPageFallbackRef = useRef(new Set()); const progressHydratedRef = useRef(false);
   const minSwipeDistance = 50;
@@ -301,13 +334,16 @@ function Reader({ chapterId, onBack, chapters }) {
       }
 
       const livePages = await buildChapterPages(found.id);
-      if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id).catch(viewError => { console.warn('View tracking skipped:', viewError); }).then(() => { if (cancelled) return; return fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
+      if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; readerVisitIdRef.current = createReaderJourneySessionId(); setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id, readerVisitIdRef.current).catch(viewError => { console.warn('View tracking skipped:', viewError); }).then(() => { if (cancelled) return; return fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
   useEffect(() => {
     if (!chapter || !pages.length) return undefined;
-    const sessionId = createReaderJourneySessionId();
+    const sessionId = readerVisitIdRef.current || createReaderJourneySessionId();
     if (!sessionId) return undefined;
+    readerVisitIdRef.current = sessionId;
+    const readerContext = getReaderAnalyticsContext();
     const meta = {
       sessionId,
+      ...readerContext,
       chapterId: String(chapter.id),
       chapterNumber: chapter.chapterNumber == null || String(chapter.chapterNumber).trim() === ''
         ? null
