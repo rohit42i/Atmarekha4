@@ -750,7 +750,7 @@ async function handleReaderJourneyEvent(request, env) {
   }
   const engagementSequence = eventType === 'engagement' ? Number(payload?.sequence) : null;
   if (eventType === 'engagement' &&
-      (!Number.isInteger(engagementSequence) || engagementSequence < 1 || engagementSequence > 100000)) {
+      (activeSeconds === null || !Number.isInteger(engagementSequence) || engagementSequence < 1 || engagementSequence > 100000)) {
     return text(request, 'Invalid engagement event sequence.', 400);
   }
   if (eventType === 'exit' && pageNumber !== null &&
