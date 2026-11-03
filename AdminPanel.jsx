@@ -3,6 +3,7 @@ import { supabase, cloudflareR2, isSupportedImageFile } from './supabase';
 import { buildChapters, normalizeChapterLanguage, chapterLanguageLabel } from './chapters';
 import AdminOverview from './AdminOverview';
 import AdminControlRoom from './AdminControlRoom.jsx';
+import AdminReaderAnalytics from './AdminReaderAnalytics.jsx';
 import AdminMembership from './AdminMembership.jsx';
 import AdminChapterPages from './AdminChapterPages';
 import PalDoPalAdmin from './PalDoPalAdmin';
@@ -163,6 +164,7 @@ const ADMIN_NAV_GROUPS = [
   { label: 'Workspace', items: [
     { key: 'Overview', icon: 'grid', label: 'Dashboard' },
     { key: 'Control Room', icon: 'chart', label: 'Control Room' },
+    { key: 'Reader Analytics', icon: 'chart', label: 'Reader Analytics' },
   ]},
   { label: 'Publishing', items: [
     { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
@@ -1274,7 +1276,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
 
   async function logout() { await supabase.auth.signOut(); onLogout?.(); }
 
-  const tabs = ['Overview', 'Control Room', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media', 'Privacy Requests'];
+  const tabs = ['Overview', 'Control Room', 'Reader Analytics', 'Chapters', 'Pages', 'Comments', 'Reports', 'Announcements', 'Email Campaigns', 'Community Posts', 'Membership & Earnings', 'Card Thumbnails', 'Media', 'Privacy Requests'];
   const chapterName = id => { const chapter = chapters.find(item => item.id === id); return chapter ? `Chapter ${chapter.chapterNumber ?? 'Special'} — ${chapter.title} · ${chapterLanguageLabel(chapter.language)}` : 'Unknown chapter'; };
   const commentById = id => comments.find(comment => comment.id === id);
   const reportCount = openReportCount ?? reports.filter(report => (report.status || 'open') === 'open').length;
@@ -1372,7 +1374,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
         </header>
         <div className="ar-admin-content">
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Reader Analytics' ? <AdminReaderAnalytics chapters={sorted} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
       form={form}
