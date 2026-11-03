@@ -353,9 +353,8 @@ try {
   assert.equal(lifecycleChapter.page_stats[0].settled_sessions, 3, 'page-one drop-off denominator should include only settled visits');
   assert.equal(lifecycleChapter.page_stats[0].recent_unconfirmed_sessions, 1, 'page-one funnel should expose the recent unresolved visit separately');
   assert.equal(lifecycleChapter.page_stats[0].drop_off_sessions, 1, 'only the inactive visit should count as a settled page-one drop-off');
-  assert.equal(
-    lifecycleChapter.page_stats[0].drop_off_rate,
-    100 / 3,
+  assert.ok(
+    Math.abs(lifecycleChapter.page_stats[0].drop_off_rate - 100 / 3) < 1e-9,
     'active readers should not be included in the page drop-off rate denominator',
   );
 
