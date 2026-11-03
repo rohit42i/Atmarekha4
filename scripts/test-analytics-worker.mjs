@@ -236,7 +236,13 @@ try {
   assert.equal(journeyAnalyticsResponse.status, 200, 'authenticated reader journey analytics must load');
   const journeyAnalytics = await journeyAnalyticsResponse.json();
   assert.equal(journeyAnalytics.summary.unique_readers, 2, 'journey readers should deduplicate sessions by anonymous browser key');
-  assert.equal(journeyAnalytics.summary.sessions, 4, 'journey analytics should count all four chapter sessions');
+  assert.equal(
+    journeyAnalytics.summary.sessions,
+    4,
+    'journey analytics should count all four chapter sessions; found ' +
+      journeyAnalytics.summary.sessions + '; start records: ' +
+      JSON.stringify([...bucket.objects.keys()].filter(key => key.startsWith('analytics/reader-journeys/') && key.endsWith('/start.json'))),
+  );
   assert.equal(journeyAnalytics.summary.completed_sessions, 1, 'the final page event should count as a completion');
   assert.equal(journeyAnalytics.summary.explicit_exits, 3, 'journey analytics should distinguish explicit exits');
   assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
