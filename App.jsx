@@ -328,6 +328,7 @@ function Reader({ chapterId, onBack, chapters }) {
       exitReason: null,
       activeSeconds: 0,
       engagementSequence: 0,
+      pageReady: false,
     };
     readerJourneyRef.current = session;
     session.startPromise = recordReaderJourneyEventWithRetry({ ...meta, eventType: 'start' })
@@ -338,7 +339,7 @@ function Reader({ chapterId, onBack, chapters }) {
       });
     const onPageHide = () => finishReaderJourney(session, 'page_exit');
     const engagementTimer = window.setInterval(() => {
-      if (document.visibilityState !== 'visible' || !document.hasFocus() || session.ended) return;
+      if (document.visibilityState !== 'visible' || !document.hasFocus() || !session.pageReady || session.ended) return;
       session.activeSeconds += 1;
       if (session.activeSeconds % 15 !== 0) return;
       session.engagementSequence += 1;
@@ -365,8 +366,9 @@ function Reader({ chapterId, onBack, chapters }) {
     const pageUrl = Number(chapter.chapterNumber) > 8 ? protectedUrls[index] : pages[index];
     const expectedLoadedKey = String(chapter.id) + ':' + index + ':' + String(pageUrl || '');
     if (!pageUrl || loadedPageKey !== expectedLoadedKey) return undefined;
+    session.pageReady = true;
     const pageNumber = index + 1;
-    if (session.recordedPages.has(pageNumber)) return undefined;
+    if (session.recordedPages.has(pageNumber)) return () => { session.pageReady = false; };
     let timer = null;
     const scheduleVisibleRead = () => {
       if (document.visibilityState !== 'visible') {
@@ -407,6 +409,7 @@ function Reader({ chapterId, onBack, chapters }) {
     document.addEventListener('visibilitychange', scheduleVisibleRead);
     scheduleVisibleRead();
     return () => {
+      session.pageReady = false;
       document.removeEventListener('visibilitychange', scheduleVisibleRead);
       if (timer !== null) window.clearTimeout(timer);
     };
