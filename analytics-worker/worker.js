@@ -520,8 +520,10 @@ async function bootstrapLegacy(env, today) {
     version: 1,
     processedThrough: null,
     chapterViews: {},
+    chapterPageviews: {},
     updatedAt: null,
   });
+  summary.chapterPageviews ||= {};
   try {
     const legacyRows = await fetchLegacyRows(env, dayStart(today));
     const byDay = {};
@@ -564,8 +566,10 @@ async function archiveMissingDays(env, today) {
     version: 1,
     processedThrough: null,
     chapterViews: {},
+    chapterPageviews: {},
     updatedAt: null,
   });
+  summary.chapterPageviews ||= {};
   const target = addDays(today, -1);
   let cursor = summary.processedThrough ? addDays(summary.processedThrough, 1) : target;
   if (cursor > target) return summary;
@@ -576,19 +580,28 @@ async function archiveMissingDays(env, today) {
     const monthObject = await readJson(env, monthObjectKey(month), { version: 1, month, days: {} });
     const day = dayKey(cursor);
     const existingRecord = monthObject.days[day];
-    const eventChapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.views]));
-    // Preserve older archived counts when the new live-event store has no rows for
-    // a day that was already archived by the previous Analytics Engine pipeline.
-    const chapters = Object.keys(eventChapters).length || !existingRecord
-      ? eventChapters
+    const eventReaderDays = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.readerDays ?? row.views ?? 0]));
+    const eventPageviews = Object.fromEntries(rowsForDay.filter(row => row.pageviews > 0).map(row => [row.chapterId, row.pageviews]));
+    // Preserve archived reader-day and pageview totals when their source events are no longer present.
+    const chapters = Object.keys(eventReaderDays).length || !existingRecord
+      ? eventReaderDays
       : (existingRecord.chapters || {});
+    const chapterPageviews = Object.keys(eventPageviews).length || !existingRecord
+      ? eventPageviews
+      : (existingRecord.chapterPageviews || {});
     const total = Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0);
-    monthObject.days[day] = { views: total, chapters };
+    const pageviewTotal = Object.values(chapterPageviews).reduce((sum, value) => sum + Number(value || 0), 0);
+    monthObject.days[day] = { views: total, readerDays: total, chapters, pageviews: pageviewTotal, chapterPageviews };
     await writeJson(env, monthObjectKey(month), monthObject);
     const oldChapters = existingRecord?.chapters || {};
     for (const chapterId of new Set([...Object.keys(oldChapters), ...Object.keys(chapters)])) {
       const delta = Number(chapters[chapterId] || 0) - Number(oldChapters[chapterId] || 0);
       if (delta) summary.chapterViews[chapterId] = Math.max(0, Number(summary.chapterViews[chapterId] || 0) + delta);
+    }
+    const oldPageviews = existingRecord?.chapterPageviews || {};
+    for (const chapterId of new Set([...Object.keys(oldPageviews), ...Object.keys(chapterPageviews)])) {
+      const delta = Number(chapterPageviews[chapterId] || 0) - Number(oldPageviews[chapterId] || 0);
+      if (delta) summary.chapterPageviews[chapterId] = Math.max(0, Number(summary.chapterPageviews[chapterId] || 0) + delta);
     }
     summary.processedThrough = day;
     summary.updatedAt = new Date().toISOString();
@@ -602,13 +615,17 @@ async function updateCurrent(env, today) {
   const start = dayStart(today);
   const end = addDays(start, 1);
   const rowsForDay = await viewRowsForPeriod(env, start, end);
-  const chapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.views]));
+  const chapters = Object.fromEntries(rowsForDay.map(row => [row.chapterId, row.readerDays ?? row.views ?? 0]));
+  const chapterPageviews = Object.fromEntries(rowsForDay.filter(row => row.pageviews > 0).map(row => [row.chapterId, row.pageviews]));
   await writeJson(env, currentKey(), {
-    version: 1,
+    version: 2,
     day: dayKey(today),
     updatedAt: new Date().toISOString(),
     views: Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0),
     chapterViews: chapters,
+    readerDays: Object.values(chapters).reduce((sum, value) => sum + Number(value || 0), 0),
+    chapterPageviews,
+    pageviews: Object.values(chapterPageviews).reduce((sum, value) => sum + Number(value || 0), 0),
   });
 }
 
@@ -629,32 +646,46 @@ async function handleView(request, env) {
   }
   const chapterId = String(payload?.chapterId || '');
   const viewerKey = payload?.viewerKey;
+  const visitId = payload?.visitId == null ? null : String(payload.visitId);
   if (!validChapterId(chapterId) || !validViewerKey(viewerKey)) return text(request, 'Invalid chapter or viewer key.', 400);
+  if (visitId && !validJourneySessionId(visitId)) return text(request, 'Invalid chapter visit ID.', 400);
   const viewerHash = await sha256(viewerKey);
   const createdAt = new Date();
-  const eventKey = `${ARCHIVE_PREFIX}/events/${dayKey(createdAt)}/${chapterId}/${viewerHash}.json`;
+  const dayPrefix = `${ARCHIVE_PREFIX}/events/${dayKey(createdAt)}/${chapterId}/`;
+  const uniqueReaderDayKey = dayPrefix + viewerHash + '.json';
+  const pageviewKey = visitId ? dayPrefix + 'visits/' + visitId + '.json' : null;
   try {
-    // R2 is the immediate source of truth for counts; a stable object key makes
-    // retries idempotent for this browser/chapter/day and avoids counter races.
-    await env.ANALYTICS_BUCKET.put(eventKey, JSON.stringify({
+    // One daily unique-browser/chapter record supports reader-day and returning-reader metrics.
+    await env.ANALYTICS_BUCKET.put(uniqueReaderDayKey, JSON.stringify({
       chapterId,
       viewerHash,
       createdAt: createdAt.toISOString(),
+      eventType: 'reader_day',
     }), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+    // Each successful chapter open receives an idempotent pageview record of its own.
+    if (pageviewKey) {
+      await env.ANALYTICS_BUCKET.put(pageviewKey, JSON.stringify({
+        chapterId,
+        visitId,
+        viewerHash,
+        createdAt: createdAt.toISOString(),
+        eventType: 'chapter_open',
+      }), { httpMetadata: { contentType: 'application/json; charset=utf-8' } });
+    }
   } catch (error) {
-    return text(request, `Unable to persist view event: ${error?.message || 'storage error'}`, 503);
+    return text(request, `Unable to persist chapter open: ${error?.message || 'storage error'}`, 503);
   }
   // R2 is the source of truth; this optional sink must never block view counts.
   try {
     if (typeof env.ANALYTICS?.writeDataPoint === 'function') {
       env.ANALYTICS.writeDataPoint({
-        blobs: [chapterId, viewerHash],
-        doubles: [1],
+        blobs: [chapterId, viewerHash, visitId || 'legacy'],
+        doubles: [1, visitId ? 1 : 0],
         indexes: ['atma-rekha'],
       });
     }
   } catch { /* The durable R2 event already recorded the view. */ }
-  return json(request, { recorded: true });
+  return json(request, { recorded: true, pageview: Boolean(visitId), readerDay: true });
 }
 
 async function handlePublicViews(request, env) {
