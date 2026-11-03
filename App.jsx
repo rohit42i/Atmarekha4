@@ -293,13 +293,13 @@ function getReaderAnalyticsContext() {
   try {
     const referrer = document.referrer ? new URL(document.referrer) : null;
     if (referrer) {
-      const host = referrer.hostname.toLowerCase().replace(/^www\\./, '');
-      const ownHost = window.location.hostname.toLowerCase().replace(/^www\\./, '');
+      const host = referrer.hostname.toLowerCase().replace(/^www\./, '');
+      const ownHost = window.location.hostname.toLowerCase().replace(/^www\./, '');
       if (host === ownHost || host === 'atmarekha.in') {
         entrySource = 'internal';
-      } else if (/(^|\\.)google\\.|(^|\\.)bing\\.|(^|\\.)yahoo\\.|(^|\\.)duckduckgo\\.|(^|\\.)brave\\./.test(host)) {
+      } else if (/(^|\.)google\.|(^|\.)bing\.|(^|\.)yahoo\.|(^|\.)duckduckgo\.|(^|\.)brave\./.test(host)) {
         entrySource = 'search';
-      } else if (/(^|\\.)(instagram\\.com|facebook\\.com|fb\\.com|youtube\\.com|youtu\\.be|tiktok\\.com|x\\.com|twitter\\.com|reddit\\.com|pinterest\\.com)$/.test(host)) {
+      } else if (/(^|\.)(instagram\.com|facebook\.com|fb\.com|youtube\.com|youtu\.be|tiktok\.com|x\.com|twitter\.com|reddit\.com|pinterest\.com)$/.test(host)) {
         entrySource = 'social';
       } else {
         entrySource = 'referral';
