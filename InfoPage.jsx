@@ -83,7 +83,7 @@ export default function InfoPage({ type, onBack }) {
     {isTerms && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Terms of Use">
       <header className="legal-document-intro">
         <p>{page.description}</p>
-        <span>Last updated: 3 November 2026</span>
+        <span>Last updated: 25 October 2026</span>
       </header>
       <div className="legal-document-sections terms-document-sections"><TermsOfUseSections /></div>
     </section>}
@@ -91,7 +91,7 @@ export default function InfoPage({ type, onBack }) {
     {isPrivacy && <section className="info-card info-content-card terms-privacy-policy legal-document-card" aria-label="Privacy Policy">
       <header className="legal-document-intro">
         <p>{page.description}</p>
-        <span>Last updated: 25 October 2026</span>
+        <span>Last updated: 3 November 2026</span>
       </header>
       <div className="legal-document-sections privacy-document-sections"><PrivacyPolicySections /></div>
     </section>}
