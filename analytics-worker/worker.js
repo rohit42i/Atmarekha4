@@ -929,7 +929,7 @@ async function buildReaderJourneyAnalytics(env, days) {
     if (!daily.has(day)) daily.set(day, emptyJourneyDaily(day));
     daily.get(day).sessions++;
     if (session.completed) daily.get(day).completed++;
-    if (session.exited) daily.get(day).exits++;
+    if (session.exited && !session.completed) daily.get(day).exits++;
   }
 
   const chapterStats = [...chapterBuckets.values()].map(chapter => {
@@ -982,8 +982,8 @@ async function buildReaderJourneyAnalytics(env, days) {
       explicit_exits: exits.length,
       unconfirmed_exits: rows.filter(session => !session.completed && !session.exited).length,
       next_chapter_clicks: rows.filter(session => session.exitReason === 'next_chapter').length,
-      previous_chapter_clicks: exits.filter(session => session.exitReason === 'previous_chapter').length,
-      chapter_list_exits: exits.filter(session => session.exitReason === 'chapter_list').length,
+      previous_chapter_clicks: rows.filter(session => session.exitReason === 'previous_chapter').length,
+      chapter_list_exits: rows.filter(session => session.exitReason === 'chapter_list').length,
       page_exit_events: exits.filter(session => session.exitReason === 'page_exit').length,
       navigation_exits: exits.filter(session => session.exitReason === 'navigation').length,
       pages_read: pagesRead,
@@ -1063,8 +1063,8 @@ async function buildReaderJourneyAnalytics(env, days) {
       explicit_exits: explicitExits.length,
       unconfirmed_exits: validSessions.length - completedSessions.length - explicitExits.length,
       next_chapter_clicks: validSessions.filter(session => session.exitReason === 'next_chapter').length,
-      previous_chapter_clicks: explicitExits.filter(session => session.exitReason === 'previous_chapter').length,
-      chapter_list_exits: explicitExits.filter(session => session.exitReason === 'chapter_list').length,
+      previous_chapter_clicks: validSessions.filter(session => session.exitReason === 'previous_chapter').length,
+      chapter_list_exits: validSessions.filter(session => session.exitReason === 'chapter_list').length,
       page_exit_events: explicitExits.filter(session => session.exitReason === 'page_exit').length,
       navigation_exits: explicitExits.filter(session => session.exitReason === 'navigation').length,
       pages_read: pageReads,
