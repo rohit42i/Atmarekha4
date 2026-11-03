@@ -10,7 +10,7 @@ import { buildPdlplChapters } from './palDoPalKeLamhe';
 import { fetchAuthenticatedMediaBlobUrl, getCurrentMembership, supabase } from './supabase';
 import { getAdminRole } from './adminAuth';
 import axios from 'axios';
-import { addComment, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, reportComment, submitRating } from './engagement';
+import { addComment, createReaderJourneySessionId, fetchChapterComments, fetchChapterEngagement, fetchCommentLikes, fetchPublicEngagement, likeComment, recordChapterShare, recordChapterView, recordReaderJourneyEvent, reportComment, sendReaderJourneyExitBeacon, submitRating } from './engagement';
 import { chapterCanonicalUrl, chapterLanguageUrl, chapterPath, findChapterForPath, getSiteRoute, isChapterPath, legacyChapterIdFromHash } from './routes';
 import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx';
 import ContinueReading from './ContinueReading.jsx';
@@ -256,8 +256,25 @@ function ChapterList({ chapters, onBack }) {
   );
 }
 
+
+function finishReaderJourney(session, reason, nextChapterId = null) {
+  if (!session || session.ended) return;
+  if (session.completed && !['next_chapter', 'previous_chapter'].includes(reason)) {
+    session.ended = true;
+    return;
+  }
+  session.ended = true;
+  session.exitReason = reason;
+  sendReaderJourneyExitBeacon({
+    ...session.meta,
+    pageNumber: session.maxPageReached || null,
+    exitReason: reason,
+    ...(nextChapterId ? { nextChapterId } : {}),
+  });
+}
+
 function Reader({ chapterId, onBack, chapters }) {
-   const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null);
+   const [chapter, setChapter] = useState(null); const [pages, setPages] = useState([]); const [pageImageLoading, setPageImageLoading] = useState(true); const [loadedPageKey, setLoadedPageKey] = useState(null); const readerJourneyRef = useRef(null); const [index, setIndex] = useState(0); const [protectedUrls, setProtectedUrls] = useState({}); const protectedUrlsRef = useRef(new Map()); const [stats, setStats] = useState({ rating: { average: 0, count: 0 }, views: 0, likes: 0, comments: 0 }); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [ratingOpen, setRatingOpen] = useState(false); const [commentsOpen, setCommentsOpen] = useState(false); const [touchStart, setTouchStart] = useState(null); const [touchEnd, setTouchEnd] = useState(null); const [favoriteUser, setFavoriteUser] = useState(null);
   useEffect(() => { const protectedPage = Number(chapter?.chapterNumber) > 8; const url = protectedPage ? protectedUrls[index] : pages[index]; setPageImageLoading(Boolean(url)); }, [chapter, pages, index, protectedUrls]);
  const [favoriteSaved, setFavoriteSaved] = useState(false); const [favoriteBusy, setFavoriteBusy] = useState(false); const [favoriteError, setFavoriteError] = useState(''); const specialPageFallbackRef = useRef(new Set()); const progressHydratedRef = useRef(false);
   const minSwipeDistance = 50;
@@ -279,6 +296,87 @@ function Reader({ chapterId, onBack, chapters }) {
 
       const livePages = await buildChapterPages(found.id);
       if (cancelled) return; let restoredIndex = Number(window.localStorage.getItem(`atma-reading:${found.id}`)); if (!Number.isInteger(restoredIndex) || restoredIndex < 0 || restoredIndex >= livePages.length) restoredIndex = 0; progressHydratedRef.current = true; setChapter(found); setPages(livePages); setIndex(restoredIndex); setLoading(false); if (restoredIndex === 0) { supabase.auth.getSession().then(async ({ data: sessionData }) => { const userId = sessionData?.session?.user?.id; if (!userId || cancelled) return; const { data: history } = await supabase.from('reading_history').select('chapter_id,page_number').eq('user_id', userId).maybeSingle(); const serverIndex = Number(history?.page_number) - 1; if (!cancelled && String(history?.chapter_id) === String(found.id) && Number.isInteger(serverIndex) && serverIndex >= 0 && serverIndex < livePages.length) { progressHydratedRef.current = false; setIndex(serverIndex); progressHydratedRef.current = true; } }).catch(historyError => console.warn('Reading progress restore skipped:', historyError)); } recordChapterView(found.id).catch(viewError => { console.warn('View tracking skipped:', viewError); }).then(() => { if (cancelled) return; return fetchChapterEngagement(found.id).then(engagement => { if (!cancelled) setStats(engagement); }); }).catch(engagementError => { console.warn('Engagement load skipped:', engagementError); }); } catch (err) { if (!cancelled) setError(err?.message || 'Unable to load this chapter.'); } finally { if (!cancelled) setLoading(false); } }; load(); return () => { cancelled = true; progressHydratedRef.current = false; }; }, [chapterId, chapters]);
+  useEffect(() => {
+    if (!chapter || !pages.length) return undefined;
+    const sessionId = createReaderJourneySessionId();
+    if (!sessionId) return undefined;
+    const meta = {
+      sessionId,
+      chapterId: String(chapter.id),
+      chapterNumber: chapter.chapterNumber == null || String(chapter.chapterNumber).trim() === ''
+        ? null
+        : Number(chapter.chapterNumber),
+      language: normalizeChapterLanguage(chapter.language),
+      totalPages: pages.length,
+    };
+    const session = {
+      meta,
+      maxPageReached: 0,
+      recordedPages: new Set(),
+      completed: false,
+      ended: false,
+      exitReason: null,
+    };
+    readerJourneyRef.current = session;
+    session.startPromise = recordReaderJourneyEvent({ ...meta, eventType: 'start' })
+      .catch(journeyError => {
+        console.warn('Reader journey start was not recorded:', journeyError);
+        return null;
+      });
+    const onPageHide = () => finishReaderJourney(session, 'page_exit');
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      finishReaderJourney(session, session.exitReason || 'navigation');
+      if (readerJourneyRef.current === session) readerJourneyRef.current = null;
+    };
+  }, [chapter?.id, pages.length]);
+
+  useEffect(() => {
+    const session = readerJourneyRef.current;
+    if (!session || session.ended || !chapter || session.meta.chapterId !== String(chapter.id) ||
+        !pages.length) return undefined;
+    const pageUrl = Number(chapter.chapterNumber) > 8 ? protectedUrls[index] : pages[index];
+    const expectedLoadedKey = String(chapter.id) + ':' + index + ':' + String(pageUrl || '');
+    if (!pageUrl || loadedPageKey !== expectedLoadedKey) return undefined;
+    const pageNumber = index + 1;
+    if (session.recordedPages.has(pageNumber)) return undefined;
+    let timer = null;
+    const scheduleVisibleRead = () => {
+      if (document.visibilityState !== 'visible') {
+        if (timer !== null) window.clearTimeout(timer);
+        timer = null;
+        return;
+      }
+      if (timer !== null || session.ended || session.recordedPages.has(pageNumber)) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        if (session.ended || session.recordedPages.has(pageNumber) || document.visibilityState !== 'visible') return;
+        session.recordedPages.add(pageNumber);
+        session.startPromise.then(async () => {
+          if (session.ended) return;
+          session.maxPageReached = Math.max(session.maxPageReached, pageNumber);
+          try {
+            await recordReaderJourneyEvent({ ...session.meta, eventType: 'progress', pageNumber });
+          } catch (journeyError) {
+            console.warn('Reader page progress was not recorded:', journeyError);
+            return;
+          }
+          if (pageNumber === session.meta.totalPages && !session.completed) {
+            session.completed = true;
+            recordReaderJourneyEvent({ ...session.meta, eventType: 'complete', pageNumber })
+              .catch(journeyError => console.warn('Reader chapter completion was not recorded:', journeyError));
+          }
+        });
+      }, 2000);
+    };
+    document.addEventListener('visibilitychange', scheduleVisibleRead);
+    scheduleVisibleRead();
+    return () => {
+      document.removeEventListener('visibilitychange', scheduleVisibleRead);
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [chapter?.id, chapter?.chapterNumber, index, loadedPageKey, pages, protectedUrls]);
   useEffect(() => {
     const protectedChapter = Number(chapter?.chapterNumber) > 8;
     if (!protectedChapter || !pages.length) {
@@ -353,14 +451,14 @@ function Reader({ chapterId, onBack, chapters }) {
   const chapterIndex = languageChapters.findIndex(item => String(item.id) === String(chapter.id));
   const previousChapter = chapterIndex > 0 ? languageChapters[chapterIndex - 1] : null;
   const nextChapter = chapterIndex >= 0 && chapterIndex < languageChapters.length - 1 ? languageChapters[chapterIndex + 1] : null;
-  return <main className="reader-page" data-chapter-id={String(chapter.id)} data-reader-background="dark" data-reader-fit="width"><header className="reader-header"><div className="reader-header-inner"><button className="reader-back" onClick={onBack} aria-label="Back to chapters">←</button><div className="reader-title"><p>{chapter.chapterNumber != null && String(chapter.chapterNumber).trim() !== '' ? String(chapter.chapterNumber).trim() : ''}</p></div><div className="reader-engagement"><button type="button" className={`reader-favorite-button${favoriteSaved ? ' is-saved' : ''}`} onClick={toggleFavorite} disabled={favoriteBusy} aria-label={favoriteSaved ? 'Remove from favourites' : favoriteUser ? 'Add to favourites' : 'Sign in to add to favourites'} title={favoriteSaved ? 'Remove from favourites' : favoriteUser ? 'Add to favourites' : 'Sign in to add to favourites'} aria-busy={favoriteBusy}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></button><button type="button" className="reader-engagement-button reader-rating-button" onClick={() => setRatingOpen(true)} aria-label="Rate chapter"><span>★</span>{stats.rating.count ? stats.rating.average.toFixed(1) : '—'}</button><button type="button" className="reader-engagement-button reader-comments-button" onClick={() => setCommentsOpen(true)} aria-label="Open comments"><span>💬</span>{formatCount(stats.comments || 0)}</button><button type="button" className="reader-share-button" onClick={async () => { const shareUrl = chapterCanonicalUrl(chapter); const shareNumber = chapter.chapterNumber != null && String(chapter.chapterNumber).trim() !== '' ? String(chapter.chapterNumber).trim() : ''; const shareTitle = shareNumber ? `Atma Rekha ${shareNumber}` : 'Atma Rekha'; const shareText = shareNumber ? `Read Atma Rekha ${shareNumber}.` : 'Read Atma Rekha.'; try { if (navigator.share) { await navigator.share({ title: shareTitle || 'Atma Rekha', text: shareText, url: shareUrl }); await recordChapterShare(chapter.id); } else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(shareUrl); await recordChapterShare(chapter.id); window.dispatchEvent(new CustomEvent('atma-toast', { detail: { message: 'Chapter link copied.' } })); } } catch (shareError) { if (shareError?.name !== 'AbortError') console.warn('Chapter share failed:', shareError); } }} aria-label="Share" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="2.2"/><circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="m8 11 7.7-4.2M8 13l7.7 4.2"/></svg></button><span className="reader-page-pill">{index + 1}/{pages.length}</span>{favoriteError && <span className="reader-favorite-status" role="status" aria-live="polite">{favoriteError}</span>}</div></div><div className="reader-progress"><span style={{ width: `${progress}%` }}/></div></header><section className="reader-content"><div className="reader-stage" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onDoubleClick={event => { if (event.target?.tagName === 'IMG') { if (!document.fullscreenElement) event.target.requestFullscreen?.(); else document.exitFullscreen?.(); } }}>{currentPageUrl ? <img src={currentPageUrl} alt={`${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })} page ${index + 1}`} decoding="async" fetchPriority={index === 0 ? 'high' : 'auto'} draggable="false" onLoad={() => setPageImageLoading(false)} onError={async () => { setPageImageLoading(false); if (!specialChapter || protectedChapter || specialPageFallbackRef.current.has(index)) { setError('Unable to load this page. Please retry.'); return; } specialPageFallbackRef.current.add(index); try { const workerUrl = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev'; const response = await fetch(workerUrl + '/storage/v1/object/list/chapter-pages/' + encodeURIComponent(chapter.id), { headers: { Accept: 'application/json' }, credentials: 'omit' }); if (!response.ok) throw new Error('Media fallback unavailable.'); const payload = await response.json(); const keys = (Array.isArray(payload?.keys) ? payload.keys : []).sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })); const fallback = keys[index]; if (!fallback) throw new Error('This page is unavailable.'); const fallbackUrl = workerUrl + '/storage/v1/object/public/' + String(fallback).split('/').map(encodeURIComponent).join('/'); setPages(current => current.map((url, pageIndex) => pageIndex === index ? fallbackUrl : url)); setError(''); } catch (fallbackError) { console.warn('Special chapter page fallback failed:', fallbackError); setError('Unable to load this page. Please retry.'); } }}/> : <LoadingState label="Loading page…"/>}</div><div className="reader-info-row"><span>Page {index + 1} of {pages.length}</span></div><div className="reader-controls"><button className="reader-control secondary" disabled={index === 0} onClick={() => setIndex(value => Math.max(value - 1, 0))}>← <span>Previous</span></button><div className="reader-counter"><strong>{index + 1} / {pages.length}</strong><span>PAGE</span></div><button className="reader-control primary" disabled={index === pages.length - 1} onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))}><span>Next</span> →</button></div><nav className="reader-chapter-nav" aria-label="Chapter navigation">
+  return <main className="reader-page" data-chapter-id={String(chapter.id)} data-reader-background="dark" data-reader-fit="width"><header className="reader-header"><div className="reader-header-inner"><button className="reader-back" onClick={() => { finishReaderJourney(readerJourneyRef.current, 'chapter_list'); onBack(); }} aria-label="Back to chapters">←</button><div className="reader-title"><p>{chapter.chapterNumber != null && String(chapter.chapterNumber).trim() !== '' ? String(chapter.chapterNumber).trim() : ''}</p></div><div className="reader-engagement"><button type="button" className={`reader-favorite-button${favoriteSaved ? ' is-saved' : ''}`} onClick={toggleFavorite} disabled={favoriteBusy} aria-label={favoriteSaved ? 'Remove from favourites' : favoriteUser ? 'Add to favourites' : 'Sign in to add to favourites'} title={favoriteSaved ? 'Remove from favourites' : favoriteUser ? 'Add to favourites' : 'Sign in to add to favourites'} aria-busy={favoriteBusy}><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></button><button type="button" className="reader-engagement-button reader-rating-button" onClick={() => setRatingOpen(true)} aria-label="Rate chapter"><span>★</span>{stats.rating.count ? stats.rating.average.toFixed(1) : '—'}</button><button type="button" className="reader-engagement-button reader-comments-button" onClick={() => setCommentsOpen(true)} aria-label="Open comments"><span>💬</span>{formatCount(stats.comments || 0)}</button><button type="button" className="reader-share-button" onClick={async () => { const shareUrl = chapterCanonicalUrl(chapter); const shareNumber = chapter.chapterNumber != null && String(chapter.chapterNumber).trim() !== '' ? String(chapter.chapterNumber).trim() : ''; const shareTitle = shareNumber ? `Atma Rekha ${shareNumber}` : 'Atma Rekha'; const shareText = shareNumber ? `Read Atma Rekha ${shareNumber}.` : 'Read Atma Rekha.'; try { if (navigator.share) { await navigator.share({ title: shareTitle || 'Atma Rekha', text: shareText, url: shareUrl }); await recordChapterShare(chapter.id); } else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(shareUrl); await recordChapterShare(chapter.id); window.dispatchEvent(new CustomEvent('atma-toast', { detail: { message: 'Chapter link copied.' } })); } } catch (shareError) { if (shareError?.name !== 'AbortError') console.warn('Chapter share failed:', shareError); } }} aria-label="Share" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="2.2"/><circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="19" r="2.2"/><path d="m8 11 7.7-4.2M8 13l7.7 4.2"/></svg></button><span className="reader-page-pill">{index + 1}/{pages.length}</span>{favoriteError && <span className="reader-favorite-status" role="status" aria-live="polite">{favoriteError}</span>}</div></div><div className="reader-progress"><span style={{ width: `${progress}%` }}/></div></header><section className="reader-content"><div className="reader-stage" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onDoubleClick={event => { if (event.target?.tagName === 'IMG') { if (!document.fullscreenElement) event.target.requestFullscreen?.(); else document.exitFullscreen?.(); } }}>{currentPageUrl ? <img src={currentPageUrl} alt={`${formatChapterLabel(chapter.chapterNumber, { title: chapter.title })} page ${index + 1}`} decoding="async" fetchPriority={index === 0 ? 'high' : 'auto'} draggable="false" onLoad={() => { setPageImageLoading(false); setLoadedPageKey(String(chapter.id) + ':' + index + ':' + String(currentPageUrl || '')); }} onError={async () => { setPageImageLoading(false); if (!specialChapter || protectedChapter || specialPageFallbackRef.current.has(index)) { setError('Unable to load this page. Please retry.'); return; } specialPageFallbackRef.current.add(index); try { const workerUrl = 'https://tiny-pond-c959.rohitbaswaraj.workers.dev'; const response = await fetch(workerUrl + '/storage/v1/object/list/chapter-pages/' + encodeURIComponent(chapter.id), { headers: { Accept: 'application/json' }, credentials: 'omit' }); if (!response.ok) throw new Error('Media fallback unavailable.'); const payload = await response.json(); const keys = (Array.isArray(payload?.keys) ? payload.keys : []).sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })); const fallback = keys[index]; if (!fallback) throw new Error('This page is unavailable.'); const fallbackUrl = workerUrl + '/storage/v1/object/public/' + String(fallback).split('/').map(encodeURIComponent).join('/'); setPages(current => current.map((url, pageIndex) => pageIndex === index ? fallbackUrl : url)); setError(''); } catch (fallbackError) { console.warn('Special chapter page fallback failed:', fallbackError); setError('Unable to load this page. Please retry.'); } }}/> : <LoadingState label="Loading page…"/>}</div><div className="reader-info-row"><span>Page {index + 1} of {pages.length}</span></div><div className="reader-controls"><button className="reader-control secondary" disabled={index === 0} onClick={() => setIndex(value => Math.max(value - 1, 0))}>← <span>Previous</span></button><div className="reader-counter"><strong>{index + 1} / {pages.length}</strong><span>PAGE</span></div><button className="reader-control primary" disabled={index === pages.length - 1} onClick={() => setIndex(value => Math.min(value + 1, pages.length - 1))}><span>Next</span> →</button></div><nav className="reader-chapter-nav" aria-label="Chapter navigation">
   <div className="reader-chapter-nav-item">
-    <button type="button" onClick={() => previousChapter && navigateChapter(previousChapter)} disabled={!previousChapter} aria-label={previousChapter ? 'Go to previous chapter' : 'No previous chapter'}>
+    <button type="button" onClick={() => { if (previousChapter) { finishReaderJourney(readerJourneyRef.current, 'previous_chapter', previousChapter.id); navigateChapter(previousChapter); } }} disabled={!previousChapter} aria-label={previousChapter ? 'Go to previous chapter' : 'No previous chapter'}>
       <strong>Previous ch</strong>
     </button>
   </div>
   <div className="reader-chapter-nav-item">
-    <button type="button" onClick={() => nextChapter && navigateChapter(nextChapter)} disabled={!nextChapter} aria-label={nextChapter ? 'Go to next chapter' : 'No next chapter'}>
+    <button type="button" onClick={() => { if (nextChapter) { finishReaderJourney(readerJourneyRef.current, 'next_chapter', nextChapter.id); navigateChapter(nextChapter); } }} disabled={!nextChapter} aria-label={nextChapter ? 'Go to next chapter' : 'No next chapter'}>
       <strong>Next ch</strong>
     </button>
   </div>

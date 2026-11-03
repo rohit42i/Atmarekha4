@@ -145,6 +145,113 @@ try {
   assert.equal(completePayload.reader_metrics_limited, false, 'reader counts with stable identities should remain available');
   assert.equal(completePayload.current_views, 1, 'authenticated analytics should preserve real view totals');
 
+  const journeyChapterTwo = 'f3bfec99-d077-43ca-977a-345e7f0b2298';
+  const journeyViewerTwo = 'reader-journey-test-viewer-0123456789';
+  const journeySessions = [
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    '33333333-3333-4333-8333-333333333333',
+  ];
+  const journeyPost = payload => analyticsWorker.fetch(
+    request('https://analytics.test/v1/reader-event', 'POST', origin, payload),
+    env,
+  );
+  const baseJourney = {
+    chapterId,
+    chapterNumber: 1,
+    language: 'en',
+    totalPages: 3,
+  };
+  const journeyStart = (sessionId, key, chapter = baseJourney) => ({
+    ...chapter, sessionId, viewerKey: key, eventType: 'start',
+  });
+  const journeyProgress = (sessionId, key, pageNumber, chapter = baseJourney) => ({
+    ...chapter, sessionId, viewerKey: key, eventType: 'progress', pageNumber,
+  });
+
+  const invalidJourney = await journeyPost({
+    ...baseJourney, sessionId: 'not-a-session', viewerKey, eventType: 'start',
+  });
+  assert.equal(invalidJourney.status, 400, 'reader journey must reject malformed session IDs');
+
+  const journeyEvents = [
+    journeyStart(journeySessions[0], viewerKey),
+    journeyProgress(journeySessions[0], viewerKey, 1),
+    journeyProgress(journeySessions[0], viewerKey, 2),
+    {
+      ...baseJourney, sessionId: journeySessions[0], viewerKey, eventType: 'exit',
+      pageNumber: 2, exitReason: 'page_exit',
+    },
+    journeyStart(journeySessions[1], journeyViewerTwo),
+    journeyProgress(journeySessions[1], journeyViewerTwo, 1),
+    journeyProgress(journeySessions[1], journeyViewerTwo, 2),
+    journeyProgress(journeySessions[1], journeyViewerTwo, 3),
+    {
+      ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo,
+      eventType: 'complete', pageNumber: 3,
+    },
+    {
+      ...baseJourney, sessionId: journeySessions[1], viewerKey: journeyViewerTwo,
+      eventType: 'exit', pageNumber: 3, exitReason: 'next_chapter', nextChapterId: journeyChapterTwo,
+    },
+    journeyStart(journeySessions[2], viewerKey, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    journeyProgress(journeySessions[2], viewerKey, 1, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+      sessionId: journeySessions[2], viewerKey, eventType: 'exit',
+      pageNumber: 1, exitReason: 'next_chapter',
+    },
+    journeyStart('44444444-4444-4444-8444-444444444444', journeyViewerTwo, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+      sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo,
+      eventType: 'exit', pageNumber: 1, exitReason: 'navigation',
+    },
+  ];
+  for (const event of journeyEvents) {
+    const result = await journeyPost(event);
+    assert.equal(result.status, 200, 'valid reader journey events must be accepted: ' + event.eventType);
+  }
+  const repeatedPage = await journeyPost(journeyProgress(journeySessions[0], viewerKey, 2));
+  assert.equal(repeatedPage.status, 200, 'repeated page progress should be idempotent');
+
+  const journeyDay = new Date().toISOString().slice(0, 10);
+  const journeyStartObject = await bucket.get('analytics/reader-journeys/' + journeyDay + '/' + journeySessions[0] + '/start.json');
+  assert.ok(journeyStartObject, 'the reader session start must be persisted in R2');
+  const storedJourneyStart = await journeyStartObject.json();
+  assert.equal(storedJourneyStart.viewerHash.length, 64, 'journey storage must contain a hashed browser key');
+  assert.equal(JSON.stringify(storedJourneyStart).includes(viewerKey), false, 'raw browser identifiers must not be written to journey objects');
+
+  const journeyAdminRequest = () => new Request('https://analytics.test/v1/admin/reader-analytics?days=7', {
+    method: 'GET',
+    headers: { Origin: origin, Authorization: 'Bearer test-token' },
+  });
+  const journeyAnalyticsResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
+  assert.equal(journeyAnalyticsResponse.status, 200, 'authenticated reader journey analytics must load');
+  const journeyAnalytics = await journeyAnalyticsResponse.json();
+  assert.equal(journeyAnalytics.summary.unique_readers, 2, 'journey readers should deduplicate sessions by anonymous browser key');
+  assert.equal(journeyAnalytics.summary.sessions, 4, 'journey analytics should count all four chapter sessions');
+  assert.equal(journeyAnalytics.summary.completed_sessions, 1, 'the final page event should count as a completion');
+  assert.equal(journeyAnalytics.summary.explicit_exits, 3, 'journey analytics should distinguish explicit exits');
+  assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
+  assert.equal(journeyAnalytics.summary.next_chapter_clicks, 2, 'next chapter navigation should be counted even after a reader completes a chapter');
+  assert.equal(journeyAnalytics.summary.pages_read, 6, 'page exposure events should be counted once per session and page');
+  const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
+  assert.ok(firstChapterJourney, 'chapter page funnel should include the tracked chapter');
+  assert.equal(firstChapterJourney.sessions, 2, 'chapter funnel should count both chapter sessions');
+  assert.equal(firstChapterJourney.readers, 2, 'chapter funnel should count unique browser identities');
+  assert.equal(firstChapterJourney.completed_sessions, 1, 'chapter funnel should expose completed sessions');
+  assert.equal(firstChapterJourney.page_stats[2].readers_reached, 1, 'page funnel should expose unique readers who reached the last page');
+  assert.equal(firstChapterJourney.page_stats[1].exits_after_page, 1, 'page funnel should identify exits after page two');
+  assert.equal(journeyAnalytics.chapter_transitions.find(row => row.from_chapter_id === chapterId && row.to_chapter_id === journeyChapterTwo)?.readers, 1, 'chapter movement should identify readers who actually opened the next chapter');
+  assert.equal(firstChapterJourney.next_chapter_clicks, 1, 'completed chapter readers must still be counted when they move to the next chapter');
+
   const now = new Date();
   const legacyHash = 'legacy-viewer-identity';
   const legacyKey = `analytics/views/events/${now.toISOString().slice(0, 10)}/${chapterId}/${legacyHash}.json`;

@@ -13,6 +13,7 @@ export default function PrivacyPolicySections() {
       <ul>
         <li><strong>Account and profile:</strong> email address, account ID, display name, avatar, profile details, age confirmation and account status.</li>
         <li><strong>Reading and community:</strong> chapters viewed, reading progress, bookmarks, ratings, comments, reports and related activity.</li>
+        <li><strong>Anonymous reading journeys:</strong> a random browser identifier that is hashed before storage, chapter session starts, pages reached after a brief visibility period, chapter completion and best-effort exit events. These journey records are not linked to account names and do not store raw IP addresses.</li>
         <li><strong>Membership and payments:</strong> selected plan, subscription status, billing period, and Razorpay transaction or subscription references and payment status.</li>
         <li><strong>Email and preferences:</strong> verification events, delivery records, reader update preferences and unsubscribe status.</li>
         <li><strong>Technical and usage information:</strong> page and chapter views, basic performance metrics, and technical request information such as browser or IP data where provided by the site or its services.</li>
