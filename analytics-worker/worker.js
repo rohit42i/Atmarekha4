@@ -796,7 +796,7 @@ async function readerJourneyObjectsForPeriod(env, start, end) {
     let cursor;
     do {
       const page = await env.ANALYTICS_BUCKET.list({
-        prefix: JOURNEY_PREFIX + '/' + month + '-',
+        prefix: JOURNEY_PREFIX + '/' + month,
         limit: 1000,
         ...(cursor ? { cursor } : {}),
       });
@@ -838,39 +838,44 @@ async function buildReaderJourneyAnalytics(env, days) {
   });
 
   const sessions = new Map();
+
+  // Create every session from its start record first. Browser beacons and normal
+  // fetches can arrive out of order, so processing the raw event stream once by
+  // timestamp can otherwise discard an exit that reached R2 before its start.
   for (const event of events) {
-    let session = sessions.get(event.sessionId);
-    if (event.eventType === 'start') {
-      if (!session) {
-        session = {
-          sessionId: event.sessionId,
-          chapterId: event.chapterId,
-          viewerHash: event.viewerHash,
-          chapterNumber: event.chapterNumber,
-          language: event.language,
-          totalPages: Number(event.totalPages) || 0,
-          startedAt: event.createdAt,
-          lastEventAt: event.createdAt,
-          pages: new Set(),
-          exitPage: null,
-          exitReason: null,
-          nextChapterId: null,
-          completed: false,
-          exited: false,
-        };
-        sessions.set(event.sessionId, session);
-      }
-      continue;
+    if (event.eventType !== 'start' || sessions.has(event.sessionId)) continue;
+    sessions.set(event.sessionId, {
+      sessionId: event.sessionId,
+      chapterId: event.chapterId,
+      viewerHash: event.viewerHash,
+      chapterNumber: event.chapterNumber,
+      language: event.language,
+      totalPages: Number(event.totalPages) || 0,
+      startedAt: event.createdAt,
+      lastEventAt: event.createdAt,
+      pages: new Set(),
+      exitPage: null,
+      exitReason: null,
+      nextChapterId: null,
+      completed: false,
+      exited: false,
+    });
+  }
+
+  // Apply all non-start events after session creation, independent of arrival
+  // order. Idempotent R2 object keys prevent duplicate events from inflating counts.
+  for (const event of events) {
+    if (event.eventType === 'start') continue;
+    const session = sessions.get(event.sessionId);
+    if (!session || event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
+    if (new Date(event.createdAt).getTime() >= new Date(session.lastEventAt).getTime()) {
+      session.lastEventAt = event.createdAt;
     }
-    if (!session) continue;
-    if (event.chapterId !== session.chapterId || event.viewerHash !== session.viewerHash) continue;
-    session.lastEventAt = event.createdAt;
     if (!session.completed && event.eventType === 'progress' && Number.isInteger(Number(event.pageNumber))) {
       session.pages.add(Number(event.pageNumber));
     } else if (event.eventType === 'complete') {
       session.pages.add(Number(event.pageNumber));
       session.completed = true;
-      session.lastEventAt = event.createdAt;
     } else if (event.eventType === 'exit') {
       session.exited = true;
       session.exitPage = event.pageNumber == null ? null : Number(event.pageNumber);
