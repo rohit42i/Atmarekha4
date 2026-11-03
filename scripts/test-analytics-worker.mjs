@@ -217,6 +217,25 @@ try {
       sessionId: '44444444-4444-4444-8444-444444444444', viewerKey: journeyViewerTwo,
       eventType: 'exit', pageNumber: 1, exitReason: 'navigation',
     },
+    journeyStart('66666666-6666-4666-8666-666666666666', viewerKey, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    journeyProgress('66666666-6666-4666-8666-666666666666', viewerKey, 1, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    journeyProgress('66666666-6666-4666-8666-666666666666', viewerKey, 2, {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+    }),
+    {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+      sessionId: '66666666-6666-4666-8666-666666666666', viewerKey, eventType: 'complete',
+      pageNumber: 2, activeSeconds: 90,
+    },
+    {
+      chapterId: journeyChapterTwo, chapterNumber: 2, language: 'en', totalPages: 2,
+      sessionId: '66666666-6666-4666-8666-666666666666', viewerKey, eventType: 'exit',
+      pageNumber: 2, exitReason: 'chapter_list', activeSeconds: 90,
+    },
   ];
   for (const event of journeyEvents) {
     const result = await journeyPost(event);
@@ -242,17 +261,18 @@ try {
   assert.equal(journeyAnalytics.summary.unique_readers, 2, 'journey readers should deduplicate sessions by anonymous browser key');
   assert.equal(
     journeyAnalytics.summary.sessions,
-    4,
-    'journey analytics should count all four chapter sessions; found ' +
+    5,
+    'journey analytics should count all five chapter visits; found ' +
       journeyAnalytics.summary.sessions + '; start records: ' +
       JSON.stringify([...bucket.objects.keys()].filter(key => key.startsWith('analytics/reader-journeys/') && key.endsWith('/start.json'))),
   );
-  assert.equal(journeyAnalytics.summary.completed_sessions, 1, 'the final page event should count as a completion');
+  assert.equal(journeyAnalytics.summary.completed_sessions, 2, 'the final page event should count as a completion');
   assert.equal(journeyAnalytics.summary.explicit_exits, 3, 'journey analytics should distinguish explicit exits');
   assert.equal(journeyAnalytics.summary.navigation_exits, 1, 'non-specific navigation away should be counted separately');
   assert.equal(journeyAnalytics.summary.next_chapter_clicks, 2, 'next chapter navigation should be counted even after a reader completes a chapter');
-  assert.equal(journeyAnalytics.summary.pages_read, 6, 'page exposure events should be counted once per session and page');
-  assert.equal(journeyAnalytics.summary.average_engaged_seconds, 27.5, 'active reading time should average visible and focused engagement heartbeats');
+  assert.equal(journeyAnalytics.summary.chapter_list_exits, 1, 'returning to the chapter list after completion should still be recorded as navigation');
+  assert.equal(journeyAnalytics.summary.pages_read, 8, 'page exposure events should be counted once per session and page');
+  assert.equal(journeyAnalytics.summary.average_engaged_seconds, 40, 'active reading time should average visible and focused engagement heartbeats');
   const firstChapterJourney = journeyAnalytics.chapters.find(row => row.chapter_id === chapterId);
   assert.ok(firstChapterJourney, 'chapter page funnel should include the tracked chapter');
   assert.equal(firstChapterJourney.sessions, 2, 'chapter funnel should count both chapter sessions');
@@ -296,7 +316,7 @@ try {
   const orderedAnalyticsResponse = await analyticsWorker.fetch(journeyAdminRequest(), adminEnv);
   assert.equal(orderedAnalyticsResponse.status, 200, 'analytics must remain readable with out-of-order browser events');
   const orderedAnalytics = await orderedAnalyticsResponse.json();
-  assert.equal(orderedAnalytics.summary.sessions, 5, 'out-of-order start records must still create one session');
+  assert.equal(orderedAnalytics.summary.sessions, 6, 'out-of-order start records must still create one session');
   assert.equal(orderedAnalytics.summary.explicit_exits, 4, 'an exit arriving before its start must still be attached to that session');
 
   const now = new Date();
