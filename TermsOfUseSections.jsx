@@ -8,7 +8,7 @@ const sections = [
   {
     heading: "2. Age and accounts",
     paragraphs: [
-      "Atma Rekha is intended for readers aged 15 and above. Account registration asks you to confirm that you are at least 15 years old.",
+      "Atma Rekha is intended for readers aged 17 and above. Account registration asks you to confirm that you are at least 17 years old.",
       "Use an email address you control, enter accurate account details, and keep your password and verification codes private. Contact support if you suspect someone has accessed your account."
     ]
   },
