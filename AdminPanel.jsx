@@ -230,10 +230,11 @@ export default function AdminPanel({ onLogout, adminUser }) {
   const loadSequence = useRef(0);
   const hasLoaded = useRef(false);
   const [chapterPerformance, setChapterPerformance] = useState({});
-  const [adminTheme, setAdminTheme] = useState(() => {
-    try { return window.localStorage.getItem('ar-admin-theme') === 'dark' ? 'dark' : 'light'; }
-    catch { return 'light'; }
-  });
+  const [adminTheme, setAdminTheme] = useState(() => (
+    typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark'
+      ? 'dark'
+      : 'light'
+  ));
   useEffect(() => {
     if (!mobileSidebarOpen) return undefined;
     const handleEscape = event => {
@@ -259,7 +260,17 @@ export default function AdminPanel({ onLogout, adminUser }) {
   }, [mobileSidebarOpen]);
 
   useEffect(() => {
-    try { window.localStorage.setItem('ar-admin-theme', adminTheme); } catch { /* storage can be unavailable */ }
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+    const syncTheme = event => {
+      const nextTheme = event?.detail?.theme || document.documentElement.getAttribute('data-theme');
+      if (nextTheme === 'light' || nextTheme === 'dark') setAdminTheme(nextTheme);
+    };
+    syncTheme();
+    window.addEventListener('ar-theme-change', syncTheme);
+    return () => window.removeEventListener('ar-theme-change', syncTheme);
+  }, []);
+
+  useEffect(() => {
     if (typeof document === 'undefined') return undefined;
     const body = document.body;
     const previousTheme = body.getAttribute('data-admin-theme');
@@ -1353,7 +1364,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
             </button>
           </div>
           <div className="ar-admin-top-actions">
-            <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => setAdminTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
+            <button type="button" className="ar-admin-icon-button ar-admin-theme-toggle" onClick={() => window.ArTheme?.toggle()} aria-label={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={adminTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={adminTheme === 'light'}>
               <span className={adminTheme === 'light' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">light_mode</span></span>
               <span className={adminTheme === 'dark' ? 'active' : ''} aria-hidden="true"><span className="material-icons-sharp">dark_mode</span></span>
             </button>
