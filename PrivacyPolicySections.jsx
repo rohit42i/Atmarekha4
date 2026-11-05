@@ -60,7 +60,7 @@ export default function PrivacyPolicySections() {
     </Section>
 
     <Section title="7. Age and policy updates">
-      <p>Atma Rekha is intended for readers aged 15 and above. Account registration asks you to confirm that you are at least 15. This declaration is not independently checked using an identity document.</p>
+      <p>Atma Rekha is intended for readers aged 17 and above. Account registration asks you to confirm that you are at least 17. This declaration is not independently checked using an identity document.</p>
       <p>This policy may change when the website or its features change. The date at the top of the page shows the current version date.</p>
     </Section>
 
