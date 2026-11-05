@@ -122,7 +122,7 @@ Deno.serve(async req => {
     const razorpayPlanId = await findOrCreatePlan(plan, keyId, keySecret);
     const subscription = await razorpay('/subscriptions', 'POST', keyId, keySecret, {
       plan_id: razorpayPlanId,
-      total_count: 120,
+      total_count: 100,
       quantity: 1,
       customer_notify: true,
       notes: { user_id: user.id, plan_id: planId, email: user.email || '' },
