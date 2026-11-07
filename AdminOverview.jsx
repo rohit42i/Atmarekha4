@@ -64,10 +64,24 @@ function RatingDonut({ counts, total }) {
 }
 
 function SkeletonGrid() {
-  return <div className="ar-overview-kpis">{Array.from({ length: 10 }, (_, i) => <div className="ar-stat-card" key={i}><div className="ar-skeleton ar-stat-label-skel"/><div className="ar-skeleton ar-stat-number"/><div className="ar-skeleton ar-stat-foot"/></div>)}</div>;
+  return <>
+    <div className="ar-overview-kpis" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, i) => <div className="ar-stat-card" key={i}>
+        <div className="ar-skeleton ar-stat-label-skel"/>
+        <div className="ar-skeleton ar-stat-number"/>
+        <div className="ar-skeleton ar-stat-foot"/>
+      </div>)}
+    </div>
+    <div className="ar-overview-secondary-metrics" aria-hidden="true">
+      {Array.from({ length: 5 }, (_, i) => <div className="ar-overview-secondary-metric" key={i}>
+        <span className="ar-skeleton ar-stat-label-skel"/>
+        <strong className="ar-skeleton ar-stat-number"/>
+      </div>)}
+    </div>
+  </>;
 }
 
-export default function AdminOverview({ chapters = [], comments = [], reports = [], pageCounts = {}, onTab, chapterName }) {
+export default function AdminOverview({ chapters = [], comments = [], reports = [], pageCounts = {}, onTab, chapterName, openReportCount = null, reportsAvailable = true }) {
   const [windowKey, setWindowKey] = useState('month');
   const [membershipPlans, setMembershipPlans] = useState(new Map());
   const [userStats, setUserStats] = useState({ logged_in_users: null, notification_subscriptions: null });
@@ -329,7 +343,9 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   }, [analytics, analyticsError, chapters, comments, pageCounts]);
 
   const periodLabel = WINDOW_LABELS[windowKey];
-  const reportCount = reports.filter(report => (report.status || 'open') === 'open').length;
+  const reportCount = openReportCount == null
+    ? (reportsAvailable ? reports.filter(report => (report.status || 'open') === 'open').length : null)
+    : Number(openReportCount);
   const deltaViews = pct(metrics.currentViews, metrics.previousViews);
   const deltaLikes = pct(metrics.currentLikes, metrics.previousLikes);
   const deltaComments = pct(metrics.currentComments, metrics.previousComments);
@@ -342,7 +358,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     if (metrics.previousViews > 0 && metrics.currentViews > metrics.previousViews) values.push('Reach is trending upward versus the previous period.');
     if (metrics.previousLikes > 0 && metrics.currentLikes > metrics.previousLikes) values.push('Likes are rising alongside chapter reach.');
     if (metrics.readiness < 100 && metrics.publishedCount) values.push((metrics.publishedCount - metrics.withPagesCount) + ' published chapter(s) need page review.');
-    if (reportCount) values.push(reportCount + ' moderation report(s) are waiting for review.');
+    if (reportCount > 0) values.push(reportCount + ' moderation report(s) are waiting for review.');
     if (!values.length) values.push('Keep publishing consistently to build a stronger reader trend.');
     return values.slice(0, 3);
   }, [metrics, reportCount]);
@@ -403,9 +419,9 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
   return <section className="ar-overview">
     <div className="ar-overview-hero">
       <div>
-        <span className="ar-kicker">ATMA REKHA · CONTROL CENTER</span>
-        <h2>Admin dashboard</h2>
-        <p>See what needs attention, publish updates, and track reader activity.</p>
+        <span className="ar-kicker">ATMA REKHA · ADMIN WORKSPACE</span>
+        <h2>Dashboard</h2>
+        <p>Monitor reader activity, publishing progress, and community health.</p>
       </div>
       <div className="ar-period-switch" role="tablist" aria-label="Analytics period">
         <span className="ar-period-status" aria-live="polite">{periodLoading ? 'Updating…' : (windowKey === 'today' ? 'Rolling 24h' : windowKey === 'week' ? '7-day window' : windowKey === 'month' ? '30-day window' : '90-day window')}</span>
@@ -414,23 +430,31 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     </div>
 
     <div className="ar-ref-discovery">
+      <button type="button" className="ar-ref-refresh" onClick={() => setAnalyticsRefreshToken(value => value + 1)} disabled={periodLoading}>
+        <AdminIcon name="refresh" size={15}/> Refresh
+      </button>
       <button type="button" className="ar-ref-export" onClick={exportDashboardCsv}>
         <AdminIcon name="download" size={16}/> Export data
       </button>
     </div>
 
-    {analytics === null && periodLoading ? <SkeletonGrid/> : analytics === null ? <div className="ar-note" role="alert"><strong>Analytics could not be loaded.</strong> {analyticsError || 'Check the analytics data source and retry.'} <button type="button" onClick={() => setAnalyticsRefreshToken(value => value + 1)}>Try again</button></div> : <div className="ar-overview-kpis">
-      <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released == null ? 'Release analytics unavailable' : metrics.released + ' released in period'} icon="book" accent="blue"/>
+    {analytics === null && periodLoading ? <SkeletonGrid/> : analytics === null ? <div className="ar-note" role="alert"><strong>Analytics could not be loaded.</strong> {analyticsError || 'Check the analytics data source and retry.'} <button type="button" onClick={() => setAnalyticsRefreshToken(value => value + 1)}>Try again</button></div> : <div className="ar-overview-kpis" aria-label="Key dashboard metrics">
       <StatCard label={"Views · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentViews)} delta={deltaViews} note={metrics.viewsUnavailable ? 'Cloudflare analytics unavailable' : deltaViews == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
       <StatCard label={"Active Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodActiveReaders)} note={metrics.readerMetricsUnavailable ? (metrics.readerMetricsUnavailableReason || 'Reader analytics unavailable') : 'Unique viewers in selected period'} icon="pulse" accent="green"/>
+      <StatCard label="Published Chapters" value={formatNumber(metrics.publishedCount)} note={metrics.released == null ? 'Release analytics unavailable' : metrics.released + ' released in period'} icon="book" accent="blue"/>
       <StatCard label="Registered Users" value={compactNumber(userStats.logged_in_users)} note="Protected accounts" icon="user" accent="blue"/>
       <StatCard label="Avg Rating" value={metrics.average ? metrics.average.toFixed(2) + ' / 10' : '—'} note={formatNumber(metrics.totalRatings) + ' ratings · all time'} icon="sparkle" accent="green"/>
-      <StatCard label={"Comments · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentComments)} delta={deltaComments} note={deltaComments == null ? 'No valid comparison baseline' : undefined} icon="message" accent="green"/>
-      <StatCard label={"Returning Readers · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.periodReturningReaders)} note={metrics.readerMetricsUnavailable ? 'Reader analytics unavailable' : 'Returned on 2+ days in period'} icon="pulse" accent="green"/>
-      <StatCard label="Bookmarks" value={compactNumber(metrics.bookmarks)} note="Saved chapter bookmarks" icon="bookmark" accent="blue"/>
-      <StatCard label={"Shares · " + WINDOW_LABELS[windowKey]} value={compactNumber(metrics.currentShares)} delta={deltaShares} note={deltaShares == null ? 'No valid comparison baseline' : undefined} icon="chart" accent="blue"/>
-      <StatCard label="Notifications On" value={compactNumber(userStats.notification_subscriptions)} note="Push subscriptions" icon="bell" accent="green"/>
+      <StatCard label="Open Reports" value={formatNumber(reportCount)} note={reportCount == null ? 'Report data unavailable' : reportCount ? 'Awaiting moderation' : 'No cases waiting'} icon="flag" accent="blue"/>
     </div>}
+
+    {analytics !== null && <div className="ar-overview-secondary-metrics" aria-label="Additional dashboard metrics">
+      <div className="ar-overview-secondary-metric"><span>Comments</span><strong>{compactNumber(metrics.currentComments)}</strong></div>
+      <div className="ar-overview-secondary-metric"><span>Returning readers</span><strong>{compactNumber(metrics.periodReturningReaders)}</strong></div>
+      <div className="ar-overview-secondary-metric"><span>Bookmarks</span><strong>{compactNumber(metrics.bookmarks)}</strong></div>
+      <div className="ar-overview-secondary-metric"><span>Shares</span><strong>{compactNumber(metrics.currentShares)}</strong></div>
+      <div className="ar-overview-secondary-metric"><span>Push subscribers</span><strong>{compactNumber(userStats.notification_subscriptions)}</strong></div>
+    </div>}
+
     {analytics !== null && metrics.adminAnalyticsUnavailable && <div className="ar-note" role="status"><strong>Engagement analytics are unavailable.</strong> {metrics.adminAnalyticsUnavailableReason || 'The admin analytics response did not include all required engagement fields.'} View counts remain sourced separately from Cloudflare Analytics.</div>}
 
     <div className="ar-overview-main-grid">
@@ -502,7 +526,7 @@ export default function AdminOverview({ chapters = [], comments = [], reports = 
     <div className="ar-overview-grid-2">
       <GlassCard>
         <SectionHeader eyebrow="MODERATION" title="Queue preview" action={<button className="ar-text-action" type="button" onClick={() => onTab('Reports')}>Review <span>→</span></button>}/>
-        {reportCount ? <div className="ar-queue"><div className="ar-queue-count"><strong>{reportCount}</strong><span>open report{reportCount === 1 ? '' : 's'}</span></div><div><strong>Moderation needs attention</strong><small>Review open reports and resolve or reopen cases.</small></div></div> : <div className="ar-queue empty"><AdminIcon name="pulse" size={18}/><div><strong>Queue is clear</strong><span>No open comment reports right now.</span></div></div>}
+        {reportCount == null ? <div className="ar-queue empty"><AdminIcon name="alert-circle" size={18}/><div><strong>Report status unavailable</strong><span>The moderation count could not be loaded.</span></div></div> : reportCount > 0 ? <div className="ar-queue"><div className="ar-queue-count"><strong>{reportCount}</strong><span>open report{reportCount === 1 ? '' : 's'}</span></div><div><strong>Moderation needs attention</strong><small>Review open reports and resolve or reopen cases.</small></div></div> : <div className="ar-queue empty"><AdminIcon name="pulse" size={18}/><div><strong>Queue is clear</strong><span>No open comment reports right now.</span></div></div>}
       </GlassCard>
 
       <GlassCard>

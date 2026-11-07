@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AdminIcon } from './admin-redesign-ui.jsx';
 
@@ -156,6 +156,29 @@ export function AdminSidebar({
   connectionState = 'Operational',
   connectionError = false,
 }) {
+  const activeGroup = groups.find(group =>
+    group.items.some(item => !item.action && activeKey === item.key)
+  )?.label;
+  const [expandedGroups, setExpandedGroups] = useState(() =>
+    new Set(groups[0] ? [groups[0].label] : [])
+  );
+
+  useEffect(() => {
+    if (!activeGroup) return;
+    setExpandedGroups(current =>
+      current.has(activeGroup) ? current : new Set(current).add(activeGroup)
+    );
+  }, [activeGroup]);
+
+  const toggleGroup = label => {
+    setExpandedGroups(current => {
+      const next = new Set(current);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
+
   return (
     <aside id="ar-admin-sidebar" className={`ar-admin-sidebar${mobileOpen ? ' is-open' : ''}`} aria-label="Admin navigation">
       <div className="ar-admin-brand">
@@ -169,30 +192,48 @@ export function AdminSidebar({
         </button>
       </div>
 
-      <nav className="admin-tabs ar-admin-nav">
-        {groups.map(group => (
-          <div className="ar-admin-nav-group" key={group.label}>
-            <span className="ar-admin-nav-label">{group.label}</span>
-            {group.items.map(item => {
-              const active = !item.action && activeKey === item.key;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={active ? 'active' : ''}
-                  data-admin-tab={item.key}
-                  onClick={() => onSelect(item)}
-                  aria-current={active ? 'page' : undefined}
-                  title={item.label}
-                >
-                  <span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={16} /></span>
-                  <span className="ar-admin-nav-text">{item.label}</span>
-                  {item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+      <nav className="admin-tabs ar-admin-nav" aria-label="Admin sections">
+        {groups.map((group, index) => {
+          const expanded = expandedGroups.has(group.label);
+          const listId = `ar-admin-nav-items-${index}`;
+          return (
+            <section className="ar-admin-nav-group" key={group.label}>
+              <button
+                type="button"
+                className="ar-admin-nav-heading"
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={expanded}
+                aria-controls={listId}
+                aria-label={`${expanded ? 'Collapse' : 'Expand'} ${group.label} navigation`}
+                title={group.label}
+              >
+                <span className="ar-admin-nav-heading-icon"><AdminIcon name={group.icon || 'grid'} size={15} /></span>
+                <span className="ar-admin-nav-label">{group.label}</span>
+                <AdminIcon className={`ar-admin-nav-chevron${expanded ? ' is-expanded' : ''}`} name="chevron" size={14} />
+              </button>
+              <div id={listId} className="ar-admin-nav-items" hidden={!expanded}>
+                {group.items.map(item => {
+                  const active = !item.action && activeKey === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={active ? 'active' : ''}
+                      data-admin-tab={item.key}
+                      onClick={() => onSelect(item)}
+                      aria-current={active ? 'page' : undefined}
+                      title={item.label}
+                    >
+                      <span className="ar-admin-nav-icon"><AdminIcon name={item.icon} size={16} /></span>
+                      <span className="ar-admin-nav-text">{item.label}</span>
+                      {item.key === 'Reports' && reportCount > 0 ? <b>{reportCount}</b> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
       </nav>
 
       <div className="ar-admin-status-card">

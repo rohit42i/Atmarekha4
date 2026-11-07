@@ -161,44 +161,48 @@ async function logAdminAction(user, action, entityType, entityId = null, details
 const emptyForm = () => ({ number: '', language: 'hi', title: '', description: '', status: 'Published', releaseDate: '', cover: null, pages: [] });
 
 const ADMIN_NAV_GROUPS = [
-  { label: 'Workspace', items: [
+  { label: 'Workspace', icon: 'grid', items: [
     { key: 'Overview', icon: 'grid', label: 'Dashboard' },
     { key: 'Control Room', icon: 'chart', label: 'Control Room' },
     { key: 'Reader Analytics', icon: 'chart', label: 'Reader Analytics' },
   ]},
-  { label: 'Publishing', items: [
+  { label: 'Publishing', icon: 'book', items: [
     { key: 'Chapters', icon: 'book', label: 'Chapter Manager' },
     { key: 'Pages', icon: 'layers', label: 'Page Editor' },
     { key: 'Card Thumbnails', icon: 'image', label: 'Card Thumbnails' },
     { key: 'Media', icon: 'image', label: 'Media Library' },
   ]},
-  { label: 'Community', items: [
+  { label: 'Community', icon: 'message', items: [
     { key: 'Comments', icon: 'message', label: 'Comments' },
     { key: 'Reports', icon: 'flag', label: 'Reports' },
-    { key: 'Announcements', icon: 'bell', label: 'Announcements' },
-    { key: 'Email Campaigns', icon: 'bell', label: 'Email Campaigns' },
     { key: 'Community Posts', icon: 'message', label: 'Community Posts' },
-    { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
     { key: '__moderation', icon: 'flag', label: 'Community Moderation', action: 'atma-admin-open-moderation' },
     { key: '__group', icon: 'message', label: 'Group Chat', action: 'atma-admin-open-group-chat' },
   ]},
-  { label: 'Membership', items: [
+  { label: 'Engagement', icon: 'bell', items: [
+    { key: 'Announcements', icon: 'bell', label: 'Announcements' },
+    { key: 'Email Campaigns', icon: 'mail', label: 'Email Campaigns' },
+    { key: '__notifications', icon: 'bell', label: 'Push Notifications', action: 'atma-admin-open-management', detail: { view: 'notifications' } },
+  ]},
+  { label: 'Membership', icon: 'user', items: [
     { key: 'Membership & Earnings', icon: 'chart', label: 'Revenue & Membership' },
     { key: '__users', icon: 'user', label: 'Users & Memberships', action: 'atma-admin-open-management', detail: { view: 'users' } },
   ]},
-  { label: 'System', items: [
+  { label: 'System', icon: 'settings', items: [
     { key: 'Privacy Requests', icon: 'settings', label: 'Privacy Requests' },
     { key: '__email-changes', icon: 'user', label: 'Email Change Requests', action: 'atma-admin-open-management', detail: { view: 'emailChanges' } },
+    { key: '__activity', icon: 'calendar', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
+  ]},
+  { label: 'Tools', icon: 'pulse', items: [
     { key: '__command', icon: 'sparkle', label: 'Command Center', action: 'atma-admin-open-command' },
     { key: '__health', icon: 'pulse', label: 'Chapter Health', action: 'atma-admin-open-health' },
     { key: '__operations', icon: 'settings', label: 'Operations & Recovery', action: 'atma-admin-open-operations' },
-    { key: '__activity', icon: 'calendar', label: 'Admin Activity Log', action: 'atma-admin-open-management', detail: { view: 'activity' } },
     { key: '__pro', icon: 'chart', label: 'Advanced Tools', action: 'atma-admin-open-pro' },
   ]},
 ];
 
 export default function AdminPanel({ onLogout, adminUser }) {
-  const [tab, setTab] = useState('Control Room');
+  const [tab, setTab] = useState('Overview');
   const [chapters, setChapters] = useState([]);
   const [pdpklChapters, setPdpklChapters] = useState([]);
   const [pageCounts, setPageCounts] = useState({});
@@ -1374,7 +1378,7 @@ export default function AdminPanel({ onLogout, adminUser }) {
         </header>
         <div className="ar-admin-content">
           {notice.text && <div className={`ar-admin-notice ${notice.type === 'error' ? 'error' : 'success'}`} role="status">{notice.type === 'error' ? <AdminIcon name="flag" size={16}/> : <AdminIcon name="sparkle" size={16}/>}<span>{notice.text}</span></div>}
-    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Reader Analytics' ? <AdminReaderAnalytics chapters={sorted} pageCounts={pageCounts} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
+    {loading ? <div className="admin-loading">Loading dashboard…</div> : tab === 'Privacy Requests' ? <PrivacyRequestsAdmin /> : tab === 'Control Room' ? <AdminControlRoom chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} announcements={announcements} media={media} onTab={activateTab} /> : tab === 'Reader Analytics' ? <AdminReaderAnalytics chapters={sorted} pageCounts={pageCounts} /> : tab === 'Overview' ? <AdminOverview chapters={sorted} comments={comments} reports={reports} pageCounts={pageCounts} onTab={activateTab} chapterName={chapterName} openReportCount={openReportCount} reportsAvailable={reportsAvailable} /> : tab === 'Membership & Earnings' ? <AdminMembership /> : tab === 'Pages' ? <AdminChapterPages chapters={sorted} /> : tab === 'Chapters' ? <AdminChapterManager
       chapters={sorted}
       pageCounts={pageCounts}
       form={form}
