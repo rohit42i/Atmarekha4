@@ -463,6 +463,9 @@ async function loadAllPublishedChapters(env) {
     ));
     if (page.length < pageSize) break;
   }
+  if (rows.length === 0) {
+    throw new Error("No published chapters were returned; refusing to publish an incomplete sitemap.");
+  }
   return rows;
 }
 
@@ -572,9 +575,17 @@ async function serveSitemap(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.protocol === "http:" || url.hostname === "atmarekha.in") {
+    const isLegacyHost = url.protocol === "http:" || url.hostname === "atmarekha.in";
+    const canNormalizePath = request.method === "GET" || request.method === "HEAD";
+    let canonicalPath = url.pathname;
+    while (canonicalPath.length > 1 && canonicalPath.endsWith("/")) {
+      canonicalPath = canonicalPath.slice(0, -1);
+    }
+    const hasTrailingSlash = canNormalizePath && canonicalPath !== url.pathname;
+    if (isLegacyHost || hasTrailingSlash) {
       if (url.protocol === "http:") url.protocol = "https:";
       if (url.hostname === "atmarekha.in") url.hostname = "www.atmarekha.in";
+      if (hasTrailingSlash) url.pathname = canonicalPath;
       return Response.redirect(url.toString(), 301);
     }
     if (request.method === "GET" && url.pathname === "/sitemap.xml") {

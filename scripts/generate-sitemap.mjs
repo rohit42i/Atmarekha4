@@ -59,6 +59,9 @@ async function loadPublishedChapters() {
     rows.push(...page.filter(isPublished));
     if (page.length < pageSize) break;
   }
+  if (rows.length === 0) {
+    throw new Error('Supabase returned no published chapters; refusing to generate an incomplete sitemap.');
+  }
   return rows;
 }
 
@@ -131,12 +134,17 @@ let chapters = [];
 try {
   chapters = await loadPublishedChapters();
 } catch (error) {
-  console.warn('Sitemap refresh skipped; retaining the last generated sitemap:', error?.message || error);
+  console.error('Sitemap refresh failed:', error?.message || error);
   try {
-    await readFile(OUT, 'utf8');
+    const previous = await readFile(OUT, 'utf8');
+    const hasChapterUrls = /<loc>https:\/\/www\.atmarekha\.in\/chapter\//i.test(previous);
+    if (!previous.startsWith('<?xml version="1.0" encoding="UTF-8"?>') || !hasChapterUrls) {
+      throw new Error('The existing sitemap is not a valid chapter-aware sitemap.');
+    }
+    console.warn('Retaining the last valid chapter-aware sitemap; refusing to replace it with an incomplete version.');
     process.exit(0);
   } catch (_) {
-    console.warn('No previous sitemap exists; generating a static public-route fallback.');
+    throw new Error('Refusing to build with an incomplete sitemap. Restore Supabase access or provide a previous chapter-aware sitemap.', { cause: error });
   }
 }
 const xml = buildXml(chapters);
