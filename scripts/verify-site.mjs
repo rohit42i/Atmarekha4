@@ -1150,6 +1150,18 @@ if (!sitemapWorker.includes('async function serveSitemap') ||
   console.error('CHECK FAILED: Dynamic sitemap must paginate published, non-deleted chapters.');
   failed = true;
 }
+if (!sitemapWorker.includes('if (rows.length === 0)') ||
+    !sitemapGenerator.includes('if (rows.length === 0)') ||
+    !sitemapGenerator.includes('hasChapterUrls') ||
+    !sitemapGenerator.includes('chapter-aware sitemap')) {
+  console.error('CHECK FAILED: Empty chapter responses must never publish an incomplete sitemap.');
+  failed = true;
+}
+if (!sitemapWorker.includes('canonicalPath.endsWith("/")') ||
+    !sitemapWorker.includes('const hasTrailingSlash = canNormalizePath && canonicalPath !== url.pathname')) {
+  console.error('CHECK FAILED: Trailing-slash GET/HEAD URLs must redirect to their canonical path.');
+  failed = true;
+}
 const sitemapLocs = [...publicSitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
 if (!publicSitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>') ||
     sitemapLocs.length === 0 ||
