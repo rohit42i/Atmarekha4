@@ -6,14 +6,7 @@ const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
   '/', '/chapters', '/chapters?lang=en',
   '/pal-do-pal-ke-lamhe',
-  // Last-known public chapters keep the fallback sitemap useful if the chapter API is temporarily unavailable.
-  // These are used only when no chapter records can be loaded, never alongside a successful live chapter list.
-  
   '/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report',
-];
-
-const FALLBACK_CHAPTER_PATHS = [
-  '/chapter/special/intro-282d54fd', '/chapter/1', '/chapter/2',
 ];
 
 const env = key => String(process.env[key] || '').trim();
@@ -67,7 +60,7 @@ async function loadPublishedChapters() {
     if (page.length < pageSize) break;
   }
   if (rows.length === 0) {
-    throw new Error('Supabase returned no published chapters; refusing to overwrite a chapter-aware sitemap.');
+    throw new Error('Supabase returned no published chapters; refusing to generate an incomplete sitemap.');
   }
   return rows;
 }
@@ -80,7 +73,6 @@ function buildXml(chapters) {
     else if (!entries.get(loc).lastmod && lastmod) entries.get(loc).lastmod = lastmod;
   };
   STATIC_PATHS.forEach(path => add(path));
-  if (chapters.length === 0) FALLBACK_CHAPTER_PATHS.forEach(path => add(path));
   const groups = new Map();
   for (const chapter of chapters) {
     add(chapterPath(chapter), chapterLastmod(chapter));
@@ -142,12 +134,17 @@ let chapters = [];
 try {
   chapters = await loadPublishedChapters();
 } catch (error) {
-  console.warn('Sitemap refresh skipped; retaining the last generated sitemap:', error?.message || error);
+  console.error('Sitemap refresh failed:', error?.message || error);
   try {
-    await readFile(OUT, 'utf8');
+    const previous = await readFile(OUT, 'utf8');
+    const hasChapterUrls = /<loc>https:\/\/www\.atmarekha\.in\/chapter\//i.test(previous);
+    if (!previous.startsWith('<?xml version="1.0" encoding="UTF-8"?>') || !hasChapterUrls) {
+      throw new Error('The existing sitemap is not a valid chapter-aware sitemap.');
+    }
+    console.warn('Retaining the last valid chapter-aware sitemap; refusing to replace it with an incomplete version.');
     process.exit(0);
   } catch (_) {
-    console.warn('No previous sitemap exists; generating a static public-route fallback.');
+    throw new Error('Refusing to build with an incomplete sitemap. Restore Supabase access or provide a previous chapter-aware sitemap.', { cause: error });
   }
 }
 const xml = buildXml(chapters);
