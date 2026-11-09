@@ -43,7 +43,7 @@ const STORY = { title: 'Atma Rekha', description: 'A fantasy adventure comic whe
 const SITE_URL = 'https://www.atmarekha.in';
 const DEFAULT_SEO_TITLE = 'Atma Rekha | Fantasy Adventure Comic';
 const DEFAULT_SEO_DESCRIPTION = 'Explore Atma Rekha, a fantasy adventure comic where missing memories and mysterious powers lead to a larger mystery.';
-const DEFAULT_SEO_IMAGE = SITE_URL + '/og-atmarekha.jpg?v=20261031-share2';
+const DEFAULT_SEO_IMAGE = SITE_URL + '/og-atmarekha.jpg?v=20261109-share3';
 
 function upsertMeta(attribute, key, content) {
   if (typeof document === 'undefined') return;
