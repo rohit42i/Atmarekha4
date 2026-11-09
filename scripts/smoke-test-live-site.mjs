@@ -123,6 +123,15 @@ const redirectLocation = http.headers.get("location");
 assert.ok(redirectLocation, "HTTP homepage redirect must include Location.");
 assert.equal(new URL(redirectLocation, "http://www.atmarekha.in/").protocol, "https:", "HTTP homepage redirect must be HTTPS.");
 
+// Canonical page paths must not have a second trailing-slash URL variant.
+const trailingSlash = await fetchWithRetry("https://www.atmarekha.in/chapters/?lang=en", { redirect: "manual" });
+assert.equal(trailingSlash.status, 301, "Trailing-slash chapter-list URL must redirect permanently.");
+assert.equal(
+  trailingSlash.headers.get("location"),
+  "https://www.atmarekha.in/chapters?lang=en",
+  "Trailing-slash redirect must preserve the language query on the canonical URL.",
+);
+
 const homepage = await assertOk(ROOT, "HTTPS homepage");
 assert.equal(homepage.status, 200, "HTTPS homepage must return 200.");
 assert.match(homepage.headers.get("content-type") || "", /text\/html/i, "Homepage must return HTML.");
