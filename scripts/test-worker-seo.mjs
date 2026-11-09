@@ -41,9 +41,23 @@ const shell = `<!doctype html><html lang="en"><head>
   <link rel="alternate" hreflang="en-IN" href="https://www.atmarekha.in/" />
   <script type="application/ld+json" id="atma-rekha-site-schema">{"@context":"https://schema.org","@type":"WebSite","name":"Atma Rekha"}</script>
 </head><body><div id="root"></div></body></html>`;
+const staticSitemapFallback = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.atmarekha.in/</loc></url>
+  <url><loc>https://www.atmarekha.in/chapters</loc></url>
+  <url><loc>https://www.atmarekha.in/chapter/special/intro-282d54fd</loc></url>
+  <url><loc>https://www.atmarekha.in/chapter/1</loc></url>
+  <url><loc>https://www.atmarekha.in/chapter/2</loc></url>
+</urlset>`;
 const env = {
   ASSETS: {
-    async fetch() {
+    async fetch(request) {
+      if (new URL(request.url).pathname === "/sitemap.xml") {
+        return new Response(staticSitemapFallback, {
+          status: 200,
+          headers: { "Content-Type": "application/xml; charset=utf-8" },
+        });
+      }
       return new Response(shell, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
     },
   },
@@ -195,9 +209,31 @@ try {
   assert.ok(paginatedSitemapXml.includes("<loc>https://www.atmarekha.in/chapter/501</loc>"), "Sitemap must include chapters after the first 500 records.");
   assert.deepEqual(paginationOffsets, [0, 500], "Worker must fetch published chapters in 500-record pages.");
 
+  // An empty but successful Supabase response is not a valid chapter sitemap.
+  // The Worker must fall back to the chapter-aware static sitemap instead.
+  cacheStore.clear();
+  globalThis.fetch = async () => new Response("[]", {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+  const fallbackSitemapResponse = await worker.fetch(new Request("https://www.atmarekha.in/sitemap.xml"), env);
+  const fallbackSitemapXml = await fallbackSitemapResponse.text();
+  assert.equal(fallbackSitemapResponse.status, 200);
+  for (const path of ["/chapter/special/intro-282d54fd", "/chapter/1", "/chapter/2"]) {
+    assert.ok(fallbackSitemapXml.includes("<loc>https://www.atmarekha.in" + path + "</loc>"), "Empty live chapter data must not remove the fallback chapter URL: " + path);
+  }
+
   const redirect = await worker.fetch(new Request("http://atmarekha.in/chapters?lang=en"), env);
   assert.equal(redirect.status, 301);
   assert.equal(redirect.headers.get("location"), "https://www.atmarekha.in/chapters?lang=en");
+
+  const trailingSlashRedirect = await worker.fetch(new Request("https://www.atmarekha.in/chapters/?lang=en"), env);
+  assert.equal(trailingSlashRedirect.status, 301);
+  assert.equal(trailingSlashRedirect.headers.get("location"), "https://www.atmarekha.in/chapters?lang=en");
+
+  const combinedAliasRedirect = await worker.fetch(new Request("http://atmarekha.in/chapters/?lang=en"), env);
+  assert.equal(combinedAliasRedirect.status, 301);
+  assert.equal(combinedAliasRedirect.headers.get("location"), "https://www.atmarekha.in/chapters?lang=en");
 
   console.log("Worker SEO/security route tests passed.");
 } finally {
