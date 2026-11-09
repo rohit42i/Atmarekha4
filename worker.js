@@ -577,7 +577,10 @@ export default {
     const url = new URL(request.url);
     const isLegacyHost = url.protocol === "http:" || url.hostname === "atmarekha.in";
     const canNormalizePath = request.method === "GET" || request.method === "HEAD";
-    const canonicalPath = url.pathname === "/" ? "/" : url.pathname.replace(/\\/+$/, "");
+    let canonicalPath = url.pathname;
+    while (canonicalPath.length > 1 && canonicalPath.endsWith("/")) {
+      canonicalPath = canonicalPath.slice(0, -1);
+    }
     const hasTrailingSlash = canNormalizePath && canonicalPath !== url.pathname;
     if (isLegacyHost || hasTrailingSlash) {
       if (url.protocol === "http:") url.protocol = "https:";
