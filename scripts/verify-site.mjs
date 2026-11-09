@@ -1130,6 +1130,11 @@ const publicSitemap = await readFile('public/sitemap.xml', 'utf8');
 const sitemapWorker = await readFile('worker.js', 'utf8');
 const sitemapGenerator = await readFile('scripts/generate-sitemap.mjs', 'utf8');
 const crawlerRules = await readFile('public/robots.txt', 'utf8');
+const wranglerConfig = await readFile('wrangler.toml', 'utf8');
+if (!wranglerConfig.includes('run_worker_first = ["/*", "!/og-atmarekha.jpg"]')) {
+  console.error('CHECK FAILED: Open Graph share image must bypass Worker-first routing and be served directly as a static asset.');
+  failed = true;
+}
 for (const route of ['/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report', '/pal-do-pal-ke-lamhe']) {
   if (!publicSitemap.includes('https://www.atmarekha.in' + route) ||
       !sitemapGenerator.includes(route)) {
