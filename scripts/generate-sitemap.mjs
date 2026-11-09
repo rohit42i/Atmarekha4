@@ -6,7 +6,14 @@ const OUT = resolve('public/sitemap.xml');
 const STATIC_PATHS = [
   '/', '/chapters', '/chapters?lang=en',
   '/pal-do-pal-ke-lamhe',
+  // Last-known public chapters keep the fallback sitemap useful if the chapter API is temporarily unavailable.
+  // These are used only when no chapter records can be loaded, never alongside a successful live chapter list.
+  
   '/info/about', '/info/terms', '/info/privacy', '/info/contact', '/info/report',
+];
+
+const FALLBACK_CHAPTER_PATHS = [
+  '/chapter/special/intro-282d54fd', '/chapter/1', '/chapter/2',
 ];
 
 const env = key => String(process.env[key] || '').trim();
@@ -59,6 +66,9 @@ async function loadPublishedChapters() {
     rows.push(...page.filter(isPublished));
     if (page.length < pageSize) break;
   }
+  if (rows.length === 0) {
+    throw new Error('Supabase returned no published chapters; refusing to overwrite a chapter-aware sitemap.');
+  }
   return rows;
 }
 
@@ -70,6 +80,7 @@ function buildXml(chapters) {
     else if (!entries.get(loc).lastmod && lastmod) entries.get(loc).lastmod = lastmod;
   };
   STATIC_PATHS.forEach(path => add(path));
+  if (chapters.length === 0) FALLBACK_CHAPTER_PATHS.forEach(path => add(path));
   const groups = new Map();
   for (const chapter of chapters) {
     add(chapterPath(chapter), chapterLastmod(chapter));
