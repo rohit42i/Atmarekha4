@@ -1388,3 +1388,36 @@ html[data-theme="dark"] .rewards-state-qualified {
     min-width: 0;
   }
 }
+
+/* Rewards controls: keep strong black buttons in dark mode. */
+html[data-theme="dark"] .rewards-page :is(
+  .rewards-primary-button,
+  .rewards-secondary-button,
+  .rewards-redeem-button,
+  .rewards-alert-action,
+  .rewards-refresh-button,
+  .rewards-modal-close,
+  .rewards-alert-dismiss
+) {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #555 !important;
+}
+
+html[data-theme="dark"] .rewards-page :is(
+  .rewards-primary-button,
+  .rewards-secondary-button,
+  .rewards-redeem-button,
+  .rewards-alert-action,
+  .rewards-refresh-button
+):hover:not(:disabled) {
+  background: #171717 !important;
+  color: #fff !important;
+  border-color: #777 !important;
+}
+
+html[data-theme="dark"] .rewards-page .rewards-redeem-button:disabled {
+  background: #111 !important;
+  color: #999 !important;
+  border-color: #444 !important;
+}
