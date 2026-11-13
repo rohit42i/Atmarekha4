@@ -170,6 +170,48 @@ begin
 end;
 $function$;
 
+create or replace function public.claim_referral_rewards()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_awarded integer := 0;
+begin
+  if v_uid is null then raise exception 'Sign in to claim referral rewards.'; end if;
+  if not exists (select 1 from auth.users u where u.id = v_uid and u.email_confirmed_at is not null) then
+    raise exception 'Verify your email address before claiming rewards.';
+  end if;
+
+  with qualified as (
+    update public.referral_signups rs
+    set status = 'qualified', qualified_at = coalesce(rs.qualified_at, now())
+    from auth.users invitee
+    where rs.referrer_user_id = v_uid
+      and rs.referred_user_id = invitee.id
+      and rs.status = 'pending'
+      and invitee.email_confirmed_at is not null
+    returning rs.id, rs.referrer_user_id
+  ),
+  credited as (
+    insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
+    select q.referrer_user_id, 100, 'referral_reward', q.id, 'Verified friend referral'
+    from qualified q
+    on conflict do nothing
+    returning id
+  )
+  select count(*)::integer into v_awarded from credited;
+
+  return jsonb_build_object(
+    'ok', true,
+    'referrals_claimed', v_awarded,
+    'coins_claimed', v_awarded * 100
+  );
+end;
+$function$;
+
 revoke all on function private.capture_referral_signup() from public, anon, authenticated;
 revoke all on function private.qualify_referral_signup() from public, anon, authenticated;
 drop trigger if exists atma_capture_referral_signup on auth.users;
@@ -369,9 +411,11 @@ as $function$
   );
 $function$;
 
+revoke all on function public.claim_referral_rewards() from public, anon;
 revoke all on function public.get_referral_rewards() from public, anon;
 revoke all on function public.redeem_reward_subscription(text) from public, anon;
 revoke all on function public.has_current_reward_membership(text[]) from public, anon;
+grant execute on function public.claim_referral_rewards() to authenticated;
 grant execute on function public.get_referral_rewards() to authenticated;
 grant execute on function public.redeem_reward_subscription(text) to authenticated;
 grant execute on function public.has_current_reward_membership(text[]) to authenticated;
