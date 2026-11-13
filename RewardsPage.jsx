@@ -308,7 +308,6 @@ export default function RewardsPage() {
   const coinsSpent = Number(summary?.coins_spent || 0);
 
   const redemptionLabel = item => {
-    const plan = planFor(item.plan_id);
     if (item.status === 'reversed') return 'Reversed';
     if (item.expires_at && new Date(item.expires_at).getTime() > Date.now()) return `Active until ${dateText(item.expires_at)}`;
     return item.status === 'completed' ? 'Expired' : 'Pending';
