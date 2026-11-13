@@ -389,8 +389,8 @@ export default function RewardsPage() {
       <section className="rewards-intro-row">
         <div>
           <p className="section-eyebrow">READER REWARDS</p>
-          <h2>Share stories. Earn coins.</h2>
-          <p>Invite a friend to Atma Rekha. You receive 100 coins when they create a new account and verify their email.</p>
+          <h2>Invite friends. Earn coins.</h2>
+          <p>Invite a friend using your link. You get 100 coins after they create an account and verify their email.</p>
         </div>
         <button type="button" className="rewards-refresh-button" aria-label={loading ? 'Refreshing rewards' : 'Refresh rewards balance'} onClick={() => load(user)} disabled={loading || claiming || Boolean(busyPlan)}>
           <span aria-hidden="true">{loading ? '…' : '↻'}</span>{loading ? 'Refreshing' : 'Refresh'}
@@ -418,7 +418,7 @@ export default function RewardsPage() {
         </article>
         <div className="rewards-stats-grid">
           <article className="rewards-stat-card"><strong>{summary ? coinText(verifiedReferrals) : '—'}</strong><span>Verified friends</span></article>
-          <article className="rewards-stat-card"><strong>{summary ? coinText(pendingReferrals) : '—'}</strong><span>Awaiting verification</span></article>
+          <article className="rewards-stat-card"><strong>{summary ? coinText(pendingReferrals) : '—'}</strong><span>Friends who still need to verify</span></article>
           <article className="rewards-stat-card"><strong>{summary ? coinText(coinsEarned) : '—'}</strong><span>Total coins earned</span></article>
         </div>
       </section>
@@ -426,8 +426,8 @@ export default function RewardsPage() {
       <section className="rewards-invite-card">
         <div className="rewards-invite-copy">
           <p className="section-eyebrow">YOUR PERSONAL INVITE</p>
-          <h2>Bring a friend along.</h2>
-          <p>Share your personal link. When a new reader verifies their email, 100 coins are added to your balance automatically.</p>
+          <h2>Invite a friend to read with you.</h2>
+          <p>Send your invite link to a friend. Once they sign up and verify their email, 100 coins are added to your balance.</p>
         </div>
         <div className="rewards-invite-details">
           <div className="rewards-code-row">
@@ -450,7 +450,7 @@ export default function RewardsPage() {
 
       <section className="rewards-membership-section">
         <div className="rewards-section-heading">
-          <div><p className="section-eyebrow">MEMBERSHIP REWARDS</p><h2>Redeem your coins</h2><p>Choose the membership that matches your reading.</p></div>
+          <div><p className="section-eyebrow">MEMBERSHIP REWARDS</p><h2>Redeem your coins</h2><p>Use your coins to unlock membership. Each option shows the coins needed and how long access lasts.</p></div>
           <span className="rewards-section-side-note">No auto-renewal</span>
         </div>
 
@@ -498,9 +498,9 @@ export default function RewardsPage() {
 
       <section className="rewards-history-grid">
         <article className="rewards-history-card">
-          <div className="rewards-history-heading"><div><p className="section-eyebrow">REFERRALS</p><h2>Your invited readers</h2></div><span>{summary ? coinText(totalInvited) : '—'}</span></div>
+          <div className="rewards-history-heading"><div><p className="section-eyebrow">REFERRALS</p><h2>Friends you invited</h2></div><span>{summary ? coinText(totalInvited) : '—'}</span></div>
           {loading && !summary ? <div className="rewards-history-empty">Loading referrals…</div> : referrals.length === 0
-            ? <div className="rewards-history-empty"><strong>No referrals yet</strong><p>Share your invite link to welcome your first reader.</p></div>
+            ? <div className="rewards-history-empty"><strong>No friends have joined yet</strong><p>Send your invite link to a friend. They will appear here after signing up.</p></div>
             : <div className="rewards-history-list">{referrals.map(referral => <div className="rewards-history-row" key={referral.id}>
                 <div className="rewards-history-main"><strong>{referral.display_name || 'New reader'}</strong><small>{timeText(referral.created_at)}</small></div>
                 <span className={referral.status === 'qualified' ? 'rewards-state-qualified' : 'rewards-state-pending'}>{referral.status === 'qualified' ? '+100 coins' : 'Pending email'}</span>
