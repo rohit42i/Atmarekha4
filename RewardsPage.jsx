@@ -409,11 +409,6 @@ export default function RewardsPage() {
           <div className="rewards-balance-copy">
             <p className="section-eyebrow">AVAILABLE BALANCE</p>
             <strong>{loading && !summary ? '—' : coinText(balance)}</strong>
-            <span>Coins ready to redeem</span>
-          </div>
-          <div className="rewards-balance-side">
-            <span className="rewards-coin-mark" aria-hidden="true">◎</span>
-            <span className="rewards-balance-caption">Earn 100 coins<br />per verified friend</span>
           </div>
         </article>
         <div className="rewards-stats-grid">
