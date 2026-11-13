@@ -121,23 +121,35 @@ begin
     return new;
   end if;
 
-  insert into public.referral_signups(referrer_user_id, referred_user_id, referral_code, status, qualified_at)
-  values (
-    v_referrer,
-    new.id,
-    v_code,
-    case when new.email_confirmed_at is not null then 'qualified' else 'pending' end,
-    case when new.email_confirmed_at is not null then now() else null end
-  )
-  on conflict (referred_user_id) do nothing
-  returning id into v_signup_id;
+  begin
+    insert into public.referral_signups(referrer_user_id, referred_user_id, referral_code, status, qualified_at)
+    values (
+      v_referrer,
+      new.id,
+      v_code,
+      case when new.email_confirmed_at is not null then 'qualified' else 'pending' end,
+      case when new.email_confirmed_at is not null then now() else null end
+    )
+    on conflict (referred_user_id) do nothing
+    returning id into v_signup_id;
+  exception when others then
+    raise warning 'Referral attribution could not be recorded for a new account: %', sqlerrm;
+    return new;
+  end;
 
   if v_signup_id is not null and new.email_confirmed_at is not null then
-    insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
-    values (v_referrer, 100, 'referral_reward', v_signup_id, 'Verified friend referral')
-    on conflict do nothing;
+    begin
+      insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
+      values (v_referrer, 100, 'referral_reward', v_signup_id, 'Verified friend referral')
+      on conflict do nothing;
+    exception when others then
+      raise warning 'Referral reward credit is pending recovery: %', sqlerrm;
+    end;
   end if;
 
+  return new;
+exception when others then
+  raise warning 'Referral capture skipped without blocking account creation: %', sqlerrm;
   return new;
 end;
 $function$;
@@ -161,11 +173,18 @@ begin
   returning * into v_signup;
 
   if found then
-    insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
-    values (v_signup.referrer_user_id, 100, 'referral_reward', v_signup.id, 'Verified friend referral')
-    on conflict do nothing;
+    begin
+      insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
+      values (v_signup.referrer_user_id, 100, 'referral_reward', v_signup.id, 'Verified friend referral')
+      on conflict do nothing;
+    exception when others then
+      raise warning 'Verified referral reward credit is pending recovery: %', sqlerrm;
+    end;
   end if;
 
+  return new;
+exception when others then
+  raise warning 'Referral qualification skipped without blocking email verification: %', sqlerrm;
   return new;
 end;
 $function$;
@@ -185,25 +204,31 @@ begin
     raise exception 'Verify your email address before claiming rewards.';
   end if;
 
-  with qualified as (
-    update public.referral_signups rs
-    set status = 'qualified', qualified_at = coalesce(rs.qualified_at, now())
-    from auth.users invitee
-    where rs.referrer_user_id = v_uid
-      and rs.referred_user_id = invitee.id
-      and rs.status = 'pending'
-      and invitee.email_confirmed_at is not null
-    returning rs.id, rs.referrer_user_id
-  ),
-  credited as (
-    insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
-    select q.referrer_user_id, 100, 'referral_reward', q.id, 'Verified friend referral'
-    from qualified q
-    on conflict do nothing
-    returning id
-  )
-  select count(*)::integer into v_awarded from credited;
+  update public.referral_signups rs
+  set status = 'qualified', qualified_at = coalesce(rs.qualified_at, now())
+  from auth.users invitee
+  where rs.referrer_user_id = v_uid
+    and rs.referred_user_id = invitee.id
+    and rs.status = 'pending'
+    and invitee.email_confirmed_at is not null;
 
+  -- Recover already-qualified referrals if an automatic ledger insert was interrupted.
+  -- The unique partial index on referral_signup_id prevents duplicate credits.
+  insert into public.coin_ledger(user_id, amount, transaction_type, referral_signup_id, description)
+  select rs.referrer_user_id, 100, 'referral_reward', rs.id, 'Verified friend referral'
+  from public.referral_signups rs
+  join auth.users invitee on invitee.id = rs.referred_user_id
+  where rs.referrer_user_id = v_uid
+    and rs.status = 'qualified'
+    and invitee.email_confirmed_at is not null
+    and not exists (
+      select 1 from public.coin_ledger cl
+      where cl.referral_signup_id = rs.id
+        and cl.transaction_type = 'referral_reward'
+    )
+  on conflict do nothing;
+
+  get diagnostics v_awarded = row_count;
   return jsonb_build_object(
     'ok', true,
     'referrals_claimed', v_awarded,
