@@ -44,7 +44,16 @@ export default function ChapterAccessGuard() {
     init();
     const listener = supabase.auth.onAuthStateChange((_event, session) => loadAccess(session?.user || null));
     authSubscription = listener.data?.subscription;
-    return () => { cancelled = true; authSubscription?.unsubscribe(); };
+    const refreshMembership = async () => {
+      const { data } = await supabase.auth.getSession();
+      await loadAccess(data?.session?.user || null);
+    };
+    window.addEventListener('atma:membership-updated', refreshMembership);
+    return () => {
+      cancelled = true;
+      authSubscription?.unsubscribe();
+      window.removeEventListener('atma:membership-updated', refreshMembership);
+    };
   }, []);
 
   useEffect(() => {
