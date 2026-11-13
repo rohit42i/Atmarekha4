@@ -1,0 +1,60 @@
+.rewards-page{min-height:100vh;background:var(--bg-color);color:var(--text-color);padding-bottom:56px}
+.rewards-page-content{width:min(920px,calc(100% - 32px));margin:0 auto;padding:28px 0 60px;display:grid;gap:18px}
+.rewards-balance-card,.rewards-invite-card,.rewards-plan-card,.rewards-empty,.rewards-section{border:1px solid var(--border-color);border-radius:16px;background:var(--surface-color);color:var(--text-color)}
+.rewards-balance-card{display:flex;align-items:center;justify-content:space-between;padding:22px 24px}
+.rewards-balance-card strong{display:block;font-size:clamp(36px,7vw,54px);line-height:1.1;letter-spacing:-.04em;margin:6px 0}
+.rewards-balance-card span,.rewards-balance-card .section-eyebrow{color:var(--muted-color);font-size:12px}
+.rewards-balance-mark{width:64px;height:64px;display:grid;place-items:center;border:1px solid var(--border-color);border-radius:18px;font-weight:800;letter-spacing:.1em}
+.rewards-invite-card{padding:22px}
+.rewards-invite-card h2{font-size:clamp(23px,4.5vw,32px);margin:7px 0 8px;letter-spacing:-.03em}
+.rewards-invite-card>p:not(.section-eyebrow){max-width:680px;color:var(--muted-color);line-height:1.55;margin:0}
+.rewards-link-box{margin-top:18px;padding:13px 14px;border:1px dashed var(--border-color);border-radius:10px;background:var(--bg-color);overflow-wrap:anywhere;font-size:13px;color:var(--muted-color)}
+.rewards-share-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.rewards-primary-button,.rewards-secondary-button,.rewards-redeem-button{min-height:43px;padding:0 16px;border-radius:9px;border:1px solid var(--text-color);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.rewards-primary-button{background:var(--text-color);color:var(--bg-color)}
+.rewards-secondary-button{background:transparent;color:var(--text-color);border-color:var(--border-color)}
+.rewards-primary-button:disabled,.rewards-secondary-button:disabled,.rewards-redeem-button:disabled{opacity:.5;cursor:not-allowed}
+.rewards-stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--border-color);border-radius:14px;background:var(--surface-color)}
+.rewards-stats-grid>div{padding:17px;text-align:center;min-width:0}
+.rewards-stats-grid>div+div{border-left:1px solid var(--border-soft-color)}
+.rewards-stats-grid strong,.rewards-stats-grid span{display:block}
+.rewards-stats-grid strong{font-size:22px}
+.rewards-stats-grid span{margin-top:4px;font-size:11px;color:var(--muted-color)}
+.rewards-section{padding:20px}
+.rewards-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+.rewards-section-heading h2{margin:4px 0 0;font-size:23px;letter-spacing:-.03em}
+.rewards-section-heading>span{font-size:11px;color:var(--muted-color);text-align:right}
+.rewards-plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.rewards-plan-card{min-width:0;padding:16px;border:1px solid var(--border-color);border-radius:13px;background:var(--bg-color);display:flex;flex-direction:column}
+.rewards-plan-cost{font-size:26px;font-weight:800;letter-spacing:-.04em;margin:0}
+.rewards-plan-cost small{font-size:11px;font-weight:600;letter-spacing:0;color:var(--muted-color)}
+.rewards-plan-card h3{font-size:16px;margin:8px 0 5px}
+.rewards-plan-card>p:not(.rewards-plan-cost){font-size:12px;line-height:1.45;color:var(--muted-color);margin:0;min-height:35px}
+.rewards-plan-duration{font-size:11px;color:var(--muted-color);margin:12px 0}
+.rewards-progress-track{height:6px;border-radius:99px;background:var(--surface-2-color);overflow:hidden}
+.rewards-progress-track span{height:100%;display:block;background:var(--text-color);border-radius:inherit;transition:width .2s ease}
+.rewards-progress-label{font-size:10px;color:var(--muted-color);margin:7px 0 12px}
+.rewards-redeem-button{margin-top:auto;background:var(--text-color);color:var(--bg-color);border-color:var(--text-color);width:100%}
+.rewards-footnote,.rewards-muted{font-size:12px;line-height:1.55;color:var(--muted-color);margin:14px 0 0}
+.rewards-history-list{display:grid}
+.rewards-history-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-top:1px solid var(--border-soft-color)}
+.rewards-history-row>div{min-width:0;display:grid;gap:4px}
+.rewards-history-row strong{font-size:13px;overflow-wrap:anywhere}
+.rewards-history-row small{font-size:11px;color:var(--muted-color)}
+.rewards-history-row>span{font-size:12px;text-align:right;color:var(--muted-color)}
+.rewards-history-row .is-qualified{color:var(--success-color,#21865b);font-weight:700}
+.rewards-history-row .is-pending{color:var(--muted-color)}
+.rewards-history-row .is-spent{font-weight:700}
+.rewards-empty{padding:22px;text-align:center}
+.rewards-empty h2,.rewards-empty h3{margin:0 0 7px}
+.rewards-empty p{font-size:13px;line-height:1.55;color:var(--muted-color);margin:0 0 14px}
+.rewards-error,.rewards-notice{padding:12px 14px;border:1px solid var(--border-color);border-radius:10px;margin:0;font-size:13px;line-height:1.5}
+.rewards-error{color:var(--danger-color,#b33)}
+.rewards-notice{color:var(--text-color)}
+.rewards-bottom-actions{display:flex;justify-content:flex-end}
+.rewards-page button:focus-visible{outline:2px solid var(--accent-color);outline-offset:3px}
+:root[data-theme="light"] .rewards-page{background:var(--bg-color);color:var(--text-color)}
+:root[data-theme="dark"] .rewards-plan-card{background:#080808}
+@media(max-width:720px){.rewards-plan-grid{grid-template-columns:1fr}.rewards-plan-card>p:not(.rewards-plan-cost){min-height:0}.rewards-section-heading{align-items:flex-start;flex-direction:column}.rewards-section-heading>span{text-align:left}}
+@media(max-width:520px){.rewards-page-content{width:calc(100% - 24px);padding-top:20px}.rewards-balance-card,.rewards-invite-card,.rewards-section{padding:17px}.rewards-stats-grid>div{padding:13px 7px}.rewards-stats-grid strong{font-size:18px}.rewards-stats-grid span{font-size:10px}.rewards-history-row{align-items:flex-start}.rewards-history-row>span{max-width:48%}}
+@media(prefers-reduced-motion:reduce){.rewards-progress-track span{transition:none}}

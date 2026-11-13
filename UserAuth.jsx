@@ -9,6 +9,24 @@ import { getSiteRoute } from './routes';
 import { getMarketingAttribution } from './attribution';
 import { validateEmail, rememberDraft, loadDraft, clearDraft, passwordStrength } from './formUX.js';
 
+const REFERRAL_CODE_STORAGE_KEY = 'atma-referral-code';
+function captureReferralCode() {
+  try {
+    const code = new URL(window.location.href).searchParams.get('ref') || '';
+    if (/^[A-Fa-f0-9]{10}$/.test(code)) {
+      window.localStorage.setItem(REFERRAL_CODE_STORAGE_KEY, code.toUpperCase());
+    }
+  } catch {}
+}
+function getPendingReferralCode() {
+  captureReferralCode();
+  try {
+    const code = window.localStorage.getItem(REFERRAL_CODE_STORAGE_KEY) || '';
+    return /^[A-F0-9]{10}$/.test(code) ? code : '';
+  } catch { return ''; }
+}
+captureReferralCode();
+
 function routeNow() { return getSiteRoute(); }
 function isPasswordResetRoute() { const url=new URL(window.location.href); return url.searchParams.get('reset-password')==='1' || url.hash.includes('type=recovery') || url.hash.includes('access_token='); }
 function clearPasswordResetRoute() { const url=new URL(window.location.href); url.searchParams.delete('reset-password'); url.hash='home'; window.history.replaceState({},document.title,url.toString()); }
@@ -44,8 +62,9 @@ function AuthPanel({mode,setMode,onClose,onSignedIn}){
     try{
       if(mode==='signup'){
         await validateNewPassword(password);
-        const{data,error:authError}=await supabase.auth.signUp({email:email.trim(),password,options:{data:{full_name:name.trim(),marketing_attribution:getMarketingAttribution(),dpdp_privacy_consent_version:'2026-10-25',dpdp_consent_purposes:['account','reading','community','membership','atma_rekha_updates','chapter_announcements'].join(','),age_declaration_version:'2026-10-07'},emailRedirectTo:`${window.location.origin}/`}});
+        const{data,error:authError}=await supabase.auth.signUp({email:email.trim(),password,options:{data:{full_name:name.trim(),marketing_attribution:getMarketingAttribution(),dpdp_privacy_consent_version:'2026-10-25',dpdp_consent_purposes:['account','reading','community','membership','atma_rekha_updates','chapter_announcements'].join(','),age_declaration_version:'2026-10-07',referral_code:getPendingReferralCode() || undefined},emailRedirectTo:`${window.location.origin}/`}});
         if(authError)throw authError;
+        try { window.localStorage.removeItem(REFERRAL_CODE_STORAGE_KEY); } catch {}
         if(data.session?.user?.id){try{const{data:syncData,error:syncError}=await supabase.functions.invoke('resend-contact-sync');if(syncError||syncData?.ok!==true)console.warn('Resend contact sync will retry after the next sign-in.')}catch{console.warn('Resend contact sync will retry after the next sign-in.')}}
         clearDraft('atma-auth-draft');
         if(data.session)onSignedIn();else setMessage('Check your email to verify your account, then sign in.');
