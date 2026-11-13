@@ -19,6 +19,7 @@ export default function RewardsPage() {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [claiming, setClaiming] = useState(false);
 
   const load = useCallback(async currentUser => {
     if (!currentUser) {
@@ -131,6 +132,26 @@ export default function RewardsPage() {
     }
   }, [summary, busyPlan, user, load]);
 
+  const claimRewards = useCallback(async () => {
+    if (claiming || !user) return;
+    setClaiming(true);
+    setError('');
+    setNotice('');
+    try {
+      const { data, error: claimError } = await supabase.rpc('claim_referral_rewards');
+      if (claimError) throw claimError;
+      await load(user);
+      const coins = Number(data?.coins_claimed || 0);
+      setNotice(coins > 0
+        ? `${coinText(coins)} coins claimed from ${Number(data?.referrals_claimed || 0)} verified referral(s).`
+        : 'No unclaimed verified referrals. New coins are added automatically after a friend verifies their email.');
+    } catch (claimError) {
+      setError(claimError?.message || 'Could not claim verified referrals. Please try again.');
+    } finally {
+      setClaiming(false);
+    }
+  }, [claiming, user, load]);
+
   const activeReward = useMemo(() => (summary?.redemptions || []).find(item =>
     item.status === 'completed' && item.expires_at && new Date(item.expires_at).getTime() > Date.now()
   ), [summary]);
@@ -150,7 +171,7 @@ export default function RewardsPage() {
       <section className="rewards-page-content"><div className="rewards-empty">
         <h2>Sign in to view your rewards</h2>
         <p>Your invite link, coin balance and membership redemptions are available with an Atma Rekha account.</p>
-        <button type="button" className="rewards-primary-button" onClick={() => { window.location.hash = 'login'; }}>Sign in</button>
+        <button type="button" className="rewards-primary-button" onClick={() => window.dispatchEvent(new CustomEvent('atma-open-auth', { detail: { mode: 'login', returnTo: 'rewards' } }))}>Sign in</button>
       </div></section>
     </main>;
   }
@@ -239,7 +260,7 @@ export default function RewardsPage() {
             <span>{item.status === 'completed' && item.expires_at && new Date(item.expires_at).getTime() > Date.now() ? `Active until ${dateText(item.expires_at)}` : item.status === 'reversed' ? 'Reversed' : 'Expired'}</span>
           </article>)}</div>}
       </section>
-      <div className="rewards-bottom-actions"><button type="button" className="rewards-secondary-button" onClick={() => load(user)} disabled={loading}>Refresh rewards</button></div>
+      <div className="rewards-bottom-actions"><button type="button" className="rewards-secondary-button" onClick={claimRewards} disabled={loading || claiming}>{claiming ? "Checking…" : "Claim verified rewards"}</button><button type="button" className="rewards-secondary-button" onClick={() => load(user)} disabled={loading || claiming}>Refresh</button></div>
     </section>
   </main>;
 }
