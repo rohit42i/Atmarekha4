@@ -189,6 +189,9 @@ export default function MorePage() {
         <button type="button" className="more-page-button" onClick={() => { window.location.hash = 'membership'; }}>
           <span className="more-page-button-icon" aria-hidden="true">✦</span><span><strong>Membership</strong><small>Choose or manage your Atma Rekha membership.</small></span><b aria-hidden="true">→</b>
         </button>
+        <button type="button" className="more-page-button" onClick={() => { window.location.hash = 'rewards'; }}>
+          <span className="more-page-button-icon" aria-hidden="true">◎</span><span><strong>Rewards &amp; Referrals</strong><small>Invite friends, earn coins and redeem membership access.</small></span><b aria-hidden="true">→</b>
+        </button>
         <button type="button" className="more-page-button" onClick={() => { window.location.hash = 'community'; }}>
           <span className="more-page-button-icon" aria-hidden="true">→</span><span><strong>Community</strong><small>Creator updates and messages from the Atma Rekha community.</small></span><b aria-hidden="true">→</b>
         </button>

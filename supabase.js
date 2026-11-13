@@ -306,18 +306,52 @@ export async function getPublicReaderTiers(userIds = []) {
   return new Map((data || []).filter(row => row?.id && ['mini_member','supporter','premium'].includes(row.public_badge)).map(row => [row.id, row.public_badge]));
 }
 
-/** Reads only rows allowed by user_subscriptions RLS; no privileged RPC is used. */
+/** Reads only rows allowed by the paid- and reward-subscription RLS policies; no privileged RPC is used. */
 export async function getCurrentMemberships(userIds = []) {
-  const ids = [...new Set((userIds || []).filter(Boolean))]; if (!ids.length) return new Map();
-  const { data, error } = await client.from('user_subscriptions').select('user_id,plan_id,status,current_period_end').in('user_id', ids).in('status', ['active', 'cancelled']);
-  if (error) throw error;
+  const ids = [...new Set((userIds || []).filter(Boolean))];
+  if (!ids.length) return new Map();
+
+  const nowIso = new Date().toISOString();
+  const [paidResult, rewardResult] = await Promise.all([
+    client.from('user_subscriptions')
+      .select('user_id,plan_id,status,current_period_end')
+      .in('user_id', ids)
+      .in('status', ['active', 'cancelled']),
+    client.from('reward_subscriptions')
+      .select('user_id,plan_id,expires_at')
+      .in('user_id', ids)
+      .gt('expires_at', nowIso),
+  ]);
+  if (paidResult.error) throw paidResult.error;
+  if (rewardResult.error) throw rewardResult.error;
+
   const now = Date.now();
-  const rows = (data || []).filter(row => {
+  const paidRows = (paidResult.data || []).filter(row => {
     const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
     if (row.status === 'active') return end === null || end > now;
     return row.status === 'cancelled' && end !== null && end > now;
-  }).sort((a, b) => { const rank = id => ({ premium_yearly: 4, premium: 3, supporter: 2, mini_member: 1, free: 0 }[id] || 0); return rank(b.plan_id) - rank(a.plan_id); });
-  return new Map(rows.filter(row => row?.user_id && row?.plan_id).map(row => [row.user_id, row.plan_id]));
+  });
+  const rewardRows = (rewardResult.data || []).map(row => ({
+    user_id: row.user_id,
+    plan_id: row.plan_id,
+    status: 'active',
+    current_period_end: row.expires_at,
+  }));
+  const rank = id => ({ premium_yearly: 4, premium: 3, supporter: 2, mini_member: 1, free: 0 }[id] || 0);
+  const rows = [...paidRows, ...rewardRows].sort((a, b) => {
+    const planDifference = rank(b.plan_id) - rank(a.plan_id);
+    if (planDifference) return planDifference;
+    const aEnd = a.current_period_end ? new Date(a.current_period_end).getTime() : Number.POSITIVE_INFINITY;
+    const bEnd = b.current_period_end ? new Date(b.current_period_end).getTime() : Number.POSITIVE_INFINITY;
+    return bEnd - aEnd;
+  });
+  const memberships = new Map();
+  for (const row of rows) {
+    if (row?.user_id && row?.plan_id && !memberships.has(row.user_id)) {
+      memberships.set(row.user_id, row.plan_id);
+    }
+  }
+  return memberships;
 }
 
 export async function getCurrentMembership(userId) { if (!userId) return null; return (await getCurrentMemberships([userId])).get(userId) || null; }
