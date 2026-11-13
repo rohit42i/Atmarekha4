@@ -306,7 +306,7 @@ export async function getPublicReaderTiers(userIds = []) {
   return new Map((data || []).filter(row => row?.id && ['mini_member','supporter','premium'].includes(row.public_badge)).map(row => [row.id, row.public_badge]));
 }
 
-/** Reads only rows allowed by user_subscriptions RLS; no privileged RPC is used. */
+/** Reads only rows allowed by the paid- and reward-subscription RLS policies; no privileged RPC is used. */
 export async function getCurrentMemberships(userIds = []) {
   const ids = [...new Set((userIds || []).filter(Boolean))];
   if (!ids.length) return new Map();
