@@ -1,19 +1,19 @@
 const sections = [
   {
-    heading: "1. Using Atma Rekha",
+    title: "1. Using Atma Rekha",
     paragraphs: [
       "Atma Rekha is a fantasy adventure comic website created by Arkesh Kaalvantik. These Terms apply to the comic, website, accounts, community features and memberships. By creating an account or using these features, you agree to these Terms."
     ]
   },
   {
-    heading: "2. Age and accounts",
+    title: "2. Age and accounts",
     paragraphs: [
       "Atma Rekha is intended for readers aged 15 and above. You must confirm that you are at least 15 to create an account.",
       "Use an email address you control, provide accurate details and keep your password and verification codes private. You are responsible for activity on your account. Contact support if you suspect unauthorised access."
     ]
   },
   {
-    heading: "3. Comic and community",
+    title: "3. Comic and community",
     paragraphs: [
       "Atma Rekha stories, characters, writing, artwork, comic pages and covers belong to Arkesh Kaalvantik or their respective rights holders. Membership gives access to included chapters, not ownership of the content."
     ],
@@ -25,7 +25,7 @@ const sections = [
     ]
   },
   {
-    heading: "4. Membership and payments",
+    title: "4. Membership and payments",
     paragraphs: [
       "Chapters 1 to 8 are free. Membership is required from Chapter 9 onward. Current options are:"
     ],
@@ -42,14 +42,14 @@ const sections = [
     ]
   },
   {
-    heading: "5. Account deletion and updates",
+    title: "5. Account deletion and updates",
     paragraphs: [
       "You can request account deletion through the Privacy Center. After password confirmation and email OTP verification, a 14-day recovery period begins. Deletion is not instant; some payment, security, moderation or backup records may be kept for a limited period.",
       "We may change chapters, release dates or website features. These Terms may also be updated; the latest version date is shown above."
     ]
   },
   {
-    heading: "6. Contact",
+    title: "6. Contact",
     paragraphs: [
       "For account, membership, payment or privacy questions, contact atmarekhasupport@gmail.com. For general questions, use atmarekhainfo@gmail.com. Official correspondence: atmarekhaoffical@gmail.com.",
       "Never email passwords, OTPs, UPI PINs, CVVs or full payment card details."
@@ -59,8 +59,8 @@ const sections = [
 
 function Section({ section }) {
   return (
-    <article className="info-section">
-      <h3>{section.heading}</h3>
+    <article className="privacy-policy-section">
+      <h2>{section.title}</h2>
       {section.paragraphs?.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       {section.bullets?.length > 0 && <ul>{section.bullets.map(item => <li key={item}>{item}</li>)}</ul>}
       {section.tail?.map((paragraph, index) => <p key={"tail-" + index}>{paragraph}</p>)}
@@ -69,5 +69,5 @@ function Section({ section }) {
 }
 
 export default function TermsOfUseSections() {
-  return <div className="info-sections terms-of-use-sections">{sections.map(section => <Section key={section.heading} section={section} />)}</div>;
+  return <div className="terms-of-use-sections">{sections.map(section => <Section key={section.title} section={section} />)}</div>;
 }
