@@ -557,5 +557,5 @@ using (
     where c.id = pal_do_pal_ke_lamhe_chapter_pages.chapter_id
       and lower(coalesce(c.status, '')) = 'published'
   )
-  and (select public.has_current_reward_membership(array['supporter','premium_yearly']::text[]))
+  and (select private.has_current_reward_membership(array['supporter','premium_yearly']::text[]))
 );
