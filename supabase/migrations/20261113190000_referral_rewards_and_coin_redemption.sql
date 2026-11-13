@@ -275,6 +275,9 @@ declare
   v_referrals jsonb;
   v_transactions jsonb;
   v_redemptions jsonb;
+  v_paid_membership jsonb;
+  v_paid_membership_pending boolean := false;
+  v_active_reward_membership jsonb;
 begin
   if v_uid is null then raise exception 'Sign in to view rewards.'; end if;
   if not exists (select 1 from auth.users u where u.id = v_uid and u.email_confirmed_at is not null) then
@@ -337,7 +340,43 @@ begin
   ) x
   left join public.reward_subscriptions rs on rs.redemption_id = x.id;
 
+  select jsonb_build_object(
+    'plan_id', us.plan_id,
+    'current_period_end', us.current_period_end
+  )
+  into v_paid_membership
+  from public.user_subscriptions us
+  where us.user_id = v_uid
+    and (
+      (us.status = 'active' and (us.current_period_end is null or us.current_period_end > now()))
+      or
+      (us.status = 'cancelled' and us.current_period_end is not null and us.current_period_end > now())
+    )
+  order by us.current_period_end desc nulls first
+  limit 1;
+
+  select exists (
+    select 1
+    from public.user_subscriptions us
+    where us.user_id = v_uid
+      and us.status = 'pending'
+      and us.created_at > now() - interval '30 minutes'
+  ) into v_paid_membership_pending;
+
+  select jsonb_build_object(
+    'plan_id', rs.plan_id,
+    'expires_at', rs.expires_at
+  )
+  into v_active_reward_membership
+  from public.reward_subscriptions rs
+  where rs.user_id = v_uid and rs.expires_at > now()
+  order by rs.expires_at desc
+  limit 1;
+
   return jsonb_build_object(
+    'paid_membership', v_paid_membership,
+    'paid_membership_pending', v_paid_membership_pending,
+    'active_reward_membership', v_active_reward_membership,
     'referral_code', v_code,
     'referral_link', 'https://www.atmarekha.in/?ref=' || v_code,
     'coin_balance', v_balance,
