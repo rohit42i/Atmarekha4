@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const files = {
@@ -6,6 +5,7 @@ const files = {
   auth: await readFile('UserAuth.jsx', 'utf8'),
   guard: await readFile('ChapterAccessGuard.jsx', 'utf8'),
   membership: await readFile('Membership.jsx', 'utf8'),
+  pdlplAccess: await readFile('palDoPalKeLamhe.js', 'utf8'),
   more: await readFile('MorePage.jsx', 'utf8'),
   page: await readFile('RewardsPage.jsx', 'utf8'),
   pageCss: await readFile('rewards-page.css', 'utf8'),
@@ -31,7 +31,7 @@ const checks = [
   ['Atma media Worker checks reward entitlements', /supabaseRows\(env, 'reward_subscriptions'/.test(files.atmaWorker) && /'mini_member', 'supporter', 'premium_yearly'/.test(files.atmaWorker)],
   ['PDPKL media Worker checks reward entitlements', /supabaseRows\(env, authorization, 'reward_subscriptions'/.test(files.pdpklWorker) && /'supporter', 'premium_yearly'/.test(files.pdpklWorker)],
   ['Frontend membership lookup includes reward entitlements', /from\('reward_subscriptions'\)/.test(files.client)],
-  ['Membership/chapter UI refreshes after redemption', /atma:membership-updated/.test(files.membership) && /atma:membership-updated/.test(files.guard) && /atma:membership-updated/.test(files.page)],
+  ['Membership/chapter/PDPKL access refreshes after redemption', /atma:membership-updated/.test(files.membership) && /atma:membership-updated/.test(files.guard) && /atma:membership-updated/.test(files.page) && /atma:membership-updated/.test(files.pdlplAccess)],
   ['Invite sharing and copying are available', /navigator\.share/.test(files.page) && /copyText\(referralLink\)/.test(files.page)],
   ['Redemption uses an in-app accessible confirmation dialog', /role="dialog" aria-modal="true"/.test(files.page) && /Confirm redemption/.test(files.page)],
   ['Responsive and reduced-motion styles are present', /@media \(max-width: 700px\)/.test(files.pageCss) && /prefers-reduced-motion/.test(files.pageCss)],
