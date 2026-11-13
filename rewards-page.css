@@ -1253,3 +1253,138 @@ html[data-theme="dark"] .rewards-state-qualified {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Final rewards control authority.
+   The site-wide theme stylesheet applies !important button colors. These
+   scoped rules deliberately win so labels remain readable in both themes. */
+.rewards-page :where(button, [role="button"]) {
+  min-height: 46px;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-shadow: none !important;
+  opacity: 1;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.rewards-page :where(button, [role="button"]) > *,
+.rewards-page :where(button, [role="button"]) span {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+  opacity: 1 !important;
+}
+
+:root[data-theme="light"] body .rewards-page button.rewards-primary-button,
+:root[data-theme="light"] body .rewards-page button.rewards-redeem-button,
+:root[data-theme="light"] body .rewards-page button.rewards-alert-action {
+  background: #171717 !important;
+  background-color: #171717 !important;
+  color: #ffffff !important;
+  border: 1px solid #171717 !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 2px 7px rgb(0 0 0 / 14%) !important;
+}
+
+:root[data-theme="dark"] body .rewards-page button.rewards-primary-button,
+:root[data-theme="dark"] body .rewards-page button.rewards-redeem-button,
+:root[data-theme="dark"] body .rewards-page button.rewards-alert-action {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #080808 !important;
+  border: 1px solid #ffffff !important;
+  -webkit-text-fill-color: #080808 !important;
+  box-shadow: 0 2px 7px rgb(255 255 255 / 12%) !important;
+}
+
+:root[data-theme="light"] body .rewards-page button.rewards-secondary-button,
+:root[data-theme="light"] body .rewards-page button.rewards-refresh-button,
+:root[data-theme="light"] body .rewards-page button.rewards-alert-dismiss,
+:root[data-theme="light"] body .rewards-page button.rewards-modal-close {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #181818 !important;
+  border: 1px solid #777777 !important;
+  -webkit-text-fill-color: #181818 !important;
+}
+
+:root[data-theme="dark"] body .rewards-page button.rewards-secondary-button,
+:root[data-theme="dark"] body .rewards-page button.rewards-refresh-button,
+:root[data-theme="dark"] body .rewards-page button.rewards-alert-dismiss,
+:root[data-theme="dark"] body .rewards-page button.rewards-modal-close {
+  background: #111111 !important;
+  background-color: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #a0a0a0 !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+:root[data-theme="light"] body .rewards-page button:disabled {
+  background: #eeeeee !important;
+  background-color: #eeeeee !important;
+  color: #555555 !important;
+  border-color: #b8b8b8 !important;
+  -webkit-text-fill-color: #555555 !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] body .rewards-page button:disabled {
+  background: #242424 !important;
+  background-color: #242424 !important;
+  color: #c4c4c4 !important;
+  border-color: #666666 !important;
+  -webkit-text-fill-color: #c4c4c4 !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+}
+
+.rewards-page button:where(:not(:disabled)):hover {
+  filter: brightness(.94);
+}
+
+.rewards-page button:focus-visible {
+  outline: 3px solid var(--accent-color) !important;
+  outline-offset: 3px !important;
+}
+
+.rewards-page .rewards-share-actions > button,
+.rewards-page .rewards-confirm-actions > button,
+.rewards-page .rewards-footer-actions button {
+  min-width: 132px;
+}
+
+.rewards-page .rewards-redeem-button {
+  min-height: 48px;
+  padding: 10px 12px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.rewards-page .rewards-code-row .rewards-secondary-button {
+  min-width: 104px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 560px) {
+  .rewards-page :where(button, [role="button"]) {
+    min-height: 48px;
+    font-size: 13px !important;
+  }
+  .rewards-page .rewards-share-actions,
+  .rewards-page .rewards-confirm-actions,
+  .rewards-page .rewards-footer-actions > div {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  .rewards-page .rewards-share-actions > button,
+  .rewards-page .rewards-confirm-actions > button,
+  .rewards-page .rewards-footer-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+}
