@@ -342,7 +342,7 @@
   background: var(--surface-2-color);
 }
 
-.rewards-page button:active:not(:disabled) {
+.rewards-page button:active:not(:disabled):not(.rewards-modal-backdrop) {
   transform: translateY(0) scale(.985);
 }
 
