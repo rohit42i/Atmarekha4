@@ -88,7 +88,7 @@ function isPdlplChapterLocked(chapter, member, admin) {
 function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
   const locked = isPdlplChapterLocked(chapter, member, admin);
-  const desktopThumbnail = chapter.chapterListThumbnailDesktop || chapter.cover;
+  const desktopThumbnail = chapter.chapterListThumbnailDesktop || chapter.cover || chapter.chapterListThumbnailMobile;
   const mobileThumbnail = chapter.chapterListThumbnailMobile || desktopThumbnail;
 
   return <article className={`chapter-row${locked ? ' chapter-row-locked' : ''}`} data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
