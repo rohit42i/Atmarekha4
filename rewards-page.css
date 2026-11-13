@@ -1421,3 +1421,15 @@ html[data-theme="dark"] .rewards-page .rewards-redeem-button:disabled {
   color: #999 !important;
   border-color: #444 !important;
 }
+
+/* Keep the balance card readable in dark mode. */
+html[data-theme="dark"] .rewards-page .rewards-balance-card {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #333 !important;
+}
+
+html[data-theme="dark"] .rewards-page .rewards-balance-card .section-eyebrow,
+html[data-theme="dark"] .rewards-page .rewards-balance-card .rewards-balance-copy > strong {
+  color: #fff !important;
+}
