@@ -392,7 +392,7 @@ export default function RewardsPage() {
           <h2>Share stories. Earn coins.</h2>
           <p>Invite a friend to Atma Rekha. You receive 100 coins when they create a new account and verify their email.</p>
         </div>
-        <button type="button" className="rewards-refresh-button" onClick={() => load(user)} disabled={loading || claiming || Boolean(busyPlan)}>
+        <button type="button" className="rewards-refresh-button" aria-label={loading ? 'Refreshing rewards' : 'Refresh rewards balance'} onClick={() => load(user)} disabled={loading || claiming || Boolean(busyPlan)}>
           <span aria-hidden="true">{loading ? '…' : '↻'}</span>{loading ? 'Refreshing' : 'Refresh'}
         </button>
       </section>
@@ -470,8 +470,9 @@ export default function RewardsPage() {
             else if (activeReward) buttonLabel = 'Current reward active';
             else if (paidMembership) buttonLabel = 'Available after membership';
             else if (paidMembershipPending) buttonLabel = 'Complete paid checkout first';
+            else if (loading) buttonLabel = 'Checking balance…';
+            else if (loadError) buttonLabel = 'Refresh to check';
             else if (remaining > 0) buttonLabel = `Need ${coinText(remaining)} more coins`;
-            else if (loading || busyPlan) buttonLabel = 'Please wait…';
 
             return <article className="rewards-plan-card" key={plan.id}>
               <div className="rewards-plan-topline">
