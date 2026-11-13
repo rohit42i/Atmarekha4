@@ -35,6 +35,7 @@ const checks = [
   ['Invite sharing and copying are available', /navigator\.share/.test(files.page) && /copyText\(referralLink\)/.test(files.page)],
   ['Redemption uses an in-app accessible confirmation dialog', /role="dialog" aria-modal="true"/.test(files.page) && /Confirm redemption/.test(files.page)],
   ['Responsive and reduced-motion styles are present', /@media \(max-width: 700px\)/.test(files.pageCss) && /prefers-reduced-motion/.test(files.pageCss)],
+  ['Light and dark theme button labels have explicit high-contrast colors', /data-theme=\\"light\\" body \.rewards-page button\.rewards-primary-button/.test(files.pageCss) && /data-theme=\\"dark\\" body \.rewards-page button\.rewards-primary-button/.test(files.pageCss) && /-webkit-text-fill-color/.test(files.pageCss) && /button:disabled/.test(files.pageCss)],
 ];
 
 let failed = 0;
