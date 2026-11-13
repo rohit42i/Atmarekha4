@@ -51,8 +51,8 @@ create table if not exists public.coin_ledger (
   user_id uuid not null references auth.users(id) on delete cascade,
   amount integer not null check (amount <> 0),
   transaction_type text not null check (transaction_type in ('referral_reward','subscription_redemption','admin_adjustment')),
-  referral_signup_id uuid references public.referral_signups(id) on delete set null,
-  redemption_id uuid references public.reward_redemptions(id) on delete set null,
+  referral_signup_id uuid references public.referral_signups(id) on delete cascade,
+  redemption_id uuid references public.reward_redemptions(id) on delete cascade,
   description text not null,
   created_at timestamptz not null default now(),
   constraint coin_ledger_reference_check check (
