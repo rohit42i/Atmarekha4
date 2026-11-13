@@ -170,7 +170,7 @@ begin
 end;
 $function$;
 
-create or replace function public.claim_referral_rewards()
+create or replace function private.claim_referral_rewards()
 returns jsonb
 language plpgsql
 security definer
@@ -223,7 +223,16 @@ create trigger atma_qualify_referral_signup
   after update of email_confirmed_at on auth.users
   for each row execute function private.qualify_referral_signup();
 
-create or replace function public.get_referral_rewards()
+create or replace function public.claim_referral_rewards()
+returns jsonb
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.claim_referral_rewards();
+$function$;
+
+create or replace function private.get_referral_rewards()
 returns jsonb
 language plpgsql
 security definer
@@ -319,7 +328,16 @@ begin
 end;
 $function$;
 
-create or replace function public.redeem_reward_subscription(p_plan_id text)
+create or replace function public.get_referral_rewards()
+returns jsonb
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.get_referral_rewards();
+$function$;
+
+create or replace function private.redeem_reward_subscription(p_plan_id text)
 returns jsonb
 language plpgsql
 security definer
@@ -395,7 +413,16 @@ begin
 end;
 $function$;
 
-create or replace function public.has_current_reward_membership(p_plan_ids text[])
+create or replace function public.redeem_reward_subscription(p_plan_id text)
+returns jsonb
+language sql
+security invoker
+set search_path = ''
+as $function$
+  select private.redeem_reward_subscription(p_plan_id);
+$function$;
+
+create or replace function private.has_current_reward_membership(p_plan_ids text[])
 returns boolean
 language sql
 stable
@@ -411,14 +438,25 @@ as $function$
   );
 $function$;
 
+-- The exposed public RPCs are invoker wrappers. Privileged implementation
+-- stays in the non-exposed private schema and verifies auth.uid() internally.
+grant usage on schema private to authenticated;
+
+revoke all on function private.claim_referral_rewards() from public, anon, authenticated;
+revoke all on function private.get_referral_rewards() from public, anon, authenticated;
+revoke all on function private.redeem_reward_subscription(text) from public, anon, authenticated;
+revoke all on function private.has_current_reward_membership(text[]) from public, anon, authenticated;
+grant execute on function private.claim_referral_rewards() to authenticated;
+grant execute on function private.get_referral_rewards() to authenticated;
+grant execute on function private.redeem_reward_subscription(text) to authenticated;
+grant execute on function private.has_current_reward_membership(text[]) to authenticated;
+
 revoke all on function public.claim_referral_rewards() from public, anon;
 revoke all on function public.get_referral_rewards() from public, anon;
 revoke all on function public.redeem_reward_subscription(text) from public, anon;
-revoke all on function public.has_current_reward_membership(text[]) from public, anon;
 grant execute on function public.claim_referral_rewards() to authenticated;
 grant execute on function public.get_referral_rewards() to authenticated;
 grant execute on function public.redeem_reward_subscription(text) to authenticated;
-grant execute on function public.has_current_reward_membership(text[]) to authenticated;
 
 drop policy if exists atma_reward_members_read_paid_chapters on public.chapter_pages;
 create policy atma_reward_members_read_paid_chapters
@@ -429,7 +467,7 @@ using (
     where c.id = chapter_pages.chapter_id
       and c.chapter_number > 8
   )
-  and (select public.has_current_reward_membership(array['mini_member','supporter','premium_yearly']::text[]))
+  and (select private.has_current_reward_membership(array['mini_member','supporter','premium_yearly']::text[]))
 );
 
 drop policy if exists pdlpl_reward_members_read_published_chapters on public.pal_do_pal_ke_lamhe_chapter_pages;
