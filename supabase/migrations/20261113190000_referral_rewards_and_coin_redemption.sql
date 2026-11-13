@@ -387,13 +387,26 @@ begin
   select us.plan_id into v_active_plan
   from public.user_subscriptions us
   where us.user_id = v_uid
-    and us.status in ('active','cancelled')
-    and (us.current_period_end is null or us.current_period_end > now())
+    and (
+      (us.status = 'active' and (us.current_period_end is null or us.current_period_end > now()))
+      or
+      (us.status = 'cancelled' and us.current_period_end is not null and us.current_period_end > now())
+    )
   order by us.current_period_end desc nulls first
   limit 1;
 
   if v_active_plan is not null then
     raise exception 'Your paid membership is already active. You can redeem coins after it expires.';
+  end if;
+
+  if exists (
+    select 1
+    from public.user_subscriptions us
+    where us.user_id = v_uid
+      and us.status = 'pending'
+      and us.created_at > now() - interval '30 minutes'
+  ) then
+    raise exception 'A paid membership checkout is already pending. Complete it or wait 30 minutes before redeeming coins.';
   end if;
 
   if exists (
