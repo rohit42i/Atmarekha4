@@ -104,19 +104,19 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
         </picture> : <span>PDPKL</span>}
         {locked && <span className="chapter-row-cover-lock">🔒</span>}
       </div>
-      <div className="chapter-row-title">
-        <span>{formatLabel(chapter)}</span>
-        <h2>{chapter.title || 'Untitled chapter'}{locked && <span className="chapter-lock-badge"><span className="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span></span>}</h2>
-      </div>
-      <div className="chapter-row-meta">
-        <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
-        <span>•</span>
-        <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-        <span>•</span>
-        
-      </div>
-      <div className="chapter-row-details">
-        <span>📄 {pageCount || '—'} pages</span>
+      <div className="chapter-row-copy">
+        <div className="chapter-row-title">
+          <span>{formatLabel(chapter)}</span>
+          <h2>{chapter.title || 'Untitled chapter'}{locked && <span className="chapter-lock-badge"><span className="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span></span>}</h2>
+        </div>
+        <div className="chapter-row-meta">
+          <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
+          <span>•</span>
+          <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+        </div>
+        <div className="chapter-row-details">
+          <span>📄 {pageCount || '—'} pages</span>
+        </div>
       </div>
     </a>
     <div className="chapter-row-actions">
