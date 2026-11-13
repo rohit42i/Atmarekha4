@@ -561,7 +561,6 @@ html[data-theme="light"] main.admin-page.ar-admin-v3 .pdlpl-admin-embedded{
 /* Public PDPKL chapter thumbnails: visible to everyone, while chapter pages remain membership-gated. */
 .chapter-row{display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;gap:14px;}
 .chapter-row-cover{position:relative;width:72px;height:96px;overflow:hidden;border:1px solid var(--border-color,#d6d6d6);border-radius:8px;background:var(--card-bg,#fff);display:grid;place-items:center;flex:0 0 72px;}
-.chapter-row-cover picture{display:block;width:100%;height:100%;}
 .chapter-row-cover img{width:100%;height:100%;display:block;object-fit:cover;}
 .chapter-row-cover>span:first-child:not(.chapter-row-cover-lock){font-size:9px;font-weight:800;letter-spacing:.08em;opacity:.55;}
 .chapter-row-cover-lock{position:absolute!important;right:5px;bottom:5px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#000;color:#fff;font-size:11px;box-shadow:none;}
@@ -747,6 +746,34 @@ html[data-theme="dark"] .chapter-discovery .chapter-sort option{
 }
 
 
+/* Public PDPKL thumbnail final sizing — preserve full cover artwork without changing list behavior. */
+.pdlpl-page-list .chapter-row-cover{
+  width:72px!important;
+  height:96px!important;
+  flex:0 0 72px!important;
+  overflow:hidden!important;
+  display:block!important;
+  position:relative!important;
+  box-sizing:border-box!important;
+}
+.pdlpl-page-list .chapter-row-cover img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}
+@media(max-width:640px){
+  .pdlpl-page-list .chapter-row-cover{
+    width:56px!important;
+    height:76px!important;
+    flex-basis:56px!important;
+  }
+}
+
+
 /* PDPKL desktop home card: match the Atma Rekha main card dimensions. */
 @media (min-width: 600px) {
   .pdlpl-home-card {
@@ -769,69 +796,5 @@ html[data-theme="dark"] .chapter-discovery .chapter-sort option{
 @media (min-width: 1280px) {
   .pdlpl-home-card {
     width: min(960px, calc(100% - 120px)) !important;
-  }
-}
-
-/* PDPKL chapter list owns its row layout; do not inherit Atma Rekha card geometry. */
-.pdlpl-page-list .chapter-row {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-}
-.pdlpl-page-list .chapter-row-main {
-  grid-column: 1 / span 2;
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  color: inherit;
-  text-decoration: none;
-}
-.pdlpl-page-list .chapter-row-cover {
-  width: 72px;
-  height: 96px;
-  flex: 0 0 72px;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-.pdlpl-page-list .chapter-row-cover picture {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.pdlpl-page-list .chapter-row-cover img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  object-fit: cover;
-  object-position: center;
-}
-.pdlpl-page-list .chapter-row-copy {
-  display: grid;
-  min-width: 0;
-  gap: 0;
-}
-.pdlpl-page-list .chapter-row-copy > * {
-  min-width: 0;
-}
-@media (max-width: 640px) {
-  .pdlpl-page-list .chapter-row {
-    grid-template-columns: 56px minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 10px;
-  }
-  .pdlpl-page-list .chapter-row-main {
-    grid-template-columns: 56px minmax(0, 1fr);
-    align-items: start;
-    gap: 10px;
-  }
-  .pdlpl-page-list .chapter-row-cover {
-    width: 56px;
-    height: 76px;
-    flex-basis: 56px;
   }
 }
