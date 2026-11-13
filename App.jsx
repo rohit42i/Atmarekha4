@@ -17,6 +17,7 @@ import ContinueReading from './ContinueReading.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
 import MorePage from './MorePage.jsx';
+import RewardsPage from './RewardsPage.jsx';
 
 const MEMBER_PLAN_IDS = new Set(['mini_member', 'supporter', 'premium', 'premium_yearly']);
 
@@ -947,6 +948,7 @@ export default function App() { const route = useHashRoute(); const [chapters, s
   }, [route]);
  useEffect(() => { let cancelled = false; buildChapters().then(data => { if (!cancelled) setChapters(data.filter(published).sort((a, b) => Number(a.chapterNumber) - Number(b.chapterNumber))); }).catch(err => { if (!cancelled) setError(err?.message || 'Unable to load chapters.'); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []); useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);   if (route === 'info/privacy' || route === 'privacy-center') return <PrivacyCenter/>;
   if (route === 'more') return <MorePage/>;
+  if (route === 'rewards') return <RewardsPage/>;
   if (route.startsWith('chapter/')) {
     const chapter = findChapterForPath('/' + route, chapters);
     if (loading) return <main className="reader-page"><LoadingState label="Opening chapter…"/></main>;
