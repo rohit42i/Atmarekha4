@@ -16,6 +16,13 @@ import ChapterDiscovery, { ChapterDiscoveryRender } from './ChapterDiscovery.jsx
 import ContinueReading from './ContinueReading.jsx';
 import PrivacyCenter from './PrivacyCenter.jsx';
 import { captureMarketingAttribution } from './attribution';
+
+try {
+  const referralCode = new URL(window.location.href).searchParams.get('ref') || '';
+  if (/^[A-Fa-f0-9]{10}$/.test(referralCode)) {
+    window.localStorage.setItem('atma-referral-code', referralCode.toUpperCase());
+  }
+} catch {}
 import MorePage from './MorePage.jsx';
 import RewardsPage from './RewardsPage.jsx';
 
