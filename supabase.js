@@ -345,7 +345,13 @@ export async function getCurrentMemberships(userIds = []) {
     const bEnd = b.current_period_end ? new Date(b.current_period_end).getTime() : Number.POSITIVE_INFINITY;
     return bEnd - aEnd;
   });
-  return new Map(rows.filter(row => row?.user_id && row?.plan_id).map(row => [row.user_id, row.plan_id]));
+  const memberships = new Map();
+  for (const row of rows) {
+    if (row?.user_id && row?.plan_id && !memberships.has(row.user_id)) {
+      memberships.set(row.user_id, row.plan_id);
+    }
+  }
+  return memberships;
 }
 
 export async function getCurrentMembership(userId) { if (!userId) return null; return (await getCurrentMemberships([userId])).get(userId) || null; }
