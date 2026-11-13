@@ -88,6 +88,8 @@ function isPdlplChapterLocked(chapter, member, admin) {
 function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onRating, onComments }) {
   const item = stats?.[chapter.id] || { rating: { average: 0, count: 0 }, views: 0, comments: 0 };
   const locked = isPdlplChapterLocked(chapter, member, admin);
+  const desktopThumbnail = chapter.chapterListThumbnailDesktop || chapter.cover || chapter.chapterListThumbnailMobile;
+  const mobileThumbnail = chapter.chapterListThumbnailMobile || desktopThumbnail;
 
   return <article className={`chapter-row${locked ? ' chapter-row-locked' : ''}`} data-chapter-id={String(chapter.id)} data-engagement-source="pdlpl">
     <a className="chapter-row-main" href={`#${PDLPL_ROUTE}/read/${encodeURIComponent(chapter.id)}`} onClick={event => {
@@ -96,22 +98,25 @@ function PdlplChapterRow({ chapter, member, admin, onOpen, pageCount, stats, onR
       onOpen(chapter);
     }} aria-label={locked ? `${formatLabel(chapter)} — members only` : `Read ${formatLabel(chapter)}`}>
       <div className="chapter-row-cover" aria-hidden="true">
-        {chapter.cover ? <img src={chapter.cover} alt="" loading="lazy" decoding="async" /> : <span>PDPKL</span>}
+        {desktopThumbnail ? <picture>
+          <source media="(max-width: 640px)" srcSet={mobileThumbnail} />
+          <img src={desktopThumbnail} alt="" loading="lazy" decoding="async" />
+        </picture> : <span>PDPKL</span>}
         {locked && <span className="chapter-row-cover-lock">🔒</span>}
       </div>
-      <div className="chapter-row-title">
-        <span>{formatLabel(chapter)}</span>
-        <h2>{chapter.title || 'Untitled chapter'}{locked && <span className="chapter-lock-badge"><span className="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span></span>}</h2>
-      </div>
-      <div className="chapter-row-meta">
-        <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
-        <span>•</span>
-        <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
-        <span>•</span>
-        
-      </div>
-      <div className="chapter-row-details">
-        <span>📄 {pageCount || '—'} pages</span>
+      <div className="chapter-row-copy">
+        <div className="chapter-row-title">
+          <span>{formatLabel(chapter)}</span>
+          <h2>{chapter.title || 'Untitled chapter'}{locked && <span className="chapter-lock-badge"><span className="chapter-lock-badge-icon" aria-hidden="true">🔒</span><span>Members</span></span>}</h2>
+        </div>
+        <div className="chapter-row-meta">
+          <span>{item.rating.count ? `${item.rating.average.toFixed(1)}/10` : '—'} <b>★</b></span>
+          <span>•</span>
+          <span>{formatDate(chapter.releaseDate || chapter.createdAt)}</span>
+        </div>
+        <div className="chapter-row-details">
+          <span>📄 {pageCount || '—'} pages</span>
+        </div>
       </div>
     </a>
     <div className="chapter-row-actions">
