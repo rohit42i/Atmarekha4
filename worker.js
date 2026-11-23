@@ -1,5 +1,5 @@
 const SITE_ORIGIN = "https://www.atmarekha.in";
-const DEFAULT_SHARE_IMAGE = SITE_ORIGIN + "/og-atmarekha.jpg?v=20261109-share3";
+const DEFAULT_SHARE_IMAGE = SITE_ORIGIN + "/og-atmarekha.jpg?v=20261124-share4";
 const SUPABASE_URL = "https://pbukwjokgkqacaphlqzm.supabase.co";
 const PUBLIC_SUPABASE_KEY = "sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E";
 
