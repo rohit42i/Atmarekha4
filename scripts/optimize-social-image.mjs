@@ -37,6 +37,9 @@ let chosenQuality;
 for (const quality of QUALITY_LEVELS) {
   output = await sharp(source)
     .rotate()
+    // The source artwork can contain transparent pixels. JPEG has no alpha
+    // channel, so flatten onto a deliberate light canvas instead of black.
+    .flatten({ background: "#f5f1e8" })
     .resize(WIDTH, HEIGHT, {
       fit: "cover",
       position: sharp.strategy.attention,
