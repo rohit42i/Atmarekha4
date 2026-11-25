@@ -40,6 +40,11 @@ export async function buildPdlplChapters() {
 }
 
 let pdlplAccessCache = { key: '', value: null, expiresAt: 0 };
+if (typeof window !== 'undefined') {
+  window.addEventListener('atma:membership-updated', () => {
+    pdlplAccessCache = { key: '', value: null, expiresAt: 0 };
+  });
+}
 const PDLPL_ACCESS_CACHE_MS = 30 * 1000;
 
 export async function getPdlplMemberAccess() {

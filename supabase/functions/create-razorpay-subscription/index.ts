@@ -118,6 +118,18 @@ Deno.serve(async req => {
     const activeExisting = rows.find(row => row.status === 'active' || (row.status === 'cancelled' && row.current_period_end && new Date(row.current_period_end).getTime() > now));
     if (activeExisting) return json({ error: 'You already have an active membership.', subscription_id: activeExisting.provider_subscription_id || null, plan_id: activeExisting.plan_id }, 409, origin);
 
+    const { data: activeRewardRows, error: rewardLookupError } = await admin
+      .from('reward_subscriptions')
+      .select('plan_id,expires_at')
+      .eq('user_id', user.id)
+      .gt('expires_at', new Date().toISOString())
+      .order('expires_at', { ascending: false })
+      .limit(1);
+    if (rewardLookupError) throw new Error(`Rewards membership lookup failed: ${rewardLookupError.message}`);
+    if (activeRewardRows?.length) {
+      return json({ error: 'Your coin-redeemed membership is active until ' + new Date(activeRewardRows[0].expires_at).toLocaleDateString('en-IN') + '. You can start a paid membership after it expires.' }, 409, origin);
+    }
+
     // Never reuse an old Razorpay subscription. Always create a fresh subscription for the selected plan.
     const razorpayPlanId = await findOrCreatePlan(plan, keyId, keySecret);
     const subscription = await razorpay('/subscriptions', 'POST', keyId, keySecret, {

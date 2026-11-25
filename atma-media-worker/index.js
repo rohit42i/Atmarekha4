@@ -134,18 +134,33 @@ async function isAdmin(user, request, env) {
 
 async function hasPaidAtmaMembership(user, request, env) {
   if (!user?.id || !bearer(request)) return false;
-  const rows = await supabaseRows(env, 'user_subscriptions', {
-    select: 'plan_id,status,current_period_end',
-    user_id: 'eq.' + user.id,
-    status: 'in.(active,cancelled)',
-  }, bearer(request));
+  const authorization = bearer(request);
+  const [paidRows, rewardRows] = await Promise.all([
+    supabaseRows(env, 'user_subscriptions', {
+      select: 'plan_id,status,current_period_end',
+      user_id: 'eq.' + user.id,
+      status: 'in.(active,cancelled)',
+    }, authorization),
+    supabaseRows(env, 'reward_subscriptions', {
+      select: 'plan_id,expires_at',
+      user_id: 'eq.' + user.id,
+      expires_at: 'gt.' + new Date().toISOString(),
+    }, authorization),
+  ]);
 
   const now = Date.now();
-  return (rows || []).some(row => {
+  const hasPaidAccess = (paidRows || []).some(row => {
     if (!['mini_member', 'supporter', 'premium', 'premium_yearly'].includes(String(row?.plan_id || '').toLowerCase())) return false;
     const end = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
     if (row.status === 'active') return end === null || end > now;
     return row.status === 'cancelled' && end !== null && end > now;
+  });
+  if (hasPaidAccess) return true;
+
+  return (rewardRows || []).some(row => {
+    if (!['mini_member', 'supporter', 'premium_yearly'].includes(String(row?.plan_id || '').toLowerCase())) return false;
+    const end = row.expires_at ? new Date(row.expires_at).getTime() : null;
+    return end !== null && end > now;
   });
 }
 

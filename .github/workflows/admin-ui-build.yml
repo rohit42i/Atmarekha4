@@ -58,3 +58,7 @@ jobs:
         run: npm ci
       - name: Build production bundle
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://pbukwjokgkqacaphlqzm.supabase.co
+          # The publishable key is intended for public application builds.
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_g0VUtYwOVwHcfRoY3zD9FA_seUEV61E
